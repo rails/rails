@@ -1730,7 +1730,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_anonymous_extension
     relation = Post.where(author_id: 1).order("id ASC").extending do
-      def author
+      def author # rubocop:disable Lint/NestedMethodDefinition
         "lifo"
       end
     end

@@ -45,14 +45,10 @@ module ApplicationTests
     test "rails load_config_initializer event is instrumented" do
       app_file "config/initializers/foo.rb", ""
 
-      events = []
-      callback = ->(*_) { events << _ }
-      ActiveSupport::Notifications.subscribed(callback, "load_config_initializer.railties") do
-        app
-      end
+      event = capture_notifications("load_config_initializer.railties") { app }.first
 
-      assert_equal %w[load_config_initializer.railties], events.map(&:first)
-      assert_includes events.first.last[:initializer], "config/initializers/foo.rb"
+      assert_equal "load_config_initializer.railties", event.name
+      assert_match "config/initializers/foo.rb", event.payload[:initializer]
     end
   end
 end

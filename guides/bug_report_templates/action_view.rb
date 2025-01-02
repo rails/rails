@@ -18,6 +18,7 @@ class TestApp < Rails::Application
   config.load_defaults Rails::VERSION::STRING.to_f
   config.eager_load = false
   config.logger = Logger.new($stdout)
+  config.secret_key_base = "secret_key_base"
 end
 Rails.application.initialize!
 

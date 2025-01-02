@@ -232,6 +232,8 @@ module ActiveRecord
         end
 
         def defined_for?(name: nil, column: nil, **options)
+          options = options.slice(*self.options.keys)
+
           (name.nil? || self.name == name.to_s) &&
             (column.nil? || Array(self.column) == Array(column).map(&:to_s)) &&
             options.all? { |k, v| self.options[k].to_s == v.to_s }

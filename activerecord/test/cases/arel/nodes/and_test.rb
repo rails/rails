@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "And" do
+    class AndTest < Arel::Spec
       describe "equality" do
         it "is equal with equal ivars" do
           array = [And.new(["foo", "bar"]), And.new(["foo", "bar"])]

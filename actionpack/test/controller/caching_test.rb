@@ -255,15 +255,9 @@ Ciao
   end
 
   def test_fragment_cache_instrumentation
-    payload = nil
-
-    subscriber = proc do |event|
-      payload = event.payload
-    end
-
-    ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_controller") do
+    payload = capture_notifications("read_fragment.action_controller") do
       get :inline_fragment_cached
-    end
+    end.first.payload
 
     assert_equal "functional_caching", payload[:controller]
     assert_equal "inline_fragment_cached", payload[:action]

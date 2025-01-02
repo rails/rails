@@ -425,10 +425,14 @@ module ActiveRecord
 
       def _klass(class_name) # :nodoc:
         if active_record.name.demodulize == class_name
-          return compute_class("::#{class_name}") rescue NameError
+          begin
+            compute_class("::#{class_name}")
+          rescue NameError
+            compute_class(class_name)
+          end
+        else
+          compute_class(class_name)
         end
-
-        compute_class(class_name)
       end
 
       def compute_class(name)
@@ -649,6 +653,10 @@ module ActiveRecord
 
       def source_reflection
         self
+      end
+
+      def source_reflection_name
+        source_reflection.name
       end
 
       # A chain of reflections from this one back to the owner. For more see the explanation in
@@ -1227,7 +1235,7 @@ module ActiveRecord
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
       delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key,
-               :name, :scope_for, to: :@reflection
+               :name, :scope_for, :collection?, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         super()

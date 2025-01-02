@@ -12,7 +12,7 @@ module ActiveRecord
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
-        db_config._database = "#{db_config.database}-#{i}"
+        db_config._database = "#{db_config.database}_#{i}"
 
         ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, ActiveRecord.schema_format, nil)
       end

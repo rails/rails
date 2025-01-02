@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe Casted do
+    class CastedTest < Arel::Spec
       describe "#hash" do
         it "is equal when eql? returns true" do
           one = Casted.new 1, 2

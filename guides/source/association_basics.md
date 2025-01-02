@@ -1623,7 +1623,7 @@ In our example, `imageable_id` could be the ID of either an `Employee` or a
 either `Employee` or `Product`.
 
 While creating the polymorphic association manually is acceptable, it is instead
-recommended to use `t.references` or its alias `t.belong_to` and specify
+recommended to use `t.references` or its alias `t.belongs_to` and specify
 `polymorphic: true` so that Rails knows that the association is polymorphic, and
 it automatically adds both the foreign key and type columns to the table.
 
@@ -1660,7 +1660,7 @@ instructed otherwise.
 If you're working with composite primary keys in your Rails models and need to
 ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
-guide](active_record_composite_primary_keys#associations-between-models-with-composite-primary-keys).
+guide](active_record_composite_primary_keys.html#associations-between-models-with-composite-primary-keys).
 This section provides comprehensive guidance on setting up and using
 associations with composite primary keys in Rails, including how to specify
 composite foreign keys when necessary.
@@ -1768,7 +1768,7 @@ Next, we generate the `Car`, `Motorcycle`, and `Bicycle` models that inherit
 from Vehicle. These models won't have their own tables; instead, they will use
 the `vehicles` table.
 
-To generate the`Car` model:
+To generate the `Car` model:
 
 ```bash
 $ bin/rails generate model car --parent=Vehicle
@@ -2770,7 +2770,7 @@ The `:association_foreign_key` can be found on a `has_and_belongs_to_many`
 relationship. By convention, Rails assumes that the column in the join table
 used to hold the foreign key pointing to the other model is the name of that
 model with the suffix `_id` added. The `:association_foreign_key` option lets
-you set the name of the foreign key directly For example:
+you set the name of the foreign key directly. For example:
 
 ```ruby
 class User < ApplicationRecord
@@ -3110,7 +3110,7 @@ class Author < ApplicationRecord
 end
 ```
 
-By default, querying `@auth books.size` results in a database call to perform a
+By default, querying `author.books.size` results in a database call to perform a
 `COUNT(*)` query. To optimize this, you can add a counter cache to the
 _belonging_ model (in this case, `Book`). This way, Rails can return the count
 directly from the cache without querying the database.
@@ -3301,4 +3301,4 @@ end
 In this example, the `find_and_log` method performs a query on the association
 and logs the query details using the owner's logger. The method accesses the
 owner's logger via `proxy_association.owner` and the association's name via
-`proxy_association.reflection`.name.
+`proxy_association.reflection.name`.

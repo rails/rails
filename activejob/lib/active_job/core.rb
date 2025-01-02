@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module ActiveJob
+  # Raised during job payload deserialization when it references an uninitialized job class.
+  class UnknownJobClassError < NameError
+    def initialize(job_class_name)
+      super("Failed to instantiate job, class `#{job_class_name}` doesn't exist", job_class_name)
+    end
+  end
+
   # = Active Job \Core
   #
   # Provides general behavior that will be included into every Active Job
@@ -60,7 +67,10 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job = job_data["job_class"].constantize.new
+        job_class = job_data["job_class"].safe_constantize
+        raise UnknownJobClassError, job_data["job_class"] unless job_class
+
+        job = job_class.new
         job.deserialize(job_data)
         job
       end

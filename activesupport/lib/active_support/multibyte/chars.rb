@@ -55,7 +55,10 @@ module ActiveSupport # :nodoc:
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
         @wrapped_string = string
-        @wrapped_string.force_encoding(Encoding::UTF_8) unless @wrapped_string.frozen?
+        if string.encoding != Encoding::UTF_8
+          @wrapped_string = @wrapped_string.dup
+          @wrapped_string.force_encoding(Encoding::UTF_8)
+        end
       end
 
       # Forward all undefined methods to the wrapped string.

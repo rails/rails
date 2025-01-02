@@ -28,6 +28,24 @@ module ActionDispatch
       end
     end
 
+    class TestTemplate
+      attr_reader :method_name
+
+      def initialize(method_name)
+        @method_name = method_name
+      end
+
+      def spot(backtrace_location)
+        { first_lineno: 1, script_lines: ["compiled @ #{backtrace_location.base_label}:#{backtrace_location.lineno}"] }
+      end
+
+      def translate_location(backtrace_location, spot)
+        # note: extract_source_fragment_lines pulls lines from script_lines for indexes near first_lineno
+        # since we're mocking the behavior, we need to leave the first_lineno close to 1
+        { first_lineno: 1, script_lines: ["translated @ #{backtrace_location.base_label}:#{backtrace_location.lineno}"] }
+      end
+    end
+
     setup do
       @cleaner = ActiveSupport::BacktraceCleaner.new
       @cleaner.remove_filters!
@@ -70,7 +88,7 @@ module ActionDispatch
     end
 
     class_eval "def throw_syntax_error; eval %(
-      'abc' + pluralize 'def'
+      pluralize { # create a syntax error without a parser warning
     ); end", "lib/file.rb", 42
 
     test "#source_extracts works with eval syntax error" do
@@ -79,8 +97,8 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-       assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
-     end
+        assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+      end
     end
 
     test "#source_extracts works with nil backtrace_locations" do
@@ -106,6 +124,62 @@ module ActionDispatch
       end
       code[lineno + 2] = ["        1", ".time", "\n"]
       assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
+    end
+
+    class_eval "def _app_views_tests_show_html_erb;
+      raise TestError; end", "app/views/tests/show.html.erb", 2
+
+    test "#source_extracts wraps template lines in a SourceMapLocation" do
+      exception = begin _app_views_tests_show_html_erb; rescue TestError => ex; ex; end
+
+      template = TestTemplate.new("_app_views_tests_show_html_erb")
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      wrapper = nil
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      end
+
+      assert_equal [{
+        code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+        line_number: 1
+      }], wrapper.source_extracts
+    end
+
+    class_eval "def _app_views_tests_nested_html_erb;
+      [1].each do
+        [2].each do
+          raise TestError
+        end
+      end
+    end", "app/views/tests/nested.html.erb", 2
+
+    test "#source_extracts works with nested template code" do
+      exception = begin _app_views_tests_nested_html_erb; rescue TestError => ex; ex; end
+
+      template = TestTemplate.new("_app_views_tests_nested_html_erb")
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      wrapper = nil
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 5))
+      end
+
+      extracts = wrapper.source_extracts
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+        line_number: 1
+      }, extracts[0])
+      # extracts[1] is Array#each (unreliable backtrace across rubies)
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+        line_number: 1
+      }, extracts[2])
+      # extracts[3] is Array#each (unreliable backtrace across rubies)
+      assert_equal({
+        code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+        line_number: 1
+      }, extracts[4])
     end
 
     test "#application_trace returns traces only from the application" do

@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "Cte" do
+    class CteTest < Arel::Spec
       describe "equality" do
         it "is equal with equal ivars" do
           array = [

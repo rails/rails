@@ -188,10 +188,10 @@ class InsertAllTest < ActiveRecord::TestCase
   def test_skip_duplicates_strategy_does_not_secretly_upsert
     skip unless supports_insert_on_duplicate_skip?
 
-    book = Book.create!(author_id: 8, name: "Refactoring", format: "EXPECTED")
+    book = Book.create!(format: "EXPECTED", author_id: 8, name: "Refactoring")
 
     assert_no_difference "Book.count" do
-      Book.insert({ author_id: 8, name: "Refactoring", format: "UNEXPECTED" })
+      Book.insert_all([{ format: "UNEXPECTED", author_id: 8, name: "Refactoring" }])
     end
 
     assert_equal "EXPECTED", book.reload.format
@@ -729,6 +729,14 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_resets_relation
+    audit_logs = Developer.create!(name: "Alice").audit_logs.load
+
+    assert_changes "audit_logs.loaded?", from: true, to: false do
+      audit_logs.insert_all!([{ message: "event" }])
+    end
+  end
+
   def test_insert_all_create_with
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
@@ -761,6 +769,16 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_all_resets_relation
+    skip unless supports_insert_on_duplicate_update?
+
+    audit_logs = Developer.create!(name: "Alice").audit_logs.load
+
+    assert_changes "audit_logs.loaded?", from: true, to: false do
+      audit_logs.upsert_all([{ id: 1, message: "event" }])
+    end
+  end
+
   def test_upsert_all_create_with
     skip unless supports_insert_on_duplicate_update?
 
@@ -770,6 +788,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_has_many_through
+    skip unless supports_insert_on_duplicate_update?
+
     book = Book.first
     assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
@@ -787,7 +807,7 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "written", Book.find(2).status
   end
 
-  if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+  if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_upsert_all_updates_using_values_function_on_duplicate_raw_sql
       skip unless supports_insert_on_duplicate_update?
 

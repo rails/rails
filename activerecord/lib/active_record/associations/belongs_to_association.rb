@@ -19,10 +19,16 @@ module ActiveRecord
             id = owner.public_send(reflection.foreign_key)
           end
 
+          association_class = if reflection.polymorphic?
+            owner.public_send(reflection.foreign_type)
+          else
+            reflection.klass
+          end
+
           enqueue_destroy_association(
             owner_model_name: owner.class.to_s,
             owner_id: owner.id,
-            association_class: reflection.klass.to_s,
+            association_class: association_class.to_s,
             association_ids: [id],
             association_primary_key_column: primary_key_column,
             ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)

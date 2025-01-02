@@ -7,22 +7,16 @@ class PartialRenderingQueryTest < ActiveRecordTestCase
     @view = ActionView::Base
       .with_empty_template_cache
       .with_view_paths(ActionController::Base.view_paths, {})
-
-    @queries = []
-
-    @subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      @queries << payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(payload[:name])
-    end
-  end
-
-  def teardown
-    ActiveSupport::Notifications.unsubscribe(@subscriber)
   end
 
   def test_render_with_relation_collection
-    @view.render partial: "topics/topic", collection: Topic.all
+    notifications = capture_notifications("sql.active_record") do
+      @view.render partial: "topics/topic", collection: Topic.all
+    end
 
-    assert_equal 1, @queries.size
-    assert_equal 'SELECT "topics".* FROM "topics"', @queries[0]
+    queries = notifications.filter_map { _1.payload[:sql] unless %w[ SCHEMA TRANSACTION ].include?(_1.payload[:name]) }
+
+    assert_equal 1, queries.size
+    assert_equal 'SELECT "topics".* FROM "topics"', queries[0]
   end
 end

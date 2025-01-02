@@ -215,6 +215,9 @@ Layout/TrailingWhitespace:
 Style/RedundantPercentQ:
   Enabled: true
 
+Lint/NestedMethodDefinition:
+  Enabled: true
+
 Lint/AmbiguousOperator:
   Enabled: true
 

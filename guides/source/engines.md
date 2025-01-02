@@ -440,11 +440,11 @@ model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the engine root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: an `article_id` integer
-and `text` text column.
+`Comment` model, with the related table having two columns: an `article` references
+column and `text` text column.
 
 ```bash
-$ bin/rails generate model Comment article_id:integer text:text
+$ bin/rails generate model Comment article:references text:text
 ```
 
 This will output the following:

@@ -39,15 +39,15 @@ Once you open an issue, it may or may not see activity right away unless it is a
 
 Having a way to reproduce your issue will help people confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
-* Template for Active Record (models, database) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
-* Template for testing Active Record (migration) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
-* Template for Action Pack (controllers, routing) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
-* Template for Action View (views, helpers) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
-* Template for Active Job issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
-* Template for Active Storage issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
-* Template for Action Mailer issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
-* Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
-* Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
+* [Template for Active Record (models, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+* [Template for testing Active Record (migration) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+* [Template for Action Pack (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
+* [Template for Action View (views, helpers) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+* [Template for Active Job issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+* [Template for Active Storage issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+* [Template for Action Mailer issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+* [Template for Action Mailbox issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+* [Generic template for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
 These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 

@@ -52,8 +52,8 @@ module ActiveSupport
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
-      #   test-database-0
-      #   test-database-1
+      #   test-database_0
+      #   test-database_1
       #
       # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI

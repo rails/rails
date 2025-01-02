@@ -19,14 +19,30 @@ SQLite3::ForkSafety.suppress_warnings!
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record SQLite3 Adapter
+    # = Active Record \SQLite3 Adapter
     #
-    # The SQLite3 adapter works with the sqlite3-ruby drivers
-    # (available as gem from https://rubygems.org/gems/sqlite3).
+    # The \SQLite3 adapter works with the sqlite3[https://sparklemotion.github.io/sqlite3-ruby/]
+    # driver.
     #
     # Options:
     #
-    # * <tt>:database</tt> - Path to the database file.
+    # * +:database+ (String): Filesystem path to the database file.
+    # * +:statement_limit+ (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)
+    # * +:timeout+ (Integer): Timeout in milliseconds to use when waiting for a lock. (default: no wait)
+    # * +:strict+ (Boolean): Enable or disable strict mode. When enabled, this will
+    #   {disallow double-quoted string literals in SQL
+    #   statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted].
+    #   (default: see strict_strings_by_default)
+    # * +:extensions+ (Array): (<b>requires sqlite3 v2.4.0</b>) Each entry specifies a sqlite extension
+    #   to load for this database. The entry may be a filesystem path, or the name of a class that
+    #   responds to +.to_path+ to provide the filesystem path for the extension. See {sqlite3-ruby
+    #   documentation}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#class-SQLite3::Database-label-SQLite+Extensions]
+    #   for more information.
+    #
+    # There may be other options available specific to the SQLite3 driver. Please read the
+    # documentation for
+    # {SQLite::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
+    #
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
 
@@ -58,12 +74,19 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Configure the SQLite3Adapter to be used in a strict strings mode.
-      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
-      # For example, it is possible to create an index for a non existing column.
+      #
+      # Configure the SQLite3Adapter to be used in a "strict strings" mode. When enabled, this will
+      # {disallow double-quoted string literals in SQL
+      # statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted],
+      # which may prevent some typographical errors like creating an index for a non-existent
+      # column. The default is +false+.
+      #
       # If you wish to enable this mode you can add the following line to your application.rb file:
       #
       #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      #
+      # This can also be configured on individual databases by setting the +strict:+ option.
+      #
       class_attribute :strict_strings_by_default, default: false
 
       NATIVE_DATABASE_TYPES = {
@@ -125,10 +148,16 @@ module ActiveRecord
         @last_affected_rows = nil
         @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
+
+        extensions = @config.fetch(:extensions, []).map do |extension|
+          extension.safe_constantize || extension
+        end
+
         @connection_parameters = @config.merge(
           database: @config[:database].to_s,
           results_as_hash: true,
           default_transaction_mode: :immediate,
+          extensions: extensions
         )
       end
 
@@ -207,7 +236,12 @@ module ActiveRecord
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
 
-      alias_method :active?, :connected?
+      def active?
+        if connected?
+          verified!
+          true
+        end
+      end
 
       alias :reset! :reconnect!
 

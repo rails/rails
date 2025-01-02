@@ -544,7 +544,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test/system")
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_no_match(/google-chrome-stable/, content)
+      assert_match(/db:test:prepare test/, content)
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
     end
   end
 
@@ -1296,6 +1298,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /^module MyApp$/
   end
 
+  def test_devcontainer_supports_pretend
+    run_generator [ destination_root, "--devcontainer", "--pretend" ]
+
+    assert_no_file(".devcontainer/devcontainer.json")
+  end
+
   def test_devcontainer
     run_generator [destination_root, "--devcontainer", "--name=my-app"]
 
@@ -1364,7 +1372,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
 
       expected_redis_config = {
-        "image" => "redis:7.2",
+        "image" => "valkey/valkey:8",
         "restart" => "unless-stopped",
         "volumes" => ["redis-data:/data"]
       }

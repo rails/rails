@@ -21,6 +21,8 @@ module RailInspector
 
               next if defaults_file_content.include? app_config
 
+              next if config == "self.yjit"
+
               add_error(config)
             end
           end

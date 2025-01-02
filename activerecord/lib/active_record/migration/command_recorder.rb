@@ -213,7 +213,9 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
           end
 
-          super(args.push(options), &block)
+          args << options unless options.empty?
+
+          super(args, &block)
         end
 
         def invert_rename_table(args)

@@ -13,163 +13,143 @@ module ActiveRecord
 
     def test_payload_name_on_load
       Book.create(name: "test book")
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal "Book Load", payload[:name]
-        end
-      end
-      Book.first
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") { Book.first }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal "Book Load", notification.payload[:name]
     end
 
     def test_payload_name_on_create
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("INSERT")
-          assert_equal "Book Create", payload[:name]
-        end
-      end
-      Book.create(name: "test book")
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.create(name: "test book") }
+        .find { _1.payload[:sql].match?("INSERT") }
+
+      assert_equal "Book Create", notification.payload[:name]
     end
 
     def test_payload_name_on_update
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("UPDATE")
-          assert_equal "Book Update", payload[:name]
-        end
-      end
       book = Book.create(name: "test book", format: "paperback")
-      book.update_attribute(:format, "ebook")
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") { book.update_attribute(:format, "ebook") }
+        .find { _1.payload[:sql].match?("UPDATE") }
+
+      assert_equal "Book Update", notification.payload[:name]
     end
 
     def test_payload_name_on_update_all
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("UPDATE")
-          assert_equal "Book Update All", payload[:name]
-        end
-      end
-      Book.update_all(format: "ebook")
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.update_all(format: "ebook") }
+        .find { _1.payload[:sql].match?("UPDATE") }
+
+      assert_equal "Book Update All", notification.payload[:name]
     end
 
     def test_payload_name_on_destroy
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("DELETE")
-          assert_equal "Book Destroy", payload[:name]
-        end
-      end
       book = Book.create(name: "test book")
-      book.destroy
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") { book.destroy }
+        .find { _1.payload[:sql].match?("DELETE") }
+
+      assert_equal "Book Destroy", notification.payload[:name]
     end
 
     def test_payload_name_on_delete_all
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("DELETE")
-          assert_equal "Book Delete All", payload[:name]
-        end
-      end
-      Book.delete_all
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.delete_all }
+        .find { _1.payload[:sql].match?("DELETE") }
+
+      assert_equal "Book Delete All", notification.payload[:name]
     end
 
     def test_payload_name_on_pluck
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal "Book Pluck", payload[:name]
-        end
-      end
-      Book.pluck(:name)
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.pluck(:name) }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal "Book Pluck", notification.payload[:name]
     end
 
     def test_payload_name_on_count
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal "Book Count", payload[:name]
-        end
-      end
-      Book.count
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.count }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal "Book Count", notification.payload[:name]
     end
 
     def test_payload_name_on_grouped_count
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal "Book Count", payload[:name]
-        end
-      end
-      Book.group(:status).count
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      notification = capture_notifications("sql.active_record") { Book.group(:status).count }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal "Book Count", notification.payload[:name]
     end
 
     def test_payload_row_count_on_select_all
       10.times { Book.create(name: "row count book 1") }
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal 10, payload[:row_count]
-        end
-      end
-      Book.where(name: "row count book 1").to_a
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") { Book.where(name: "row count book 1").to_a }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal 10, notification.payload[:row_count]
     end
 
     def test_payload_row_count_on_pluck
       10.times { Book.create(name: "row count book 2") }
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal 10, payload[:row_count]
-        end
-      end
-      Book.where(name: "row count book 2").pluck(:name)
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") { Book.where(name: "row count book 2").pluck(:name) }
+        .find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal 10, notification.payload[:row_count]
     end
 
     def test_payload_row_count_on_raw_sql
       10.times { Book.create(name: "row count book 3") }
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        if payload[:sql].match?("SELECT")
-          assert_equal 10, payload[:row_count]
-        end
-      end
-      ActiveRecord::Base.lease_connection.execute("SELECT * FROM books WHERE name='row count book 3';")
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+
+      notification = capture_notifications("sql.active_record") do
+        ActiveRecord::Base.lease_connection.execute("SELECT * FROM books WHERE name='row count book 3';")
+      end.find { _1.payload[:sql].match?("SELECT") }
+
+      assert_equal 10, notification.payload[:row_count]
     end
 
     def test_payload_row_count_on_cache
-      events = []
-      callback = -> (event) do
-        payload = event.payload
-        events << payload if payload[:sql].include?("SELECT")
-      end
-
       Book.create!(name: "row count book")
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+
+      notifications = capture_notifications("sql.active_record") do
         Book.cache do
           Book.first
           Book.first
         end
       end
 
-      assert_equal 2, events.size
-      assert_not events[0][:cached]
-      assert events[1][:cached]
+      payloads = notifications.select { _1.payload[:sql].match?("SELECT") }.map(&:payload)
 
-      assert_equal 1, events[0][:row_count]
-      assert_equal 1, events[1][:row_count]
+      assert_equal 2, payloads.size
+      assert_not payloads[0][:cached]
+      assert payloads[1][:cached]
+      assert_equal 1, payloads[0][:row_count]
+      assert_equal 1, payloads[1][:row_count]
+    end
+
+    def test_payload_connection_with_query_cache_disabled
+      connection = ClothingItem.lease_connection
+
+      payload = capture_notifications("sql.active_record") { Book.first }.first.payload
+
+      assert_equal connection, payload[:connection]
+    end
+
+    def test_payload_connection_with_query_cache_enabled
+      connection = ClothingItem.lease_connection
+
+      notifications = capture_notifications("sql.active_record") do
+        Book.cache do
+          Book.first
+          Book.first
+        end
+      end
+
+      payloads = notifications.select { _1.payload[:sql].match?("SELECT") }.map(&:payload)
+
+      assert_equal 2, payloads.size
+      assert_equal connection, payloads.first[:connection]
+      assert_equal connection, payloads.second[:connection]
     end
 
     def test_payload_affected_rows
@@ -193,43 +173,13 @@ module ActiveRecord
       assert_equal [4, 3, 2, 0], affected_row_values
     end
 
-    def test_payload_connection_with_query_cache_disabled
-      connection = ClothingItem.lease_connection
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        assert_equal connection, payload[:connection]
-      end
-      Book.first
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
-    end
-
-    def test_payload_connection_with_query_cache_enabled
-      connection = ClothingItem.lease_connection
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-        assert_equal connection, payload[:connection]
-      end
-      Book.cache do
-        Book.first
-        Book.first
-      end
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
-    end
-
     def test_no_instantiation_notification_when_no_records
       author = Author.create!(id: 100, name: "David")
 
-      called = false
-      subscriber = ActiveSupport::Notifications.subscribe("instantiation.active_record") do
-        called = true
+      assert_no_notifications("instantiation.active_record") do
+        Author.where(id: 0).to_a
+        author.books.to_a
       end
-
-      Author.where(id: 0).to_a
-      author.books.to_a
-
-      assert_equal false, called
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 

@@ -641,8 +641,15 @@ module ActiveRecord
     # This means that any other modified attributes will still be dirty.
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError when called on new
+    # objects, or when at least one of the attributes is marked as readonly.
+    #
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
+      raise ActiveRecordError, "cannot update a new record" if new_record?
+      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)

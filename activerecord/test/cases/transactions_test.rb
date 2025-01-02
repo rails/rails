@@ -67,6 +67,14 @@ module TransactionCallbacksTests
       raise ActiveRecord::Rollback
     end
     assert_equal 0, called
+
+    called = 0
+    Topic.transaction do |transaction|
+      transaction.instance_variable_get(:@internal_transaction).invalidate!
+      ActiveRecord.after_all_transactions_commit { called += 1 }
+      assert_equal 1, called
+    end
+    assert_equal 1, called
   end
 
   def test_after_current_transaction_commit_multidb_nested_transactions

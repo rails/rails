@@ -727,11 +727,29 @@ module ActiveRecord
       @strict_loading_mode == :all
     end
 
-    # Marks this record as read only.
+    # Prevents records from being written to the database:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.save # raises ActiveRecord::ReadOnlyRecord
     #
     #   customer = Customer.first
     #   customer.readonly!
-    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
+    #   customer.update(name: 'New Name') # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Read-only records cannot be deleted from the database either:
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.destroy # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Please, note that the objects themselves are still mutable in memory:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.name = 'New Name' # OK
+    #
+    # but you won't be able to persist the changes.
     def readonly!
       @readonly = true
     end

@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "not" do
+    class NotTest < Arel::Spec
       describe "#not" do
         it "makes a NOT node" do
           attr = Table.new(:users)[:id]

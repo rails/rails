@@ -388,16 +388,15 @@ module ActionController
     end
 
     def test_send_stream_instrumentation
-      payload = nil
-      subscriber = proc { |event| payload = event.payload }
+      expected_payload = {
+        filename: "sample.csv",
+        disposition: "attachment",
+        type: "text/csv"
+      }
 
-      ActiveSupport::Notifications.subscribed(subscriber, "send_stream.action_controller") do
+      assert_notification("send_stream.action_controller", expected_payload) do
         get :send_stream_with_explicit_content_type
       end
-
-      assert_equal "sample.csv", payload[:filename]
-      assert_equal "attachment", payload[:disposition]
-      assert_equal "text/csv", payload[:type]
     end
 
     def test_send_stream_with_options

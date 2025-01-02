@@ -1,65 +1,74 @@
 # frozen_string_literal: true
 
-require "syntax_tree"
+require "prism"
 
 module RailInspector
   module Visitor
-    class HashToString < SyntaxTree::Visitor
+    class HashToString < Prism::Visitor
       attr_reader :to_s
 
       def initialize
         @to_s = +""
       end
 
-      visit_methods do
-        def visit_assoc(node)
-          @to_s << " "
-          visit(node.key)
+      def visit_hash_node(node)
+        @to_s << "{"
 
-          case node.key
-          when SyntaxTree::StringLiteral
-            @to_s << " => "
-          end
+        if node.elements.length > 0
+          visit(node.elements[0])
 
-          visit(node.value)
-        end
-
-        def visit_hash(node)
-          @to_s << "{"
-
-          if node.assocs.length > 0
-            visit(node.assocs[0])
-
-            if node.assocs.length > 1
-              node.assocs[1..-1].each do |a|
-                @to_s << ","
-                visit(a)
-              end
+          if node.elements.length > 1
+            node.elements[1..-1].each do |a|
+              @to_s << ","
+              visit(a)
             end
-            @to_s << " "
           end
-
-          @to_s << "}"
-        end
-
-        def visit_int(node)
-          @to_s << node.value
-        end
-
-        def visit_kw(node)
-          @to_s << node.value
-        end
-
-        def visit_label(node)
-          @to_s << node.value
           @to_s << " "
         end
 
-        def visit_tstring_content(node)
-          @to_s << '"'
-          @to_s << node.value
-          @to_s << '"'
+        @to_s << "}"
+      end
+
+      def visit_assoc_node(node)
+        @to_s << " "
+
+        visit(node.key)
+
+        case node.key
+        in Prism::SymbolNode
+          @to_s << ": "
+        in Prism::StringNode
+          @to_s << " => "
         end
+
+        case node.value
+        when Prism::SymbolNode
+          @to_s << ":"
+        end
+
+        visit(node.value)
+      end
+
+      def visit_integer_node(node)
+        @to_s << node.value.to_s
+      end
+
+      def visit_string_node(node)
+        @to_s << '"'
+        @to_s << node.unescaped
+        @to_s << '"'
+      end
+
+      def visit_symbol_node(node)
+        @to_s << node.unescaped
+      end
+
+      def visit_true_node(node)
+        @to_s << "true"
+      end
+
+      def visit_false_node(node)
+        @to_s << "false"
       end
     end
   end

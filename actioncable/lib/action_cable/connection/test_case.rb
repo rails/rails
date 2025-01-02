@@ -75,11 +75,8 @@ module ActionCable
     #
     # ## Basic example
     #
-    # Unit tests are written as follows:
-    #
-    # 1.  Simulate a connection attempt by calling `connect`.
-    # 2.  Assert state, e.g. identifiers, has been assigned.
-    #
+    # Unit tests are written by first simulating a connection attempt by calling
+    # `connect` and then asserting state, e.g. identifiers, have been assigned.
     #
     #     class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
     #       def test_connects_with_proper_cookie

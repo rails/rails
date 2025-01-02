@@ -176,7 +176,7 @@ module ActiveModel
           options = options.dup
           options[:except_on] = Array(options[:except_on])
           options[:unless] = [
-            ->(o) { (options[:except_on] & Array(o.validation_context)).any? },
+            ->(o) { options[:except_on].intersect?(Array(o.validation_context)) },
             *options[:unless]
           ]
         end
@@ -437,20 +437,6 @@ module ActiveModel
     alias :read_attribute_for_validation :send
 
     # Returns the context when running validations.
-    #
-    # This is useful when running validations except a certain context (opposite to the +on+ option).
-    #
-    #   class Person
-    #     include ActiveModel::Validations
-    #
-    #     attr_accessor :name
-    #     validates :name, presence: true, if: -> { validation_context != :custom }
-    #   end
-    #
-    #   person = Person.new
-    #   person.valid?          #=> false
-    #   person.valid?(:new)    #=> false
-    #   person.valid?(:custom) #=> true
     def validation_context
       context_for_validation.context
     end

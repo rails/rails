@@ -50,12 +50,6 @@ class LoggingTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = logger
   end
 
-  def subscribed(&block)
-    [].tap do |events|
-      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/, &block)
-    end
-  end
-
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
@@ -105,32 +99,35 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_job_logging
-    events = subscribed { HelloJob.perform_later "Cristian" }
+    assert_notifications_count(/enqueue.*\.active_job/, 1) do
+      assert_notifications_count("enqueue.active_job", 1) do
+        HelloJob.perform_later "Cristian"
+      end
+    end
+
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue.active_job", key)
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted
-    events = subscribed { AbortBeforeEnqueueJob.perform_later }
+    assert_notifications_count(/enqueue.*\.active_job/, 1) do
+      assert_notification("enqueue.active_job") do
+        AbortBeforeEnqueueJob.perform_later
+      end
+    end
+
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue.active_job", key)
   end
 
   def test_enqueue_job_log_error_when_error_is_raised_during_callback_chain
-    events = subscribed do
-      assert_raises(AbortBeforeEnqueueJob::MyError) do
-        AbortBeforeEnqueueJob.perform_later(:raise)
+    assert_notifications_count(/enqueue.*\.active_job/, 1) do
+      assert_notification("enqueue.active_job") do
+        assert_raises(AbortBeforeEnqueueJob::MyError) do
+          AbortBeforeEnqueueJob.perform_later(:raise)
+        end
       end
     end
 
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue.active_job", key)
   end
 
   def test_perform_job_logging
@@ -154,7 +151,7 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_perform_job_log_error_when_callback_chain_is_halted
-    subscribed { AbortBeforeEnqueueJob.perform_now }
+    AbortBeforeEnqueueJob.perform_now
     assert_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
@@ -165,7 +162,7 @@ class LoggingTest < ActiveSupport::TestCase
       end
     end
 
-    subscribed { job.perform_now }
+    job.perform_now
     assert_no_match(/Error performing AbortBeforeEnqueueJob.* a before_perform callback halted/, @logger.messages)
   end
 
@@ -179,10 +176,8 @@ class LoggingTest < ActiveSupport::TestCase
       end
     end.new([:dont_abort, :abort])
 
-    subscribed do
-      job.perform_now
-      job.perform_now
-    end
+    job.perform_now
+    job.perform_now
 
     assert_equal(1, @logger.messages.scan(/a before_perform callback halted the job execution/).size)
   end
@@ -215,42 +210,47 @@ class LoggingTest < ActiveSupport::TestCase
 
   unless adapter_is?(:inline, :sneakers)
     def test_enqueue_at_job_logging
-      events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
+      assert_notifications_count(/enqueue.*\.active_job/, 1) do
+        assert_notification("enqueue_at.active_job") do
+          HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian"
+        end
+      end
+
       assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-      assert_equal(1, events.count)
-      key, * = events.first
-      assert_equal("enqueue_at.active_job", key)
     end
   end
 
   def test_enqueue_at_job_log_error_when_callback_chain_is_halted
-    events = subscribed { AbortBeforeEnqueueJob.set(wait: 1.second).perform_later }
+    assert_notifications_count(/enqueue.*\.active_job/, 1) do
+      assert_notification("enqueue_at.active_job") do
+        AbortBeforeEnqueueJob.set(wait: 1.second).perform_later
+      end
+    end
+
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob.* a before_enqueue callback halted/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
   end
 
   def test_enqueue_at_job_log_error_when_error_is_raised_during_callback_chain
-    events = subscribed do
-      assert_raises(AbortBeforeEnqueueJob::MyError) do
-        AbortBeforeEnqueueJob.set(wait: 1.second).perform_later(:raise)
+    assert_notifications_count(/enqueue.*\.active_job/, 1) do
+      assert_notification("enqueue_at.active_job") do
+        assert_raises(AbortBeforeEnqueueJob::MyError) do
+          AbortBeforeEnqueueJob.set(wait: 1.second).perform_later(:raise)
+        end
       end
     end
 
     assert_match(/Failed enqueuing AbortBeforeEnqueueJob/, @logger.messages)
-    assert_equal(1, events.count)
-    key, * = events.first
-    assert_equal("enqueue_at.active_job", key)
   end
 
   unless adapter_is?(:inline, :sneakers)
     def test_enqueue_in_job_logging
-      events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
+      assert_notifications_count(/enqueue.*\.active_job/, 1) do
+        assert_notification("enqueue_at.active_job") do
+          HelloJob.set(wait: 2.seconds).perform_later "Cristian"
+        end
+      end
+
       assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
-      assert_equal(1, events.count)
-      key, * = events.first
-      assert_equal("enqueue_at.active_job", key)
     end
   end
 
@@ -367,6 +367,25 @@ class LoggingTest < ActiveSupport::TestCase
   def test_enqueue_all_job_logging
     ActiveJob.perform_all_later(LoggingJob.new("Dummy"), HelloJob.new("Jamie"), HelloJob.new("John"))
     assert_match(/Enqueued 3 jobs to .+ \(2 HelloJob, 1 LoggingJob\)/, @logger.messages)
+  end
+
+  def test_enqueue_all_graceful_failure_when_enqueued_count_is_nil
+    original_adapter = ActiveJob::Base.queue_adapter
+
+    stubbed_inline_adapter = ActiveJob::QueueAdapters::InlineAdapter.new
+    def stubbed_inline_adapter.respond_to?(method_name, include_private = false)
+      method_name == :enqueue_all || super
+    end
+    def stubbed_inline_adapter.enqueue_all(*)
+      nil
+    end
+
+    ActiveJob::Base.queue_adapter = stubbed_inline_adapter
+
+    ActiveJob.perform_all_later(LoggingJob.new("Dummy"), HelloJob.new("Jamie"), HelloJob.new("John"))
+    assert_match(/Failed enqueuing 3 jobs to .+/, @logger.messages)
+  ensure
+    ActiveJob::Base.queue_adapter = original_adapter
   end
 
   def test_enqueue_log_level

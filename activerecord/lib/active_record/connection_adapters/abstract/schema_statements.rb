@@ -1172,9 +1172,10 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
@@ -1213,7 +1214,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless use_foreign_keys?
-        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1352,7 +1353,7 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-      def dump_schema_information # :nodoc:
+      def dump_schema_versions # :nodoc:
         versions = pool.schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
@@ -1875,16 +1876,8 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(pool.schema_migration.table_name)
-
-          if versions.is_a?(Array)
-            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";"
-            sql
-          else
-            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
-          end
+          versions_formatter = ActiveRecord.schema_versions_formatter.new(self)
+          versions_formatter.format(versions)
         end
 
         def data_source_sql(name = nil, type: nil)

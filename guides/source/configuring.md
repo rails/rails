@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.yjit`](#config-yjit): `!Rails.env.local?`
+
 #### Default Values for Target Version 8.0
 
 - [`Regexp.timeout`](#regexp-timeout): `1`
@@ -70,7 +72,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.active_record.postgresql_adapter_decode_dates`](#config-active-record-postgresql-adapter-decode-dates): `true`
 - [`config.active_record.validate_migration_timestamps`](#config-active-record-validate-migration-timestamps): `true`
-- [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w[image/png image/jpeg image/gif image/webp]`
+- [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types): `%w( image/png image/jpeg image/gif image/webp )`
 - [`config.yjit`](#config-yjit): `true`
 
 #### Default Values for Target Version 7.1
@@ -644,6 +646,7 @@ deploying to a memory constrained environment you may want to set this to `false
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+| 8.1                   | `!Rails.env.local?`  |
 
 ### Configuring Assets
 
@@ -1202,6 +1205,31 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+#### `config.active_record.schema_versions_formatter`
+
+Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
+to change the default behavior:
+
+```ruby
+class CustomSchemaVersionsFormatter
+  def initialize(connection)
+    @connection = connection
+  end
+
+  def format(versions)
+    # Special sorting of versions to reduce the likelihood of conflicts.
+    sorted_versions = versions.sort { |a, b| b.to_s.reverse <=> a.to_s.reverse }
+
+    sql = +"INSERT INTO schema_migrations (version) VALUES\n"
+    sql << sorted_versions.map { |v| "(#{@connection.quote(v)})" }.join(",\n")
+    sql << ";"
+    sql
+  end
+end
+
+config.active_record.schema_versions_formatter = CustomSchemaVersionsFormatter
+```
+
 #### `config.active_record.lock_optimistically`
 
 Controls whether Active Record will use optimistic locking and is `true` by default.
@@ -1556,7 +1584,7 @@ For queries to actually be performed asynchronously, it must be set to either `:
 for applications with only a single database, or applications which only ever query one database shard at a time.
 
 `:multi_thread_pool` will use one pool per database, and each pool size can be configured individually in `database.yml` through the
-`max_threads` and `min_thread` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
+`max_threads` and `min_threads` properties. This can be useful to applications regularly querying multiple databases at a time, and that need to more precisely define the max concurrency.
 
 #### `config.active_record.global_executor_concurrency`
 
@@ -1764,7 +1792,7 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets rathe
 
 #### `config.action_controller.perform_caching`
 
-Configures whether the application should perform the caching features provided by the Action Controller component or not. Set to `false` in the development environment, `true` in production. If it's not specified, the default will be `true`.
+Configures whether the application should perform the caching features provided by the Action Controller component. Set to `false` in the development environment, `true` in production. If it's not specified, the default will be `true`.
 
 #### `config.action_controller.default_static_extension`
 
@@ -2140,7 +2168,7 @@ Setting the value to `:none` configures Action Pack to raise all exceptions.
 | (original)            | `true`                |
 | 7.1                   | `:all`                |
 
-### `config.action_dispatch.strict_freshness`
+#### `config.action_dispatch.strict_freshness`
 
 Configures whether the `ActionDispatch::ETag` middleware should prefer the `ETag` header over the `Last-Modified` header when both are present in the response.
 
@@ -2770,7 +2798,7 @@ Specifies the logger to use within cache store operations.
 
 #### `ActiveSupport.utc_to_local_returns_utc_offset_times`
 
-Configures `ActiveSupport::TimeZone.utc_to_local` to return a time with a UTC
+Configures [`ActiveSupport::TimeZone.utc_to_local`][] to return a time with a UTC
 offset instead of a UTC time incorporating that offset.
 
 The default value depends on the `config.load_defaults` target version:
@@ -2780,12 +2808,15 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 6.1                   | `true`               |
 
+[`ActiveSupport::TimeZone.utc_to_local`]: https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html#method-i-utc_to_local
+
 #### `config.active_support.raise_on_invalid_cache_expiration_time`
 
-Specifies if an `ArgumentError` should be raised if `Rails.cache` `fetch` or
-`write` are given an invalid `expires_at` or `expires_in` time.
+Specifies whether an `ArgumentError` should be raised if `Rails.cache`
+[`fetch`][ActiveSupport::Cache::Store#fetch] or [`write`][ActiveSupport::Cache::Store#write]
+are given an invalid `expires_at` or `expires_in` time.
 
-Options are `true`, and `false`. If `false`, the exception will be reported
+Options are `true` and `false`. If `false`, the exception will be reported
 as `handled` and logged instead.
 
 The default value depends on the `config.load_defaults` target version:
@@ -2794,6 +2825,9 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+[ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
+[ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
 ### Configuring Active Job
 
@@ -3330,7 +3364,7 @@ Now the behavior is clear, that we are only using the connection information in 
 
 #### Configuring an SQLite3 Database
 
-Rails comes with built-in support for [SQLite3](https://www.sqlite.org), which is a lightweight serverless database application. While Rails better configures SQLite for production workloads, a busy production environment may overload SQLite. Rails defaults to using an SQLite database when creating a new project, but you can always change it later.
+Rails comes with built-in support for [SQLite3](https://www.sqlite.org), which is a lightweight serverless database application. While Rails better configures SQLite for production workloads, a busy production environment may overload SQLite. Rails defaults to using an SQLite database when creating a new project because it is a zero configuration database that just works, but you can always change it later.
 
 Here's the section of the default configuration file (`config/database.yml`) with connection information for the development environment:
 
@@ -3342,7 +3376,20 @@ development:
   timeout: 5000
 ```
 
-NOTE: Rails uses an SQLite3 database for data storage by default because it is a zero configuration database that just works. Rails also supports MySQL (including MariaDB) and PostgreSQL "out of the box", and has plugins for many database systems. If you are using a database in a production environment Rails most likely has an adapter for it.
+[SQLite extensions](https://sqlite.org/loadext.html) are supported when using `sqlite3` gem v2.4.0 or later by configuring `extensions`:
+
+``` yaml
+development:
+  adapter: sqlite3
+  extensions:
+    - SQLean::UUID                     # module name responding to `.to_path`
+    - .sqlpkg/nalgeon/crypto/crypto.so # or a filesystem path
+    - <%= AppExtensions.location %>    # or ruby code returning a path
+```
+
+Many useful features can be added to SQLite through extensions. You may wish to browse the [SQLite extension hub](https://sqlpkg.org/) or use gems like [`sqlpkg-ruby`](https://github.com/fractaledmind/sqlpkg-ruby) and [`sqlean-ruby`](https://github.com/flavorjones/sqlean-ruby) that simplify extension management.
+
+Other configuration options are described in the [SQLite3Adapter documentation]( https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html).
 
 #### Configuring a MySQL or MariaDB Database
 
@@ -3759,7 +3806,7 @@ Rails has 5 initialization events which can be hooked into (listed in the order 
 
 * `before_initialize`: This is run directly before the initialization process of the application occurs with the `:bootstrap_hook` initializer near the beginning of the Rails initialization process.
 
-* `to_prepare`: Run after the initializers are run for all Railties (including the application itself), but before eager loading and the middleware stack is built. More importantly, will run upon every code reload in `development`, but only once (during boot-up) in `production` and `test`.
+* `to_prepare`: Run after the initializers are run for all Railties (including the application itself) and after the middleware stack is built, but before eager loading. More importantly, will run upon every code reload in `development`, but only once (during boot-up) in `production` and `test`.
 
 * `before_eager_load`: This is run directly before eager loading occurs, which is the default behavior for the `production` environment and not for the `development` environment.
 

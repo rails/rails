@@ -71,7 +71,7 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.transform_values(&:deep_dup))
+      AttributeSet.new(attributes.transform_values(&:dup_or_share))
     end
 
     def initialize_dup(_)

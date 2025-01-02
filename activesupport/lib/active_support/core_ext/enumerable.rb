@@ -203,7 +203,7 @@ module Enumerable
   end
 
   # Returns the sole item in the enumerable. If there are no items, or more
-  # than one item, raises +Enumerable::SoleItemExpectedError+.
+  # than one item, raises Enumerable::SoleItemExpectedError.
   #
   #   ["x"].sole          # => "x"
   #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found

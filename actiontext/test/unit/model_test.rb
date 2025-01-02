@@ -61,6 +61,21 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     end
   end
 
+  test "embed extraction occurs before validation" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new.append_attachables(blob)
+    message = Message.build(subject: "Greetings", content: content)
+
+    assert_changes -> { message.content.embeds.empty? }, from: true, to: false do
+      message.content.validate
+    end
+
+    embeds = message.content.embeds
+    assert_kind_of ActiveStorage::Attached::Many, embeds
+    assert_kind_of ActiveStorage::Attachment, embeds.first
+    assert_equal blob, embeds.first.blob
+  end
+
   test "saving content" do
     message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal "Hello world", message.content.to_plain_text

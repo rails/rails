@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "support/connection_helper"
 require "models/post"
 
 module AsynchronousQueriesSharedTests
@@ -127,6 +126,10 @@ class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
 end
 
 class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
+  def teardown
+    clean_up_connection_handler
+  end
+
   def test_null_configuration_uses_a_single_null_executor_by_default
     old_value = ActiveRecord.async_query_executor
     ActiveRecord.async_query_executor = nil
@@ -145,7 +148,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
 
     assert_equal 2, handler.connection_pool_list(:all).count
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -178,7 +180,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -215,7 +216,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.global_executor_concurrency = old_concurrency
     ActiveRecord.async_query_executor = old_value
     ActiveRecord.instance_variable_set(:@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
@@ -269,7 +269,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -304,7 +303,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 end

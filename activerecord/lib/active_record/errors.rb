@@ -490,6 +490,7 @@ module ActiveRecord
   #   end
   #
   #   relation = Task.all
+  #   relation.load
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.

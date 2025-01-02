@@ -186,13 +186,14 @@ module RailsGuides
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
-          edge:         @edge,
-          version:      @version,
-          epub:         "epub/#{epub_filename}",
-          language:     @language,
-          direction:    @direction,
-          uuid:         SecureRandom.uuid,
-          digest_paths: @digest_paths
+          edge:          @edge,
+          version:       @version,
+          path:          output_file,
+          epub:          "epub/#{epub_filename}",
+          language:      @language,
+          direction:     @direction,
+          uuid:          SecureRandom.uuid,
+          digest_paths:  @digest_paths
         )
         view.extend(Helpers)
 

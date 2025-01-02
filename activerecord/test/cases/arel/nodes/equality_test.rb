@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "equality" do
+    class EqualityTest < Arel::Spec
       # FIXME: backwards compat
       describe "backwards compat" do
         describe "to_sql" do

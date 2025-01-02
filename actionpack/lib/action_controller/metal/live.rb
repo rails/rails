@@ -58,7 +58,7 @@ module ActionController
 
     module ClassMethods
       def make_response!(request)
-        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
+        if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
           Live::Response.new.tap do |res|
@@ -326,7 +326,8 @@ module ActionController
     # or other running data where you don't want the entire file buffered in memory
     # first. Similar to send_data, but where the data is generated live.
     #
-    # Options:
+    # #### Options:
+    #
     # *   `:filename` - suggests a filename for the browser to use.
     # *   `:type` - specifies an HTTP content type. You can specify either a string
     #     or a symbol for a registered type with `Mime::Type.register`, for example

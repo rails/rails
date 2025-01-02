@@ -2,7 +2,7 @@
 
 require_relative "../helper"
 
-describe Arel::Nodes::UpdateStatement do
+class Arel::Nodes::UpdateStatementTest < Arel::Spec
   describe "#clone" do
     it "clones wheres and values" do
       statement = Arel::Nodes::UpdateStatement.new

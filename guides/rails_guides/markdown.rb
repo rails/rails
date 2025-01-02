@@ -23,8 +23,8 @@ module RailsGuides
       @raw_body = body
       extract_raw_header_and_body
       generate_header
-      generate_description
       generate_title
+      generate_description
       generate_body
       generate_structure
       generate_index
@@ -55,6 +55,7 @@ module RailsGuides
 
         text.downcase.gsub(/\?/, "-questionmark")
                      .gsub(/!/, "-bang")
+                     .gsub(/\[\]/, "-squarebrackets")
                      .gsub(/[#{escaped_chars}]+/, " ").strip
                      .gsub(/\s+/, "-")
       end
@@ -95,7 +96,7 @@ module RailsGuides
 
       def generate_description
         sanitizer = Rails::Html::FullSanitizer.new
-        @description = sanitizer.sanitize(@header).squish
+        @description = sanitizer.sanitize(@header).squish.delete_prefix(@heading)
       end
 
       def generate_structure
@@ -174,8 +175,8 @@ module RailsGuides
       end
 
       def generate_title
-        if heading = html_fragment(@header).at(:h1)
-          @title = "#{heading.text} — Ruby on Rails Guides"
+        if @heading = html_fragment(@header).at(:h1)
+          @title = "#{@heading.text} — Ruby on Rails Guides"
         else
           @title = "Ruby on Rails Guides"
         end
@@ -185,15 +186,15 @@ module RailsGuides
         case hierarchy.size
         when 1
           @index_counter[2] = @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1] += 1}"
+          "#{@index_counter[1] += 1}."
         when 2
           @index_counter[3] = @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2] += 1}."
         when 3
           @index_counter[4] = 0
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3] += 1}."
         when 4
-          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}"
+          "#{@index_counter[1]}.#{@index_counter[2]}.#{@index_counter[3]}.#{@index_counter[4] += 1}."
         end
       end
 

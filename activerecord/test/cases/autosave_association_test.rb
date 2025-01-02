@@ -1490,6 +1490,17 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_predicate @pirate, :valid?
   end
 
+  def test_should_skip_validation_on_habtm_if_persisted_and_unchanged
+    parrot = @pirate.parrots.create!(name: "parrots_1")
+    parrot.update_column(:name, "")
+    parrot.reload
+    assert_not_predicate parrot, :valid?
+
+    new_pirate = Pirate.new(catchphrase: "Arr")
+    new_pirate.parrots = @pirate.parrots
+    new_pirate.save!
+  end
+
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
     @pirate.parrots.create!(name: "parrots_1")
 

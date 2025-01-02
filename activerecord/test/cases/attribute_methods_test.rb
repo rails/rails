@@ -1143,6 +1143,54 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nothing_raised { klass.define_attribute_method("bar") }
   end
 
+  test "#method_missing define methods on the fly in a thread safe way" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    topic = topic_class.new(title: "New topic")
+    topic_class.undefine_attribute_methods
+    def topic.method_missing(...)
+      sleep 0.1 # required to cause a race condition
+      super
+    end
+
+    threads = 5.times.map do
+      Thread.new do
+        assert_equal "New topic", topic.title
+      end
+    end
+    threads.each(&:join)
+  ensure
+    threads&.each(&:kill)
+  end
+
+  test "#method_missing define methods on the fly in a thread safe way, even when decorated" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def title
+        "title:#{super}"
+      end
+    end
+
+    topic = topic_class.new(title: "New topic")
+    topic_class.undefine_attribute_methods
+    def topic.method_missing(...)
+      sleep 0.1 # required to cause a race condition
+      super
+    end
+
+    threads = 5.times.map do
+      Thread.new do
+        assert_equal "title:New topic", topic.title
+      end
+    end
+    threads.each(&:join)
+  ensure
+    threads&.each(&:kill)
+  end
+
   test "read_attribute with nil should not asplode" do
     assert_nil Topic.new.read_attribute(nil)
   end

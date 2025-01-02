@@ -116,7 +116,7 @@ config.autoload_lib(ignore: %w(assets tasks))
 
 Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code, their contents are not meant to be reloaded or eager loaded.
 
-The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloadaded or eager loaded. For example,
+The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloaded or eager loaded. For example,
 
 ```ruby
 config.autoload_lib(ignore: %w(assets tasks templates generators middleware))

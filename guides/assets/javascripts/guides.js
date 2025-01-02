@@ -60,10 +60,10 @@
 
     if ('matchMedia' in window) {
       var mediaQueryList = window.matchMedia(`(max-width: ${MOBILE_WIDTH_FROM_STYLE_CSS_BREAKPOINT}px)`);
-      isMobile = mediaQueryList.matches ? 'auto' : 'smooth';
+      isMobile = mediaQueryList.matches; 
 
       mediaQueryList.addEventListener('change', function (ev) {
-        isMobile = ev.matches ? 'auto' : 'smooth';
+        isMobile = ev.matches;
       });
     } else {
       window.addEventListener('resize', function onResize() {

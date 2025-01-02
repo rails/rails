@@ -96,6 +96,28 @@ module ActiveRecord
       assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
     end
 
+    test "insert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_skip?
+
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.insert_all([{ name: "Alice" }, { name: "Bob" }])
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
+    test "upsert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_update?
+
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.upsert_all([{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }])
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
     test "update_all will update cache_key" do
       developers = Developer.where(name: "David")
       cache_key = developers.cache_key

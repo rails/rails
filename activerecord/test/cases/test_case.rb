@@ -308,7 +308,7 @@ module ActiveRecord
 
   class AbstractMysqlTestCase < TestCase
     def self.run(*args)
-      super if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+      super if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     end
   end
 

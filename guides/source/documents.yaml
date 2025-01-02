@@ -5,6 +5,10 @@
       name: Getting Started with Rails
       url: getting_started.html
       description: Everything you need to know to install Rails and create your first application.
+    -
+      name: Install Ruby on Rails
+      url: install_ruby_on_rails.html
+      description: Learn how to install the Ruby programming language and Ruby on Rails.
 -
   name: Models
   documents:
@@ -98,9 +102,12 @@
       description: >
         Action Controllers are the core of a web request in Rails.
         This guide covers how controllers work and how they fit into the
-        request cycle of your application. It includes sessions, filters,
-        cookies, data streaming, and dealing with exceptions raised by a
-        request, among other topics.
+        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
+    -
+      name: Action Controller Advanced Topics
+      url: action_controller_advanced_topics.html
+      description: >
+        This guide covers a number of advanced topics related to controllers in a Rails application such as protecting against cross-site request forgery, HTTP authentication, data streaming, and dealing with exceptions, log filtering, and more.
     -
       name: Rails Routing from the Outside In
       url: routing.html
@@ -167,15 +174,7 @@
     -
       name: Testing Rails Applications
       url: testing.html
-      description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
-    -
-      name: Securing Rails Applications
-      url: security.html
-      description: This guide describes common security problems in web applications and how to avoid them with Rails.
-    -
-      name: Error Reporting in Rails Applications
-      url: error_reporting.html
-      description: This guide introduces ways to manage errors that occur in Ruby on Rails applications.
+      description: This guide explores how to write tests in Rails. It also covers test configuration and compares approaches to testing an application.
     -
       name: Debugging Rails Applications
       url: debugging_rails_applications.html
@@ -195,10 +194,8 @@
       name: The Asset Pipeline
       url: asset_pipeline.html
       description: >
-        The asset pipeline provides a framework to concatenate and minify or
-        compress JavaScript, CSS and image assets. It also adds the ability to
-        write these assets in other languages and pre-processors such as
-        CoffeeScript, Sass, and ERB.
+        The asset pipeline guide explains how to use Propshaft, a framework that
+        handles essential asset management tasks.
     -
       name: Working with JavaScript in Rails
       url: working_with_javascript_in_rails.html
@@ -218,10 +215,6 @@
       url: autoloading_and_reloading_constants.html
       description: This guide documents how autoloading and reloading constants work.
     -
-      name: "Caching with Rails: An Overview"
-      url: caching_with_rails.html
-      description: This guide is an introduction to speeding up your Rails application with caching.
-    -
       name: Active Support Instrumentation
       work_in_progress: true
       url: active_support_instrumentation.html
@@ -230,10 +223,26 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
+
+-
+  name: Going to Production
+  documents:
     -
       name: Tuning Performance for Deployment
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
+    -
+      name: "Caching with Rails: An Overview"
+      url: caching_with_rails.html
+      description: This guide is an introduction to speeding up your Rails application with caching.
+    -
+      name: Securing Rails Applications
+      url: security.html
+      description: This guide describes common security problems in web applications and how to avoid them with Rails.
+    -
+      name: Error Reporting in Rails Applications
+      url: error_reporting.html
+      description: This guide introduces ways to manage errors that occur in Ruby on Rails applications.
 
 -
   name: Advanced Active Record

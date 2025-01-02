@@ -11,7 +11,7 @@ module ActiveRecord
       def execute(relation, ...)
         relation.model.with_connection do |c|
           new(relation, c, ...).execute
-        end
+        end.tap { relation.reset }
       end
     end
 

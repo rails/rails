@@ -12,7 +12,7 @@ module RailInspector
       end
 
       def call(path)
-        @cache[path] ||= SyntaxTree.parse(SyntaxTree.read(path))
+        @cache[path] ||= Prism.parse_file(path.to_s).value
       end
     end
 

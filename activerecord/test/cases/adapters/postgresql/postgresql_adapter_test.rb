@@ -414,6 +414,22 @@ module ActiveRecord
         end
       end
 
+      def test_index_keyword_column_name
+        with_example_table("timestamp integer") do
+          @connection.add_index "ex", :timestamp, name: "keyword"
+          index = @connection.indexes("ex").find { |idx| idx.name == "keyword" }
+          assert_equal ["timestamp"], index.columns
+        end
+      end
+
+      def test_index_escaped_quotes_column_name
+        with_example_table(%{"I""like""quotes" integer}) do
+          @connection.add_index "ex", :"I\"like\"quotes", name: "quotes"
+          index = @connection.indexes("ex").find { |idx| idx.name == "quotes" }
+          assert_equal ["I\"like\"quotes"], index.columns
+        end
+      end
+
       def test_columns_for_distinct_zero_orders
         assert_equal "posts.id",
           @connection.columns_for_distinct("posts.id", [])

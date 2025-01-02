@@ -263,20 +263,17 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :notify
     behavior = @deprecator.behavior.first
 
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |*args|
-        events << args.extract_options!
-      }
+    expected_payload = {
+      message: "Some error!",
+      callstack: ["call stack!"],
+      deprecation_horizon: "horizon",
+      gem_name: "MyGem::Custom"
+    }
 
-      behavior.call("Some error!", ["call stack!"], @deprecator)
-      assert_equal 1, events.size
-      assert_equal "Some error!", events.first[:message]
-      assert_equal ["call stack!"], events.first[:callstack]
-      assert_equal "horizon", events.first[:deprecation_horizon]
-      assert_equal "MyGem::Custom", events.first[:gem_name]
-    ensure
-      ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
+    assert_notifications_count("deprecation.my_gem_custom", 1) do
+      assert_notification("deprecation.my_gem_custom", expected_payload) do
+        behavior.call("Some error!", ["call stack!"], @deprecator)
+      end
     end
   end
 

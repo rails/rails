@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "As" do
+    class AsTest < Arel::Spec
       describe "#as" do
         it "makes an AS node" do
           attr = Table.new(:users)[:id]

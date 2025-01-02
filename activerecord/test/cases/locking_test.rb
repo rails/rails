@@ -305,6 +305,43 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal ["lock_version", "updated_at"], t1.saved_changes.keys.sort
   end
 
+  def test_update_lock_version_to_nil_without_validation_or_constraint_raises_error
+    t1 = LockWithoutDefault.create!(title: "title1")
+    error = assert_raises(RuntimeError) { t1.update(lock_version: nil) }
+
+    assert_match(locking_column_nil_error_message, error.message)
+
+    error = assert_raises(RuntimeError) { t1.update!(lock_version: nil) }
+
+    assert_match(locking_column_nil_error_message, error.message)
+  end
+
+  def test_update_lock_version_to_nil_without_validation_raises
+    person = Person.find(1)
+    error = assert_raises(RuntimeError) { person.update(lock_version: nil) }
+
+    assert_match(locking_column_nil_error_message, error.message)
+
+    error = assert_raises(RuntimeError) { person.update!(lock_version: nil) }
+
+    assert_match(locking_column_nil_error_message, error.message)
+  end
+
+  def test_update_lock_version_to_nil_with_validation_does_not_raise_runtime_lock_version_error
+    person = LockVersionValidatedPerson.find(1)
+    assert_nothing_raised { person.update(lock_version: nil) }
+
+    assert_equal ["is not a number"], person.errors[:lock_version]
+  end
+
+  def test_update_bang_lock_version_to_nil_with_validation_does_not_raise_runtime_lock_version_error
+    error = assert_raises(ActiveRecord::RecordInvalid) do
+      LockVersionValidatedPerson.find(1).update!(lock_version: nil)
+    end
+
+    assert_equal ["is not a number"], error.record.errors[:lock_version]
+  end
+
   def test_touch_stale_object_with_lock_without_default
     t1 = LockWithoutDefault.create!(title: "title1")
     stale_object = LockWithoutDefault.find(t1.id)
@@ -557,6 +594,11 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_equal t1.attributes, t2.attributes
   end
+
+  private
+    def locking_column_nil_error_message
+      /'lock_version' should not be set to `nil`/
+    end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase

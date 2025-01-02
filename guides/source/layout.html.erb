@@ -13,6 +13,8 @@
 
   <link rel="apple-touch-icon" href="images/icon.png">
 
+  <link rel="canonical" href="<%= canonical_url(@path) %>">
+
   <script src="<%= digest_path('javascripts/@hotwired--turbo.js') %>" data-turbo-track="reload"></script>
   <script src="<%= digest_path('javascripts/clipboard.js') %>" data-turbo-track="reload"></script>
   <script src="<%= digest_path('javascripts/guides.js') %>" data-turbo-track="reload"></script>
@@ -68,7 +70,7 @@
             <select id="version-switcher-select" class="guides-version">
               <option value="https://edgeguides.rubyonrails.org/"<%= " selected" if @edge %>>Edge</option>
               <% %w[8.0 7.2 7.1 7.0 6.1 6.0 5.2 5.1 5.0 4.2 4.1 4.0 3.2 3.1 3.0 2.3].each do |version| %>
-                <option value="https://guides.rubyonrails.org/v<%= version %>/"<%= " selected" if @version&.start_with?("v#{version}") %>><%= version %></option>
+                <option value="https://guides.rubyonrails.org/v<%= version %>/<%= @path %>"<%= " selected" if @version&.start_with?("v#{version}") %>><%= version %></option>
               <% end %>
             </select>
           </span>

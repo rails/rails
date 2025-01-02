@@ -498,9 +498,10 @@ module ActiveSupport
           when Conditionals::Value
             ProcCall.new(filter)
           when ::Proc
-            if filter.arity > 1
+            case filter.arity
+            when 2
               InstanceExec2.new(filter)
-            elsif filter.arity > 0
+            when 1, -2
               InstanceExec1.new(filter)
             else
               InstanceExec0.new(filter)

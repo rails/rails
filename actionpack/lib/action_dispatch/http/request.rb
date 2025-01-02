@@ -242,8 +242,9 @@ module ActionDispatch
     #
     #     send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
     #
-    # If you are using `javascript_include_tag` or `stylesheet_link_tag` the Early
-    # Hints headers are included by default if supported.
+    # If you are using {javascript_include_tag}[rdoc-ref:ActionView::Helpers::AssetTagHelper#javascript_include_tag]
+    # or {stylesheet_link_tag}[rdoc-ref:ActionView::Helpers::AssetTagHelper#stylesheet_link_tag]
+    # the Early Hints headers are included by default if supported.
     def send_early_hints(links)
       env["rack.early_hints"]&.call(links)
     end

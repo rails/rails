@@ -575,7 +575,7 @@ defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` ini
 prepare the application (like initializing the logger) while the `finisher`
 initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
-itself and are run between the `bootstrap` and `finishers`.
+itself and are run between the `bootstrap` and `finisher`.
 
 NOTE: Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
 initializer instance or its associated config initializers in `config/initializers`.

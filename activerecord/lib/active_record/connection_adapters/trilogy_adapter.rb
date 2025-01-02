@@ -121,7 +121,7 @@ module ActiveRecord
       end
 
       def active?
-        connected? && @lock.synchronize { @raw_connection&.ping } || false
+        connected? && @lock.synchronize { @raw_connection&.ping; verified! } || false
       rescue ::Trilogy::Error
         false
       end
