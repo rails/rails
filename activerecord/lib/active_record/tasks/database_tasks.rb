@@ -445,7 +445,7 @@ module ActiveRecord
           structure_dump(db_config, filename)
           if migration_connection_pool.schema_migration.table_exists?
             File.open(filename, "a") do |f|
-              f.puts migration_connection.dump_schema_information
+              f.puts migration_connection.dump_schema_versions
               f.print "\n"
             end
           end

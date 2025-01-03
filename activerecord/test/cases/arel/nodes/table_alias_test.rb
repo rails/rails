@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "table alias" do
+    class TableAliasTest < Arel::Spec
       describe "equality" do
         it "is equal with equal ivars" do
           relation1 = Table.new(:users)

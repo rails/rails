@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", "!= 5.25.3"
+gem "minitest"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
@@ -44,10 +44,6 @@ gem "json", ">= 2.0.0", "!=2.7.0"
 gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
-
-group :lint do
-  gem "syntax_tree", "6.1.1", require: false
-end
 
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
@@ -117,7 +113,7 @@ group :cable do
 
   gem "redis-namespace"
 
-  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
+  gem "websocket-client-simple", require: false
 end
 
 # Active Storage

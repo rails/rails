@@ -545,20 +545,25 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
-        if @pinned_connection
-          @pinned_connection.lock.synchronize do
-            synchronize do
+        return checkout_and_verify(acquire_connection(checkout_timeout)) unless @pinned_connection
+
+        @pinned_connection.lock.synchronize do
+          synchronize do
+            # The pinned connection may have been cleaned up before we synchronized, so check if it is still present
+            if @pinned_connection
               @pinned_connection.verify!
+
               # Any leased connection must be in @connections otherwise
               # some methods like #connected? won't behave correctly
               unless @connections.include?(@pinned_connection)
                 @connections << @pinned_connection
               end
+
+              @pinned_connection
+            else
+              checkout_and_verify(acquire_connection(checkout_timeout))
             end
           end
-          @pinned_connection
-        else
-          checkout_and_verify(acquire_connection(checkout_timeout))
         end
       end
 
@@ -691,6 +696,14 @@ module ActiveRecord
       def schedule_query(future_result) # :nodoc:
         @async_executor.post { future_result.execute_or_skip }
         Thread.pass
+      end
+
+      def new_connection # :nodoc:
+        connection = db_config.new_connection
+        connection.pool = self
+        connection
+      rescue ConnectionNotEstablished => ex
+        raise ex.set_pool(self)
       end
 
       private
@@ -877,14 +890,6 @@ module ActiveRecord
           end
         end
         alias_method :release, :remove_connection_from_thread_cache
-
-        def new_connection
-          connection = db_config.new_connection
-          connection.pool = self
-          connection
-        rescue ConnectionNotEstablished => ex
-          raise ex.set_pool(self)
-        end
 
         # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.

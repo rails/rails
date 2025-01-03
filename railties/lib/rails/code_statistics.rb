@@ -45,11 +45,11 @@ module Rails
     class_attribute :directories, default: DIRECTORIES
     class_attribute :test_types, default: TEST_TYPES
 
-    # Add directories to the output of the `bin/rails stats` command.
+    # Add directories to the output of the <tt>bin/rails stats</tt> command.
     #
     #   Rails::CodeStatistics.register_directory("My Directory", "path/to/dir")
     #
-    # For directories that contain test code, set the `test_directory` argument to true.
+    # For directories that contain test code, set the <tt>test_directory</tt> argument to true.
     #
     #   Rails::CodeStatistics.register_directory("Model specs", "spec/models", test_directory: true)
     def self.register_directory(label, path, test_directory: false)

@@ -18,13 +18,12 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
   end
 
   test "instrumenting analysis" do
-    events = capture_notifications("analyze.active_storage") do
-      assert_notifications_count("analyze.active_storage", 1) do
-        blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
+    blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
+
+    assert_notifications_count("analyze.active_storage", 1) do
+      assert_notification("analyze.active_storage", analyzer: "ffprobe") do
         blob.analyze
       end
     end
-
-    assert_equal({ analyzer: "ffprobe" }, events.first.payload)
   end
 end

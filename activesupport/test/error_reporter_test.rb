@@ -269,6 +269,31 @@ class ErrorReporterTest < ActiveSupport::TestCase
     end
   end
 
+  test "causes can't be reported again either" do
+    begin
+      begin
+        begin
+          raise "Original"
+        rescue
+          raise "Another"
+        end
+      rescue
+        raise "Yet Another"
+      end
+    rescue => @error
+    end
+
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error, handled: false)
+    end
+
+    assert_no_difference -> { @subscriber.events.size } do
+      3.times do
+        @reporter.report(@error.cause.cause, handled: false)
+      end
+    end
+  end
+
   test "can report frozen exceptions" do
     assert_difference -> { @subscriber.events.size }, +1 do
       @reporter.report(@error.freeze, handled: false)

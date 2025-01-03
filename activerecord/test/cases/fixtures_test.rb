@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/aircraft"
 require "models/author"
 require "models/binary"
 require "models/book"
@@ -112,8 +113,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_a_multi_statement_query_raises_an_exception_when_any_insert_fails
-      require "models/aircraft"
-
       assert_equal false, Aircraft.columns_hash["wheels_count"].null
       fixtures = {
         "aircraft" => [
@@ -476,6 +475,20 @@ class FixturesTest < ActiveRecord::TestCase
     create_fixtures("tasks")
     first = Task.find(1)
     assert first
+  end
+
+  def test_insert_with_default_function
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-manufactured-at")
+    assert_in_delta Time.now, aircraft.manufactured_at, 1.1
+  end
+
+  def test_insert_with_default_value
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-wheels")
+    assert_equal 0, aircraft.wheels_count
   end
 
   def test_logger_level_invariant

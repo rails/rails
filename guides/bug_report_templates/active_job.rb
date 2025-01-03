@@ -17,6 +17,7 @@ class TestApp < Rails::Application
   config.load_defaults Rails::VERSION::STRING.to_f
   config.eager_load = false
   config.secret_key_base = "secret_key_base"
+  config.active_job.queue_adapter = :test
 
   config.logger = Logger.new($stdout)
 end

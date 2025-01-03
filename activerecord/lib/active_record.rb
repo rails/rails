@@ -259,6 +259,9 @@ module ActiveRecord
   ##
   # :singleton-method: db_warnings_ignore
   # Specify allowlist of database warnings.
+  # Can be a string, regular expression, or an error code from the database.
+  #
+  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -399,6 +402,12 @@ module ActiveRecord
   # Specify strategy to use for executing migrations.
   singleton_class.attr_accessor :migration_strategy
   self.migration_strategy = Migration::DefaultStrategy
+
+  ##
+  # :singleton-method: schema_versions_formatter
+  # Specify the formatter used by schema dumper to format versions information.
+  singleton_class.attr_accessor :schema_versions_formatter
+  self.schema_versions_formatter = Migration::DefaultSchemaVersionsFormatter
 
   ##
   # :singleton-method: dump_schema_after_migration

@@ -1,3 +1,37 @@
+*   Introduce versions formatter for the schema dumper.
+
+    It is now possible to override how schema dumper formats versions information inside the
+    `structure.sql` file. Currently, the versions are simply sorted in the decreasing order.
+    Within large teams, this can potentially cause many merge conflicts near the top of the list.
+
+    Now, the custom formatter can be provided with a custom sorting logic (e.g. by hash values
+    of the versions), which can greatly reduce the number of conflicts.
+
+    *fatkodima*
+
+*   Serialized attributes can now be marked as comparable.
+
+    A not rare issue when working with serialized attributes is that the serialized representation of an object
+    can change over time. Either because you are migrating from one serializer to the other (e.g. YAML to JSON or to msgpack),
+    or because the serializer used subtly changed its output.
+
+    One example is libyaml that used to have some extra trailing whitespaces, and recently fixed that.
+    When this sorts of thing happen, you end up with lots of records that report being changed even though
+    they aren't, which in the best case leads to a lot more writes to the database and in the worst case lead to nasty bugs.
+
+    The solution is to instead compare the deserialized representation of the object, however Active Record
+    can't assume the deserialized object has a working `==` method. Hence why this new functionality is opt-in.
+
+    ```ruby
+    serialize :config, type: Hash, coder: JSON, comparable: true
+    ```
+
+    *Jean Boussier*
+
+*   Fix MySQL default functions getting dropped when changing a column's nullability.
+
+    *Bastian Bartmann*
+
 *   SQLite extensions can be configured in `config/database.yml`.
 
     The database configuration option `extensions:` allows an application to load SQLite extensions
