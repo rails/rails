@@ -299,7 +299,10 @@ module ActiveRecord
         @primary_keys.fetch(table_name) do
           pool.with_connection do |connection|
             if data_source_exists?(pool, table_name)
-              @primary_keys[deep_deduplicate(table_name)] = deep_deduplicate(connection.primary_key(table_name))
+              @primary_keys[deep_deduplicate(table_name)] = columns(pool, table_name)
+                .sort_by { |column| column.primary_idx || Float::INFINITY }
+                .filter_map { |column| column.name if column.primary? }
+                .then { |keys| keys.size > 1 ? keys : keys.first }
             end
           end
         end
