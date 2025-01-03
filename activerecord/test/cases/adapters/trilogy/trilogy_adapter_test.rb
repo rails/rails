@@ -432,42 +432,4 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(prepared_statements: true).connect!
     end
   end
-
-  # Create a temporary subscription to verify notification is sent.
-  # Optionally verify the notification payload includes expected types.
-  def assert_notification(notification, expected_payload = {}, &block)
-    notification_sent = false
-
-    subscription = lambda do |_, _, _, _, payload|
-      notification_sent = true
-
-      expected_payload.each do |key, value|
-        assert(
-          value === payload[key],
-          "Expected notification payload[:#{key}] to match #{value.inspect}, but got #{payload[key].inspect}."
-        )
-      end
-    end
-
-    ActiveSupport::Notifications.subscribed(subscription, notification) do
-      block.call if block_given?
-    end
-
-    assert notification_sent, "#{notification} notification was not sent"
-  end
-
-  # Create a temporary subscription to verify notification was not sent.
-  def assert_no_notification(notification, &block)
-    notification_sent = false
-
-    subscription = lambda do |*args|
-      notification_sent = true
-    end
-
-    ActiveSupport::Notifications.subscribed(subscription, notification) do
-      block.call if block_given?
-    end
-
-    assert_not notification_sent, "#{notification} notification was sent"
-  end
 end
