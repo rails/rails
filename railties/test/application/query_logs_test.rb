@@ -89,8 +89,10 @@ module ApplicationTests
     test "controller and job tags are defined by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       app_file "config/initializers/active_record.rb", <<-RUBY
-        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.lease_connection.prepared_statements
-        ActiveRecord::Base.lease_connection.execute("SELECT 1")
+        Rails.application.config.to_prepare do
+          raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.lease_connection.prepared_statements
+          ActiveRecord::Base.lease_connection.execute("SELECT 1")
+        end
       RUBY
 
       boot_app
