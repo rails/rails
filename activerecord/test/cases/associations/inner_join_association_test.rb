@@ -241,4 +241,46 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert_match %r(#{Regexp.escape(quote_table_name("friendships.friend_id"))}), sql
     assert_match %r(#{Regexp.escape(quote_table_name("friendships.follower_id"))}), sql
   end
+
+  test "join uses subquery when scoped assocation includes a group" do
+    scope = Post.joins(:popular_comments)
+    sql, = capture_sql { scope.to_a }
+
+    assert_match %r(INNER JOIN \(SELECT .+ GROUP BY .+\) comments), sql
+    assert_equal 2, scope.count
+  end
+
+  test "join uses subquery when scoped assocation includes a select" do
+    scope = Post.joins(:comments_with_select).select("posts.*", "comments.hello")
+    sql, = capture_sql { scope.to_a }
+
+    assert_match %r(INNER JOIN \(SELECT .+ 'hello' AS hello .+\) comments), sql
+    assert_equal "hello", scope.first.hello
+  end
+
+  test "join uses subquery when scoped association includes from" do
+    scope = Post.joins(:comments_with_from)
+    sql, = capture_sql { scope.to_a }
+
+    assert_match %r(INNER JOIN \(.+ FROM comments all_comments\) comments), sql
+    assert_equal Comment.count, scope.count
+  end
+
+  test "join uses subquery when scoped association includes limit or offset" do
+    scope = Post.joins(:comments_with_limit)
+    sql, = capture_sql { scope.to_a }
+
+    assert_match %r(INNER JOIN \(.+ LIMIT .+ OFFSET .+\) comments), sql
+    assert_equal [posts(:thinking)], scope
+  end
+
+  if ActiveRecord::Base.lease_connection.supports_common_table_expressions?
+    test "join uses subquery when scoped association includes CTE" do
+      scope = Post.joins(:comments_with_cte)
+      sql, = capture_sql { scope.to_a }
+
+      assert_match %r(INNER JOIN \(WITH .+ FROM all_comments comments\) comments), sql
+      assert_equal Comment.count, scope.count
+    end
+  end
 end
