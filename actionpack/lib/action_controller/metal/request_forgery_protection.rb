@@ -71,32 +71,39 @@ module ActionController # :nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling
       # `protect_from_forgery` sets it to `:authenticity_token` by default.
-      config_accessor :request_forgery_protection_token
+      singleton_class.delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
+      delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
       self.request_forgery_protection_token ||= :authenticity_token
 
       # Holds the class which implements the request forgery protection.
-      config_accessor :forgery_protection_strategy
+      singleton_class.delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
+      delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
       self.forgery_protection_strategy = nil
 
       # Controls whether request forgery protection is turned on or not. Turned off by
       # default only in test mode.
-      config_accessor :allow_forgery_protection
+      singleton_class.delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
+      delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
       # Controls whether a CSRF failure logs a warning. On by default.
-      config_accessor :log_warning_on_csrf_failure
+      singleton_class.delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
+      delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
       self.log_warning_on_csrf_failure = true
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
-      config_accessor :forgery_protection_origin_check
+      singleton_class.delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
+      delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
       self.forgery_protection_origin_check = false
 
       # Controls whether form-action/method specific CSRF tokens are used.
-      config_accessor :per_form_csrf_tokens
+      singleton_class.delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
+      delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
       self.per_form_csrf_tokens = false
 
       # The strategy to use for storing and retrieving CSRF tokens.
-      config_accessor :csrf_token_storage_strategy
+      singleton_class.delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
+      delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
       self.csrf_token_storage_strategy = SessionStore.new
 
       helper_method :form_authenticity_token
