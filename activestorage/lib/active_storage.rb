@@ -362,6 +362,7 @@ module ActiveStorage
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :track_variants, default: false
+  mattr_accessor :digest_class
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
