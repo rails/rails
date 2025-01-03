@@ -1,5 +1,5 @@
 /*
-Trix 2.1.10
+Trix 2.1.12
 Copyright © 2024 37signals, LLC
  */
 (function (global, factory) {
@@ -9,7 +9,7 @@ Copyright © 2024 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.10";
+  var version = "2.1.12";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -44,6 +44,7 @@ Copyright © 2024 37signals, LLC
   	"@rollup/plugin-node-resolve": "^13.3.0",
   	"@web/dev-server": "^0.1.34",
   	"babel-eslint": "^10.1.0",
+  	chokidar: "^4.0.2",
   	concurrently: "^7.4.0",
   	eslint: "^7.32.0",
   	esm: "^3.2.25",
@@ -51,12 +52,12 @@ Copyright © 2024 37signals, LLC
   	"karma-chrome-launcher": "3.2.0",
   	"karma-qunit": "^4.1.2",
   	"karma-sauce-launcher": "^4.3.6",
-  	"node-sass": "^7.0.1",
   	qunit: "2.19.1",
   	rangy: "^1.3.0",
   	rollup: "^2.56.3",
   	"rollup-plugin-includepaths": "^0.2.4",
   	"rollup-plugin-terser": "^7.0.2",
+  	sass: "^1.83.0",
   	svgo: "^2.8.0",
   	webdriverio: "^7.19.5"
   };
@@ -64,7 +65,7 @@ Copyright © 2024 37signals, LLC
   	webdriverio: "^7.19.5"
   };
   var scripts = {
-  	"build-css": "node-sass --functions=./assets/trix/stylesheets/functions assets/trix.scss dist/trix.css",
+  	"build-css": "bin/sass-build assets/trix.scss dist/trix.css",
   	"build-js": "rollup -c",
   	"build-assets": "cp -f assets/*.html dist/",
   	build: "yarn run build-js && yarn run build-css && yarn run build-assets",
@@ -207,6 +208,12 @@ Copyright © 2024 37signals, LLC
     attachmentSize: "attachment__size",
     attachmentToolbar: "attachment__toolbar",
     attachmentGallery: "attachment-gallery"
+  };
+
+  var dompurify = {
+    ADD_ATTR: ["language"],
+    SAFE_FOR_XML: false,
+    RETURN_DOM: true
   };
 
   var lang$1 = {
@@ -631,7 +638,7 @@ Copyright © 2024 37signals, LLC
 
   var toolbar = {
     getDefaultHTML() {
-      return "<div class=\"trix-button-row\">\n      <span class=\"trix-button-group trix-button-group--text-tools\" data-trix-button-group=\"text-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-bold\" data-trix-attribute=\"bold\" data-trix-key=\"b\" title=\"".concat(lang$1.bold, "\" tabindex=\"-1\">").concat(lang$1.bold, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-italic\" data-trix-attribute=\"italic\" data-trix-key=\"i\" title=\"").concat(lang$1.italic, "\" tabindex=\"-1\">").concat(lang$1.italic, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-strike\" data-trix-attribute=\"strike\" title=\"").concat(lang$1.strike, "\" tabindex=\"-1\">").concat(lang$1.strike, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-link\" data-trix-attribute=\"href\" data-trix-action=\"link\" data-trix-key=\"k\" title=\"").concat(lang$1.link, "\" tabindex=\"-1\">").concat(lang$1.link, "</button>\n      </span>\n\n      <span class=\"trix-button-group trix-button-group--block-tools\" data-trix-button-group=\"block-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-heading-1\" data-trix-attribute=\"heading1\" title=\"").concat(lang$1.heading1, "\" tabindex=\"-1\">").concat(lang$1.heading1, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-quote\" data-trix-attribute=\"quote\" title=\"").concat(lang$1.quote, "\" tabindex=\"-1\">").concat(lang$1.quote, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-code\" data-trix-attribute=\"code\" title=\"").concat(lang$1.code, "\" tabindex=\"-1\">").concat(lang$1.code, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-bullet-list\" data-trix-attribute=\"bullet\" title=\"").concat(lang$1.bullets, "\" tabindex=\"-1\">").concat(lang$1.bullets, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-number-list\" data-trix-attribute=\"number\" title=\"").concat(lang$1.numbers, "\" tabindex=\"-1\">").concat(lang$1.numbers, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-decrease-nesting-level\" data-trix-action=\"decreaseNestingLevel\" title=\"").concat(lang$1.outdent, "\" tabindex=\"-1\">").concat(lang$1.outdent, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-increase-nesting-level\" data-trix-action=\"increaseNestingLevel\" title=\"").concat(lang$1.indent, "\" tabindex=\"-1\">").concat(lang$1.indent, "</button>\n      </span>\n\n      <span class=\"trix-button-group trix-button-group--file-tools\" data-trix-button-group=\"file-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-attach\" data-trix-action=\"attachFiles\" title=\"").concat(lang$1.attachFiles, "\" tabindex=\"-1\">").concat(lang$1.attachFiles, "</button>\n      </span>\n\n      <span class=\"trix-button-group-spacer\"></span>\n\n      <span class=\"trix-button-group trix-button-group--history-tools\" data-trix-button-group=\"history-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-undo\" data-trix-action=\"undo\" data-trix-key=\"z\" title=\"").concat(lang$1.undo, "\" tabindex=\"-1\">").concat(lang$1.undo, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-redo\" data-trix-action=\"redo\" data-trix-key=\"shift+z\" title=\"").concat(lang$1.redo, "\" tabindex=\"-1\">").concat(lang$1.redo, "</button>\n      </span>\n    </div>\n\n    <div class=\"trix-dialogs\" data-trix-dialogs>\n      <div class=\"trix-dialog trix-dialog--link\" data-trix-dialog=\"href\" data-trix-dialog-attribute=\"href\">\n        <div class=\"trix-dialog__link-fields\">\n          <input type=\"url\" name=\"href\" class=\"trix-input trix-input--dialog\" placeholder=\"").concat(lang$1.urlPlaceholder, "\" aria-label=\"").concat(lang$1.url, "\" required data-trix-input>\n          <div class=\"trix-button-group\">\n            <input type=\"button\" class=\"trix-button trix-button--dialog\" value=\"").concat(lang$1.link, "\" data-trix-method=\"setAttribute\">\n            <input type=\"button\" class=\"trix-button trix-button--dialog\" value=\"").concat(lang$1.unlink, "\" data-trix-method=\"removeAttribute\">\n          </div>\n        </div>\n      </div>\n    </div>");
+      return "<div class=\"trix-button-row\">\n      <span class=\"trix-button-group trix-button-group--text-tools\" data-trix-button-group=\"text-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-bold\" data-trix-attribute=\"bold\" data-trix-key=\"b\" title=\"".concat(lang$1.bold, "\" tabindex=\"-1\">").concat(lang$1.bold, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-italic\" data-trix-attribute=\"italic\" data-trix-key=\"i\" title=\"").concat(lang$1.italic, "\" tabindex=\"-1\">").concat(lang$1.italic, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-strike\" data-trix-attribute=\"strike\" title=\"").concat(lang$1.strike, "\" tabindex=\"-1\">").concat(lang$1.strike, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-link\" data-trix-attribute=\"href\" data-trix-action=\"link\" data-trix-key=\"k\" title=\"").concat(lang$1.link, "\" tabindex=\"-1\">").concat(lang$1.link, "</button>\n      </span>\n\n      <span class=\"trix-button-group trix-button-group--block-tools\" data-trix-button-group=\"block-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-heading-1\" data-trix-attribute=\"heading1\" title=\"").concat(lang$1.heading1, "\" tabindex=\"-1\">").concat(lang$1.heading1, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-quote\" data-trix-attribute=\"quote\" title=\"").concat(lang$1.quote, "\" tabindex=\"-1\">").concat(lang$1.quote, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-code\" data-trix-attribute=\"code\" title=\"").concat(lang$1.code, "\" tabindex=\"-1\">").concat(lang$1.code, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-bullet-list\" data-trix-attribute=\"bullet\" title=\"").concat(lang$1.bullets, "\" tabindex=\"-1\">").concat(lang$1.bullets, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-number-list\" data-trix-attribute=\"number\" title=\"").concat(lang$1.numbers, "\" tabindex=\"-1\">").concat(lang$1.numbers, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-decrease-nesting-level\" data-trix-action=\"decreaseNestingLevel\" title=\"").concat(lang$1.outdent, "\" tabindex=\"-1\">").concat(lang$1.outdent, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-increase-nesting-level\" data-trix-action=\"increaseNestingLevel\" title=\"").concat(lang$1.indent, "\" tabindex=\"-1\">").concat(lang$1.indent, "</button>\n      </span>\n\n      <span class=\"trix-button-group trix-button-group--file-tools\" data-trix-button-group=\"file-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-attach\" data-trix-action=\"attachFiles\" title=\"").concat(lang$1.attachFiles, "\" tabindex=\"-1\">").concat(lang$1.attachFiles, "</button>\n      </span>\n\n      <span class=\"trix-button-group-spacer\"></span>\n\n      <span class=\"trix-button-group trix-button-group--history-tools\" data-trix-button-group=\"history-tools\">\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-undo\" data-trix-action=\"undo\" data-trix-key=\"z\" title=\"").concat(lang$1.undo, "\" tabindex=\"-1\">").concat(lang$1.undo, "</button>\n        <button type=\"button\" class=\"trix-button trix-button--icon trix-button--icon-redo\" data-trix-action=\"redo\" data-trix-key=\"shift+z\" title=\"").concat(lang$1.redo, "\" tabindex=\"-1\">").concat(lang$1.redo, "</button>\n      </span>\n    </div>\n\n    <div class=\"trix-dialogs\" data-trix-dialogs>\n      <div class=\"trix-dialog trix-dialog--link\" data-trix-dialog=\"href\" data-trix-dialog-attribute=\"href\">\n        <div class=\"trix-dialog__link-fields\">\n          <input type=\"url\" name=\"href\" class=\"trix-input trix-input--dialog\" placeholder=\"").concat(lang$1.urlPlaceholder, "\" aria-label=\"").concat(lang$1.url, "\" data-trix-validate-href required data-trix-input>\n          <div class=\"trix-button-group\">\n            <input type=\"button\" class=\"trix-button trix-button--dialog\" value=\"").concat(lang$1.link, "\" data-trix-method=\"setAttribute\">\n            <input type=\"button\" class=\"trix-button trix-button--dialog\" value=\"").concat(lang$1.unlink, "\" data-trix-method=\"removeAttribute\">\n          </div>\n        </div>\n      </div>\n    </div>");
     }
   };
 
@@ -645,6 +652,7 @@ Copyright © 2024 37signals, LLC
     blockAttributes: attributes,
     browser: browser$1,
     css: css$3,
+    dompurify: dompurify,
     fileSize: file_size_formatting,
     input: input,
     keyNames: key_names,
@@ -3064,6 +3072,12 @@ $\
   }
   var purify = createDOMPurify();
 
+  purify.addHook("uponSanitizeAttribute", function (node, data) {
+    const allowedAttributePattern = /^data-trix-/;
+    if (allowedAttributePattern.test(data.attrName)) {
+      data.forceKeepAttr = true;
+    }
+  });
   const DEFAULT_ALLOWED_ATTRIBUTES = "style href src width height language class".split(" ");
   const DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ");
   const DEFAULT_FORBIDDEN_ELEMENTS = "script iframe form noscript".split(" ");
@@ -3093,10 +3107,9 @@ $\
     sanitize() {
       this.sanitizeElements();
       this.normalizeListElementNesting();
-      return purify.sanitize(this.body, {
-        ADD_ATTR: ["language"],
-        RETURN_DOM: true
-      });
+      purify.setConfig(dompurify);
+      this.body = purify.sanitize(this.body);
+      return this.body;
     }
     getHTML() {
       return this.body.innerHTML;
@@ -12626,16 +12639,26 @@ $\
       return (_this$delegate6 = this.delegate) === null || _this$delegate6 === void 0 ? void 0 : _this$delegate6.toolbarDidShowDialog(dialogName);
     }
     setAttribute(dialogElement) {
+      var _this$delegate7;
       const attributeName = getAttributeName(dialogElement);
       const input = getInputForDialog(dialogElement, attributeName);
-      if (input.willValidate && !input.checkValidity()) {
-        input.setAttribute("data-trix-validate", "");
-        input.classList.add("trix-validate");
-        return input.focus();
+      if (input.willValidate) {
+        input.setCustomValidity("");
+        if (!input.checkValidity() || !this.isSafeAttribute(input)) {
+          input.setCustomValidity("Invalid value");
+          input.setAttribute("data-trix-validate", "");
+          input.classList.add("trix-validate");
+          return input.focus();
+        }
+      }
+      (_this$delegate7 = this.delegate) === null || _this$delegate7 === void 0 || _this$delegate7.toolbarDidUpdateAttribute(attributeName, input.value);
+      return this.hideDialog();
+    }
+    isSafeAttribute(input) {
+      if (input.hasAttribute("data-trix-validate-href")) {
+        return purify.isValidAttribute("a", "href", input.value);
       } else {
-        var _this$delegate7;
-        (_this$delegate7 = this.delegate) === null || _this$delegate7 === void 0 || _this$delegate7.toolbarDidUpdateAttribute(attributeName, input.value);
-        return this.hideDialog();
+        return true;
       }
     }
     removeAttribute(dialogElement) {
