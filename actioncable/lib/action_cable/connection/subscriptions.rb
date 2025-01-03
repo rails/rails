@@ -12,6 +12,38 @@ module ActionCable
     # connection. Responsible for routing incoming commands that arrive on the
     # connection to the proper channel.
     class Subscriptions # :nodoc:
+      class Error < StandardError; end
+
+      class AlreadySubscribedError < Error
+        def initialize(identifier)
+          super "Already subscribed to #{identifier}"
+        end
+      end
+
+      class ChannelNotFound < Error
+        def initialize(channel_id)
+          super "Channel not found: #{channel_id}"
+        end
+      end
+
+      class MalformedCommandError < Error
+        def initialize(data)
+          super "Malformed command: #{data.inspect}"
+        end
+      end
+
+      class UnknownCommandError < Error
+        def initialize(command)
+          super "Received unrecognized command: #{command}"
+        end
+      end
+
+      class UnknownSubscription < Error
+        def initialize(identifier)
+          "Unable to find subscription with identifier: #{identifier}"
+        end
+      end
+
       def initialize(connection)
         @connection = connection
         @subscriptions = {}
@@ -23,27 +55,25 @@ module ActionCable
         when "unsubscribe" then remove data
         when "message"     then perform_action data
         else
-          logger.error "Received unrecognized command in #{data.inspect}"
+          raise UnknownCommandError, data["command"]
         end
-      rescue Exception => e
-        @connection.rescue_with_handler(e)
-        logger.error "Could not execute command from (#{data.inspect}) [#{e.class} - #{e.message}]: #{e.backtrace.first(5).join(" | ")}"
       end
 
       def add(data)
         id_key = data["identifier"]
-        id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
 
-        return if subscriptions.key?(id_key)
+        raise MalformedCommandError, data unless id_key.present?
 
-        subscription_klass = id_options[:channel].safe_constantize
+        raise AlreadySubscribedError, id_key if subscriptions.key?(id_key)
 
-        if subscription_klass && ActionCable::Channel::Base > subscription_klass
-          subscription = subscription_klass.new(connection, id_key, id_options)
+        subscription = subscription_from_identifier(id_key)
+
+        if subscription
           subscriptions[id_key] = subscription
           subscription.subscribe_to_channel
         else
-          logger.error "Subscription class not found: #{id_options[:channel].inspect}"
+          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+          raise ChannelNotFound, id_options[:channel]
         end
       end
 
@@ -77,7 +107,16 @@ module ActionCable
           if subscription = subscriptions[data["identifier"]]
             subscription
           else
-            raise "Unable to find subscription with identifier: #{data['identifier']}"
+            raise UnknownSubscription, data['identifier']
+          end
+        end
+
+        def subscription_from_identifier(id_key)
+          id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
+          subscription_klass = id_options[:channel].safe_constantize
+
+          if subscription_klass && ActionCable::Channel::Base > subscription_klass
+            subscription_klass.new(connection, id_key, id_options)
           end
         end
     end

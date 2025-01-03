@@ -2,10 +2,10 @@
 
 require "stubs/user"
 
-class TestConnection
+class TestSocket
   attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
 
-  delegate :pubsub, :config, to: :server
+  delegate :pubsub, :config, :executor, to: :server
 
   def initialize(user = User.new("lifo"), coder: ActiveSupport::JSON, subscription_adapter: SuccessAdapter)
     @coder = coder
@@ -15,6 +15,10 @@ class TestConnection
     @logger = ActiveSupport::TaggedLogging.new ActiveSupport::Logger.new(StringIO.new)
     @server = TestServer.new(subscription_adapter: subscription_adapter)
     @transmissions = []
+  end
+
+  def perform_work(receiver, method, *args)
+    receiver.send method, *args
   end
 
   def transmit(cable_message)
