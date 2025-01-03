@@ -18,6 +18,12 @@ module ActiveRecord
 
     ##
     # :singleton-method:
+    # Specify that the table columns should be sorted by name when dumped to
+    # the schema.
+    cattr_accessor :sort_table_columns, default: false
+
+    ##
+    # :singleton-method:
     # Specify a custom regular expression matching foreign keys which name
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
@@ -192,6 +198,7 @@ module ActiveRecord
           tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
+          columns = columns.sort_by(&:name) if self.class.sort_table_columns
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
