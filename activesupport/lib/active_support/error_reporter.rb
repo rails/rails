@@ -208,6 +208,7 @@ module ActiveSupport
     #   Rails.error.report(error)
     #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
+      error = RuntimeError.new(error) if error.is_a?(String)
       return if error.instance_variable_defined?(:@__rails_error_reported)
       ensure_backtrace(error)
 
