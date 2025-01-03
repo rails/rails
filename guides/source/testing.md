@@ -590,7 +590,7 @@ Just about every Rails application interacts heavily with a database and so your
 tests will need a database to interact with as well. This section covers how to
 set up this test database and populate it with sample data.
 
-As mentioned in the [Test Envionment section](#the-test-environment), every
+As mentioned in the [Test Environment section](#the-test-environment), every
 Rails application has three environments: development, test, and production. The
 database for each one of them is configured in `config/database.yml`.
 
