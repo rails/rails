@@ -107,18 +107,19 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
-
-You can specify an alternative logger in `config/application.rb` or any other environment file, for example:
+Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may be substituted:
 
 ```ruby
+# config/application.rb 
+# or any environment file:
 config.logger = Logger.new(STDOUT)
 config.logger = Log4r::Logger.new("Application Log")
 ```
 
-Or in the `Initializer` section, add _any_ of the following
+Or:
 
-```ruby
+```rb
+# any initializer file: e.g. config/initializers/log4r.rb
 Rails.logger = Logger.new(STDOUT)
 Rails.logger = Log4r::Logger.new("Application Log")
 ```
@@ -134,11 +135,19 @@ method.
 
 The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`,
 and `:unknown`, corresponding to the log level numbers from 0 up to 5,
-respectively. To change the default log level, use
+respectively. To change the default log level:
 
 ```ruby
-config.log_level = :warn # In any environment initializer, or
-Rails.logger.level = 0 # at any time
+# config/application.rb
+# or any environment file:
+config.log_level = :warn
+```
+
+Or:
+
+```ruby
+# any initializer file e.g. config/initializers/logger.rb 
+Rails.logger.level = 0
 ```
 
 This is useful when you want to log under development or staging without flooding your production log with unnecessary information.
@@ -217,7 +226,7 @@ irb(main):001:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-After running `ActiveRecord.verbose_query_logs = true` in the `bin/rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
+But it becomes manifest after enabling `verbose_query_logs`:
 
 ```irb
 irb(main):003:0> Article.pamplemousse
@@ -232,9 +241,20 @@ irb(main):003:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call e.g. `↳ app/models/article.rb:5`. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
 
 Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
+
+```rb
+# config/application.rb 
+# or any environment file:
+config.active_record.verbose_query_logs = true
+```
+
+```irb
+# bin/rails console
+ActiveRecord.verbose_query_logs = true
+```
 
 WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls. Use query log tags (see below) instead.
 
@@ -242,13 +262,20 @@ WARNING: We recommend against using this setting in production environments. It 
 
 Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.
 
-It is enabled by default in development. To enable in other environments, add in `application.rb` or any environment initializer:
+Verbose enqueue logs are enabled by default in the development environment logs after Rails 7.1.
 
 ```rb
+# config/application.rb 
+# or any environment file:
 config.active_job.verbose_enqueue_logs = true
 ```
 
-As verbose query logs, it is not recommended for use in production environments.
+```irb
+# bin/rails console
+ActiveJob.verbose_enqueue_logs = true
+```
+
+WARNING: We recommend against using this setting in production environments.
 
 SQL Query Comments
 ------------------
@@ -258,9 +285,9 @@ trace troublesome queries back to the area of the application that generated the
 logging slow queries (e.g. [MySQL](https://dev.mysql.com/doc/refman/en/slow-query-log.html), [PostgreSQL](https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT)),
 viewing currently running queries, or for end-to-end tracing tools.
 
-To enable, add in `application.rb` or any environment initializer:
-
 ```rb
+# config/application.rb 
+# or any environment file:
 config.active_record.query_log_tags_enabled = true
 ```
 
