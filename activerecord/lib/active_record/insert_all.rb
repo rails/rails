@@ -286,6 +286,19 @@ module ActiveRecord
           end.join
         end
 
+        def touch_model_timestamps_with_type_unless(&block)
+          return "" unless update_duplicates? && record_timestamps?
+
+          model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
+            if touch_timestamp_attribute?(column_name)
+              condition = insert_all.updatable_columns.index_with do
+                |key| model.type_for_attribute(key)
+              end.map(&block).join(" AND ")
+              "#{column_name}=(CASE WHEN (#{condition}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
+            end
+          end.join
+        end
+
         def raw_update_sql
           insert_all.update_sql
         end
