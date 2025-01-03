@@ -1,3 +1,7 @@
+*   Colorize the Rails console prompt even on non standard environments.
+
+    *Lorenzo Zabot*
+
 *   Don't enable YJIT in development and test environments
 
     Development and test environment tend to reload code and redefine methods (e.g. mocking),
