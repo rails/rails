@@ -1,9 +1,14 @@
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
 *   Don't enable YJIT in development and test environments
 
     Development and test environment tend to reload code and redefine methods (e.g. mocking),
     hence YJIT isn't generally faster in these environments.
 
     *Ali Ismayilov*, *Jean Boussier*
+
 
 *   Only include PermissionsPolicy::Middleware if policy is configured.
 
