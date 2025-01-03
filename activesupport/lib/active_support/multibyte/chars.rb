@@ -5,6 +5,11 @@ require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
 
+ActiveSupport.deprecator.warn(
+  "ActiveSupport::Multibyte::Chars and String#mb_chars are deprecated and will be removed in Rails 8.2. " \
+  "Use normal string methods instead."
+)
+
 module ActiveSupport # :nodoc:
   module Multibyte # :nodoc:
     # = Active Support \Multibyte \Chars
