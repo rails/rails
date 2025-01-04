@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
-# [Choice] Ruby version: 3, 3.3, 3.2, 3.1, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3.3.6"
+# [Choice] Ruby version: 3.4, 3.3, 3.2
+ARG VARIANT="3.4.1 "
 FROM ghcr.io/rails/devcontainer/images/ruby:${VARIANT}
 
 RUN sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \
