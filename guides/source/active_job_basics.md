@@ -173,11 +173,10 @@ development:
 NOTE: The key `queue` from the database configuration needs to match the key
 used in the configuration for `config.solid_queue.connects_to`.
 
-You can run the migrations for the `queue` database to ensure all the tables in
-queue database are created:
+You can then run `db:prepare` to ensure the `queue` database in `development` has all the required tables:
 
 ```bash
-$ bin/rails db:migrate:queue
+$ bin/rails db:prepare
 ```
 
 TIP: You can find the default generated schema for the `queue` database in
@@ -218,6 +217,13 @@ production:
     database: storage/production_queue.sqlite3
     migrations_paths: db/queue_migrate
 ```
+
+Make sure you run `db:prepare` so your database is ready to use:
+
+```bash
+$ bin/rails db:prepare
+```
+
 
 ### Configuration
 
@@ -301,9 +307,11 @@ its own or at the end of a queue name to match all queues with the same prefix.
 You can't specify queue names such as `*_some_queue`.
 
 WARNING: Using wildcard queue names (e.g., `queues: active_storage*`) can slow
-down polling performance due to the need for a `DISTINCT` query to identify all
-matching queues, which can be slow on large tables. For better performance, it’s
-best to specify exact queue names instead of using wildcards.
+down polling performance in SQLite and PostgreSQL due to the need for a `DISTINCT`
+query to identify all matching queues, which can be slow on large tables in these RDBMS.
+For better performance, it’s best to specify exact queue names instead of using
+wildcards. Read more about this in [Queues specification and performance in the
+Solid Queue documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#queues-specification-and-performance)
 
 Active Job supports positive integer priorities when enqueuing jobs (see
 [Priority section](#priority)). Within a single queue, jobs are picked based on
@@ -414,14 +422,22 @@ end
 
 ### Transactional Integrity on Jobs
 
-By default, Solid Queue uses a separate database from your main application.
-This avoids issues with transactional integrity, which ensures that jobs are
-only enqueued if the transaction commits.
+⚠️ Having your jobs in the same ACID-compliant database as your application data
+enables a powerful yet sharp tool: taking advantage of transactional integrity
+to ensure some action in your app is not committed unless your job is also committed
+and vice versa, and ensuring that your job won't be enqueued until the transaction
+within which you're enqueuing it is committed. This can be very powerful and useful,
+but it can also backfire if you base some of your logic on this behaviour,
+and in the future, you move to another active job backend, or if you simply move
+Solid Queue to its own database, and suddenly the behaviour changes under you.
 
-However, if you use Solid Queue in the same database as your app, you can enable
-transactional integrity with Active Job’s `enqueue_after_transaction_commit`
-option which can be enabled for individual jobs or all jobs through
-`ApplicationJob`:
+Because this can be quite tricky and many people shouldn't need to worry about it,
+by default Solid Queue is configured in a different database as the main app.
+
+However, if you use Solid Queue in the same database as your app, you can make sure you
+don't rely accidentallly on transactional integrity with Active Job’s
+`enqueue_after_transaction_commit` option which can be enabled for individual jobs or
+all jobs through `ApplicationJob`:
 
 ```ruby
 class ApplicationJob < ActiveJob::Base
@@ -430,7 +446,7 @@ end
 ```
 
 You can also configure Solid Queue to use the same database as your app while
-avoiding transactional integrity issues by setting up a separate database
+avoiding relying on transactional integrity by setting up a separate database
 connection for Solid Queue jobs. Read more about [Transactional Integrity in the
 Solid Queue
 documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#jobs-and-transactional-integrity)
@@ -457,7 +473,7 @@ Each task specifies a `class` or `command` and a `schedule` (parsed using
 jobs, such as in the example for `MyJob` where `args` are passed. This can be
 passed as a single argument, a hash, or an array of arguments that can also
 include kwargs as the last element in the array. This allows jobs to run
-periodically or at specified times.
+periodically at specified times.
 
 Read more about [Recurring Tasks in the Solid Queue
 documentation](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks).
