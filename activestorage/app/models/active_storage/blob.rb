@@ -348,7 +348,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
-      OpenSSL::Digest::MD5.new.tap do |checksum|
+      ActiveStorage.checksum_implementation.new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer
