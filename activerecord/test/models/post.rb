@@ -42,7 +42,7 @@ class Post < ActiveRecord::Base
   scope :most_commented, lambda { |comments_count|
     joins(:comments)
     .group("posts.id")
-    .having("count(comments.id) >= #{comments_count}")
+    .having("count(comments.id) >= ?", comments_count)
   }
 
   belongs_to :author
@@ -113,6 +113,10 @@ class Post < ActiveRecord::Base
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
+  has_one :very_special_comment_with_string_joins, -> {
+    joins("JOIN posts AS p1 ON comments.post_id = p1.id")
+    .where.not(p1: { id: 999999 })
+  }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
