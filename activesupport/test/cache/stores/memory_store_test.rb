@@ -44,7 +44,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
     size = 3
     size.times { |i| @cache.write(i.to_s, i) }
 
-    assert_notification("cache_cleanup.active_support", size: size, store: @cache.class.name) do
+    assert_notification("cache_cleanup.active_support", { size: size, store: @cache.class.name }) do
       @cache.cleanup
     end
   end

@@ -47,4 +47,10 @@
 
     *Jonathan del Strother*
 
+*   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` method now accepts a boolean `payload_subset` keyword argument which when set to `true` enables matching against a subset of a notification's `payload`. By default, it is set to `false`, matching payloads one to one.
+
+    Additionally, `assert_notification` now requires one to pass the optional `payload` argument as an explicit (`{}` wrapped) hash.
+
+    *Nicholas La Roux*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activesupport/CHANGELOG.md) for previous changes.

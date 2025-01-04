@@ -50,7 +50,7 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
 
     assert_notifications_count("analyze.active_storage", 1) do
-      assert_notification("analyze.active_storage", analyzer: "mini_magick") do
+      assert_notification("analyze.active_storage", { analyzer: "mini_magick" }) do
         analyze_with_image_magick do
           blob.analyze
         end

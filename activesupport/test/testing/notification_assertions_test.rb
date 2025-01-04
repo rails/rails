@@ -9,7 +9,7 @@ module ActiveSupport
       include NotificationAssertions
 
       def test_assert_notification
-        assert_notification("post.submitted", title: "Cool Post") do
+        assert_notification("post.submitted", { title: "Cool Post" }) do
           ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post")
         end
 
@@ -18,7 +18,7 @@ module ActiveSupport
         end
 
         assert_raises(Minitest::Assertion, match: /No post.submitted notifications were found/) do
-          assert_notification("post.submitted", title: "Cool Post") { nil } # no notifications
+          assert_notification("post.submitted", { title: "Cool Post" }) { nil } # no notifications
         end
 
         match = if RUBY_VERSION >= "3.4"
@@ -27,8 +27,23 @@ module ActiveSupport
           /No post.submitted notification with payload {:title=>"Cool Post"} was found/
         end
         assert_raises(Minitest::Assertion, match:) do
-          assert_notification("post.submitted", title: "Cool Post") do
+          assert_notification("post.submitted", { title: "Cool Post" }) do
             ActiveSupport::Notifications.instrument("post.submitted", title: "Cooler Post")
+          end
+        end
+
+        assert_notification("post.submitted", { title: "Cool Post" }, payload_subset: true) do
+          ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+        end
+
+        match = if RUBY_VERSION >= "3.4"
+          /No post.submitted notification with payload subset {title: "Cool Post"} was found/
+        else
+          /No post.submitted notification with payload subset {:title=>"Cool Post"} was found/
+        end
+        assert_raises(Minitest::Assertion, match:) do
+          assert_notification("post.submitted", { title: "Cool Post" }, payload_subset: true) do
+            ActiveSupport::Notifications.instrument("post.submitted", title: "Cooler Post", body: "Cool Body")
           end
         end
       end

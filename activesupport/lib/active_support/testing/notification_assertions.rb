@@ -9,18 +9,33 @@ module ActiveSupport
       # either a string or regexp, an optional payload, and a block. While the block
       # is executed, if a matching notification is emitted, the assertion will pass.
       #
-      #     assert_notification("post.submitted", title: "Cool Post") do
+      #     assert_notification("post.submitted", { title: "Cool Post" }) do
       #       post.submit(title: "Cool Post") # => emits matching notification
       #     end
       #
-      def assert_notification(pattern, payload = nil, &block)
+      # Additionally, you can match against a subset of a given notification's payload by
+      # passing a +payload+ along with the +payload_subset+ keyword argument set to +true+.
+      # By default, +payload_subset+ is set to +false+, matching payloads one to one.
+      #
+      #     assert_notification("post.submitted", { title: "Cool Post" }, payload_subset: true) do
+      #       post.submit(title: "Cool Post", body: "Cool Body") # => emits matching (subset of payload) notification
+      #     end
+      #
+      def assert_notification(pattern, payload = nil, payload_subset: false, &block)
         notifications = capture_notifications(pattern, &block)
         assert_not_empty(notifications, "No #{pattern} notifications were found")
 
         return if payload.nil?
 
-        notification = notifications.find { |notification| notification.payload == payload }
-        assert_not_nil(notification, "No #{pattern} notification with payload #{payload} was found")
+        notification = if payload_subset
+          message = "No #{pattern} notification with payload subset #{payload} was found"
+          notifications.find { _1.payload.slice(*payload.keys) == payload }
+        else
+          message = "No #{pattern} notification with payload #{payload} was found"
+          notifications.find { _1.payload == payload }
+        end
+
+        assert_not_nil(notification, message)
       end
 
       # Assert the number of notifications emitted with a given +pattern+.

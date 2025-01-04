@@ -21,7 +21,7 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
 
     assert_notifications_count("analyze.active_storage", 1) do
-      assert_notification("analyze.active_storage", analyzer: "ffprobe") do
+      assert_notification("analyze.active_storage", { analyzer: "ffprobe" }) do
         blob.analyze
       end
     end

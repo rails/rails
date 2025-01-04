@@ -90,7 +90,7 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
     assert_notifications_count("analyze.active_storage", 1) do
-      assert_notification("analyze.active_storage", analyzer: "ffprobe") do
+      assert_notification("analyze.active_storage", { analyzer: "ffprobe" }) do
         blob.analyze
       end
     end
