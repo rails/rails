@@ -386,7 +386,7 @@ module ActiveSupport
       #   process can try to generate a new value after the extended time window
       #   has elapsed.
       #
-      #     # Set all values to expire after one minute.
+      #     # Set all values to expire after one second.
       #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1)
       #
       #     cache.write("foo", "original value")
