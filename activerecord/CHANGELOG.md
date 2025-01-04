@@ -1,3 +1,25 @@
+*   Fix joining on a scoped association with string joins and bind parameters.
+
+    ```ruby
+    class Instructor < ActiveRecord::Base
+      has_many :instructor_roles, -> { active }
+    end
+
+    class InstructorRole < ActiveRecord::Base
+      scope :active, -> {
+        joins("JOIN students ON instructor_roles.student_id = students.id")
+        .where(students { status: 1 })
+      }
+    end
+
+    Instructor.joins(:instructor_roles).first
+    ```
+
+    The above example would result in `ActiveRecord::StatementInvalid` because the
+    `active` scope bind parameters would be lost.
+
+    *Jean Boussier*
+
 *   Fix a potential race condition with system tests and transactional fixtures.
 
     *Sjoerd Lagarde*
