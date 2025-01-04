@@ -1735,7 +1735,14 @@ Restart your Rails server to make sure all the new features are loaded.
 
 Now, let's add a rich text description field to our product.
 
-First, add the following to the `Product` model:
+First, lets create a migration adding the new `description` field to `products` table:
+
+```bash
+$ bin/rails generate migration AddDescriptionToProducts description:text
+$ bin/rails db:migrate
+```
+
+Then, add the following to the `Product` model:
 
 ```ruby#2
 class Product < ApplicationRecord
