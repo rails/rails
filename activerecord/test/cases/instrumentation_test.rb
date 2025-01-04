@@ -128,11 +128,8 @@ module ActiveRecord
     end
 
     def test_payload_connection_with_query_cache_disabled
-      connection = ClothingItem.lease_connection
-
-      payload = capture_notifications("sql.active_record") { Book.first }.first.payload
-
-      assert_equal connection, payload[:connection]
+      expected_payload = { connection: ClothingItem.lease_connection }
+      assert_notification("sql.active_record", expected_payload, payload_subset: true) { Book.first }
     end
 
     def test_payload_connection_with_query_cache_enabled
