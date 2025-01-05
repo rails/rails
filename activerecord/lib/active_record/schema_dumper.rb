@@ -52,7 +52,8 @@ module ActiveRecord
         def generate_options(config)
           {
             table_name_prefix: config.table_name_prefix,
-            table_name_suffix: config.table_name_suffix
+            table_name_suffix: config.table_name_suffix,
+            table_alias: config.table_alias,
           }
         end
     end

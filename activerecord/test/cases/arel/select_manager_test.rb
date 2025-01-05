@@ -169,7 +169,7 @@ module Arel
         table = Table.new :users, as: "foo"
         mgr = table.from
         mgr.skip 10
-        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" "foo" OFFSET 10 }
+        _(mgr.to_sql).must_be_like %{ SELECT FROM "users" AS "foo" OFFSET 10 }
       end
     end
 
