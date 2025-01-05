@@ -349,7 +349,7 @@ module Rackup
 
       if options[:debug]
         $DEBUG = true
-        require 'pp'
+        require "pp"
         p options[:server]
         pp wrapped_app
         pp app
@@ -412,7 +412,7 @@ module Rackup
           abort "configuration #{options[:config]} not found"
         end
 
-        return Rack::Builder.parse_file(self.options[:config])
+        Rack::Builder.parse_file(self.options[:config])
       end
 
       def build_app_from_string
@@ -441,7 +441,7 @@ module Rack
   class Builder
     def self.load_file(path, **options)
       # ...
-      return new_from_string(config, path, **options)
+      new_from_string(config, path, **options)
     end
 
     # ...
@@ -454,7 +454,7 @@ module Rack
       binding = BUILDER_TOPLEVEL_BINDING.call(builder)
       eval(builder_script, binding, path)
 
-      return builder.to_app
+      builder.to_app
     end
   end
 end
@@ -607,7 +607,7 @@ module Rackup
           abort "configuration #{options[:config]} not found"
         end
 
-        return Rack::Builder.parse_file(self.options[:config])
+        Rack::Builder.parse_file(self.options[:config])
       end
 
       def build_app_from_string
@@ -658,7 +658,7 @@ module Rack
 
         log_writer = options.delete(:Silent) ? ::Puma::LogWriter.strings : ::Puma::LogWriter.stdio
 
-        launcher = ::Puma::Launcher.new(conf, :log_writer => log_writer, events: @events)
+        launcher = ::Puma::Launcher.new(conf, log_writer: log_writer, events: @events)
 
         yield launcher if block_given?
         begin
