@@ -1039,7 +1039,7 @@ WARNING: Array parameters do not play well with the `checkbox` helper. According
 ### Hashes with an Index
 
 Let's say you want to render a form with a set of fields for each of a person's
-addresses. The [`fields_for`][] helper with its `:index` option can assist:
+addresses. The [`fields_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for) helper with its `:index` option can assist:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -1089,7 +1089,7 @@ rendered the `name` attribute of each city input as
 way you can tell which `Address` records should be modified when processing the
 `params` hash.
 
-You can find more details about `fields_for` index option in the [API docs](https://api.rubyonrails.org/v7.1.3.4/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for).
+You can find more details about `fields_for` index option in the [API docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for).
 
 Building Complex Forms
 ----------------------
@@ -1338,4 +1338,4 @@ Generally, these helpers have the same name as their form builder counterparts p
 Using `form_tag` and `form_for`
 -------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find being used in some codebases.
+Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find being used in some codebases.
