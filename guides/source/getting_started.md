@@ -2353,7 +2353,7 @@ Extracting code into concerns also helps make features reusable. For example, we
 could introduce a new model that also needs subscriber notifications. This
 module could be used in multiple models to provide the same functionality.
 
-### Unsubscribe links
+### Unsubscribe Links
 
 A subscriber may want to unsubscribe at some point, so let's build that next.
 
