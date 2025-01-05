@@ -26,6 +26,10 @@ module ActionView
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = nil
 
+      # Controls whether or not calls to +form_tag+ without a block will render without a closing tag. Defaults to +false+
+      mattr_accessor :closes_form_tag_without_block
+      self.closes_form_tag_without_block = false
+
       mattr_accessor :default_enforce_utf8, default: true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
@@ -79,6 +83,8 @@ module ActionView
         html_options = html_options_for_form(url_for_options, options)
         if block_given?
           form_tag_with_body(html_options, capture(&block))
+        elsif closes_form_tag_without_block
+          form_tag_with_body(html_options, nil)
         else
           form_tag_html(html_options)
         end
@@ -1047,9 +1053,9 @@ module ActionView
         end
 
         def form_tag_with_body(html_options, content)
-          output = form_tag_html(html_options)
-          output << content.to_s if content
-          output.safe_concat("</form>")
+          extra_tags = extra_tags_for_form(html_options)
+          html = content_tag(:form, safe_join([extra_tags, content]), html_options)
+          prevent_content_exfiltration(html)
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name
