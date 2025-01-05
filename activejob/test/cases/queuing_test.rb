@@ -97,12 +97,10 @@ class QueuingTest < ActiveSupport::TestCase
   test "perform_all_later instrumentation" do
     jobs = HelloJob.new("Jamie"), HelloJob.new("John")
 
-    payload = capture_notifications("enqueue_all.active_job") do
+    notification = assert_notification("enqueue_all.active_job", jobs:, enqueued_count: 2) do
       ActiveJob.perform_all_later(jobs)
-    end.first.payload
+    end
 
-    assert payload[:adapter]
-    assert_equal jobs, payload[:jobs]
-    assert_equal 2, payload[:enqueued_count]
+    assert notification.payload[:adapter]
   end
 end

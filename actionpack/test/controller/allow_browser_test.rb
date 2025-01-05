@@ -84,13 +84,12 @@ class AllowBrowserTest < ActionController::TestCase
   end
 
   test "a blocked request instruments a browser_block.action_controller event" do
-    event, *rest = capture_notifications "browser_block.action_controller" do
+    notification = assert_notification("browser_block.action_controller") do
       get_with_agent :modern, CHROME_118
     end
 
-    assert_equal request, event.payload[:request]
-    assert_not_empty event.payload[:versions]
-    assert_empty rest
+    assert_equal request, notification.payload[:request]
+    assert_not_empty notification.payload[:versions]
   end
 
   private

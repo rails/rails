@@ -608,13 +608,11 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_instrumentation
-    payload = capture_notifications("redirect_to.action_controller") do
+    notification = assert_notification("redirect_to.action_controller", status: 302, location: "http://test.host/redirect/hello_world") do
       get :simple_redirect
-    end.first.payload
+    end
 
-    assert_equal request, payload[:request]
-    assert_equal 302, payload[:status]
-    assert_equal "http://test.host/redirect/hello_world", payload[:location]
+    assert_kind_of ActionDispatch::Request, notification.payload[:request]
   end
 
   def test_redirect_to_external_with_rescue
