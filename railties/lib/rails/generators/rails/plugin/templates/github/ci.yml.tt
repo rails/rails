@@ -84,8 +84,10 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+          <%- if options[:database] == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
+          <%- elsif options[:database] == "trilogy" -%>
+          DATABASE_URL: trilogy://127.0.0.1:3306
           <%- elsif options[:database] == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
@@ -100,4 +102,3 @@ jobs:
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
 <% end -%>
-
