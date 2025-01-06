@@ -13,6 +13,7 @@ module ActiveRecord
       ER_BAD_DB_ERROR           = 1049
       ER_DBACCESS_DENIED_ERROR  = 1044
       ER_ACCESS_DENIED_ERROR    = 1045
+      ER_UNKNOWN_STMT_HANDLER   = 1243
       ER_CONN_HOST_ERROR        = 2003
       ER_UNKNOWN_HOST_ERROR     = 2005
 
