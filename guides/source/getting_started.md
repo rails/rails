@@ -2300,10 +2300,10 @@ Concern is a Ruby module with some syntactic sugar to make using them easier.
 
 First let’s create the Notifications module.
 
-Create a file at `app/models/product/notifications.rb` with the following:
+Create a file at `app/models/concerns/notifications.rb` with the following:
 
 ```ruby
-module Product::Notifications
+module Notifications
   extend ActiveSupport::Concern
 
   included do
@@ -2346,7 +2346,7 @@ end
 Concerns are a great way to organize features of your Rails application. As you
 add more features to the Product, the class will become messy. Instead, we can
 use Concerns to extract each feature out into a self-contained module like
-`Product::Notifications` which contains all the functionality for handling
+`Notifications` which contains all the functionality for handling
 subscribers and how notifications are sent.
 
 Extracting code into concerns also helps make features reusable. For example, we
