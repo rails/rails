@@ -307,7 +307,7 @@ module ActionView
                 end
               end
             RUBY
-          when Proc
+          when ActiveSupport::Callable
             define_method :_layout_from_proc, &_layout
             private :_layout_from_proc
             <<-RUBY
@@ -387,11 +387,11 @@ module ActionView
     # * <tt>name</tt> - The name of the template
     def _layout_for_option(name)
       case name
-      when String     then _normalize_layout(name)
-      when Proc       then name
-      when true       then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
-      when :default   then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
-      when false, nil then nil
+      when String                  then _normalize_layout(name)
+      when ActiveSupport::Callable then name
+      when true                    then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
+      when :default                then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
+      when false, nil              then nil
       else
         raise ArgumentError,
           "String, Proc, :default, true, or false, expected for `layout'; you passed #{name.inspect}"

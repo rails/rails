@@ -45,7 +45,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         case callback
         when Symbol
           ->(method, owner, record) { owner.send(callback, record) }
-        when Proc
+        when ActiveSupport::Callable
           ->(method, owner, record) { callback.call(owner, record) }
         else
           ->(method, owner, record) { callback.send(method, owner, record) }

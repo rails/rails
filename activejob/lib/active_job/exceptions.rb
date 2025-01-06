@@ -171,7 +171,7 @@ module ActiveJob
           delay = seconds_or_duration_or_algorithm.to_i
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
-        when Proc
+        when ActiveSupport::Callable
           algorithm = seconds_or_duration_or_algorithm
           algorithm.call(executions)
         else
