@@ -220,22 +220,34 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
-  def test_required_locals_can_be_specified
+  def test_required_locals_must_be_specified
     error = assert_raises(ActionView::Template::Error) do
       @template = new_template("<%# locals: (message:) -%>")
       render
     end
 
     assert_match(/missing local: :message for hello template/, error.message)
+    assert_instance_of ActionView::StrictLocalsError, error.cause
   end
 
-  def test_extra_locals_raises_error
+  def test_extra_locals_raises_strict_locals_error
     error = assert_raises(ActionView::Template::Error) do
       @template = new_template("<%# locals: (message:) -%>")
       render(message: "Hi", foo: "bar")
     end
 
     assert_match(/unknown local: :foo for hello template/, error.message)
+    assert_instance_of ActionView::StrictLocalsError, error.cause
+  end
+
+  def test_argument_error_in_the_template_is_not_hijacked_by_strict_locals_checking
+    error = assert_raises(ActionView::Template::Error) do
+      @template = new_template("<%# locals: () -%>\n<%= hello(:invalid_argument) %>")
+      render
+    end
+
+    assert_match(/in ['`]hello'/, error.backtrace.first)
+    assert_instance_of ArgumentError, error.cause
   end
 
   def test_rails_injected_locals_does_not_raise_error_if_not_passed
