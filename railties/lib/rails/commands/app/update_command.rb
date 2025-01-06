@@ -24,22 +24,26 @@ module Rails
 
         desc "configs", "Update config files in the application config/ directory", hide: true
         def configs
+          require_application!
           app_generator.create_boot_file
           app_generator.update_config_files
         end
 
         desc "bin", "Add or update executables in the application bin/ directory", hide: true
         def bin
+          require_application!
           app_generator.update_bin_files
         end
 
         desc "public_directory", "Add or update files in the application public/ directory", hide: true
         def public_directory
+          require_application!
           app_generator.create_public_files
         end
 
         desc "active_storage", "Run the active_storage:update command", hide: true
         def active_storage
+          require_application!
           app_generator.update_active_storage
         end
 
