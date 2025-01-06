@@ -284,7 +284,7 @@ module ActionView
         silence_redefinition_of_method(:_layout)
 
         prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
-        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
+        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, keys, { formats: formats }).first || super"
         name_clause = if name
           default_behavior
         else
@@ -325,7 +325,7 @@ module ActionView
 
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
-          def _layout(lookup_context, formats)
+          def _layout(lookup_context, formats, keys)
             if _conditional_layout?
               #{layout_definition}
             else
@@ -389,8 +389,8 @@ module ActionView
       case name
       when String     then _normalize_layout(name)
       when Proc       then name
-      when true       then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, true)  }
-      when :default   then Proc.new { |lookup_context, formats| _default_layout(lookup_context, formats, false) }
+      when true       then Proc.new { |lookup_context, formats, keys| _default_layout(lookup_context, formats, keys, true)  }
+      when :default   then Proc.new { |lookup_context, formats, keys| _default_layout(lookup_context, formats, keys, false) }
       when false, nil then nil
       else
         raise ArgumentError,
@@ -412,9 +412,9 @@ module ActionView
     #
     # ==== Returns
     # * <tt>template</tt> - The template object for the default layout (or +nil+)
-    def _default_layout(lookup_context, formats, require_layout = false)
+    def _default_layout(lookup_context, formats, keys, require_layout = false)
       begin
-        value = _layout(lookup_context, formats) if action_has_layout?
+        value = _layout(lookup_context, formats, keys) if action_has_layout?
       rescue NameError => e
         raise e, "Could not render layout: #{e.message}"
       end

@@ -1,3 +1,9 @@
+*   Layouts have access to local variables passed to `render`.
+
+    This fixes #31680 which was a regression in Rails 5.1.
+
+    *Mike Dalessio*
+
 *   Argument errors related to strict locals in templates now raise an
     `ActionView::StrictLocalsError`, and all other argument errors are reraised as-is.
 
