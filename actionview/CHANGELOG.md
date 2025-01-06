@@ -1,3 +1,21 @@
+*   Argument errors related to strict locals in templates now raise an
+    `ActionView::StrictLocalsError`, and all other argument errors are reraised as-is.
+
+    Previously, any `ArgumentError` raised during template rendering was swallowed during strict
+    local error handling, so that an `ArgumentError` unrelated to strict locals (e.g., a helper
+    method invoked with incorrect arguments) would be replaced by a similar `ArgumentError` with an
+    unrelated backtrace, making it difficult to debug templates.
+
+    Now, any `ArgumentError` unrelated to strict locals is reraised, preserving the original
+    backtrace for developers.
+
+    Also note that `ActionView::StrictLocalsError` is a subclass of `ArgumentError`, so any existing
+    code that rescues `ArgumentError` will continue to work.
+
+    Fixes #52227.
+
+    *Mike Dalessio*
+
 *   Fix stack overflow error in dependency tracker when dealing with circular dependencies
 
     *Jean Boussier*
