@@ -160,7 +160,7 @@ db_namespace = namespace :db do
       end
     end
 
-    # desc 'Resets your database using your migrations for the current environment'
+    desc "Resets your database using your migrations for the current environment"
     task reset: ["db:drop", "db:create", "db:schema:dump", "db:migrate"]
 
     desc 'Run the "up" for a given migration VERSION.'
