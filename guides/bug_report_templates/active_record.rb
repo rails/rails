@@ -23,6 +23,10 @@ class TestApp < Rails::Application
   config.eager_load = false
   config.logger = Logger.new($stdout)
   config.secret_key_base = "secret_key_base"
+
+  config.active_record.encryption.primary_key = "primary_key"
+  config.active_record.encryption.deterministic_key = "deterministic_key"
+  config.active_record.encryption.key_derivation_salt = "key_derivation_salt"
 end
 Rails.application.initialize!
 
