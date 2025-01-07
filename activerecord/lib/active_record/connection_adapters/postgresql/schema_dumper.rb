@@ -22,7 +22,7 @@ module ActiveRecord
               stream.puts "  # Custom types defined in this database."
               stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
               types.sort.each do |name, values|
-                stream.puts "  create_enum #{name.inspect}, #{values.split(",").inspect}"
+                stream.puts "  create_enum #{name.inspect}, #{values.inspect}"
               end
               stream.puts
             end
