@@ -360,6 +360,10 @@ module ActionController
       def @controller.new_controller_thread(&block)
         original_new_controller_thread(&block)
       end
+
+      def @controller.clean_up_thread_locals(*args)
+        original_clean_up_thread_locals(*args)
+      end
     end
 
     def test_set_cookie
@@ -674,7 +678,7 @@ module ActionController
     tests TestController
 
     def test_thread_locals_do_not_get_reset_in_test_environment
-      Thread.current[:setting]            = "aaron"
+      Thread.current[:setting] = "aaron"
 
       get :greet
 
