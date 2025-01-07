@@ -595,6 +595,14 @@ class ActiveSupport::TestCase
   include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
+
+  private
+    def with_env(env)
+      env.each { |k, v| ENV[k.to_s] = v }
+      yield
+    ensure
+      env.each_key { |k| ENV.delete k.to_s }
+    end
 end
 
 # Create a scope and build a fixture rails app

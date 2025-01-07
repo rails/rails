@@ -151,22 +151,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
         combined_blob.save!
       end
     end
-
-    def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
-      if service_name
-        services.fetch(service_name) do
-          raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
-        end
-      else
-        validate_global_service_configuration
-      end
-    end
-
-    def validate_global_service_configuration # :nodoc:
-      if connected? && table_exists? && Rails.configuration.active_storage.service.nil?
-        raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
-      end
-    end
   end
 
   include Analyzable
