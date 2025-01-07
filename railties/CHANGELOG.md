@@ -1,3 +1,7 @@
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
 *   Colorize the Rails console prompt even on non standard environments.
 
     *Lorenzo Zabot*
