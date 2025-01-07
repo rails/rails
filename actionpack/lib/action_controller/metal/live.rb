@@ -301,9 +301,8 @@ module ActionController
               error = e
             end
           ensure
-            # Ensure we clean up any thread locals we copied so that the thread can reused.
             ActiveSupport::IsolatedExecutionState.clear
-            locals.each { |k, _| t2[k] = nil }
+            clean_up_thread_locals(locals, t2)
 
             @_response.commit!
           end
@@ -375,6 +374,11 @@ module ActionController
           t2.abort_on_exception = true
           yield
         end
+      end
+
+      # Ensure we clean up any thread locals we copied so that the thread can reused.
+      def clean_up_thread_locals(locals, thread) # :nodoc:
+        locals.each { |k, _| thread[k] = nil }
       end
 
       def self.live_thread_pool_executor
