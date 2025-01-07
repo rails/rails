@@ -26,13 +26,6 @@ module ApplicationTests
       end
     end
 
-    def with_env(env)
-      env.each { |k, v| ENV[k.to_s] = v }
-      yield
-    ensure
-      env.each_key { |k| ENV.delete k.to_s }
-    end
-
     def clean_assets!
       quietly do
         rails ["assets:clobber"]
