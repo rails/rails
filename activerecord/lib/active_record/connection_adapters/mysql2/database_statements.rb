@@ -70,7 +70,7 @@ module ActiveRecord
                 # but the client doesn't know it.
                 # But we know that this error is safe to retry, so we do so after
                 # getting rid of the originally cached statement.
-                if error.error_number == ER_UNKNOWN_STMT_HANDLER
+                if error.error_number == Mysql2Adapter::ER_UNKNOWN_STMT_HANDLER
                   if retry_count.positive?
                     retry_count -= 1
                     retry
