@@ -307,24 +307,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   def test_update_lock_version_to_nil_without_validation_or_constraint_raises_error
     t1 = LockWithoutDefault.create!(title: "title1")
-    error = assert_raises(RuntimeError) { t1.update(lock_version: nil) }
-
-    assert_match(locking_column_nil_error_message, error.message)
-
-    error = assert_raises(RuntimeError) { t1.update!(lock_version: nil) }
-
-    assert_match(locking_column_nil_error_message, error.message)
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { t1.update(lock_version: nil) }
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { t1.update!(lock_version: nil) }
   end
 
   def test_update_lock_version_to_nil_without_validation_raises
     person = Person.find(1)
-    error = assert_raises(RuntimeError) { person.update(lock_version: nil) }
-
-    assert_match(locking_column_nil_error_message, error.message)
-
-    error = assert_raises(RuntimeError) { person.update!(lock_version: nil) }
-
-    assert_match(locking_column_nil_error_message, error.message)
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { person.update(lock_version: nil) }
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { person.update!(lock_version: nil) }
   end
 
   def test_update_lock_version_to_nil_with_validation_does_not_raise_runtime_lock_version_error
@@ -597,7 +587,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
   private
     def locking_column_nil_error_message
-      /'lock_version' should not be set to `nil`/
+      <<-MSG.squish
+        For optimistic locking, locking_column ('lock_version') can't be nil.
+        Are you missing a default value or validation on 'lock_version'?
+      MSG
     end
 end
 
