@@ -1650,7 +1650,7 @@ link if not authenticated.
 <%= link_to "Login", new_session_path unless authenticated? %>
 ```
 
-You can also update the Edit and Destroy links on the
+You can also update the Edit and Delete links on the
 `app/views/products/show.html.erb` view to only display if authenticated.
 
 ```erb#4,7
@@ -1659,7 +1659,7 @@ You can also update the Edit and Destroy links on the
 <%= link_to "Back", products_path %>
 <% if authenticated? %>
   <%= link_to "Edit", edit_product_path(@product) %>
-  <%= button_to "Destroy", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+  <%= button_to "Delete", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
 <% end %>
 ```
 
