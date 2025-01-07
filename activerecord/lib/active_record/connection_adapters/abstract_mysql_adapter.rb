@@ -42,7 +42,7 @@ module ActiveRecord
         date:        { name: "date" },
         binary:      { name: "blob" },
         blob:        { name: "blob" },
-        boolean:     { name: "tinyint", limit: 1 },
+        boolean:     { name: "boolean" },
         json:        { name: "json" },
       }
 
