@@ -106,7 +106,7 @@ module ActiveStorage
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
       def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
+        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -208,7 +208,7 @@ module ActiveStorage
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
       def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false)
-        ActiveStorage::Blob.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
+        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
 
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           # frozen_string_literal: true
@@ -257,6 +257,25 @@ module ActiveStorage
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
+    end
+
+    class << self
+      def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
+        if service_name
+          ActiveStorage::Blob.services.fetch(service_name) do
+            raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+          end
+        else
+          validate_global_service_configuration(model_class)
+        end
+      end
+
+      private
+        def validate_global_service_configuration(model_class)
+          if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+            raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
+          end
+        end
     end
 
     def attachment_changes # :nodoc:
