@@ -3,7 +3,7 @@
 begin
   gem "mini_magick"
 rescue LoadError => error
-  raise error unless error.message.include?("ruby-vips")
+  raise error unless error.message.include?("mini_magick")
 end
 
 module ActiveStorage
