@@ -1,3 +1,10 @@
+*   The table columns inside `schema.rb` are now sorted alphabetically.
+
+    Previously they'd be sorted by creation order, which can cause merge conflicts when two
+    branches modify the same table concurrently.
+
+    *John Duff*
+
 *   Introduce versions formatter for the schema dumper.
 
     It is now possible to override how schema dumper formats versions information inside the
