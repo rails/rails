@@ -1,3 +1,7 @@
+*   Deprecate `ActiveSupport::Configurable`
+
+    *Sean Doyle*
+
 *   `nil.to_query("key")` now returns `key`.
 
     Previously it would return `key=`, preventing round tripping with `Rack::Utils.parse_nested_query`.
