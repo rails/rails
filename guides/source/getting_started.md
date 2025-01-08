@@ -683,7 +683,7 @@ First, let's do a quick refresher on URLs and HTTP Request methods.
 Let's examine the different parts of a URL:
 
 ```
-http://example.org/products?sale=true&sort=asc
+https://example.org/products?sale=true&sort=asc
 ```
 
 In this URL, each part has a name:
