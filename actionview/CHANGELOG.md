@@ -1,3 +1,8 @@
+*   Respect `html_options[:form]` when `collection_checkboxes` generates the
+    hidden `<input>`.
+
+    *Riccardo Odone*
+
 *   Layouts have access to local variables passed to `render`.
 
     This fixes #31680 which was a regression in Rails 5.1.
