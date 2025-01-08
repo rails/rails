@@ -1090,7 +1090,7 @@ browser.
 
 Combined with the `link_to` helper, we can generate anchor tags and use the URL
 helper to do this cleanly in Ruby. `link_to` accepts the display content for the
-link (`product.name`)and the path or URL to link to for the `href` attribute
+link (`product.name`) and the path or URL to link to for the `href` attribute
 (`product`).
 
 Let's refactor this to use these helpers:
