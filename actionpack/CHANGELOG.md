@@ -1,3 +1,8 @@
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*, *Masafumi Koba*
+
 *   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
 
     Newly generated session ids use 128 bits of randomness, which is more than
