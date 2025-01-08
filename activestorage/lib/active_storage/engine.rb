@@ -110,11 +110,13 @@ module ActiveStorage
             ActiveStorage.logger.warn <<~WARNING.squish
               Using vips to process variants requires the libvips library.
               Please install libvips using the instructions on the libvips website.
+              Or use `config.active_storage.variant_processor = nil` if you are not processing variants.
             WARNING
           when /image_processing/
             ActiveStorage.logger.warn <<~WARNING.squish
               Generating image variants require the image_processing gem.
               Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+              Or use `config.active_storage.variant_processor = nil` if you are not processing variants.
             WARNING
           else
             raise
