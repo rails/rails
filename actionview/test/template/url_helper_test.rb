@@ -903,7 +903,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
-  def test_current_page?
+  def test_sms_to
     assert_dom_equal %{<a href="sms:15155555785;">15155555785</a>}, sms_to("15155555785")
     assert_dom_equal %{<a href="sms:15155555785;">Jim Jones</a>}, sms_to("15155555785", "Jim Jones")
     assert_dom_equal(
