@@ -349,7 +349,7 @@ module Rails
         when "8.1"
           load_defaults "8.0"
 
-          # Development and test environment tend to reload code and
+          # Development and test environments tend to reload code and
           # redefine methods (e.g. mocking), hence YJIT isn't generally
           # faster in these environments.
           self.yjit = !Rails.env.local?
