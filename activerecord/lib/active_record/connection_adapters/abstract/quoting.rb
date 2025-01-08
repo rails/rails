@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/big_decimal/conversions"
-require "active_support/multibyte/chars"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -72,7 +71,7 @@ module ActiveRecord
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         case value
-        when String, Symbol, ActiveSupport::Multibyte::Chars
+        when String, Symbol
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
         when false      then quoted_false
@@ -84,7 +83,12 @@ module ActiveRecord
         when Type::Time::Value then "'#{quoted_time(value)}'"
         when Date, Time then "'#{quoted_date(value)}'"
         when Class      then "'#{value}'"
-        else raise TypeError, "can't quote #{value.class.name}"
+        else
+          if value.class.name == "ActiveSupport::Multibyte::Chars"
+            "'#{quote_string(value.to_s)}'"
+          else
+            raise TypeError, "can't quote #{value.class.name}"
+          end
         end
       end
 
@@ -93,7 +97,7 @@ module ActiveRecord
       # to a String.
       def type_cast(value)
         case value
-        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+        when Symbol, Type::Binary::Data
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
@@ -102,7 +106,12 @@ module ActiveRecord
         when nil, Numeric, String then value
         when Type::Time::Value then quoted_time(value)
         when Date, Time then quoted_date(value)
-        else raise TypeError, "can't cast #{value.class.name}"
+        else
+          if value.class.name == "ActiveSupport::Multibyte::Chars"
+            value.to_s
+          else
+            raise TypeError, "can't cast #{value.class.name}"
+          end
         end
       end
 
