@@ -87,39 +87,22 @@ module ActiveStorage
         ActiveStorage.variant_processor = app.config.active_storage.variant_processor
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
 
-        begin
-          analyzer, transformer =
-            case ActiveStorage.variant_processor
-            when :vips
-              [
-                ActiveStorage::Analyzer::ImageAnalyzer::Vips,
-                ActiveStorage::Transformers::Vips
-              ]
-            when :mini_magick
-              [
-                ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
-                ActiveStorage::Transformers::ImageMagick
-              ]
-            end
-
-          ActiveStorage.analyzers = [analyzer].concat(app.config.active_storage.analyzers || [])
-          ActiveStorage.variant_transformer = transformer
-        rescue LoadError => error
-          case error.message
-          when /libvips/
-            ActiveStorage.logger.warn <<~WARNING.squish
-              Using vips to process variants requires the libvips library.
-              Please install libvips using the instructions on the libvips website.
-            WARNING
-          when /image_processing/
-            ActiveStorage.logger.warn <<~WARNING.squish
-              Generating image variants require the image_processing gem.
-              Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
-            WARNING
-          else
-            raise
+        analyzer, transformer =
+          case ActiveStorage.variant_processor
+          when :vips
+            [
+              autoload_safely("ActiveStorage::Analyzer::ImageAnalyzer::Vips"),
+              autoload_safely("ActiveStorage::Transformers::Vips")
+            ]
+          when :mini_magick
+            [
+              autoload_safely("ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick"),
+              autoload_safely("ActiveStorage::Transformers::ImageMagick")
+            ]
           end
-        end
+
+        ActiveStorage.analyzers = [analyzer || []].concat(app.config.active_storage.analyzers || [])
+        ActiveStorage.variant_transformer = transformer
 
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
@@ -234,6 +217,25 @@ module ActiveStorage
 
       ActiveSupport.on_load(:active_support_test_case) do
         ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+      end
+    end
+
+    def autoload_safely(constant_path)
+      Object.const_get(constant_path)
+    rescue LoadError => error
+      case error.message
+      when /libvips/
+        ActiveStorage.logger.warn <<~WARNING.squish
+          Using vips to process variants requires the libvips library.
+          Please install libvips using the instructions on the libvips website.
+        WARNING
+      when /image_processing/
+        ActiveStorage.logger.warn <<~WARNING.squish
+          Generating image variants require the image_processing gem.
+          Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+        WARNING
+      else
+        raise
       end
     end
   end
