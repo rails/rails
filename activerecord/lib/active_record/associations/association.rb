@@ -4,22 +4,11 @@ module ActiveRecord
   module Associations
     # = Active Record Associations
     #
-    # This is the root class of all associations ('+ Foo' signifies an included module Foo):
-    #
-    #   Association
-    #     SingularAssociation
-    #       HasOneAssociation + ForeignAssociation
-    #         HasOneThroughAssociation + ThroughAssociation
-    #       BelongsToAssociation
-    #         BelongsToPolymorphicAssociation
-    #     CollectionAssociation
-    #       HasManyAssociation + ForeignAssociation
-    #         HasManyThroughAssociation + ThroughAssociation
-    #
-    # Associations in Active Record are middlemen between the object that
-    # holds the association, known as the <tt>owner</tt>, and the associated
-    # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
+    # Associations in Active Record are middlemen between the object that holds
+    # the association, known as the +owner+, and the associated result set,
+    # known as the +target+. Association metadata is available in +reflection+,
+    # which is an instance of
+    # +ActiveRecord::Reflection::AssociationReflection+.
     #
     # For example, given
     #
@@ -29,16 +18,50 @@ module ActiveRecord
     #
     #   blog = Blog.first
     #
-    # The association of <tt>blog.posts</tt> has the object +blog+ as its
-    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
-    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
-    class Association # :nodoc:
-      attr_accessor :owner
-      attr_reader :reflection, :disable_joins
+    # The association of +blog.posts+ has the object +blog+ as its +owner+, the
+    # collection of its posts as +target+, and the +reflection+ object
+    # represents a +:has_many+ macro.
+    #
+    #--
+    #
+    # The following represents the inheritance chain for association classes,
+    # with Association at the root:
+    #
+    #
+    # * Association
+    #   * SingularAssociation
+    #     * HasOneAssociation includes ForeignAssociation
+    #       * HasOneThroughAssociation includes ThroughAssociation
+    #     * BelongsToAssociation
+    #       * BelongsToPolymorphicAssociation
+    #   * CollectionAssociation
+    #     * HasManyAssociation includes ForeignAssociation
+    #       * HasManyThroughAssociation includes ThroughAssociation
+    #
+
+    class Association
+      attr_accessor :owner # :nodoc:
+      attr_reader :reflection, :disable_joins # :nodoc:
 
       delegate :options, to: :reflection
 
-      def initialize(owner, reflection)
+      ##
+      # :attr_reader: owner
+      #
+      # Returns the owner of the association.
+      # In the case of +blog.posts+ the owner is +blog+.
+
+      ##
+      # :attr_reader: reflection
+      #
+      # Holds the metadata about the association, e.g. +:has_many+.
+      # The returned object is an instance of
+      # +Reflection::AssociationReflection+, which is a subclass of
+      # Reflection::MacroReflection.
+
+      ##
+
+      def initialize(owner, reflection) # :nodoc:
         reflection.check_validity!
 
         @owner, @reflection = owner, reflection
@@ -50,6 +73,7 @@ module ActiveRecord
         @skip_strict_loading = nil
       end
 
+      # Returns the associated +target+.
       def target
         if @target.is_a?(Promise)
           @target = @target.value
@@ -57,8 +81,8 @@ module ActiveRecord
         @target
       end
 
-      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
-      def reset
+      # Resets the loaded flag to +false+ and sets the +target+ to +nil+.
+      def reset # :nodoc:
         @loaded = false
         @stale_state = nil
       end
@@ -67,9 +91,9 @@ module ActiveRecord
         reset if loaded? && target.nil?
       end
 
-      # Reloads the \target and returns +self+ on success.
+      # Reloads the +target+ and returns +self+ on success.
       # The QueryCache is cleared if +force+ is true.
-      def reload(force = false)
+      def reload(force = false) # :nodoc:
         klass.connection_pool.clear_query_cache if force && klass
         reset
         reset_scope
@@ -77,13 +101,13 @@ module ActiveRecord
         self unless target.nil?
       end
 
-      # Has the \target been already \loaded?
-      def loaded?
+      # Has the +target+ been already loaded?
+      def loaded? # :nodoc:
         @loaded
       end
 
-      # Asserts the \target has been loaded setting the \loaded flag to +true+.
-      def loaded!
+      # Asserts the +target+ has been loaded setting the +loaded+ flag to +true+.
+      def loaded! # :nodoc:
         @loaded = true
         @stale_state = stale_state
       end
@@ -94,17 +118,17 @@ module ActiveRecord
       # stale_state method if relevant.
       #
       # Note that if the target has not been loaded, it is not considered stale.
-      def stale_target?
+      def stale_target? # :nodoc:
         loaded? && @stale_state != stale_state
       end
 
-      # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
-      def target=(target)
+      # Sets the +target+ of this association to +target+, and the +loaded+ flag to +true+.
+      def target=(target) # :nodoc:
         @target = target
         loaded!
       end
 
-      def scope
+      def scope # :nodoc:
         if disable_joins
           DisableJoinsAssociationScope.create.scope(self)
         elsif (scope = klass.current_scope) && scope.try(:proxy_association) == self
@@ -116,11 +140,11 @@ module ActiveRecord
         end
       end
 
-      def reset_scope
+      def reset_scope # :nodoc:
         @association_scope = nil
       end
 
-      def set_strict_loading(record)
+      def set_strict_loading(record) # :nodoc:
         if owner.strict_loading_n_plus_one_only? && reflection.macro == :has_many
           record.strict_loading!
         else
@@ -129,14 +153,14 @@ module ActiveRecord
       end
 
       # Set the inverse association, if possible
-      def set_inverse_instance(record)
+      def set_inverse_instance(record) # :nodoc:
         if inverse = inverse_association_for(record)
           inverse.inversed_from(owner)
         end
         record
       end
 
-      def set_inverse_instance_from_queries(record)
+      def set_inverse_instance_from_queries(record) # :nodoc:
         if inverse = inverse_association_for(record)
           inverse.inversed_from_queries(owner)
         end
@@ -144,29 +168,31 @@ module ActiveRecord
       end
 
       # Remove the inverse association, if possible
-      def remove_inverse_instance(record)
+      def remove_inverse_instance(record) # :nodoc:
         if inverse = inverse_association_for(record)
           inverse.inversed_from(nil)
         end
       end
 
-      def inversed_from(record)
+      def inversed_from(record) # :nodoc:
         self.target = record
       end
 
-      def inversed_from_queries(record)
+      def inversed_from_queries(record) # :nodoc:
         if inversable?(record)
           self.target = record
         end
       end
 
-      # Returns the class of the target. belongs_to polymorphic overrides this to look at the
+      # Returns the class of the target.
+      #
+      # e.g. ClassMethods#belongs_to with polymorphic overrides this to look at the
       # polymorphic_type field on the owner.
-      def klass
+      def klass # :nodoc:
         reflection.klass
       end
 
-      def extensions
+      def extensions # :nodoc:
         extensions = klass.default_extensions | reflection.extensions
 
         if reflection.scope
@@ -176,17 +202,14 @@ module ActiveRecord
         extensions
       end
 
-      # Loads the \target if needed and returns it.
+      # Loads the target if needed and returns it.
       #
-      # This method is abstract in the sense that it relies on +find_target+,
-      # which is expected to be provided by descendants.
-      #
-      # If the \target is already \loaded it is just returned. Thus, you can call
-      # +load_target+ unconditionally to get the \target.
+      # If the target is already loaded it is just returned. Thus, you can call
+      # load_target unconditionally to get the target.
       #
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
-      # not reraised. The proxy is \reset and +nil+ is the return value.
-      def load_target
+      # not reraised. The proxy is reset and +nil+ is the return value.
+      def load_target # :nodoc:
         @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
         if !@target && set_through_target_for_new_record?
           reflections = reflection.chain
@@ -212,13 +235,13 @@ module ActiveRecord
         nil
       end
 
-      # We can't dump @reflection and @through_reflection since it contains the scope proc
-      def marshal_dump
+      def marshal_dump # :nodoc:
+        # We can't dump @reflection and @through_reflection since it contains the scope proc
         ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
         [@reflection.name, ivars]
       end
 
-      def marshal_load(data)
+      def marshal_load(data) # :nodoc:
         reflection_name, ivars = data
         ivars.each { |name, val| instance_variable_set(name, val) }
         @reflection = @owner.class._reflect_on_association(reflection_name)
@@ -234,17 +257,17 @@ module ActiveRecord
         set_inverse_instance(record)
       end
 
-      def create(attributes = nil, &block)
+      def create(attributes = nil, &block) # :nodoc:
         _create_record(attributes, &block)
       end
 
-      def create!(attributes = nil, &block)
+      def create!(attributes = nil, &block) # :nodoc:
         _create_record(attributes, true, &block)
       end
 
       # Whether the association represents a single record
       # or a collection of records.
-      def collection?
+      def collection? # :nodoc:
         false
       end
 
@@ -391,7 +414,7 @@ module ActiveRecord
         # the target is stale.
         #
         # This is only relevant to certain associations, which is why it returns +nil+ by default.
-        def stale_state
+        def stale_state # :nodoc:
         end
 
         def build_record(attributes)
