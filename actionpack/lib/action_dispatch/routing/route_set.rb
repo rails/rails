@@ -59,8 +59,6 @@ module ActionDispatch
         private
           def controller(req)
             req.controller_class
-          rescue NameError => e
-            raise ActionController::RoutingError, e.message, e.backtrace
           end
 
           def dispatch(controller, action, req, res)
