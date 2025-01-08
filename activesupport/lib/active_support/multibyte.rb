@@ -12,6 +12,10 @@ module ActiveSupport # :nodoc:
     #
     #   ActiveSupport::Multibyte.proxy_class = CharsForUTF32
     def self.proxy_class=(klass)
+      ActiveSupport.deprecator.warn(
+        "ActiveSupport::Multibyte.proxy_class= is deprecated and will be removed in Rails 8.2. " \
+        "Use normal string methods instead."
+      )
       @proxy_class = klass
     end
 

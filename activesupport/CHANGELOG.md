@@ -1,3 +1,10 @@
+*   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
+
+    These APIs are a relic of the Ruby 1.8 days when Ruby strings weren't encoding
+    aware. There is no legitimate reasons to need these APIs today.
+
+    *Jean Boussier*
+
 *   Deprecate `ActiveSupport::Configurable`
 
     *Sean Doyle*

@@ -34,6 +34,10 @@ ActiveSupport::Cache.format_version = 7.1
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
+ActiveSupport.deprecator.silence do
+  ActiveSupport::Multibyte.const_get(:Chars)
+end
+
 class ActiveSupport::TestCase
   if Process.respond_to?(:fork) && !Gem.win_platform?
     parallelize
