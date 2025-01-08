@@ -7,20 +7,34 @@ module ActiveSupport
       #
       # You can assert that a notification was emitted by passing a pattern, which accepts
       # either a string or regexp, an optional payload, and a block. While the block
-      # is executed, if a matching notification is emitted, the assertion will pass.
+      # is executed, if a matching notification is emitted, the assertion will pass
+      # and the notification will be returned.
+      #
+      # Note that the payload is matched as a subset, meaning that the notification must
+      # contain at least the specified keys and values, but may contain additional ones.
       #
       #     assert_notification("post.submitted", title: "Cool Post") do
-      #       post.submit(title: "Cool Post") # => emits matching notification
+      #       post.submit(title: "Cool Post", body: "Cool Body") # => emits matching notification
       #     end
+      #
+      # Using the returned notification, you can make more customized assertions.
+      #
+      #     notification = assert_notification("post.submitted", title: "Cool Post") do
+      #       ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: Body.new("Cool Body"))
+      #     end
+      #
+      #     assert_instance_of(Body, notification.payload[:body])
       #
       def assert_notification(pattern, payload = nil, &block)
         notifications = capture_notifications(pattern, &block)
         assert_not_empty(notifications, "No #{pattern} notifications were found")
 
-        return if payload.nil?
+        return notifications.first if payload.nil?
 
-        notification = notifications.find { |notification| notification.payload == payload }
+        notification = notifications.find { |notification| notification.payload.slice(*payload.keys) == payload }
         assert_not_nil(notification, "No #{pattern} notification with payload #{payload} was found")
+
+        notification
       end
 
       # Assert the number of notifications emitted with a given +pattern+.

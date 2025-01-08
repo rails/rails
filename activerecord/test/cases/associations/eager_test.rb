@@ -1136,14 +1136,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_association_loading_notification
-    payload = capture_notifications("instantiation.active_record") do
+    notification = assert_notification("instantiation.active_record", class_name: Developer.name) do
       Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
-    end.first.payload
+    end
+
     count = Developer.all.merge!(includes: "projects", where: { "developers_projects.access_level" => 1 }, limit: 5).to_a.size
 
     # eagerloaded row count should be greater than just developer count
-    assert_operator payload[:record_count], :>, count
-    assert_equal Developer.name, payload[:class_name]
+    assert_operator notification.payload[:record_count], :>, count
   end
 
   def test_base_messages

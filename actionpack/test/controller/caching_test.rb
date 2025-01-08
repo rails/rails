@@ -255,12 +255,9 @@ Ciao
   end
 
   def test_fragment_cache_instrumentation
-    payload = capture_notifications("read_fragment.action_controller") do
+    assert_notification("read_fragment.action_controller", controller: "functional_caching", action: "inline_fragment_cached") do
       get :inline_fragment_cached
-    end.first.payload
-
-    assert_equal "functional_caching", payload[:controller]
-    assert_equal "inline_fragment_cached", payload[:action]
+    end
   end
 
   def test_html_formatted_fragment_caching

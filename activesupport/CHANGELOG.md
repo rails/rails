@@ -1,3 +1,25 @@
+*   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
+
+    Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.
+
+    ```ruby
+    assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+    end
+    ```
+
+    Additionally, you can now persist a matched notification for more customized assertions.
+
+    ```ruby
+    notification = assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: Body.new("Cool Body"))
+    end
+
+    assert_instance_of(Body, notification.payload[:body])
+    ```
+
+    *Nicholas La Roux*
+
 *   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
 
     These APIs are a relic of the Ruby 1.8 days when Ruby strings weren't encoding
