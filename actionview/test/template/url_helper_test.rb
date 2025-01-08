@@ -903,7 +903,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal({ class: "special" }, options)
   end
 
-  def test_sms_to
+  def test_current_page?
     assert_dom_equal %{<a href="sms:15155555785;">15155555785</a>}, sms_to("15155555785")
     assert_dom_equal %{<a href="sms:15155555785;">Jim Jones</a>}, sms_to("15155555785", "Jim Jones")
     assert_dom_equal(
@@ -912,6 +912,22 @@ class UrlHelperTest < ActiveSupport::TestCase
     )
     assert_equal sms_to("15155555785", "Jim Jones", "class" => "admin"),
                  sms_to("15155555785", "Jim Jones", class: "admin")
+  end
+
+  def test_current_namespace?
+    assert_raises(RuntimeError) { current_namespace?("admin") }
+
+    @request = request_for_url("/admin/posts", method: :post)
+    assert_not current_namespace?("admin")
+
+    @request = request_for_url("/admin/users")
+
+    assert current_namespace?("admin")
+    assert_not current_namespace?("admin/users")
+    assert_not current_namespace?("users")
+
+    @request = request_for_url("/admin/users/1")
+    assert current_namespace?("admin/users")
   end
 
   def test_sms_to_with_options
