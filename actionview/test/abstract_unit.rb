@@ -44,6 +44,9 @@ ActionView.deprecator.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
+# Opt in to `to_time` preserving the receiver timezone
+ActiveSupport.to_time_preserves_timezone = :zone
+
 ORIGINAL_LOCALES = I18n.available_locales.map(&:to_s).sort
 
 FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
