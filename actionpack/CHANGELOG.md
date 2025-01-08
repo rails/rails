@@ -1,3 +1,19 @@
+*   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
+
+    This makes it easier to locate the source of the problem, especially for routes drawn by gems.
+
+    Before:
+    ```
+    :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
+    ```
+
+    After:
+    ```
+    Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
+    ```
+
+    *Jeremy Green*
+
 *   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
 
     Newly generated session ids use 128 bits of randomness, which is more than
