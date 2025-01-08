@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/big_decimal/conversions"
-require "active_support/multibyte/chars"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -71,8 +70,12 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
+        if value.class.name == "ActiveSupport::Multibyte::Chars"
+          return "'#{quote_string(value.to_s)}'"
+        end
+
         case value
-        when String, Symbol, ActiveSupport::Multibyte::Chars
+        when String, Symbol
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
         when false      then quoted_false
@@ -92,8 +95,12 @@ module ActiveRecord
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value)
+        if value.class.name == "ActiveSupport::Multibyte::Chars"
+          return value.to_s
+        end
+
         case value
-        when Symbol, ActiveSupport::Multibyte::Chars, Type::Binary::Data
+        when Symbol, Type::Binary::Data
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
