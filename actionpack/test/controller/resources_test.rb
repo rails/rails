@@ -1131,7 +1131,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_only_option_for_resources
-    expected_message = ":only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]"
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
@@ -1142,7 +1142,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_only_option_for_singleton_resource
-    expected_message = ":only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo, :bar]"
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo, :bar]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
@@ -1153,7 +1153,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_except_option_for_resources
-    expected_message = ":only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo]"
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo]"
 
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
@@ -1165,7 +1165,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_except_option_for_singleton_resource
-    expected_message = ":only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo]"
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do

@@ -1181,7 +1181,8 @@ module ActionDispatch
 
             valid_actions = self.class.default_actions(false) # ignore api_only for this validation
             if invalid_actions = invalid_only_except_options(options, valid_actions).presence
-              raise ArgumentError, ":only and :except must include only #{valid_actions}, but also included #{invalid_actions}"
+              error_prefix = "Route `resource#{"s" unless singleton?} :#{entities}`"
+              raise ArgumentError, "#{error_prefix} - :only and :except must include only #{valid_actions}, but also included #{invalid_actions}"
             end
 
             @name       = entities.to_s
