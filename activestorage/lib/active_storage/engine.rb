@@ -102,7 +102,7 @@ module ActiveStorage
               ]
             end
 
-          ActiveStorage.analyzers = [analyzer].concat(app.config.active_storage.analyzers || [])
+          ActiveStorage.analyzers = [analyzer].compact.concat(app.config.active_storage.analyzers || [])
           ActiveStorage.variant_transformer = transformer
         rescue LoadError => error
           case error.message
