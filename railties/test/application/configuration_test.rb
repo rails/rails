@@ -3917,12 +3917,12 @@ module ApplicationTests
         ActiveStorage.video_preview_arguments
     end
 
-    test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
+    test "ActiveStorage.variant_processor is nil without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app "development"
 
-      assert_equal nil, ActiveStorage.variant_processor
+      assert_nil ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do
