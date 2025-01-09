@@ -107,9 +107,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(%r/gem "tailwindcss-rails"/, content)
     end
 
-    assert_no_file "app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/tailwind/, content)
-    end
+    assert_no_file "app/views/layouts/application.html.erb"
   end
 
   def test_app_update_does_not_generate_unnecessary_config_files
