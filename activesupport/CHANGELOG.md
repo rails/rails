@@ -1,3 +1,12 @@
+*   `ActiveSupport::JSON` now accepts options
+
+    It is now possible to pass options to `ActiveSupport::JSON`:
+    ```ruby
+    ActiveSupport::JSON.decode('{"key": "value"}', symbolize_names: true) # => { key: "value" }
+    ```
+
+    *matthaigh27*
+
 *   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
 
     Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.
