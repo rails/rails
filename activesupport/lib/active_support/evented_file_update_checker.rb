@@ -74,7 +74,7 @@ module ActiveSupport
 
       def initialize(files, dirs)
         gem_paths = Gem.path
-        @files = files.filter_map { |file| Pathname(file).expand_path unless gem_paths.any? { |gem_path| file.start_with?(gem_path) } }.to_set
+        @files = files.filter_map { |file| Pathname(file).expand_path unless gem_paths.any? { |gem_path| file.to_s.start_with?(gem_path) } }.to_set
         @dirs = dirs.each_with_object({}) do |(dir, exts), hash|
           unless gem_paths.any? { |gem_path| dir.start_with?(gem_path) }
             hash[Pathname(dir).expand_path] = Array(exts).map { |ext| ext.to_s.sub(/\A\.?/, ".") }.to_set
