@@ -27,6 +27,7 @@ module ActiveStorage
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
       @checksum_algorithm = checksum_algorithm.to_sym
+      raise ActiveStorage::UnsupportedChecksumError unless SUPPORTED_CHECKSUMS.include?(@checksum_algorithm)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public

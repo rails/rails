@@ -91,6 +91,11 @@ if SERVICE_CONFIGURATIONS[:azure]
       @service.delete key
     end
 
+    test "upload with unsupported checksum" do
+      config_with_crc64_checksum = { azure: SERVICE_CONFIGURATIONS[:azure].merge({ checksum_algorithm: :UnknownHashingFunction }) }
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { ActiveStorage::Service.configure(:azure, config_with_crc64_checksum) }
+    end
+
     test "upload upload with CRC64 checksum" do
       config_with_crc64_checksum = { azure: SERVICE_CONFIGURATIONS[:azure].merge({ checksum_algorithm: :CRC64 }) }
       service = ActiveStorage::Service.configure(:azure, config_with_crc64_checksum)
