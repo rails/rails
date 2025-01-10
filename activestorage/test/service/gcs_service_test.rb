@@ -138,7 +138,12 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
-    test "upload with CRC32c checkum" do
+    test "upload with unsupported checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ checksum_algorithm: :UnknownHashingFunction }) }
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum) }
+    end
+
+    test "upload with CRC32c checksum" do
       config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ checksum_algorithm: :CRC32c }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum)
 

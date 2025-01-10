@@ -168,6 +168,10 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
+    test "upload with unsupported checksum" do
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { build_service(checksum_algorithm: :UnknownHashingFunction) }
+    end
+
     test "upload with SHA256 checksum" do
       service = build_service(checksum_algorithm: :SHA256)
 

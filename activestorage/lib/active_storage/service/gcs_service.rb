@@ -23,6 +23,7 @@ module ActiveStorage
       @config = config
       @public = public
       @checksum_algorithm = checksum_algorithm.to_sym
+      raise ActiveStorage::UnsupportedChecksumError unless SUPPORTED_CHECKSUMS.include?(@checksum_algorithm)
     end
 
     def upload(key, io, checksum: nil, content_type: nil, disposition: nil, filename: nil, custom_metadata: {})
