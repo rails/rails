@@ -46,9 +46,10 @@ module ActiveSupport
         raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
       end
 
-      rails_root = Rails.root.to_s
-      @files = files.filter { _1.start_with?(rails_root) }.freeze
-      @globs = compile_glob(dirs).filter { _1.start_with?(rails_root) }
+      gem_paths = Gem.path
+      @files = files.reject { |file| gem_paths.any? { |gem_path| file.start_with?(gem_path) } }.freeze
+      @globs = compile_glob(dirs)&.reject { |dir| gem_paths.any? { |gem_path| dir.start_with?(gem_path) } }
+
       @block = block
 
       @watched    = nil
