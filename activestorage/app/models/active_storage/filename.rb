@@ -64,6 +64,7 @@ class ActiveStorage::Filename
   def to_s
     sanitized.to_s
   end
+  alias_method :to_str, :to_s
 
   def as_json(*)
     to_s
