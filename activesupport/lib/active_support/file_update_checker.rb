@@ -47,7 +47,7 @@ module ActiveSupport
       end
 
       gem_paths = Gem.path
-      @files = files.reject { |file| gem_paths.any? { |gem_path| file.start_with?(gem_path) } }.freeze
+      @files = files.reject { |file| gem_paths.any? { |gem_path| file.to_s.start_with?(gem_path) } }.freeze
       @globs = compile_glob(dirs)&.reject { |dir| gem_paths.any? { |gem_path| dir.start_with?(gem_path) } }
 
       @block = block
