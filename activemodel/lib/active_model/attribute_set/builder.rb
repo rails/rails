@@ -15,6 +15,12 @@ module ActiveModel
       def build_from_database(values = {}, additional_types = {}, da = self.default_attributes)
         LazyAttributeSet.new(values, types, additional_types, da)
       end
+
+      EMPTY = {}.freeze
+
+      def build_from_initialize(default_attributes)
+        build_from_database(EMPTY, EMPTY, default_attributes)
+      end
     end
   end
 
