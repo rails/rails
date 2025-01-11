@@ -261,7 +261,11 @@ module ActiveRecord
 
           attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
           apply_pending_attribute_modifications(attribute_set)
-          attribute_set.read_only
+          if attribute_set.values.all?(&:freezable?)
+            attribute_set.read_only
+          else
+            attribute_set
+          end
         end
       end
 

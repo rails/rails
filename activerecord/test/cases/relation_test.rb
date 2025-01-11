@@ -425,6 +425,7 @@ module ActiveRecord
       end
 
       def deserialize(value)
+        return unless value
         raise value unless value == "type cast for database"
         "type cast from database"
       end
