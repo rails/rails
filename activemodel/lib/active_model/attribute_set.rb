@@ -13,7 +13,6 @@ module ActiveModel
     def initialize(attributes)
       @attributes = attributes
       raise ArgumentError, "all attributes should be initialized" unless all_initialized?
-      @attributes.freeze
       freeze
     end
 
@@ -79,6 +78,8 @@ module ActiveModel
     end
 
     def read_only
+      attributes.values.each(&:freeze)
+      attributes.freeze
       ReadOnlyAttributeSet.new(attributes)
     end
 
