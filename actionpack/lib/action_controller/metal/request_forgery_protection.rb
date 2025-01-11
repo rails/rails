@@ -626,6 +626,7 @@ module ActionController # :nodoc:
         If you cannot change the referrer policy, you can disable origin checking with the
         Rails.application.config.action_controller.forgery_protection_origin_check setting.
       MSG
+      private_constant :NULL_ORIGIN_MESSAGE
 
       # Checks if the request originated from the same origin by looking at the Origin
       # header.

@@ -17,9 +17,11 @@ module ActionDispatch
     # For more information about filter behavior, see
     # ActiveSupport::ParameterFilter.
     module FilterParameters
-      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
-      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
-      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH # :nodoc:
+      # :stopdoc:
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"]
+      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new
+      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH
+      # :startdoc:
 
       def initialize
         super
