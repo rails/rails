@@ -12,6 +12,8 @@ module ActiveModel
     def initialize(attributes)
       @attributes = attributes
       raise ArgumentError, "all attributes should be initialized" unless all_initialized?
+      @attributes.freeze
+      freeze
     end
 
     def [](name)
