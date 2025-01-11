@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
 
 module ActiveRecord
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor

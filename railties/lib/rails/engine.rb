@@ -3,7 +3,6 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
 

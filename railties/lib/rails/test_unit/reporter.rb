@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
 require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
-    class_attribute :app_root
-    class_attribute :executable, default: "bin/rails test"
+    singleton_class.attr_accessor :app_root
+
+    @executable = "bin/rails test"
+    singleton_class.attr_accessor :executable
 
     def prerecord(test_class, test_name)
       super
@@ -86,7 +87,7 @@ module Rails
           result.method(result.name).source_location
         end
 
-        "#{executable} #{relative_path_for(location)}:#{line}"
+        "#{self.class.executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root
