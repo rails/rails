@@ -728,12 +728,12 @@ module ActiveRecord
             m.alias_type %r(bit)i,  "binary"
           end
 
-          def register_integer_type(mapping, key, **options)
+          def register_integer_type(mapping, key, limit:)
             mapping.register_type(key) do |sql_type|
               if /\bunsigned\b/.match?(sql_type)
-                Type::UnsignedInteger.new(**options)
+                Type::UnsignedInteger.new(limit: limit)
               else
-                Type::Integer.new(**options)
+                Type::Integer.new(limit: limit)
               end
             end
           end
