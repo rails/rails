@@ -2353,10 +2353,11 @@ module could be used in multiple models to provide the same functionality.
 A subscriber may want to unsubscribe at some point, so let's build that next.
 
 First, we need a route for unsubscribing that will be the URL we include in
-emails.
+emails, explicitly setting the identifying param to `token` (instead of the
+standard `id`).
 
 ```ruby
-  resource :unsubscribe, only: [ :show ]
+  resource :unsubscribe, param: :token, only: [ :show ]
 ```
 
 Active Record has a feature called `generates_token_for` that can generate
