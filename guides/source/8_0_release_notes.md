@@ -38,6 +38,13 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate requiring `"rails/console/methods"`.
+
+*   Deprecate modifying `STATS_DIRECTORIES` in favor of
+    `Rails::CodeStatistics.registery_directory`.
+
+*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
+
 ### Notable changes
 
 *   Set `Regexp.timeout` to `1`s by default to improve security over Regexp Denial-of-Service attacks.
@@ -63,6 +70,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Remove `Rails.application.config.action_controller.allow_deprecated_parameters_hash_equality`.
 
 ### Deprecations
+
+*   Deprecate drawing routes with multiple paths to make routing faster.
 
 ### Notable changes
 
@@ -119,6 +128,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate the `retries` option for the `SQLite3Adapter` in favor of
+    `timeout`.
+
 ### Notable changes
 
 Active Storage
@@ -129,6 +141,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 ### Removals
 
 ### Deprecations
+
+*    Deprecate the Azure backend for Active Storage.
 
 ### Notable changes
 
@@ -158,6 +172,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `Benchmark.ms`.
+
+*   Deprecate addition and `since` between two `Time` and `ActiveSupport::TimeWithZone`.
+
 ### Notable changes
 
 Active Job
@@ -170,6 +188,11 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated `config.active_job.use_big_decimal_serializer`.
 
 ### Deprecations
+
+*   Deprecate `enqueue_after_transaction_commit`.
+
+*   Deprecate internal `SuckerPunch` adapter in favor of the adapter included
+    with the `sucker_punch` gem.
 
 ### Notable changes
 
