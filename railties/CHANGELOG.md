@@ -1,3 +1,7 @@
+*   Add `current_user` helper to authentication concern
+
+    *Chris Kottom*
+
 *   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 
     *Steve Polito*
