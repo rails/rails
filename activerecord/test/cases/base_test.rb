@@ -268,6 +268,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 129346, Topic.find(3).written_on.usec
   end
 
+  def test_default_values_ractor_shareable
+    skip unless defined?(Ractor)
+    assert_predicate Default._default_attributes, :frozen?
+    assert Ractor.shareable?(Default._default_attributes)
+  end
+
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
