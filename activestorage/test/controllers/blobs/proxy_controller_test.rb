@@ -131,6 +131,12 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     request = ActionController::TestRequest.create({})
     assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
   end
+
+  test "sessions are disabled" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
+  end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest

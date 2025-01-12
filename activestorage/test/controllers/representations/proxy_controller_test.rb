@@ -64,6 +64,16 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
 
     assert_response :not_found
   end
+
+  test "sessions are disabled" do
+    get rails_blob_representation_proxy_url(
+      disposition: :attachment,
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(@transformations))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
+  end
 end
 
 class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadingTest < ActionDispatch::IntegrationTest
