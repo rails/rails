@@ -66,15 +66,15 @@ group :development, :test do
 <%- end -%>
 end
 <% end -%>
-
 <%- unless options.api? || options.skip_dev_gems? -%>
+
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
 <%- end -%>
-
 <%- if depends_on_system_test? -%>
+
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
