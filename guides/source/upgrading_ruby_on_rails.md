@@ -2177,7 +2177,7 @@ end
 ```irb
 irb> FooBar.new.to_json
 => "{\"foo\":\"bar\"}"
-irb> JSON.generate(FooBar.new, quirks_mode: true)
+irb> JSON.generate(FooBar.new)
 => "\"#<FooBar:0x007fa80a481610>\""
 ```
 
