@@ -1,3 +1,7 @@
+*   Fix inserts on MySQL with no RETURNING support for a table with multiple auto populated columns
+
+    *Nikita Vasilevsky*
+
 *   Fix joining on a scoped association with string joins and bind parameters.
 
     ```ruby
