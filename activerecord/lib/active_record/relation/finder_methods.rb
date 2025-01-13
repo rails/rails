@@ -441,7 +441,7 @@ module ActiveRecord
         if distinct_value && offset_value
           relation = except(:order).limit!(1)
         else
-          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+          relation = except(:select, :distinct, :order)._select!(Arel.sql(ONE_AS_ONE, retryable: true)).limit!(1)
         end
 
         case conditions

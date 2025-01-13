@@ -418,7 +418,7 @@ module ActiveRecord
         when :all
           Arel.star
         else
-          arel_column(column_name)
+          arel_column(column_name.to_s)
         end
       end
 

@@ -710,6 +710,15 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "#exists? queries are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert_predicate Post, :exists?
+        assert_predicate @connection, :active?
+      end
+
       test "queries containing SQL fragments are not retried" do
         Post.first
 
