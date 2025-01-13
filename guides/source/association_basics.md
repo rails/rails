@@ -1660,7 +1660,7 @@ instructed otherwise.
 If you're working with composite primary keys in your Rails models and need to
 ensure the correct handling of associations, please refer to the [Associations
 section of the Composite Primary Keys
-guide](active_record_composite_primary_keys#associations-between-models-with-composite-primary-keys).
+guide](active_record_composite_primary_keys.html#associations-between-models-with-composite-primary-keys).
 This section provides comprehensive guidance on setting up and using
 associations with composite primary keys in Rails, including how to specify
 composite foreign keys when necessary.
