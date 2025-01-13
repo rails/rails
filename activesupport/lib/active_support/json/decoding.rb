@@ -20,7 +20,7 @@ module ActiveSupport
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
       def decode(json)
-        data = ::JSON.parse(json, quirks_mode: true)
+        data = ::JSON.parse(json)
 
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
