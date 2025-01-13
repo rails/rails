@@ -1,3 +1,10 @@
+*   The authentication generator's `SessionsController` sets the `Clear-Site-Data` header on logout.
+
+    By default the header will be set to `"cache","storage"` to help prevent data leakage after
+    logout via the browser's "back/forward cache".
+
+    *Mike Dalessio*
+
 *   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 
     *Steve Polito*
