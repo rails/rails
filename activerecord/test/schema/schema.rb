@@ -105,8 +105,9 @@ ActiveRecord::Schema.define do
   end
 
   create_table :auto_id_tests, force: true, id: false do |t|
-    t.primary_key :auto_id
     t.integer     :value
+    t.timestamp   :published_at, default: -> { "CURRENT_TIMESTAMP" }
+    t.primary_key :auto_id
   end
 
   create_table :binaries, force: true do |t|

@@ -174,6 +174,10 @@ module ActiveRecord
         mariadb? && database_version >= "10.5.0"
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
