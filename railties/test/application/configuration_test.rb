@@ -3931,6 +3931,14 @@ module ApplicationTests
       assert_equal :vips, ActiveStorage.variant_processor
     end
 
+    test "ActiveStorage.analyzers doesn't contain nil when variant_processor = nil" do
+      add_to_config "config.active_storage.variant_processor = nil"
+
+      app "development"
+
+      assert_not_includes ActiveStorage.analyzers, nil
+    end
+
     test "ActiveStorage.supported_image_processing_methods can be configured via config.active_storage.supported_image_processing_methods" do
       remove_from_config '.*config\.load_defaults.*\n'
 
