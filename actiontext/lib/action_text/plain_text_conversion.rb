@@ -22,9 +22,15 @@ module ActionText
       def plain_text_for_node_children(node)
         texts = []
         node.children.each_with_index do |child, index|
+          next if skippable?(child)
+
           texts << plain_text_for_node(child, index)
         end
         texts.join
+      end
+
+      def skippable?(node)
+        node.name == "script" || node.name == "style"
       end
 
       def plain_text_method_for_node(node)

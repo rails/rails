@@ -181,8 +181,8 @@ content as follows:
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On
 the other hand `ActionText::RichText#to_plain_text` returns a string that is not
-HTML safe and should not be rendered in browsers. You can learn more about
-Action Text's sanitization process in the [`ActionText::RichText`
+HTML safe and should not be rendered in browsers without additional sanitization.
+You can learn more about Action Text's sanitization process in the [`ActionText::RichText`
 documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html).
 
 NOTE: If there's an attached resource within `content` field, it might not show
