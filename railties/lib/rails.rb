@@ -3,10 +3,9 @@
 require "pathname"
 
 require "active_support"
+require "active_support/rails"
 require "active_support/core_ext/kernel/reporting"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/object/blank"
 
 require "rails/version"
 require "rails/deprecator"

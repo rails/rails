@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   # This is a thread locals registry for EXPLAIN. For example

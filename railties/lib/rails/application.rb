@@ -2,10 +2,8 @@
 
 require "yaml"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
-require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
