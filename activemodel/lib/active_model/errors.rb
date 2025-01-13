@@ -5,7 +5,6 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
 require "active_model/error"
 require "active_model/nested_error"
-require "forwardable"
 
 module ActiveModel
   # = Active \Model \Errors
@@ -61,8 +60,6 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    extend Forwardable
-
     ##
     # :method: each
     #
@@ -100,7 +97,7 @@ module ActiveModel
     #
     # Returns number of errors.
 
-    def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
+    delegate :each, :clear, :empty?, :size, :uniq!, to: :@errors
 
     # The actual array of +Error+ objects
     # This method is aliased to <tt>objects</tt>.
