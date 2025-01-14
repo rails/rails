@@ -38,6 +38,9 @@ module ActiveRecord
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
+        ActiveRecord.deprecator.warn(<<~MSG) if @configuration_hash[:pool]
+          The pool option is deprecated and will be removed in Rails 8.2. Use max_connections instead.
+        MSG
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -69,20 +72,23 @@ module ActiveRecord
         @configuration_hash = configuration_hash.merge(database: database).freeze
       end
 
-      def pool
-        (configuration_hash[:pool] || 5).to_i
+      def max_connections
+        (configuration_hash[:max_connections] || configuration_hash[:pool] || 5).to_i
       end
 
-      def min_size
-        (configuration_hash[:min_size] || 0).to_i
+      def min_connections
+        (configuration_hash[:min_connections] || 0).to_i
       end
+
+      alias :pool :max_connections
+      deprecate pool: :max_connections, deprecator: ActiveRecord.deprecator
 
       def min_threads
         (configuration_hash[:min_threads] || 0).to_i
       end
 
       def max_threads
-        (configuration_hash[:max_threads] || pool).to_i
+        (configuration_hash[:max_threads] || max_connections).to_i
       end
 
       def max_age
