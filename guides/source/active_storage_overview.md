@@ -992,7 +992,7 @@ variant processor that you are using, but both support the following parameters:
 | `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
 | `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
 
-[`image_processing`][] has all parameters available in it's own documentation
+[`image_processing`][] has all parameters available in its own documentation
 for both the
 [Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
 [MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
