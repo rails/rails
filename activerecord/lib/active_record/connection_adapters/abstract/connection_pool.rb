@@ -105,13 +105,18 @@ module ActiveRecord
     # There are several connection-pooling-related options that you can add to
     # your database connection configuration:
     #
-    # * +pool+: maximum number of connections the pool may manage (default 5).
-    # * +idle_timeout+: number of seconds that a connection will be kept
-    #   unused in the pool before it is automatically disconnected (default
-    #   300 seconds). Set this to zero to keep connections forever.
     # * +checkout_timeout+: number of seconds to wait for a connection to
     #   become available before giving up and raising a timeout error (default
     #   5 seconds).
+    # * +idle_timeout+: number of seconds that a connection will be kept
+    #   unused in the pool before it is automatically disconnected (default
+    #   300 seconds). Set this to zero to keep connections forever.
+    # * +keepalive+: number of seconds between keepalive checks if the
+    #   connection has been idle (default 600 seconds).
+    # * +max_age+: number of seconds the pool will allow the connection to
+    #   exist before retiring it at next checkin. (default Float::INFINITY).
+    # * +max_connections+: maximum number of connections the pool may manage (default 5).
+    # * +min_connections+: minimum number of connections the pool will open and maintain (default 0).
     #
     #--
     # Synchronization policy:
@@ -225,8 +230,8 @@ module ActiveRecord
       include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
-      attr_reader :db_config, :max_size, :min_size, :max_age, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
-      alias :size :max_size
+      attr_reader :db_config, :max_connections, :min_connections, :max_age, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
+      alias :size :max_connections
 
       delegate :schema_reflection, :server_version, to: :pool_config
 
@@ -246,8 +251,8 @@ module ActiveRecord
 
         @checkout_timeout = db_config.checkout_timeout
         @idle_timeout = db_config.idle_timeout
-        @max_size = db_config.pool
-        @min_size = db_config.min_size
+        @max_connections = db_config.max_connections
+        @min_connections = db_config.min_connections
         @max_age = db_config.max_age
         @keepalive = db_config.keepalive
 
@@ -645,7 +650,7 @@ module ActiveRecord
           @available.delete conn
 
           # @available.any_waiting? => true means that prior to removing this
-          # conn, the pool was at its max size (@connections.size == @max_size).
+          # conn, the pool was at its max size (@connections.size == @max_connections).
           # This would mean that any threads stuck waiting in the queue wouldn't
           # know they could checkout_new_connection, so let's do it for them.
           # Because condition-wait loop is encapsulated in the Queue class
@@ -660,7 +665,7 @@ module ActiveRecord
         # would like not to hold the main mutex while checking out new connections.
         # Thus there is some chance that needs_new_connection information is now
         # stale, we can live with that (bulk_make_new_connections will make
-        # sure not to exceed the pool's @max_size limit).
+        # sure not to exceed the pool's @max_connections limit).
         bulk_make_new_connections(1) if needs_new_connection
       end
 
@@ -704,7 +709,7 @@ module ActiveRecord
           # everything
           idles_to_retain =
             if minimum_idle > 0
-              @min_size - (@connections.size - idle_connections.size)
+              @min_connections - (@connections.size - idle_connections.size)
             else
               0
             end
@@ -746,8 +751,8 @@ module ActiveRecord
         # so we can avoid maintaining full pools in one-off scripts etc.
         return unless @activated
 
-        if @connections.size < @min_size
-          while new_conn = try_to_checkout_new_connection { @connections.size < @min_size }
+        if @connections.size < @min_connections
+          while new_conn = try_to_checkout_new_connection { @connections.size < @min_connections }
             checkin(new_conn)
           end
         end
@@ -982,7 +987,7 @@ module ActiveRecord
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)
           num_new_conns_needed.times do
-            # try_to_checkout_new_connection will not exceed pool's @max_size limit
+            # try_to_checkout_new_connection will not exceed pool's @max_connections limit
             if new_conn = try_to_checkout_new_connection
               # make the new_conn available to the starving threads stuck @available Queue
               checkin(new_conn)
@@ -1167,7 +1172,7 @@ module ActiveRecord
         end
         alias_method :release, :remove_connection_from_thread_cache
 
-        # If the pool is not at a <tt>@max_size</tt> limit, establish new connection. Connecting
+        # If the pool is not at a <tt>@max_connections</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.
         #
         # If a block is supplied, it is an additional constraint (checked while holding the
@@ -1177,10 +1182,10 @@ module ActiveRecord
         # method must be in the +.leased+ state.
         def try_to_checkout_new_connection
           # first in synchronized section check if establishing new conns is allowed
-          # and increment @now_connecting, to prevent overstepping this pool's @max_size
+          # and increment @now_connecting, to prevent overstepping this pool's @max_connections
           # constraint
           do_checkout = synchronize do
-            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_size && (!block_given? || yield)
+            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_connections && (!block_given? || yield)
               if @connections.size > 0 || @original_context != ActiveSupport::IsolatedExecutionState.context
                 @activated = true
               end
