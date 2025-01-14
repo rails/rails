@@ -49,4 +49,8 @@ module Authentication
       Current.session.destroy
       cookies.delete(:session_id)
     end
+
+    def clear_site_data
+      response.headers["Clear-Site-Data"] = '"cache","storage"'
+    end
 end
