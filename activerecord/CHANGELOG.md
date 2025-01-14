@@ -1,4 +1,8 @@
-*   Fix inserts on MySQL with no RETURNING support for a table with multiple auto populated columns
+*   Fix support for PostgreSQL enum types with commas in their name.
+
+    *Arthur Hess*
+
+*   Fix inserts on MySQL with no RETURNING support for a table with multiple auto populated columns.
 
     *Nikita Vasilevsky*
 
