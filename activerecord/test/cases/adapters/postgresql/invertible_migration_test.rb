@@ -79,7 +79,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     CreateEnumMigration.new.migrate(:up)
 
     assert @connection.column_exists?(:enums, :best_color, sql_type: "color", default: "blue", null: false)
-    assert_equal [["color", "blue,green"]], @connection.enum_types
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
 
     CreateEnumMigration.new.migrate(:down)
 
@@ -94,7 +94,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [], @connection.enum_types
 
     DropEnumMigration.new.migrate(:down)
-    assert_equal [["color", "blue,green"]], @connection.enum_types
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
   end
 
   def test_migrate_revert_add_and_validate_check_constraint
