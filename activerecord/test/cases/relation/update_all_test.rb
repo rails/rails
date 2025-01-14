@@ -75,6 +75,16 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_all_with_unpermitted_relation_raises_error
+    assert_deprecated("`distinct` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.distinct.update_all(name: "Bob")
+    end
+
+    assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
+    end
+  end
+
   def test_update_all_with_left_joins
     pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
 
