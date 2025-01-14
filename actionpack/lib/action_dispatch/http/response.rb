@@ -382,9 +382,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Avoid having to pass an open file handle as the response body. Rack::Sendfile
-    # will usually intercept the response and uses the path directly, so there is no
-    # reason to open the file.
+    # Avoid having to pass an open file handle as the response body.
     class FileBody # :nodoc:
       attr_reader :to_path
 
@@ -396,7 +394,7 @@ module ActionDispatch # :nodoc:
         File.binread(to_path)
       end
 
-      # Stream the file's contents if Rack::Sendfile isn't present.
+      # Stream the file's contents.
       def each
         File.open(to_path, "rb") do |file|
           while chunk = file.read(16384)

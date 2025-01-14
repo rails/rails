@@ -1,3 +1,20 @@
+*   Remove `Rack::Sendfile` from the default middleware stack and deprecate
+    referencing it in middleware operations.
+
+    Deprecate configuration option for specifying the header used for sending files:
+
+    ```
+    config.action_dispatch.x_sendfile_header = 'X-Sendfile'
+    ```
+
+    `Rack::Sendfile` instead can be explicitly added if needed:
+
+    ```
+    use Rack::SendFile, 'X-Sendfile'
+    ```
+
+    *Stanislav Valkanov*
+
 *   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 
     *Steve Polito*
