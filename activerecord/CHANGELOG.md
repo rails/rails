@@ -1,3 +1,8 @@
+*   Enable automatically retrying idempotent `#exists?` queries on connection
+    errors.
+
+    *Hartley McGuire*, *classidied*
+
 *   Deprecate usage of unsupported methods in conjunction with `update_all`:
 
     `update_all` will now print a deprecation message if a query includes either `WITH`,
