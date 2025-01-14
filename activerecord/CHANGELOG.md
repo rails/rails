@@ -1,3 +1,11 @@
+*   Introduce new database configuration options `keepalive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
 *   Move `LIMIT` validation from query generation to when `limit()` is called.
 
     *Hartley McGuire*, *Shuyang*
