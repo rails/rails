@@ -132,7 +132,7 @@ module ActionDispatch
 
     # Populate the HTTP method lookup cache.
     HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
+      HTTP_METHOD_LOOKUP[method] = method.downcase.underscore.to_sym
     }
 
     alias raw_request_method request_method # :nodoc:
