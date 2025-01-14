@@ -1,3 +1,16 @@
+*   Fix `cache.fetch` to honor the provided expiry when `:race_condition_ttl` is used.
+
+    ```ruby
+    cache.fetch("key", expires_in: 1.hour, race_condition_ttl: 5.second) do
+      "something"
+    end
+    ```
+
+    In the above example, the final cache entry would have a 10 seconds TTL instead
+    of the requested 1 hour.
+
+    *Dhia*
+
 *   Better handle procs with splat arguments in `set_callback`.
 
     *Radamés Roriz*
