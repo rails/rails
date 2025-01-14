@@ -1,3 +1,10 @@
+*   Modify the authentication generator so that it only generates the routes
+    that are actually used by the `SessionsController` and `PasswordsController`
+
+    Fixes #54233
+
+    *Michael Duchemin*
+
 *   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 
     *Steve Polito*
