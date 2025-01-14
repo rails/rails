@@ -1,3 +1,11 @@
+*   Introduce new database configuration options `keepalive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
