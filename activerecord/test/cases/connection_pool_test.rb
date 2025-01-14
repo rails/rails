@@ -149,7 +149,7 @@ module ActiveRecord
 
       def test_full_pool_blocking_shares_load_interlock
         skip_fiber_testing
-        @pool.instance_variable_set(:@max_size, 1)
+        @pool.instance_variable_set(:@max_connections, 1)
 
         load_interlock_latch = Concurrent::CountDownLatch.new
         connection_latch = Concurrent::CountDownLatch.new
@@ -236,7 +236,7 @@ module ActiveRecord
 
       def test_inactive_are_returned_from_dead_thread
         ready = Concurrent::CountDownLatch.new
-        @pool.instance_variable_set(:@max_size, 1)
+        @pool.instance_variable_set(:@max_connections, 1)
 
         child = new_thread do
           @pool.checkout
@@ -282,20 +282,20 @@ module ActiveRecord
         assert_equal 0, @pool.connections.length
       end
 
-      def test_min_size_configuration
+      def test_min_connections_configuration
         @pool.disconnect!
 
-        @pool = new_pool_with_options(min_size: 1)
+        @pool = new_pool_with_options(min_connections: 1)
 
         @pool.activate
         @pool.prepopulate
         assert_equal 1, @pool.connections.length
       end
 
-      def test_idle_timeout_configuration_with_min_size
+      def test_idle_timeout_configuration_with_min_connections
         @pool.disconnect!
 
-        @pool = new_pool_with_options(idle_timeout: "0.02", min_size: 1)
+        @pool = new_pool_with_options(idle_timeout: "0.02", min_connections: 1)
         connections = 2.times.map { @pool.checkout }
         connections.each { |conn| @pool.checkin(conn) }
 
@@ -419,7 +419,7 @@ module ActiveRecord
       end
 
       def test_prepopulate
-        pool = new_pool_with_options(min_size: 3, max_size: 3, async: false)
+        pool = new_pool_with_options(min_connections: 3, max_connections: 3, async: false)
 
         assert_equal 0, pool.connections.length
         assert_not_predicate pool, :activated?
@@ -437,7 +437,7 @@ module ActiveRecord
       end
 
       def test_preconnect
-        pool = new_pool_with_options(min_size: 3, max_size: 3, async: false)
+        pool = new_pool_with_options(min_connections: 3, max_connections: 3, async: false)
         pool.activate
         pool.prepopulate
 
@@ -686,7 +686,7 @@ module ActiveRecord
       def test_checkout_fairness
         skip_fiber_testing
 
-        @pool.instance_variable_set(:@max_size, 10)
+        @pool.instance_variable_set(:@max_connections, 10)
         expected = (1..@pool.size).to_a.freeze
         # check out all connections so our threads start out waiting
         conns = expected.map { @pool.checkout }
@@ -733,7 +733,7 @@ module ActiveRecord
       def test_checkout_fairness_by_group
         skip_fiber_testing
 
-        @pool.instance_variable_set(:@max_size, 10)
+        @pool.instance_variable_set(:@max_connections, 10)
         # take all the connections
         conns = (1..10).map { @pool.checkout }
         mutex = Mutex.new
@@ -834,7 +834,7 @@ module ActiveRecord
         completion_list = []
         selection_list = []
 
-        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@max_connections, 3)
         @pool.instance_variable_set(:@async_executor, work_collector)
 
         3.times.map { @pool.checkout }.each do |conn|
@@ -872,7 +872,7 @@ module ActiveRecord
         completion_list = []
         selection_list = []
 
-        @pool.instance_variable_set(:@max_size, 3)
+        @pool.instance_variable_set(:@max_connections, 3)
         @pool.instance_variable_set(:@async_executor, nil)
 
         3.times.map { @pool.checkout }.each do |conn|
@@ -1346,7 +1346,7 @@ module ActiveRecord
         end
 
         def with_single_connection_pool(**options)
-          config = @db_config.configuration_hash.merge(pool: 1, **options)
+          config = @db_config.configuration_hash.merge(max_connections: 1, **options)
           db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", config)
           pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
 

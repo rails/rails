@@ -5,19 +5,79 @@ require "cases/helper"
 module ActiveRecord
   class DatabaseConfigurations
     class HashConfigTest < ActiveRecord::TestCase
-      def test_pool_default_when_nil
-        config = HashConfig.new("default_env", "primary", pool: nil, adapter: "abstract")
-        assert_equal 5, config.pool
+      def test_pool_config_raises_deprecation
+        config = nil
+        assert_deprecated ActiveRecord.deprecator do
+          config = HashConfig.new("default_env", "primary", pool: 6, adapter: "abstract")
+        end
+        assert_equal 6, config.max_connections
       end
 
-      def test_pool_overrides_with_value
-        config = HashConfig.new("default_env", "primary", pool: "0", adapter: "abstract")
-        assert_equal 0, config.pool
-      end
-
-      def test_when_no_pool_uses_default
+      def test_pool_is_deprecated
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
-        assert_equal 5, config.pool
+        assert_deprecated ActiveRecord.deprecator do
+          assert_equal 5, config.pool
+        end
+      end
+
+      def test_max_age_default_when_nil
+        config = HashConfig.new("default_env", "primary", max_age: nil, adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
+      def test_max_age_overrides_with_value
+        config = HashConfig.new("default_env", "primary", max_age: "500", adapter: "abstract")
+        assert_equal 500, config.max_age
+      end
+
+      def test_when_no_max_age_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
+      def test_keepalive_default_when_nil
+        config = HashConfig.new("default_env", "primary", keepalive: nil, adapter: "abstract")
+        assert_equal 600, config.keepalive
+      end
+
+      def test_keepalive_overrides_with_value
+        config = HashConfig.new("default_env", "primary", keepalive: "500", adapter: "abstract")
+        assert_equal 500, config.keepalive
+      end
+
+      def test_when_no_keepalive_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 600, config.keepalive
+      end
+
+      def test_max_connections_default_when_nil
+        config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
+        assert_equal 5, config.max_connections
+      end
+
+      def test_max_connections_overrides_with_value
+        config = HashConfig.new("default_env", "primary", max_connections: "0", adapter: "abstract")
+        assert_equal 0, config.max_connections
+      end
+
+      def test_when_no_max_connections_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 5, config.max_connections
+      end
+
+      def test_min_connections_default_when_nil
+        config = HashConfig.new("default_env", "primary", min_connections: nil, adapter: "abstract")
+        assert_equal 0, config.min_connections
+      end
+
+      def test_min_connections_overrides_with_value
+        config = HashConfig.new("default_env", "primary", min_connections: "5", adapter: "abstract")
+        assert_equal 5, config.min_connections
+      end
+
+      def test_when_no_min_connections_uses_default
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal 0, config.min_connections
       end
 
       def test_min_threads_with_value
@@ -35,19 +95,19 @@ module ActiveRecord
         assert_equal 10, config.max_threads
       end
 
-      def test_max_threads_default_uses_pool_default
+      def test_max_threads_default_uses_max_connections_default
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
-        assert_equal 5, config.pool
+        assert_equal 5, config.max_connections
         assert_equal 5, config.max_threads
       end
 
-      def test_max_threads_uses_pool_when_set
-        config = HashConfig.new("default_env", "primary", pool: 1, adapter: "abstract")
-        assert_equal 1, config.pool
+      def test_max_threads_uses_max_connections_when_set
+        config = HashConfig.new("default_env", "primary", max_connections: 1, adapter: "abstract")
+        assert_equal 1, config.max_connections
         assert_equal 1, config.max_threads
       end
 
-      def test_max_queue_is_pool_multiplied_by_4
+      def test_max_queue_is_max_threads_multiplied_by_4
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal 5, config.max_threads
         assert_equal config.max_threads * 4, config.max_queue

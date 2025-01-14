@@ -485,7 +485,7 @@ module ApplicationTests
             f.puts <<-YAML
             default: &default
               adapter: sqlite3
-              pool: 5
+              max_connections: 5
               timeout: 5000
               variables:
                 statement_timeout: 1000
@@ -507,7 +507,7 @@ module ApplicationTests
             f.puts <<-YAML
             default: &default
               adapter: sqlite3
-              pool: 5
+              max_connections: 5
               timeout: 5000
               variables:
                 statement_timeout: 1000
