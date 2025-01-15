@@ -765,7 +765,7 @@ module ActionController
     #
     #     params = ActionController::Parameters.new(tags: ["rails", "parameters"])
     #     permitted = params.expect(tags: [])
-    #     permitted.permitted?      # => true
+    #     permitted                 # => ["rails", "parameters"]
     #     permitted.is_a?(Array)    # => true
     #     permitted.size            # => 2
     #
