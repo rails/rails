@@ -144,6 +144,30 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "script tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <script type="javascript">
+          console.log("message");
+        </script>
+        <div><strong>Hello </strong>world!</div>
+      HTML
+    )
+  end
+
+  test "style tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <style type="text/css">
+          body { color: red; }
+        </style>
+        <div><strong>Hello </strong>world!</div>
+      HTML
+    )
+  end
+
   private
     def assert_converted_to(plain_text, html)
       assert_equal plain_text, ActionText::Content.new(html).to_plain_text

@@ -123,10 +123,11 @@ module ActionText
     #     content.to_plain_text # => "safeunsafe"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
-    # browsers.
+    # browsers without additional sanitization.
     #
     #     content = ActionText::Content.new("&lt;script&gt;alert()&lt;/script&gt;")
     #     content.to_plain_text # => "<script>alert()</script>"
+    #     ActionText::ContentHelper.sanitizer.sanitize(content.to_plain_text) # => ""
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end
