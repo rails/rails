@@ -713,7 +713,7 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)
-  rdoc (~> 6.7)
+  rdoc (< 6.10)
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
