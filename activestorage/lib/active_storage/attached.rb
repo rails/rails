@@ -17,6 +17,18 @@ module ActiveStorage
       def change
         record.attachment_changes[name]
       end
+
+      def base64_data?(data)
+        data.is_a?(String) && data.match?(/^data:.*;base64,/)
+      end
+
+      def decode_base64_attachable(data)
+        metadata, base64_content = data.split(',', 2)
+        mime_type = metadata.match(/^data:(.*);base64$/)[1]
+        filename = "uploaded_file.#{mime_type.split('/').last}"
+        content = Base64.decode64(base64_content)
+        { io: StringIO.new(content), filename:, content_type: mime_type }
+      end
   end
 end
 

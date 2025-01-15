@@ -55,8 +55,16 @@ module ActiveStorage
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
+    #   person.avatar.attach("data:image/png;base64,#{base64_data}") # Data URI
     def attach(attachable)
-      record.public_send("#{name}=", attachable)
+      processed_attachable = if base64_data?(attachable)
+        decode_base64_attachable(attachable)
+      else
+        attachable
+      end
+
+      record.public_send("#{name}=", processed_attachable)
+
       if record.persisted? && !record.changed?
         return if !record.save
       end

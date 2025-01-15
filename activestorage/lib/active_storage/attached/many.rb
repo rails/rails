@@ -48,8 +48,18 @@ module ActiveStorage
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach([ first_blob, second_blob ])
+    #   document.images.attach("data:image/png;base64,#{base64_data}") # Data URI
     def attach(*attachables)
-      record.public_send("#{name}=", blobs + attachables.flatten)
+      processed_attachables = attachables.flatten.map do |attachable|
+        if base64_data?(attachable)
+          decode_base64_attachable(attachable)
+        else
+          attachable
+        end
+      end
+
+      record.public_send("#{name}=", blobs + processed_attachables)
+
       if record.persisted? && !record.changed?
         return if !record.save
       end
