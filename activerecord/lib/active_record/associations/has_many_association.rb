@@ -18,7 +18,7 @@ module ActiveRecord
 
         when :restrict_with_error
           unless empty?
-            record = owner.class.human_attribute_name(reflection.name).downcase
+            record = owner.class.human_attribute_name(reflection.name, _capitalize: false)
             owner.errors.add(:base, :'restrict_dependent_destroy.has_many', record: record)
             throw(:abort)
           end
