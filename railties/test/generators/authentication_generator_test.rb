@@ -44,7 +44,8 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "config/routes.rb" do |content|
-      assert_match(/resource :session/, content)
+      assert_match(/resource :session, only: %i\[new create destroy\]/, content)
+      assert_match(/resources :passwords, param: :token, only: %i\[new create edit update\]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
@@ -88,7 +89,8 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "config/routes.rb" do |content|
-      assert_match(/resource :session/, content)
+      assert_match(/resource :session, only: %i\[new create destroy\]/, content)
+      assert_match(/resources :passwords, param: :token, only: %i\[new create edit update\]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
