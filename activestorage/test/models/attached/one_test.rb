@@ -68,6 +68,44 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching a new blob from a Base64 data URI to an existing record" do
+    base64_image = "data:image/jpg;base64,#{Base64.strict_encode64(File.read(file_fixture('racecar.jpg')))}"
+    @user.avatar.attach base64_image
+
+    assert_equal "uploaded_file.jpg", @user.avatar.filename.to_s
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
+  test "creating a record with a Base64 data URI attached" do
+    base64_image = "data:image/jpg;base64,#{Base64.strict_encode64(File.read(file_fixture('racecar.jpg')))}"
+    @user = User.create!(name: "Dorian", avatar: base64_image)
+
+    assert_equal "uploaded_file.jpg", @user.avatar.filename.to_s
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
+  test "updating an existing record to attach a new blob from a Base64 data URI" do
+    base64_image = "data:image/jpg;base64,#{Base64.strict_encode64(File.read(file_fixture('racecar.jpg')))}"
+    @user.update!(avatar: base64_image)
+
+    assert_equal "uploaded_file.jpg", @user.avatar.filename.to_s
+    assert_not_nil @user.avatar_attachment
+    assert_not_nil @user.avatar_blob
+  end
+
+  test "analyzing a new blob from a Base64 data URI after attaching it to an existing record" do
+    base64_image = "data:image/png;base64,#{Base64.strict_encode64(File.read(file_fixture('racecar.jpg')))}"
+    perform_enqueued_jobs do
+      @user.avatar.attach base64_image
+    end
+
+    assert_predicate @user.avatar.reload, :analyzed?
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
+  end
+
   test "attaching a new blob from a Hash to an existing record passes record" do
     hash = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpeg" }
     blob = ActiveStorage::Blob.build_after_unfurling(**hash)
