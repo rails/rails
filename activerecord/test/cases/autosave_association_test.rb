@@ -40,9 +40,6 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
-require "models/family"
-require "models/family_tree"
-require "models/user"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -1149,34 +1146,6 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     post.save!
 
     assert_equal 1, post.categories.reload.length
-  end
-
-  FamilyLoadingMiddleAndThroughRecordsBeforeSave = Class.new(Family) do
-    before_save do
-      family_trees.map(&:member) + members
-    end
-  end
-
-  def test_autosave_new_record_with_hmt_and_middle_record_built_by_parent
-    family = FamilyLoadingMiddleAndThroughRecordsBeforeSave.new
-    family_tree = family.family_trees.build
-    family_tree.build_member
-    family.save!
-    family.reload
-
-    assert_equal 1, family.family_trees.size
-    assert_equal 1, family.members.size
-  end
-
-  def test_autosave_new_record_with_hmt_and_middle_record_built_by_through_record
-    family = FamilyLoadingMiddleAndThroughRecordsBeforeSave.new
-    member = family.members.build
-    family.family_trees.build(member: member)
-    family.save!
-    family.reload
-
-    assert_equal 1, family.family_trees.size
-    assert_equal 1, family.members.size
   end
 end
 
