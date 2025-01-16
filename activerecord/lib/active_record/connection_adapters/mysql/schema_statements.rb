@@ -187,6 +187,47 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field, _definitions)
+            #return _new_column_from_field(table_name, field, _definitions)
+            #ori = _new_column_from_field(table_name, field["original"], _definitions)
+            new = new_column_from_field2(table_name, field, _definitions)
+            new
+          end
+
+          def new_column_from_field2(table_name, field, _definitions)
+            field_name = field.fetch("COLUMN_NAME")
+
+            type_metadata = fetch_type_metadata(field.fetch("COLUMN_TYPE"), field["EXTRA"], true, field, nil)
+
+            default, default_function = field.fetch("COLUMN_DEFAULT"), nil
+
+            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
+              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(type_metadata.extra)
+              default, default_function = nil, default
+            elsif type_metadata.extra == "DEFAULT_GENERATED"
+              default = +"(#{default})" unless default.start_with?("(")
+              default = default.gsub("\\'", "'")
+              default, default_function = nil, default
+            elsif type_metadata.type == :text && default&.start_with?("'")
+              # strip and unescape quotes
+              default = default[1...-1].gsub("\\'", "'")
+            elsif default&.match?(/\A\d/)
+              # Its a number so we can skip the query to check if it is a function
+            elsif default && default_type(table_name, field_name) == :function
+              default, default_function = nil, default
+            end
+
+            MySQL::Column.new(
+              field_name,
+              default,
+              type_metadata,
+              field.fetch("IS_NULLABLE") == "YES",
+              default_function,
+              collation: field.fetch("COLLATION_NAME"),
+              comment: field.fetch("COLUMN_COMMENT").presence
+            )
+          end
+
+          def _new_column_from_field(table_name, field, _definitions)
             field_name = field.fetch("Field")
             type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
             default, default_function = field["Default"], nil
@@ -218,8 +259,245 @@ module ActiveRecord
             )
           end
 
-          def fetch_type_metadata(sql_type, extra = "")
-            MySQL::TypeMetadata.new(super(sql_type), extra: extra)
+          def fetch_type_metadata(sql_type, extra = "", new = false, info = nil, orig = nil)
+            sql_type_metadata = if new
+              numeric_precision = nil
+              numeric_scale = nil
+
+              if info.fetch("COLUMN_TYPE") =~ /\(.*\)/
+                numeric_precision = info.fetch("NUMERIC_PRECISION")
+                numeric_scale = info.fetch("NUMERIC_SCALE")
+              end
+
+              case info.fetch("DATA_TYPE")
+              when "bigint"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :integer,
+                  limit: 8,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "int"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :integer,
+                  limit: 4,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "mediumint"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :integer,
+                  limit: 3,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "varchar"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :string,
+                  limit: info.fetch("CHARACTER_MAXIMUM_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "datetime"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :datetime,
+                  limit: nil,
+                  precision: info.fetch("DATETIME_PRECISION"),
+                  scale: nil,
+                )
+              when "text"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :text,
+                  limit: info.fetch("CHARACTER_MAXIMUM_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "mediumtext"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :text,
+                  limit: info.fetch("CHARACTER_MAXIMUM_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "tinytext"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :text,
+                  limit: info.fetch("CHARACTER_MAXIMUM_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "longtext"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :text,
+                  limit: info.fetch("CHARACTER_MAXIMUM_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "blob"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :binary,
+                  limit: info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "time"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :time,
+                  limit: nil,
+                  precision: info.fetch("DATETIME_PRECISION"),
+                  scale: nil,
+                )
+              when "date"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :date,
+                  limit: nil,
+                  precision: info.fetch("DATETIME_PRECISION"),
+                  scale: nil,
+                )
+              when "json"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :json,
+                  limit: nil,
+                  precision: nil,
+                  scale: nil,
+                )
+              when "char"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :string,
+                  limit: 1,
+                  precision: nil,
+                  scale: nil,
+                )
+              when "tinyblob"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :binary,
+                  limit: info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "mediumblob"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :binary,
+                  limit: info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "longblob"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :binary,
+                  limit: info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "tinyint"
+                if self.class.emulate_booleans && info.fetch("COLUMN_TYPE") == "tinyint(1)"
+                  SqlTypeMetadata.new(
+                    sql_type: info.fetch("COLUMN_TYPE"),
+                    type: :boolean,
+                    limit: nil,
+                    precision: nil,
+                    scale: nil,
+                  )
+                else
+                  SqlTypeMetadata.new(
+                    sql_type: info.fetch("COLUMN_TYPE"),
+                    type: :integer,
+                    limit: 1,
+                    precision: numeric_precision,
+                    scale: numeric_scale,
+                  )
+                end
+              when "timestamp"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :datetime,
+                  limit: nil,
+                  precision: info.fetch("DATETIME_PRECISION"),
+                  scale: nil,
+                )
+              when "float"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :float,
+                  limit: 24,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "double"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :float,
+                  limit: 53,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "decimal"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :decimal,
+                  limit: nil,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "varbinary"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :binary,
+                  limit: info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "smallint"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :integer,
+                  limit: 2,
+                  precision: numeric_precision,
+                  scale: numeric_scale,
+                )
+              when "set"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :string,
+                  limit: nil, #info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              when "enum"
+                SqlTypeMetadata.new(
+                  sql_type: info.fetch("COLUMN_TYPE"),
+                  type: :string,
+                  limit: nil, #info.fetch("CHARACTER_OCTET_LENGTH"),
+                  precision: nil,
+                  scale: nil,
+                )
+              else
+                $stderr.puts "unknown type #{info.fetch("DATA_TYPE")}"
+                pp THEIRS: orig.sql_type_metadata
+                p info
+                $stderr.puts "unknown type #{info.fetch("DATA_TYPE")}"
+              end
+            else
+              super(sql_type)
+            end
+            MySQL::TypeMetadata.new(sql_type_metadata, extra: extra)
           end
 
           def extract_foreign_key_action(specifier)
