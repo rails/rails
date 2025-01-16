@@ -56,20 +56,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create person_id: 0, post_id: 0
   end
 
-  def test_setting_association_on_new_record_sets_through_records
-    subscriber_1, subscriber_2 = Subscriber.create!(nick: "nick 1"), Subscriber.create!(nick: "nick 2")
-    subscription_1 = Subscription.new(subscriber: subscriber_1)
-    subscription_2 = Subscription.new(subscriber: subscriber_2)
-    book = Book.new
-    book.subscriptions = [subscription_1, subscription_2]
-
-    assert_predicate subscriber_1, :persisted?
-    assert_predicate subscriber_2, :persisted?
-    assert_predicate book, :new_record?
-    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_equal book.subscribers.sort, [subscriber_1, subscriber_2].sort
-  end
-
   def test_has_many_through_create_record
     assert books(:awdr).subscribers.create!(nick: "bob")
   end

@@ -272,14 +272,6 @@ module ActiveRecord
       def load_target
         if find_target?
           @target = merge_target_lists(find_target, target)
-        elsif target.empty? && set_through_target_for_new_record?
-          @target = if through_reflection.collection?
-            through_association.target.flat_map do |record|
-              record.association(reflection.source_reflection_name).target
-            end
-          else
-            through_association.target.association(reflection.source_reflection_name).target
-          end
         end
 
         loaded!
