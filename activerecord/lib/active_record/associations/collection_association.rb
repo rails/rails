@@ -279,7 +279,7 @@ module ActiveRecord
             if middle_target.nil? || (middle_reflection.collection? && middle_target.empty?)
               break []
             elsif middle_reflection.collection?
-              middle_target.flat_map { |record| record.association(through_reflection.source_reflection_name).load_target }.compact
+              middle_target.flat_map { |record| record.association(through_reflection.source_reflection_name).load_target }
             else
               middle_target.association(through_reflection.source_reflection_name).load_target
             end

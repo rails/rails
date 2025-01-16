@@ -84,44 +84,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { assert_equal [subscriber_1, subscriber_2].sort, book.subscribers.sort }
   end
 
-  def test_setting_has_many_through_many_association_with_missing_targets_on_new_record_sets_empty_through_records
-    subscription_1 = Subscription.new
-    subscription_2 = Subscription.new
-    book = Book.new
-    book.subscriptions = [subscription_1, subscription_2]
-
-    assert_predicate book, :new_record?
-    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_no_queries { assert_equal [], book.subscribers }
-  end
-
-  def test_setting_has_many_through_many_association_with_partial_missing_targets_on_new_record_sets_partial_through_records
-    subscriber_1 = Subscriber.create!(nick: "nick 1")
-    subscription_1 = Subscription.new(subscriber: subscriber_1)
-    subscription_2 = Subscription.new
-    book = Book.new
-    book.subscriptions = [subscription_1, subscription_2]
-
-    assert_predicate subscriber_1, :persisted?
-    assert_predicate book, :new_record?
-    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_no_queries { assert_equal [subscriber_1], book.subscribers }
-  end
-
-  def test_setting_polymorphic_has_many_through_many_association_on_new_record_sets_through_records
-    human_1, human_2 = Human.create!, Human.create!
-    interest_1 = Interest.new(polymorphic_human: human_1)
-    interest_2 = Interest.new(polymorphic_human: human_2)
-    zine = Zine.new
-    zine.interests = [interest_1, interest_2]
-
-    assert_predicate human_1, :persisted?
-    assert_predicate human_2, :persisted?
-    assert_predicate zine, :new_record?
-    zine.interests.each { |interest| assert_predicate interest, :new_record? }
-    assert_no_queries { assert_equal [human_1, human_2].sort, zine.polymorphic_humans.sort }
-  end
-
   def test_setting_nested_has_many_through_one_association_on_new_record_sets_nested_through_records
     post_tagging_1, post_tagging_2 = Tagging.create!, Tagging.create!
     post = Post.create!(title: "Tagged", body: "Post", taggings: [post_tagging_1, post_tagging_2])
