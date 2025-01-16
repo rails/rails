@@ -14,6 +14,17 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
+    def test_type_map_is_ractor_shareable
+      # This is testing internals. Please feel free to remove this test
+      # or change it when internals change. The point is to make sure
+      # the type map is Ractor shareable.
+      @connection.tables.each do |table|
+        @connection.columns(table).each do |column|
+          assert_ractor_shareable @connection.lookup_cast_type_from_column(column)
+        end
+      end
+    end
+
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||
@@ -338,6 +349,13 @@ module ActiveRecord
 
       assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
+
+    private
+      def assert_ractor_shareable(obj)
+        # rubocop:disable Minitest/AssertWithExpectedArgument
+        assert(Ractor.shareable?(obj), -> { "Expected #{obj} to be shareable, but it wasn't" })
+        # rubocop:enable Minitest/AssertWithExpectedArgument
+      end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
