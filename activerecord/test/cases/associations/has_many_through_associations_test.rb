@@ -29,6 +29,9 @@ require "models/categorization"
 require "models/member"
 require "models/membership"
 require "models/club"
+require "models/program"
+require "models/program_offering"
+require "models/enrollment"
 require "models/organization"
 require "models/user"
 require "models/family"
@@ -1546,6 +1549,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [category.id], author.special_categories_with_condition_ids
     assert_equal [], author.nonspecial_categories_with_condition_ids
+  end
+
+  def test_has_many_through_from_same_parent_to_same_child_creates_join_models
+    club = Club.new(name: "Awesome Rails Club")
+    member = club.simple_members.build(name: "Jane Doe")
+
+    program = Program.new(name: "Learn Ruby on Rails")
+    program.members << member
+
+    club.programs << program
+
+    club.save!
+
+    assert_equal(1, program.enrollments.size)
+    assert_equal(1, club.simple_memberships.size)
   end
 
   def test_single_has_many_through_association_with_unpersisted_parent_instance
