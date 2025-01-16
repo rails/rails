@@ -685,7 +685,7 @@ Enables the use of SHA256 fingerprints in asset names. Set to `true` by default.
 
 #### `config.assets.debug`
 
-Disables the concatenation and compression of assets. Set to `true` by default in `development.rb`.
+Disables the concatenation and compression of assets.
 
 #### `config.assets.version`
 
