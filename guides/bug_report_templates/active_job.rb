@@ -5,15 +5,23 @@ require "bundler/inline"
 gemfile(true) do
   source "https://rubygems.org"
 
-  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
-
   gem "rails"
   # If you want to test against edge Rails replace the previous line with this:
   # gem "rails", github: "rails/rails", branch: "main"
 end
 
-require "active_job"
+require "active_job/railtie"
 require "minitest/autorun"
+
+class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
+  config.eager_load = false
+  config.secret_key_base = "secret_key_base"
+  config.active_job.queue_adapter = :test
+
+  config.logger = Logger.new($stdout)
+end
+Rails.application.initialize!
 
 class BuggyJob < ActiveJob::Base
   def perform

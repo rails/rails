@@ -10,6 +10,7 @@
 /doc/
 /guides/output/
 /preview/
+preview.tar.gz
 Brewfile.lock.json
 debug.log*
 node_modules/

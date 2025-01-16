@@ -107,6 +107,7 @@ module ActionDispatch
             "#{absolute_path}.html"
           end
 
+          # rubocop:disable Lint/Debugger
           def save_html
             page.save_page(absolute_html_path)
           end
@@ -114,6 +115,7 @@ module ActionDispatch
           def save_image
             page.save_screenshot(absolute_image_path)
           end
+          # rubocop:enable Lint/Debugger
 
           def output_type
             # Environment variables have priority

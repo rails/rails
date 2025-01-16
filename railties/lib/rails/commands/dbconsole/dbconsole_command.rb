@@ -61,14 +61,6 @@ module Rails
         ActiveRecord::Base.configurations = Rails.application.config.database_configuration
         ActiveRecord::Base.configurations
       end
-
-      def find_cmd_and_exec(commands, *args) # :doc:
-        Rails.deprecator.warn(<<~MSG.squish)
-          Rails::DBConsole#find_cmd_and_exec is deprecated and will be removed in Rails 7.2.
-          Please use find_cmd_and_exec on the connection adapter class instead.
-        MSG
-        ActiveRecord::Base.lease_connection.find_cmd_and_exec(commands, *args)
-      end
   end
 
   module Command

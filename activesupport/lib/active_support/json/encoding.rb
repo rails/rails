@@ -36,14 +36,14 @@ module ActiveSupport
         # Encode the given object into a JSON string
         def encode(value)
           unless options.empty?
-            value = value.as_json(options.dup)
+            value = value.as_json(options.dup.freeze)
           end
           json = stringify(jsonify(value))
 
           # Rails does more escaping than the JSON gem natively does (we
           # escape \u2028 and \u2029 and optionally >, <, & to work around
           # certain browser problems).
-          if Encoding.escape_html_entities_in_json
+          if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
             json.gsub!(">", '\u003e')
             json.gsub!("<", '\u003c')
             json.gsub!("&", '\u0026')
@@ -76,13 +76,7 @@ module ActiveSupport
             when Hash
               result = {}
               value.each do |k, v|
-                unless String === k
-                  k = if Symbol === k
-                    k.name
-                  else
-                    k.to_s
-                  end
-                end
+                k = k.to_s unless Symbol === k || String === k
                 result[k] = jsonify(v)
               end
               result
@@ -95,7 +89,7 @@ module ActiveSupport
 
           # Encode a "jsonified" Ruby data structure using the JSON gem
           def stringify(jsonified)
-            ::JSON.generate(jsonified, quirks_mode: true, max_nesting: false)
+            ::JSON.generate(jsonified)
           end
       end
 

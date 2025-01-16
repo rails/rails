@@ -37,7 +37,6 @@ module ActionDispatch # :nodoc:
       def call(env)
         _, headers, _ = response = @app.call(env)
 
-        return response unless html_response?(headers)
         return response if policy_present?(headers)
 
         request = ActionDispatch::Request.new(env)
@@ -54,12 +53,6 @@ module ActionDispatch # :nodoc:
       end
 
       private
-        def html_response?(headers)
-          if content_type = headers[Rack::CONTENT_TYPE]
-            content_type.include?("html")
-          end
-        end
-
         def policy_present?(headers)
           headers[ActionDispatch::Constants::FEATURE_POLICY]
         end
@@ -93,12 +86,14 @@ module ActionDispatch # :nodoc:
       ambient_light_sensor: "ambient-light-sensor",
       autoplay:             "autoplay",
       camera:               "camera",
+      display_capture:      "display-capture",
       encrypted_media:      "encrypted-media",
       fullscreen:           "fullscreen",
       geolocation:          "geolocation",
       gyroscope:            "gyroscope",
       hid:                  "hid",
-      idle_detection:       "idle_detection",
+      idle_detection:       "idle-detection",
+      keyboard_map:         "keyboard-map",
       magnetometer:         "magnetometer",
       microphone:           "microphone",
       midi:                 "midi",
@@ -190,5 +185,9 @@ module ActionDispatch # :nodoc:
           raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"
         end
       end
+  end
+
+  ActiveSupport.on_load(:action_dispatch_request) do
+    include ActionDispatch::PermissionsPolicy::Request
   end
 end

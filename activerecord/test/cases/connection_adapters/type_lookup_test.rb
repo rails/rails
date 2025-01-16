@@ -83,28 +83,16 @@ module ActiveRecord
 
         def test_bigint_limit
           limit = @connection.send(:type_map).lookup("bigint").send(:_limit)
-          if current_adapter?(:OracleAdapter)
-            assert_equal 19, limit
-          else
-            assert_equal 8, limit
-          end
+
+          assert_equal 8, limit
         end
 
         def test_decimal_without_scale
-          if current_adapter?(:OracleAdapter)
-            {
-              decimal: %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0)},
-              integer: %w{number(2) number(2,0)}
-            }
-          else
-            { decimal: %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)} }
-          end.each do |expected_type, types|
-            types.each do |type|
-              cast_type = @connection.send(:type_map).lookup(type)
+          %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}.each do |type|
+            cast_type = @connection.send(:type_map).lookup(type)
 
-              assert_equal expected_type, cast_type.type
-              assert_equal 2, cast_type.cast(2.1)
-            end
+            assert_equal :decimal, cast_type.type
+            assert_equal 2, cast_type.cast(2.1)
           end
         end
 

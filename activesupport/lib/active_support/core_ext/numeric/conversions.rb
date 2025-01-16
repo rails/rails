@@ -140,6 +140,6 @@ module ActiveSupport
   end
 end
 
-Integer.prepend ActiveSupport::NumericWithFormat
-Float.prepend ActiveSupport::NumericWithFormat
-BigDecimal.prepend ActiveSupport::NumericWithFormat
+Integer.include ActiveSupport::NumericWithFormat
+Float.include ActiveSupport::NumericWithFormat
+BigDecimal.include ActiveSupport::NumericWithFormat

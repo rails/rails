@@ -5,7 +5,7 @@ require "active_support/core_ext/object/with"
 
 class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
   FORMATS = ActiveSupport::Cache::SerializerWithFallback::SERIALIZERS.keys
-  LEGACY_FORMATS = [:passthrough, :marshal_6_1, :marshal_7_0]
+  LEGACY_FORMATS = [:passthrough, :marshal_7_0]
 
   setup do
     @entry = ActiveSupport::Cache::Entry.new(

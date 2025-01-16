@@ -121,12 +121,23 @@ module ActiveRecord
     def test_current_database
       if @connection.respond_to?(:current_database)
         assert_equal ARTest.test_configuration_hashes["arunit"]["database"], @connection.current_database
+      else
+        skip
       end
     end
 
-    def test_exec_query_returns_an_empty_result
+    test "#exec_query queries with no result set return an empty ActiveRecord::Result" do
       result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
       assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_empty result.columns
+    end
+
+    test "#exec_query queries with an empty result set still return the columns" do
+      result = @connection.exec_query "SELECT * FROM subscribers WHERE 1=0"
+      assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_not_empty result.columns
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -320,6 +331,12 @@ module ActiveRecord
 
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
+    end
+
+    test "inspect does not show secrets" do
+      output = @connection.inspect
+
+      assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
   end
 
@@ -594,10 +611,13 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying a 'clean' failed connection restores and succeeds" do
+      test "querying a 'clean' long-failed connection restores and succeeds" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -610,10 +630,29 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "querying a 'clean' recently-used but now-failed connection skips verification" do
+        remote_disconnect @connection
+
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # Because the query cannot be retried, and we (mistakenly) believe the
+        # connection is still good, the query will fail. This is what we want,
+        # because the alternative would be excessive reverification.
+        assert_raises(ActiveRecord::AdapterError) do
+          Post.delete_all
+        end
+      end
+
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -668,6 +707,15 @@ module ActiveRecord
         remote_disconnect @connection
 
         assert Post.find_by(title: "Welcome to the weblog")
+        assert_predicate @connection, :active?
+      end
+
+      test "#exists? queries are retried and result in a reconnect" do
+        Post.first
+
+        remote_disconnect @connection
+
+        assert_predicate Post, :exists?
         assert_predicate @connection, :active?
       end
 
@@ -887,6 +935,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
 
       test "#verify! is synchronized" do
@@ -894,6 +943,7 @@ module ActiveRecord
         threads(2, 25) { @connection.disconnect! }
 
         join
+        pass
       end
     end
 

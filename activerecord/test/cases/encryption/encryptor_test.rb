@@ -70,7 +70,8 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     encryptor = ActiveRecord::Encryption::Encryptor.new
 
     key_provider.stub :decryption_keys, ->(message) { [key] } do
-      encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+      decrypted_text = encryptor.decrypt encryptor.encrypt("some text", key_provider: key_provider), key_provider: key_provider
+      assert decrypted_text
     end
   end
 
@@ -85,6 +86,22 @@ class ActiveRecord::Encryption::EncryptorTest < ActiveRecord::EncryptionTestCase
     decrypted_text = @encryptor.decrypt(encrypted_text)
 
     assert_equal Encoding::ISO_8859_1, decrypted_text.encoding
+  end
+
+  test "accept a custom compressor" do
+    compressor = Module.new do
+      def self.deflate(data)
+        "compressed #{data}"
+      end
+
+      def self.inflate(data)
+        data.sub(/\Acompressed /, "")
+      end
+    end
+    @encryptor = ActiveRecord::Encryption::Encryptor.new(compressor: compressor)
+    content = SecureRandom.hex(5.kilobytes)
+
+    assert_encrypt_text content
   end
 
   private

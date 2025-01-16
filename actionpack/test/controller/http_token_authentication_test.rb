@@ -239,7 +239,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     end
 
     def mock_authorization_request(authorization)
-      OpenStruct.new(authorization: authorization)
+      Struct.new(:authorization).new(authorization)
     end
 
     def encode_credentials(token, options = {})

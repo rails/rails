@@ -1,85 +1,50 @@
-*   Raise `ArgumentError` if `:renderable` object does not respond to `#render_in`
+*   Respect `html_options[:form]` when `collection_checkboxes` generates the
+    hidden `<input>`.
 
-    *Sean Doyle*
+    *Riccardo Odone*
 
-*   Add the `nonce: true` option for `stylesheet_link_tag` helper to support automatic nonce generation for Content Security Policy.
-    Works the same way as `javascript_include_tag nonce: true` does.
+*   Layouts have access to local variables passed to `render`.
 
-    *Akhil G Krishnan*, *AJ Esler*
+    This fixes #31680 which was a regression in Rails 5.1.
 
-*   Parse `ActionView::TestCase#rendered` HTML content as `Nokogiri::XML::DocumentFragment` instead of `Nokogiri::XML::Document`
+    *Mike Dalessio*
 
-    *Sean Doyle*
+*   Argument errors related to strict locals in templates now raise an
+    `ActionView::StrictLocalsError`, and all other argument errors are reraised as-is.
 
-*   Rename `ActionView::TestCase::Behavior::Content` to `ActionView::TestCase::Behavior::RenderedViewContent`
+    Previously, any `ArgumentError` raised during template rendering was swallowed during strict
+    local error handling, so that an `ArgumentError` unrelated to strict locals (e.g., a helper
+    method invoked with incorrect arguments) would be replaced by a similar `ArgumentError` with an
+    unrelated backtrace, making it difficult to debug templates.
 
-    Make `RenderedViewContent` inherit from `String`. Make private API with `:nodoc:`
+    Now, any `ArgumentError` unrelated to strict locals is reraised, preserving the original
+    backtrace for developers.
 
-    *Sean Doyle*
+    Also note that `ActionView::StrictLocalsError` is a subclass of `ArgumentError`, so any existing
+    code that rescues `ArgumentError` will continue to work.
 
-*   Deprecate passing `nil` as value for the `model:` argument to the `form_with` method.
+    Fixes #52227.
 
-    *Collin Jilbert*
+    *Mike Dalessio*
 
-*   Alias `field_set_tag` helper to `fieldset_tag` to match `<fieldset>` element
+*   Improve error highlighting of multi-line methods in ERB templates or
+    templates where the error occurs within a do-end block.
 
-    *Sean Doyle*
+    *Martin Emde*
 
-*   Deprecate passing content to void elements when using `tag.br` type tag builders.
+*   Fix a crash in ERB template error highlighting when the error occurs on a
+    line in the compiled template that is past the end of the source template.
 
-    *Hartley McGuire*
+    *Martin Emde*
 
-*   Fix the `number_to_human_size` view helper to correctly work with negative numbers.
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
 
-    *Earlopain*
+    *Martin Emde*
 
-*   Automatically discard the implicit locals injected by collection rendering for template that can't accept them
+*   Allow `hidden_field` and `hidden_field_tag` to accept a custom autocomplete value.
 
-    When rendering a collection, two implicit variables are injected, which breaks templates with strict locals.
+    *brendon*
 
-    Now they are only passed if the template will actually accept them.
-
-    *Yasha Krasnou*, *Jean Boussier*
-
-*   Fix `@rails/ujs` calling `start()` an extra time when using bundlers
-
-    *Hartley McGuire*, *Ryunosuke Sato*
-
-*   Fix the `capture` view helper compatibility with HAML and Slim
-
-    When a blank string was captured in HAML or Slim (and possibly other template engines)
-    it would instead return the entire buffer.
-
-    *Jean Boussier*
-
-*   Updated `@rails/ujs` files to ignore certain data-* attributes when element is contenteditable.
-
-    This fix was already landed in >= 7.0.4.3, < 7.1.0.
-    [[CVE-2023-23913](https://github.com/advisories/GHSA-xp5h-f8jf-rc8q)]
-
-    *Ryunosuke Sato*
-
-*   Added validation for HTML tag names in the `tag` and `content_tag` helper method. The `tag` and
-    `content_tag` method now checks that the provided tag name adheres to the HTML specification. If
-    an invalid HTML tag name is provided, the method raises an `ArgumentError` with an appropriate error
-    message.
-
-    Examples:
-
-    ```ruby
-    # Raises ArgumentError: Invalid HTML5 tag name: 12p
-    content_tag("12p") # Starting with a number
-
-    # Raises ArgumentError: Invalid HTML5 tag name: ""
-    content_tag("") # Empty tag name
-
-    # Raises ArgumentError: Invalid HTML5 tag name: div/
-    tag("div/") # Contains a solidus
-
-    # Raises ArgumentError: Invalid HTML5 tag name: "image file"
-    tag("image file") # Contains a space
-    ```
-
-    *Akhil G Krishnan*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionview/CHANGELOG.md) for previous changes.

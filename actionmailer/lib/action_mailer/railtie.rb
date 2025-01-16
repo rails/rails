@@ -73,12 +73,6 @@ module ActionMailer
       app.config.paths["test/mailers/previews"].concat(options.preview_paths)
     end
 
-    initializer "action_mailer.compile_config_methods" do
-      ActiveSupport.on_load(:action_mailer) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
     config.after_initialize do |app|
       options = app.config.action_mailer
 

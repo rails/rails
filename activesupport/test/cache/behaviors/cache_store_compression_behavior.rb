@@ -7,11 +7,6 @@ module CacheStoreCompressionBehavior
   extend ActiveSupport::Concern
 
   included do
-    test "compression works with cache format version 6.1 (using Marshal61WithFallback)" do
-      @cache = with_format(6.1) { lookup_store(compress: true) }
-      assert_compression true
-    end
-
     test "compression works with cache format version 7.0 (using Marshal70WithFallback)" do
       @cache = with_format(7.0) { lookup_store(compress: true) }
       assert_compression true
@@ -130,9 +125,7 @@ module CacheStoreCompressionBehavior
     LARGE_OBJECT = { data: LARGE_STRING }
 
     def with_format(format_version, &block)
-      ActiveSupport.deprecator.silence do
-        ActiveSupport::Cache.with(format_version: format_version, &block)
-      end
+      ActiveSupport::Cache.with(format_version: format_version, &block)
     end
 
     def assert_compress(value, **options)

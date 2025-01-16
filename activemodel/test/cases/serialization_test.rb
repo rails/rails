@@ -62,6 +62,11 @@ class SerializationTest < ActiveModel::TestCase
     assert_equal expected, @user.serializable_hash(only: [:name])
   end
 
+  def test_method_serializable_hash_should_work_with_only_option_with_order_of_given_keys
+    expected = { "name" => "David", "email" => "david@example.com" }
+    assert_equal expected.keys, @user.serializable_hash(only: [:name, :email]).keys
+  end
+
   def test_method_serializable_hash_should_work_with_except_option
     expected = { "gender" => "male", "email" => "david@example.com" }
     assert_equal expected, @user.serializable_hash(except: [:name])

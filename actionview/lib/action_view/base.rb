@@ -153,8 +153,7 @@ module ActionView # :nodoc:
   #     end
   #   end
   #
-  # For more information on Builder please consult the {source
-  # code}[https://github.com/jimweirich/builder].
+  # For more information on Builder please consult the {source code}[https://github.com/rails/builder].
   class Base
     include Helpers, ::ERB::Util, Context
 
@@ -266,17 +265,14 @@ module ActionView # :nodoc:
 
       if has_strict_locals
         begin
-          public_send(method, buffer, **locals, &block)
+          public_send(method, locals, buffer, **locals, &block)
         rescue ArgumentError => argument_error
-          raise(
-            ArgumentError,
-            argument_error.
-              message.
-                gsub("unknown keyword:", "unknown local:").
-                gsub("missing keyword:", "missing local:").
-                gsub("no keywords accepted", "no locals accepted").
-                concat(" for #{@current_template.short_identifier}")
-          )
+          public_send_line = __LINE__ - 2
+          frame = argument_error.backtrace_locations[1]
+          if frame.path == __FILE__ && frame.lineno == public_send_line
+            raise StrictLocalsError.new(argument_error, @current_template)
+          end
+          raise
         end
       else
         public_send(method, locals, buffer, &block)

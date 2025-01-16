@@ -3,10 +3,8 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
-require "thread"
 
 module Rails
   # +Rails::Engine+ allows you to wrap a specific \Rails application or subset of
@@ -246,7 +244,7 @@ module Rails
   #   polymorphic_url(MyEngine::Article.new)
   #   # => "articles_path" # not "my_engine_articles_path"
   #
-  #   form_for(MyEngine::Article.new) do
+  #   form_with(model: MyEngine::Article.new) do
   #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
@@ -295,7 +293,7 @@ module Rails
   # All you need to do is pass the helper as the first element in array with
   # attributes for URL:
   #
-  #   form_for([my_engine, @user])
+  #   form_with(model: [my_engine, @user])
   #
   # This code will use <tt>my_engine.user_path(@user)</tt> to generate the proper route.
   #
@@ -349,6 +347,7 @@ module Rails
   #   config.railties_order = [Blog::Engine, :main_app, :all]
   class Engine < Railtie
     autoload :Configuration, "rails/engine/configuration"
+    autoload :LazyRouteSet,  "rails/engine/lazy_route_set"
 
     class << self
       attr_accessor :called_from, :isolated
@@ -385,7 +384,8 @@ module Rails
       def isolate_namespace(mod)
         engine_name(generate_railtie_name(mod.name))
 
-        routes.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+        config.default_scope = { module: ActiveSupport::Inflector.underscore(mod.name) }
+
         self.isolated = true
 
         unless mod.respond_to?(:railtie_namespace)
@@ -451,8 +451,6 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)
-      require "rails/console/app"
-      require "rails/console/helpers"
       run_console_blocks(app)
       self
     end
@@ -544,7 +542,7 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= ActionDispatch::Routing::RouteSet.new_with_config(config)
+      @routes ||= config.route_set_class.new_with_config(config)
       @routes.append(&block) if block_given?
       @routes
     end
@@ -587,6 +585,10 @@ module Rails
     initializer :set_eager_load_paths, before: :bootstrap_hook do
       ActiveSupport::Dependencies._eager_load_paths.merge(config.all_eager_load_paths)
       config.eager_load_paths.freeze
+    end
+
+    initializer :make_routes_lazy, before: :bootstrap_hook do |app|
+      config.route_set_class = LazyRouteSet if Rails.env.local?
     end
 
     initializer :add_routing_paths do |app|
@@ -644,9 +646,9 @@ module Rails
       end
     end
 
-    initializer :wrap_executor_around_load_seed do |app|
+    initializer :wrap_reloader_around_load_seed do |app|
       self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
-        app.executor.wrap(&seeds_block)
+        app.reloader.wrap(&seeds_block)
       end
     end
 

@@ -12,7 +12,13 @@ class NamespacedGeneratorTestCase < Rails::Generators::TestCase
 
   def setup
     super
+    @old_namespace = Rails::Generators.namespace
     Rails::Generators.namespace = TestApp
+  end
+
+  def teardown
+    super
+    Rails::Generators.namespace = @old_namespace
   end
 end
 

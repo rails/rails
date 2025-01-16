@@ -12,8 +12,25 @@ require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
-    # :stopdoc:
+    # The RouteSet contains a collection of Route instances, representing the routes
+    # typically defined in `config/routes.rb`.
     class RouteSet
+      # Returns a Route matching the given requirements, or `nil` if none are found.
+      #
+      # This is intended for use by tools such as Language Servers.
+      #
+      # Given the routes are defined as:
+      #
+      #   resources :posts
+      #
+      # Then the following will return the Route for the `show` action:
+      #
+      #   Rails.application.routes.from_requirements(controller: "posts", action: "show")
+      def from_requirements(requirements)
+        routes.find { |route| route.requirements == requirements }
+      end
+      # :stopdoc:
+
       # Since the router holds references to many parts of the system like engines,
       # controllers and the application itself, inspecting the route set can actually
       # be really slow, therefore we default alias inspect to to_s.
@@ -334,7 +351,7 @@ module ActionDispatch
       PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
       UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
 
-      attr_accessor :formatter, :set, :named_routes, :default_scope, :router
+      attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
       attr_accessor :default_url_options, :draw_paths
       attr_reader :env_key, :polymorphic_mappings
@@ -346,7 +363,7 @@ module ActionDispatch
       end
 
       def self.new_with_config(config)
-        route_set_config = DEFAULT_CONFIG
+        route_set_config = DEFAULT_CONFIG.dup
 
         # engines apparently don't have this set
         if config.respond_to? :relative_url_root
@@ -357,14 +374,18 @@ module ActionDispatch
           route_set_config.api_only = config.api_only
         end
 
+        if config.respond_to? :default_scope
+          route_set_config.default_scope = config.default_scope
+        end
+
         new route_set_config
       end
 
-      Config = Struct.new :relative_url_root, :api_only
+      Config = Struct.new :relative_url_root, :api_only, :default_scope
 
-      DEFAULT_CONFIG = Config.new(nil, false)
+      DEFAULT_CONFIG = Config.new(nil, false, nil)
 
-      def initialize(config = DEFAULT_CONFIG)
+      def initialize(config = DEFAULT_CONFIG.dup)
         self.named_routes = NamedRouteCollection.new
         self.resources_path_names = self.class.default_resources_path_names
         self.default_url_options = {}
@@ -397,6 +418,14 @@ module ActionDispatch
 
       def api_only?
         @config.api_only
+      end
+
+      def default_scope
+        @config.default_scope
+      end
+
+      def default_scope=(new_default_scope)
+        @config.default_scope = new_default_scope
       end
 
       def request_class
@@ -630,14 +659,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 7.2.
+            will be removed in Rails 8.1.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActionDispatch.deprecator.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 7.2.
+            will be removed in Rails 8.1.
           MSG
         end
 
@@ -900,7 +929,7 @@ module ActionDispatch
           params.each do |key, value|
             if value.is_a?(String)
               value = value.dup.force_encoding(Encoding::BINARY)
-              params[key] = URI::DEFAULT_PARSER.unescape(value)
+              params[key] = URI::RFC2396_PARSER.unescape(value)
             end
           end
           req.path_parameters = params

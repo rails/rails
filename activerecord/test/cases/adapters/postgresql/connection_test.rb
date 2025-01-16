@@ -130,11 +130,22 @@ module ActiveRecord
       def test_statement_key_is_logged
         bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
         @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
-        name = @subscriber.payloads.last[:statement_name]
-        assert name
+
+        payload = @subscriber.payloads.find { |p| p[:sql] == "SELECT $1::integer" }
+        name = payload[:statement_name]
+        assert_not_nil name
+
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
         plan = res.column_types["QUERY PLAN"].deserialize res.rows.first.first
         assert_operator plan.length, :>, 0
+      end
+    end
+
+    def test_prepare_false_with_binds
+      @connection.stub(:prepared_statements, false) do
+        bind = Relation::QueryAttribute.new(nil, 42, Type::Value.new)
+        result = @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: false)
+        assert_equal [[42]], result.rows
       end
     end
 
@@ -167,14 +178,18 @@ module ActiveRecord
     def test_set_session_variable_nil
       run_without_connection do |orig_connection|
         # This should be a no-op that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        end
       end
     end
 
     def test_set_session_variable_default
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        end
       end
     end
 

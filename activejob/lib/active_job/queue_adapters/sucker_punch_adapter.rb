@@ -17,7 +17,14 @@ module ActiveJob
     # To use Sucker Punch set the queue_adapter config to +:sucker_punch+.
     #
     #   Rails.application.config.active_job.queue_adapter = :sucker_punch
-    class SuckerPunchAdapter
+    class SuckerPunchAdapter < AbstractAdapter
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The `sucker_punch` adapter is deprecated and will be removed in Rails 8.1.
+          Please use the `async` adapter instead.
+        MSG
+      end
+
       def enqueue(job) # :nodoc:
         if JobWrapper.respond_to?(:perform_async)
           # sucker_punch 2.0 API

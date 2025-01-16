@@ -30,6 +30,18 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
+  # === Signing is not encryption
+  #
+  # The signed messages are not encrypted. The payload is merely encoded (Base64 by default) and can be decoded by
+  # anyone. The signature is just assuring that the message wasn't tampered with. For example:
+  #
+  #     message = Rails.application.message_verifier('my_purpose').generate('never put secrets here')
+  #     # => "BAhJIhtuZXZlciBwdXQgc2VjcmV0cyBoZXJlBjoGRVQ=--a0c1c0827919da5e949e989c971249355735e140"
+  #     Base64.decode64(message.split("--").first) # no key needed
+  #     # => 'never put secrets here'
+  #
+  # If you also need to encrypt the contents, you must use ActiveSupport::MessageEncryptor instead.
+  #
   # === Confine messages to a specific purpose
   #
   # It's not recommended to use the same verifier for different purposes in your application.

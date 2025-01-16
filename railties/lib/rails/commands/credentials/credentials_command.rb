@@ -128,7 +128,11 @@ module Rails
         end
 
         def extract_environment_from_path(path)
-          available_environments.find { |env| path.end_with?("#{env}.yml.enc") }
+          available_environments.find { |env| path.end_with?("#{env}.yml.enc") } || extract_custom_environment(path)
+        end
+
+        def extract_custom_environment(path)
+          path =~ %r{config/credentials/(.+)\.yml\.enc} && $1
         end
     end
   end

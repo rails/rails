@@ -176,49 +176,45 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
         assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(?uuid\(\)\)?" }/i, output
       end
 
-      if current_adapter?(:Mysql2Adapter)
-        test "schema dump includes default expression with single quotes reflected correctly" do
-          output = dump_table_schema("defaults")
-          assert_match %r/t\.string\s+"char2_concatenated",\s+default: -> { "\(?concat\(`char2`,(_utf8mb4)?'-'\)\)?" }/i, output
-        end
+      test "schema dump includes default expression with single quotes reflected correctly" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.string\s+"char2_concatenated",\s+default: -> { "\(?concat\(`char2`,(_utf8mb4)?'-'\)\)?" }/i, output
       end
     end
 
-    if supports_datetime_with_precision?
-      test "schema dump datetime includes default expression" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"modified_datetime",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
-      end
+    test "schema dump datetime includes default expression" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"modified_datetime",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+    end
 
-      test "schema dump datetime includes precise default expression" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump datetime includes precise default expression" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump datetime includes precise default expression with on update" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"updated_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump datetime includes precise default expression with on update" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"updated_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp includes default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
-      end
+    test "schema dump timestamp includes default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+    end
 
-      test "schema dump timestamp includes precise default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump timestamp includes precise default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp includes precise default expression with on update" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump timestamp includes precise default expression with on update" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp without default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
-      end
+    test "schema dump timestamp without default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
     end
   end
 end

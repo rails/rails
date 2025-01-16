@@ -1116,21 +1116,14 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  if Rack.release < "3"
-    test "parameters not accessible after rack parse error of invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo%81E=1")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
 
-    test "parameters containing an invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
-
-    test "parameters containing a deeply nested invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing a deeply nested invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
   test "POST parameters containing invalid UTF8 character" do
@@ -1151,8 +1144,10 @@ class RequestParameters < BaseRequestTest
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 
@@ -1165,8 +1160,10 @@ class RequestParameters < BaseRequestTest
       :input => data
     )
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
-      request.parameters
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+      assert_nothing_raised do
+        request.parameters
+      end
     end
   end
 
@@ -1194,6 +1191,13 @@ class RequestParameters < BaseRequestTest
 
     assert_not_nil e.cause
     assert_equal e.cause.backtrace, e.backtrace
+  end
+
+  test "raw_post does not raise when rack.input is nil" do
+    request = stub_request
+
+    # "" on Rack < 3.1, nil on Rack 3.1+
+    assert_predicate request.raw_post, :blank?
   end
 end
 
@@ -1408,8 +1412,8 @@ class EarlyHintsRequestTest < BaseRequestTest
   end
 
   test "when early hints is set in the env link headers are sent" do
-    early_hints = @request.send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
-    expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+    early_hints = @request.send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
+    expected_hints = { "link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload" }
 
     assert_equal expected_hints, early_hints
   end

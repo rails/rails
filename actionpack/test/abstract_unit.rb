@@ -26,6 +26,8 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+require_relative "support/rack_parsing_override"
+
 ActiveSupport::Cache.format_version = 7.1
 
 module Rails
@@ -33,6 +35,8 @@ module Rails
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def application; end
 
     def root; end
   end

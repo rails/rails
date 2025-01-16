@@ -11,7 +11,7 @@ module ActiveJob
     # To use the test adapter set +queue_adapter+ config to +:test+.
     #
     #   Rails.application.config.active_job.queue_adapter = :test
-    class TestAdapter
+    class TestAdapter < AbstractAdapter
       attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at)
       attr_writer(:enqueued_jobs, :performed_jobs)
 

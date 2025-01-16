@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record Encryption
 ========================
@@ -44,9 +44,9 @@ active_record_encryption:
 These values can be stored by copying and pasting the generated values into your existing [Rails credentials](/security.html#custom-credentials). Alternatively, these values can be configured from other sources, such as environment variables:
 
 ```ruby
-config.active_record.encryption.primary_key = ENV['ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY']
-config.active_record.encryption.deterministic_key = ENV['ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY']
-config.active_record.encryption.key_derivation_salt = ENV['ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT']
+config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
+config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
+config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
 ```
 
 NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
@@ -298,6 +298,42 @@ And you can disable this behavior and preserve the encoding in all cases with:
 config.active_record.encryption.forced_encoding_for_deterministic_encryption = nil
 ```
 
+### Compression
+
+The library compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads. You can disable compression by setting `compress: false` for encrypted attributes:
+
+```ruby
+class Article < ApplicationRecord
+  encrypts :content, compress: false
+end
+```
+
+You can also configure the algorithm used for the compression. The default compressor is `Zlib`. You can implement your own compressor by creating a class or module that responds to `#deflate(data)` and `#inflate(data)`.
+
+```ruby
+require "zstd-ruby"
+
+module ZstdCompressor
+  def self.deflate(data)
+    Zstd.compress(data)
+  end
+
+  def self.inflate(data)
+    Zstd.decompress(data)
+  end
+end
+
+class User
+  encrypts :name, compressor: ZstdCompressor
+end
+```
+
+You can configure the compressor globally:
+
+```ruby
+config.active_record.encryption.compressor = ZstdCompressor
+```
+
 ## Key Management
 
 Key providers implement key management strategies. You can configure key providers globally, or on a per attribute basis.
@@ -352,13 +388,13 @@ end
 Both methods return `ActiveRecord::Encryption::Key` objects:
 
 - `encryption_key` returns the key used for encrypting some content
-- `decryption keys` returns a list of potential keys for decrypting a given message
+- `decryption_keys` returns a list of potential keys for decrypting a given message
 
 A key can include arbitrary tags that will be stored unencrypted with the message. You can use `ActiveRecord::Encryption::Message#headers` to examine those values when decrypting.
 
-### Model-specific Key Providers
+### Attribute-specific Key Providers
 
-You can configure a key provider on a per-class basis with the `:key_provider` option:
+You can configure a key provider on a per-attribute basis with the `:key_provider` option:
 
 ```ruby
 class Article < ApplicationRecord
@@ -366,9 +402,9 @@ class Article < ApplicationRecord
 end
 ```
 
-### Model-specific Keys
+### Attribute-specific Keys
 
-You can configure a given key on a per-class basis with the `:key` option:
+You can configure a given key on a per-attribute basis with the `:key` option:
 
 ```ruby
 class Article < ApplicationRecord
@@ -490,12 +526,16 @@ The default encoding for attributes encrypted deterministically. You can disable
 
 #### `config.active_record.encryption.hash_digest_class`
 
-The digest algorithm used to derive keys. `OpenSSL::Digest::SHA1` by default.
+The digest algorithm used to derive keys. `OpenSSL::Digest::SHA256` by default.
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
 Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
 means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
+
+#### `config.active_record.encryption.compressor`
+
+The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. Default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
 
 ### Encryption Contexts
 

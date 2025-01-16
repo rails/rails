@@ -37,7 +37,7 @@ module ActiveRecord
           if value.is_a?(Base)
             value.class
           elsif value.is_a?(Relation)
-            value.klass
+            value.model
           end
         end
 

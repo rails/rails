@@ -147,7 +147,9 @@ module ActiveSupport
       #   cache.increment("baz") # => 6
       #
       def increment(name, amount = 1, options = nil)
-        modify_value(name, amount, options)
+        instrument(:increment, name, amount: amount) do
+          modify_value(name, amount, options)
+        end
       end
 
       # Decrement a cached integer value. Returns the updated value.
@@ -162,7 +164,9 @@ module ActiveSupport
       #   cache.decrement("baz") # => 4
       #
       def decrement(name, amount = 1, options = nil)
-        modify_value(name, -amount, options)
+        instrument(:decrement, name, amount: amount) do
+          modify_value(name, -amount, options)
+        end
       end
 
       # Deletes cache entries if the cache key matches a given pattern.

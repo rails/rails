@@ -6,6 +6,8 @@ require "jobs/hello_job"
 require "jobs/provider_jid_job"
 require "active_support/core_ext/numeric/time"
 
+return unless ENV["AJ_INTEGRATION_TESTS"] == "1"
+
 class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
     TestJob.perform_later @id
@@ -67,6 +69,7 @@ class QueuingTest < ActiveSupport::TestCase
     wait_for_jobs_to_finish_for(5.seconds)
     assert_job_not_executed
   rescue NotImplementedError
+    pass
   end
 
   test "should run job enqueued in the future at the specified time" do
@@ -76,6 +79,7 @@ class QueuingTest < ActiveSupport::TestCase
     wait_for_jobs_to_finish_for(10.seconds)
     assert_job_executed
   rescue NotImplementedError
+    pass
   end
 
   test "should run job bulk enqueued in the future at the specified time" do
@@ -85,6 +89,7 @@ class QueuingTest < ActiveSupport::TestCase
     wait_for_jobs_to_finish_for(10.seconds)
     assert_job_executed
   rescue NotImplementedError
+    pass
   end
 
   if adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)

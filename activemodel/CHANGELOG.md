@@ -1,22 +1,20 @@
-*   Fix a bug where type casting of string to `Time` and `DateTime` doesn't
-    calculate minus minute value in TZ offset correctly.
+*   Backport `ActiveRecord::Normalization` to `ActiveModel::Attributes::Normalization`
 
-    *Akira Matsuda*
+    ```ruby
+    class User
+      include ActiveModel::Attributes
+      include ActiveModel::Attributes::Normalization
 
-*   Port the `type_for_attribute` method to Active Model. Classes that include
-    `ActiveModel::Attributes` will now provide this method. This method behaves
-    the same for Active Model as it does for Active Record.
+      attribute :email, :string
 
-      ```ruby
-      class MyModel
-        include ActiveModel::Attributes
+      normalizes :email, with: -> email { email.strip.downcase }
+    end
 
-        attribute :my_attribute, :integer
-      end
+    user = User.new
+    user.email =    " CRUISE-CONTROL@EXAMPLE.COM\n"
+    user.email # => "cruise-control@example.com"
+    ```
 
-      MyModel.type_for_attribute(:my_attribute) # => #<ActiveModel::Type::Integer ...>
-      ```
+    *Sean Doyle*
 
-    *Jonathan Hefner*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activemodel/CHANGELOG.md) for previous changes.

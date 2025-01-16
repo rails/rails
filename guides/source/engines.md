@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Getting Started with Engines
 ============================
@@ -440,11 +440,11 @@ model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the engine root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: an `article_id` integer
-and `text` text column.
+`Comment` model, with the related table having two columns: an `article` references
+column and `text` text column.
 
 ```bash
-$ bin/rails generate model Comment article_id:integer text:text
+$ bin/rails generate model Comment article:references text:text
 ```
 
 This will output the following:
@@ -515,7 +515,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 <%= form_with model: [@article, @article.comments.build] do |form| %>
   <p>
     <%= form.label :text %><br>
-    <%= form.text_area :text %>
+    <%= form.textarea :text %>
   </p>
   <%= form.submit %>
 <% end %>
@@ -569,7 +569,7 @@ end
 
 private
   def comment_params
-    params.require(:comment).permit(:text)
+    params.expect(comment: [:text])
   end
 ```
 
@@ -776,7 +776,7 @@ permit the new form parameter:
 
 ```ruby
 def article_params
-  params.require(:article).permit(:title, :text, :author_name)
+  params.expect(article: [:title, :text, :author_name])
 end
 ```
 
@@ -1176,7 +1176,7 @@ module Blorgh::Concerns::Models::Article
 
   module ClassMethods
     def some_class_method
-      'some class method string'
+      "some class method string"
     end
   end
 end

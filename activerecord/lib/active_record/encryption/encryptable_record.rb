@@ -46,11 +46,11 @@ module ActiveRecord
         # * <tt>:previous</tt> - List of previous encryption schemes. When provided, they will be used in order when trying to read
         #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
-        def encrypts(*names, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], **context_properties)
+        def encrypts(*names, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
           self.encrypted_attributes ||= Set.new # not using :default because the instance would be shared across classes
 
           names.each do |name|
-            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, downcase: downcase, ignore_case: ignore_case, previous: previous, **context_properties
+            encrypt_attribute name, key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, downcase: downcase, ignore_case: ignore_case, previous: previous, compress: compress, compressor: compressor, **context_properties
           end
         end
 
@@ -81,12 +81,12 @@ module ActiveRecord
             end
           end
 
-          def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], **context_properties)
+          def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
             encrypted_attributes << name.to_sym
 
             decorate_attributes([name]) do |name, cast_type|
               scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, \
-                downcase: downcase, ignore_case: ignore_case, previous: previous, **context_properties
+                downcase: downcase, ignore_case: ignore_case, previous: previous, compress: compress, compressor: compressor, **context_properties
 
               ActiveRecord::Encryption::EncryptedAttributeType.new(scheme: scheme, cast_type: cast_type, default: columns_hash[name.to_s]&.default)
             end
@@ -123,7 +123,7 @@ module ActiveRecord
             end)
           end
 
-          def load_schema!
+          def load_schema! # :nodoc:
             super
 
             add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size

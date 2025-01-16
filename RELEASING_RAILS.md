@@ -24,7 +24,7 @@ Obviously Rails cannot be released when it depends on unreleased code.
 Contact the authors of those particular gems and work out a release date that
 suits them.
 
-### Announce your plans to the rest of the team on Campfire
+### Announce your plans to the rest of the team on Basecamp
 
 Let them know of your plans to release.
 
@@ -56,58 +56,38 @@ Include an RC number if appropriate, e.g. `6.0.0.rc1`.
 
 ### Build and test the gem.
 
-Run `rake verify` to generate the gems and install them locally. `verify` also
-generates a Rails app with a migration and boots it to smoke test with in your
-browser.
+Run `rake install` to generate the gems and install them locally. You can now
+use the version installed locally to generate a new app and check if everything
+is working as expected.
 
 This will stop you from looking silly when you push an RC to rubygems.org and
 then realize it is broken.
 
-### Check credentials for RubyGems, npm, and GitHub
-
-For npm run `npm whoami` to check that you are logged in (`npm login` if not).
-
-For RubyGems run `gem login`. If there's no output you are logged in.
+### Check credentials for GitHub
 
 For GitHub run `gh auth status` to check that you are logged in (run `gh login` if not).
-
-npm and RubyGems require MFA. The release task will attempt to use a yubikey if
-available, which as we have release several packages at once is strongly
-recommended. Check that `ykman oath accounts list` has an entry for both
-`npmjs.com` and `rubygems.org`, if not refer to
-https://tenderlovemaking.com/2021/10/26/publishing-gems-with-your-yubikey.html
-for setup instructions.
-
-### Release to RubyGems and npm.
-
-IMPORTANT: Several gems have JavaScript components that are released as npm
-packages, so you must have Node.js installed, have an npm account (npmjs.com),
-and be a package owner for `@rails/actioncable`, `@rails/actiontext`, and
-`@rails/activestorage`. You can check this by making sure your
-npm user (`npm whoami`) is listed as an owner (`npm owner ls <pkg>`) of each
-package. Do not release until you're set up with npm!
 
 The release task will sign the release tag. If you haven't got commit signing
 set up, use https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work as a
 guide. You can generate keys with the GPG suite from here: https://gpgtools.org.
 
-Run `rake changelog:header` to put a header with the new version in every
-CHANGELOG. Don't commit this, the release task handles it.
+Run `rake prep_release` to prepare the release. This will populate the gemspecs and
+npm package.json with the current RAILS_VERSION, add the header to the CHANGELOGs,
+build the gems, and check if bundler can resolve the dependencies.
 
-Run `rake release`. This will populate the gemspecs and npm package.json with
-the current RAILS_VERSION, commit the changes, tag it, and push the gems to
-rubygems.org.
+You can now inspect the results in the diff and see if you are happy with the
+changes.
 
-### Make GitHub Releases from pushed tags
+To release, Run `rake release`. This will commit the changes, tag it, and create a GitHub
+release with the proper release notes in draft mode.
 
-We use GitHub Releases to publish the combined release summary for all gems. We
-can use a rake task and [GitHub cli](https://cli.github.com/) to do this
-(releases can also be created or edited on the web).
+Open the corresponding GitHub release draft and check that the release notes
+are correct. If everything is fine, publish the release.
 
-```
-bundle exec rake changelog:release_summary > ../6-1-7-release-summary.md
-gh release create v6.1.7 -R rails/rails -F ../6-1-7-release-summary.md
-```
+### Publish the gems
+
+To publish the gems approve the [Release workflow in GitHub Actions](https://github.com/rails/rails/actions/workflows/release.yml),
+that was created after the release was published.
 
 ### Send Rails release announcements
 
@@ -117,7 +97,6 @@ lists where you should announce:
 
 * [rubyonrails-core](https://discuss.rubyonrails.org/c/rubyonrails-core)
 * [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk)
-* ruby-talk@ruby-lang.org
 
 Use Markdown format for your announcement. Remember to ask people to report
 issues with the release candidate to the rails-core mailing list.
@@ -159,7 +138,7 @@ Add some context for users as to the purpose of this release (bugfix/security).
 If this is a part of the latest release series, update `_data/version.yml` so
 that the homepage points to the latest version.
 
-### Post the announcement to the Rails Twitter account.
+### Post the announcement to the Rails X account.
 
 ## Security releases
 
@@ -179,7 +158,7 @@ and links to each patch. Some people may not be able to upgrade right away,
 so we need to give them the security fixes in patch form.
 
 * Blog announcements
-* Twitter announcements
+* X announcements
 * Merge the release branch to the stable branch
 * Drink beer (or other cocktail)
 

@@ -29,8 +29,8 @@ module ActiveModel
   # An +attributes+ hash must be defined and should contain any attributes you
   # need to be serialized. Attributes must be strings, not symbols.
   # When called, serializable hash will use instance methods that match the name
-  # of the attributes hash's keys. In order to override this behavior, take a look
-  # at the private method +read_attribute_for_serialization+.
+  # of the attributes hash's keys. In order to override this behavior, override
+  # the +read_attribute_for_serialization+ method.
   #
   # ActiveModel::Serializers::JSON module automatically includes
   # the +ActiveModel::Serialization+ module, so there is no need to
@@ -128,7 +128,7 @@ module ActiveModel
       return serializable_attributes(attribute_names) if options.blank?
 
       if only = options[:only]
-        attribute_names &= Array(only).map(&:to_s)
+        attribute_names = Array(only).map(&:to_s) & attribute_names
       elsif except = options[:except]
         attribute_names -= Array(except).map(&:to_s)
       end
@@ -148,28 +148,28 @@ module ActiveModel
       hash
     end
 
+    # Hook method defining how an attribute value should be retrieved for
+    # serialization. By default this is assumed to be an instance named after
+    # the attribute. Override this method in subclasses should you need to
+    # retrieve the value for a given attribute differently:
+    #
+    #   class MyClass
+    #     include ActiveModel::Serialization
+    #
+    #     def initialize(data = {})
+    #       @data = data
+    #     end
+    #
+    #     def read_attribute_for_serialization(key)
+    #       @data[key]
+    #     end
+    #   end
+    alias :read_attribute_for_serialization :send
+
     private
       def attribute_names_for_serialization
         attributes.keys
       end
-
-      # Hook method defining how an attribute value should be retrieved for
-      # serialization. By default this is assumed to be an instance named after
-      # the attribute. Override this method in subclasses should you need to
-      # retrieve the value for a given attribute differently:
-      #
-      #   class MyClass
-      #     include ActiveModel::Serialization
-      #
-      #     def initialize(data = {})
-      #       @data = data
-      #     end
-      #
-      #     def read_attribute_for_serialization(key)
-      #       @data[key]
-      #     end
-      #   end
-      alias :read_attribute_for_serialization :send
 
       def serializable_attributes(attribute_names)
         attribute_names.index_with { |n| read_attribute_for_serialization(n) }

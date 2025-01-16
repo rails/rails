@@ -69,9 +69,19 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
+    end
+  end
+
+  def test_update_all_with_unpermitted_relation_raises_error
+    assert_deprecated("`distinct` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.distinct.update_all(name: "Bob")
+    end
+
+    assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
     end
   end
 
@@ -132,6 +142,19 @@ class UpdateAllTest < ActiveRecord::TestCase
     developer.reload
 
     assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+  end
+
+  def test_touch_all_with_aliased_for_update_timestamp
+    assert Developer.attribute_aliases.key?("updated_at")
+
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    Developer.where(name: "David").touch_all(:updated_at)
+    developer.reload
+
+    assert_equal previously_created_at, developer.created_at
     assert_not_equal previously_updated_at, developer.updated_at
   end
 
@@ -308,52 +331,49 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal 1, join_scope.update_all(status: "shipped")
   end
 
-  # Oracle UPDATE does not support ORDER BY
-  unless current_adapter?(:OracleAdapter)
-    def test_update_all_ignores_order_without_limit_from_association
-      author = authors(:david)
-      assert_nothing_raised do
-        assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+  def test_update_all_ignores_order_without_limit_from_association
+    author = authors(:david)
+    assert_nothing_raised do
+      assert_equal author.posts_with_comments_and_categories.length, author.posts_with_comments_and_categories.update_all([ "body = ?", "bulk update!" ])
+    end
+  end
+
+  def test_update_all_doesnt_ignore_order
+    assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
+    test_update_with_order_succeeds = lambda do |order|
+      Author.order(order).update_all("id = id + 1")
+    rescue ActiveRecord::ActiveRecordError
+      false
+    end
+
+    if test_update_with_order_succeeds.call("id DESC")
+      # test that this wasn't a fluke and using an incorrect order results in an exception
+      assert_not test_update_with_order_succeeds.call("id ASC")
+    else
+      # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
+      assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
+        test_update_with_order_succeeds.call("id DESC")
       end
     end
+  end
 
-    def test_update_all_doesnt_ignore_order
-      assert_equal authors(:david).id + 1, authors(:mary).id # make sure there is going to be a duplicate PK error
-      test_update_with_order_succeeds = lambda do |order|
-        Author.order(order).update_all("id = id + 1")
-      rescue ActiveRecord::ActiveRecordError
-        false
-      end
+  def test_update_all_with_order_and_limit_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:welcome).body
+    assert_not_equal "bulk update!", posts(:thinking).body
+  end
 
-      if test_update_with_order_succeeds.call("id DESC")
-        # test that this wasn't a fluke and using an incorrect order results in an exception
-        assert_not test_update_with_order_succeeds.call("id ASC")
-      else
-        # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
-        assert_queries_match(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
-          test_update_with_order_succeeds.call("id DESC")
-        end
-      end
-    end
-
-    def test_update_all_with_order_and_limit_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:welcome).body
-      assert_not_equal "bulk update!", posts(:thinking).body
-    end
-
-    def test_update_all_with_order_and_limit_and_offset_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited.offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:thinking).body
-      assert_not_equal "bulk update!", posts(:welcome).body
-    end
+  def test_update_all_with_order_and_limit_and_offset_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited.offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:thinking).body
+    assert_not_equal "bulk update!", posts(:welcome).body
   end
 end

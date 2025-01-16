@@ -19,7 +19,7 @@ class String
   #   >> "ǉ".upcase
   #   => "Ǉ"
   #
-  # == Method chaining
+  # == \Method chaining
   #
   # All the methods on the Chars proxy which normally return a string will return a Chars object. This allows
   # method chaining on the result of any of these methods.

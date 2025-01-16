@@ -66,6 +66,16 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def cifiles
+      empty_directory ".github/workflows"
+      template "github/ci.yml", ".github/workflows/ci.yml"
+      template "github/dependabot.yml", ".github/dependabot.yml"
+    end
+
+    def rubocop
+      template "rubocop.yml", ".rubocop.yml"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run git_init_command, capture: options[:quiet], abort_on_failure: false
@@ -112,9 +122,12 @@ module Rails
     def generate_test_dummy(force = false)
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
+      opts[:skip_thruster] = true
       opts[:skip_brakeman] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
+      opts[:skip_kamal] = true
+      opts[:skip_solid] = true
       opts[:skip_git] = true
       opts[:skip_hotwire] = true
       opts[:skip_rubocop] = true
@@ -139,9 +152,8 @@ module Rails
       end
     end
 
-    def test_dummy_sprocket_assets
-      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
-      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
+    def test_dummy_assets
+      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
     end
 
     def test_dummy_clean
@@ -149,16 +161,12 @@ module Rails
         remove_file ".ruby-version"
         remove_dir "db"
         remove_file "Gemfile"
-        remove_file "lib/tasks"
+        remove_dir "lib"
         remove_file "public/robots.txt"
         remove_file "README.md"
         remove_file "test"
         remove_file "vendor"
       end
-    end
-
-    def assets_manifest
-      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -170,12 +178,12 @@ module Rails
       end
     end
 
-    def bin(force = false)
-      bin_file = engine? ? "bin/rails.tt" : "bin/test.tt"
-      template bin_file, force: force do |content|
+    def bin
+      exclude_pattern = Regexp.union([(engine? ? /test\.tt/ : /rails\.tt/), (/rubocop/ if skip_rubocop?)].compact)
+      directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
-      chmod "bin", 0755, verbose: false
+      chmod "bin", 0755 & ~File.umask, verbose: false
     end
 
     def gemfile_entry
@@ -244,6 +252,16 @@ module Rails
 
       def create_app_files
         build(:app)
+      end
+
+      def create_rubocop_file
+        return if skip_rubocop?
+        build(:rubocop)
+      end
+
+      def create_cifiles
+        return if skip_ci?
+        build(:cifiles)
       end
 
       def create_config_files
@@ -341,10 +359,10 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_sprocket_assets) unless skip_sprockets?
+          build(:test_dummy_assets) unless skip_asset_pipeline?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
-          build(:bin, true)
+          build(:bin)
         end
       end
 
@@ -467,6 +485,16 @@ module Rails
       def relative_path
         return unless inside_application?
         app_path.delete_prefix("#{rails_app_path}/")
+      end
+
+      def test_command
+        if engine? && !options[:skip_active_record] && with_dummy_app?
+          "bin/rails db:test:prepare test"
+        elsif engine?
+          "bin/rails test"
+        else
+          "bin/test"
+        end
       end
     end
   end

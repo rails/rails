@@ -28,9 +28,7 @@ module Rails
             assert_match <<~MSG.squish, output
               Invalid value for --to option.
               Supported preconfigurations are:
-              mysql, trilogy, postgresql, sqlite3,
-              oracle, sqlserver, jdbcmysql,
-              jdbcsqlite3, jdbcpostgresql, jdbc.
+              mysql, trilogy, postgresql, sqlite3, mariadb-mysql, mariadb-trilogy.
             MSG
           end
 
@@ -40,6 +38,7 @@ module Rails
             assert_file("config/database.yml") do |content|
               assert_match "adapter: postgresql", content
               assert_match "database: tmp_production", content
+              assert_match "host: <%= ENV[\"DB_HOST\"] %>", content
             end
 
             assert_file("Gemfile") do |content|
@@ -52,8 +51,10 @@ module Rails
               assert_match "curl libvips postgresql-client", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "postgres"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_equal "postgres", content["containerEnv"]["DB_HOST"]
+              assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+              assert_not_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite"
             end
 
             assert_compose_file do |compose_config|
@@ -93,8 +94,9 @@ module Rails
               assert_match "curl default-mysql-client libvips", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "mysql"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_equal "mysql", content["containerEnv"]["DB_HOST"]
+              assert_equal({}, content["features"]["ghcr.io/rails/devcontainer/features/mysql-client"])
             end
 
             assert_compose_file do |compose_config|
@@ -104,7 +106,7 @@ module Rails
                 "image" => "mysql/mysql-server:8.0",
                 "restart" => "unless-stopped",
                 "environment" => {
-                  "MYSQL_ALLOW_EMPTY_PASSWORD" => true,
+                  "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
                   "MYSQL_ROOT_HOST" => "%"
                 },
                 "volumes" => ["mysql-data:/var/lib/mysql"],
@@ -126,16 +128,16 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use sqlite3 as the database for Active Record", content
-              assert_match 'gem "sqlite3", "~> 1.4"', content
+              assert_match 'gem "sqlite3", ">= 2.1"', content
             end
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libsqlite3-0 libvips", content
+              assert_match "curl libvips sqlite3", content
             end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_no_match(/"DB_HOST"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["containerEnv"].keys, "DB_HOST"
             end
           end
 
@@ -157,9 +159,13 @@ module Rails
               assert_match "curl libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
+          end
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_match(/"DB_HOST": "mariadb"/, content)
+          test "change to mariadb" do
+            run_generator ["--to", "mariadb-mysql"]
+
+            assert_devcontainer_json_file do |content|
+              assert_match "mariadb", content["containerEnv"]["DB_HOST"]
             end
 
             assert_compose_file do |compose_config|
@@ -171,7 +177,7 @@ module Rails
                 "networks" => ["default"],
                 "volumes" => ["mariadb-data:/var/lib/mysql"],
                 "environment" => {
-                  "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => true,
+                  "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
                 },
               }
 
@@ -201,8 +207,9 @@ module Rails
             run_generator ["--to", "mysql"]
             run_generator ["--to", "sqlite3", "--force"]
 
-            assert_file(".devcontainer/devcontainer.json") do |content|
-              assert_no_match(/"DB_HOST"/, content)
+            assert_devcontainer_json_file do |content|
+              assert_not_includes content["containerEnv"].keys, "DB_HOST"
+              assert_not_includes content["features"].keys, "ghcr.io\/rails\/devcontainer\/features\/mysql-client"
             end
 
             assert_compose_file do |compose_config|

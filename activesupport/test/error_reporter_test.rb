@@ -161,6 +161,16 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal [[error, false, :error, "application", {}]], @subscriber.events
   end
 
+  test "#report assigns a backtrace if it's missing" do
+    error = RuntimeError.new("Oops")
+    assert_nil error.backtrace
+    assert_nil error.backtrace_locations
+
+    assert_nil @reporter.report(error)
+    assert_not_predicate error.backtrace, :empty?
+    assert_not_predicate error.backtrace_locations, :empty?
+  end
+
   test "#record passes through the return value" do
     result = @reporter.record do
       2 + 2
@@ -173,6 +183,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil @reporter.unexpected(error)
     assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
     assert_not_predicate error.backtrace, :empty?
+    assert_not_predicate error.backtrace_locations, :empty?
   end
 
   test "#unexpected accepts an error message" do
@@ -254,6 +265,31 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_no_difference -> { @subscriber.events.size } do
       3.times do
         @reporter.report(@error, handled: false)
+      end
+    end
+  end
+
+  test "causes can't be reported again either" do
+    begin
+      begin
+        begin
+          raise "Original"
+        rescue
+          raise "Another"
+        end
+      rescue
+        raise "Yet Another"
+      end
+    rescue => @error
+    end
+
+    assert_difference -> { @subscriber.events.size }, +1 do
+      @reporter.report(@error, handled: false)
+    end
+
+    assert_no_difference -> { @subscriber.events.size } do
+      3.times do
+        @reporter.report(@error.cause.cause, handled: false)
       end
     end
   end

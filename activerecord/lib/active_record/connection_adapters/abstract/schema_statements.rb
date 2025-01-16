@@ -293,6 +293,11 @@ module ActiveRecord
       def create_table(table_name, id: :primary_key, primary_key: nil, force: nil, **options, &block)
         validate_create_table_options!(options)
         validate_table_length!(table_name) unless options[:_uses_legacy_table_name]
+
+        if force && options.key?(:if_not_exists)
+          raise ArgumentError, "Options `:force` and `:if_not_exists` cannot be used simultaneously."
+        end
+
         td = build_create_table_definition(table_name, id: id, primary_key: primary_key, force: force, **options, &block)
 
         if force
@@ -339,6 +344,15 @@ module ActiveRecord
       #
       #   # Creates a table called 'assemblies_parts' with no id.
       #   create_join_table(:assemblies, :parts)
+      #
+      #   # Creates a table called 'paper_boxes_papers' with no id.
+      #   create_join_table('papers', 'paper_boxes')
+      #
+      # A duplicate prefix is combined into a single prefix. This is useful for
+      # namespaced models like Music::Artist and Music::Record:
+      #
+      #   # Creates a table called 'music_artists_records' with no id.
+      #   create_join_table('music_artists', 'music_records')
       #
       # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
@@ -511,7 +525,7 @@ module ActiveRecord
         raise NotImplementedError, "rename_table is not implemented"
       end
 
-      # Drops a table from the database.
+      # Drops a table or tables from the database.
       #
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
@@ -522,10 +536,12 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by #create_table.
-      def drop_table(table_name, **options)
-        schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      def drop_table(*table_names, **options)
+        table_names.each do |table_name|
+          schema_cache.clear_data_source_cache!(table_name.to_s)
+          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}"
+        end
       end
 
       # Add a new +type+ column named +column_name+ to +table_name+.
@@ -677,7 +693,7 @@ module ActiveRecord
       #
       # If the options provided include an +if_exists+ key, it will be used to check if the
       # column does not exist. This will silently ignore the migration rather than raising
-      # if the column was already used.
+      # if the column was already removed.
       #
       #   remove_column(:suppliers, :qualification, if_exists: true)
       def remove_column(table_name, column_name, type = nil, **options)
@@ -839,6 +855,16 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL.
       #
+      # ====== Creating an index where NULLs are treated equally
+      #
+      #   add_index(:people, :last_name, nulls_not_distinct: true)
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_people_on_last_name ON people (last_name) NULLS NOT DISTINCT
+      #
+      # Note: only supported by PostgreSQL version 15.0.0 and greater.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -966,7 +992,11 @@ module ActiveRecord
       def index_name(table_name, options) # :nodoc:
         if Hash === options
           if options[:column]
-            generate_index_name(table_name, options[:column])
+            if options[:_uses_legacy_index_name]
+              "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
+            else
+              generate_index_name(table_name, options[:column])
+            end
           elsif options[:name]
             options[:name]
           else
@@ -1142,9 +1172,10 @@ module ActiveRecord
       #   +:deferred+ or +:immediate+ to specify the default behavior. Defaults to +false+.
       def add_foreign_key(from_table, to_table, **options)
         return unless use_foreign_keys?
-        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         options = foreign_key_options(from_table, to_table, options)
+        return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
         at = create_alter_table from_table
         at.add_foreign_key to_table, options
 
@@ -1183,7 +1214,7 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless use_foreign_keys?
-        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table)
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1304,7 +1335,6 @@ module ActiveRecord
         execute schema_creation.accept(at)
       end
 
-
       # Checks to see if a check constraint exists on a table for a given check constraint definition.
       #
       #   check_constraint_exists?(:products, name: "price_check")
@@ -1316,7 +1346,14 @@ module ActiveRecord
         check_constraint_for(table_name, **options).present?
       end
 
-      def dump_schema_information # :nodoc:
+      def remove_constraint(table_name, constraint_name) # :nodoc:
+        at = create_alter_table(table_name)
+        at.drop_constraint(constraint_name)
+
+        execute schema_creation.accept(at)
+      end
+
+      def dump_schema_versions # :nodoc:
         versions = pool.schema_migration.versions
         insert_versions_sql(versions) if versions.any?
       end
@@ -1640,11 +1677,11 @@ module ActiveRecord
           end
         end
 
-        def rename_table_indexes(table_name, new_name)
+        def rename_table_indexes(table_name, new_name, **options)
           indexes(new_name).each do |index|
-            generated_index_name = index_name(table_name, column: index.columns)
+            generated_index_name = index_name(table_name, column: index.columns, **options)
             if generated_index_name == index.name
-              rename_index new_name, generated_index_name, index_name(new_name, column: index.columns)
+              rename_index new_name, generated_index_name, index_name(new_name, column: index.columns, **options)
             end
           end
         end
@@ -1839,16 +1876,8 @@ module ActiveRecord
         end
 
         def insert_versions_sql(versions)
-          sm_table = quote_table_name(pool.schema_migration.table_name)
-
-          if versions.is_a?(Array)
-            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-            sql << versions.reverse.map { |v| "(#{quote(v)})" }.join(",\n")
-            sql << ";"
-            sql
-          else
-            "INSERT INTO #{sm_table} (version) VALUES (#{quote(versions)});"
-          end
+          versions_formatter = ActiveRecord.schema_versions_formatter.new(self)
+          versions_formatter.format(versions)
         end
 
         def data_source_sql(name = nil, type: nil)

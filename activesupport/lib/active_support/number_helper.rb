@@ -1,6 +1,28 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # = Number Helper
+  #
+  # Provides methods for formatting numbers into currencies, percentages,
+  # phone numbers, and more.
+  #
+  # Example usage in a class:
+  #   class Topic
+  #     include ActiveSupport::NumberHelper
+  #
+  #     def price
+  #       number_to_currency(@price)
+  #     end
+  #   end
+  #
+  # Example usage in a module:
+  #   require "active_support/number_helper"
+  #
+  #   module NumberFormatting
+  #     def format_price(price)
+  #       ActiveSupport::NumberHelper.number_to_currency(price)
+  #     end
+  #   end
   module NumberHelper
     extend ActiveSupport::Autoload
 

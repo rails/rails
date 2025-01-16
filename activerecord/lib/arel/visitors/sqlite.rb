@@ -33,6 +33,31 @@ module Arel # :nodoc: all
           collector << " IS NOT "
           visit o.right, collector
         end
+
+        # Queries used in UNION should not be wrapped by parentheses,
+        # because it is an invalid syntax in SQLite.
+        def infix_value_with_paren(o, collector, value, suppress_parens = false)
+          collector << "( " unless suppress_parens
+
+          left = o.left.is_a?(Nodes::Grouping) ? o.left.expr : o.left
+          collector = if left.class == o.class
+            infix_value_with_paren(left, collector, value, true)
+          else
+            grouping_parentheses left, collector, false
+          end
+
+          collector << value
+
+          right = o.right.is_a?(Nodes::Grouping) ? o.right.expr : o.right
+          collector = if right.class == o.class
+            infix_value_with_paren(right, collector, value, true)
+          else
+            grouping_parentheses right, collector, false
+          end
+
+          collector << " )" unless suppress_parens
+          collector
+        end
     end
   end
 end

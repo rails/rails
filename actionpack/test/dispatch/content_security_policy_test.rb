@@ -23,6 +23,33 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal copied.build, @policy.build
   end
 
+  def test_whitespace_validation
+    @policy.base_uri "https://some.url https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
+
+  def test_semicolon_validation
+    @policy.base_uri "https://some.url; script-src https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url; script-src https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
   def test_mappings
     @policy.script_src :data
     assert_equal "script-src data:", @policy.build
@@ -44,6 +71,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     @policy.script_src :unsafe_eval
     assert_equal "script-src 'unsafe-eval'", @policy.build
+
+    @policy.script_src :wasm_unsafe_eval
+    assert_equal "script-src 'wasm-unsafe-eval'", @policy.build
 
     @policy.script_src :none
     assert_equal "script-src 'none'", @policy.build

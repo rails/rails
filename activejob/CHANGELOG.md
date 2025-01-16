@@ -1,25 +1,15 @@
-*   Do not trigger immediate loading of `ActiveJob::Base` when loading `ActiveJob::TestHelper`.
+*   Accept a block for `ActiveJob::ConfiguredJob#perform_later`.
 
-    *Maxime Réty*
+    This was inconsistent with a regular `ActiveJob::Base#perform_later`.
 
-*   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.
+    *fatkodima*
 
-    *Joshua Young*
+*   Raise a more specific error during deserialization when a previously serialized job class is now unknown.
 
-*   Remove deprecated `:exponentially_longer` value for the `:wait` in `retry_on`.
+    `ActiveJob::UnknownJobClassError` will be raised instead of a more generic
+    `NameError` to make it easily possible for adapters to tell if the `NameError`
+    was raised during job execution or deserialization.
 
-    *Rafael Mendonça França*
+    *Earlopain*
 
-*   Remove deprecated support to set numeric values to `scheduled_at` attribute.
-
-    *Rafael Mendonça França*
-
-*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated primitive serializer for `BigDecimal` arguments.
-
-    *Rafael Mendonça França*
-
-Please check [7-1-stable](https://github.com/rails/rails/blob/7-1-stable/activejob/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activejob/CHANGELOG.md) for previous changes.

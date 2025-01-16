@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/aircraft"
 require "models/author"
 require "models/binary"
 require "models/book"
@@ -34,6 +35,7 @@ require "models/task"
 require "models/topic"
 require "models/traffic_light"
 require "models/treasure"
+require "models/tree"
 require "models/cpk"
 
 class FixturesTest < ActiveRecord::TestCase
@@ -43,7 +45,7 @@ class FixturesTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   # other_topics fixture should not be included here
-  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights
+  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes, :binaries, :traffic_lights, :trees
 
   FIXTURES = %w( accounts binaries companies customers
                  developers developers_projects entrants
@@ -100,9 +102,9 @@ class FixturesTest < ActiveRecord::TestCase
       create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("movies")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("computers")} .*
+        INSERT INTO #{quote_table_name("bulbs")} .*
+        INSERT INTO #{quote_table_name("movies")} .*
+        INSERT INTO #{quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
       assert_match(/#{expected_sql}/, subscriber.events.first)
@@ -111,8 +113,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_a_multi_statement_query_raises_an_exception_when_any_insert_fails
-      require "models/aircraft"
-
       assert_equal false, Aircraft.columns_hash["wheels_count"].null
       fixtures = {
         "aircraft" => [
@@ -374,7 +374,7 @@ class FixturesTest < ActiveRecord::TestCase
   end
 
   def test_create_symbol_fixtures
-    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course) { Course.connection }
+    fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :collections, collections: Course)
 
     assert Course.find_by_name("Collection"), "course is not in the database"
     assert fixtures.detect { |f| f.name == "collections" }, "no fixtures named 'collections' in #{fixtures.map(&:name).inspect}"
@@ -477,6 +477,20 @@ class FixturesTest < ActiveRecord::TestCase
     assert first
   end
 
+  def test_insert_with_default_function
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-manufactured-at")
+    assert_in_delta Time.now, aircraft.manufactured_at, 1.1
+  end
+
+  def test_insert_with_default_value
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-wheels")
+    assert_equal 0, aircraft.wheels_count
+  end
+
   def test_logger_level_invariant
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
@@ -550,6 +564,8 @@ class FixturesTest < ActiveRecord::TestCase
 
   def test_yaml_file_with_symbol_columns
     ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "trees")
+    root = Tree.find(1)
+    assert root
   end
 
   def test_omap_fixtures
@@ -608,7 +624,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixture_method_and_private_alias
     assert_equal "The First Topic", topics(:first).title
     assert_equal "The First Topic", fixture(:topics, :first).title
-    assert_equal "The First Topic", _active_record_fixture(:topics, :first).title
+    assert_equal "The First Topic", active_record_fixture(:topics, :first).title
   end
 
   def test_fixture_method_does_not_clash_with_a_test_case_method
@@ -820,6 +836,7 @@ class SetupTest < ActiveRecord::TestCase
   end
 
   def test_nothing
+    pass
   end
 end
 
@@ -1076,12 +1093,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     pool = connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
@@ -1103,12 +1127,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     fire_connection_notification(connection.pool)
     teardown_fixtures
@@ -1127,12 +1158,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(connection.pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool, shard: :shard_two)
@@ -1428,9 +1466,11 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_only_generates_a_pk_if_necessary
-    m = Matey.first
-    m.pirate = pirates(:blackbeard)
-    m.target = pirates(:redbeard)
+    assert_nothing_raised do
+      m = Matey.first
+      m.pirate = pirates(:blackbeard)
+      m.target = pirates(:redbeard)
+    end
   end
 
   def test_supports_sti
@@ -1704,7 +1744,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
 
       setup_shared_connection_pool
 
-      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      assert_raises(ActiveRecord::ConnectionNotDefined) do
         ActiveRecord::Base.connected_to(role: :reading, shard: :two) do
           ActiveRecord::Base.retrieve_connection
         end
@@ -1715,7 +1755,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       clean_up_connection_handler
       teardown_shared_connection_pool
 
-      assert_raises(ActiveRecord::ConnectionNotEstablished) do
+      assert_raises(ActiveRecord::ConnectionNotDefined) do
         ActiveRecord::Base.connected_to(role: :reading) do
           ActiveRecord::Base.retrieve_connection
         end

@@ -111,12 +111,6 @@ module Arel # :nodoc: all
       end
     end
 
-    class Or < Binary
-      def fetch_attribute(&block)
-        left.fetch_attribute(&block) && right.fetch_attribute(&block)
-      end
-    end
-
     %w{
       Assignment
       Join

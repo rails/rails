@@ -52,7 +52,11 @@ module ActionMailbox
     before_action :authenticate_by_password, :require_valid_rfc822_message
 
     def create
-      ActionMailbox::InboundEmail.create_and_extract_message_id! request.body.read
+      if request.body
+        ActionMailbox::InboundEmail.create_and_extract_message_id! request.body.read
+      else
+        head :unprocessable_entity
+      end
     end
 
     private

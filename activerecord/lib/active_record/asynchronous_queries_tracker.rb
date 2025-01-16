@@ -1,29 +1,30 @@
 # frozen_string_literal: true
 
+require "concurrent/atomic/atomic_boolean"
+require "concurrent/atomic/read_write_lock"
+
 module ActiveRecord
   class AsynchronousQueriesTracker # :nodoc:
-    module NullSession # :nodoc:
-      class << self
-        def active?
-          true
-        end
-
-        def finalize
-        end
-      end
-    end
-
     class Session # :nodoc:
       def initialize
-        @active = true
+        @active = Concurrent::AtomicBoolean.new(true)
+        @lock = Concurrent::ReadWriteLock.new
       end
 
       def active?
-        @active
+        @active.true?
       end
 
-      def finalize
-        @active = false
+      def synchronize(&block)
+        @lock.with_read_lock(&block)
+      end
+
+      def finalize(wait = false)
+        @active.make_false
+        if wait
+          # Wait until all thread with a read lock are done
+          @lock.with_write_lock { }
+        end
       end
     end
 
@@ -33,7 +34,7 @@ module ActiveRecord
       end
 
       def run
-        ActiveRecord::Base.asynchronous_queries_tracker.start_session
+        ActiveRecord::Base.asynchronous_queries_tracker.tap(&:start_session)
       end
 
       def complete(asynchronous_queries_tracker)
@@ -41,20 +42,23 @@ module ActiveRecord
       end
     end
 
-    attr_reader :current_session
-
     def initialize
-      @current_session = NullSession
+      @stack = []
+    end
+
+    def current_session
+      @stack.last or raise ActiveRecordError, "Can't perform asynchronous queries without a query session"
     end
 
     def start_session
-      @current_session = Session.new
-      self
+      session = Session.new
+      @stack << session
     end
 
-    def finalize_session
-      @current_session.finalize
-      @current_session = NullSession
+    def finalize_session(wait = false)
+      session = @stack.pop
+      session&.finalize(wait)
+      self
     end
   end
 end

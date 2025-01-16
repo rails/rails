@@ -38,6 +38,27 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     assert_predicate blob.reload, :analyzed?
   end
 
+  test "attaching a blob doesn't touch the record" do
+    data = "Something else entirely!"
+    io = StringIO.new(data)
+    blob = create_blob_before_direct_upload byte_size: data.size, checksum: ActiveStorage.checksum_implementation.base64digest(data)
+    blob.upload(io)
+
+    user = User.create!(
+      name: "Roger",
+      avatar: blob.signed_id,
+      record_callbacks: true,
+    )
+
+    assert_equal(1, user.callback_counter)
+  end
+
+  test "attaching a record doesn't reset the previously_new_record flag" do
+    @user.highlights.attach(io: ::StringIO.new("dummy"), filename: "dummy.txt")
+
+    assert(@user.notification_sent)
+  end
+
   test "mirroring a directly-uploaded blob after attaching it" do
     with_service("mirror") do
       blob = directly_upload_file_blob
@@ -157,6 +178,10 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     attachment = @user.highlights.find_by(blob_id: blob.id)
     attachment.update_attribute(:name, "old_highlights")
     assert_nothing_raised { attachment.destroy }
+  end
+
+  test "can create an attachment with the record having no attachment reflections" do
+    assert_nothing_raised { ActiveStorage::Attachment.create!(name: "whatever", record: @user, blob: create_blob) }
   end
 
   private

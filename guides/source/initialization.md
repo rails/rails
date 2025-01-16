@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 The Rails Initialization Process
 ================================
@@ -40,7 +40,7 @@ This file is as follows:
 
 ```ruby
 #!/usr/bin/env ruby
-APP_PATH = File.expand_path('../config/application', __dir__)
+APP_PATH = File.expand_path("../config/application", __dir__)
 require_relative "../config/boot"
 require "rails/commands"
 ```
@@ -52,9 +52,10 @@ The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot
 `config/boot.rb` contains:
 
 ```ruby
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
 
 require "bundler/setup" # Set up gems listed in the Gemfile.
+require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
@@ -107,23 +108,26 @@ module Rails
   module Command
     class << self
       def invoke(full_namespace, args = [], **config)
-        namespace = full_namespace = full_namespace.to_s
+        args = ["--help"] if rails_new_with_no_path?(args)
 
-        if char = namespace =~ /:(\w+)$/
-          command_name, namespace = $1, namespace.slice(0, char)
-        else
-          command_name = namespace
-        end
-
-        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
-
+        full_namespace = full_namespace.to_s
+        namespace, command_name = split_namespace(full_namespace)
         command = find_by_namespace(namespace, command_name)
-        if command && command.all_commands[command_name]
-          command.perform(command_name, args, config)
-        else
-          find_by_namespace("rake").perform(full_namespace, args, config)
+
+        with_argv(args) do
+          if command && command.all_commands[command_name]
+            command.perform(command_name, args, config)
+          else
+            invoke_rake(full_namespace, args, config)
+          end
         end
+      rescue UnrecognizedCommandError => error
+        if error.name == full_namespace && command && command_name == full_namespace
+          command.perform("help", [], config)
+        else
+          puts error.detailed_message
+        end
+        exit(1)
       end
     end
   end
@@ -137,7 +141,6 @@ module Rails
   module Command
     class ServerCommand < Base # :nodoc:
       def perform
-        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 
@@ -152,7 +155,7 @@ module Rails
             after_stop_callback = -> { say "Exiting" unless options[:daemon] }
             server.start(after_stop_callback)
           else
-            say rack_server_suggestion(using)
+            say rack_server_suggestion(options[:using])
           end
         end
       end
@@ -173,12 +176,12 @@ It adds functionality like routing, session, and common middlewares.
 ### `rails/commands/server/server_command.rb`
 
 The `Rails::Server` class is defined in this file by inheriting from
-`Rack::Server`. When `Rails::Server.new` is called, this calls the `initialize`
+`Rackup::Server`. When `Rails::Server.new` is called, this calls the `initialize`
 method in `rails/commands/server/server_command.rb`:
 
 ```ruby
 module Rails
-  class Server < ::Rack::Server
+  class Server < Rackup::Server
     def initialize(options = nil)
       @default_options = options || {}
       super(@default_options)
@@ -188,16 +191,16 @@ module Rails
 end
 ```
 
-Firstly, `super` is called which calls the `initialize` method on `Rack::Server`.
+Firstly, `super` is called which calls the `initialize` method on `Rackup::Server`.
 
-### Rack: `lib/rack/server.rb`
+### Rackup: `lib/rackup/server.rb`
 
-`Rack::Server` is responsible for providing a common server interface for all Rack-based applications, which Rails is now a part of.
+`Rackup::Server` is responsible for providing a common server interface for all Rack-based applications, which Rails is now a part of.
 
-The `initialize` method in `Rack::Server` simply sets several variables:
+The `initialize` method in `Rackup::Server` simply sets several variables:
 
 ```ruby
-module Rack
+module Rackup
   class Server
     def initialize(options = nil)
       @ignore_options = []
@@ -207,9 +210,8 @@ module Rack
         @options = options
         @app = options[:app] if options[:app]
       else
-        argv = defined?(SPEC_ARGV) ? SPEC_ARGV : ARGV
         @use_default_options = true
-        @options = parse_options(argv)
+        @options = parse_options(ARGV)
       end
     end
   end
@@ -224,12 +226,12 @@ When lines inside if statement is evaluated, a couple of instance variables will
 ```ruby
 module Rails
   module Command
-    class ServerCommand
+    class ServerCommand < Base # :nodoc:
       no_commands do
         def server_options
           {
             user_supplied_options: user_supplied_options,
-            server:                using,
+            server:                options[:using],
             log_stdout:            log_to_stdout?,
             Port:                  port,
             Host:                  host,
@@ -251,7 +253,7 @@ end
 
 The value will be assigned to instance variable `@options`.
 
-After `super` has finished in `Rack::Server`, we jump back to
+After `super` has finished in `Rackup::Server`, we jump back to
 `rails/commands/server/server_command.rb`. At this point, `set_environment`
 is called within the context of the `Rails::Server` object.
 
@@ -281,7 +283,7 @@ defined like this:
 
 ```ruby
 module Rails
-  class Server < ::Rack::Server
+  class Server < ::Rackup::Server
     def start(after_stop_callback = nil)
       trap(:INT) { exit }
       create_tmp_directories
@@ -312,8 +314,8 @@ module Rails
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
-          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
+          Rails.logger.broadcast_to(console)
         end
       end
   end
@@ -327,12 +329,12 @@ if `bin/rails server` is called with `--dev-caching`. Finally, it calls `wrapped
 responsible for creating the Rack app, before creating and assigning an instance
 of `ActiveSupport::Logger`.
 
-The `super` method will call `Rack::Server.start` which begins its definition as follows:
+The `super` method will call `Rackup::Server.start` which begins its definition as follows:
 
 ```ruby
-module Rack
+module Rackup
   class Server
-    def start(&blk)
+    def start(&block)
       if options[:warn]
         $-w = true
       end
@@ -341,7 +343,7 @@ module Rack
         $LOAD_PATH.unshift(*includes)
       end
 
-      if library = options[:require]
+      Array(options[:require]).each do |library|
         require library
       end
 
@@ -373,7 +375,7 @@ module Rack
         end
       end
 
-      server.run wrapped_app, options, &blk
+      server.run(wrapped_app, **options, &block)
     end
   end
 end
@@ -384,7 +386,7 @@ we're going to explore more (even though it was executed before, and
 thus memoized by now).
 
 ```ruby
-module Rack
+module Rackup
   class Server
     def wrapped_app
       @wrapped_app ||= build_app app
@@ -396,7 +398,7 @@ end
 The `app` method here is defined like so:
 
 ```ruby
-module Rack
+module Rackup
   class Server
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
@@ -410,9 +412,7 @@ module Rack
           abort "configuration #{options[:config]} not found"
         end
 
-        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        @options.merge!(options) { |key, old, new| old }
-        app
+        Rack::Builder.parse_file(self.options[:config])
       end
 
       def build_app_from_string
@@ -430,6 +430,7 @@ The `options[:config]` value defaults to `config.ru` which contains this:
 require_relative "config/environment"
 
 run Rails.application
+Rails.application.load_server
 ```
 
 
@@ -438,17 +439,22 @@ The `Rack::Builder.parse_file` method here takes the content from this `config.r
 ```ruby
 module Rack
   class Builder
-    def self.load_file(path, opts = Server::Options.new)
+    def self.load_file(path, **options)
       # ...
-      app = new_from_string cfgfile, config
-      # ...
+      new_from_string(config, path, **options)
     end
 
     # ...
 
-    def self.new_from_string(builder_script, file = "(rackup)")
-      eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
-        TOPLEVEL_BINDING, file, 0
+    def self.new_from_string(builder_script, path = "(rackup)", **options)
+      builder = self.new(**options)
+
+      # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
+      # We cannot use instance_eval(String) as that would resolve constants differently.
+      binding = BUILDER_TOPLEVEL_BINDING.call(builder)
+      eval(builder_script, binding, path)
+
+      builder.to_app
     end
   end
 end
@@ -575,19 +581,19 @@ defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` ini
 prepare the application (like initializing the logger) while the `finisher`
 initializers (like building the middleware stack) are run last. The `railtie`
 initializers are the initializers which have been defined on the `Rails::Application`
-itself and are run between the `bootstrap` and `finishers`.
+itself and are run between the `bootstrap` and `finisher`.
 
 NOTE: Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
 initializer instance or its associated config initializers in `config/initializers`.
 
-After this is done we go back to `Rack::Server`.
+After this is done we go back to `Rackup::Server`.
 
 ### Rack: lib/rack/server.rb
 
 Last time we left when the `app` method was being defined:
 
 ```ruby
-module Rack
+module Rackup
   class Server
     def app
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
@@ -601,9 +607,7 @@ module Rack
           abort "configuration #{options[:config]} not found"
         end
 
-        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        @options.merge!(options) { |key, old, new| old }
-        app
+        Rack::Builder.parse_file(self.options[:config])
       end
 
       def build_app_from_string
@@ -617,7 +621,7 @@ At this point `app` is the Rails app itself (a middleware), and what
 happens next is Rack will call all the provided middlewares:
 
 ```ruby
-module Rack
+module Rackup
   class Server
     private
       def build_app(app)
@@ -633,11 +637,11 @@ module Rack
 end
 ```
 
-Remember, `build_app` was called (by `wrapped_app`) in the last line of `Rack::Server#start`.
+Remember, `build_app` was called (by `wrapped_app`) in the last line of `Rackup::Server#start`.
 Here's how it looked like when we left:
 
 ```ruby
-server.run wrapped_app, options, &blk
+server.run(wrapped_app, **options, &block)
 ```
 
 At this point, the implementation of `server.run` will depend on the
@@ -650,11 +654,11 @@ module Rack
     module Puma
       # ...
       def self.run(app, options = {})
-        conf   = self.config(app, options)
+        conf = self.config(app, options)
 
-        events = options.delete(:Silent) ? ::Puma::Events.strings : ::Puma::Events.stdio
+        log_writer = options.delete(:Silent) ? ::Puma::LogWriter.strings : ::Puma::LogWriter.stdio
 
-        launcher = ::Puma::Launcher.new(conf, events: events)
+        launcher = ::Puma::Launcher.new(conf, log_writer: log_writer, events: @events)
 
         yield launcher if block_given?
         begin

@@ -48,11 +48,6 @@ module ActionController
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
-
-        unless options.allow_deprecated_parameters_hash_equality.nil?
-          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
-            options.allow_deprecated_parameters_hash_equality
-        end
       end
     end
 
@@ -85,7 +80,6 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
-          :allow_deprecated_parameters_hash_equality
         )
 
         filtered_options.each do |k, v|
@@ -96,12 +90,6 @@ module ActionController
             raise "Invalid option key: #{k}"
           end
         end
-      end
-    end
-
-    initializer "action_controller.compile_config_methods" do
-      ActiveSupport.on_load(:action_controller) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
 
@@ -123,7 +111,7 @@ module ActionController
         app.config.active_record.query_log_tags |= [:action]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings.merge!(
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
             namespaced_controller: ->(context) {

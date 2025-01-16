@@ -92,11 +92,19 @@ end
 DecoratedTester = Struct.new(:client) do
   include ExtraMissing
 
+  def call_name
+    name
+  end
+
   delegate_missing_to :client
 end
 
 class DecoratedMissingAllowNil
   delegate_missing_to :case, allow_nil: true
+
+  def call_name
+    name
+  end
 
   attr_reader :case
 
@@ -413,6 +421,10 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal "David", DecoratedTester.new(@david).name
   end
 
+  def test_delegate_missing_to_calling_on_self
+    assert_equal "David", DecoratedTester.new(@david).call_name
+  end
+
   def test_delegate_missing_to_with_reserved_methods
     assert_equal "David", DecoratedReserved.new(@david).name
   end
@@ -447,6 +459,10 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegate_missing_to_returns_nil_if_allow_nil_and_nil_target
     assert_nil DecoratedMissingAllowNil.new(nil).name
+  end
+
+  def test_delegate_missing_with_allow_nil_when_called_on_self
+    assert_nil DecoratedMissingAllowNil.new(nil).call_name
   end
 
   def test_delegate_missing_to_affects_respond_to

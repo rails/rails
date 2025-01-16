@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record Basics
 ====================
@@ -58,8 +58,9 @@ database access code you have to write.
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and
 structured query language (SQL) is helpful in order to fully understand Active
-Record. Please refer to [this tutorial][sqlcourse] (or [this one][rdbmsinfo]) or
-study them by other means if you would like to learn more.
+Record. Please refer to [this SQL tutorial][sqlcourse] (or [this RDBMS
+tutorial][rdbmsinfo]) or study them by other means if you would like to learn
+more.
 
 ### Active Record as an ORM Framework
 
@@ -211,8 +212,8 @@ and results in this:
 # The `id` column, as the primary key, is automatically created by convention.
 # Columns `created_at` and `updated_at` are added by `t.timestamps`.
 
-# /db/migrate/20240220143807_create_books.rb
-class CreateBooks < ActiveRecord::Migration
+# db/migrate/20240220143807_create_books.rb
+class CreateBooks < ActiveRecord::Migration[8.1]
   def change
     create_table :books do |t|
       t.string :title
@@ -241,8 +242,8 @@ irb> book.title
 
 NOTE: You can generate the Active Record model class as well as a matching
 migration with the command `bin/rails generate model Book title:string
-author:string`. This creates the files `/app/models/book.rb`,
-`/db/migrate/20240220143807_create_books.rb`, and a couple others for testing
+author:string`. This creates the files `app/models/book.rb`,
+`db/migrate/20240220143807_create_books.rb`, and a couple others for testing
 purposes.
 
 ### Creating Namespaced Models
@@ -250,71 +251,71 @@ purposes.
 Active Record models are placed under the `app/models` directory by default. But
 you may want to organize your models by placing similar models under their own
 folder and namespace. For example, `order.rb` and `review.rb` under
-`app/models/product` with `Product::Order` and `Product::Review` class names,
+`app/models/book` with `Book::Order` and `Book::Review` class names,
 respectively. You can create namespaced models with Active Record.
 
-In the case where the `Product` module does not already exist, the `generate`
+In the case where the `Book` module does not already exist, the `generate`
 command will create everything like this:
 
 ```bash
-$ bin/rails generate model Product::Order
+$ bin/rails generate model Book::Order
       invoke  active_record
-      create    db/migrate/20240306194227_create_product_orders.rb
-      create    app/models/product/order.rb
-      create    app/models/product.rb
+      create    db/migrate/20240306194227_create_book_orders.rb
+      create    app/models/book/order.rb
+      create    app/models/book.rb
       invoke    test_unit
-      create      test/models/product/order_test.rb
-      create      test/fixtures/product/orders.yml
+      create      test/models/book/order_test.rb
+      create      test/fixtures/book/orders.yml
 ```
 
-If the `Product` module already exists, you will be asked to resolve
+If the `Book` module already exists, you will be asked to resolve
 the conflict:
 
 ```bash
-$ bin/rails generate model Product::Order
+$ bin/rails generate model Book::Order
       invoke  active_record
-      create    db/migrate/20240305140356_create_product_orders.rb
-      create    app/models/product/order.rb
-    conflict    app/models/product.rb
-  Overwrite /Users/bhumi/Code/rails_guides/app/models/product.rb? (enter "h" for help) [Ynaqdhm]
+      create    db/migrate/20240305140356_create_book_orders.rb
+      create    app/models/book/order.rb
+    conflict    app/models/book.rb
+  Overwrite /Users/bhumi/Code/rails_guides/app/models/book.rb? (enter "h" for help) [Ynaqdhm]
 ```
 
-Once the namespaced model generation is successful, the `Product` and `Order`
+Once the namespaced model generation is successful, the `Book` and `Order`
 classes look like this:
 
 ```ruby
-# app/models/product.rb
-module Product
+# app/models/book.rb
+module Book
   def self.table_name_prefix
-    "product_"
+    "book_"
   end
 end
 
-# app/models/product/order.rb
-class Product::Order < ApplicationRecord
+# app/models/book/order.rb
+class Book::Order < ApplicationRecord
 end
 ```
 
 Setting the
 [table_name_prefix](https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-c-table_name_prefix-3D)
-in `Product` will allow `Order` model's database table to be named
-`product_orders`, instead of plain `orders`.
+in `Book` will allow `Order` model's database table to be named
+`book_orders`, instead of plain `orders`.
 
-The other possibility is that you already have a `Product` model that you want
+The other possibility is that you already have a `Book` model that you want
 to keep in `app/models`. In that case, you can choose `n` to not overwrite
-`product.rb` during the `generate` command.
+`book.rb` during the `generate` command.
 
-This will still allow for a namespaced table name for `Product::Order` class,
+This will still allow for a namespaced table name for `Book::Order` class,
 without needing the `table_name_prefix`:
 
 ```ruby
-# app/models/product.rb
-class Product < ApplicationRecord
+# app/models/book.rb
+class Book < ApplicationRecord
   # existing code
 end
 
-Product::Order.table_name
-# => "product_orders"
+Book::Order.table_name
+# => "book_orders"
 ```
 
 Overriding the Naming Conventions
@@ -424,9 +425,7 @@ book.id # => 107
 # Now the `book` record is committed to the database and has an `id`.
 ```
 
-Finally, if a block is provided, both `create` and `new` will yield the new
-object to that block for initialization, while only `create` will persist the
-resulting object to the database:
+If a block is provided, both `create` and `new` will yield the new object to that block for initialization, while only `create` will persist the resulting object to the database:
 
 ```ruby
 book = Book.new do |b|
@@ -444,6 +443,14 @@ something like this:
 /* Note that `created_at` and `updated_at` are automatically set. */
 
 INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
+```
+
+Finally, if you'd like to insert several records **without callbacks or
+validations**, you can directly insert records into the database using `insert` or `insert_all` methods:
+
+```ruby
+Book.insert(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
+Book.insert_all([{ title: "The Lord of the Rings", author: "J.R.R. Tolkien" }])
 ```
 
 ### Read
@@ -465,16 +472,16 @@ book = Book.take
 The above results in the following SQL:
 
 ```sql
-# Book.all
+-- Book.all
 SELECT "books".* FROM "books"
 
-# Book.first
+-- Book.first
 SELECT "books".* FROM "books" ORDER BY "books"."id" ASC LIMIT ?  [["LIMIT", 1]]
 
-# Book.last
+-- Book.last
 SELECT "books".* FROM "books" ORDER BY "books"."id" DESC LIMIT ?  [["LIMIT", 1]]
 
-# Book.take
+-- Book.take
 SELECT "books".* FROM "books" LIMIT ?  [["LIMIT", 1]]
 ```
 
@@ -492,13 +499,15 @@ book = Book.find(42)
 The above resulting in this SQL:
 
 ```sql
-SELECT "books".* FROM "books" WHERE "books"."author" = ? LIMIT ?  [["author", "J.R.R. Tolkien"], ["LIMIT", 1]]
+-- Book.find_by(title: "Metaprogramming Ruby 2")
+SELECT "books".* FROM "books" WHERE "books"."title" = ? LIMIT ?  [["title", "Metaprogramming Ruby 2"], ["LIMIT", 1]]
 
+-- Book.find(42)
 SELECT "books".* FROM "books" WHERE "books"."id" = ? LIMIT ?  [["id", 42], ["LIMIT", 1]]
 ```
 
 ```ruby
-# Find all books with a given an author, sort by created_at in reverse chronological order.
+# Find all books by a given author, sort by created_at in reverse chronological order.
 Book.where(author: "Douglas Adams").order(created_at: :desc)
 ```
 
@@ -575,6 +584,14 @@ Book.destroy_by(author: "Douglas Adams")
 Book.destroy_all
 ```
 
+Additionally, if you'd like to delete several records **without callbacks or
+validations**, you can delete records directly from the database using `delete` and `delete_all` methods:
+
+```ruby
+Book.find_by(title: "The Lord of the Rings").delete
+Book.delete_all
+```
+
 Validations
 -----------
 
@@ -585,11 +602,12 @@ unique, is not already in the database, follows a specific format, and many
 more.
 
 Methods like `save`, `create` and `update` validate a model before persisting it
-to the database. When a model is invalid these methods return `false` and no
-database operations are performed. All of these methods have a bang counterpart
-(that is, `save!`, `create!` and `update!`), which are stricter in that they
-raise an `ActiveRecord::RecordInvalid` exception when validation fails. A quick
-example to illustrate:
+to the database. If the model is invalid, no database operations are performed. In
+this case the `save` and `update` methods return `false`. The `create` method still
+returns the object, which can be checked for errors. All of these
+methods have a bang counterpart (that is, `save!`, `create!` and `update!`),
+which are stricter in that they raise an `ActiveRecord::RecordInvalid` exception
+when validation fails. A quick example to illustrate:
 
 ```ruby
 class User < ApplicationRecord
@@ -603,6 +621,16 @@ irb> user.save
 => false
 irb> user.save!
 ActiveRecord::RecordInvalid: Validation failed: Name can't be blank
+```
+
+The `create` method always returns the model, regardless of
+its validity. You can then inspect this model for any errors.
+
+```irb
+irb> user = User.create
+=> #<User:0x000000013e8b5008 id: nil, name: nil>
+irb> user.errors.full_messages
+=> ["Name can't be blank"]
 ```
 
 You can learn more about validations in the [Active Record Validations
@@ -645,7 +673,7 @@ files which are executed against any database that Active Record supports.
 Here's a migration that creates a new table called `publications`:
 
 ```ruby
-class CreatePublications < ActiveRecord::Migration[7.2]
+class CreatePublications < ActiveRecord::Migration[8.1]
   def change
     create_table :publications do |t|
       t.string :title

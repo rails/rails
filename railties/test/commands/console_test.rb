@@ -18,6 +18,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
   end
 
+  def setup
+    @prev_rails_env = Rails.env
+  end
+
+  def teardown
+    Rails.env = @prev_rails_env
+  end
+
   def test_sandbox_option
     console = Rails::Console.new(app, parse_arguments(["--sandbox"]))
     assert_predicate console, :sandbox?
@@ -63,6 +71,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     irb_console = Rails::Console.new(app).console
     red = "\e[31m"
     blue = "\e[34m"
+    magenta = "\e[35m"
     clear = "\e[0m"
 
     Rails.env = "development"
@@ -75,7 +84,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
 
     Rails.env = "custom_env"
-    assert_equal("custom_env", irb_console.colorized_env)
+    assert_equal("#{magenta}custom_env#{clear}", irb_console.colorized_env)
   end
 
   def test_default_environment_with_no_rails_env
@@ -159,8 +168,6 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
         end
 
         def load_console
-          require "rails/console/app"
-          require "rails/console/helpers"
         end
       end
       mocked_app.new(console)

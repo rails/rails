@@ -40,6 +40,9 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
+require "models/family"
+require "models/family_tree"
+require "models/user"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -170,6 +173,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   private
     def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
       reflection = model.reflect_on_association(association_name)
+      assert_not_nil reflection
       assert_no_difference "callbacks_for_model(#{model.name}).length" do
         model.send(:add_autosave_association_callbacks, reflection)
       end
@@ -284,6 +288,12 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
     assert_queries_count(4) { firm.save! }
   end
 
+  def test_should_not_load_the_associated_model
+    firm = companies(:first_firm)
+    firm.reset_unvalidated_account
+    assert_no_queries { firm.save! }
+  end
+
   def test_callbacks_firing_order_on_create
     eye = Eye.create(iris_attributes: { color: "honey" })
     assert_equal [true, false], eye.after_create_callbacks_stack
@@ -301,6 +311,68 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
     eye.update(iris_attributes: { color: "blue" })
     assert_equal [false, false, false, false], eye.after_save_callbacks_stack
+  end
+
+  def test_callbacks_on_child_when_parent_autosaves_child
+    eye = Eye.create!(iris: Iris.new)
+    assert_equal 1, eye.iris.before_validation_callbacks_counter
+    assert_equal 1, eye.iris.before_create_callbacks_counter
+    assert_equal 1, eye.iris.before_save_callbacks_counter
+    assert_equal 1, eye.iris.after_validation_callbacks_counter
+    assert_equal 1, eye.iris.after_create_callbacks_counter
+    assert_equal 1, eye.iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_parent_autosaves_child_twice
+    eye = Eye.create!(iris: Iris.new)
+    eye.update!(iris: Iris.new)
+    assert_equal 1, eye.iris.before_validation_callbacks_counter
+    assert_equal 1, eye.iris.before_create_callbacks_counter
+    assert_equal 1, eye.iris.before_save_callbacks_counter
+    assert_equal 1, eye.iris.after_validation_callbacks_counter
+    assert_equal 1, eye.iris.after_create_callbacks_counter
+    assert_equal 1, eye.iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_parent_autosaves_polymorphic_child_with_inverse_of
+    drink_designer = DrinkDesigner.create!(chef: ChefWithPolymorphicInverseOf.new)
+    assert_equal 1, drink_designer.chef.before_validation_callbacks_counter
+    assert_equal 1, drink_designer.chef.before_create_callbacks_counter
+    assert_equal 1, drink_designer.chef.before_save_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_validation_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_create_callbacks_counter
+    assert_equal 1, drink_designer.chef.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_child_autosaves_parent
+    iris = Iris.create!(eye: Eye.new)
+    assert_equal 1, iris.before_validation_callbacks_counter
+    assert_equal 1, iris.before_create_callbacks_counter
+    assert_equal 1, iris.before_save_callbacks_counter
+    assert_equal 1, iris.after_validation_callbacks_counter
+    assert_equal 1, iris.after_create_callbacks_counter
+    assert_equal 1, iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_child_autosaves_parent_twice
+    iris = Iris.create!(eye: Eye.new)
+    iris.update!(eye: Eye.new)
+    assert_equal 2, iris.before_validation_callbacks_counter
+    assert_equal 1, iris.before_create_callbacks_counter
+    assert_equal 2, iris.before_save_callbacks_counter
+    assert_equal 2, iris.after_validation_callbacks_counter
+    assert_equal 1, iris.after_create_callbacks_counter
+    assert_equal 2, iris.after_save_callbacks_counter
+  end
+
+  def test_callbacks_on_child_when_polymorphic_child_with_inverse_of_autosaves_parent
+    chef = ChefWithPolymorphicInverseOf.create!(employable: DrinkDesigner.new)
+    assert_equal 1, chef.before_validation_callbacks_counter
+    assert_equal 1, chef.before_create_callbacks_counter
+    assert_equal 1, chef.before_save_callbacks_counter
+    assert_equal 1, chef.after_validation_callbacks_counter
+    assert_equal 1, chef.after_create_callbacks_counter
+    assert_equal 1, chef.after_save_callbacks_counter
   end
 
   def test_foreign_key_attribute_is_not_set_unless_changed
@@ -498,6 +570,12 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_nothing_raised do
       Cpk::Order.create!(id: [1, 2], book: Cpk::Book.new(title: "Book", id: [3, 4]))
     end
+  end
+
+  def test_should_not_load_the_associated_model
+    tagging = taggings(:welcome_general)
+    tagging.reset_tag
+    assert_no_queries { tagging.save! }
   end
 end
 
@@ -985,6 +1063,12 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal 2, firm.clients.length
     assert_includes firm.clients, Client.find_by_name("New Client")
   end
+
+  def test_should_not_load_the_associated_model
+    firm = companies(:first_firm)
+    firm.clients.reset
+    assert_no_queries { firm.save! }
+  end
 end
 
 class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
@@ -1065,6 +1149,34 @@ class TestDefaultAutosaveAssociationOnNewRecord < ActiveRecord::TestCase
     post.save!
 
     assert_equal 1, post.categories.reload.length
+  end
+
+  FamilyLoadingMiddleAndThroughRecordsBeforeSave = Class.new(Family) do
+    before_save do
+      family_trees.map(&:member) + members
+    end
+  end
+
+  def test_autosave_new_record_with_hmt_and_middle_record_built_by_parent
+    family = FamilyLoadingMiddleAndThroughRecordsBeforeSave.new
+    family_tree = family.family_trees.build
+    family_tree.build_member
+    family.save!
+    family.reload
+
+    assert_equal 1, family.family_trees.size
+    assert_equal 1, family.members.size
+  end
+
+  def test_autosave_new_record_with_hmt_and_middle_record_built_by_through_record
+    family = FamilyLoadingMiddleAndThroughRecordsBeforeSave.new
+    member = family.members.build
+    family.family_trees.build(member: member)
+    family.save!
+    family.reload
+
+    assert_equal 1, family.family_trees.size
+    assert_equal 1, family.members.size
   end
 end
 
@@ -1409,6 +1521,17 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_predicate @pirate, :valid?
   end
 
+  def test_should_skip_validation_on_habtm_if_persisted_and_unchanged
+    parrot = @pirate.parrots.create!(name: "parrots_1")
+    parrot.update_column(:name, "")
+    parrot.reload
+    assert_not_predicate parrot, :valid?
+
+    new_pirate = Pirate.new(catchphrase: "Arr")
+    new_pirate.parrots = @pirate.parrots
+    new_pirate.save!
+  end
+
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
     @pirate.parrots.create!(name: "parrots_1")
 
@@ -1511,6 +1634,14 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "The Vile Serpent", @pirate.reload.ship.name
   end
 
+  def test_should_automatically_save_bang_the_associated_model_if_it_sets_the_inverse_record
+    pirate = Pirate.new(catchphrase: "Savvy?")
+    ship = Ship.new(name: "Black Pearl")
+    ship.pirate = pirate
+    pirate.save!
+    assert_equal "Black Pearl", pirate.reload.ship.name
+  end
+
   def test_should_automatically_validate_the_associated_model
     @pirate.ship.name = ""
     assert_predicate @pirate, :invalid?
@@ -1542,12 +1673,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.catchphrase = ""
     @pirate.ship.name = ""
     @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@pirate.reload.catchphrase, @pirate.ship.name]
-    else
-      assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
-    end
+    assert_equal ["", ""], [@pirate.reload.catchphrase, @pirate.ship.name]
   end
 
   def test_should_allow_to_bypass_validations_on_associated_models_at_any_depth
@@ -1559,12 +1685,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     @pirate.save(validate: false)
 
     values = [@pirate.reload.catchphrase, @pirate.ship.name, *@pirate.ship.parts.map(&:name)]
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil, nil], values
-    else
-      assert_equal ["", "", "", ""], values
-    end
+    assert_equal ["", "", "", ""], values
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1731,12 +1852,7 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     @ship.pirate.catchphrase = ""
     @ship.name = ""
     @ship.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil], [@ship.reload.name, @ship.pirate.catchphrase]
-    else
-      assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
-    end
+    assert_equal ["", ""], [@ship.reload.name, @ship.pirate.catchphrase]
   end
 
   def test_should_still_raise_an_ActiveRecordRecord_Invalid_exception_if_we_want_that
@@ -1785,6 +1901,12 @@ class TestAutosaveAssociationOnABelongsToAssociation < ActiveRecord::TestCase
     child = parent.comments.build body: "..."
     child.save!
     assert_equal child.reload.post, parent.reload
+  end
+
+  def test_should_save_if_previously_saved
+    ship = Ship.create(name: "Nights Dirty Lightning", pirate: Pirate.new(catchphrase: "Arrrr"))
+    ship.create_pirate(catchphrase: "Savvy?")
+    assert_equal "Savvy?", ship.reload.pirate.catchphrase
   end
 end
 
@@ -1868,20 +1990,11 @@ module AutosaveAssociationOnACollectionAssociationTests
     @pirate.public_send(@association_name).each { |child| child.name = "" }
 
     assert @pirate.save(validate: false)
-    # Oracle saves empty string as NULL
-    if current_adapter?(:OracleAdapter)
-      assert_equal [nil, nil, nil], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    else
-      assert_equal ["", "", ""], [
-        @pirate.reload.catchphrase,
-        @pirate.public_send(@association_name).first.name,
-        @pirate.public_send(@association_name).last.name
-      ]
-    end
+    assert_equal ["", "", ""], [
+      @pirate.reload.catchphrase,
+      @pirate.public_send(@association_name).first.name,
+      @pirate.public_send(@association_name).last.name
+    ]
   end
 
   def test_should_validation_the_associated_models_on_create

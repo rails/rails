@@ -143,16 +143,6 @@ class DateHelperTest < ActionView::TestCase
     assert_equal "10 minutes", distance_of_time_in_words(Time.at(600), 0)
   end
 
-  def test_distance_in_words_doesnt_use_the_quotient_operator
-    # Make sure that we avoid Integer#/ (redefined by mathn gem to return Rational)
-    Integer.send :private, :/
-
-    from = Time.utc(2004, 6, 6, 21, 45, 0)
-    assert_distance_of_time_in_words(from)
-  ensure
-    Integer.send :public, :/
-  end
-
   def test_time_ago_in_words_passes_include_seconds
     assert_equal "less than 20 seconds", time_ago_in_words(15.seconds.ago, include_seconds: true)
     assert_equal "less than a minute", time_ago_in_words(15.seconds.ago, include_seconds: false)
@@ -248,7 +238,7 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_day(2, use_two_digit_numbers: true)
   end
 
-  def test_select_day_with_day_fomat
+  def test_select_day_with_day_format
     expected = +%(<select id="date_day" name="date[day]">\n)
     expected << %(<option value="1">1st</option>\n<option selected="selected" value="2">2nd</option>\n<option value="3">3rd</option>\n<option value="4">4th</option>\n<option value="5">5th</option>\n<option value="6">6th</option>\n<option value="7">7th</option>\n<option value="8">8th</option>\n<option value="9">9th</option>\n<option value="10">10th</option>\n<option value="11">11th</option>\n<option value="12">12th</option>\n<option value="13">13th</option>\n<option value="14">14th</option>\n<option value="15">15th</option>\n<option value="16">16th</option>\n<option value="17">17th</option>\n<option value="18">18th</option>\n<option value="19">19th</option>\n<option value="20">20th</option>\n<option value="21">21st</option>\n<option value="22">22nd</option>\n<option value="23">23rd</option>\n<option value="24">24th</option>\n<option value="25">25th</option>\n<option value="26">26th</option>\n<option value="27">27th</option>\n<option value="28">28th</option>\n<option value="29">29th</option>\n<option value="30">30th</option>\n<option value="31">31st</option>\n)
     expected << "</select>\n"
@@ -2858,13 +2848,17 @@ class DateHelperTest < ActionView::TestCase
   def test_datetime_select_with_integer
     @post = Post.new
     @post.updated_at = 3
-    datetime_select("post", "updated_at")
+    assert_nothing_raised do
+      datetime_select("post", "updated_at")
+    end
   end
 
   def test_datetime_select_with_infinity # Float
     @post = Post.new
     @post.updated_at = (-1.0 / 0)
-    datetime_select("post", "updated_at")
+    assert_nothing_raised do
+      datetime_select("post", "updated_at")
+    end
   end
 
   def test_datetime_select_with_default_prompt

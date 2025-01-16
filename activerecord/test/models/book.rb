@@ -9,6 +9,7 @@ class Book < ActiveRecord::Base
 
   has_many :subscriptions
   has_many :subscribers, through: :subscriptions
+  has_many :subscriber_accounts, through: :subscribers, source: :account
 
   has_one :essay
 
@@ -24,6 +25,7 @@ class Book < ActiveRecord::Base
   enum :difficulty, [:easy, :medium, :hard], suffix: :to_read
   enum :cover, { hard: "hard", soft: "soft" }
   enum :boolean_status, { enabled: true, disabled: false }
+  enum :symbol_status, { proposed: :proposed, published: :published }, prefix: true
 
   def published!
     super

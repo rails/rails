@@ -5,6 +5,8 @@
   <%%= csrf_meta_tags %>
   <%%= csp_meta_tag %>
 
+  <%%= yield :head %>
+
   <%%= stylesheet_link_tag    "<%= namespaced_name %>/application", media: "all" %>
 </head>
 <body>

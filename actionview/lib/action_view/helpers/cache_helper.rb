@@ -76,11 +76,11 @@ module ActionView
       #   render 'comments/comments'
       #   render('comments/comments')
       #
-      #   render "header" translates to render("comments/header")
+      #   render "header"        # translates to render("comments/header")
       #
-      #   render(@topic)         translates to render("topics/topic")
-      #   render(topics)         translates to render("topics/topic")
-      #   render(message.topics) translates to render("topics/topic")
+      #   render(@topic)         # translates to render("topics/topic")
+      #   render(topics)         # translates to render("topics/topic")
+      #   render(message.topics) # translates to render("topics/topic")
       #
       # It's not possible to derive all render calls like that, though.
       # Here are a few examples of things that can't be derived:
@@ -92,6 +92,14 @@ module ActionView
       #
       #   render partial: 'attachments/attachment', collection: group_of_attachments
       #   render partial: 'documents/document', collection: @project.documents.where(published: true).order('created_at')
+      #
+      # One last type of dependency can be determined implicitly:
+      #
+      #   render "maintenance_tasks/runs/info/#{run.status}"
+      #
+      # Because the value passed to render ends in interpolation, Action View
+      # will mark all partials within the "maintenance_tasks/runs/info" folder as
+      # dependencies.
       #
       # === Explicit dependencies
       #

@@ -13,8 +13,34 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
   test "HTTP caching" do
     get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
     assert_response :success
-    assert_equal "max-age=3155695200, public", response.headers["Cache-Control"]
+    assert_equal "max-age=3155695200, public, immutable", response.headers["Cache-Control"]
   end
+
+  test "invalidates cache and returns a 404 if the file is not found on download" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    mock_download = lambda do |_|
+      raise ActiveStorage::FileNotFoundError.new "File still uploading!"
+    end
+    blob.service.stub(:download, mock_download) do
+      get rails_storage_proxy_url(blob)
+    end
+    assert_response :not_found
+    assert_equal "no-cache", response.headers["Cache-Control"]
+  end
+
+
+  test "invalidates cache and returns a 500 if an error is raised on download" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    mock_download = lambda do |_|
+      raise StandardError.new "Something is not cool!"
+    end
+    blob.service.stub(:download, mock_download) do
+      get rails_storage_proxy_url(blob)
+    end
+    assert_response :internal_server_error
+    assert_equal "no-cache", response.headers["Cache-Control"]
+  end
+
 
   test "forcing Content-Type to binary" do
     get rails_storage_proxy_url(create_blob(content_type: "text/html"))
@@ -104,6 +130,12 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     # over 5mb when using S3 services.
     request = ActionController::TestRequest.create({})
     assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
+  end
+
+  test "sessions are disabled" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
   end
 end
 

@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/post"
 
 module ActiveRecord
   class ConnectionHandlingTest < ActiveRecord::TestCase
+    fixtures :posts
+
     setup do
       @_permanent_connection_checkout_was = ActiveRecord.permanent_connection_checkout
     end
@@ -163,6 +166,21 @@ module ActiveRecord
         end
 
         assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+      end
+
+      test "common APIs don't permanently hold a connection when permanent checkout is deprecated or disallowed" do
+        ActiveRecord.permanent_connection_checkout = :deprecated
+        ActiveRecord::Base.release_connection
+        assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
+
+        Post.create!(title: "foo", body: "bar")
+        assert_not_predicate Post.connection_pool, :active_connection?
+
+        Post.first
+        assert_not_predicate Post.connection_pool, :active_connection?
+
+        Post.count
+        assert_not_predicate Post.connection_pool, :active_connection?
       end
     end
   end

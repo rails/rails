@@ -104,6 +104,7 @@ module AbstractController
       # Declare a controller method as a helper. For example, the following
       # makes the `current_user` and `logged_in?` controller methods available
       # to the view:
+      #
       #     class ApplicationController < ActionController::Base
       #       helper_method :current_user, :logged_in?
       #
@@ -118,6 +119,7 @@ module AbstractController
       #     end
       #
       # In a view:
+      #
       #     <% if logged_in? -%>Welcome, <%= current_user.name %><% end -%>
       #
       # #### Parameters
@@ -131,8 +133,8 @@ module AbstractController
         file, line = location.path, location.lineno
 
         methods.each do |method|
-          # def current_user(*args, &block)
-          #     controller.send(:'current_user', *args, &block)
+          # def current_user(...)
+          #   controller.send(:'current_user', ...)
           # end
           _helpers_for_modification.class_eval <<~ruby_eval.lines.map(&:strip).join(";"), file, line
             def #{method}(...)

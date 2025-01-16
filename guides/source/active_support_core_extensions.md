@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Support Core Extensions
 ==============================
@@ -1540,7 +1540,7 @@ INFO: As a rule of thumb you can think of `camelize` as the inverse of `undersco
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.acronym 'SSL'
+  inflect.acronym "SSL"
 end
 
 "SSLError".underscore.camelize # => "SSLError"
@@ -2881,27 +2881,25 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### Working with Keys
 
-#### `except` and `except!`
+#### `except!`
 
-The method [`except`][Hash#except] returns a hash with the keys in the argument list removed, if present:
-
-```ruby
-{ a: 1, b: 2 }.except(:a) # => {:b=>2}
-```
-
-If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except` to play nice with hashes with indifferent access for instance:
+The method [`except!`][Hash#except!] is identical to the built-in `except` method but removes keys in place, returning `self`.
 
 ```ruby
-{ a: 1 }.with_indifferent_access.except(:a)  # => {}
-{ a: 1 }.with_indifferent_access.except("a") # => {}
+{ a: 1, b: 2 }.except!(:a) # => {:b=>2}
+{ a: 1, b: 2 }.except!(:c) # => {:a=>1, :b=>2}
 ```
 
-There's also the bang variant [`except!`][Hash#except!] that removes keys in place.
+If the receiver responds to `convert_key`, the method is called on each of the arguments. This allows `except!` (and `except`) to play nice with hashes with indifferent access for instance:
+
+```ruby
+{ a: 1 }.with_indifferent_access.except!(:a)  # => {}
+{ a: 1 }.with_indifferent_access.except!("a") # => {}
+```
 
 NOTE: Defined in `active_support/core_ext/hash/except.rb`.
 
 [Hash#except!]: https://api.rubyonrails.org/classes/Hash.html#method-i-except-21
-[Hash#except]: https://api.rubyonrails.org/classes/Hash.html#method-i-except
 
 #### `stringify_keys` and `stringify_keys!`
 
@@ -2923,7 +2921,7 @@ In case of key collision, the value will be the one most recently inserted into 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionView::Helpers::FormHelper` defines:
 
 ```ruby
-def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
+def to_checkbox_tag(options = {}, checked_value = "1", unchecked_value = "0")
   options = options.stringify_keys
   options["type"] = "checkbox"
   # ...
@@ -2969,7 +2967,7 @@ In case of key collision, the value will be the one most recently inserted into 
 This method may be useful for example to easily accept both symbols and strings as options. For instance `ActionText::TagHelper` defines
 
 ```ruby
-def rich_text_area_tag(name, value = nil, options = {})
+def rich_textarea_tag(name, value = nil, options = {})
   options = options.symbolize_keys
 
   options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"

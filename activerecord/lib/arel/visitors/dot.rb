@@ -191,6 +191,7 @@ module Arel # :nodoc: all
           end
         end
         alias :visit_Arel_Nodes_And :visit__children
+        alias :visit_Arel_Nodes_Or :visit__children
         alias :visit_Arel_Nodes_With :visit__children
 
         def visit_String(o)

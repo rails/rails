@@ -15,6 +15,12 @@ module ActiveRecord
       class DualEncoding < ActiveRecord::Base
       end
 
+      class SQLiteExtensionSpec
+        def self.to_path
+          "/path/to/sqlite3_extension"
+        end
+      end
+
       def setup
         @conn = SQLite3Adapter.new(
           database: ":memory:",
@@ -23,12 +29,14 @@ module ActiveRecord
         )
       end
 
-      def test_bad_connection
-        error = assert_raise ActiveRecord::NoDatabaseError do
-          connection = SQLite3Adapter.new(adapter: "sqlite3", database: "/tmp/should/_not/_exist/-cinco-dog.db")
+      def test_database_should_get_created_when_missing_parent_directories_for_database_path
+        dir = Dir.mktmpdir
+        db_path = File.join(dir, "_not_exist/-cinco-dog.sqlite3")
+        assert_nothing_raised do
+          connection = SQLite3Adapter.new(adapter: "sqlite3", database: db_path)
           connection.drop_table "ex", if_exists: true
         end
-        assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
+        assert SQLite3Adapter.database_exists?(adapter: "sqlite3", database: db_path)
       end
 
       def test_database_exists_returns_false_when_the_database_does_not_exist
@@ -594,7 +602,7 @@ module ActiveRecord
 
       def test_tables_logs_name
         sql = <<~SQL
-          SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND type IN ('table')
+          SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table')
         SQL
         @conn.connect!
         assert_logged [[sql.squish, "SCHEMA", []]] do
@@ -605,7 +613,7 @@ module ActiveRecord
       def test_table_exists_logs_name
         with_example_table do
           sql = <<~SQL
-            SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence' AND name = 'ex' AND type IN ('table')
+            SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND name = 'ex' AND type IN ('table')
           SQL
           assert_logged [[sql.squish, "SCHEMA", []]] do
             assert @conn.table_exists?("ex")
@@ -693,6 +701,15 @@ module ActiveRecord
           @conn.add_index "ex", %w{ id number }, name: "fun"
           index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
           assert_equal %w{ id number }.sort, index.columns.sort
+        end
+      end
+
+      def test_partial_index_with_comment
+        with_example_table do
+          @conn.add_index "ex", :id, name: "fun", where: "number > 0 /*tag:test*/"
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal "number > 0", index.where
         end
       end
 
@@ -924,14 +941,12 @@ module ActiveRecord
         statement = ::SQLite3::Statement.new(db,
                                            "CREATE TABLE statement_test (number integer not null)")
         statement.stub(:step, -> { raise ::SQLite3::BusyException.new("busy") }) do
-          assert_called(statement, :columns, returns: []) do
-            assert_called(statement, :close) do
-              ::SQLite3::Statement.stub(:new, statement) do
-                error = assert_raises ActiveRecord::StatementInvalid do
-                  @conn.exec_query "select * from statement_test"
-                end
-                assert_equal @conn.pool, error.connection_pool
+          assert_called(statement, :close) do
+            ::SQLite3::Statement.stub(:new, statement) do
+              error = assert_raises ActiveRecord::StatementTimeout do
+                @conn.exec_query "select * from statement_test"
               end
+              assert_equal @conn.pool, error.connection_pool
             end
           end
         end
@@ -999,7 +1014,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
@@ -1011,7 +1026,7 @@ module ActiveRecord
         error = assert_raises(StandardError) do
           conn.add_index :testings, :non_existent
         end
-        assert_match(/no such column: non_existent/, error.message)
+        assert_match(/no such column: "?non_existent"?/, error.message)
         assert_equal conn.pool, error.connection_pool
 
         with_strict_strings_by_default do
@@ -1021,7 +1036,7 @@ module ActiveRecord
           error = assert_raises(StandardError) do
             conn.add_index :testings, :non_existent2
           end
-          assert_match(/no such column: non_existent2/, error.message)
+          assert_match(/no such column: "?non_existent2"?/, error.message)
           assert_equal conn.pool, error.connection_pool
         end
       end
@@ -1078,6 +1093,30 @@ module ActiveRecord
         with_example_table("id integer, shop_id integer, PRIMARY KEY (shop_id, id)", "cpk_table") do
           assert_not @conn.columns("cpk_table").any?(&:rowid)
         end
+      end
+
+      def test_sqlite_extensions_are_constantized_for_the_client_constructor
+        mock_adapter = Class.new(SQLite3Adapter) do
+          class << self
+            attr_reader :new_client_arg
+
+            def new_client(config)
+              @new_client_arg = config
+            end
+          end
+        end
+
+        conn = mock_adapter.new({
+          database: ":memory:",
+          adapter: "sqlite3",
+          extensions: [
+            "/string/literal/path",
+            "ActiveRecord::ConnectionAdapters::SQLite3AdapterTest::SQLiteExtensionSpec",
+          ]
+        })
+        conn.send(:connect)
+
+        assert_equal(["/string/literal/path", SQLiteExtensionSpec], conn.class.new_client_arg[:extensions])
       end
 
       private

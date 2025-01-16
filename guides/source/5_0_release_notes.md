@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 5.0 Release Notes
 ===============================
@@ -55,7 +55,7 @@ information.
 ### API Applications
 
 Rails can now be used to create slimmed down API only applications.
-This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](https://developer.github.com) API,
+This is useful for creating and serving APIs similar to [X](https://developer.x.com) or [GitHub](https://developer.github.com) API,
 that can be used to serve public-facing, as well as, for custom applications.
 
 You can generate a new api Rails app using:
@@ -781,7 +781,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     To enable, set `prepared_statements: true` in `config/database.yml`.
     ([Pull Request](https://github.com/rails/rails/pull/23461))
 
-*   Added ability to call `ActionRecord::Relation#update` on relation objects
+*   Added ability to call `ActiveRecord::Relation#update` on relation objects
     which will run validations on callbacks on all objects in the relation.
     ([Pull Request](https://github.com/rails/rails/pull/11898))
 

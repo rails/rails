@@ -27,6 +27,17 @@ module ActionView
     end
   end
 
+  class StrictLocalsError < ArgumentError # :nodoc:
+    def initialize(argument_error, template)
+      message = argument_error.message.
+                  gsub("unknown keyword:", "unknown local:").
+                  gsub("missing keyword:", "missing local:").
+                  gsub("no keywords accepted", "no locals accepted").
+                  concat(" for #{template.short_identifier}")
+      super(message)
+    end
+  end
+
   class MissingTemplate < ActionViewError # :nodoc:
     attr_reader :path, :paths, :prefixes, :partial
 

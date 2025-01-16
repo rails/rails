@@ -123,6 +123,7 @@ module ActionController
       BasicImplicitRender,
       StrongParameters,
       RateLimiting,
+      Caching,
 
       DataStreaming,
       DefaultHeaders,

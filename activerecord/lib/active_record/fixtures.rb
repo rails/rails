@@ -2,8 +2,6 @@
 
 require "erb"
 require "yaml"
-require "zlib"
-require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/test_fixtures"
@@ -498,8 +496,8 @@ module ActiveRecord
   #   # app/models/book_orders.rb
   #   class BookOrder < ApplicationRecord
   #     self.primary_key = [:shop_id, :id]
-  #     belongs_to :order, query_constraints: [:shop_id, :order_id]
-  #     belongs_to :book, query_constraints: [:author_id, :book_id]
+  #     belongs_to :order, foreign_key: [:shop_id, :order_id]
+  #     belongs_to :book, foreign_key: [:author_id, :book_id]
   #   end
   #
   # <code></code>

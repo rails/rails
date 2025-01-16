@@ -165,8 +165,11 @@ module Mime
       end
 
       def lookup(string)
+        return LOOKUP[string] if LOOKUP.key?(string)
+
         # fallback to the media-type without parameters if it was not found
-        LOOKUP[string] || LOOKUP[string.split(";", 2)[0]&.rstrip] || Type.new(string)
+        string = string.split(";", 2)[0]&.rstrip
+        LOOKUP[string] || Type.new(string)
       end
 
       def lookup_by_extension(extension)

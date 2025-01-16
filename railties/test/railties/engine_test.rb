@@ -46,16 +46,6 @@ module RailtiesTest
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
     end
 
-    test "serving sprocket's assets" do
-      @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
-      add_to_env_config "development", "config.assets.digest = false"
-
-      boot_rails
-
-      get "/assets/engine.js"
-      assert_match "alert()", last_response.body
-    end
-
     test "rake environment can be called in the engine" do
       boot_rails
 
@@ -668,6 +658,8 @@ en:
 
       add_to_config "config.middleware.use Bukkits"
       boot_rails
+
+      assert_includes Rails.application.middleware.map(&:klass), Bukkits, "Bukkits middleware should be in the middleware stack"
     end
 
     test "initializers are executed after application configuration initializers" do
@@ -950,8 +942,8 @@ en:
       assert_equal "bukkits_", Bukkits.table_name_prefix
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
-      assert ::Bukkits::MyMailer.method_defined?(:foo_url)
-      assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
+      assert ::Bukkits::MyMailer.new.respond_to?(:foo_url)
+      assert_not ::Bukkits::MyMailer.new.respond_to?(:bar_url)
 
       get("/bar")
       assert_equal "/bar", last_response.body
@@ -1067,6 +1059,73 @@ en:
       boot_rails
 
       get("/bukkits/foo")
+      assert_equal "ok", last_response.body
+    end
+
+    test "nested isolated engines should set correct route module prefix" do
+      app = File.readlines("#{app_path}/config/application.rb")
+      app.insert(6, "require \"bukkits/awesome\"")
+      File.open("#{app_path}/config/application.rb", "r+") do |f|
+        f.puts app
+      end
+
+      @plugin.write "lib/bukkits.rb", <<-RUBY
+        module Bukkits
+          class Engine < ::Rails::Engine
+            isolate_namespace Bukkits
+          end
+        end
+      RUBY
+
+      @plugin.write "lib/bukkits/awesome.rb", <<-RUBY
+        module Bukkits
+          module Awesome
+            class Engine < ::Rails::Engine
+              isolate_namespace Bukkits::Awesome
+            end
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          mount Bukkits::Engine, at: "/bukkits"
+        end
+
+        Bukkits::Engine.routes.draw do
+          get "/foo" => "foo#index"
+
+          mount Bukkits::Awesome::Engine, at: "/awesome"
+        end
+
+        Bukkits::Awesome::Engine.routes.draw do
+          get "/bar", as: :bar, to: "bar#index"
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/foo_controller.rb", <<-RUBY
+        class Bukkits::FooController < ActionController::Base
+          def index
+            render plain: bukkits_awesome.bar_path
+          end
+        end
+      RUBY
+
+      @plugin.write "app/controllers/bukkits/awesome/bar_controller.rb", <<-RUBY
+        class Bukkits::Awesome::BarController < ActionController::Base
+          def index
+            render plain: "ok"
+          end
+        end
+      RUBY
+
+      add_to_config("config.action_dispatch.show_exceptions = :none")
+
+      boot_rails
+
+      get("/bukkits/foo")
+      assert_equal "/bukkits/awesome/bar", last_response.body
+      get("/bukkits/awesome/bar")
       assert_equal "ok", last_response.body
     end
 
@@ -1465,10 +1524,10 @@ en:
       assert_equal "App's bar partial", last_response.body.strip
 
       get("/assets/foo.js")
-      assert_match "// Bukkit's foo js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       get("/assets/bar.js")
-      assert_match "// App's bar js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
         I18n::Railtie
@@ -1481,7 +1540,7 @@ en:
         ActiveJob::Railtie
         ActionMailer::Railtie
         Rails::TestUnitRailtie
-        Sprockets::Railtie
+        Propshaft::Railtie
         ActionView::Railtie
         ActiveStorage::Engine
         ActionCable::Engine

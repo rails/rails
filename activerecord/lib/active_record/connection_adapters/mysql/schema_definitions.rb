@@ -5,6 +5,7 @@ module ActiveRecord
     module MySQL
       module ColumnMethods
         extend ActiveSupport::Concern
+        extend ConnectionAdapters::ColumnMethods::ClassMethods
 
         ##
         # :method: blob
@@ -42,19 +43,11 @@ module ActiveRecord
         # :method: unsigned_bigint
         # :call-seq: unsigned_bigint(*names, **options)
 
-        ##
-        # :method: unsigned_float
-        # :call-seq: unsigned_float(*names, **options)
+        define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
+          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
+          :unsigned_float, :unsigned_decimal
 
-        ##
-        # :method: unsigned_decimal
-        # :call-seq: unsigned_decimal(*names, **options)
-
-        included do
-          define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
-            :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
-            :unsigned_float, :unsigned_decimal
-        end
+        deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
       end
 
       # = Active Record MySQL Adapter \Table Definition

@@ -7,17 +7,77 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :topics
 
+  def test_start_transaction_is_triggered_when_the_transaction_is_materialized
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |transaction|
+      assert_empty transactions # A transaction call, per se, does not trigger the event.
+      topics(:first).touch
+      assert_equal [transaction], transactions
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_start_transaction_is_not_triggered_for_ordinary_nested_calls
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |t1|
+      topics(:first).touch
+      assert_equal [t1], transactions
+
+      Topic.transaction do |_t2|
+        topics(:first).touch
+        assert_equal [t1], transactions
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_start_transaction_is_triggered_for_requires_new
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |t1|
+      topics(:first).touch
+      assert_equal [t1], transactions
+
+      Topic.transaction(requires_new: true) do |t2|
+        topics(:first).touch
+        assert_equal [t1, t2], transactions
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def test_transaction_instrumentation_on_commit
     topic = topics(:fifth)
 
     notified = false
+    expected_transaction = nil
+
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
+      assert_same expected_transaction, event.payload[:transaction]
       assert_equal :commit, event.payload[:outcome]
       notified = true
     end
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction do |transaction|
+      expected_transaction = transaction
       topic.update(title: "Ruby on Rails")
     end
 
@@ -30,13 +90,17 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
     topic = topics(:fifth)
 
     notified = false
+    expected_transaction = nil
+
     subscriber = ActiveSupport::Notifications.subscribe("transaction.active_record") do |event|
       assert event.payload[:connection]
+      assert_same expected_transaction, event.payload[:transaction]
       assert_equal :rollback, event.payload[:outcome]
       notified = true
     end
 
-    ActiveRecord::Base.transaction do
+    ActiveRecord::Base.transaction do |transaction|
+      expected_transaction = transaction
       topic.update(title: "Ruby on Rails")
       raise ActiveRecord::Rollback
     end
@@ -54,17 +118,24 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
       events << event
     end
 
-    ActiveRecord::Base.transaction do
+    real_transaction = savepoint_transaction = nil
+    ActiveRecord::Base.transaction do |transaction|
+      real_transaction = transaction
       topic.update(title: "Sinatra")
-      ActiveRecord::Base.transaction(requires_new: true) do
+      ActiveRecord::Base.transaction(requires_new: true) do |transaction|
+        savepoint_transaction = transaction
         topic.update(title: "Ruby on Rails")
       end
     end
 
     assert_equal 2, events.count
-    savepoint, real = events
-    assert_equal :commit, savepoint.payload[:outcome]
-    assert_equal :commit, real.payload[:outcome]
+    savepoint_event, real_event = events
+
+    assert_same savepoint_transaction, savepoint_event.payload[:transaction]
+    assert_equal :commit, savepoint_event.payload[:outcome]
+
+    assert_same real_transaction, real_event.payload[:transaction]
+    assert_equal :commit, real_event.payload[:outcome]
   ensure
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end

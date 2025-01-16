@@ -3,8 +3,13 @@
 require "abstract_unit"
 
 class AllowBrowserController < ActionController::Base
-  allow_browser versions: { safari: "16.4", chrome: "119", firefox: "123", opera: "104", ie: false }, block: -> { head :upgrade_required }, only: :hello
+  allow_browser versions: { safari: "16.4", chrome: "119", firefox: "123", opera: "106", ie: false }, block: -> { head :upgrade_required }, only: :hello
   def hello
+    head :ok
+  end
+
+  allow_browser versions: { safari: "16.4", chrome: "119", firefox: "123", opera: "106", ie: false }, block: :head_upgrade_required, only: :hello_method_name
+  def hello_method_name
     head :ok
   end
 
@@ -12,6 +17,11 @@ class AllowBrowserController < ActionController::Base
   def modern
     head :ok
   end
+
+  private
+    def head_upgrade_required
+      head :upgrade_required
+    end
 end
 
 class AllowBrowserTest < ActionController::TestCase
@@ -22,10 +32,16 @@ class AllowBrowserTest < ActionController::TestCase
   SAFARI_17_2_0 = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.0 Safari/605.1.15"
   FIREFOX_114   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0"
   IE_11         = "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko"
-  OPERA_104     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 OPR/104.0.4638.54"
+  OPERA_106     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0"
+  GOOGLE_BOT    = "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/W.X.Y.Z Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
 
-  test "blocked browser below version limit" do
+  test "blocked browser below version limit with callable" do
     get_with_agent :hello, FIREFOX_114
+    assert_response :upgrade_required
+  end
+
+  test "blocked browser below version limit with method name" do
+    get_with_agent :hello_method_name, FIREFOX_114
     assert_response :upgrade_required
   end
 
@@ -41,7 +57,7 @@ class AllowBrowserTest < ActionController::TestCase
     get_with_agent :hello, CHROME_120
     assert_response :ok
 
-    get_with_agent :hello, OPERA_104
+    get_with_agent :hello, OPERA_106
     assert_response :ok
   end
 
@@ -55,8 +71,25 @@ class AllowBrowserTest < ActionController::TestCase
     get_with_agent :modern, CHROME_120
     assert_response :ok
 
-    get_with_agent :modern, OPERA_104
+    get_with_agent :modern, OPERA_106
     assert_response :ok
+  end
+
+  test "bots" do
+    get_with_agent :hello, GOOGLE_BOT
+    assert_response :ok
+
+    get_with_agent :modern, GOOGLE_BOT
+    assert_response :ok
+  end
+
+  test "a blocked request instruments a browser_block.action_controller event" do
+    notification = assert_notification("browser_block.action_controller") do
+      get_with_agent :modern, CHROME_118
+    end
+
+    assert_equal request, notification.payload[:request]
+    assert_not_empty notification.payload[:versions]
   end
 
   private

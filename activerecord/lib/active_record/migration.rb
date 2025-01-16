@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "benchmark"
-require "set"
-require "zlib"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/attribute_accessors"
@@ -21,7 +18,7 @@ module ActiveRecord
   # For example the following migration is not reversible.
   # Rolling back this migration will raise an ActiveRecord::IrreversibleMigration error.
   #
-  #   class IrreversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #   class IrreversibleMigrationExample < ActiveRecord::Migration[8.1]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -39,7 +36,7 @@ module ActiveRecord
   #
   # 1. Define <tt>#up</tt> and <tt>#down</tt> methods instead of <tt>#change</tt>:
   #
-  #  class ReversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #  class ReversibleMigrationExample < ActiveRecord::Migration[8.1]
   #    def up
   #      create_table :distributors do |t|
   #        t.string :zipcode
@@ -64,7 +61,7 @@ module ActiveRecord
   #
   # 2. Use the #reversible method in <tt>#change</tt> method:
   #
-  #   class ReversibleMigrationExample < ActiveRecord::Migration[7.2]
+  #   class ReversibleMigrationExample < ActiveRecord::Migration[8.1]
   #     def change
   #       create_table :distributors do |t|
   #         t.string :zipcode
@@ -250,7 +247,7 @@ module ActiveRecord
   #
   # Example of a simple migration:
   #
-  #   class AddSsl < ActiveRecord::Migration[7.2]
+  #   class AddSsl < ActiveRecord::Migration[8.1]
   #     def up
   #       add_column :accounts, :ssl_enabled, :boolean, default: true
   #     end
@@ -270,7 +267,7 @@ module ActiveRecord
   #
   # Example of a more complex migration that also needs to initialize data:
   #
-  #   class AddSystemSettings < ActiveRecord::Migration[7.2]
+  #   class AddSystemSettings < ActiveRecord::Migration[8.1]
   #     def up
   #       create_table :system_settings do |t|
   #         t.string  :name
@@ -357,7 +354,7 @@ module ActiveRecord
   #
   # === Deletion
   #
-  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>drop_table(*names)</tt>: Drops the given tables.
   # * <tt>drop_join_table(table_1, table_2, options)</tt>: Drops the join table
   #   specified by the given arguments.
   # * <tt>remove_column(table_name, column_name, type, options)</tt>: Removes the column
@@ -399,7 +396,7 @@ module ActiveRecord
   #   $ bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
-  #   class AddFieldnameToTablename < ActiveRecord::Migration[7.2]
+  #   class AddFieldnameToTablename < ActiveRecord::Migration[8.1]
   #     def change
   #       add_column :tablenames, :fieldname, :string
   #     end
@@ -425,7 +422,7 @@ module ActiveRecord
   #
   # Not all migrations change the schema. Some just fix the data:
   #
-  #   class RemoveEmptyTags < ActiveRecord::Migration[7.2]
+  #   class RemoveEmptyTags < ActiveRecord::Migration[8.1]
   #     def up
   #       Tag.all.each { |tag| tag.destroy if tag.pages.empty? }
   #     end
@@ -438,7 +435,7 @@ module ActiveRecord
   #
   # Others remove columns when they migrate up instead of down:
   #
-  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[7.2]
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration[8.1]
   #     def up
   #       remove_column :items, :incomplete_items_count
   #       remove_column :items, :completed_items_count
@@ -452,7 +449,7 @@ module ActiveRecord
   #
   # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration[7.2]
+  #   class MakeJoinUnique < ActiveRecord::Migration[8.1]
   #     def up
   #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
   #     end
@@ -469,7 +466,7 @@ module ActiveRecord
   # <tt>Base#reset_column_information</tt> in order to ensure that the model has the
   # latest column data from after the new column was added. Example:
   #
-  #   class AddPeopleSalary < ActiveRecord::Migration[7.2]
+  #   class AddPeopleSalary < ActiveRecord::Migration[8.1]
   #     def up
   #       add_column :people, :salary, :integer
   #       Person.reset_column_information
@@ -531,7 +528,7 @@ module ActiveRecord
   # To define a reversible migration, define the +change+ method in your
   # migration like this:
   #
-  #   class TenderloveMigration < ActiveRecord::Migration[7.2]
+  #   class TenderloveMigration < ActiveRecord::Migration[8.1]
   #     def change
   #       create_table(:horses) do |t|
   #         t.column :content, :text
@@ -561,7 +558,7 @@ module ActiveRecord
   # can't execute inside a transaction though, and for these situations
   # you can turn the automatic transactions off.
   #
-  #   class ChangeEnum < ActiveRecord::Migration[7.2]
+  #   class ChangeEnum < ActiveRecord::Migration[8.1]
   #     disable_ddl_transaction!
   #
   #     def up
@@ -574,6 +571,7 @@ module ActiveRecord
   class Migration
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
+    autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
     autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
@@ -604,7 +602,7 @@ module ActiveRecord
         end
       end
 
-      def drop_table(table_name, **options)
+      def drop_table(*table_names, **options)
         if block_given?
           super { |t| yield compatible_table_definition(t) }
         else
@@ -681,10 +679,6 @@ module ActiveRecord
           paths = all_configs.flat_map { |config| config.migrations_paths || Migrator.migrations_paths }.uniq
           @file_watcher.new([], paths.index_with(["rb"]), &block)
         end
-
-        def connection
-          ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        end
     end
 
     class << self
@@ -715,13 +709,7 @@ module ActiveRecord
 
       def load_schema_if_pending!
         if any_schema_needs_update?
-          # Roundtrip to Rake to allow plugins to hook into database initialization.
-          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
-
-          FileUtils.cd(root) do
-            Base.connection_handler.clear_all_connections!(:all)
-            system("bin/rails db:test:prepare")
-          end
+          load_schema!
         end
 
         check_pending_migrations
@@ -785,6 +773,16 @@ module ActiveRecord
         def env
           ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
         end
+
+        def load_schema!
+          # Roundtrip to Rake to allow plugins to hook into database initialization.
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+
+          FileUtils.cd(root) do
+            Base.connection_handler.clear_all_connections!(:all)
+            system("bin/rails db:test:prepare")
+          end
+        end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -822,7 +820,7 @@ module ActiveRecord
     # and create the table 'apples' on the way up, and the reverse
     # on the way down.
     #
-    #   class FixTLMigration < ActiveRecord::Migration[7.2]
+    #   class FixTLMigration < ActiveRecord::Migration[8.1]
     #     def change
     #       revert do
     #         create_table(:horses) do |t|
@@ -841,7 +839,7 @@ module ActiveRecord
     #
     #   require_relative "20121212123456_tenderlove_migration"
     #
-    #   class FixupTLMigration < ActiveRecord::Migration[7.2]
+    #   class FixupTLMigration < ActiveRecord::Migration[8.1]
     #     def change
     #       revert TenderloveMigration
     #
@@ -892,7 +890,7 @@ module ActiveRecord
     # when the three columns 'first_name', 'last_name' and 'full_name' exist,
     # even when migrating down:
     #
-    #    class SplitNameMigration < ActiveRecord::Migration[7.2]
+    #    class SplitNameMigration < ActiveRecord::Migration[8.1]
     #      def change
     #        add_column :users, :first_name, :string
     #        add_column :users, :last_name, :string
@@ -920,7 +918,7 @@ module ActiveRecord
     # In the following example, the new column +published+ will be given
     # the value +true+ for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[7.2]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[8.1]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
@@ -972,16 +970,16 @@ module ActiveRecord
       when :down then announce "reverting"
       end
 
-      time = nil
+      time_elapsed = nil
       ActiveRecord::Tasks::DatabaseTasks.migration_connection.pool.with_connection do |conn|
-        time = Benchmark.measure do
+        time_elapsed = ActiveSupport::Benchmark.realtime do
           exec_migration(conn, direction)
         end
       end
 
       case direction
-      when :up   then announce "migrated (%.4fs)" % time.real; write
-      when :down then announce "reverted (%.4fs)" % time.real; write
+      when :up   then announce "migrated (%.4fs)" % time_elapsed; write
+      when :down then announce "reverted (%.4fs)" % time_elapsed; write
       end
     end
 
@@ -1022,8 +1020,8 @@ module ActiveRecord
     def say_with_time(message)
       say(message)
       result = nil
-      time = Benchmark.measure { result = yield }
-      say "%.4fs" % time.real, :subitem
+      time_elapsed = ActiveSupport::Benchmark.realtime { result = yield }
+      say "%.4fs" % time_elapsed, :subitem
       say("#{result} rows", :subitem) if result.is_a?(Integer)
       result
     end

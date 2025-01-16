@@ -36,7 +36,9 @@ module ActionDispatch
       end
 
       def test_initialize
-        Mapper.new FakeSet.new
+        assert_nothing_raised do
+          Mapper.new FakeSet.new
+        end
       end
 
       def test_scope_raises_on_anchor
@@ -91,7 +93,7 @@ module ActionDispatch
         options = {}
         scope = Mapper::Scope.new({})
         ast = Journey::Parser.parse "/store/:name(*rest)"
-        m = Mapper::Mapping.build(scope, FakeSet.new, ast, "foo", "bar", nil, [:get], nil, {}, true, options)
+        m = Mapper::Mapping.build(scope, FakeSet.new, ast, "foo", "bar", nil, [:get], nil, {}, true, nil, options)
         assert_equal(/.+?/m, m.requirements[:rest])
       end
 
@@ -221,6 +223,63 @@ module ActionDispatch
           mapper.scope(defaults: frozen) do
             # pass
           end
+        end
+      end
+
+      def test_deprecated_hash
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.get "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.post "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.put "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.patch "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.delete "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.options "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.connect "/foo", { to: "home#index" }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.match "/foo", { to: "home#index", via: :get }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.mount(lambda { |env| [200, {}, [""]] }, { at: "/" })
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.scope("/hello", { only: :get }) { }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.namespace(:admin, { module: "sekret" }) { }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.resource(:user, { only: :show }) { }
+        end
+
+        assert_deprecated(ActionDispatch.deprecator) do
+          mapper.resources(:users, { only: :show }) { }
         end
       end
     end

@@ -3,6 +3,7 @@
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
+require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
 require "active_support/testing/deprecation"
@@ -14,6 +15,7 @@ require "active_support/testing/constant_stubbing"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
 require "active_support/testing/parallelize_executor"
+require "active_support/testing/notification_assertions"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -50,8 +52,8 @@ module ActiveSupport
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
-      #   test-database-0
-      #   test-database-1
+      #   test-database_0
+      #   test-database_1
       #
       # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
@@ -78,8 +80,12 @@ module ActiveSupport
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
       def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
-        workers = Concurrent.processor_count if workers == :number_of_processors
-        workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
+        case
+        when ENV["PARALLEL_WORKERS"]
+          workers = ENV["PARALLEL_WORKERS"].to_i
+        when workers == :number_of_processors
+          workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
+        end
 
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
@@ -142,8 +148,10 @@ module ActiveSupport
 
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
+    prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing
     include ActiveSupport::Testing::TimeHelpers

@@ -20,11 +20,11 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in Ruby dependencies
+      - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
 <% end -%>
-<%- if options[:javascript] == "importmap" -%>
+<%- if options[:javascript] == "importmap" && !options[:api] && !options[:skip_javascript] -%>
   scan_js:
     runs-on: ubuntu-latest
 
@@ -66,7 +66,7 @@ jobs:
     <%- if options[:database] == "sqlite3" -%>
     # services:
     #  redis:
-    #    image: redis
+    #    image: valkey/valkey:8
     #    ports:
     #      - 6379:6379
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -92,7 +92,7 @@ jobs:
       <%- end -%>
 
       # redis:
-      #   image: redis
+      #   image: valkey/valkey:8
       #   ports:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
@@ -100,7 +100,7 @@ jobs:
     <%- end -%>
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y google-chrome-stable <%= (dockerfile_base_packages + [build_package_for_database]).join(" ") %>
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -120,13 +120,21 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+          <%- if options[:database] == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
+          <%- elsif options[:database] == "trilogy" -%>
+          DATABASE_URL: trilogy://127.0.0.1:3306
           <%- elsif options[:database] == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
+          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:setup test test:system
+        <%- if options[:api] || options[:skip_system_test] -%>
+        run: bin/rails db:test:prepare test
+        <%- else -%>
+        run: bin/rails db:test:prepare test test:system
+        <%- end -%>
+      <%- unless options[:api] || options[:skip_system_test] -%>
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -135,4 +143,5 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+      <%- end -%>
 <% end -%>

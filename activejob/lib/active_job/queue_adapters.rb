@@ -12,7 +12,6 @@ module ActiveJob
   # * {Resque}[https://github.com/resque/resque]
   # * {Sidekiq}[https://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
-  # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
   #
   # For testing and development Active Job has three built-in adapters:
@@ -32,7 +31,6 @@ module ActiveJob
   #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
   #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
-  #   | Sucker Punch      | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
   #   | Active Job Test   | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
@@ -114,11 +112,11 @@ module ActiveJob
   module QueueAdapters
     extend ActiveSupport::Autoload
 
+    autoload :AbstractAdapter
     autoload :AsyncAdapter
     autoload :InlineAdapter
     autoload :BackburnerAdapter
     autoload :DelayedJobAdapter
-    autoload :QueAdapter
     autoload :QueueClassicAdapter
     autoload :ResqueAdapter
     autoload :SidekiqAdapter

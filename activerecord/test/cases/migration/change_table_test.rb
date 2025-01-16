@@ -339,6 +339,26 @@ module ActiveRecord
         end
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_validate_check_constraint
+          with_change_table do |t|
+            expect :add_check_constraint, nil, [:delete_me, "price > discounted_price"], name: "price_check", validate: false
+            t.check_constraint "price > discounted_price", name: "price_check", validate: false
+            expect :validate_check_constraint, :nil, [:delete_me, "price_check"]
+            t.validate_check_constraint "price_check"
+          end
+        end
+
+        def test_validate_constraint
+          with_change_table do |t|
+            expect :add_check_constraint, nil, [:delete_me, "price > discounted_price"], name: "price_check", validate: false
+            t.check_constraint "price > discounted_price", name: "price_check", validate: false
+            expect :validate_constraint, :nil, [:delete_me, "price_check"]
+            t.validate_constraint "price_check"
+          end
+        end
+      end
+
       def test_remove_column_with_if_exists_raises_error
         assert_raises(ArgumentError) do
           with_change_table do |t|

@@ -131,6 +131,32 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_schema "test_schema3"
   end
 
+  def test_force_create_schema
+    @connection.create_schema "test_schema3"
+    assert_queries_match(/DROP SCHEMA IF EXISTS "test_schema3"/) do
+      @connection.create_schema "test_schema3", force: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_if_not_exists
+    @connection.create_schema "test_schema3"
+    assert_queries_match('CREATE SCHEMA IF NOT EXISTS "test_schema3"') do
+      @connection.create_schema "test_schema3", if_not_exists: true
+    end
+    assert @connection.schema_names.include?("test_schema3")
+  ensure
+    @connection.drop_schema "test_schema3"
+  end
+
+  def test_create_schema_raises_if_both_force_and_if_not_exists_provided
+    assert_raises(ArgumentError, match: "Options `:force` and `:if_not_exists` cannot be used simultaneously.") do
+      @connection.create_schema "test_schema3", force: true, if_not_exists: true
+    end
+  end
+
   def test_drop_schema
     begin
       @connection.create_schema "test_schema3"
@@ -184,10 +210,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   if ActiveRecord::Base.lease_connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
-      @connection.exec_query "alter table developers add column zomg int", "sql", []
-      altered = true
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      assert_nothing_raised do
+        @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+        @connection.exec_query "alter table developers add column zomg int", "sql", []
+        altered = true
+        @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
+      end
+      pass
     ensure
       # We are not using DROP COLUMN IF EXISTS because that syntax is only
       # supported by pg 9.X
@@ -261,6 +290,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal '"schema_name"."table.name"', @connection.quote_table_name('schema_name."table.name"')
     assert_equal '"schema.name"."table_name"', @connection.quote_table_name('"schema.name".table_name')
     assert_equal '"schema.name"."table.name"', @connection.quote_table_name('"schema.name"."table.name"')
+  end
+
+  def test_where_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.where("test_schema.things.name": "thing1").map(&:name)
+  end
+
+  def test_pluck_with_qualified_schema_name
+    Thing1.create(id: 1, name: "thing1", email: "thing1@localhost", moment: Time.now)
+    assert_equal ["thing1"], Thing1.pluck(:"test_schema.things.name")
   end
 
   def test_classes_with_qualified_schema_name
@@ -830,5 +869,92 @@ class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_no_match(/nulls_not_distinct/, output)
+  end
+end
+
+class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+    @connection.drop_table "transportation_modes", if_exists: true
+    @connection.drop_table "vehicles", if_exists: true
+  end
+
+  def test_list_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY LIST (kind)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_range_partition_options_is_dumped
+    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
+
+    options = "PARTITION BY RANGE (created_at)"
+
+    @connection.create_table "trains", id: false, options: options do |t|
+      t.string :name
+      t.datetime :created_at, null: false
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_inherited_table_options_is_dumped
+    @connection.create_table "transportation_modes" do |t|
+      t.string :name
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_multiple_inherited_table_options_is_dumped
+    @connection.create_table "vehicles" do |t|
+      t.string :name
+    end
+
+    @connection.create_table "transportation_modes" do |t|
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation_modes, vehicles)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_no_partition_options_are_dumped
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+
+    output = dump_table_schema "trains"
+
+    assert_no_match("options:", output)
   end
 end

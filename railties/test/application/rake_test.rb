@@ -205,7 +205,9 @@ module ApplicationTests
       app_file "test/fixtures/products.csv", ""
 
       require "#{rails_root}/config/environment"
-      rails "db:fixtures:load"
+      assert_nothing_raised do
+        rails "db:fixtures:load"
+      end
     end
 
     def test_scaffold_tests_pass_by_default

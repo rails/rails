@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/user"
+require "models/pilot"
 require "models/visitor"
 
 class SecurePasswordTest < ActiveModel::TestCase
@@ -12,6 +13,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     @user = User.new
     @visitor = Visitor.new
+    @pilot = Pilot.new
 
     # Simulate loading an existing user from the DB
     @existing_user = User.new
@@ -313,5 +315,13 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+  end
+
+  test "password reset token" do
+    assert_not @person.respond_to? :password_reset_token
+    assert_equal "password_reset-token-900", @pilot.password_reset_token
+
+    assert_equal "finding-for-password_reset-by-999", Pilot.find_by_password_reset_token("999")
+    assert_equal "finding-for-password_reset-by-999!", Pilot.find_by_password_reset_token!("999")
   end
 end

@@ -85,7 +85,7 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
-    # Returns true if the current time is within Daylight Savings Time for the
+    # Returns true if the current time is within Daylight Savings \Time for the
     # specified time zone.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
@@ -136,9 +136,9 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
     #
-    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25.624541392 EST -05:00"
+    #   Time.zone.now.inspect # => "2024-11-13 07:00:10.528054960 UTC +00:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%F %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
@@ -157,11 +157,11 @@ module ActiveSupport
     # to +false+.
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = true
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").as_json
     #   # => "2005-02-01T05:15:10.000-10:00"
     #
     #   # With ActiveSupport::JSON::Encoding.use_standard_json_time_format = false
-    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").to_json
+    #   Time.utc(2005,2,1,15,15,10).in_time_zone("Hawaii").as_json
     #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
@@ -215,8 +215,7 @@ module ActiveSupport
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        # Change to to_s when deprecation is gone.
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
+        to_s
       end
     end
     alias_method :to_formatted_s, :to_fs
@@ -300,7 +299,16 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        result = utc.acts_like?(:date) ? utc.since(other) : utc + other rescue utc.since(other)
+        begin
+          result = utc + other
+        rescue TypeError
+          result = utc.to_datetime.since(other)
+          ActiveSupport.deprecator.warn(
+            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
+            "a `TypeError` in Rails 8.1."
+          )
+          result.in_time_zone(time_zone)
+        end
         result.in_time_zone(time_zone)
       end
     end
@@ -332,11 +340,11 @@ module ActiveSupport
     #
     def -(other)
       if other.acts_like?(:time)
-        to_time - other.to_time
+        getutc - other.getutc
       elsif duration_of_variable_length?(other)
         method_missing(:-, other)
       else
-        result = utc.acts_like?(:date) ? utc.ago(other) : utc - other rescue utc.ago(other)
+        result = utc - other
         result.in_time_zone(time_zone)
       end
     end
@@ -375,8 +383,8 @@ module ActiveSupport
     #
     #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15.116992711 EST -05:00
     #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15.116992711 EST -05:00
-    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00.116992711 EST -05:00
-    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00.116992711 EST -05:00
+    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00.000000000 EST -05:00
+    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00.000000000 EST -05:00
     #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15.116992711 HST -10:00
     def change(options)
@@ -479,11 +487,13 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
-    # Returns an instance of +Time+, either with the same UTC offset
-    # as +self+ or in the local system timezone depending on the setting
-    # of +ActiveSupport.to_time_preserves_timezone+.
+    # Returns an instance of +Time+, either with the same timezone as +self+,
+    # with the same UTC offset as +self+ or in the local system timezone
+    # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      if preserve_timezone
+      if preserve_timezone == :zone
+        @to_time_with_timezone ||= getlocal(time_zone)
+      elsif preserve_timezone
         @to_time_with_instance_offset ||= getlocal(utc_offset)
       else
         @to_time_with_system_offset ||= getlocal
@@ -535,7 +545,6 @@ module ActiveSupport
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
-      return false if sym.to_sym == :acts_like_date?
       time.respond_to?(sym, include_priv)
     end
 

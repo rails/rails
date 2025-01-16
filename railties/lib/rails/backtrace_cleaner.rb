@@ -5,8 +5,8 @@ require "active_support/core_ext/string/access"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
-    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|\(\w*\))/
-    RENDER_TEMPLATE_PATTERN = /:in `.*_\w+_{2,3}\d+_\d+'/
+    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|\(\w+(?:-\w+)*\))/
+    RENDER_TEMPLATE_PATTERN = /:in [`'].*_\w+_{2,3}\d+_\d+'/
 
     def initialize
       super
@@ -24,6 +24,19 @@ module Rails
         end
       end
       add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
+    end
+
+    def clean(backtrace, kind = :silent)
+      return backtrace if ENV["BACKTRACE"]
+
+      super(backtrace, kind)
+    end
+    alias_method :filter, :clean
+
+    def clean_frame(frame, kind = :silent)
+      return frame if ENV["BACKTRACE"]
+
+      super(frame, kind)
     end
   end
 end

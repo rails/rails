@@ -7,14 +7,6 @@ module ActiveSupport
   module LoggerThreadSafeLevel # :nodoc:
     extend ActiveSupport::Concern
 
-    Logger::Severity.constants.each do |severity|
-      class_eval(<<-EOT, __FILE__, __LINE__ + 1)
-        def #{severity.downcase}?                # def debug?
-          Logger::#{severity} >= level           #   DEBUG >= level
-        end                                      # end
-      EOT
-    end
-
     def local_level
       IsolatedExecutionState[local_level_key]
     end

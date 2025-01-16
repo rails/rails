@@ -31,6 +31,15 @@ class ActionMailbox::Ingresses::Relay::InboundEmailsControllerTest < ActionDispa
     assert_equal "05988AA6EC0D44318855A5E39E3B6F9E@jansterba.com", inbound_email.message_id
   end
 
+  test "rejecting a request with no body" do
+    assert_no_difference -> { ActionMailbox::InboundEmail.count } do
+      post rails_relay_inbound_emails_url, headers: { "Authorization" => credentials, "Content-Type" => "message/rfc822" },
+        env: { "rack.input" => nil }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
   test "rejecting an unauthorized inbound email" do
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       post rails_relay_inbound_emails_url, headers: { "Content-Type" => "message/rfc822" },

@@ -38,7 +38,7 @@ module CacheIncrementDecrementBehavior
     assert_equal 2, @cache.increment(key, 1, expires_in: 5000)
 
     # having to sleep two seconds in a test is bad, but we're testing
-    # a wide range of backends with different TTL mecanisms, most without
+    # a wide range of backends with different TTL mechanisms, most without
     # subsecond granularity, so this is the only reliable way.
     sleep 2
 

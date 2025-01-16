@@ -106,6 +106,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
+  def test_validate_uniqueness_with_singleton_class
+    Topic.create!(title: "abc")
+    t2 = Topic.new(title: "abc")
+    t2.singleton_class.validates(:title, uniqueness: true)
+    assert_not_predicate t2, :valid?
+
+    t3 = Topic.new(title: "abc")
+    assert_predicate t3, :valid?
+  end
+
   def test_validate_uniqueness_with_alias_attribute
     Topic.alias_attribute :new_title, :title
     Topic.validates_uniqueness_of(:new_title)
@@ -442,7 +452,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "abcdefgh")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "abcdefgh")
       end
@@ -461,7 +471,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
       e2 = Event.create(title: "一二三四五六七八")
       assert_not e2.valid?, "Created an event whose title is not unique"
-    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter, :OracleAdapter, :SQLServerAdapter)
+    elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
       assert_raise(ActiveRecord::ValueTooLong) do
         Event.create(title: "一二三四五六七八")
       end

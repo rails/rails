@@ -46,7 +46,7 @@ module ActiveSupport
 end
 
 [Enumerable, Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].reverse_each do |klass|
-  klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
+  klass.include(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
 class Module
@@ -65,11 +65,9 @@ class Object
   end
 end
 
-if RUBY_VERSION >= "3.2"
-  class Data # :nodoc:
-    def as_json(options = nil)
-      to_h.as_json(options)
-    end
+class Data # :nodoc:
+  def as_json(options = nil)
+    to_h.as_json(options)
   end
 end
 
@@ -105,7 +103,7 @@ end
 
 class Symbol
   def as_json(options = nil) # :nodoc:
-    to_s
+    name
   end
 end
 
@@ -164,7 +162,12 @@ end
 
 class Array
   def as_json(options = nil) # :nodoc:
-    map { |v| options ? v.as_json(options.dup) : v.as_json }
+    if options
+      options = options.dup.freeze unless options.frozen?
+      map { |v| v.as_json(options) }
+    else
+      map { |v| v.as_json }
+    end
   end
 end
 
@@ -184,8 +187,11 @@ class Hash
     end
 
     result = {}
-    subset.each do |k, v|
-      result[k.to_s] = options ? v.as_json(options.dup) : v.as_json
+    if options
+      options = options.dup.freeze unless options.frozen?
+      subset.each { |k, v| result[k.to_s] = v.as_json(options) }
+    else
+      subset.each { |k, v| result[k.to_s] = v.as_json }
     end
     result
   end
@@ -233,9 +239,18 @@ class Pathname # :nodoc:
   end
 end
 
-class IPAddr # :nodoc:
-  def as_json(options = nil)
-    to_s
+unless IPAddr.method_defined?(:as_json, false)
+  # Use `IPAddr#as_json` from the IPAddr gem if the version is 1.2.7 or higher.
+  class IPAddr # :nodoc:
+    def as_json(options = nil)
+      if ipv4? && prefix == 32
+        to_s
+      elsif ipv6? && prefix == 128
+        to_s
+      else
+        "#{self}/#{prefix}"
+      end
+    end
   end
 end
 

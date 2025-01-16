@@ -18,21 +18,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @@standard_dump ||= dump_all_table_schema
   end
 
-  def test_dump_schema_information_with_empty_versions
+  def test_dump_schema_versions_with_empty_versions
     @schema_migration.delete_all_versions
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     assert_no_match(/INSERT INTO/, schema_info)
   end
 
-  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
+  def test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.shuffle.each do |v|
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
@@ -138,7 +138,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{c_int_4.*limit: 4}, output
     end
 
-    if current_adapter?(:SQLite3Adapter, :OracleAdapter)
+    if current_adapter?(:SQLite3Adapter)
       assert_match %r{c_int_5.*limit: 5}, output
       assert_match %r{c_int_6.*limit: 6}, output
       assert_match %r{c_int_7.*limit: 7}, output
@@ -165,6 +165,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{create_table "colleges"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
+  end
+
+  def test_table_columns_sorted
+    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
+      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
+    end
+
+    assert_equal %w[account_id client_of description firm_id firm_name name rating status type], column_names
   end
 
   def test_schema_dumps_index_columns_in_right_order
@@ -246,10 +254,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = dump_table_schema("test_unique_constraints")
       constraint_definitions = output.split(/\n/).grep(/t\.unique_constraint/)
 
-      assert_equal 3, constraint_definitions.size
+      assert_equal 4, constraint_definitions.size
       assert_match 't.unique_constraint ["position_1"], name: "test_unique_constraints_position_deferrable_false"', output
       assert_match 't.unique_constraint ["position_2"], deferrable: :immediate, name: "test_unique_constraints_position_deferrable_immediate"', output
       assert_match 't.unique_constraint ["position_3"], deferrable: :deferred, name: "test_unique_constraints_position_deferrable_deferred"', output
+      assert_match 't.unique_constraint ["position_4"], nulls_not_distinct: true, name: "test_unique_constraints_position_nulls_not_distinct"', output
     end
 
     def test_schema_does_not_dump_unique_constraints_as_indexes
@@ -419,16 +428,39 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
     end
+
+    def test_schema_dump_include_limit_for_float4_field
+      output = dump_table_schema "numeric_data"
+      assert_match %r{t\.float\s+"temperature_with_limit",\s+limit: 24$}, output
+    end
+
+    def test_schema_dump_keeps_enum_intact_if_it_contains_comma
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_enum "enum_with_comma", ["value1", "value,2", "value3"]
+        end
+
+        def down
+          drop_enum "enum_with_comma"
+        end
+      end
+
+      migration.migrate(:up)
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_enum "enum_with_comma", ["value1", "value,2", "value3"]', output
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
     output = standard_dump
-    # Oracle supports precision up to 38 and it identifies decimals with scale 0 as integers
-    if current_adapter?(:OracleAdapter)
-      assert_match %r{t\.integer\s+"atoms_in_universe",\s+precision: 38}, output
-    else
-      assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
-    end
+
+    assert_match %r{t\.decimal\s+"atoms_in_universe",\s+precision: 55}, output
   end
 
   def test_schema_dump_keeps_id_column_when_id_is_false_and_id_column_added
@@ -473,21 +505,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
-  class CreateDogMigration < ActiveRecord::Migration::Current
+  class CreateCatMigration < ActiveRecord::Migration::Current
     def up
-      create_table("dog_owners") do |t|
+      create_table("cat_owners") do |t|
       end
 
-      create_table("dogs") do |t|
+      create_table("cats") do |t|
         t.column :name, :string
         t.references :owner
         t.index [:name]
-        t.foreign_key :dog_owners, column: "owner_id"
+        t.foreign_key :cat_owners, column: "owner_id"
       end
     end
     def down
-      drop_table("dogs")
-      drop_table("dog_owners")
+      drop_table("cats")
+      drop_table("cat_owners")
     end
   end
 
@@ -497,16 +529,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "foo_"
     ActiveRecord::Base.table_name_suffix = "_bar"
 
-    migration = CreateDogMigration.new
+    migration = CreateCatMigration.new
     migration.migrate(:up)
 
-    output = dump_table_schema("dog_owners", "dogs")
+    output = dump_table_schema("foo_cat_owners_bar", "foo_cats_bar")
+
+    assert_match %r{create_table "cat_owners"}, output
+    assert_match %r{create_table "cats"}, output
+    assert_match %r{t\.index \["name"\], name: "index_foo_cats_bar_on_name"}, output
     assert_no_match %r{create_table "foo_.+_bar"}, output
     assert_no_match %r{add_index "foo_.+_bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
+      assert_match %r{add_foreign_key "cats", "cat_owners", column: "owner_id"}, output
       assert_no_match %r{add_foreign_key "foo_.+_bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo_.+_bar"}, output
     end
@@ -524,16 +561,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.table_name_prefix = "foo$"
     ActiveRecord::Base.table_name_suffix = "$bar"
 
-    migration = CreateDogMigration.new
+    migration = CreateCatMigration.new
     migration.migrate(:up)
 
-    output = dump_table_schema("dog_owners", "dog")
+    output = dump_table_schema("foo$cat_owners$bar", "foo$cat$bar")
+
+    assert_match %r{create_table "cat_owners"}, output
+    assert_match %r{create_table "cats"}, output
+    assert_match %r{t\.index \["name"\], name: "index_foo\$cats\$bar_on_name"}, output
     assert_no_match %r{create_table "foo\$.+\$bar"}, output
     assert_no_match %r{add_index "foo\$.+\$bar"}, output
     assert_no_match %r{create_table "schema_migrations"}, output
     assert_no_match %r{create_table "ar_internal_metadata"}, output
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
+      assert_match %r{add_foreign_key "cats", "cat_owners", column: "owner_id"}, output
       assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
       assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
     end
@@ -928,13 +970,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
-
-    if supports_datetime_with_precision?
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
-    else
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: nil,\s+default: "2014-06-05 07:17:04"}, output
-    end
-
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
     assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end

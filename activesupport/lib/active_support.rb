@@ -57,11 +57,12 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :ProxyObject
+    autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
@@ -90,6 +91,10 @@ module ActiveSupport
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 
+  include Deprecation::DeprecatedConstantAccessor
+
+  deprecate_constant :Configurable, "class_attribute :config, default: {}", deprecator: ActiveSupport.deprecator
+
   def self.eager_load!
     super
 
@@ -115,9 +120,15 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone=(value)
-    unless value
+    if !value
       ActiveSupport.deprecator.warn(
-        "Support for the pre-Ruby 2.4 behavior of to_time has been deprecated and will be removed in Rails 7.2."
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
+      )
+    elsif value != :zone
+      ActiveSupport.deprecator.warn(
+        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
+        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     end
 

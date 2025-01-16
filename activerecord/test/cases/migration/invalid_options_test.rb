@@ -30,7 +30,7 @@ module ActiveRecord
         primary_keys = [":limit", ":default", ":precision"]
 
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-          primary_keys.concat([":unsigned"])
+          primary_keys.concat([":unsigned", ":auto_increment"])
         elsif current_adapter?(:SQLite3Adapter)
           table_keys.concat([":rename"])
         end

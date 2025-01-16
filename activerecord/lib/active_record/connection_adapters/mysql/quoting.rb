@@ -77,14 +77,6 @@ module ActiveRecord
           0
         end
 
-        def quoted_date(value)
-          if supports_datetime_with_precision?
-            super
-          else
-            super.sub(/\.\d{6}\z/, "")
-          end
-        end
-
         def quoted_binary(value)
           "x'#{value.hex}'"
         end
@@ -110,7 +102,13 @@ module ActiveRecord
             else
               value.getlocal
             end
-          when Date, Time
+          when Time
+            if default_timezone == :utc
+              value.utc? ? value : value.getutc
+            else
+              value.utc? ? value.getlocal : value
+            end
+          when Date
             value
           else
             super

@@ -3,7 +3,6 @@
 gem "listen", "~> 3.5"
 require "listen"
 
-require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
 

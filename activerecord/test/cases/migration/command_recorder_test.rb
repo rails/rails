@@ -172,8 +172,28 @@ module ActiveRecord
       end
 
       def test_invert_drop_table_without_a_block_nor_option
-        assert_raises(ActiveRecord::IrreversibleMigration) do
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty).") do
           @recorder.inverse_of :drop_table, [:people_reminders]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_options
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists, id: false]
+        end
+      end
+
+      def test_invert_drop_table_with_multiple_tables_and_block
+        block = Proc.new { }
+
+        assert_raises(ActiveRecord::IrreversibleMigration, match: "To avoid mistakes, drop_table is only reversible if given a single table name.") do
+          @recorder.inverse_of :drop_table, [:musics, :artists], &block
         end
       end
 
@@ -376,6 +396,16 @@ module ActiveRecord
         assert_equal [:enable_extension, ["uuid-ossp"], nil], enable
       end
 
+      def test_invert_create_schema
+        disable = @recorder.inverse_of :create_schema, ["myschema"]
+        assert_equal [:drop_schema, ["myschema"], nil], disable
+      end
+
+      def test_invert_drop_schema
+        enable = @recorder.inverse_of :drop_schema, ["myschema"]
+        assert_equal [:create_schema, ["myschema"], nil], enable
+      end
+
       def test_invert_add_foreign_key
         enable = @recorder.inverse_of :add_foreign_key, [:dogs, :people]
         assert_equal [:remove_foreign_key, [:dogs, :people], nil], enable
@@ -522,14 +552,13 @@ module ActiveRecord
       end
 
       def test_invert_rename_enum
-        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
-        assert_equal [:rename_enum, [:breed, to: :dog_breed]], enum
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
-      def test_invert_rename_enum_without_to
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.inverse_of :rename_enum, [:breed]
-        end
+      def test_invert_rename_enum_with_to_option
+        enum = @recorder.inverse_of :rename_enum, [:dog_breed, to: :breed]
+        assert_equal [:rename_enum, [:breed, :dog_breed]], enum
       end
 
       def test_invert_add_enum_value
@@ -552,6 +581,22 @@ module ActiveRecord
       def test_invert_rename_enum_value_without_to
         assert_raises(ActiveRecord::IrreversibleMigration) do
           @recorder.inverse_of :rename_enum_value, [:dog_breed, from: :beagle]
+        end
+      end
+
+      def test_invert_create_virtual_table
+        drop = @recorder.inverse_of :create_virtual_table, [:searchables, :fts5, ["content", "meta UNINDEXED", "tokenize='porter ascii'"]]
+        assert_equal [:drop_virtual_table, [:searchables, :fts5, ["content", "meta UNINDEXED", "tokenize='porter ascii'"]], nil], drop
+      end
+
+      def test_invert_drop_virtual_table
+        create = @recorder.inverse_of :drop_virtual_table, [:searchables, :fts5, ["title", "content"]]
+        assert_equal [:create_virtual_table, [:searchables, :fts5, ["title", "content"]], nil], create
+      end
+
+      def test_invert_drop_virtual_table_without_options
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :drop_virtual_table, [:searchables]
         end
       end
     end

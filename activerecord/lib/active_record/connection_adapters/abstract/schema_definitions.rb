@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
@@ -160,6 +159,8 @@ module ActiveRecord
       end
 
       def defined_for?(to_table: nil, validate: nil, **options)
+        options = options.slice(*self.options.keys)
+
         (to_table.nil? || to_table.to_s == self.to_table) &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| Array(self.options[k]).map(&:to_s) == Array(v).map(&:to_s) }
@@ -186,6 +187,8 @@ module ActiveRecord
       end
 
       def defined_for?(name:, expression: nil, validate: nil, **options)
+        options = options.slice(*self.options.keys)
+
         self.name == name.to_s &&
           (validate.nil? || validate == self.options.fetch(:validate, validate)) &&
           options.all? { |k, v| self.options[k].to_s == v.to_s }
@@ -300,10 +303,25 @@ module ActiveRecord
     module ColumnMethods
       extend ActiveSupport::Concern
 
+      class_methods do
+        private
+          def define_column_methods(*column_types) # :nodoc:
+            column_types.each do |column_type|
+              module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{column_type}(*names, **options)
+                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
+                names.each { |name| column(name, :#{column_type}, **options) }
+              end
+              RUBY
+            end
+          end
+      end
+      extend ClassMethods
+
       # Appends a primary key definition to the table definition.
       # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name, type = :primary_key, **options)
-        column(name, type, **options.merge(primary_key: true))
+        column(name, type, **options, primary_key: true)
       end
 
       ##
@@ -317,27 +335,11 @@ module ActiveRecord
       #
       # See TableDefinition#column
 
-      included do
-        define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
-          :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
+      define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+        :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
-        alias :blob :binary
-        alias :numeric :decimal
-      end
-
-      class_methods do
-        def define_column_methods(*column_types) # :nodoc:
-          column_types.each do |column_type|
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def #{column_type}(*names, **options)
-                raise ArgumentError, "Missing column name(s) for #{column_type}" if names.empty?
-                names.each { |name| column(name, :#{column_type}, **options) }
-              end
-            RUBY
-          end
-        end
-        private :define_column_methods
-      end
+      alias :blob :binary
+      alias :numeric :decimal
     end
 
     # = Active Record Connection Adapters \Table \Definition
@@ -348,7 +350,7 @@ module ActiveRecord
     # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[7.2]
+    #   class SomeMigration < ActiveRecord::Migration[8.1]
     #     def up
     #       create_table :foo do |t|
     #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
@@ -622,6 +624,7 @@ module ActiveRecord
       attr_reader :adds
       attr_reader :foreign_key_adds, :foreign_key_drops
       attr_reader :check_constraint_adds, :check_constraint_drops
+      attr_reader :constraint_drops
 
       def initialize(td)
         @td   = td
@@ -630,6 +633,7 @@ module ActiveRecord
         @foreign_key_drops = []
         @check_constraint_adds = []
         @check_constraint_drops = []
+        @constraint_drops = []
       end
 
       def name; @td.name; end
@@ -648,6 +652,10 @@ module ActiveRecord
 
       def drop_check_constraint(constraint_name)
         @check_constraint_drops << constraint_name
+      end
+
+      def drop_constraint(constraint_name)
+        @constraint_drops << constraint_name
       end
 
       def add_column(name, type, **options)

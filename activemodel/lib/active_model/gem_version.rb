@@ -7,8 +7,8 @@ module ActiveModel
   end
 
   module VERSION
-    MAJOR = 7
-    MINOR = 2
+    MAJOR = 8
+    MINOR = 1
     TINY  = 0
     PRE   = "alpha"
 

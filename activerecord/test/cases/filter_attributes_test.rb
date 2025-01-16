@@ -11,15 +11,12 @@ class FilterAttributesTest < ActiveRecord::TestCase
   fixtures :"admin/users", :"admin/accounts"
 
   setup do
-    @previous_attributes_for_inspect = ActiveRecord::Base.attributes_for_inspect
-    ActiveRecord::Base.attributes_for_inspect = :all
     @previous_filter_attributes = ActiveRecord::Base.filter_attributes
     ActiveRecord::Base.filter_attributes = [:name]
     ActiveRecord.use_yaml_unsafe_load = true
   end
 
   teardown do
-    ActiveRecord::Base.attributes_for_inspect = @previous_attributes_for_inspect
     ActiveRecord::Base.filter_attributes = @previous_filter_attributes
   end
 
@@ -121,7 +118,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, 'name: "[FILTERED]"'
+    assert_includes actual, "name: [FILTERED]"
     assert_equal 1, actual.scan("[FILTERED]").length
   end
 
@@ -141,8 +138,8 @@ class FilterAttributesTest < ActiveRecord::TestCase
     actual = "".dup
     PP.pp(user, StringIO.new(actual))
 
-    assert_includes actual, 'auth_token: "[FILTERED]"'
-    assert_includes actual, 'token: "[FILTERED]"'
+    assert_includes actual, "auth_token: [FILTERED]"
+    assert_includes actual, "token: [FILTERED]"
   ensure
     User.instance_variable_set(:@filter_attributes, nil)
   end

@@ -3,7 +3,7 @@
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -18,7 +18,7 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-<% unless options[:skip_devcontainer] -%>
+<% if devcontainer? -%>
   <%% if ENV["DB_HOST"] %>
   host: <%%= ENV["DB_HOST"] %>
   username: postgres
@@ -84,8 +84,31 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+<%- else -%>
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= app_name %>_production
+    username: <%= app_name %>
+    password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: <%= app_name %>_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: <%= app_name %>_production_queue
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_production
+    database: <%= app_name %>_production_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
+<%- end -%>

@@ -23,12 +23,23 @@ namespace :guides do
     end
   end
 
-  desc "Lint guides, using `mdl`"
-  task :lint do
-    require "mdl"
-    all = Dir.glob("#{__dir__}/source/*.md")
-    files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
-    MarkdownLint.run files
+  desc "Lint guides, using `mdl` and check for broken links"
+  task lint: ["lint:check_links", "lint:mdl"]
+
+  namespace :lint do
+    desc "Check links in generated HTML guides"
+    task :check_links do
+      ENV["GUIDES_LINT"] = "1"
+      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+    end
+
+    desc "Run mdl to check Markdown files for style guide violations and lint errors"
+    task :mdl do
+      require "mdl"
+      all = Dir.glob("#{__dir__}/source/*.md")
+      files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
+      MarkdownLint.run files
+    end
   end
 
   # Validate guides -------------------------------------------------------------------------

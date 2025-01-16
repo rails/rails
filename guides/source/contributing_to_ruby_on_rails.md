@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Contributing to Ruby on Rails
 =============================
@@ -39,15 +39,15 @@ Once you open an issue, it may or may not see activity right away unless it is a
 
 Having a way to reproduce your issue will help people confirm, investigate, and ultimately fix your issue. You can do this by providing an executable test case. To make this process easier, we have prepared several bug report templates for you to use as a starting point:
 
-* Template for Active Record (models, database) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
-* Template for testing Active Record (migration) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
-* Template for Action Pack (controllers, routing) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
-* Template for Action View (views, helpers) issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
-* Template for Active Job issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
-* Template for Active Storage issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
-* Template for Action Mailer issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
-* Template for Action Mailbox issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
-* Generic template for other issues: [link](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
+* [Template for Active Record (models, encryption, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+* [Template for testing Active Record (migration) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+* [Template for Action Pack (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
+* [Template for Action View (views, helpers) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+* [Template for Active Job issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+* [Template for Active Storage issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+* [Template for Action Mailer issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+* [Template for Action Mailbox issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+* [Generic template for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
 These templates include the boilerplate code to set up a test case. Copy the content of the appropriate template into a `.rb` file and make the necessary changes to demonstrate the issue. You can execute it by running `ruby the_file.rb` in your terminal. If all goes well, you should see your test case failing.
 
@@ -138,7 +138,16 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 You can help improve the Rails guides or the API reference by making them more coherent, consistent, or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
 To do so, make changes to Rails guides source files (located [here](https://github.com/rails/rails/tree/main/guides/source) on GitHub) or RDoc comments in source code. Then open a pull request to apply your changes to the main branch.
+
 Use `[ci skip]` in your pull request title to avoid running the CI build for documentation changes.
+
+Once you open a PR, a preview of the documentation will be deployed for easy review and collaboration. At the bottom of the Pull Request page, you should see a list of status checks, look for the `buildkite/docs-preview` and click "details".
+
+![GitHub rails/rails Pull Request status checks](images/docs_preview/status_checks.png)
+
+This will bring you to the Buildkite build page. If the job was successful, there will be an annotation with links to the generated API and Guides above the job list.
+
+![Buildkite rails/docs-preview annotation API & Guides links](images/docs_preview/annotation.png)
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
@@ -157,10 +166,9 @@ Note that translations are not submitted to the Rails repository; your work live
 To generate the guides in HTML format, you will need to install the guides dependencies, `cd` into the *guides* directory, and then run (e.g., for it-IT):
 
 ```bash
-# only install gems necessary for the guides. To undo run: bundle config --delete without
-$ bundle install --without job cable storage test db
+$ BUNDLE_ONLY=default:doc bundle install
 $ cd guides/
-$ bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate:html GUIDES_LANGUAGE=it-IT
 ```
 
 This will generate the guides in an *output* directory.
@@ -292,7 +300,7 @@ Inspecting 1 file
 For changes that might have an impact on performance, please benchmark your
 code and measure the impact. Please share the benchmark script you used as well
 as the results. You should consider including this information in your commit
-message, to allow future contributors to easily verify your findings and
+message to allow future contributors to easily verify your findings and
 determine if they are still relevant. (For example, future optimizations in the
 Ruby VM might render certain optimizations unnecessary.)
 
@@ -374,6 +382,15 @@ Figuring out the name is not always easy, but if you know the line number your t
 ```bash
 $ cd railties
 $ bin/test test/application/asset_debugging_test.rb:69
+```
+
+#### For a Specific Line Range
+
+Similar tests are often defined in nearby locations. You can run tests in a specific line range.
+
+```bash
+$ cd railties
+$ bin/test test/application/asset_debugging_test.rb:69-100
 ```
 
 #### Running Tests with a Specific Seed
@@ -468,7 +485,7 @@ You can invoke `test_jdbcmysql`, `test_jdbcsqlite3` or `test_jdbcpostgresql` als
 
 To use an external debugger (pry, byebug, etc), install the debugger and use it as normal.  If debugger issues occur, run tests in serial by setting `PARALLEL_WORKERS=1` or run a single test with `-n test_long_test_name`.
 
-If running tests against generators you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
+If running tests against generators, you will need to set `RAILS_LOG_TO_STDOUT=true` in order for debugging tools to work.
 
 ```sh
 RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
@@ -478,13 +495,13 @@ RAILS_LOG_TO_STDOUT=true ./bin/test test/generators/actions_test.rb
 
 The test suite runs with warnings enabled. Ideally, Ruby on Rails should issue no warnings, but there may be a few, as well as some from third-party libraries. Please ignore (or fix!) them, if any, and submit patches that do not issue new warnings.
 
-Rails CI will raise if warnings are introduced. To implement the same behavior locally set `RAILS_STRICT_WARNINGS=1` when running the test suite.
+Rails CI will raise if warnings are introduced. To implement the same behavior locally, set `RAILS_STRICT_WARNINGS=1` when running the test suite.
 
 ### Updating the Documentation
 
 The Ruby on Rails [guides](https://guides.rubyonrails.org/) provide a high-level overview of Rails' features, while the [API documentation](https://api.rubyonrails.org/) delves into specifics.
 
-If your PR adds a new feature, or changes how an existing feature behaves, check the relevant documentation, and update it or add to it as necessary.
+If your PR adds a new feature or changes how an existing feature behaves, check the relevant documentation and update it or add to it as necessary.
 
 For example, if you modify Active Storage's image analyzer to add a new metadata field, you should update the [Analyzing Files](active_storage_overview.html#analyzing-files) section of the Active Storage guide to reflect that.
 
@@ -515,7 +532,7 @@ A CHANGELOG entry should summarize what was changed and should end with the auth
 
 ### Breaking Changes
 
-Anytime a change could break existing applications it's considered a breaking
+Anytime a change could break existing applications, it's considered a breaking
 change. To ease upgrading Rails applications, breaking changes require a
 deprecation cycle.
 
@@ -590,12 +607,12 @@ To ease the upgrade it's required to add the new default to the
 value:
 
 ```ruby
-# new_framework_defaults_7_2.rb.tt
+# new_framework_defaults_8_1.rb.tt
 
 # Rails.application.config.active_job.existing_behavior = false
 ```
 
-As a last step add the new configuration to configuration guide in
+As a last step, add the new configuration to configuration guide in
 `configuration.md`:
 
 ```markdown
@@ -685,7 +702,7 @@ No conflicts? Tests still pass? Change still seems reasonable to you? Then push 
 $ git push --force-with-lease
 ```
 
-We disallow force pushing on the rails/rails repository base, but you are able to force push to your fork. When rebasing this is a requirement since the history has changed.
+We disallow force pushing on the rails/rails repository base, but you are able to force push to your fork. When rebasing, this is a requirement since the history has changed.
 
 ### Fork
 
@@ -727,7 +744,7 @@ $ git push fork my_new_branch
 
 ### Open a Pull Request
 
-Navigate to the Rails repository you just pushed to (e.g.
+Navigate to the Rails repository you just pushed to (e.g.,
 https://github.com/your-user-name/rails) and click on "Pull Requests" in the top bar (just above the code).
 On the next page, click "New pull request" in the upper right-hand corner.
 
@@ -754,7 +771,9 @@ is the open source life.
 If it's been over a week, and you haven't heard anything, you might want to try
 and nudge things along. You can use the *contributions* channel in the [Ruby on Rails Discord server](https://discord.gg/d8N68BCw49),
 or the [rubyonrails-core discussion board](https://discuss.rubyonrails.org/c/rubyonrails-core) for this.
-You can also leave another comment on the pull request.
+You can also leave another comment on the pull request. It's best to avoid pinging
+individual maintainers directly as we have limited bandwidth and may not
+be able to look at your PR.
 
 While you're waiting for feedback on your pull request, open up a few other
 pull requests and give someone else some! They'll appreciate it in

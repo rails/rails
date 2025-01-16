@@ -23,3 +23,5 @@ def adapter_is?(*adapter_class_symbols)
 end
 
 require_relative "../../tools/test_common"
+
+ActiveJob::Base.include(ActiveJob::EnqueueAfterTransactionCommit)

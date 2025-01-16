@@ -166,8 +166,8 @@ class AssociationsTest < ActiveRecord::TestCase
       comment.blog_post
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.id"))} =/, sql)
   end
 
   def test_querying_by_whole_associated_records_using_query_constraints
@@ -214,8 +214,8 @@ class AssociationsTest < ActiveRecord::TestCase
       assert_equal(car, review.car)
     end
 
-    assert_match(/#{Regexp.escape(Cpk::Car.lease_connection.quote_table_name("cpk_cars.make"))} =/, sql.first)
-    assert_match(/#{Regexp.escape(Cpk::Car.lease_connection.quote_table_name("cpk_cars.model"))} =/, sql.first)
+    assert_match(/#{Regexp.escape(quote_table_name("cpk_cars.make"))} =/, sql.first)
+    assert_match(/#{Regexp.escape(quote_table_name("cpk_cars.model"))} =/, sql.first)
   end
 
   def test_cpk_model_has_many_records_by_id_attribute
@@ -236,7 +236,7 @@ class AssociationsTest < ActiveRecord::TestCase
       comments = blog_post.comments.to_a
     end.first
 
-    assert_match(/WHERE .*#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/WHERE .*#{Regexp.escape(quote_table_name("sharded_comments.blog_id"))} =/, sql)
     assert_not_empty(comments)
     assert_equal(expected_comments.sort, comments.sort)
   end
@@ -260,8 +260,8 @@ class AssociationsTest < ActiveRecord::TestCase
       blog_post.comments.to_a
     end.first
 
-    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
-    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_comments.blog_id"))} =/, sql)
   end
 
   def test_belongs_to_association_does_not_use_parent_query_constraints_if_not_configured_to
@@ -460,6 +460,28 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_empty(blog_post.tags)
     assert_empty(blog_post.reload.tags)
     assert_not_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id), :exists?
+  end
+
+  def test_using_query_constraints_warns_about_changing_behavior
+    has_many_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Sharded::BlogPost.has_many :qc_deprecated_comments` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
+      Sharded::BlogPost.has_many :qc_deprecated_comments,
+        class_name: "Sharded::Comment", query_constraints: [:blog_id, :blog_post_id]
+    end
+
+    belongs_to_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Sharded::Comment.belongs_to :qc_deprecated_blog_post` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
+      Sharded::Comment.belongs_to :qc_deprecated_blog_post,
+        class_name: "Sharded::Blog", query_constraints: [:blog_id, :blog_post_id]
+    end
   end
 end
 
@@ -1483,10 +1505,8 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::OrderAgreement.lease_connection
-    order_id_column = Regexp.escape(c.quote_table_name("cpk_order_agreements.order_id"))
-    order_id_constraint = /#{order_id_column} = (\?|(\d+)|\$\d)$/
-    expectation = /SELECT.*WHERE.* #{order_id_constraint}/
+    order_id_column = Regexp.escape(quote_table_name("cpk_order_agreements.order_id"))
+    expectation = /SELECT.*WHERE.* #{order_id_column} = (\?|(\d+)|\$\d)$/
 
     assert_match(expectation, preload_sql)
     assert_equal order_agreements.sort, loaded_order.order_agreements.sort
@@ -1505,10 +1525,8 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_equal 2, sql.size
     preload_sql = sql.last
 
-    c = Cpk::Order.lease_connection
-    order_id = Regexp.escape(c.quote_table_name("cpk_orders.id"))
-    order_constraint = /#{order_id} = (\?|(\d+)|\$\d)$/
-    expectation = /SELECT.*WHERE.* #{order_constraint}/
+    order_id = Regexp.escape(quote_table_name("cpk_orders.id"))
+    expectation = /SELECT.*WHERE.* #{order_id} = (\?|(\d+)|\$\d)$/
 
     assert_match(expectation, preload_sql)
     assert_equal order, loaded_order_agreement.order

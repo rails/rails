@@ -67,8 +67,8 @@ module ApplicationTests
       RUBY
 
       app("development")
-      assert Foo.method_defined?(:foo_url)
-      assert Foo.method_defined?(:main_app)
+      assert Foo.new.respond_to?(:foo_url)
+      assert Foo.new.respond_to?(:main_app)
     end
 
     test "allows to not load all helpers for controllers" do
@@ -220,7 +220,9 @@ module ApplicationTests
       rails %w(generate model post title:string)
 
       with_unhealthy_database do
-        app("development")
+        assert_nothing_raised do
+          app("development")
+        end
       end
     end
 

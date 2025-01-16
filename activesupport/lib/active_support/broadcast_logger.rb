@@ -113,33 +113,33 @@ module ActiveSupport
       dispatch { |logger| logger.<<(message) }
     end
 
-    def add(*args, &block)
-      dispatch { |logger| logger.add(*args, &block) }
+    def add(...)
+      dispatch { |logger| logger.add(...) }
     end
     alias_method :log, :add
 
-    def debug(*args, &block)
-      dispatch { |logger| logger.debug(*args, &block) }
+    def debug(...)
+      dispatch { |logger| logger.debug(...) }
     end
 
-    def info(*args, &block)
-      dispatch { |logger| logger.info(*args, &block) }
+    def info(...)
+      dispatch { |logger| logger.info(...) }
     end
 
-    def warn(*args, &block)
-      dispatch { |logger| logger.warn(*args, &block) }
+    def warn(...)
+      dispatch { |logger| logger.warn(...) }
     end
 
-    def error(*args, &block)
-      dispatch { |logger| logger.error(*args, &block) }
+    def error(...)
+      dispatch { |logger| logger.error(...) }
     end
 
-    def fatal(*args, &block)
-      dispatch { |logger| logger.fatal(*args, &block) }
+    def fatal(...)
+      dispatch { |logger| logger.fatal(...) }
     end
 
-    def unknown(*args, &block)
-      dispatch { |logger| logger.unknown(*args, &block) }
+    def unknown(...)
+      dispatch { |logger| logger.unknown(...) }
     end
 
     def formatter=(formatter)
@@ -163,57 +163,57 @@ module ActiveSupport
       dispatch { |logger| logger.close }
     end
 
-    # +True+ if the log level allows entries with severity Logger::DEBUG to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::DEBUG+ to be written
+    # to at least one broadcast. False otherwise.
     def debug?
       @broadcasts.any? { |logger| logger.debug? }
     end
 
-    # Sets the log level to Logger::DEBUG for the whole broadcast.
+    # Sets the log level to +Logger::DEBUG+ for the whole broadcast.
     def debug!
       dispatch { |logger| logger.debug! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::INFO to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::INFO+ to be written
+    # to at least one broadcast. False otherwise.
     def info?
       @broadcasts.any? { |logger| logger.info? }
     end
 
-    # Sets the log level to Logger::INFO for the whole broadcast.
+    # Sets the log level to +Logger::INFO+ for the whole broadcast.
     def info!
       dispatch { |logger| logger.info! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::WARN to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::WARN+ to be written
+    # to at least one broadcast. False otherwise.
     def warn?
       @broadcasts.any? { |logger| logger.warn? }
     end
 
-    # Sets the log level to Logger::WARN for the whole broadcast.
+    # Sets the log level to +Logger::WARN+ for the whole broadcast.
     def warn!
       dispatch { |logger| logger.warn! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::ERROR to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::ERROR+ to be written
+    # to at least one broadcast. False otherwise.
     def error?
       @broadcasts.any? { |logger| logger.error? }
     end
 
-    # Sets the log level to Logger::ERROR for the whole broadcast.
+    # Sets the log level to +Logger::ERROR+ for the whole broadcast.
     def error!
       dispatch { |logger| logger.error! }
     end
 
-    # +True+ if the log level allows entries with severity Logger::FATAL to be written
-    # to at least one broadcast. +False+ otherwise.
+    # True if the log level allows entries with severity +Logger::FATAL+ to be written
+    # to at least one broadcast. False otherwise.
     def fatal?
       @broadcasts.any? { |logger| logger.fatal? }
     end
 
-    # Sets the log level to Logger::FATAL for the whole broadcast.
+    # Sets the log level to +Logger::FATAL+ for the whole broadcast.
     def fatal!
       dispatch { |logger| logger.fatal! }
     end
@@ -229,6 +229,7 @@ module ActiveSupport
     private
       def dispatch(&block)
         @broadcasts.each { |logger| block.call(logger) }
+        true
       end
 
       def method_missing(name, ...)

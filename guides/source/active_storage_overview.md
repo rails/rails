@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Storage Overview
 =======================
@@ -82,11 +82,12 @@ test:
   service: Disk
   root: <%= Rails.root.join("tmp/storage") %>
 
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: ""
-  secret_access_key: ""
-  bucket: ""
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  bucket: your_own_bucket-<%= Rails.env %>
   region: "" # e.g. 'us-east-1'
 ```
 
@@ -159,23 +160,25 @@ local:
 To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
 
 ```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: ""
-  secret_access_key: ""
-  region: ""
-  bucket: ""
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
 ```
 
 Optionally provide client and upload options:
 
 ```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 amazon:
   service: S3
-  access_key_id: ""
-  secret_access_key: ""
-  region: ""
-  bucket: ""
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -205,8 +208,8 @@ To connect to an S3-compatible object storage API such as DigitalOcean Spaces, p
 digitalocean:
   service: S3
   endpoint: https://nyc3.digitaloceanspaces.com
-  access_key_id: ...
-  secret_access_key: ...
+  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret_access_key) %>
   # ...and other options
 ```
 
@@ -217,11 +220,12 @@ There are many other options available. You can check them in [AWS S3 Client](ht
 Declare an Azure Storage service in `config/storage.yml`:
 
 ```yaml
+# Use bin/rails credentials:edit to set the Azure Storage secret (as azure_storage:storage_access_key)
 azure:
   service: AzureStorage
-  storage_account_name: ""
-  storage_access_key: ""
-  container: ""
+  storage_account_name: your_account_name
+  storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
+  container: your_container_name-<%= Rails.env %>
 ```
 
 Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
@@ -239,12 +243,13 @@ google:
   service: GCS
   credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
-  bucket: ""
+  bucket: your_own_bucket-<%= Rails.env %>
 ```
 
 Optionally provide a Hash of credentials instead of a keyfile path:
 
 ```yaml
+# Use bin/rails credentials:edit to set the GCS secrets (as gcs:private_key_id|private_key)
 google:
   service: GCS
   credentials:
@@ -259,7 +264,7 @@ google:
     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
     client_x509_cert_url: ""
   project: ""
-  bucket: ""
+  bucket: your_own_bucket-<%= Rails.env %>
 ```
 
 Optionally provide a Cache-Control metadata to set on uploaded assets:
@@ -314,19 +319,20 @@ Define each of the services you'd like to mirror as described above. Reference
 them by name when defining a mirror service:
 
 ```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 s3_west_coast:
   service: S3
-  access_key_id: ""
-  secret_access_key: ""
-  region: ""
-  bucket: ""
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-west-1'
+  bucket: your_own_bucket-<%= Rails.env %>
 
 s3_east_coast:
   service: S3
-  access_key_id: ""
-  secret_access_key: ""
-  region: ""
-  bucket: ""
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
 
 production:
   service: Mirror
@@ -354,12 +360,12 @@ gcs: &gcs
 private_gcs:
   <<: *gcs
   credentials: <%= Rails.root.join("path/to/private_key.json") %>
-  bucket: ""
+  bucket: your_own_bucket-<%= Rails.env %>
 
 public_gcs:
   <<: *gcs
   credentials: <%= Rails.root.join("path/to/public_key.json") %>
-  bucket: ""
+  bucket: your_own_bucket-<%= Rails.env %>
   public: true
 ```
 
@@ -406,7 +412,7 @@ class SignupController < ApplicationController
 
   private
     def user_params
-      params.require(:user).permit(:email_address, :password, :avatar)
+      params.expect(user: [:email_address, :password, :avatar])
     end
 end
 ```
@@ -512,7 +518,7 @@ class MessagesController < ApplicationController
 
   private
     def message_params
-      params.require(:message).permit(:title, :content, images: [])
+      params.expect(message: [ :title, :content, images: [] ])
     end
 end
 ```
@@ -562,7 +568,7 @@ model test. To do that, provide a Hash containing at least an open IO object
 and a filename:
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf")
 ```
 
 When possible, provide a content type as well. Active Storage attempts to
@@ -570,7 +576,7 @@ determine a file’s content type from its data. It falls back to the content
 type you provide if it can’t do that.
 
 ```ruby
-@message.images.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf", content_type: "application/pdf")
 ```
 
 You can bypass the content type inference from the data by passing in
@@ -578,9 +584,9 @@ You can bypass the content type inference from the data by passing in
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   identify: false
 )
 ```
@@ -594,9 +600,9 @@ approach is helpful if you want to organize your S3 Bucket files better.
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   key: "#{Rails.env}/blog_content/intuitive_filename.pdf",
   identify: false
 )
@@ -615,9 +621,9 @@ end
 
 ```ruby
 @message.images.attach(
-  io: File.open('/path/to/file'),
-  filename: 'file.pdf',
-  content_type: 'application/pdf',
+  io: File.open("/path/to/file"),
+  filename: "file.pdf",
+  content_type: "application/pdf",
   key: s3_file_key,
   identify: false
 )
@@ -756,7 +762,7 @@ direct :cdn_image do |model, options|
       :rails_service_blob_proxy,
       model.signed_id(expires_in: expires_in),
       model.filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   else
     signed_blob_id = model.blob.signed_id(expires_in: expires_in)
@@ -768,7 +774,7 @@ direct :cdn_image do |model, options|
       signed_blob_id,
       variation_key,
       filename,
-      options.merge(host: ENV['CDN_HOST'])
+      options.merge(host: ENV["CDN_HOST"])
     )
   end
 end
@@ -848,7 +854,7 @@ a virus scanner or media transcoder) can operate on it. Use the attachment's
 
 ```ruby
 message.video.open do |file|
-  system '/path/to/virus/scanner', file.path
+  system "/path/to/virus/scanner", file.path
   # ...
 end
 ```
@@ -974,18 +980,6 @@ Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
 processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-The two processors are not fully compatible, so when migrating an existing application
-between MiniMagick and Vips, some changes have to be made if using options that are format
-specific:
-
-```erb
-<!-- MiniMagick -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
-
-<!-- Vips -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
-```
-
 The parameters available are defined by the [`image_processing`][] gem and depend on the
 variant processor that you are using, but both support the following parameters:
 
@@ -998,8 +992,30 @@ variant processor that you are using, but both support the following parameters:
 | `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
 | `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
 
-[`image_processing`][] has more options available (such as `saver` which allows image compression to be configured) in it's own documentation for the [Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and [MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md) processors.
+[`image_processing`][] has all parameters available in its own documentation
+for both the
+[Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
+[MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
+processors.
 
+Some parameters, including those listed above, accept additional processor
+specific options which can be passed as `key: value` pairs inside a hash:
+
+```erb
+<!-- Vips supports configuring `crop` for many of its transformations -->
+<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
+```
+
+If migrating an existing application between MiniMagick and Vips, processor
+specific options will need to be updated:
+
+```erb
+<!-- MiniMagick -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
+
+<!-- Vips -->
+<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
+```
 
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
@@ -1068,7 +1084,7 @@ directly from the client to the cloud.
 
 To make direct uploads to a third-party service work, you’ll need to configure the service to allow cross-origin requests from your app. Consult the CORS documentation for your service:
 
-* [S3](https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html#how-do-i-enable-cors)
+* [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html)
 * [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
 * [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
 
@@ -1302,10 +1318,10 @@ import { DirectUpload } from "@rails/activestorage"
 
 class Uploader {
   constructor(file, url) {
-    this.upload = new DirectUpload(this.file, this.url, this)
+    this.upload = new DirectUpload(file, url, this)
   }
 
-  upload(file) {
+  uploadFile(file) {
     this.upload.create((error, blob) => {
       if (error) {
         // Handle the error
@@ -1342,10 +1358,10 @@ class Uploader {
     const headers = { 'Authentication': `Bearer ${token}` }
     // INFO: Sending headers is an optional parameter. If you choose not to send headers,
     //       authentication will be performed using cookies or session data.
-    this.upload = new DirectUpload(this.file, this.url, this, headers)
+    this.upload = new DirectUpload(file, url, this, headers)
   }
 
-  upload(file) {
+  uploadFile(file) {
     this.upload.create((error, blob) => {
       if (error) {
         // Handle the error
@@ -1375,7 +1391,7 @@ class DirectUploadsController < ActiveStorage::DirectUploadsController
   before_action :authenticate!
 
   def authenticate!
-    @token = request.headers['Authorization']&.split&.last
+    @token = request.headers["Authorization"]&.split&.last
 
     head :unauthorized unless valid_token?(@token)
   end
@@ -1500,7 +1516,7 @@ test.
 Next, create fixture files for the Active Storage classes:
 
 ```yml
-# active_storage/attachments.yml
+# test/fixtures/active_storage/attachments.yml
 david_avatar:
   name: avatar
   record: david (User)
@@ -1508,7 +1524,7 @@ david_avatar:
 ```
 
 ```yml
-# active_storage/blobs.yml
+# test/fixtures/active_storage/blobs.yml
 david_avatar_blob: <%= ActiveStorage::FixtureSet.blob filename: "david.png", service_name: "test_fixtures" %>
 ```
 
@@ -1562,7 +1578,7 @@ end
 
 ### Configuring services
 
-You can add `config/storage/test.yml` to configure services to be used in test environment
+You can add `config/storage/test.yml` to configure services to be used in test environment.
 This is useful when the `service` option is used.
 
 ```ruby

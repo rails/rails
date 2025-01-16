@@ -345,11 +345,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::HasManyThroughAssociationNotFoundError) {
       authors(:david).nothings
     }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
   end
 
   def test_has_many_through_join_model_with_conditions
@@ -774,6 +770,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
+  end
+
+  def test_eager_association_with_scope_with_string_joins
+    assert_nothing_raised do
+      Post.joins(:very_special_comment_with_string_joins).first
+    end
   end
 
   private

@@ -121,4 +121,17 @@ class MailerHelperTest < ActionMailer::TestCase
       assert_equal "Greetings from a cache helper block", mail.body.encoded
     end
   end
+
+  def helper
+    Object.new.extend(ActionMailer::MailHelper)
+  end
+
+  def test_block_format
+    assert_equal "  * foo\n", helper.block_format(" * foo")
+    assert_equal "  * foo\n", helper.block_format("   * foo")
+    assert_equal "  * foo\n", helper.block_format("* foo")
+    assert_equal "  * foo\n*bar", helper.block_format("* foo*bar")
+    assert_equal "  * foo\n  * bar\n", helper.block_format("* foo * bar")
+    assert_equal "  *", helper.block_format("* ")
+  end
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fiber"
-
 module ActiveSupport
   module IsolatedExecutionState # :nodoc:
     @isolation_level = nil

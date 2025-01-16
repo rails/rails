@@ -68,6 +68,11 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_equal false, adapter.prepared_statements
   end
 
+  def test_exec_query_with_prepared_statements
+    result = @conn.exec_query("SELECT 1", "SQL", [], prepare: true)
+    assert_equal [{ "1" => 1 }], result.to_a
+  end
+
   def test_exec_query_nothing_raises_with_no_result_queries
     assert_nothing_raised do
       with_example_table do

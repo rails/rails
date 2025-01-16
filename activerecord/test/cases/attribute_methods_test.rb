@@ -19,6 +19,18 @@ require "models/cpk"
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
 
+  class EpochTimestamp < ActiveRecord::Type::DateTime
+    def deserialize(time_or_int)
+      Time.at(time_or_int).utc if time_or_int
+    end
+
+    def serialize(time)
+      time.to_i if time
+    end
+  end
+
+  ActiveRecord::Type.register(:epoch_timestamp, EpochTimestamp)
+
   fixtures :topics, :developers, :companies, :computers
 
   def setup
@@ -692,23 +704,13 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "typecast attribute from select to false" do
     Topic.create(title: "Budget")
-    # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 0 as is_test").first
-    else
-      topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
-    end
+    topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
     assert_not_predicate topic, :is_test?
   end
 
   test "typecast attribute from select to true" do
     Topic.create(title: "Budget")
-    # Oracle does not support boolean expressions in SELECT.
-    if current_adapter?(:OracleAdapter)
-      topic = Topic.all.merge!(select: "topics.*, 1 as is_test").first
-    else
-      topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
-    end
+    topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
     assert_predicate topic, :is_test?
   end
 
@@ -921,9 +923,67 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "time zone-aware attributes do not recurse infinitely on invalid values" do
+    model = new_topic_like_ar_class { }
+
+    type = model.type_for_attribute(:bonus_time)
+    assert_kind_of ActiveRecord::Type::Time, type
+
+    invalid_time = []
+    record = model.new(bonus_time: invalid_time)
+    assert_equal invalid_time, record.bonus_time
+
+    invalid_time = Time.current.utc.to_i
+    record = model.new(bonus_time: invalid_time)
+    assert_equal invalid_time, record.bonus_time
+
     in_time_zone "Pacific Time (US & Canada)" do
-      record = @target.new(bonus_time: [])
-      assert_nil record.bonus_time
+      model = new_topic_like_ar_class { }
+
+      type = model.type_for_attribute(:bonus_time)
+      assert_kind_of ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter, type
+
+      invalid_time = []
+      record = model.new(bonus_time: invalid_time)
+      assert_equal invalid_time, record.bonus_time
+
+      invalid_time = Time.current.utc.to_i
+      record = model.new(bonus_time: invalid_time)
+      assert_equal invalid_time, record.bonus_time
+    end
+  end
+
+  test "time zone-aware custom attributes" do
+    timestamp = Time.current.utc.to_i
+
+    model = Class.new(ActiveRecord::Base)
+    model.table_name = "minimalistics"
+
+    model.attribute :expires_at, :epoch_timestamp
+
+    type = model.type_for_attribute(:expires_at)
+    assert_kind_of EpochTimestamp, type
+
+    record_1 = model.create!(expires_at: timestamp)
+    assert_equal timestamp, record_1.expires_at.to_i
+
+    model.insert!({ expires_at: timestamp })
+    record_2 = model.last
+    assert_not_equal record_1, record_2
+    assert_equal timestamp, record_2.expires_at.to_i
+
+    in_time_zone "Pacific Time (US & Canada)" do
+      model.attribute :expires_at, :epoch_timestamp
+
+      type = model.type_for_attribute(:expires_at)
+      assert_kind_of ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter, type
+
+      record_1 = model.create!(expires_at: timestamp)
+      assert_equal timestamp, record_1.expires_at.to_i
+
+      model.insert!({ expires_at: timestamp })
+      record_2 = model.last
+      assert_not_equal record_1, record_2
+      assert_equal timestamp, record_2.expires_at.to_i
     end
   end
 
@@ -1083,6 +1143,54 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nothing_raised { klass.define_attribute_method("bar") }
   end
 
+  test "#method_missing define methods on the fly in a thread safe way" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    topic = topic_class.new(title: "New topic")
+    topic_class.undefine_attribute_methods
+    def topic.method_missing(...)
+      sleep 0.1 # required to cause a race condition
+      super
+    end
+
+    threads = 5.times.map do
+      Thread.new do
+        assert_equal "New topic", topic.title
+      end
+    end
+    threads.each(&:join)
+  ensure
+    threads&.each(&:kill)
+  end
+
+  test "#method_missing define methods on the fly in a thread safe way, even when decorated" do
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def title
+        "title:#{super}"
+      end
+    end
+
+    topic = topic_class.new(title: "New topic")
+    topic_class.undefine_attribute_methods
+    def topic.method_missing(...)
+      sleep 0.1 # required to cause a race condition
+      super
+    end
+
+    threads = 5.times.map do
+      Thread.new do
+        assert_equal "title:New topic", topic.title
+      end
+    end
+    threads.each(&:join)
+  ensure
+    threads&.each(&:kill)
+  end
+
   test "read_attribute with nil should not asplode" do
     assert_nil Topic.new.read_attribute(nil)
   end
@@ -1227,11 +1335,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     alias_attribute :subject, :title
   end
 
+  test "#alias_attribute override methods defined in parent models" do
+    parent_model = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+
+      def subject
+        "Abstract Subject"
+      end
+    end
+
+    subclass = Class.new(parent_model) do
+      self.table_name = "topics"
+      alias_attribute :subject, :title
+    end
+
+    obj = subclass.new
+    obj.title = "hey"
+    assert_equal("hey", obj.subject)
+  end
+
   test "aliases to the same attribute name do not conflict with each other" do
     first_model_object = ToBeLoadedFirst.new(author_name: "author 1")
     assert_equal("author 1", first_model_object.subject)
+    assert_equal([nil, "author 1"], first_model_object.subject_change)
     second_model_object = ToBeLoadedSecond.new(title: "foo")
     assert_equal("foo", second_model_object.subject)
+    assert_equal([nil, "foo"], second_model_object.subject_change)
   end
 
   test "#alias_attribute with an overridden original method does not use the overridden original method" do
@@ -1421,7 +1550,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     comment = subsubclass.build(body: "Text")
     assert_equal "Text", comment.text
   end
-
 
   test "#alias_attribute with a manually defined method raises an error" do
     class_with_aliased_manually_defined_method = Class.new(ActiveRecord::Base) do

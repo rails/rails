@@ -17,6 +17,7 @@ class Date
       date.strftime("%B #{day_format}, %Y") # => "April 25th, 2007"
     },
     rfc822: "%d %b %Y",
+    rfc2822: "%d %b %Y",
     iso8601: lambda { |date| date.iso8601 }
   }
 
@@ -34,6 +35,7 @@ class Date
   #   date.to_fs(:long)          # => "November 10, 2007"
   #   date.to_fs(:long_ordinal)  # => "November 10th, 2007"
   #   date.to_fs(:rfc822)        # => "10 Nov 2007"
+  #   date.to_fs(:rfc2822)       # => "10 Nov 2007"
   #   date.to_fs(:iso8601)       # => "2007-11-10"
   #
   # == Adding your own date formats to to_fs
@@ -56,8 +58,6 @@ class Date
     end
   end
   alias_method :to_formatted_s, :to_fs
-  alias_method :to_default_s, :to_s
-  deprecate to_default_s: :to_s, deprecator: ActiveSupport.deprecator
 
   # Overrides the default inspect method with a human readable one, e.g., "Mon, 21 Feb 2005"
   def readable_inspect

@@ -85,7 +85,9 @@ class TransactionIsolationTest < ActiveRecord::TestCase
     # constraint.
     test "serializable" do
       Tag.transaction(isolation: :serializable) do
-        Tag.create
+        assert_nothing_raised do
+          Tag.create
+        end
       end
     end
 

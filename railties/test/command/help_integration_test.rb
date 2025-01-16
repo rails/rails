@@ -34,7 +34,7 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     help = rails "dev:help"
     output = rails "dev", allow_failure: true
 
-    assert_equal help, output
+    assert_match help, output
   end
 
   test "prints Rake tasks on --tasks / -T option" do

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "concurrent/map"
 require "monitor"
 
@@ -74,7 +73,7 @@ module ActiveRecord
     # Connections can be obtained and used from a connection pool in several
     # ways:
     #
-    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling.connection].
+    # 1. Simply use {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection].
     #    When you're done with the connection(s) and wish it to be returned to the pool, you call
     #    {ActiveRecord::Base.connection_handler.clear_active_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_active_connections!].
     #    This is the default behavior for Active Record when used in conjunction with
@@ -118,6 +117,33 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      # Prior to 3.3.5, WeakKeyMap had a use after free bug
+      # https://bugs.ruby-lang.org/issues/20688
+      if ObjectSpace.const_defined?(:WeakKeyMap) && RUBY_VERSION >= "3.3.5"
+        WeakThreadKeyMap = ObjectSpace::WeakKeyMap
+      else
+        class WeakThreadKeyMap # :nodoc:
+          # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
+          # but it currently cause GC crashes: https://github.com/byroot/rails/pull/3
+          def initialize
+            @map = {}
+          end
+
+          def clear
+            @map.clear
+          end
+
+          def [](key)
+            @map[key]
+          end
+
+          def []=(key, value)
+            @map.select! { |c, _| c&.alive? }
+            @map[key] = value
+          end
+        end
+      end
+
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -145,48 +171,9 @@ module ActiveRecord
       end
 
       class LeaseRegistry # :nodoc:
-        if ObjectSpace.const_defined?(:WeakKeyMap) # RUBY_VERSION >= 3.3
-          WeakKeyMap = ::ObjectSpace::WeakKeyMap # :nodoc:
-        else
-          class WeakKeyMap # :nodoc:
-            def initialize
-              @map = ObjectSpace::WeakMap.new
-              @values = nil
-              @size = 0
-            end
-
-            alias_method :clear, :initialize
-
-            def [](key)
-              prune if @map.size != @size
-              @map[key]
-            end
-
-            def []=(key, value)
-              @map[key] = value
-              prune if @map.size != @size
-              value
-            end
-
-            def delete(key)
-              if value = self[key]
-                self[key] = nil
-                prune
-              end
-              value
-            end
-
-            private
-              def prune(force = false)
-                @values = @map.values
-                @size = @map.size
-              end
-          end
-        end
-
         def initialize
           @mutex = Mutex.new
-          @map = WeakKeyMap.new
+          @map = WeakThreadKeyMap.new
         end
 
         def [](context)
@@ -197,8 +184,33 @@ module ActiveRecord
 
         def clear
           @mutex.synchronize do
-            @map = WeakKeyMap.new
+            @map.clear
           end
+        end
+      end
+
+      module ExecutorHooks # :nodoc:
+        class << self
+          def run
+            # noop
+          end
+
+          def complete(_)
+            ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+              if (connection = pool.active_connection?)
+                transaction = connection.current_transaction
+                if transaction.closed? || !transaction.joinable?
+                  pool.release_connection
+                end
+              end
+            end
+          end
+        end
+      end
+
+      class << self
+        def install_executor_hooks(executor = ActiveSupport::Executor)
+          executor.register_hook(ExecutorHooks)
         end
       end
 
@@ -253,6 +265,7 @@ module ActiveRecord
 
         @available = ConnectionLeasingQueue.new self
         @pinned_connection = nil
+        @pinned_connections_depth = 0
 
         @async_executor = build_async_executor
 
@@ -260,6 +273,13 @@ module ActiveRecord
 
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
+      end
+
+      def inspect # :nodoc:
+        name_field = " name=#{db_config.name.inspect}" unless db_config.name == "primary"
+        shard_field = " shard=#{@shard.inspect}" unless @shard == :default
+
+        "#<#{self.class.name} env_name=#{db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
       def schema_cache
@@ -302,18 +322,10 @@ module ActiveRecord
         connection_lease.sticky.nil?
       end
 
-      def connection
-        ActiveRecord.deprecator.warn(<<~MSG)
-          ActiveRecord::ConnectionAdapters::ConnectionPool#connection is deprecated
-          and will be removed in Rails 7.3. Use #lease_connection instead.
-        MSG
-        lease_connection
-      end
-
       def pin_connection!(lock_thread) # :nodoc:
-        raise "There is already a pinned connection" if @pinned_connection
+        @pinned_connection ||= (connection_lease&.connection || checkout)
+        @pinned_connections_depth += 1
 
-        @pinned_connection = (connection_lease&.connection || checkout)
         # Any leased connection must be in @connections otherwise
         # some methods like #connected? won't behave correctly
         unless @connections.include?(@pinned_connection)
@@ -330,7 +342,10 @@ module ActiveRecord
 
         clean = true
         @pinned_connection.lock.synchronize do
-          connection, @pinned_connection = @pinned_connection, nil
+          @pinned_connections_depth -= 1
+          connection = @pinned_connection
+          @pinned_connection = nil if @pinned_connections_depth.zero?
+
           if connection.transaction_open?
             connection.rollback_transaction
           else
@@ -338,8 +353,12 @@ module ActiveRecord
             clean = false
             connection.reset!
           end
-          connection.lock_thread = nil
-          checkin(connection)
+
+          if @pinned_connection.nil?
+            connection.steal!
+            connection.lock_thread = nil
+            checkin(connection)
+          end
         end
 
         clean
@@ -526,18 +545,25 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
-        if @pinned_connection
+        return checkout_and_verify(acquire_connection(checkout_timeout)) unless @pinned_connection
+
+        @pinned_connection.lock.synchronize do
           synchronize do
-            @pinned_connection.verify!
-            # Any leased connection must be in @connections otherwise
-            # some methods like #connected? won't behave correctly
-            unless @connections.include?(@pinned_connection)
-              @connections << @pinned_connection
+            # The pinned connection may have been cleaned up before we synchronized, so check if it is still present
+            if @pinned_connection
+              @pinned_connection.verify!
+
+              # Any leased connection must be in @connections otherwise
+              # some methods like #connected? won't behave correctly
+              unless @connections.include?(@pinned_connection)
+                @connections << @pinned_connection
+              end
+
+              @pinned_connection
+            else
+              checkout_and_verify(acquire_connection(checkout_timeout))
             end
           end
-          @pinned_connection
-        else
-          checkout_and_verify(acquire_connection(checkout_timeout))
         end
       end
 
@@ -614,8 +640,6 @@ module ActiveRecord
             remove conn
           end
         end
-
-        prune_thread_cache
       end
 
       # Disconnect all connections that have been idle for at least
@@ -672,6 +696,14 @@ module ActiveRecord
       def schedule_query(future_result) # :nodoc:
         @async_executor.post { future_result.execute_or_skip }
         Thread.pass
+      end
+
+      def new_connection # :nodoc:
+        connection = db_config.new_connection
+        connection.pool = self
+        connection
+      rescue ConnectionNotEstablished => ex
+        raise ex.set_pool(self)
       end
 
       private
@@ -853,17 +885,11 @@ module ActiveRecord
         #--
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
-          @leases[owner_thread].clear(conn)
+          if owner_thread
+            @leases[owner_thread].clear(conn)
+          end
         end
         alias_method :release, :remove_connection_from_thread_cache
-
-        def new_connection
-          connection = db_config.new_connection
-          connection.pool = self
-          connection
-        rescue ConnectionNotEstablished => ex
-          raise ex.set_pool(self)
-        end
 
         # If the pool is not at a <tt>@size</tt> limit, establish new connection. Connecting
         # to the DB is done outside main synchronized section.

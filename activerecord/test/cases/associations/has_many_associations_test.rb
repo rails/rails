@@ -1315,10 +1315,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       blog_post.delete_comments.delete(comments_to_delete)
     end
 
-    c = Sharded::Comment.lease_connection
-
-    blog_id = Regexp.escape(c.quote_table_name("sharded_comments.blog_id"))
-    id = Regexp.escape(c.quote_table_name("sharded_comments.id"))
+    blog_id = Regexp.escape(quote_table_name("sharded_comments.blog_id"))
+    id = Regexp.escape(quote_table_name("sharded_comments.id"))
 
     query_constraints = /#{blog_id} = .* AND #{id} = .*/
     expectation = /DELETE.*WHERE.* \(#{query_constraints} OR #{query_constraints}\)/
@@ -2027,6 +2025,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_included_in_collection
     assert_equal true, companies(:first_firm).clients.include?(Client.find(2))
+  end
+
+  def test_included_in_collection_for_composite_keys
+    great_author = cpk_authors(:cpk_great_author)
+    book = great_author.books.first
+
+    assert great_author.books.include?(book)
   end
 
   def test_included_in_collection_for_new_records
@@ -3201,10 +3206,12 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_key_ensuring_owner_was_is_valid_when_dependent_option_is_destroy_async
-    Class.new(ActiveRecord::Base) do
-      self.destroy_association_async_job = Class.new
+    assert_nothing_raised do
+      Class.new(ActiveRecord::Base) do
+        self.destroy_association_async_job = Class.new
 
-      has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+        has_many :books, dependent: :destroy_async, ensuring_owner_was: :destroyed?
+      end
     end
   end
 
@@ -3232,8 +3239,47 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     MESSAGE
   end
 
+  def test_ids_reader_on_preloaded_association_with_composite_primary_key
+    great_author = cpk_authors(:cpk_great_author)
+
+    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+  end
+
   private
     def force_signal37_to_load_all_clients_of_firm
       companies(:first_firm).clients_of_firm.load_target
     end
+end
+
+class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies
+
+  unless in_memory_db?
+    def test_async_load_has_many
+      firm = companies(:first_firm)
+
+      firm.association(:clients).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        assert_equal 3, firm.clients.size
+      end
+
+      assert_no_queries do
+        assert_not_nil firm.clients[2]
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
+  end
 end

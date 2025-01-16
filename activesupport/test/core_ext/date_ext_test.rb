@@ -21,13 +21,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582, 10, 15), Date.new(1582, 10, 4).tomorrow
   end
 
-  def test_to_default_s
-    date = Date.new(2005, 2, 21)
-    assert_deprecated(ActiveSupport.deprecator) do
-      assert_equal "2005-02-21", date.to_default_s
-    end
-  end
-
   def test_to_fs
     date = Date.new(2005, 2, 21)
     assert_equal "21 Feb",              date.to_fs(:short)
@@ -36,6 +29,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-21",          date.to_fs(:db)
     assert_equal "2005-02-21",          date.to_fs(:inspect)
     assert_equal "21 Feb 2005",         date.to_fs(:rfc822)
+    assert_equal "21 Feb 2005",         date.to_fs(:rfc2822)
     assert_equal "2005-02-21",          date.to_fs(:iso8601)
     assert_equal date.to_s,             date.to_fs(:doesnt_exist)
     assert_equal "21 Feb",              date.to_formatted_s(:short)

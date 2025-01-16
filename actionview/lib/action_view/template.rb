@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "delegate"
 
 module ActionView
@@ -230,11 +229,21 @@ module ActionView
     end
 
     def spot(location) # :nodoc:
-      ast = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
-      node = find_node_by_id(ast, node_id)
+      found =
+        if RubyVM::InstructionSequence.compile("").to_a[4][:parser] == :prism
+          require "prism"
 
-      ErrorHighlight.spot(node)
+          if Prism::VERSION >= "1.0.0"
+            result = Prism.parse(compiled_source).value
+            result.breadth_first_search { |node| node.node_id == node_id }
+          end
+        else
+          node = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
+          find_node_by_id(node, node_id)
+        end
+
+      ErrorHighlight.spot(found) if found
     end
 
     # Translate an error location returned by ErrorHighlight to the correct
@@ -347,7 +356,7 @@ module ActionView
 
     # This method is responsible for marking a template as having strict locals
     # which means the template can only accept the locals defined in a magic
-    # comment. For example, if your template acceps the locals +title+ and
+    # comment. For example, if your template accepts the locals +title+ and
     # +comment_count+, add the following to your template file:
     #
     #   <%# locals: (title: "Default title", comment_count: 0) %>
@@ -438,9 +447,13 @@ module ActionView
 
         method_arguments =
           if set_strict_locals
-            "output_buffer, #{set_strict_locals}"
+            if set_strict_locals.include?("&")
+              "local_assigns, output_buffer, #{set_strict_locals}"
+            else
+              "local_assigns, output_buffer, #{set_strict_locals}, &_"
+            end
           else
-            "local_assigns, output_buffer"
+            "local_assigns, output_buffer, &_"
           end
 
         # Make sure that the resulting String to be eval'd is in the
@@ -496,14 +509,17 @@ module ActionView
 
         return unless strict_locals?
 
-        parameters = mod.instance_method(method_name).parameters - [[:req, :output_buffer]]
+        parameters = mod.instance_method(method_name).parameters
+        parameters -= [[:req, :local_assigns], [:req, :output_buffer]]
+
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
         # and allowing `locals: (foo:)`.
-
         non_kwarg_parameters = parameters.select do |parameter|
           ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0])
         end
+
+        non_kwarg_parameters.pop if non_kwarg_parameters.last == %i(block _)
 
         unless non_kwarg_parameters.empty?
           mod.undef_method(method_name)

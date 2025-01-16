@@ -586,10 +586,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_In(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end
@@ -602,10 +603,11 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_NotIn(o, collector)
-          collector.preparable = false
           attr, values = o.left, o.right
 
           if Array === values
+            collector.preparable = false
+
             unless values.empty?
               values.delete_if { |value| unboundable?(value) }
             end
@@ -622,18 +624,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
-          stack = [o.right, o.left]
-
-          while o = stack.pop
-            if o.is_a?(Arel::Nodes::Or)
-              stack.push o.right, o.left
-            else
-              visit o, collector
-              collector << " OR " unless stack.empty?
-            end
-          end
-
-          collector
+          inject_join o.children, collector, " OR "
         end
 
         def visit_Arel_Nodes_Assignment(o, collector)
@@ -974,16 +965,32 @@ module Arel # :nodoc: all
           collector = if o.left.class == o.class
             infix_value_with_paren(o.left, collector, value, true)
           else
-            visit o.left, collector
+            grouping_parentheses o.left, collector, false
           end
           collector << value
           collector = if o.right.class == o.class
             infix_value_with_paren(o.right, collector, value, true)
           else
-            visit o.right, collector
+            grouping_parentheses o.right, collector, false
           end
           collector << " )" unless suppress_parens
           collector
+        end
+
+        # Used by some visitors to enclose select queries in parentheses
+        def grouping_parentheses(o, collector, always_wrap_selects = true)
+          if o.is_a?(Nodes::SelectStatement) && (always_wrap_selects || require_parentheses?(o))
+            collector << "("
+            visit o, collector
+            collector << ")"
+            collector
+          else
+            visit o, collector
+          end
+        end
+
+        def require_parentheses?(o)
+          !o.orders.empty? || o.limit || o.offset
         end
 
         def aggregate(name, o, collector)

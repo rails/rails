@@ -8,7 +8,7 @@ require "action_cable"
 
 task default: :test
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 Rake::TestTask.new do |t|
   t.libs << "test"

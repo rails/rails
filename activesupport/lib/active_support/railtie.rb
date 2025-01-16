@@ -96,6 +96,10 @@ module ActiveSupport
       config.eager_load_namespaces << TZInfo
     end
 
+    initializer "active_support.to_time_preserves_timezone" do |app|
+      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
+    end
+
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|
@@ -118,16 +122,8 @@ module ActiveSupport
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
-        if k == "disable_to_s_conversion"
-          ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
-        elsif k == "remove_deprecated_time_with_zone_name"
-          ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
-        elsif k == "use_rfc4122_namespaced_uuids"
-          ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
-        else
-          k = "#{k}="
-          ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
-        end
+        k = "#{k}="
+        ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
       end
     end
 

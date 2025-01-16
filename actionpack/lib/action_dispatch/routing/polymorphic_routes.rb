@@ -31,7 +31,7 @@ module ActionDispatch
     # *   `url_for`, so you can use it with a record as the argument, e.g.
     #     `url_for(@article)`;
     # *   ActionView::Helpers::FormHelper uses `polymorphic_path`, so you can write
-    #     `form_for(@article)` without having to specify `:url` parameter for the
+    #     `form_with(model: @article)` without having to specify `:url` parameter for the
     #     form action;
     # *   `redirect_to` (which, in fact, uses `url_for`) so you can write
     #     `redirect_to(post)` in your controllers;
@@ -61,7 +61,7 @@ module ActionDispatch
     # argument to the method. For example:
     #
     #     polymorphic_url([blog, @post])  # calls blog.post_path(@post)
-    #     form_for([blog, @post])         # => "/blog/posts/1"
+    #     form_with(model: [blog, @post]) # => "/blog/posts/1"
     #
     module PolymorphicRoutes
       # Constructs a call to a named RESTful route for the given record and returns

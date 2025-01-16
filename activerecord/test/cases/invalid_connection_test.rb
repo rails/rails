@@ -20,7 +20,7 @@ class TestAdapterWithInvalidConnection < ActiveRecord::TestCase
     end
 
     test "inspect on Model class does not raise" do
-      assert_equal "#{Bird.name} (call '#{Bird.name}.connection' to establish a connection)", Bird.inspect
+      assert_equal "#{Bird.name} (call '#{Bird.name}.load_schema' to load schema informations)", Bird.inspect
     end
   end
 end

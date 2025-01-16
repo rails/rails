@@ -47,7 +47,7 @@ module ActiveSupport
       end
 
       @files = files.freeze
-      @glob  = compile_glob(dirs)
+      @globs = compile_glob(dirs)
       @block = block
 
       @watched    = nil
@@ -103,8 +103,8 @@ module ActiveSupport
       def watched
         @watched || begin
           all = @files.select { |f| File.exist?(f) }
-          all.concat(Dir[@glob]) if @glob
-          all
+          all.concat(Dir[*@globs]) if @globs
+          all.tap(&:uniq!)
         end
       end
 
@@ -145,10 +145,9 @@ module ActiveSupport
         hash.freeze # Freeze so changes aren't accidentally pushed
         return if hash.empty?
 
-        globs = hash.map do |key, value|
+        hash.map do |key, value|
           "#{escape(key)}/**/*#{compile_ext(value)}"
         end
-        "{#{globs.join(",")}}"
       end
 
       def escape(key)

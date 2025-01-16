@@ -20,7 +20,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
 
   def routes
     if query = params[:query]
-      query = URI::DEFAULT_PARSER.escape query
+      query = URI::RFC2396_PARSER.escape query
 
       render json: {
         exact: matching_routes(query: query, exact_match: true),
@@ -30,6 +30,14 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
       @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(_routes.routes)
       @page_title = "Routes"
     end
+  end
+
+  def notes
+    @annotations = Rails::SourceAnnotationExtractor.new(
+      Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
+    ).find(
+      Rails::SourceAnnotationExtractor::Annotation.directories
+    )
   end
 
   private
@@ -53,7 +61,7 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
         match ||= (query === route_wrapper.verb)
 
         unless match
-          controller_action = URI::DEFAULT_PARSER.escape(route_wrapper.reqs)
+          controller_action = URI::RFC2396_PARSER.escape(route_wrapper.reqs)
           match = exact_match ? (query === controller_action) : controller_action.include?(query)
         end
 

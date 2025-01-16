@@ -48,10 +48,13 @@ module ActionText
     ##
     # :method: embeds
     #
-    # Returns the `ActiveStorage::Blob`s of the embedded files.
+    # Returns the `ActiveStorage::Attachment` records from the embedded files.
+    #
+    # Attached `ActiveStorage::Blob` records are extracted from the `body`
+    # in a # [before_validation](/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation) callback.
     has_many_attached :embeds
 
-    before_save do
+    before_validation do
       self.embeds = body.attachables.grep(ActiveStorage::Blob).uniq if body.present?
     end
 

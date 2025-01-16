@@ -7,6 +7,7 @@ module ActiveRecord
   module Attributes
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
+    include ActiveModel::Attributes::Normalization
 
     # = Active Record \Attributes
     module ClassMethods
@@ -25,15 +26,17 @@ module ActiveRecord
       # column which this will persist to.
       #
       # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
-      # to be used for this attribute. See the examples below for more
-      # information about providing custom type objects.
+      # to be used for this attribute. If this parameter is not passed, the previously
+      # defined type (if any) will be used.
+      # Otherwise, the type will be ActiveModel::Type::Value.
+      # See the examples below for more information about providing custom type objects.
       #
       # ==== Options
       #
       # The following options are accepted:
       #
       # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
+      # is not passed, the previously defined default value (if any) on the superclass or in the schema will be used.
       # Otherwise, the default will be +nil+.
       #
       # +array+ (PostgreSQL only) specifies that the type should be an array (see the
@@ -135,7 +138,7 @@ module ActiveRecord
       # expected API. It is recommended that your type objects inherit from an
       # existing type, or from ActiveRecord::Type::Value
       #
-      #   class MoneyType < ActiveRecord::Type::Integer
+      #   class PriceType < ActiveRecord::Type::Integer
       #     def cast(value)
       #       if !value.kind_of?(Numeric) && value.include?('$')
       #         price_in_dollars = value.gsub(/\$/, '').to_f
@@ -147,11 +150,11 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
-      #     attribute :price_in_cents, :money
+      #     attribute :price_in_cents, :price
       #   end
       #
       #   store_listing = StoreListing.new(price_in_cents: '$10.00')
@@ -171,7 +174,7 @@ module ActiveRecord
       #   class Money < Struct.new(:amount, :currency)
       #   end
       #
-      #   class MoneyType < ActiveRecord::Type::Value
+      #   class PriceType < ActiveRecord::Type::Value
       #     def initialize(currency_converter:)
       #       @currency_converter = currency_converter
       #     end
@@ -186,12 +189,12 @@ module ActiveRecord
       #   end
       #
       #   # config/initializers/types.rb
-      #   ActiveRecord::Type.register(:money, MoneyType)
+      #   ActiveRecord::Type.register(:price, PriceType)
       #
       #   # app/models/product.rb
       #   class Product < ActiveRecord::Base
       #     currency_converter = ConversionRatesFromTheInternet.new
-      #     attribute :price_in_bitcoins, :money, currency_converter: currency_converter
+      #     attribute :price_in_bitcoins, :price, currency_converter: currency_converter
       #   end
       #
       #   Product.where(price_in_bitcoins: Money.new(5, "USD"))
@@ -210,8 +213,7 @@ module ActiveRecord
       #--
       # Implemented by ActiveModel::AttributeRegistration#attribute.
 
-      # This is the low level API which sits beneath +attribute+. It only
-      # accepts type objects, and will do its work immediately instead of
+      # This API only accepts type objects, and will do its work immediately instead of
       # waiting for the schema to load. While this method
       # is provided so it can be used by plugin authors, application code
       # should probably use ClassMethods#attribute.
@@ -239,8 +241,10 @@ module ActiveRecord
 
       def _default_attributes # :nodoc:
         @default_attributes ||= begin
-          attributes_hash = columns_hash.transform_values do |column|
-            ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(column))
+          attributes_hash = with_connection do |connection|
+            columns_hash.transform_values do |column|
+              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
+            end
           end
 
           attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
@@ -295,7 +299,7 @@ module ActiveRecord
           Type.lookup(name, **options, adapter: Type.adapter_name_from(self))
         end
 
-        def type_for_column(column)
+        def type_for_column(connection, column)
           hook_attribute_type(column.name, super)
         end
     end

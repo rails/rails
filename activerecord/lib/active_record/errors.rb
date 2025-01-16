@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+
 module ActiveRecord
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
   # = Active Record Errors
   #
   # Generic Active Record exception class.
@@ -80,6 +83,19 @@ module ActiveRecord
   class ConnectionTimeoutError < ConnectionNotEstablished
   end
 
+  # Raised when a database connection pool is requested but
+  # has not been defined.
+  class ConnectionNotDefined < ConnectionNotEstablished
+    def initialize(message = nil, connection_name: nil, role: nil, shard: nil)
+      super(message)
+      @connection_name = connection_name
+      @role = role
+      @shard = shard
+    end
+
+    attr_reader :connection_name, :role, :shard
+  end
+
   # Raised when connection to the database could not been established because it was not
   # able to connect to the host or when the authorization failed.
   class DatabaseConnectionError < ConnectionNotEstablished
@@ -129,8 +145,18 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!]
-  # methods when a record is invalid and cannot be saved.
+  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # methods when a record failed to validate or cannot be saved due to any of the
+  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
+  #
+  #   class Product < ActiveRecord::Base
+  #     before_save do
+  #       throw :abort if price < 0
+  #     end
+  #   end
+  #
+  #   Product.create! # => raises an ActiveRecord::RecordNotSaved
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -141,15 +167,17 @@ module ActiveRecord
   end
 
   # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
-  # when a call to {#destroy}[rdoc-ref:Persistence#destroy]
-  # would return false.
+  # when a record cannot be destroyed due to any of the
+  # <tt>before_destroy</tt> callbacks throwing +:abort+. See
+  # ActiveRecord::Callbacks for further details.
   #
-  #   begin
-  #     complex_operation_that_internally_calls_destroy!
-  #   rescue ActiveRecord::RecordNotDestroyed => invalid
-  #     puts invalid.record.errors
+  #   class User < ActiveRecord::Base
+  #     before_destroy do
+  #       throw :abort if still_active?
+  #     end
   #   end
   #
+  #   User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
   class RecordNotDestroyed < ActiveRecordError
     attr_reader :record
 
@@ -310,15 +338,15 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml.
+          Database not found: #{db_name}. Available database configurations can be found in config/database.yml.
 
           To resolve this error:
 
-          - Did you not create the database, or did you delete it? To create the database, run:
+          - Create the database by running:
 
               bin/rails db:create
 
-          - Has the database name changed? Verify that config/database.yml contains the correct database name.
+          - Verify that config/database.yml contains the correct database name.
         MSG
       end
     end
@@ -461,12 +489,13 @@ module ActiveRecord
   #   end
   #
   #   relation = Task.all
+  #   relation.load
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::ImmutableRelation
-  #   relation.limit!(5)              # => ActiveRecord::ImmutableRelation
-  class ImmutableRelation < ActiveRecordError
+  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  class UnmodifiableRelation < ActiveRecordError
   end
 
   # TransactionIsolationError will be raised under the following conditions:
@@ -575,4 +604,11 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # DatabaseVersionError will be raised when the database version is not supported, or when
+  # the database version cannot be determined.
+  class DatabaseVersionError < ActiveRecordError
+  end
 end
+
+require "active_record/associations/errors"

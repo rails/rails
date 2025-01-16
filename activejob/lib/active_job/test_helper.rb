@@ -39,10 +39,13 @@ module ActiveJob
     end
 
     def before_setup # :nodoc:
-      test_adapter = queue_adapter_for_test
-
+      queue_adapter_specific_to_this_test_class = queue_adapter_for_test
       queue_adapter_changed_jobs.each do |klass|
-        klass.enable_test_adapter(test_adapter)
+        if queue_adapter_specific_to_this_test_class
+          klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
+        elsif klass._queue_adapter.nil?
+          klass.enable_test_adapter(ActiveJob::QueueAdapters::TestAdapter.new)
+        end
       end
 
       clear_enqueued_jobs
@@ -61,7 +64,6 @@ module ActiveJob
     # Override this method to specify a different adapter. The adapter must
     # implement the same interface as ActiveJob::QueueAdapters::TestAdapter.
     def queue_adapter_for_test
-      ActiveJob::QueueAdapters::TestAdapter.new
     end
 
     # Asserts that the number of enqueued jobs matches the given number.
@@ -118,6 +120,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_jobs")
+
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -180,6 +184,8 @@ module ActiveJob
     #
     #   assert_enqueued_jobs 0, &block
     def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_enqueued_jobs")
+
       assert_enqueued_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -270,6 +276,8 @@ module ActiveJob
     #       end
     #     end
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_performed_jobs")
+
       if block_given?
         original_count = performed_jobs.size
 
@@ -338,6 +346,8 @@ module ActiveJob
     #
     #   assert_performed_jobs 0, &block
     def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
+      require_active_job_test_adapter!("assert_no_performed_jobs")
+
       assert_performed_jobs 0, only: only, except: except, queue: queue, &block
     end
 
@@ -394,6 +404,8 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_enqueued_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -496,6 +508,8 @@ module ActiveJob
     #     end
     #   end
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
+      require_active_job_test_adapter!("assert_performed_with")
+
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
       potential_matches = []
@@ -604,7 +618,10 @@ module ActiveJob
     # If queue_adapter_for_test is overridden to return a different adapter,
     # +perform_enqueued_jobs+ will merely execute the block.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
-      return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at) unless block_given?
+      unless block_given?
+        require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")
+        return flush_enqueued_jobs(only: only, except: except, queue: queue, at: at)
+      end
 
       return _assert_nothing_raised_or_warn("perform_enqueued_jobs", &block) unless using_test_adapter?
 
@@ -646,6 +663,12 @@ module ActiveJob
     end
 
     private
+      def require_active_job_test_adapter!(method)
+        unless using_test_adapter?
+          raise ArgumentError.new("#{method} requires the Active Job test adapter, you're using #{queue_adapter.class.name}.")
+        end
+      end
+
       def using_test_adapter?
         queue_adapter.is_a?(ActiveJob::QueueAdapters::TestAdapter)
       end

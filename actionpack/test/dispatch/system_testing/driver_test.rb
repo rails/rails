@@ -30,8 +30,10 @@ class DriverTest < ActiveSupport::TestCase
 
   test "initializing the driver with a headless chrome and custom path" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    ::Selenium::WebDriver::Chrome::Service.driver_path = "bin/test"
-    ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400])
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Chrome::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400])
+    end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
@@ -47,8 +49,10 @@ class DriverTest < ActiveSupport::TestCase
 
   test "initializing the driver with a headless firefox and custom path" do
     original_driver_path = ::Selenium::WebDriver::Firefox::Service.driver_path
-    ::Selenium::WebDriver::Firefox::Service.driver_path = "bin/test"
-    ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400])
+    assert_nothing_raised do
+      ::Selenium::WebDriver::Firefox::Service.driver_path = "bin/test"
+      ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_firefox, screen_size: [1400, 1400])
+    end
   ensure
     ::Selenium::WebDriver::Firefox::Service.driver_path = original_driver_path
   end
@@ -78,7 +82,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },
@@ -97,7 +101,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["--headless", "start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "--headless", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },
@@ -116,7 +120,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -133,7 +137,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -152,9 +156,10 @@ class DriverTest < ActiveSupport::TestCase
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
     ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    # Our stub must return a path to a real executable, otherwise an internal Selenium assertion will fail.
+    # Our stub must return paths to a real executables, otherwise an internal Selenium assertion will fail.
+    # Note: SeleniumManager is private api
     found_executable = RbConfig.ruby
-    ::Selenium::WebDriver::SeleniumManager.stub(:driver_path, found_executable) do
+    ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => found_executable, "browser_path" => found_executable }) do
       ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
     end
 

@@ -18,6 +18,9 @@ module ActiveSupport
 
       def label
       end
+
+      def base_label
+      end
     end
 
     class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location) # :nodoc:
@@ -45,7 +48,7 @@ module ActiveSupport
 
     private
       def parse_message_for_trace
-        if source_location_eval?
+        if __getobj__.to_s.start_with?("(eval")
           # If the exception is coming from a call to eval, we need to keep
           # the path of the file in which eval was called to ensure we can
           # return the right source fragment to show the location of the
@@ -54,16 +57,6 @@ module ActiveSupport
           ["#{location.path}:#{location.lineno}: #{__getobj__}"]
         else
           __getobj__.to_s.split("\n")
-        end
-      end
-
-      if SyntaxError.method_defined?(:path) # Ruby 3.3+
-        def source_location_eval?
-          __getobj__.path.start_with?("(eval")
-        end
-      else # 3.2 and older versions of Ruby
-        def source_location_eval?
-          __getobj__.to_s.start_with?("(eval")
         end
       end
   end

@@ -47,6 +47,14 @@ class ConnectionSimpleTest < ActionCable::Connection::TestCase
     assert_equal "456", connection.user_id
   end
 
+  def test_plain_cookie_with_explicit_value_and_string_key
+    cookies["user_id"] = { "value" => "456" }
+
+    connect
+
+    assert_equal "456", connection.user_id
+  end
+
   def test_disconnect
     cookies["user_id"] = "456"
 
@@ -127,6 +135,14 @@ class EncryptedCookiesConnectionTest < ActionCable::Connection::TestCase
 
   def test_connected_with_encrypted_cookies
     cookies.encrypted["user_id"] = "456"
+
+    connect
+
+    assert_equal "456", connection.user_id
+  end
+
+  def test_connected_with_encrypted_cookies_with_explicit_value_and_symbol_key
+    cookies.encrypted["user_id"] = { value: "456" }
 
     connect
 
