@@ -41,7 +41,8 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   test "attaching a blob doesn't touch the record" do
     data = "Something else entirely!"
     io = StringIO.new(data)
-    blob = create_blob_before_direct_upload byte_size: data.size, checksum: ActiveStorage::Checksum.for(ActiveStorage::Blob.service.checksum_algorithm).base64digest(data)
+    blob = create_blob_before_direct_upload byte_size: data.size, checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
+
     blob.upload(io)
 
     user = User.create!(

@@ -246,7 +246,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def unfurl(io, identify: true) # :nodoc:
-    self.checksum     = compute_checksum_in_chunks(io)
+    self.checksum     = ActiveStorage::Checksum.compute_checksum_in_chunks(io, service)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
@@ -329,19 +329,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
-    def compute_checksum_in_chunks(io)
-      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
-      return unless service
-
-      ActiveStorage::Checksum.for(service.checksum_algorithm).new.tap do |checksum|
-        read_buffer = "".b
-        while io.read(5.megabytes, read_buffer)
-          checksum << read_buffer
-        end
-
-        io.rewind
-      end.base64digest
-    end
 
     def extract_content_type(io)
       Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
