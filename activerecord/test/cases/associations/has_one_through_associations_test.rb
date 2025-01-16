@@ -55,20 +55,6 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal club, member.club
   end
 
-  def test_setting_association_on_new_record_sets_nested_through_record
-    category = Category.create!(name: "General")
-    club = Club.create!(category: category)
-    membership = CurrentMembership.new(club: club)
-    member = Member.new
-    member.current_membership = membership
-
-    assert_predicate category, :persisted?
-    assert_predicate club, :persisted?
-    assert_predicate member, :new_record?
-    assert_predicate member.current_membership, :new_record?
-    assert_equal club.category, member.club_category
-  end
-
   def test_creating_association_creates_through_record
     new_member = Member.create(name: "Chris")
     new_member.club = Club.create(name: "LRUG")

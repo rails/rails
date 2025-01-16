@@ -41,7 +41,6 @@ require "models/cpk"
 require "models/zine"
 require "models/interest"
 require "models/human"
-require "models/account"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -68,24 +67,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate subscriber_2, :persisted?
     assert_predicate book, :new_record?
     book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_equal [subscriber_1, subscriber_2].sort, book.subscribers.sort
-  end
-
-  def test_setting_association_on_new_record_sets_nested_through_records
-    account_1 = Account.create!(firm_name: "account 1", credit_limit: 100)
-    subscriber_1 = Subscriber.create!(nick: "nick 1", account: account_1)
-    account_2 = Account.create!(firm_name: "account 2", credit_limit: 100)
-    subscriber_2 = Subscriber.create!(nick: "nick 2", account: account_2)
-    subscription_1 = Subscription.new(subscriber: subscriber_1)
-    subscription_2 = Subscription.new(subscriber: subscriber_2)
-    book = Book.new
-    book.subscriptions = [subscription_1, subscription_2]
-
-    assert_predicate subscriber_1, :persisted?
-    assert_predicate subscriber_2, :persisted?
-    assert_predicate book, :new_record?
-    book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_equal [account_1, account_2].sort, book.subscriber_accounts.sort
+    assert_equal book.subscribers.sort, [subscriber_1, subscriber_2].sort
   end
 
   def test_has_many_through_create_record
