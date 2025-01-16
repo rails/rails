@@ -1605,7 +1605,7 @@ module ActiveRecord
           name = "idx_on_#{Array(column) * '_'}"
 
           short_limit = max_index_name_size - hashed_identifier.bytesize
-          short_name = name.mb_chars.limit(short_limit).to_s
+          short_name = name.truncate_bytes(short_limit, omission: nil)
 
           "#{short_name}#{hashed_identifier}"
         end
