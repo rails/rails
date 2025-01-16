@@ -1287,9 +1287,6 @@ module ActionController
         keys - params.keys - always_permitted_parameters
       end
 
-      #
-      # --- Filtering ----------------------------------------------------------
-      #
       # This is a list of permitted scalar types that includes the ones supported in
       # XML and JSON requests.
       #
