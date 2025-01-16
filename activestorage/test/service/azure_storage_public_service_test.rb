@@ -21,7 +21,7 @@ if SERVICE_CONFIGURATIONS[:azure_public]
     test "direct upload" do
       key          = SecureRandom.base58(24)
       data         = "Something else entirely!"
-      checksum     = ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data)
+      checksum     = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       content_type = "text/xml"
       url          = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: content_type, content_length: data.size, checksum: checksum)
 

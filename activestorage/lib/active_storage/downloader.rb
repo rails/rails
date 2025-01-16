@@ -35,7 +35,7 @@ module ActiveStorage
       end
 
       def verify_integrity_of(file, checksum:)
-        unless ActiveStorage::Checksum.for(service.checksum_algorithm).file(file).base64digest == checksum
+        unless ActiveStorage::Checksum.file(file, service.checksum_algorithm) == checksum
           raise ActiveStorage::IntegrityError
         end
       end

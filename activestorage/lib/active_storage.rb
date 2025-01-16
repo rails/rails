@@ -365,15 +365,6 @@ module ActiveStorage
 
   mattr_accessor :track_variants, default: false
 
-  singleton_class.attr_accessor :md5_checksum_implementation
-  @md5_checksum_implementation = OpenSSL::Digest::MD5
-  begin
-    @md5_checksum_implementation.hexdigest("test")
-  rescue # OpenSSL may have MD5 disabled
-    require "digest/md5"
-    @md5_checksum_implementation = Digest::MD5
-  end
-
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
   module Transformers

@@ -59,7 +59,7 @@ class ActiveSupport::TestCase
       file = file_fixture(filename)
       byte_size = file.size
       service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
-      checksum = ActiveStorage::Checksum.for(service.checksum_algorithm).file(file).base64digest
+      checksum = ActiveStorage::Checksum.file(file, service.checksum_algorithm)
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service.upload(blob.key, file.open)

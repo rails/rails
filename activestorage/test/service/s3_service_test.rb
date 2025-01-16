@@ -17,7 +17,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -40,7 +40,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
 
-      checksum = ActiveStorage::Checksum.for(service.checksum_algorithm).base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
       url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -60,7 +60,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -81,7 +81,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "directly uploading file larger than the provided content-length does not work" do
       key      = SecureRandom.base58(24)
       data     = "Some text that is longer than the specified content length"
-      checksum = ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size - 1, checksum: checksum)
 
       uri = URI.parse url
@@ -122,7 +122,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.for(service.checksum_algorithm).base64digest(data)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
 
         assert_equal "AES256", service.bucket.object(key).server_side_encryption
       ensure
@@ -138,7 +138,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data),
+        checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm),
         filename: "cool_data.txt",
         content_type: content_type
       )
@@ -154,7 +154,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data),
+        checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm),
         content_type: "text/plain",
         custom_metadata: { "foo" => "baz" },
         filename: "custom_metadata.txt"
@@ -178,7 +178,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.for(service.checksum_algorithm).base64digest(data)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
 
         assert_equal data, service.download(key)
       ensure
@@ -193,7 +193,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage::Checksum.for(@service.checksum_algorithm).base64digest(data),
+        checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm),
         filename: ActiveStorage::Filename.new("cool_data.txt"),
         disposition: :attachment
       )
@@ -210,7 +210,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(8.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.for(service.checksum_algorithm).base64digest(data)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
         assert data == service.download(key)
       ensure
         service.delete key
@@ -224,7 +224,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(3.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.for(service.checksum_algorithm).base64digest(data)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
         assert data == service.download(key)
       ensure
         service.delete key
