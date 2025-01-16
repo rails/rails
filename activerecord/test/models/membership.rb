@@ -4,7 +4,6 @@ class Membership < ActiveRecord::Base
   enum :type, %i(Membership CurrentMembership SuperMembership SelectedMembership TenantMembership)
   belongs_to :member
   belongs_to :club
-  has_one :sponsor, through: :club
 end
 
 class CurrentMembership < Membership

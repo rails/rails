@@ -57,20 +57,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create person_id: 0, post_id: 0
   end
 
-  def test_setting_has_many_through_one_association_on_new_record_sets_through_records
-    account_1, account_2 = Account.create!(credit_limit: 100), Account.create!(credit_limit: 100)
-    firm = Firm.new(accounts: [account_1, account_2])
-    client = Client.new
-    client.firm = firm
-
-    assert_predicate account_1, :persisted?
-    assert_predicate account_2, :persisted?
-    assert_predicate client, :new_record?
-    assert_predicate client.firm, :new_record?
-    assert_no_queries { assert_equal [account_1, account_2].sort, client.accounts.sort }
-  end
-
-  def test_setting_has_many_through_many_association_on_new_record_sets_through_records
+  def test_setting_association_on_new_record_sets_through_records
     subscriber_1, subscriber_2 = Subscriber.create!(nick: "nick 1"), Subscriber.create!(nick: "nick 2")
     subscription_1 = Subscription.new(subscriber: subscriber_1)
     subscription_2 = Subscription.new(subscriber: subscriber_2)
@@ -81,42 +68,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate subscriber_2, :persisted?
     assert_predicate book, :new_record?
     book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_no_queries { assert_equal [subscriber_1, subscriber_2].sort, book.subscribers.sort }
+    assert_equal [subscriber_1, subscriber_2].sort, book.subscribers.sort
   end
 
-  def test_setting_nested_has_many_through_one_association_on_new_record_sets_nested_through_records
-    post_tagging_1, post_tagging_2 = Tagging.create!, Tagging.create!
-    post = Post.create!(title: "Tagged", body: "Post", taggings: [post_tagging_1, post_tagging_2])
-    author = Author.new(name: "Josh")
-    author.posts = [post]
-    categorization = Categorization.new
-    categorization.author = author
-
-    assert_predicate post_tagging_1, :persisted?
-    assert_predicate post_tagging_2, :persisted?
-    assert_predicate post, :persisted?
-    assert_predicate categorization, :new_record?
-    assert_predicate categorization.author, :new_record?
-    assert_no_queries { assert_equal [post_tagging_1, post_tagging_2].sort, categorization.post_taggings.sort }
-  end
-
-  def test_setting_nested_has_many_through_one_association_on_new_record_sets_targetless_nested_through_records
-    post = Post.create!(title: "Tagged", body: "Post")
-    post_tagging_1, post_tagging_2 = Tagging.create!(taggable: post), Tagging.create!(taggable: post)
-    author = Author.new(name: "Josh")
-    author.posts = [post]
-    categorization = Categorization.new
-    categorization.author = author
-
-    assert_predicate post_tagging_1, :persisted?
-    assert_predicate post_tagging_2, :persisted?
-    assert_predicate post, :persisted?
-    assert_predicate categorization, :new_record?
-    assert_predicate categorization.author, :new_record?
-    assert_queries_count(1) { assert_equal [post_tagging_1, post_tagging_2].sort, categorization.post_taggings.sort }
-  end
-
-  def test_setting_nested_has_many_through_many_association_on_new_record_sets_nested_through_records
+  def test_setting_association_on_new_record_sets_nested_through_records
     account_1 = Account.create!(firm_name: "account 1", credit_limit: 100)
     subscriber_1 = Subscriber.create!(nick: "nick 1", account: account_1)
     account_2 = Account.create!(firm_name: "account 2", credit_limit: 100)
@@ -128,11 +83,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate subscriber_1, :persisted?
     assert_predicate subscriber_2, :persisted?
-    assert_predicate account_1, :persisted?
-    assert_predicate account_2, :persisted?
     assert_predicate book, :new_record?
     book.subscriptions.each { |subscription| assert_predicate subscription, :new_record? }
-    assert_no_queries { assert_equal [account_1, account_2].sort, book.subscriber_accounts.sort }
+    assert_equal [account_1, account_2].sort, book.subscriber_accounts.sort
   end
 
   def test_has_many_through_create_record

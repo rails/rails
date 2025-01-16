@@ -655,10 +655,6 @@ module ActiveRecord
         self
       end
 
-      def source_reflection_name
-        source_reflection.name
-      end
-
       # A chain of reflections from this one back to the owner. For more see the explanation in
       # ThroughReflection.
       def collect_join_chain

@@ -23,7 +23,6 @@ require "models/carrier"
 require "models/shop_account"
 require "models/customer_carrier"
 require "models/cpk"
-require "models/rating"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -53,7 +52,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate club, :persisted?
     assert_predicate member, :new_record?
     assert_predicate member.current_membership, :new_record?
-    assert_no_queries { assert_equal club, member.club }
+    assert_equal club, member.club
   end
 
   def test_setting_association_on_new_record_sets_nested_through_record
@@ -67,38 +66,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_predicate club, :persisted?
     assert_predicate member, :new_record?
     assert_predicate member.current_membership, :new_record?
-    assert_no_queries { assert_equal club.category, member.club_category }
-  end
-
-  def test_setting_association_on_new_record_sets_not_loaded_nested_through_record
-    category = Category.create!(name: "General")
-    club = Club.create!(category: category)
-    club.reload
-    membership = CurrentMembership.new(club: club)
-    member = Member.new
-    member.current_membership = membership
-
-    assert_predicate category, :persisted?
-    assert_predicate club, :persisted?
-    assert_predicate member, :new_record?
-    assert_predicate member.current_membership, :new_record?
-    assert_queries_count(1) { assert_equal club.category, member.club_category }
-  end
-
-  def test_setting_association_on_new_record_sets_nested_through_record_with_belongs_to
-    essay = Essay.create!
-    author = Author.create!(name: "Josh", owned_essay: essay)
-    post = Post.create!(title: "Foo", body: "Bar", author: author)
-    comment = Comment.new(post: post)
-    rating = Rating.new
-    rating.comment = comment
-
-    assert_predicate essay, :persisted?
-    assert_predicate author, :persisted?
-    assert_predicate post, :persisted?
-    assert_predicate rating, :new_record?
-    assert_predicate rating.comment, :new_record?
-    assert_no_queries { assert_equal essay, rating.owned_essay }
+    assert_equal club.category, member.club_category
   end
 
   def test_creating_association_creates_through_record
