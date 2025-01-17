@@ -1550,8 +1550,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_not liquid.update(input_attributes), "Liquid should not have been updated"
     assert_includes liquid.errors.full_messages, "Molecules electrons name can't be blank"
+  end
 
-    liquid.reload
+  def test_should_not_skip_validation_on_nested_attributes_for_new_parent
+    liquid = Liquid.create!
+    molecule = liquid.molecules.build
 
     electron = molecule.electrons.build(name: "electron")
     electron.save!
@@ -1571,6 +1574,33 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
 
     assert_not liquid.update(input_attributes), "Liquid should not have been updated"
     assert_includes liquid.errors.full_messages, "Molecules electrons name can't be blank"
+  end
+
+  def test_new_parent_existing_invalid_grandchildren_should_be_validated
+    liquid = Liquid.new
+    molecule = liquid.molecules.build
+
+    liquid.save!
+
+    input_attributes = {
+      molecules_attributes: {
+        "0" => {
+          id: molecule.id,
+          electrons_attributes: { id: nil, name: "" }
+        }
+      }
+    }
+    refute liquid.update(input_attributes)
+
+    liquid.reload
+
+    molecule.electrons.first.name = ""
+    refute molecule.save
+
+    new_liquid = Liquid.new
+    new_liquid.molecules << molecule
+
+    refute new_liquid.save, "Liquid should not have been saved"
   end
 
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
