@@ -46,7 +46,6 @@ class Post < ActiveRecord::Base
   }
 
   belongs_to :author
-  has_one :owned_essay, through: :author
   belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id

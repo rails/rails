@@ -9,7 +9,6 @@ class Book < ActiveRecord::Base
 
   has_many :subscriptions
   has_many :subscribers, through: :subscriptions
-  has_many :subscriber_accounts, through: :subscribers, source: :account
 
   has_one :essay
 

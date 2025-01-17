@@ -297,15 +297,7 @@ module ActiveRecord
       # unless the parent is/was a new record itself.
       def associated_records_to_validate_or_save(association, new_record, autosave)
         if new_record || custom_validation_context?
-          target = association && association.target
-          if target && association.reflection.through_reflection
-            # We expect new through records to be autosaved by their direct parent.
-            # This prevents already persisted through records from being validated or saved
-            # more than once.
-            target.find_all(&:changed_for_autosave?)
-          else
-            target
-          end
+          association && association.target
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
         else
