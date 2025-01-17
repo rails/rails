@@ -1,3 +1,7 @@
+*   Fix `strict_loading` violations ignored when using `has_many` associations with query methods.
+
+    *Joshua Young*
+
 *   Enable automatically retrying idempotent `#exists?` queries on connection
     errors.
 

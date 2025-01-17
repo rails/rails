@@ -1413,6 +1413,10 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
+        if respond_to?(:proxy_association) && proxy_association.violates_strict_loading?
+          Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
+        end
+
         skip_query_cache_if_necessary do
           rows = if scheduled?
             future = @future_result
