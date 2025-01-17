@@ -1,3 +1,8 @@
+*   Change the payload name of `sql.active_record` notification for eager
+    loading from "SQL" to "#{model.name} Eager Load".
+
+    *zzak*
+
 *   Enable automatically retrying idempotent `#exists?` queries on connection
     errors.
 
