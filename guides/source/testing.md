@@ -91,7 +91,7 @@ NOTE: Your tests are run under `RAILS_ENV=test`. This is set by Rails automatica
 ### Writing Your First Test
 
 We introduced the `bin/rails generate model` command in the [Getting Started
-with Rails](getting_started.html#mvc-and-you-generating-a-model) guide.
+with Rails](getting_started.html#creating-a-database-model) guide.
 Alongside creating a model, this command also creates a test stub in the `test`
 directory:
 
