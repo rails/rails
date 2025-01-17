@@ -450,10 +450,7 @@ module ActiveRecord
                   scale: nil,
                 )
               else
-                $stderr.puts "unknown type #{info.fetch("DATA_TYPE")}"
-                pp THEIRS: orig.sql_type_metadata
-                p info
-                $stderr.puts "unknown type #{info.fetch("DATA_TYPE")}"
+                raise "unknown type #{info.fetch("DATA_TYPE")}"
               end
             end
             MySQL::TypeMetadata.new(sql_type_metadata, extra: info["EXTRA"])
