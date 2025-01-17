@@ -1,3 +1,7 @@
+*   Add `current_user` helper to authentication concern
+
+    *Chris Kottom*
+
 *   The authentication generator's `SessionsController` sets the `Clear-Site-Data` header on logout.
 
     By default the header will be set to `"cache","storage"` to help prevent data leakage after
