@@ -225,15 +225,13 @@ module ActiveSupport
     #     logger.debug("debug") # Logged
     #     logger.info("hello")  # Not logged
     #   end
-    def with_level(level, broadcasts = @broadcasts.dup, &block)
+    def with_level(level, &block)
       # This is implemented to prevent one call to `BroadcastLogger.with_level(&block)`
       # from invoking `block` once for each logger being broadcast to, which would be
       # the behavior if we relied on `method_missing` and `dispatch` here.
       return block.call if broadcasts.empty?
 
-      broadcasts[0].with_level(level) do
-        with_level(level, broadcasts[1..], &block)
-      end
+      with_level_wrapper(level, 0, &block)
     end
 
     def initialize_copy(other)
@@ -264,6 +262,14 @@ module ActiveSupport
 
       def respond_to_missing?(method, include_all)
         @broadcasts.any? { |logger| logger.respond_to?(method, include_all) }
+      end
+
+      def with_level_wrapper(level, index, &block)
+        return block.call if index == broadcasts.size
+
+        broadcasts[index].with_level(level) do
+          return with_level_wrapper(level, index + 1, &block)
+        end
       end
   end
 end
