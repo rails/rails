@@ -384,7 +384,7 @@ module ActiveRecord
           # If the associated record is unchanged we shouldn't auto validate it.
           # Even if a record is invalid you should still be able to create new references
           # to it.
-          return true if !record.new_record? && !record.changed?
+          return true if self.new_record? && !record.new_record? && !record.changed?
         end
 
         unless valid = record.valid?(context)

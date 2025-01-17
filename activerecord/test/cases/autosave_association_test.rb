@@ -26,6 +26,7 @@ require "models/tag"
 require "models/tagging"
 require "models/treasure"
 require "models/eye"
+require "models/liquid"
 require "models/electron"
 require "models/molecule"
 require "models/member"
@@ -1530,6 +1531,46 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     new_pirate = Pirate.new(catchphrase: "Arr")
     new_pirate.parrots = @pirate.parrots
     new_pirate.save!
+  end
+
+  def test_should_not_skip_validation_on_deeply_nested_attributes_if_unpersisted_and_unchanged
+    liquid = Liquid.new
+    molecule = liquid.molecules.build
+
+    liquid.save!
+
+    input_attributes = {
+      molecules_attributes: {
+        "0" => {
+          id: molecule.id,
+          electrons_attributes: { id: nil, name: "" }
+        }
+      }
+    }
+
+    assert_not liquid.update(input_attributes), "Liquid should not have been updated"
+    assert_includes liquid.errors.full_messages, "Molecules electrons name can't be blank"
+
+    liquid.reload
+
+    electron = molecule.electrons.build(name: "electron")
+    electron.save!
+
+    assert_predicate liquid, :valid?
+    assert_predicate electron, :persisted?
+    assert_predicate electron, :valid?
+
+    input_attributes = {
+      molecules_attributes: {
+        "0" => {
+          id: molecule.id,
+          electrons_attributes: { id: electron.id, name: "" }
+        }
+      }
+    }
+
+    assert_not liquid.update(input_attributes), "Liquid should not have been updated"
+    assert_includes liquid.errors.full_messages, "Molecules electrons name can't be blank"
   end
 
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
