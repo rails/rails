@@ -44,6 +44,7 @@ module ActiveRecord
     end
 
     def test_payload_name_on_eager_load
+      ActiveRecord::Base.schema_cache.add(Author.table_name)
       notification = capture_notifications("sql.active_record") { Book.eager_load(:author).to_a }
       assert_equal "Book Eager Load", notification.first.payload[:name]
     end
