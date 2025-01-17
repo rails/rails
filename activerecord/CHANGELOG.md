@@ -1,3 +1,27 @@
+*   Fix orders of produced left joins when using `eager_load`.
+
+    A `eager_load` followed by a `left_joins` was always resulting in the `LEFT JOIN`
+    produced by `left_joins` to have precedence over the `LEFT JOIN` produced by
+    the `eager_load` call.
+
+    This was resulting in an invalid SQL query in some cases
+
+    ```ruby
+    Post.select(:id).eager_load(:author).merge(Author.left_joins(:address))
+    ```
+
+    ### Before (Invalid query)
+    ```sql
+    SELECT DISTINCT "posts"."id" FROM "posts" LEFT OUTER JOIN "addresses" ON "addresses"."id" = "authors"."address_id" LEFT OUTER JOIN "authors" ON "authors"."post_id" = "posts"."id"
+    ```
+
+    ### After
+    ```sql
+    SELECT DISTINCT "posts"."id" FROM "posts" LEFT OUTER JOIN "authors" ON "authors"."post_id" = "posts"."id" LEFT OUTER JOIN "addresses" ON "addresses"."id" = "authors"."address_id"
+    ```
+
+    *Edouard Chin*
+
 *   Enable automatically retrying idempotent `#exists?` queries on connection
     errors.
 

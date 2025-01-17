@@ -458,7 +458,7 @@ module ActiveRecord
         join_dependency = construct_join_dependency(
           eager_load_values | includes_values, Arel::Nodes::OuterJoin
         )
-        relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
+        relation = except(:includes, :eager_load, :preload).left_outer_joins!(join_dependency)
 
         if eager_loading && has_limit_or_offset? && !(
             using_limitable_reflections?(join_dependency.reflections) &&

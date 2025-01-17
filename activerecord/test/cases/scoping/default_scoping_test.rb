@@ -418,6 +418,16 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal false, received.first.projects.loaded?
   end
 
+  def test_unscope_eager_load_keeps_left_joins
+    Computer.destroy_all
+
+    expected = Developer.order(:id).collect(&:name)
+    received = Developer.eager_load(:projects).left_joins(:computers).unscope(:eager_load).group("developers.id")
+      .having("COUNT(computers.id) = 0").order(:id)
+
+    assert_equal expected, received.collect(&:name)
+  end
+
   def test_unscope_preloads
     expected = Developer.all.collect(&:name)
     received = Developer.preload(:projects).select(:id).unscope(:preload, :select)

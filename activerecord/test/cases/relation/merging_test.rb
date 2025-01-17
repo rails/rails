@@ -208,6 +208,12 @@ class RelationMergingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_relation_merging_with_eager_load_and_left_joins
+    result = Post.eager_load(:author).merge(Author.where.missing(:author_address_extra)).count
+
+    assert_equal(6, result)
+  end
+
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
     assert_predicate devs, :locked?

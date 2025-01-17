@@ -294,6 +294,7 @@ module ActiveRecord
 
     def eager_load!(*args) # :nodoc:
       self.eager_load_values |= args
+      self.left_outer_joins_values |= args
       self
     end
 
@@ -819,6 +820,7 @@ module ActiveRecord
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
           assert_modifiable!
+          self.left_outer_joins_values -= eager_load_values if scope == :eager_load
           @values.delete(scope)
         when Hash
           scope.each do |key, target_value|
