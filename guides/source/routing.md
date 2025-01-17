@@ -1292,7 +1292,7 @@ In this case, Rails will create all of the normal routes except the route for `d
 TIP: If your application has many RESTful routes, using `:only` and `:except` to
 generate only the routes that you actually need can cut down on memory use and
 speed up the routing process by eliminating [unused
-routed](#listing-unused-routes).
+routes](#listing-unused-routes).
 
 ### Translated Paths
 

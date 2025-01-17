@@ -174,6 +174,10 @@ module ActiveRecord
         mariadb? && database_version >= "10.5.0"
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -728,12 +732,12 @@ module ActiveRecord
             m.alias_type %r(bit)i,  "binary"
           end
 
-          def register_integer_type(mapping, key, **options)
+          def register_integer_type(mapping, key, limit:)
             mapping.register_type(key) do |sql_type|
               if /\bunsigned\b/.match?(sql_type)
-                Type::UnsignedInteger.new(**options)
+                Type::UnsignedInteger.new(limit: limit)
               else
-                Type::Integer.new(**options)
+                Type::Integer.new(limit: limit)
               end
             end
           end

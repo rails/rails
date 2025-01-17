@@ -765,7 +765,7 @@ module ActionController
     #
     #     params = ActionController::Parameters.new(tags: ["rails", "parameters"])
     #     permitted = params.expect(tags: [])
-    #     permitted.permitted?      # => true
+    #     permitted                 # => ["rails", "parameters"]
     #     permitted.is_a?(Array)    # => true
     #     permitted.size            # => 2
     #
@@ -1287,9 +1287,6 @@ module ActionController
         keys - params.keys - always_permitted_parameters
       end
 
-      #
-      # --- Filtering ----------------------------------------------------------
-      #
       # This is a list of permitted scalar types that includes the ones supported in
       # XML and JSON requests.
       #

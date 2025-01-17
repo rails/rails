@@ -1157,19 +1157,19 @@ class ApplicationController < ActionController::Base
 end
 
 class ActionDurationCallback
-  def self.around(controller, action)
+  def self.around(controller)
     start_time = Time.now
-    yield  # This executes the action
+    yield # This executes the action
     end_time = Time.now
 
     duration = end_time - start_time
-    Rails.logger.info "Action #{action} from controller #{controller} took #{duration.round(2)} seconds to execute."
+    Rails.logger.info "Action #{controller.action_name} from controller #{controller.controller_name} took #{duration.round(2)} seconds to execute."
   end
 end
 ```
 
 In above example, the `ActionDurationCallback`'s method is not run in the scope
-of the controller but gets `controller` and `action` as an argument.
+of the controller but gets `controller` as an argument.
 
 In general, the class being used for a `*_action` callback must implement a
 method with the same name as the action callback. So for the `before_action`

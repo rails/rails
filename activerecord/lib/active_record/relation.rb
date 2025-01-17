@@ -60,7 +60,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with, :with_recursive]
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -590,6 +590,18 @@ module ActiveRecord
 
       return 0 if @none
 
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
+        value = @values[method]
+        method == :distinct ? value : value&.any?
+      end
+      if invalid_methods.any?
+        ActiveRecord.deprecator.warn <<~MESSAGE
+          `#{invalid_methods.join(', ')}` is not supported by `update_all` and was never included in the generated query.
+
+          Calling `#{invalid_methods.join(', ')}` with `update_all` will raise an error in Rails 8.2.
+        MESSAGE
+      end
+
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
             !updates.key?(model.locking_column) &&
@@ -1011,7 +1023,7 @@ module ActiveRecord
     def delete_all
       return 0 if @none
 
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
       end

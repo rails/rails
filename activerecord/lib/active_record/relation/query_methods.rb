@@ -1985,7 +1985,7 @@ module ActiveRecord
       def arel_column(field)
         field = field.name if is_symbol = field.is_a?(Symbol)
 
-        field = model.attribute_aliases[field] || field.to_s
+        field = model.attribute_aliases[field] || field
         from = from_clause.name || from_clause.value
 
         if model.columns_hash.key?(field) && (!from || table_name_matches?(from))

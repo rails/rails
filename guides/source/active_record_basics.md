@@ -425,9 +425,7 @@ book.id # => 107
 # Now the `book` record is committed to the database and has an `id`.
 ```
 
-Finally, if a block is provided, both `create` and `new` will yield the new
-object to that block for initialization, while only `create` will persist the
-resulting object to the database:
+If a block is provided, both `create` and `new` will yield the new object to that block for initialization, while only `create` will persist the resulting object to the database:
 
 ```ruby
 book = Book.new do |b|
@@ -445,6 +443,14 @@ something like this:
 /* Note that `created_at` and `updated_at` are automatically set. */
 
 INSERT INTO "books" ("title", "author", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["title", "Metaprogramming Ruby 2"], ["author", "Paolo Perrotta"], ["created_at", "2024-02-22 20:01:18.469952"], ["updated_at", "2024-02-22 20:01:18.469952"]]
+```
+
+Finally, if you'd like to insert several records **without callbacks or
+validations**, you can directly insert records into the database using `insert` or `insert_all` methods:
+
+```ruby
+Book.insert(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
+Book.insert_all([{ title: "The Lord of the Rings", author: "J.R.R. Tolkien" }])
 ```
 
 ### Read
@@ -576,6 +582,14 @@ Book.destroy_by(author: "Douglas Adams")
 
 # Delete all books.
 Book.destroy_all
+```
+
+Additionally, if you'd like to delete several records **without callbacks or
+validations**, you can delete records directly from the database using `delete` and `delete_all` methods:
+
+```ruby
+Book.find_by(title: "The Lord of the Rings").delete
+Book.delete_all
 ```
 
 Validations

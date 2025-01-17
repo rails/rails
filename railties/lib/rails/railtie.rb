@@ -4,7 +4,6 @@ require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/delegation"
 
 module Rails
   # +Rails::Railtie+ is the core of the \Rails framework and provides

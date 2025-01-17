@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_model/error"
-require "forwardable"
 
 module ActiveModel
   class NestedError < Error
@@ -16,7 +15,6 @@ module ActiveModel
 
     attr_reader :inner_error
 
-    extend Forwardable
-    def_delegators :@inner_error, :message
+    delegate :message, to: :@inner_error
   end
 end

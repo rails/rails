@@ -598,7 +598,7 @@ module Rails
 
       def dockerfile_build_packages
         # start with the essentials
-        packages = %w(build-essential git pkg-config)
+        packages = %w(build-essential git pkg-config libyaml-dev)
 
         # add database support
         packages << database.build_package unless skip_active_record?

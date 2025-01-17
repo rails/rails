@@ -299,7 +299,6 @@ how to decode:
 ```ruby
 render partial: "comments/comment", collection: commentable.comments
 render "comments/comments"
-render "comments/comments"
 render("comments/comments")
 
 render "header" # translates to render("comments/header")

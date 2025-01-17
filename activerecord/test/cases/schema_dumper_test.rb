@@ -433,6 +433,28 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = dump_table_schema "numeric_data"
       assert_match %r{t\.float\s+"temperature_with_limit",\s+limit: 24$}, output
     end
+
+    def test_schema_dump_keeps_enum_intact_if_it_contains_comma
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_enum "enum_with_comma", ["value1", "value,2", "value3"]
+        end
+
+        def down
+          drop_enum "enum_with_comma"
+        end
+      end
+
+      migration.migrate(:up)
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_enum "enum_with_comma", ["value1", "value,2", "value3"]', output
+    ensure
+      migration.migrate(:down)
+      $stdout = original
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
