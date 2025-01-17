@@ -1452,7 +1452,7 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   @_join_dependency = join_dependency
-                  c.select_all(relation.arel, "SQL", async: async)
+                  c.select_all(relation.arel, "#{model.name} Eager Load", async: async)
                 end
               end
             end
