@@ -225,7 +225,7 @@ module ActiveRecord
               numeric_precision = nil
               numeric_scale = nil
 
-              if info.fetch("COLUMN_TYPE") =~ /\(.*\)/
+              if info.fetch("COLUMN_TYPE").match?(/\(.*\)/)
                 numeric_precision = info.fetch("NUMERIC_PRECISION")
                 numeric_scale = info.fetch("NUMERIC_SCALE")
               end
@@ -437,7 +437,7 @@ module ActiveRecord
                 SqlTypeMetadata.new(
                   sql_type: info.fetch("COLUMN_TYPE"),
                   type: :string,
-                  limit: nil, #info.fetch("CHARACTER_OCTET_LENGTH"),
+                  limit: nil, # info.fetch("CHARACTER_OCTET_LENGTH"),
                   precision: nil,
                   scale: nil,
                 )
@@ -445,7 +445,7 @@ module ActiveRecord
                 SqlTypeMetadata.new(
                   sql_type: info.fetch("COLUMN_TYPE"),
                   type: :string,
-                  limit: nil, #info.fetch("CHARACTER_OCTET_LENGTH"),
+                  limit: nil, # info.fetch("CHARACTER_OCTET_LENGTH"),
                   precision: nil,
                   scale: nil,
                 )
