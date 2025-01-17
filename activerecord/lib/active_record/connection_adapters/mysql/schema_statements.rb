@@ -187,16 +187,9 @@ module ActiveRecord
           end
 
           def new_column_from_field(table_name, field, _definitions)
-            #return _new_column_from_field(table_name, field, _definitions)
-            #ori = _new_column_from_field(table_name, field["original"], _definitions)
-            new = new_column_from_field2(table_name, field, _definitions)
-            new
-          end
-
-          def new_column_from_field2(table_name, field, _definitions)
             field_name = field.fetch("COLUMN_NAME")
 
-            type_metadata = fetch_type_metadata(field.fetch("COLUMN_TYPE"), field["EXTRA"], true, field, nil)
+            type_metadata = fetch_type_metadata(field)
 
             default, default_function = field.fetch("COLUMN_DEFAULT"), nil
 
@@ -227,40 +220,8 @@ module ActiveRecord
             )
           end
 
-          def _new_column_from_field(table_name, field, _definitions)
-            field_name = field.fetch("Field")
-            type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
-            default, default_function = field["Default"], nil
-
-            if type_metadata.type == :datetime && /\ACURRENT_TIMESTAMP(?:\([0-6]?\))?\z/i.match?(default)
-              default = "#{default} ON UPDATE #{default}" if /on update CURRENT_TIMESTAMP/i.match?(field["Extra"])
-              default, default_function = nil, default
-            elsif type_metadata.extra == "DEFAULT_GENERATED"
-              default = +"(#{default})" unless default.start_with?("(")
-              default = default.gsub("\\'", "'")
-              default, default_function = nil, default
-            elsif type_metadata.type == :text && default&.start_with?("'")
-              # strip and unescape quotes
-              default = default[1...-1].gsub("\\'", "'")
-            elsif default&.match?(/\A\d/)
-              # Its a number so we can skip the query to check if it is a function
-            elsif default && default_type(table_name, field_name) == :function
-              default, default_function = nil, default
-            end
-
-            MySQL::Column.new(
-              field["Field"],
-              default,
-              type_metadata,
-              field["Null"] == "YES",
-              default_function,
-              collation: field["Collation"],
-              comment: field["Comment"].presence
-            )
-          end
-
-          def fetch_type_metadata(sql_type, extra = "", new = false, info = nil, orig = nil)
-            sql_type_metadata = if new
+          def fetch_type_metadata(info)
+            sql_type_metadata = begin
               numeric_precision = nil
               numeric_scale = nil
 
@@ -494,10 +455,8 @@ module ActiveRecord
                 p info
                 $stderr.puts "unknown type #{info.fetch("DATA_TYPE")}"
               end
-            else
-              super(sql_type)
             end
-            MySQL::TypeMetadata.new(sql_type_metadata, extra: extra)
+            MySQL::TypeMetadata.new(sql_type_metadata, extra: info["EXTRA"])
           end
 
           def extract_foreign_key_action(specifier)
