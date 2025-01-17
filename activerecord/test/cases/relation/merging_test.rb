@@ -213,8 +213,29 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_predicate devs, :locked?
   end
 
+  def test_relation_merging_with_select
+    comments = Comment.select(:id, :post_id).merge(Comment.select(:id, :post_id))
+    assert_equal Comment.pluck(:id).sort, comments.to_a.map(&:id).sort
+    assert_equal Comment.pluck(:post_id).sort, comments.to_a.map(&:post_id).sort
+    assert_equal [:id, :post_id], comments.select_values
+  end
+
+  def test_relation_merging_with_select_and_sti
+    comments = Comment.select(:id, :post_id).merge(SpecialComment.select(:id, :post_id))
+    assert_equal SpecialComment.pluck(:id).sort, comments.to_a.map(&:id).sort
+    assert_equal SpecialComment.pluck(:post_id).sort, comments.to_a.map(&:post_id).sort
+    assert_equal [:id, :post_id], comments.select_values
+  end
+
   def test_relation_merging_with_preload
     [Post.all.merge(Post.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
+      assert_queries_count(2) { assert posts.first.author }
+    end
+  end
+
+  def test_relation_merging_with_preload_and_sti
+    [Post.all.merge(SpecialPost.preload(:author)), Post.preload(:author).merge(Post.all)].each do |posts|
+      assert_equal [:author], posts.preload_values
       assert_queries_count(2) { assert posts.first.author }
     end
   end
@@ -224,10 +245,21 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal 1, comments.count
   end
 
+  def test_relation_merging_with_joins_and_sti
+    comments = Comment.joins(:post).merge(SpecialComment.joins(:post))
+    assert_equal SpecialComment.count, comments.count
+    assert_equal [:post], comments.joins_values
+  end
+
   def test_relation_merging_with_left_outer_joins
     comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.left_outer_joins(:author).where(body: "Such a lovely day"))
-
     assert_equal 1, comments.count
+  end
+
+  def test_relation_merging_with_left_outer_joins_and_sti
+    comments = Comment.left_outer_joins(:post).merge(SpecialComment.left_outer_joins(:post))
+    assert_equal SpecialComment.count, comments.count
+    assert_equal [:post], comments.left_outer_joins_values
   end
 
   def test_relation_merging_with_skip_query_cache

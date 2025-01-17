@@ -1,3 +1,7 @@
+*   Fix duplicate `SELECT`, `INNER JOIN`, `LEFT OUTER JOIN` and preload statements when using `merge` with STI.
+
+    *Joshua Young*
+
 *   Enable automatically retrying idempotent `#exists?` queries on connection
     errors.
 

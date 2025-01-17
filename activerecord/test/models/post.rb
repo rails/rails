@@ -406,6 +406,10 @@ class FakeKlass
       false
     end
 
+    def base_class
+      self
+    end
+
     def base_class?
       true
     end
