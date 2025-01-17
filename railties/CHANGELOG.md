@@ -1,3 +1,13 @@
+*   Use `secret_key_base` from ENV or credentials when present locally.
+
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
+
+    *Petrik de Heus*
+
+
 ## Rails 8.0.1 (December 13, 2024) ##
 
 *   Skip generation system tests related code for CI when `--skip-system-test` is given.
