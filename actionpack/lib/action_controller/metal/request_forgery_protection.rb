@@ -142,6 +142,7 @@ module ActionController # :nodoc:
       #
       #
       # Built-in unverified request handling methods are:
+      #
       # *   `:exception` - Raises ActionController::InvalidAuthenticityToken
       #     exception.
       # *   `:reset_session` - Resets the session.
@@ -170,6 +171,7 @@ module ActionController # :nodoc:
       #
       #
       # Built-in session token strategies are:
+      #
       # *   `:session` - Store the CSRF token in the session.  Used as default if
       #     `:store` option is not specified.
       # *   `:cookie` - Store the CSRF token in an encrypted cookie.
