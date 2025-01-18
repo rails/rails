@@ -11,6 +11,9 @@ module ActiveRecord
       # Set the secret used for the signed id verifier instance when using Active Record outside of \Rails.
       # Within \Rails, this is automatically set using the \Rails application key generator.
       class_attribute :signed_id_verifier_secret, instance_writer: false
+
+      # Set true for URL safe signed Id
+      class_attribute :url_safe_signed_id, default: false, instance_writer: false
     end
 
     module RelationMethods # :nodoc:
@@ -52,7 +55,7 @@ module ActiveRecord
       def find_signed(signed_id, purpose: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+        if id = verify_signed_id(signed_id, purpose: purpose)
           find_by primary_key => id
         end
       end
@@ -70,7 +73,7 @@ module ActiveRecord
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
       def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+        if id = verify_signed_id!(signed_id, purpose: purpose)
           find(id)
         end
       end
@@ -79,29 +82,65 @@ module ActiveRecord
       # with the class-level +signed_id_verifier_secret+, which within \Rails comes from the
       # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
-        @signed_id_verifier ||= begin
-          secret = signed_id_verifier_secret
-          secret = secret.call if secret.respond_to?(:call)
+        @signed_id_verifier ||= build_default_signed_id_verifier(url_safe: url_safe_signed_id)
+      end
 
-          if secret.nil?
-            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
-          else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
-          end
+      def secondary_signed_id_verifier
+        @secondary_signed_id_verifier ||= begin
+          return nil if url_safe_signed_id
+
+          build_default_signed_id_verifier(url_safe: true)
         end
       end
 
       # Allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
-      # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
-      # your custom verifier for that in advance. See +ActiveSupport::MessageVerifier+ for details.
+      # verifiers for different classes. See +ActiveSupport::MessageVerifier+ for details.
       def signed_id_verifier=(verifier)
         @signed_id_verifier = verifier
+      end
+
+      # Allows forward/backward compatible changes in the verifier.
+      # This is also helpful if you need to rotate keys, as you can have a verifier to fallback to.
+      def secondary_signed_id_verifier=(verifier)
+        @secondary_signed_id_verifier = verifier
       end
 
       # :nodoc:
       def combine_signed_id_purposes(purpose)
         [ base_class.name.underscore, purpose.to_s ].compact_blank.join("/")
       end
+
+      private
+        def verify_signed_id!(signed_id, purpose: nil)
+          signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+        rescue ActiveSupport::MessageVerifier::InvalidSignature => error
+          raise error if secondary_signed_id_verifier.nil?
+
+          # Try to verify signed Id with passive verifier
+          secondary_signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+        end
+
+        def verify_signed_id(signed_id, purpose: nil)
+          id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+
+          if id.nil? && secondary_signed_id_verifier
+            # Try to verify signed Id with passive verifier
+            id = secondary_signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+          end
+
+          id
+        end
+
+        def build_default_signed_id_verifier(url_safe:)
+          secret = signed_id_verifier_secret
+          secret = secret.call if secret.respond_to?(:call)
+
+          if secret.nil?
+            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
+          else
+            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: url_safe
+          end
+        end
     end
 
 

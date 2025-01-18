@@ -178,9 +178,35 @@ class SignedIdTest < ActiveRecord::TestCase
     ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
 
-  test "always output url_safe" do
+  test "always output url_safe when url_safe_signed_id is true" do
+    pre_state_for_url_safe_signed_id = Account.url_safe_signed_id
+
+    Account.url_safe_signed_id = true
+    Account.instance_variable_set :@signed_id_verifier, nil
+
     signed_id = @account.signed_id(purpose: "~~~~~~~~~")
     assert_not signed_id.include?("+")
+  ensure
+    Account.url_safe_signed_id = pre_state_for_url_safe_signed_id
+  end
+
+  test "find url_safe signed record when url_safe_signed_id is false" do
+    pre_state_for_url_safe_signed_id = Account.url_safe_signed_id
+
+    Account.url_safe_signed_id = true
+    Account.instance_variable_set :@signed_id_verifier, nil
+    Account.instance_variable_set :@url_safe_signed_id_verifier, nil
+
+    signed_id = @account.signed_id(purpose: "~~~~~~~~~")
+    assert signed_id.split("--").first.include?("-")
+
+    Account.url_safe_signed_id = false
+    Account.instance_variable_set :@signed_id_verifier, nil
+    Account.instance_variable_set :@url_safe_signed_id_verifier, nil
+
+    assert_equal @account, Account.find_signed!(signed_id, purpose: "~~~~~~~~~")
+  ensure
+    Account.url_safe_signed_id = pre_state_for_url_safe_signed_id
   end
 
   test "use a custom verifier" do

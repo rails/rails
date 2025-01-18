@@ -1,3 +1,11 @@
+*   Fix forward compatibility issue of URL safe signed Id
+
+    If a URL-safe signed ID verification fails, a secondary verifier is used as a fallback to ensure forward compatibility during rollout.
+
+    After a successful rollout of this version, `Rails.application.config.active_record.url_safe_signed_id` can be set to `true` to disable the fallback.
+
+    *Ali Sepehri*
+
 *   Fix support for PostgreSQL enum types with commas in their name.
 
     *Arthur Hess*
