@@ -1,3 +1,8 @@
+*   Make `raise_on_missing_translation` exception handler
+    ignore missing `i18n.plural.rule` translation.
+
+    *Grant Bourque*
+
 *   Add `application-name` metadata to application layout
 
     The following metatag will be added to `app/views/layouts/application.html.erb`

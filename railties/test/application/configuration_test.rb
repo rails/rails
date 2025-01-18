@@ -4500,6 +4500,21 @@ module ApplicationTests
       end
     end
 
+    test "raise_on_missing_translations = true and pluralization backend does not have plural rule for locale" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "config/initializers/i18n.rb", <<~RUBY
+        Rails.application.config.after_initialize do
+          I18n.backend.class.include(I18n::Backend::Pluralization)
+          I18n.backend.store_translations :en, apples: { one: "an apple", other: "some apples", zero: "no apples" }
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal "no apples", I18n.t(:apples, count: 0)
+    end
+
     test "raise_on_missing_translations = false" do
       add_to_config "config.i18n.raise_on_missing_translations = false"
       app "development"
