@@ -38,6 +38,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
     Time.stub(:now, Time.now + 1.minute) do
       assert_nil @cache.read("counter", raw: true)
     end
+
+    @cache.write("counter", 1, raw: true)
+    @cache.increment("counter", expires_in: 30)
+    assert_equal 2, @cache.read("counter", raw: true)
+    Time.stub(:now, Time.now + 1.minute) do
+      assert_nil @cache.read("counter2", raw: true)
+    end
   end
 
   def test_cleanup_instrumentation
