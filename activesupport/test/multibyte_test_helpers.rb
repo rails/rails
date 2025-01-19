@@ -7,7 +7,9 @@ module MultibyteTestHelpers
   BYTE_STRING = "\270\236\010\210\245".b.freeze
 
   def chars(str)
-    ActiveSupport::Multibyte::Chars.new(str)
+    assert_deprecated ActiveSupport.deprecator do
+      ActiveSupport::Multibyte::Chars.new(str)
+    end
   end
 
   def inspect_codepoints(str)
