@@ -30,6 +30,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     default_files.each { |path| assert_file path }
     skipped_files.each { |path| assert_no_file path }
+
+    absolute = File.expand_path("bin/docker-entrypoint", destination_root)
+    assert File.executable?(absolute)
   end
 
   def test_api_modified_files
