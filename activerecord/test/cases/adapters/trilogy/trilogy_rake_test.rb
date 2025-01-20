@@ -373,10 +373,14 @@ module ActiveRecord
     private
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        end
         yield
       ensure
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
       end
   end
 
@@ -424,10 +428,14 @@ module ActiveRecord
     private
       def with_structure_load_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
-        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+        end
         yield
       ensure
-        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        end
       end
   end
 end

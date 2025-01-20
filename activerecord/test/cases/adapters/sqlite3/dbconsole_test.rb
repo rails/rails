@@ -54,7 +54,18 @@ module ActiveRecord
 
       def test_sqlite3_can_use_alternative_cli
         ActiveRecord.database_cli[:sqlite] = "sqlitecli"
-        config = make_db_config(adapter: "sqlite3", database: "config/db.sqlite3", database_cli: "sqlitecli")
+        config = make_db_config(adapter: "sqlite3", database: "config/db.sqlite3")
+
+        assert_find_cmd_and_exec_called_with(["sqlitecli", root.join("config/db.sqlite3").to_s]) do
+          SQLite3Adapter.dbconsole(config)
+        end
+      ensure
+        ActiveRecord.database_cli[:sqlite] = "sqlite3"
+      end
+
+      def test_sqlite3_can_use_alternative_cli_through_config
+        ActiveRecord.database_cli[:sqlite] = "not_exist"
+        config = make_db_config(adapter: "sqlite3", database: "config/db.sqlite3", dbconsole_command: "sqlitecli")
 
         assert_find_cmd_and_exec_called_with(["sqlitecli", root.join("config/db.sqlite3").to_s]) do
           SQLite3Adapter.dbconsole(config)

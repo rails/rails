@@ -1782,6 +1782,36 @@ module ActiveRecord
       end
     end
 
+    def test_structure_dump_flags_is_deprecated
+      @before_structure_dump_flags = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
+      msg = <<~MSG.squish
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags is deprecated and will be removed in Rails 8.1.
+        Use `structure_dump_flags` on the database config instead.
+      MSG
+      assert_deprecated(msg, ActiveRecord.deprecator) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["-v"]
+      end
+    ensure
+      assert_deprecated(ActiveRecord.deprecator) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = @before_structure_dump_flags
+      end
+    end
+
+    def test_structure_load_flags_is_deprecated
+      @before_structure_load_flags = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
+      msg = <<~MSG.squish
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags is deprecated and will be removed in Rails 8.1.
+        Use `structure_load_flags` on the database config instead.
+      MSG
+      assert_deprecated(msg, ActiveRecord.deprecator) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = ["-v"]
+      end
+    ensure
+      assert_deprecated(ActiveRecord.deprecator) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = @before_structure_load_flags
+      end
+    end
+
     private
       def config_for(env_name, name)
         ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)

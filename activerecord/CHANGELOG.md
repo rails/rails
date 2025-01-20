@@ -1,3 +1,23 @@
+*   Deprecate `ActiveRecord.database_cli` in favor of `dbconsole_command` on
+    the database config.
+
+    *zzak*, *Hartley McGuire*
+
+*   Deprecate `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` in
+    favor of `structure_dump_flags` on the database config.
+
+    *zzak*, *Hartley McGuire*
+
+*   Deprecate `ActiveRecord::Tasks::DatabaseTasks.structure_load_flags` in
+    favor of `structure_load_flags` on the database config.
+
+    *zzak*, *Hartley McGuire*
+
+*   Added `structure_load_command` and `structure_dump_command` to the database
+    config.
+
+    *zzak*, *Hartley McGuire*
+
 *   Make column name optional for `index_exists?`.
 
     This aligns well with `remove_index` signature as well, where

@@ -86,7 +86,9 @@ module ActiveRecord
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
             end.join(" ")
           end
-          find_cmd_and_exec(ActiveRecord.database_cli[:postgresql], config.database)
+
+          cmd = config.dbconsole_command || ActiveRecord.database_cli[:postgresql]
+          find_cmd_and_exec(cmd, config.database)
         end
       end
 

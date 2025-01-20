@@ -17,4 +17,19 @@ class ActiveRecordTest < ActiveRecord::TestCase
       assert_predicate ActiveRecord::Base, :connected?
     end
   end
+
+  test ".database_cli= is deprecated" do
+    @before_database_cli = ActiveRecord.database_cli
+    msg = <<~MSG.squish
+      ActiveRecord.database_cli is deprecated and will be removed in Rails 8.1.
+      Use `dbconsole_command` on the database config instead.
+    MSG
+    assert_deprecated(msg, ActiveRecord.deprecator) do
+      ActiveRecord.database_cli = "foo"
+    end
+  ensure
+    assert_deprecated(ActiveRecord.deprecator) do
+      ActiveRecord.database_cli = @before_database_cli
+    end
+  end
 end

@@ -47,13 +47,29 @@ module ActiveRecord
       #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
       #     postgres: '--no-tablespaces'
       #   }
-      mattr_accessor :structure_dump_flags, instance_accessor: false
+      mattr_reader :structure_dump_flags, instance_accessor: false
+
+      def self.structure_dump_flags=(flags) # :nodoc:
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags is deprecated and will be removed in Rails 8.1.
+          Use `structure_dump_flags` on the database config instead.
+        MSG
+        @@structure_dump_flags = flags
+      end
 
       ##
       # :singleton-method:
       # Extra flags passed to database CLI tool when calling db:schema:load
       # It can be used as a string/array (the typical case) or a hash (when you use multiple adapters)
-      mattr_accessor :structure_load_flags, instance_accessor: false
+      mattr_reader :structure_load_flags, instance_accessor: false
+
+      def self.structure_load_flags=(flags) # :nodoc:
+        ActiveRecord.deprecator.warn(<<~MSG.squish)
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags is deprecated and will be removed in Rails 8.1.
+          Use `structure_load_flags` on the database config instead.
+        MSG
+        @@structure_load_flags = flags
+      end
 
       extend self
 
@@ -362,14 +378,14 @@ module ActiveRecord
       def structure_dump(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        flags = structure_dump_flags_for(db_config.adapter)
+        flags = structure_dump_flags_for(db_config)
         database_adapter_for(db_config, *arguments).structure_dump(filename, flags)
       end
 
       def structure_load(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
-        flags = structure_load_flags_for(db_config.adapter)
+        flags = structure_load_flags_for(db_config)
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
@@ -616,20 +632,22 @@ module ActiveRecord
           OpenSSL::Digest::SHA1.hexdigest(File.read(file))
         end
 
-        def structure_dump_flags_for(adapter)
-          if structure_dump_flags.is_a?(Hash)
-            structure_dump_flags[adapter.to_sym]
-          else
-            structure_dump_flags
-          end
+        def structure_dump_flags_for(db_config)
+          db_config.structure_dump_flags ||
+            if structure_dump_flags.is_a?(Hash)
+              structure_dump_flags[db_config.adapter.to_sym]
+            else
+              structure_dump_flags
+            end
         end
 
-        def structure_load_flags_for(adapter)
-          if structure_load_flags.is_a?(Hash)
-            structure_load_flags[adapter.to_sym]
-          else
-            structure_load_flags
-          end
+        def structure_load_flags_for(db_config)
+          db_config.structure_load_flags ||
+            if structure_load_flags.is_a?(Hash)
+              structure_load_flags[db_config.adapter.to_sym]
+            else
+              structure_load_flags
+            end
         end
 
         def check_current_protected_environment!(db_config)

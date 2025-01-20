@@ -207,8 +207,17 @@ module ActiveRecord
     end
   end
 
-  singleton_class.attr_accessor :database_cli
-  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+  singleton_class.attr_reader :database_cli
+  def self.database_cli=(cli)
+    ActiveRecord.deprecator.warn(
+      "ActiveRecord.database_cli is deprecated and will be removed in Rails 8.1. " \
+      "Use `dbconsole_command` on the database config instead."
+    )
+    @database_cli = cli
+  end
+  ActiveRecord.deprecator.silence do
+    self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+  end
 
   singleton_class.attr_reader :default_timezone
 

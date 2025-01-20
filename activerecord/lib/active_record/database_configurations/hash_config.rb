@@ -99,6 +99,26 @@ module ActiveRecord
         configuration_hash.fetch(:reaping_frequency, 60)&.to_f
       end
 
+      def dbconsole_command
+        configuration_hash[:dbconsole_command]
+      end
+
+      def structure_dump_command
+        configuration_hash[:structure_dump_command]
+      end
+
+      def structure_dump_flags
+        configuration_hash[:structure_dump_flags]
+      end
+
+      def structure_load_command
+        configuration_hash[:structure_load_command]
+      end
+
+      def structure_load_flags
+        configuration_hash[:structure_load_flags]
+      end
+
       def idle_timeout
         timeout = configuration_hash.fetch(:idle_timeout, 300).to_f
         timeout if timeout > 0

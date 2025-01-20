@@ -76,6 +76,26 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def dbconsole_command
+        raise NotImplementedError
+      end
+
+      def structure_dump_command
+        raise NotImplementedError
+      end
+
+      def structure_dump_flags
+        raise NotImplementedError
+      end
+
+      def structure_load_command
+        raise NotImplementedError
+      end
+
+      def structure_load_flags
+        raise NotImplementedError
+      end
+
       def idle_timeout
         raise NotImplementedError
       end

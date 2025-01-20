@@ -225,18 +225,47 @@ module ActiveRecord
         end
         assert_match("failed to execute:", e.message)
       end
+
+      assert_not File.exist?(filename)
     ensure
       FileUtils.rm_f(filename)
+      FileUtils.rm_f(dbfile)
+    end
+
+    def test_structure_dump_uses_config_command
+      @configuration["structure_dump_command"] = "sqlitecli"
+
+      dbfile   = @database
+      filename = "awesome-file.sql"
+
+      expected_command = ["sqlitecli", "--noop", "db_create.sqlite3", ".schema --nosys"]
+      assert_called_with(
+        Kernel,
+        :system,
+        expected_command,
+        returns: true,
+        out: "awesome-file.sql"
+      ) do
+        with_structure_dump_flags(["--noop"]) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        end
+      end
+    ensure
+      @configuration.delete("structure_dump_command")
       FileUtils.rm_f(dbfile)
     end
 
     private
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        end
         yield
       ensure
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
       end
   end
 
@@ -254,9 +283,31 @@ module ActiveRecord
       filename = "awesome-file.sql"
 
       open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename, "/rails/root")
       assert File.exist?(dbfile)
     ensure
+      FileUtils.rm_f(filename)
+      FileUtils.rm_f(dbfile)
+    end
+
+    def test_structure_load_uses_config_command
+      @configuration["structure_load_command"] = "sqlitecli"
+      dbfile   = @database
+      filename = "awesome-file.sql"
+      open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
+
+      expected_command = ["sqlitecli", "db_create.sqlite3"]
+      assert_called_with(
+        Kernel,
+        :system,
+        expected_command,
+        returns: true,
+        in: "awesome-file.sql"
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename, "/rails/root")
+      end
+    ensure
+      @configuration.delete("structure_load_command")
       FileUtils.rm_f(filename)
       FileUtils.rm_f(dbfile)
     end

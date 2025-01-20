@@ -477,6 +477,17 @@ module ActiveRecord
       end
     end
 
+    def test_structure_dump_uses_config_command
+      @configuration["structure_dump_command"] = "awesome-command"
+      expected_command = [{}, "awesome-command", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+    ensure
+      @configuration.delete("structure_dump_command")
+    end
+
     private
       def with_dump_schemas(value, &block)
         old_dump_schemas = ActiveRecord.dump_schemas
@@ -488,10 +499,14 @@ module ActiveRecord
 
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+        end
         yield
       ensure
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
       end
   end
 
@@ -590,13 +605,30 @@ module ActiveRecord
       end
     end
 
+    def test_structure_load_uses_config_command
+      @configuration["structure_load_command"] = "awesome-command"
+      filename = "awesome-file.sql"
+
+      expected_command = [{}, "awesome-command", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, @configuration["database"]]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+    ensure
+      @configuration.delete("structure_load_command")
+    end
+
     private
       def with_structure_load_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
-        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags
+        end
         yield
       ensure
-        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = old
+        end
       end
   end
 end
