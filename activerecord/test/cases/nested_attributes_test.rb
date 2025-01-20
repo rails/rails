@@ -1206,12 +1206,19 @@ class TestIndexErrorsWithNestedAttributesOnlyMode < ActiveRecord::TestCase
 end
 
 class TestNestedAttributesWithExtend < ActiveRecord::TestCase
-  setup do
-    Pirate.accepts_nested_attributes_for :treasures
-  end
-
   def test_extend_affects_nested_attributes
-    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    super_pirate = Class.new(ActiveRecord::Base) do
+      self.table_name = "pirates"
+
+      has_many :treasures, as: :looter, extend: Pirate::PostTreasuresExtension
+      self.accepts_nested_attributes_for :treasures
+
+      def self.name
+        "SuperPirate"
+      end
+    end
+
+    pirate = super_pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     pirate.treasures_attributes = [{ id: nil }]
     assert_equal "from extension", pirate.treasures[0].name
   end
