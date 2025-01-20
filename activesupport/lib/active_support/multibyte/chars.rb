@@ -5,11 +5,6 @@ require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
 
-ActiveSupport.deprecator.warn(
-  "ActiveSupport::Multibyte::Chars and String#mb_chars are deprecated and will be removed in Rails 8.2. " \
-  "Use normal string methods instead."
-)
-
 module ActiveSupport # :nodoc:
   module Multibyte # :nodoc:
     # = Active Support \Multibyte \Chars
@@ -58,7 +53,14 @@ module ActiveSupport # :nodoc:
       delegate :<=>, :=~, :match?, :acts_like_string?, to: :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
-      def initialize(string)
+      def initialize(string, deprecation: true)
+        if deprecation
+          ActiveSupport.deprecator.warn(
+            "ActiveSupport::Multibyte::Chars is deprecated and will be removed in Rails 8.2. " \
+            "Use normal string methods instead."
+          )
+        end
+
         @wrapped_string = string
         if string.encoding != Encoding::UTF_8
           @wrapped_string = @wrapped_string.dup

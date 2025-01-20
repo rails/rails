@@ -801,7 +801,9 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
-    assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
+    assert_deprecated ActiveSupport.deprecator do
+      assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
+    end
   end
 end
 
