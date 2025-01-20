@@ -39,7 +39,7 @@
 				"Shopify.ruby-lsp"
 			]
 		}
-	},
+	}
 
 	// Uncomment to connect as root instead. More info: https://containers.dev/implementors/json_reference/#remoteUser.
 	// "remoteUser": "root"
