@@ -79,6 +79,10 @@ module SharedGeneratorTests
 
     default_files.each { |path| assert_file path }
 
+    if default_files.include?("bin/docker-entrypoint")
+      assert File.executable?("#{application_path}/bin/docker-entrypoint")
+    end
+
     assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
