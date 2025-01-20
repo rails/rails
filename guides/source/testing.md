@@ -1334,7 +1334,7 @@ require "test_helper"
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
     get "/"
-    assert_selector "h1", "Welcome#index"
+    assert_select "h1", "Welcome#index"
   end
 end
 ```
@@ -1342,7 +1342,7 @@ end
 If you visit the root path, you should see `welcome/index.html.erb` rendered for
 the view. So this assertion should pass.
 
-NOTE: The assertion `assert_selector` is available in integration tests to check
+NOTE: The assertion `assert_select` is available in integration tests to check
 the presence of key HTML elements and their content. It is similar to
 `assert_dom`, which should be used when [testing views](#testing-views) as
 outlined in the section below.
@@ -1439,7 +1439,7 @@ class UsersTest < ApplicationSystemTestCase
   # test "visiting the index" do
   #   visit users_url
   #
-  #   assert_selector "h1", text: "Users"
+  #   assert_select "h1", text: "Users"
   # end
 end
 ```
@@ -1578,7 +1578,7 @@ require "application_system_test_case"
 class ArticlesTest < ApplicationSystemTestCase
   test "viewing the index" do
     visit articles_path
-    assert_selector "h1", text: "Articles"
+    assert_select "h1", text: "Articles"
   end
 end
 ```
@@ -1654,7 +1654,7 @@ require "mobile_system_test_case"
 class PostsTest < MobileSystemTestCase
   test "visiting the index" do
     visit posts_url
-    assert_selector "h1", text: "Posts"
+    assert_select "h1", text: "Posts"
   end
 end
 ```
@@ -1671,7 +1671,7 @@ which can be used in system tests.
 | `assert_current_path(string, **options)`                         | Asserts that the page has the given path. |
 | `assert_field(locator = nil, **options, &optional_filter_block)` | Checks if the page has a form field with the given label, name or id. |
 | `assert_link(locator = nil, **options, &optional_filter_block)`  | Checks if the page has a link with the given text or id. |
-| `assert_selector(*args, &optional_filter_block)`                 | Asserts that a given selector is on the page. |
+| `assert_select(*args, &optional_filter_block)`                   | Asserts that a given selector is on the page. |
 | `assert_table(locator = nil, **options, &optional_filter_block`  | Checks if the page has a table with the given id or caption. |
 | `assert_text(type, text, **options)`                             | Asserts that the page has the given text content. |
 
