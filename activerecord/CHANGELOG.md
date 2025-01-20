@@ -1,3 +1,12 @@
+*   Allow changing the command used for `db:schema:dump` and `db:schema:load`
+    when using sql format for schema.
+
+    This can be overridden by setting
+    `ActiveRecord::Tasks::DatabaseTasks.structure_dump_command` or
+    `ActiveRecord::Tasks::DatabaseTasks.structure_load_command` respectively.
+
+    *zzak*, *Hartley McGuire*
+
 *   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
 
     Using these methods on associations containing unpersisted records will now

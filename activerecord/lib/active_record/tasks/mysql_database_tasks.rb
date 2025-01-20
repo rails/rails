@@ -37,7 +37,7 @@ module ActiveRecord
         connection.collation
       end
 
-      def structure_dump(filename, extra_flags)
+      def structure_dump(filename, extra_flags, command)
         args = prepare_command_options
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
@@ -53,16 +53,16 @@ module ActiveRecord
         args.concat([db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysqldump", args, "dumping")
+        run_cmd(command || "mysqldump", args)
       end
 
-      def structure_load(filename, extra_flags)
+      def structure_load(filename, extra_flags, command)
         args = prepare_command_options
         args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", args, "loading")
+        run_cmd(command || "mysql", args)
       end
 
       private
@@ -106,11 +106,11 @@ module ActiveRecord
           args
         end
 
-        def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
+        def run_cmd(cmd, args)
+          fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args)
         end
 
-        def run_cmd_error(cmd, args, action)
+        def run_cmd_error(cmd, args)
           msg = +"failed to execute: `#{cmd}`\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg

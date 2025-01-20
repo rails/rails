@@ -65,7 +65,7 @@ module ActiveRecord
 
       def test_mysql_can_use_alternative_cli
         ActiveRecord.database_cli[:mysql] = "mycli"
-        config = make_db_config(adapter: "mysql2", database: "db", database_cli: "mycli")
+        config = make_db_config(adapter: "mysql2", database: "db")
 
         assert_find_cmd_and_exec_called_with(["mycli", "db"]) do
           Mysql2Adapter.dbconsole(config)

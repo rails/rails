@@ -55,6 +55,16 @@ module ActiveRecord
       # It can be used as a string/array (the typical case) or a hash (when you use multiple adapters)
       mattr_accessor :structure_load_flags, instance_accessor: false
 
+      ##
+      # :singleton-method:
+      # Specify to override the default command used for +db:schema:dump+ when using +sql+ format.
+      mattr_accessor :structure_dump_command, instance_accessor: false
+
+      ##
+      # :singleton-method:
+      # Specify to override the default command used for +db:schema:load+ when using +sql+ format.
+      mattr_accessor :structure_load_command, instance_accessor: false
+
       extend self
 
       attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
@@ -363,14 +373,14 @@ module ActiveRecord
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
         flags = structure_dump_flags_for(db_config.adapter)
-        database_adapter_for(db_config, *arguments).structure_dump(filename, flags)
+        database_adapter_for(db_config, *arguments).structure_dump(filename, flags, structure_dump_command)
       end
 
       def structure_load(configuration, *arguments)
         db_config = resolve_configuration(configuration)
         filename = arguments.delete_at(0)
         flags = structure_load_flags_for(db_config.adapter)
-        database_adapter_for(db_config, *arguments).structure_load(filename, flags)
+        database_adapter_for(db_config, *arguments).structure_load(filename, flags, structure_load_command)
       end
 
       def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
