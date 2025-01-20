@@ -1,3 +1,10 @@
+*   Make column name optional for `index_exists?`.
+
+    This aligns well with `remove_index` signature as well, where
+    index name doesn't need to be derived from the column names.
+
+    *Ali Ismayiliov*
+
 *   Change the payload name of `sql.active_record` notification for eager
     loading from "SQL" to "#{model.name} Eager Load".
 
