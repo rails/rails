@@ -42,7 +42,7 @@ if SERVICE_CONFIGURATIONS[:s3_public]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end

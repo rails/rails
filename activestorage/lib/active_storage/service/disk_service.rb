@@ -161,7 +161,7 @@ module ActiveStorage
       end
 
       def ensure_integrity_of(key, checksum)
-        unless ActiveStorage::Checksum.file(path_for(key), checksum_algorithm) == checksum
+        unless ActiveStorage::Checksum.file(path_for(key), checksum.algorithm) == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end
