@@ -50,6 +50,25 @@ module ActiveRecord
         deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
       end
 
+      # = Active Record MySQL Adapter \Index Definition
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
+        attr_accessor :enabled
+
+        def initialize(*args, **kwargs)
+          @enabled = kwargs.key?(:enabled) ? kwargs.delete(:enabled) : true
+          super
+        end
+
+        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
+          super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
+            (enabled.nil? || self.enabled == enabled)
+        end
+
+        def disabled?
+          !@enabled
+        end
+      end
+
       # = Active Record MySQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
@@ -99,6 +118,28 @@ module ActiveRecord
       # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+
+        # Enables an index to be used by query optimizers.
+        #
+        #   t.enable_index(:email)
+        #
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
+        #
+        # See {connection.enable_index}[rdoc-ref:SchemaStatements#enable_index]
+        def enable_index(index_name)
+          @base.enable_index(name, index_name)
+        end
+
+        # Disables an index not to be used by query optimizers.
+        #
+        #   t.disable_index(:email)
+        #
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
+        #
+        # See {connection.disable_index}[rdoc-ref:SchemaStatements#disable_index]
+        def disable_index(index_name)
+          @base.disable_index(name, index_name)
+        end
       end
     end
   end

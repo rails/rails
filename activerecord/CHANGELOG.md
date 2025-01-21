@@ -1,3 +1,41 @@
+*   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
+
+    MySQL 8.0.0 added an option to disable indexes from being used by the query
+    optimizer by making them "invisible". This allows the index to still be maintained
+    and updated but no queries will be permitted to use it. This can be useful for adding
+    new invisible indexes or making existing indexes invisible before dropping them
+    to ensure queries are not negatively affected.
+    See https://dev.mysql.com/blog-archive/mysql-8-0-invisible-indexes/ for more details.
+
+    MariaDB 10.6.0 also added support for this feature by allowing indexes to be "ignored"
+    in queries. See https://mariadb.com/kb/en/ignored-indexes/ for more details.
+
+    Active Record now supports this option for MySQL 8.0.0+ and MariaDB 10.6.0+ for
+    index creation and alteration where the new index option `enabled: true/false` can be
+    passed to column and index methods as below:
+
+    ```ruby
+    add_index :users, :email, enabled: false
+    enable_index :users, :email
+    add_column :users, :dob, :string, index: { enabled: false }
+
+    change_table :users do |t|
+      t.index :name, enabled: false
+      t.index :dob
+      t.disable_index :dob
+      t.column :username, :string, index: { enabled: false }
+      t.references :account, index: { enabled: false }
+    end
+
+    create_table :users do |t|
+      t.string :name, index: { enabled: false }
+      t.string :email
+      t.index :email, enabled: false
+    end
+    ```
+
+    *Merve Taner*
+
 *   Respect `implicit_order_column` in `ActiveRecord::Relation#reverse_order`.
 
     *Joshua Young*
