@@ -246,7 +246,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
         t.column :current_mood, :mood_in_test_schema
       end
 
-      output = dump_all_table_schema
+      output = dump_table_schema("postgresql_enums_in_test_schema")
 
       assert_includes output, 'create_enum "public.mood", ["sad", "ok", "happy"]'
       assert_includes output, 'create_enum "mood_in_test_schema", ["sad", "ok", "happy"]'
