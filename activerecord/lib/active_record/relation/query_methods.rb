@@ -1917,7 +1917,7 @@ module ActiveRecord
 
       def build_with_value_from_hash(hash)
         hash.map do |name, value|
-          Arel::Nodes::TableAlias.new(build_with_expression_from_value(value), name)
+          Arel::Nodes::Cte.new(name, build_with_expression_from_value(value))
         end
       end
 
