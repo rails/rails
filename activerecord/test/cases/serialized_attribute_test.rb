@@ -157,7 +157,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t.save!
     t.reload
 
-    assert_equal(t.content, t.content.deep_symbolize_keys)
+    assert_equal(t.content.deep_symbolize_keys, t.content)
   end
 
   def test_serialized_attribute_declared_in_subclass
