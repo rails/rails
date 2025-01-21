@@ -214,6 +214,30 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.lease_connection.supports_index_visibility?
+        def test_column_creates_column_with_invisible_index
+          with_change_table do |t|
+            expect :add_column, nil, [:delete_me, :bar, :integer]
+            expect :add_index, nil, [:delete_me, :bar], visible: false
+            t.column :bar, :integer, index: { visible: false }
+          end
+        end
+
+        def test_index_creates_invisible_index
+          with_change_table do |t|
+            expect :add_index, nil, [:delete_me, :bar], visible: false
+            t.index :bar, visible: false
+          end
+        end
+
+        def test_alter_index_changes_index_visibility
+          with_change_table do |t|
+            expect :alter_index, nil, [:delete_me, :bar], visible: false
+            t.alter_index :bar, visible: false
+          end
+        end
+      end
+
       def test_index_creates_index
         with_change_table do |t|
           expect :add_index, nil, [:delete_me, :bar]

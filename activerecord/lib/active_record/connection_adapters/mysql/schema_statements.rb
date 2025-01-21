@@ -30,7 +30,8 @@ module ActiveRecord
                 orders: {},
                 type: index_type,
                 using: index_using,
-                comment: row["Index_comment"].presence
+                comment: row["Index_comment"].presence,
+                visible: row["Visible"] == "YES",
               ]
             end
 
@@ -63,8 +64,7 @@ module ActiveRecord
                 columns, order: orders, length: lengths
               ).values.join(", ")
             end
-
-            IndexDefinition.new(*index, **options)
+            MySQL::IndexDefinition.new(*index, **options)
           end
         rescue StatementInvalid => e
           if e.message.match?(/Table '.+' doesn't exist/)
@@ -72,6 +72,22 @@ module ActiveRecord
           else
             raise
           end
+        end
+
+        def create_index_definition(table_name, name, unique, columns, **options)
+          MySQL::IndexDefinition.new(table_name, name, unique, columns, **options)
+        end
+
+        def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
+          index, algorithm, if_not_exists = super
+          index.visible = options[:visible]
+          [index, algorithm, if_not_exists]
+        end
+
+        def valid_index_options
+          index_options = super
+          index_options << :visible if supports_index_visibility?
+          index_options
         end
 
         def remove_column(table_name, column_name, type = nil, **options)
