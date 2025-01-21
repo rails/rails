@@ -1,3 +1,10 @@
+*   Fix `ActiveSupport::MessageVerifier` to always be able to verify both URL-safe and URL-unsafe payloads.
+
+    This is to allow transitioning seemlessly from either configuration without immediately invalidating
+    all previously generated signed messages.
+
+    *Jean Boussier*, *Florent Beaurain*, *Ali Sepehri*
+
 *   Fix `cache.fetch` to honor the provided expiry when `:race_condition_ttl` is used.
 
     ```ruby
