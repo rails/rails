@@ -149,6 +149,12 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_nil t.content
   end
 
+  def test_json_type_hash_default_value
+    Topic.serialize :content, coder: JSON, type: Hash
+    t = Topic.new
+    assert_equal({}, t.content)
+  end
+
   def test_json_symbolize_names_returns_symbolized_names
     Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
     my_post = posts(:welcome)

@@ -220,10 +220,12 @@ module ActiveRecord
             # to ensure special objects (e.g. Active Record models) are dumped correctly
             # using the #as_json hook.
 
+            if coder == ::JSON || coder == Coders::JSON
+              coder = Coders::JSON.new
+            end
+
             if coder == ::YAML || coder == Coders::YAMLColumn
               Coders::YAMLColumn.new(attr_name, type, **(yaml || {}))
-            elsif coder == ::JSON || coder == Coders::JSON
-              Coders::JSON.new
             elsif coder.respond_to?(:new) && !coder.respond_to?(:load)
               coder.new(attr_name, type)
             elsif type && type != Object
