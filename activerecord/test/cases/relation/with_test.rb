@@ -25,6 +25,14 @@ module ActiveRecord
         assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
       end
 
+      def test_with_when_arel_cte_is_passed_as_an_argument
+        relation = Post
+          .with(Arel::Nodes::Cte.new(:posts_with_comments, Post.where("legacy_comments_count > 0")))
+          .from("posts_with_comments AS posts")
+
+        assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
+      end
+
       def test_with_when_hash_with_multiple_elements_of_different_type_is_passed_as_an_argument
         cte_options = {
           posts_with_tags: Post.arel_table.project(Arel.star).where(Post.arel_table[:tags_count].gt(0)),

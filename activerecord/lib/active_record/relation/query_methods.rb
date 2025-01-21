@@ -1909,7 +1909,12 @@ module ActiveRecord
         return if with_values.empty?
 
         with_statements = with_values.map do |with_value|
-          build_with_value_from_hash(with_value)
+          case with_value
+          when Arel::Nodes::Cte then with_value
+          when Hash then build_with_value_from_hash(with_value)
+          else
+            raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}"
+          end
         end
 
         @with_is_recursive ? arel.with(:recursive, with_statements) : arel.with(with_statements)
@@ -2248,8 +2253,11 @@ module ActiveRecord
 
       def process_with_args(args)
         args.flat_map do |arg|
-          raise ArgumentError, "Unsupported argument type: #{arg} #{arg.class}" unless arg.is_a?(Hash)
-          arg.map { |k, v| { k => v } }
+          case arg
+          when Hash then arg.map { |k, v| { k => v } }
+          when Arel::Nodes::Cte then arg
+          else raise ArgumentError, "Unsupported argument type: #{arg} #{arg.class}"
+          end
         end
       end
 
