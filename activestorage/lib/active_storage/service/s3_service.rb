@@ -182,20 +182,20 @@ module ActiveStorage
       end
 
       def s3_checksum_params(checksum)
-        return {} unless checksum_algorithm
-        return { content_md5: checksum } if checksum_algorithm == :MD5
+        return {} unless checksum&.algorithm
+        return { content_md5: checksum.digest } if checksum.algorithm == :MD5
         {
-          checksum_algorithm: checksum_algorithm,
-          "checksum_#{checksum_algorithm.downcase}": checksum
+          checksum_algorithm: checksum.algorithm,
+          "checksum_#{checksum.algorithm.downcase}": checksum.digest
         }
       end
 
       def custom_checksum_headers(checksum)
-        case checksum_algorithm
+        case checksum&.algorithm
         when :MD5
-          { "Content-MD5" => checksum }
+          { "Content-MD5" => checksum.digest }
         when :SHA1, :SHA256, :CRC32, :CRC32c
-          { "x-amz-checksum-#{checksum_algorithm.downcase}" => checksum }
+          { "x-amz-checksum-#{checksum.algorithm.downcase}" => checksum.digest }
         when nil
           {}
         end

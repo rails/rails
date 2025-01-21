@@ -23,7 +23,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", ""
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -39,14 +39,14 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
       url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", ""
-      request.add_field "x-goog-hash", "#{service.checksum_algorithm.downcase}=#{checksum}"
+      request.add_field "x-goog-hash", "#{service.checksum_algorithm.downcase}=#{checksum.digest}"
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -86,7 +86,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       key      = SecureRandom.base58(24)
       data     = "Some text"
-      checksum = ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
       url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -149,14 +149,14 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
 
       service.upload(key, StringIO.new(data), checksum: checksum, content_type: "text/plain")
 
       url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
       response = Net::HTTP.get_response(URI(url))
-      assert_match("#{service.checksum_algorithm.downcase}=#{checksum}", response["x-goog-hash"])
+      assert_match("#{service.checksum_algorithm.downcase}=#{checksum.digest}", response["x-goog-hash"])
     ensure
       service.delete key
     end
@@ -168,7 +168,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
 
-      service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm), content_type: "text/plain")
+      service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm), content_type: "text/plain")
 
       url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
@@ -219,7 +219,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         key      = SecureRandom.base58(24)
         data     = "Some text"
-        checksum = ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+        checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
         url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
         uri = URI.parse(url)

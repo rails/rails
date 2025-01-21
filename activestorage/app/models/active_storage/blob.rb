@@ -21,7 +21,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
-
+  serialize :checksum, coder: ActiveStorage::Checksum
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
@@ -329,7 +329,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   private
-
     def extract_content_type(io)
       Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
     end

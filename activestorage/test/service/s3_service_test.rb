@@ -24,7 +24,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -47,8 +47,8 @@ if SERVICE_CONFIGURATIONS[:s3]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "x-amz-checksum-sha256", checksum
-      Net::HTTP.start(uri.host, uri.port, use_ssl: false) do |http|
+      request.add_field "x-amz-checksum-sha256", checksum.digest
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
 
@@ -88,7 +88,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       upload_result = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -178,7 +178,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
 
         assert_equal data, service.download(key)
       ensure
@@ -210,7 +210,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(8.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data,service.checksum_algorithm)
+        service.upload key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
         assert data == service.download(key)
       ensure
         service.delete key
