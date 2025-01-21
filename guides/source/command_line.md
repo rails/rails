@@ -93,6 +93,30 @@ development:
 
 It generated a database configuration corresponding to our choice of PostgreSQL.
 
+### Switching to a Different Database Later
+
+After creating a new Rails application, you have the option to switch to any
+other supported database. For example, you might work with SQLite for a while and
+then decide to switch to PostgreSQL. In this case, you only need to run:
+
+```bash
+$ rails db:system:change --to=postgresql
+    conflict  config/database.yml
+Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
+       force  config/database.yml
+        gsub  Gemfile
+        gsub  Gemfile
+...
+```
+
+And then install the missing gems:
+
+```bash
+$ bundle install
+...
+
+```
+
 ### Skipping Defaults
 
 If you wish to skip some files from being generated or skip some libraries
