@@ -42,6 +42,7 @@ module ActiveRecord
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
+      attr_accessor :allow_preconnect
       alias :in_use? :owner
 
       def pool=(value)
@@ -127,6 +128,7 @@ module ActiveRecord
 
         @raw_connection = nil
         @unconfigured_connection = nil
+        @connected_since = nil
 
         if config_or_deprecated_connection.is_a?(Hash)
           @config = config_or_deprecated_connection.symbolize_keys
@@ -139,6 +141,7 @@ module ActiveRecord
           # Soft-deprecated for now; we'll probably warn in future.
 
           @unconfigured_connection = config_or_deprecated_connection
+          @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @logger = deprecated_logger || ActiveRecord::Base.logger
           if deprecated_config
             @config = (deprecated_config || {}).symbolize_keys
@@ -153,6 +156,7 @@ module ActiveRecord
         @instrumenter = ActiveSupport::Notifications.instrumenter
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        @allow_preconnect = true
         @visitor = arel_visitor
         @statements = build_statement_pool
         self.lock_thread = nil
@@ -314,7 +318,7 @@ module ActiveRecord
       end
 
       # this method must only be called while holding connection pool's mutex
-      def expire
+      def expire(update_idle = true) # :nodoc:
         if in_use?
           if @owner != ActiveSupport::IsolatedExecutionState.context
             raise ActiveRecordError, "Cannot expire connection, " \
@@ -322,7 +326,7 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
           @owner = nil
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
@@ -353,6 +357,21 @@ module ActiveRecord
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
         end
+      end
+
+      # Seconds since this connection was established. nil if not
+      # connected; infinity if the connection has been explicitly
+      # retired.
+      def connection_age # :nodoc:
+        if @raw_connection && @connected_since
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - @connected_since
+        end
+      end
+
+      # Mark the connection as needing to be retired, as if the age has
+      # exceeded the maximum allowed.
+      def force_retirement # :nodoc:
+        @connected_since &&= -Float::INFINITY
       end
 
       def unprepared_statement
@@ -678,12 +697,15 @@ module ActiveRecord
         deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
+          @allow_preconnect = false
+
           reconnect
 
           enable_lazy_transactions!
           @raw_connection_dirty = false
-          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
+          @allow_preconnect = true
 
           reset_transaction(restore: restore_transactions) do
             clear_cache!(new_connection: true)
@@ -716,6 +738,7 @@ module ActiveRecord
           clear_cache!(new_connection: true)
           reset_transaction
           @raw_connection_dirty = false
+          @connected_since = nil
         end
       end
 
@@ -779,6 +802,7 @@ module ActiveRecord
               configure_connection
               @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               @verified = true
+              @allow_preconnect = true
               return
             end
 
@@ -786,6 +810,7 @@ module ActiveRecord
           end
         end
 
+        @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @verified = true
       end
 
@@ -797,6 +822,10 @@ module ActiveRecord
       def clean! # :nodoc:
         @raw_connection_dirty = false
         @verified = nil
+      end
+
+      def verified? # :nodoc:
+        @verified
       end
 
       # Provides access to the underlying database driver for this adapter. For

@@ -1,3 +1,11 @@
+*   Introduce new database configuration options `keep_alive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
 *   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
 
     Using these methods on associations containing unpersisted records will now
