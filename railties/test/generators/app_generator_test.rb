@@ -1265,11 +1265,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_option :skip_active_job
     assert_option :skip_active_storage
     assert_option :skip_bootsnap
+    assert_option :skip_brakeman
+    assert_option :skip_ci
     assert_option :skip_dev_gems
+    assert_option :skip_docker
     assert_option :skip_hotwire
     assert_option :skip_javascript
     assert_option :skip_jbuilder
+    assert_option :skip_kamal
+    assert_option :skip_rubocop
+    assert_option :skip_solid
     assert_option :skip_system_test
+    assert_option :skip_thruster
   end
 
   def test_minimal_rails_app_with_no_skip_implied_option
