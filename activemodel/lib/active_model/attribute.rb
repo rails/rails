@@ -97,7 +97,7 @@ module ActiveModel
     end
 
     def dup_or_share # :nodoc:
-      if @type.mutable?
+      if defined?(@type.mutable?) && @type.mutable?
         dup
       else
         self # If the underlying type is immutable we can get away with not duping

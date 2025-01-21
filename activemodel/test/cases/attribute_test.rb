@@ -22,6 +22,20 @@ module ActiveModel
       end
     end
 
+    class NoMutableType
+      def deserialize(value); value; end
+    end
+
+    class MutableType
+      def mutable?; true; end
+      def deserialize(value); value; end
+    end
+
+    class ImmutableType
+      def mutable?; false; end
+      def deserialize(value); value; end
+    end
+
     setup do
       @type = InscribingType.new
     end
@@ -327,6 +341,27 @@ module ActiveModel
       attribute.value << "1"
 
       assert_equal 1, attribute.with_type(Type::Integer.new).value
+    end
+
+    test "dup_or_share handles types that don't respond to mutable?" do
+      attribute = Attribute.from_database(:foo, "value", NoMutableType.new)
+      shared = attribute.dup_or_share
+
+      assert_same attribute, shared, "should share the attribute when type doesn't respond to mutable?"
+    end
+
+    test "dup_or_share dups attribute when type is mutable" do
+      attribute = Attribute.from_database(:foo, "value", MutableType.new)
+      duped = attribute.dup_or_share
+
+      assert_not_same attribute, duped, "should dup the attribute when type is mutable"
+    end
+
+    test "dup_or_share shares attribute when type is immutable" do
+      attribute = Attribute.from_database(:foo, "value", ImmutableType.new)
+      shared = attribute.dup_or_share
+
+      assert_same attribute, shared, "should share the attribute when type is immutable"
     end
   end
 end
