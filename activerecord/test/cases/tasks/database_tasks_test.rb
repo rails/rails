@@ -235,12 +235,12 @@ module ActiveRecord
     def test_register_task
       klazz = Class.new do
         def initialize(*arguments); end
-        def structure_dump(filename); end
+        def structure_dump(filename, command); end
       end
       instance = klazz.new
 
       klazz.stub(:new, instance) do
-        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil, nil]) do
           ActiveRecord::Tasks::DatabaseTasks.register_task(/abstract/, klazz)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => "abstract" }, "awesome-file.sql")
         end
@@ -250,12 +250,12 @@ module ActiveRecord
     def test_register_task_precedence
       klazz = Class.new do
         def initialize(*arguments); end
-        def structure_dump(filename); end
+        def structure_dump(filename, command); end
       end
       instance = klazz.new
 
       klazz.stub(:new, instance) do
-        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+        assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil, nil]) do
           ActiveRecord::ConnectionAdapters.register("custom_mysql", "ActiveRecord::ConnectionAdapters::Mysql2Adapter", "active_record/connection_adapters/mysql2_adapter")
           ActiveRecord::Tasks::DatabaseTasks.register_task(/custom_mysql/, klazz)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :custom_mysql }, "awesome-file.sql")
@@ -1653,7 +1653,7 @@ module ActiveRecord
         with_stubbed_new do
           assert_called_with(
             eval("@#{v}"), :structure_dump,
-            ["awesome-file.sql", nil]
+            ["awesome-file.sql", nil, nil]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
           end
@@ -1671,7 +1671,7 @@ module ActiveRecord
           assert_called_with(
             eval("@#{v}"),
             :structure_load,
-            ["awesome-file.sql", nil]
+            ["awesome-file.sql", nil, nil]
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
           end

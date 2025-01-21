@@ -477,6 +477,16 @@ module ActiveRecord
       end
     end
 
+    def test_structure_dump_with_command
+      expected_command = [{}, "awesome-command", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        with_structure_dump_command("awesome-command") do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        end
+      end
+    end
+
     private
       def with_dump_schemas(value, &block)
         old_dump_schemas = ActiveRecord.dump_schemas
@@ -484,6 +494,14 @@ module ActiveRecord
         yield
       ensure
         ActiveRecord.dump_schemas = old_dump_schemas
+      end
+
+      def with_structure_dump_command(command)
+        old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_command
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = command
+        yield
+      ensure
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump_command = old
       end
 
       def with_structure_dump_flags(flags)
@@ -590,7 +608,27 @@ module ActiveRecord
       end
     end
 
+    def test_structure_load_with_command
+      filename = "awesome-file.sql"
+
+      expected_command = [{}, "awesome-command", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, @configuration["database"]]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        with_structure_load_command("awesome-command") do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+      end
+    end
+
     private
+      def with_structure_load_command(command)
+        old = ActiveRecord::Tasks::DatabaseTasks.structure_load_command
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_command = command
+        yield
+      ensure
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_command = old
+      end
+
       def with_structure_load_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_load_flags
         ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = flags

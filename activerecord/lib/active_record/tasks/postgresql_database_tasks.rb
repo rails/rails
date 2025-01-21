@@ -43,7 +43,7 @@ module ActiveRecord
         create true
       end
 
-      def structure_dump(filename, extra_flags)
+      def structure_dump(filename, extra_flags, command)
         search_path = \
           case ActiveRecord.dump_schemas
           when :schema_search_path
@@ -72,16 +72,16 @@ module ActiveRecord
         end
 
         args << db_config.database
-        run_cmd("pg_dump", args, "dumping")
+        run_cmd(command || "pg_dump", args)
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
 
-      def structure_load(filename, extra_flags)
+      def structure_load(filename, extra_flags, command)
         args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
-        run_cmd("psql", args, "loading")
+        run_cmd(command || "psql", args)
       end
 
       private
@@ -116,11 +116,11 @@ module ActiveRecord
           end
         end
 
-        def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(psql_env, cmd, *args)
+        def run_cmd(cmd, args)
+          fail run_cmd_error(cmd, args) unless Kernel.system(psql_env, cmd, *args)
         end
 
-        def run_cmd_error(cmd, args, action)
+        def run_cmd_error(cmd, args)
           msg = +"failed to execute:\n"
           msg << "#{cmd} #{args.join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"

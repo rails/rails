@@ -41,7 +41,7 @@ module ActiveRecord
         connection.encoding
       end
 
-      def structure_dump(filename, extra_flags)
+      def structure_dump(filename, extra_flags, command)
         args = []
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
@@ -54,12 +54,15 @@ module ActiveRecord
         else
           args << ".schema --nosys"
         end
-        run_cmd("sqlite3", args, filename)
+        run_cmd(command || "sqlite3", args, out: filename)
       end
 
-      def structure_load(filename, extra_flags)
-        flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
+      def structure_load(filename, extra_flags, command)
+        args = []
+        args.concat(Array(extra_flags)) if extra_flags
+        args << db_config.database
+
+        run_cmd(command || "sqlite3", args, in: filename)
       end
 
       private
@@ -74,8 +77,8 @@ module ActiveRecord
           connection.connect!
         end
 
-        def run_cmd(cmd, args, out)
-          fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)
+        def run_cmd(cmd, args, **options)
+          fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, **options)
         end
 
         def run_cmd_error(cmd, args)
