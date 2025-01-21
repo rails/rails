@@ -93,30 +93,6 @@ development:
 
 It generated a database configuration corresponding to our choice of PostgreSQL.
 
-### Switching to a Different Database Later
-
-After creating a new Rails application, you have the option to switch to any
-other supported database. For example, you might work with SQLite for a while and
-then decide to switch to PostgreSQL. In this case, you only need to run:
-
-```bash
-$ rails db:system:change --to=postgresql
-    conflict  config/database.yml
-Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
-       force  config/database.yml
-        gsub  Gemfile
-        gsub  Gemfile
-...
-```
-
-And then install the missing gems:
-
-```bash
-$ bundle install
-...
-
-```
-
 ### Skipping Defaults
 
 If you wish to skip some files from being generated or skip some libraries
@@ -574,6 +550,30 @@ If you want to clear `public/assets` completely, you can use `bin/rails assets:c
 The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `bin/rails db:version` is useful when troubleshooting, telling you the current version of the database.
 
 More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
+
+#### Switching to a Different Database Later
+
+After creating a new Rails application, you have the option to switch to any
+other supported database. For example, you might work with SQLite for a while and
+then decide to switch to PostgreSQL. In this case, you only need to run:
+
+```bash
+$ rails db:system:change --to=postgresql
+    conflict  config/database.yml
+Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
+       force  config/database.yml
+        gsub  Gemfile
+        gsub  Gemfile
+...
+```
+
+And then install the missing gems:
+
+```bash
+$ bundle install
+...
+
+```
 
 ### `bin/rails notes`
 
