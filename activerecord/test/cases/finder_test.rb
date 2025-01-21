@@ -794,6 +794,15 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sole_on_loaded_relation
+    relation = Topic.where("title = 'The First Topic'").load
+    expected_topic = topics(:first)
+
+    assert_no_queries do
+      assert_equal expected_topic, relation.sole
+    end
+  end
+
   def test_first
     assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
