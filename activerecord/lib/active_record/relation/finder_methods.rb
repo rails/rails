@@ -141,7 +141,7 @@ module ActiveRecord
     #
     #   Product.where(["price = %?", price]).sole
     def sole
-      found, undesired = limit(2)
+      found, undesired = take(2)
 
       if found.nil?
         raise_record_not_found_exception!
