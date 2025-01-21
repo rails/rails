@@ -27,7 +27,7 @@ module ActiveRecord
 
       def test_with_when_arel_cte_is_passed_as_an_argument
         relation = Post
-          .with(Arel::Nodes::Cte.new(:posts_with_comments, Post.where("legacy_comments_count > 0")))
+          .with(Post.where("legacy_comments_count > 0").as_cte(:posts_with_comments))
           .from("posts_with_comments AS posts")
 
         assert_equal POSTS_WITH_COMMENTS, relation.order(:id).pluck(:id)
@@ -156,6 +156,24 @@ module ActiveRecord
         relation = relation.unscope(:with)
         assert_nil relation.values[:with]
         assert_equal Post.count, relation.count
+      end
+
+      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+        def test_materialized
+          relation = Post.with(
+            Post.where("comments_count > ?", 0).as_cte(:posts_with_comments, materialized: true)
+          )
+
+          assert relation.to_sql.include?('"posts_with_comments" AS MATERIALIZED')
+        end
+
+        def test_not_materialized
+          relation = Post.with(
+            Post.where("comments_count > ?", 0).as_cte(:posts_with_comments, materialized: false)
+          )
+
+          assert relation.to_sql.include?('"posts_with_comments" AS NOT MATERIALIZED')
+        end
       end
     else
       def test_common_table_expressions_are_unsupported
