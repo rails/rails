@@ -50,6 +50,32 @@ module ActiveRecord
         deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
       end
 
+      # = Active Record MySQL Adapter \Index Definition
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
+        attr_reader :visible
+
+        def initialize(*args, **kwargs)
+          visible = kwargs.delete(:visible)
+          super
+          @visible = visible.nil? ? true : visible
+        end
+
+        def visible=(value)
+          return if value.nil?
+
+          @visible = value
+        end
+
+        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, visible: nil, **options)
+          super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
+            (visible.nil? || self.visible == visible)
+        end
+
+        def invisible?
+          !@visible
+        end
+      end
+
       # = Active Record MySQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
@@ -99,6 +125,17 @@ module ActiveRecord
       # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+
+        # Changes the visibility of an index.
+        #
+        #   t.alter_index(:email, visible: false)
+        #
+        # Note: only supported by MySQL version 8.0.0 and greater.
+        #
+        # See {connection.alter_index}[rdoc-ref:SchemaStatements#alter_index]
+        def alter_index(index_name, visible:)
+          @base.alter_index(name, index_name, visible:)
+        end
       end
     end
   end

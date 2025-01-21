@@ -315,6 +315,23 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
       end
 
+      if ActiveRecord::Base.lease_connection.supports_index_visibility?
+        def test_invert_add_index_with_invisible_option
+          remove = @recorder.inverse_of :add_index, [:table, :one, visible: false]
+          assert_equal [:remove_index, [:table, :one, visible: false], nil], remove
+        end
+
+        def test_invert_remove_index_with_invisible_option
+          add = @recorder.inverse_of :remove_index, [:table, :one, visible: false]
+          assert_equal [:add_index, [:table, :one, visible: false]], add
+        end
+
+        def test_invert_alter_index
+          alter = @recorder.inverse_of :alter_index, [:table, :invisible_index, visible: false]
+          assert_equal [:alter_index, [:table, :invisible_index, visible: true]], alter
+        end
+      end
+
       def test_invert_remove_index
         add = @recorder.inverse_of :remove_index, [:table, :one]
         assert_equal [:add_index, [:table, :one]], add
