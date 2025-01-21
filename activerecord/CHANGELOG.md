@@ -1,3 +1,34 @@
+*   Support index visibility for MySQL v8.0.0+
+
+    MySQL 8.0.0 added an option to allow indexes to be created or altered to be invisible. This allows the index to still
+    be maintained and updated but no queries will be permitted to use it. This can be useful for adding new invisible indexes
+    or making existing indexes invisible before dropping them to ensure queries are not negatively affected.
+    See https://dev.mysql.com/blog-archive/mysql-8-0-invisible-indexes/ for more details.
+
+    ActiveRecord now supports this option for MySQL 8.0.0+ for index creation and alteration where the new index option
+    `visible: true/false` can be passed to column and index methods as below:
+
+    ```ruby
+        add_index :users, :email, visible: false
+        alter_index :users, :email, visible: true
+        add_column :users, :dob, :string, index: { visible: false }
+
+        change_table :users do |t|
+          t.index :name, visible: false
+          t.alter_index :dob, visible: true
+          t.column :username, :string, index: { visible: false }
+          t.references :account, index: { visible: false }
+        end
+
+        create_table :users do |t|
+          t.string :name, index: { visible: false }
+          t.string :email
+          t.index :email, visible: false
+        end
+    ```
+
+    *Merve Taner*
+
 *   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
 
     *Hartley McGuire*

@@ -555,6 +555,11 @@ module ActiveRecord
         false
       end
 
+      def supports_index_visibility?
+        false
+      end
+      alias_method :supports_alter_index?, :supports_index_visibility?
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated?
       end

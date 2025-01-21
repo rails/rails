@@ -44,6 +44,7 @@ module ActiveRecord
     # * rename_enum_value (must supply a +:from+ and +:to+ option)
     # * rename_index
     # * rename_table
+    # * alter_index
     class CommandRecorder
       ReversibleAndIrreversibleMethods = [
         :create_table, :create_join_table, :rename_table, :add_column, :remove_column,
@@ -58,7 +59,8 @@ module ActiveRecord
         :add_unique_constraint, :remove_unique_constraint,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
         :create_schema, :drop_schema,
-        :create_virtual_table, :drop_virtual_table
+        :create_virtual_table, :drop_virtual_table,
+        :alter_index
       ]
       include JoinTable
 
@@ -182,6 +184,11 @@ module ActiveRecord
         end
 
         include StraightReversions
+
+        def invert_alter_index(args)
+          table_name, index_name, options = args
+          [:alter_index, [table_name, index_name, visible: !options[:visible]]]
+        end
 
         def invert_transaction(args, &block)
           sub_recorder = CommandRecorder.new(delegate)

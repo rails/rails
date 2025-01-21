@@ -178,6 +178,12 @@ module ActiveRecord
         supports_insert_returning? ? column.auto_populated? : column.auto_increment?
       end
 
+      # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details.
+      def supports_index_visibility?
+        !mariadb? && database_version >= "8.0.0"
+      end
+      alias_method :supports_alter_index?, :supports_index_visibility?
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -455,6 +461,20 @@ module ActiveRecord
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
         CreateIndexDefinition.new(index, algorithm)
+      end
+
+      # Changes the visibility of an index.
+      #
+      #   alter_index(:users, :email, visible: false)
+      #
+      # Note: only supported by MySQL version 8.0.0 and greater.
+      def alter_index(table_name, index_name, visible:)
+        raise NotImplementedError unless supports_alter_index?
+
+        alter_index_query = <<~SQL
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{visible ? "VISIBLE" : "INVISIBLE"}
+        SQL
+        execute(alter_index_query)
       end
 
       def add_sql_comment!(sql, comment) # :nodoc:

@@ -388,6 +388,19 @@ module ActiveRecord
         connection.drop_table(:my_table) rescue nil
       end
 
+      if ActiveRecord::Base.lease_connection.supports_index_visibility?
+        def test_column_with_invisible_index
+          connection.create_table "my_table", force: true do |t|
+            t.column "col_one", :bigint
+            t.column "col_two", :bigint, index: { visible: false }
+          end
+
+          assert connection.index_exists?("my_table", :col_two, visible: false)
+        ensure
+          connection.drop_table(:my_table) rescue nil
+        end
+      end
+
       def test_add_column_without_column_name
         e = assert_raise ArgumentError do
           connection.create_table "my_table", force: true do |t|
