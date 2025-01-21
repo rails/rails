@@ -2,7 +2,7 @@
 
     Using these methods on associations containing unpersisted records will now
     show a deprecation warning, as the unpersisted records will be lost after
-    the operation. This will become an error in Rails 8.2.
+    the operation.
 
     *Nick Schwaderer*
 
