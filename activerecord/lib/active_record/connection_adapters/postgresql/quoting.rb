@@ -225,8 +225,22 @@ module ActiveRecord
             end
           end
 
+          # Range bound values must be escaped if they contain the following
+          # characters.
+          # * https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-IO
+          RANGE_VALUE_ESCAPED_CHARACTERS = /[()\[\]\\,"]/
+          private_constant :RANGE_VALUE_ESCAPED_CHARACTERS
+
           def type_cast_range_value(value)
-            infinity?(value) ? "" : type_cast(value)
+            cast_value = infinity?(value) ? "" : type_cast(value)
+
+            if cast_value.is_a?(String) && RANGE_VALUE_ESCAPED_CHARACTERS.match?(cast_value)
+              cast_value = cast_value.gsub(/["\\]/, "\\&\\&")
+              cast_value.prepend('"')
+              cast_value.concat('"')
+            end
+
+            cast_value
           end
 
           def infinity?(value)
