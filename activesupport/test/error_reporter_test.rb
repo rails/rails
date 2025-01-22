@@ -257,6 +257,19 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_equal :error, @subscriber.events.dig(0, 2)
   end
 
+  test "errors be reported with valid severity" do
+    ActiveSupport::ErrorReporter::SEVERITIES.each do |severity|
+      @reporter.report(StandardError.new, severity: severity)
+      assert_equal severity, @subscriber.events.last[2]
+    end
+  end
+
+  test "errors with invalid severity raise" do
+    assert_raises ArgumentError do
+      @reporter.report(@error, severity: :invalid)
+    end
+  end
+
   test "report errors only once" do
     assert_difference -> { @subscriber.events.size }, +1 do
       @reporter.report(@error, handled: false)
