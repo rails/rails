@@ -284,6 +284,11 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_includes error.message, "Reported error must be an Exception"
   end
 
+  test "report accepts context as nil" do
+    @reporter.report(@error, context: nil)
+    assert_equal({}, @subscriber.events.last[4])
+  end
+
   test "report errors only once" do
     assert_difference -> { @subscriber.events.size }, +1 do
       @reporter.report(@error, handled: false)

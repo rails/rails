@@ -217,7 +217,7 @@ module ActiveSupport
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
 
-      full_context = ActiveSupport::ExecutionContext.to_h.merge(context)
+      full_context = ActiveSupport::ExecutionContext.to_h.merge(context || {})
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
