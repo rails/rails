@@ -537,7 +537,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   private
     def columns(table_name)
-      @connection.send(:column_definitions, table_name).map do |name, type, default|
+      @connection.send(:column_definitions, table_name).map do |name, default, type|
         "#{name} #{type}" + (default ? " default #{default}" : "")
       end
     end
