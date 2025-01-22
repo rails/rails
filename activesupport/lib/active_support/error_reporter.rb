@@ -209,6 +209,8 @@ module ActiveSupport
     #
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       return if error.instance_variable_defined?(:@__rails_error_reported)
+      raise ArgumentError, "Reported error must be an Exception, got: #{error.inspect}" unless error.is_a?(Exception)
+
       ensure_backtrace(error)
 
       unless SEVERITIES.include?(severity)
