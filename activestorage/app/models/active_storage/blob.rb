@@ -22,6 +22,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
   serialize :checksum, coder: ActiveStorage::Checksum
+
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
 
@@ -325,6 +326,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # Returns an instance of service, which can be configured globally or per attachment
   def service
+    return unless service_name
     services.fetch(service_name)
   end
 

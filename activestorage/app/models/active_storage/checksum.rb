@@ -34,7 +34,6 @@ class ActiveStorage::Checksum # :nodoc:
     end
 
     def dump(checksum)
-      #      return if checksum.blank?
       "#{checksum.algorithm}:#{checksum.digest}" if checksum
     end
 
