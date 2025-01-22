@@ -73,7 +73,7 @@ RUN yarn install --immutable
 <% end -%>
 <% if using_bun? -%>
 # Install node modules
-COPY package.json bun.lockb ./
+COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
 <% end -%>
