@@ -923,6 +923,14 @@ module ActiveRecord
           Associations::HasOneAssociation
         end
       end
+
+      def association_primary_key(klass = nil)
+        if primary_key = options[:primary_key]
+          @association_primary_key ||= -primary_key.to_s
+        else
+          primary_key(klass || self.klass)
+        end
+      end
     end
 
     class BelongsToReflection < AssociationReflection # :nodoc:

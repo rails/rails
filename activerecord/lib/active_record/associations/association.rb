@@ -409,11 +409,14 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
+          foreign_key = reflection.foreign_key
+          primary_key = reflection.association_primary_key(klass)
+
           if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
+            record.read_attribute(foreign_key) == owner.read_attribute(primary_key) ||
+              (foreign_key_for?(owner) && owner.read_attribute(foreign_key) == record.read_attribute(primary_key))
           else
-            owner.read_attribute(reflection.foreign_key) == record.id
+            owner.read_attribute(foreign_key) == record.read_attribute(primary_key)
           end
         end
     end
