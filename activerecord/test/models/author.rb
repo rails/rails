@@ -181,16 +181,24 @@ class Author < ActiveRecord::Base
   has_one :essay, primary_key: :name, as: :writer
   has_one :essay_category, through: :essay, source: :category
   has_one :essay_owner, through: :essay, source: :owner
+  has_one :essay_with_belongs_to_inverse_of, as: :writer, class_name: "EssayWithBelongsToInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :writer
+  has_one :essay_with_belongs_to_scoped_inverse_of, -> { where("1=1") }, as: :writer, class_name: "EssayWithBelongsToScopedInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :writer
 
   has_one :essay_2, primary_key: :name, class_name: "Essay", foreign_key: :author_id
   has_one :essay_category_2, through: :essay_2, source: :category
+  has_one :essay_2_with_belongs_to_inverse_of, class_name: "EssayWithBelongsToInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :author
+  has_one :essay_2_with_belongs_to_scoped_inverse_of, -> { where("1=1") }, class_name: "EssayWithBelongsToScopedInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :author
 
   has_many :essays, primary_key: :name, as: :writer
   has_many :essay_categories, through: :essays, source: :category
   has_many :essay_owners, through: :essays, source: :owner
+  has_many :essays_with_belongs_to_inverse_of, as: :writer, class_name: "EssayWithBelongsToInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :writer
+  has_many :essays_with_belongs_to_scoped_inverse_of, -> { where("1=1") }, as: :writer, class_name: "EssayWithBelongsToScopedInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :writer
 
   has_many :essays_2, primary_key: :name, class_name: "Essay", foreign_key: :author_id
   has_many :essay_categories_2, through: :essays_2, source: :category
+  has_many :essays_2_with_belongs_to_inverse_of, class_name: "EssayWithBelongsToInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :author
+  has_many :essays_2_with_belongs_to_scoped_inverse_of, -> { where("1=1") }, class_name: "EssayWithBelongsToScopedInverseOf", foreign_key: :author_id, primary_key: :name, inverse_of: :author
 
   belongs_to :owned_essay, primary_key: :name, class_name: "Essay"
   has_one :owned_essay_category, through: :owned_essay, source: :category
