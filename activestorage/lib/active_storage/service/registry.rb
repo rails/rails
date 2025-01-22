@@ -8,8 +8,6 @@ module ActiveStorage
     end
 
     def fetch(name)
-      return unless name
-
       services.fetch(name.to_sym) do |key|
         if configurations.include?(key)
           services[key] = configurator.build(key)
