@@ -29,7 +29,7 @@ For macOS, you'll need Xcode Command Line Tools and Homebrew to install dependen
 
 Open Terminal and run the following commands:
 
-```shell
+```bash
 # Install Xcode Command Line Tools
 $ xcode-select --install
 
