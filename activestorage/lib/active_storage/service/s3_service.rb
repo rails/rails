@@ -146,7 +146,7 @@ module ActiveStorage
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       rescue Aws::S3::Errors::InvalidRequest => e
-        raise ActiveStorage::IntegrityError if e.message == "Value for x-amz-checksum-#{checksum_algorithm.downcase} header is invalid."
+        raise ActiveStorage::IntegrityError if e.message == "Value for x-amz-checksum-#{checksum&.algorithm&.downcase} header is invalid."
       end
 
       def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
@@ -182,7 +182,7 @@ module ActiveStorage
       end
 
       def s3_checksum_params(checksum)
-        return {} unless checksum&.algorithm
+        return {} unless checksum
         return { content_md5: checksum.digest } if checksum.algorithm == :MD5
         {
           checksum_algorithm: checksum.algorithm,
@@ -191,13 +191,12 @@ module ActiveStorage
       end
 
       def custom_checksum_headers(checksum)
-        case checksum&.algorithm
+        return {} unless checksum
+        case checksum.algorithm
         when :MD5
           { "Content-MD5" => checksum.digest }
         when :SHA1, :SHA256, :CRC32, :CRC32c
           { "x-amz-checksum-#{checksum.algorithm.downcase}" => checksum.digest }
-        when nil
-          {}
         end
       end
   end

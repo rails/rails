@@ -206,13 +206,13 @@ module ActiveStorage
       end
 
       def custom_checksum_headers(checksum)
-        case checksum_algorithm
+        return {} unless checksum
+
+        case checksum.algorithm
         when :MD5
-          { "Content-MD5" => checksum }
+          { "Content-MD5" => checksum.digest }
         when :CRC64
-          { "x-ms-content-crc64" => checksum }
-        when nil
-          {}
+          { "x-ms-content-crc64" => checksum.digest }
         end
       end
   end

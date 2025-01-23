@@ -240,22 +240,22 @@ module ActiveStorage
 
       def gcs_upload_checksum_params(checksum)
         return {} unless checksum
-        { checksum_algorithm.downcase => checksum }
+        { checksum.algorithm.downcase => checksum.digest }
       end
 
       def gcs_signing_checksum_params(checksum)
-        return { content_md5: checksum } if checksum_algorithm == :MD5
+        # Only MD5 is supported and only for V2 of signing API
+        return { content_md5: checksum.digest } if checksum.algorithm == :MD5
         {}
       end
 
       def custom_checksum_headers(checksum)
-        case checksum_algorithm
+        return {} unless checksum
+        case checksum.algorithm
         when :MD5
-          { "Content-MD5" => checksum }
+          { "Content-MD5" => checksum.digest }
         when :CRC32c
-          { "x-goog-hash" => "CRC32c=#{checksum}" }
-        when nil
-          {}
+          { "x-goog-hash" => "#{checksum.algorithm}=#{checksum.digest}" }
         end
       end
   end
