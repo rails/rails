@@ -1,3 +1,11 @@
+*   Eliminate queries loading dumped schema cache on Postgres
+
+    Improve resiliency by avoiding needing to open a database connection to load the
+    type map while defining attribute methods at boot when a schema cache file is
+    configured on PostgreSQL databases.
+
+    *James Coleman*
+
 *   `ActiveRecord::Coder::JSON` can be instantiated
 
     Options can now be passed to `ActiveRecord::Coder::JSON` when instantiating the coder. This allows:

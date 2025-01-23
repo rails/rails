@@ -654,8 +654,7 @@ module ActiveRecord
                 column_options[:stored] = column.virtual_stored?
                 column_options[:type] = column.type
               elsif column.has_default?
-                type = lookup_cast_type_from_column(column)
-                default = type.deserialize(column.default)
+                default = column.cast_type.deserialize(column.default)
                 default = -> { column.default_function } if default.nil?
 
                 unless column.auto_increment?
