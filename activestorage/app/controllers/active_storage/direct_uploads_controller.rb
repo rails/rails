@@ -7,7 +7,11 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
   def create
     direct_upload_params = blob_args
 
-    direct_upload_params[:checksum] = ActiveStorage::Checksum.load(direct_upload_params[:checksum])
+    direct_upload_params[:checksum] = if direct_upload_params[:checksum].is_a?(Hash)
+        ActiveStorage::Checksum.new(direct_upload_params[:checksum][:digest], direct_upload_params[:checksum][:algorithm])
+      else
+        ActiveStorage::Checksum.load(direct_upload_params[:checksum])
+      end
 
     blob = ActiveStorage::Blob.create_before_direct_upload!(**direct_upload_params)
     render json: direct_upload_json(blob)
@@ -15,7 +19,7 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
 
   private
     def blob_args
-      params.expect(blob: [:filename, :byte_size, :checksum, :content_type, metadata: {}]).to_h.symbolize_keys
+      params.expect(blob: [:filename, :byte_size, :checksum, {checksum: [:algorithm, :digest]}, :content_type, metadata: {}]).to_h.deep_symbolize_keys
     end
 
     def direct_upload_json(blob)
