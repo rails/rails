@@ -20,6 +20,7 @@ require "models/developer"
 require "models/company"
 require "models/project"
 require "models/author"
+require "models/essay"
 require "models/user"
 require "models/room"
 require "models/contract"
@@ -421,6 +422,22 @@ class InverseHasOneTests < ActiveRecord::TestCase
     assert_match "Did you mean?", error.detailed_message
     assert_equal "confused_human", error.corrections.first
   end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key
+    author = Author.create!(name: "Josh")
+    author.create_essay_2_with_belongs_to_inverse_of!
+    author.reload
+
+    assert_same author, author.essay_2_with_belongs_to_inverse_of.author
+  end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key_and_custom_scope
+    author = Author.create!(name: "Josh")
+    author.create_essay_2_with_belongs_to_scoped_inverse_of!
+    author.reload
+
+    assert_same author, author.essay_2_with_belongs_to_scoped_inverse_of.author
+  end
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
@@ -714,6 +731,22 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
     assert_equal post2, comment.post
   end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key
+    author = Author.create!(name: "Josh")
+    author.essays_2_with_belongs_to_inverse_of.create!
+    author.reload
+
+    assert_same author, author.essays_2_with_belongs_to_inverse_of.first.author
+  end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key_and_custom_scope
+    author = Author.create!(name: "Josh")
+    author.essays_2_with_belongs_to_scoped_inverse_of.create!
+    author.reload
+
+    assert_same author, author.essays_2_with_belongs_to_scoped_inverse_of.first.author
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
@@ -921,6 +954,22 @@ class InverseBelongsToTests < ActiveRecord::TestCase
       assert_equal 1, interest.human.interests.size
     end
   end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key
+    author = Author.create!(name: "Josh")
+    essay = author.create_essay_2_with_belongs_to_inverse_of!
+    essay.reload
+
+    assert_same essay, essay.author.essay_2_with_belongs_to_inverse_of
+  end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key_and_custom_scope
+    author = Author.create!(name: "Josh")
+    essay = author.create_essay_2_with_belongs_to_scoped_inverse_of!
+    essay.reload
+
+    assert_same essay, essay.author.essay_2_with_belongs_to_scoped_inverse_of
+  end
 end
 
 class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
@@ -1051,6 +1100,22 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_nothing_raised { Face.first.polymorphic_human = Human.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_human = Interest.first }
+  end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key
+    author = Author.create!(name: "Josh")
+    essay = author.create_essay_with_belongs_to_inverse_of!
+    essay.reload
+
+    assert_same essay, essay.writer.essay_with_belongs_to_inverse_of
+  end
+
+  def test_inverse_record_should_be_set_with_custom_association_primary_key_and_custom_scope
+    author = Author.create!(name: "Josh")
+    essay = author.create_essay_with_belongs_to_scoped_inverse_of!
+    essay.reload
+
+    assert_same essay, essay.writer.essay_with_belongs_to_scoped_inverse_of
   end
 end
 

@@ -1,9 +1,15 @@
+*   Fix associations not respecting the `:primary_key` option when the association is a `has_one` or any
+    association with a custom scope.
+
+    *Joshua Young*
+
 *   `ActiveRecord::Coder::JSON` can be instantiated
 
     Options can now be passed to `ActiveRecord::Coder::JSON` when instantiating the coder. This allows:
     ```ruby
     serialize :config, coder: ActiveRecord::Coder::JSON.new(symbolize_names: true)
     ```
+
     *matthaigh27*
 
 *   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
