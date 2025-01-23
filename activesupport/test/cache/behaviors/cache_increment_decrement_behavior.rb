@@ -34,8 +34,8 @@ module CacheIncrementDecrementBehavior
   def test_ttl_isnt_updated
     key = SecureRandom.uuid
 
-    assert_equal 1, @cache.increment(key, 1, expires_in: 1)
-    assert_equal 2, @cache.increment(key, 1, expires_in: 5000)
+    assert_equal 1, @cache.increment(key, expires_in: 1)
+    assert_equal 2, @cache.increment(key, expires_in: 5000)
 
     # having to sleep two seconds in a test is bad, but we're testing
     # a wide range of backends with different TTL mechanisms, most without
