@@ -1,3 +1,18 @@
+*   Add support for materialized CTE by introducing a `.as_cte` query method
+
+    ```ruby
+    Post.with(
+      Post.where("comments_count > ?", 0).as_cte(:posts_with_comments, materialized: true)
+    )
+    # => ActiveRecord::Relation
+    # WITH "posts_with_comments" AS MATERIALIZED (
+    #   SELECT "posts".* FROM "posts" WHERE (comments_count > 0)
+    # )
+    # SELECT "posts".* FROM "posts"
+    ```
+
+    *Jean-Louis Giordano*
+
 *   `ActiveRecord::Coder::JSON` can be instantiated
 
     Options can now be passed to `ActiveRecord::Coder::JSON` when instantiating the coder. This allows:

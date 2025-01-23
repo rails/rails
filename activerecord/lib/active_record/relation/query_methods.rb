@@ -490,6 +490,13 @@ module ActiveRecord
     #   Post
     #     .with(posts_with_comments: Post.where("comments_count > ?", 0))
     #     .with(posts_with_tags: Post.where("tags_count > ?", 0))
+    #
+    # To use materialized CTEs, you can pass an instance of Arel::Nodes::Cte directly:
+    #
+    #   Post.with(
+    #     Post.where("comments_count > ?", 0).as_cte(:post_with_comments, materialized: true)
+    #   )
+    #
     def with(*args)
       raise ArgumentError, "ActiveRecord::Relation#with does not accept a block" if block_given?
       check_if_method_has_arguments!(__callee__, args)
@@ -1595,6 +1602,12 @@ module ActiveRecord
       @arel ||= with_connection { |c| build_arel(c, aliases) }
     end
 
+    # Returns a Common Table Expression (CTE) from the relation to be
+    # used directly as input to +.with+.
+    def as_cte(subquery_alias, materialized: nil)
+      Arel::Nodes::Cte.new(subquery_alias, arel, materialized:)
+    end
+
     def construct_join_dependency(associations, join_type) # :nodoc:
       ActiveRecord::Associations::JoinDependency.new(
         model, table, associations, join_type
@@ -1909,7 +1922,12 @@ module ActiveRecord
         return if with_values.empty?
 
         with_statements = with_values.map do |with_value|
-          build_with_value_from_hash(with_value)
+          case with_value
+          when Arel::Nodes::Cte then with_value
+          when Hash then build_with_value_from_hash(with_value)
+          else
+            raise ArgumentError, "Unsupported argument type: #{with_value} #{with_value.class}"
+          end
         end
 
         @with_is_recursive ? arel.with(:recursive, with_statements) : arel.with(with_statements)
@@ -1917,7 +1935,7 @@ module ActiveRecord
 
       def build_with_value_from_hash(hash)
         hash.map do |name, value|
-          Arel::Nodes::TableAlias.new(build_with_expression_from_value(value), name)
+          Arel::Nodes::Cte.new(name, build_with_expression_from_value(value))
         end
       end
 
@@ -2248,8 +2266,11 @@ module ActiveRecord
 
       def process_with_args(args)
         args.flat_map do |arg|
-          raise ArgumentError, "Unsupported argument type: #{arg} #{arg.class}" unless arg.is_a?(Hash)
-          arg.map { |k, v| { k => v } }
+          case arg
+          when Hash then arg.map { |k, v| { k => v } }
+          when Arel::Nodes::Cte then arg
+          else raise ArgumentError, "Unsupported argument type: #{arg} #{arg.class}"
+          end
         end
       end
 
