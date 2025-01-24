@@ -235,3 +235,5 @@ module ActiveSupport
       end
   end
 end
+
+ActiveSupport.run_load_hooks :active_support_current_attributes, ActiveSupport::CurrentAttributes
