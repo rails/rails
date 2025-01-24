@@ -499,20 +499,6 @@ module ActiveRecord
         "DEFAULT VALUES"
       end
 
-      # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
-      #
-      # The +limit+ may be anything that can evaluate to a string via #to_s. It
-      # should look like an integer, or an Arel SQL literal.
-      #
-      # Returns Integer and Arel::Nodes::SqlLiteral limits as is.
-      def sanitize_limit(limit)
-        if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
-          limit
-        else
-          Integer(limit)
-        end
-      end
-
       # Fixture value is quoted by Arel, however scalar values
       # are not quotable. In this case we want to convert
       # the column value to YAML.
