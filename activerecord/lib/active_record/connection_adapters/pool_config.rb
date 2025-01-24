@@ -6,8 +6,7 @@ module ActiveRecord
       include MonitorMixin
 
       attr_reader :db_config, :role, :shard
-      attr_writer :schema_reflection, :server_version
-      attr_accessor :connection_class
+      attr_writer :schema_reflection, :server_version, :connection_class
 
       def schema_reflection
         @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)
@@ -41,11 +40,27 @@ module ActiveRecord
         @server_version || synchronize { @server_version ||= connection.get_database_version }
       end
 
+      def connection_class
+        case @connection_class
+        when ConnectionHandler::StringConnectionName
+          @connection_class
+        else
+          if defined?(Rails) && ::Rails.respond_to?(:configuration) && Rails.configuration.reloading_enabled?
+            begin
+              @connection_class = @connection_class.name.constantize
+            rescue NameError
+            end
+          end
+          @connection_class
+        end
+      end
+
       def connection_name
-        if connection_class.primary_class?
+        klass = connection_class
+        if klass.primary_class?
           "ActiveRecord::Base"
         else
-          connection_class.name
+          klass.name
         end
       end
 
