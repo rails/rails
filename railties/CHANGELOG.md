@@ -1,3 +1,7 @@
+*   The scaffold generator now generates valid html when the model has_many_attached.
+
+    *Patricio Mac Adden*
+
 *   Add `application-name` metadata to application layout
 
     The following metatag will be added to `app/views/layouts/application.html.erb`
