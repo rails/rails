@@ -150,7 +150,6 @@ module ActiveRecord
         end
 
         @owner = nil
-        @instrumenter = ActiveSupport::Notifications.instrumenter
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @visitor = arel_visitor
@@ -188,19 +187,6 @@ module ActiveRecord
           ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
         else
           ActiveSupport::Concurrency::NullLock
-        end
-      end
-
-      EXCEPTION_NEVER = { Exception => :never }.freeze # :nodoc:
-      EXCEPTION_IMMEDIATE = { Exception => :immediate }.freeze # :nodoc:
-      private_constant :EXCEPTION_NEVER, :EXCEPTION_IMMEDIATE
-      def with_instrumenter(instrumenter, &block) # :nodoc:
-        Thread.handle_interrupt(EXCEPTION_NEVER) do
-          previous_instrumenter = @instrumenter
-          @instrumenter = instrumenter
-          Thread.handle_interrupt(EXCEPTION_IMMEDIATE, &block)
-        ensure
-          @instrumenter = previous_instrumenter
         end
       end
 
@@ -1146,7 +1132,7 @@ module ActiveRecord
         end
 
         def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
-          @instrumenter.instrument(
+          instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
             name:              name,
@@ -1161,6 +1147,10 @@ module ActiveRecord
           )
         rescue ActiveRecord::StatementInvalid => ex
           raise ex.set_query(sql, binds)
+        end
+
+        def instrumenter # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] ||= ActiveSupport::Notifications.instrumenter
         end
 
         def translate_exception(exception, message:, sql:, binds:)
