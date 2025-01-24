@@ -146,7 +146,8 @@ module ActiveRecord
         if value.is_a?(Proc)
           value.call
         else
-          cast_type = column.respond_to?(:cast_type) ? column.cast_type : lookup_cast_type(column.sql_type)
+          # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+          cast_type = column.respond_to?(:fetch_cast_type) ? column.fetch_cast_type(self) : lookup_cast_type(column.sql_type)
           value = cast_type.serialize(value)
           quote(value)
         end
@@ -209,6 +210,11 @@ module ActiveRecord
         comment
       end
 
+      def lookup_cast_type(sql_type) # :nodoc:
+        # TODO: Make this method private after we release 8.1.
+        type_map.lookup(sql_type)
+      end
+
       private
         def type_casted_binds(binds)
           binds&.map do |value|
@@ -218,12 +224,6 @@ module ActiveRecord
               type_cast(value)
             end
           end
-        end
-
-        # In some adapters this executes queries; it should not be used in any
-        # hot paths. Instead prefer using `column.cast_type`.
-        def lookup_cast_type(sql_type)
-          type_map.lookup(sql_type)
         end
     end
   end
