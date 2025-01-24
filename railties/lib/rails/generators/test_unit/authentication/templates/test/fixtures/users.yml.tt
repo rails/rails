@@ -1,4 +1,5 @@
-<%% password_digest = BCrypt::Password.create("password") %>
+<%% password_salt = BCrypt::Engine.generate_salt %>
+<%% password_digest = BCrypt::Engine.hash_secret("password", password_salt) %>
 
 one:
   email_address: one@example.com

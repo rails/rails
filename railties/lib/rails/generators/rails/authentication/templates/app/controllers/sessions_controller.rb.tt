@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
   end
 
   def create
-    if user = User.authenticate_by(params.permit(:email_address, :password))
+    if user = authenticate_by(params.permit(:email_address, :password))
       start_new_session_for user
       redirect_to after_authentication_url
     else
@@ -19,4 +19,31 @@ class SessionsController < ApplicationController
     clear_site_data
     redirect_to new_session_path
   end
+
+  private
+
+    def authenticate_by(params)
+      if user = User.find_by_email_address(params[:email_address])
+        password_with_salt = BCrypt::Engine.hash_secret(params[:password], user.password_salt)
+        secure_compare(password_with_salt, user.password_digest) ? user : nil
+      else
+        nil
+      end
+    end
+
+    # https://github.com/heartcombo/devise/blob/fec67f98f26fcd9a79072e4581b1bd40d0c7fa1d/lib/devise.rb#L519-L527
+    def secure_compare(a, b)
+      return false if a.blank? || b.blank? || a.bytesize != b.bytesize
+      l = a.unpack "C#{a.bytesize}"
+
+      res = 0
+      b.each_byte { |byte| res |= byte ^ l.shift }
+      res == 0
+    end
+
+    #salt_1 = BCrypt::Engine.generate_salt
+    #salt_2 = BCrypt::Engine.generate_salt
+    #password_with_salt_1 = ::BCrypt::Engine.hash_secret("password", salt_1)
+    #password_with_salt_2 = ::BCrypt::Engine.hash_secret("password", salt_2)
+    #secure_compare(password_with_salt_1, password_with_salt_2)
 end

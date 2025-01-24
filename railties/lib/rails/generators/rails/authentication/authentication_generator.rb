@@ -48,7 +48,7 @@ module Rails
       end
 
       def add_migrations
-        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string! password_salt:string!", "--force"
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 

@@ -1,6 +1,14 @@
 class User < ApplicationRecord
+  before_save :add_password_salt
+
   has_secure_password
   has_many :sessions, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
+
+  private
+
+  def add_password_salt
+    self.password_salt = BCrypt::Engine.generate_salt
+  end
 end
