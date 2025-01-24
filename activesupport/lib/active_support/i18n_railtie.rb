@@ -94,7 +94,13 @@ module I18n
           I18n.exception_handler.is_a?(I18n::ExceptionHandler) # Only override the i18n gem's default exception handler.
 
         I18n.exception_handler = ->(exception, *) {
-          exception = exception.to_exception if exception.is_a?(I18n::MissingTranslation)
+          if exception.is_a?(I18n::MissingTranslation)
+            # Do not raise if `i18n.plural.rule` is missing
+            # because the `i18n` gem has a fallback to handle it.
+            return if exception.key == :"i18n.plural.rule"
+
+            exception = exception.to_exception
+          end
           raise exception
         }
       end
