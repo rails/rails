@@ -200,6 +200,49 @@ module ApplicationTests
       end
     end
 
+    test "renders actionable exception page when Action Text is not installed" do
+      add_to_config <<~RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = :all
+      RUBY
+
+      app_file "config/routes.rb", <<~RUBY
+        Rails.application.routes.draw do
+          post "/blobs" => "blobs#create"
+          post "/rich_texts" => "rich_texts#create"
+        end
+      RUBY
+
+      app_file "app/controllers/blobs_controller.rb", <<~RUBY
+        class BlobsController < ActionController::Base
+          def create
+            ActiveStorage::Blob.create!
+          end
+        end
+      RUBY
+
+      app_file "app/controllers/rich_texts_controller.rb", <<~RUBY
+        class RichTextsController < ActionController::Base
+          def create
+            ActionText::RichText.create!
+          end
+        end
+      RUBY
+
+      app "development"
+
+      post "/rich_texts"
+
+      assert_equal 500, last_response.status
+      assert_match "To resolve this issue run: bin/rails action_text:install", last_response.body
+
+      post "/blobs"
+
+      assert_equal 500, last_response.status
+      assert_match "To resolve this issue run: bin/rails active_storage:install", last_response.body
+    end
+
     test "Rails.groups returns available groups" do
       require "rails"
 
