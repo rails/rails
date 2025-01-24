@@ -1,3 +1,10 @@
+*   Update `rails new --minimal` option
+
+    Extend the `--minimal` flag to exclude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
+
+    *eelcoj*
+
 *   Use `secret_key_base` from ENV or credentials when present locally.
 
     When ENV["SECRET_KEY_BASE"] or
