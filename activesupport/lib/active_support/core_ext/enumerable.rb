@@ -209,10 +209,12 @@ module Enumerable
   #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   def sole
-    case count
-    when 1   then return first # rubocop:disable Style/RedundantReturn
+    first_two = first(2)
+
+    case first_two.count
+    when 1   then first_two.first
     when 0   then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "no item found"
-    when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
+    when 2   then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
     end
   end
 end
