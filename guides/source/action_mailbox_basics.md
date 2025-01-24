@@ -108,6 +108,10 @@ action_mailbox:ingress:exim`, providing the `URL` of the relay ingress and the
 $ bin/rails action_mailbox:ingress:exim URL=https://example.com/rails/action_mailbox/relay/inbound_emails INGRESS_PASSWORD=...
 ```
 
+NOTE: As an alternative, task `action_mailbox:ingress:exim` can be replace
+by a [bash script](https://gist.github.com/gabriel-curtino/034aa4c9174ec21e37eb462f087c087c) 
+allowing exim and rails work independently in different servers/containers.
+
 ### Mailgun
 
 Give Action Mailbox your Mailgun Signing key (which you can find under Settings
