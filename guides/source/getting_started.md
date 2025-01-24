@@ -2792,6 +2792,7 @@ To deploy with Kamal, we need:
   Ubuntu operating system with a Long-Term Support (LTS) version so it receives
   regular security and bug fixes. Hetzner, DigitalOcean, and other hosting
   services provide servers to get started.
+- Make sure to have ssh access to the server.
 - A [Docker Hub](https://hub.docker.com) account and access token. Docker Hub
   stores the image of the application so it can be downloaded and run on the
   server.
@@ -2829,6 +2830,22 @@ use LetsEncrypt to issue an SSL certificate for the domain.
 proxy:
   ssl: true
   host: app.example.com
+```
+
+If you opt not to enable SSL, make sure these lines below are commented in `config/environments/production.rb`:
+
+```ruby#6,9
+require "active_support/core_ext/integer/time"
+
+Rails.application.configure do
+  # ...
+  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
+  # config.assume_ssl = true
+
+  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  # config.force_ssl = true
+  # ...
+end
 ```
 
 [Create an access token](https://app.docker.com/settings/personal-access-tokens/create)
