@@ -5,12 +5,7 @@
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
-
-before = $-w
-$-w = false
 require "action_dispatch/journey/parser"
-$-w = before
-
 require "action_dispatch/journey/route"
 require "action_dispatch/journey/path/pattern"
 

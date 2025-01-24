@@ -297,15 +297,7 @@ module ActiveRecord
       # unless the parent is/was a new record itself.
       def associated_records_to_validate_or_save(association, new_record, autosave)
         if new_record || custom_validation_context?
-          target = association && association.target
-          if target && association.reflection.through_reflection
-            # We expect new through records to be autosaved by their direct parent.
-            # This prevents already persisted through records from being validated or saved
-            # more than once.
-            target.find_all(&:changed_for_autosave?)
-          else
-            target
-          end
+          association && association.target
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
         else
@@ -378,27 +370,29 @@ module ActiveRecord
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(association, record)
         return true if record.destroyed? || (association.options[:autosave] && record.marked_for_destruction?)
-        if custom_validation_context?
-          context = validation_context
+
+        context = validation_context if custom_validation_context?
+        return true if record.valid?(context)
+
+        if record.changed? || record.new_record? || context
+          associated_errors = record.errors.objects
         else
-          # If the associated record is unchanged we shouldn't auto validate it.
-          # Even if a record is invalid you should still be able to create new references
-          # to it.
-          return true if !record.new_record? && !record.changed?
+          # If there are existing invalid records in the DB, we should still be able to reference them.
+          # Unless a record (no matter where in the association chain) is invalid and is being changed.
+          associated_errors = record.errors.objects.select { |error| error.is_a?(Associations::NestedError) }
         end
 
-        unless valid = record.valid?(context)
-          if association.options[:autosave]
-            record.errors.each { |error|
-              self.errors.objects.append(
-                Associations::NestedError.new(association, error)
-              )
-            }
-          else
-            errors.add(association.reflection.name)
-          end
+        if association.options[:autosave]
+          associated_errors.each { |error|
+            errors.objects.append(
+              Associations::NestedError.new(association, error)
+            )
+          }
+        elsif associated_errors.any?
+          errors.add(association.reflection.name)
         end
-        valid
+
+        errors.any?
       end
 
       # Is used as an around_save callback to check while saving a collection

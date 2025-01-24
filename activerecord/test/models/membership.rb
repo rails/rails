@@ -5,6 +5,8 @@ class Membership < ActiveRecord::Base
   belongs_to :member
   belongs_to :club
   has_one :sponsor, through: :club
+
+  belongs_to :simple_member, foreign_key: "member_id"
 end
 
 class CurrentMembership < Membership

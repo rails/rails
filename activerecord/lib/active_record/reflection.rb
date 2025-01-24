@@ -655,10 +655,6 @@ module ActiveRecord
         self
       end
 
-      def source_reflection_name
-        source_reflection.name
-      end
-
       # A chain of reflections from this one back to the owner. For more see the explanation in
       # ThroughReflection.
       def collect_join_chain
@@ -1235,7 +1231,7 @@ module ActiveRecord
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
       delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key,
-               :name, :scope_for, :collection?, to: :@reflection
+               :name, :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         super()

@@ -153,14 +153,14 @@ module ActiveRecord
           "'#{escape_bytea(value.to_s)}'"
         end
 
+        # `column` may be either an instance of Column or ColumnDefinition.
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            type = lookup_cast_type_from_column(column)
-            quote(type.serialize(value))
+            quote(column.cast_type.serialize(value))
           else
             super
           end
@@ -184,11 +184,6 @@ module ActiveRecord
           else
             super
           end
-        end
-
-        def lookup_cast_type_from_column(column) # :nodoc:
-          verify! if type_map.nil?
-          type_map.lookup(column.oid, column.fmod, column.sql_type)
         end
 
         private

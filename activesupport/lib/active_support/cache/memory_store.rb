@@ -146,9 +146,9 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.increment("baz") # => 6
       #
-      def increment(name, amount = 1, options = nil)
+      def increment(name, amount = 1, **options)
         instrument(:increment, name, amount: amount) do
-          modify_value(name, amount, options)
+          modify_value(name, amount, **options)
         end
       end
 
@@ -163,9 +163,9 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.decrement("baz") # => 4
       #
-      def decrement(name, amount = 1, options = nil)
+      def decrement(name, amount = 1, **options)
         instrument(:decrement, name, amount: amount) do
-          modify_value(name, -amount, options)
+          modify_value(name, -amount, **options)
         end
       end
 
@@ -238,7 +238,7 @@ module ActiveSupport
 
         # Modifies the amount of an integer value that is stored in the cache.
         # If the key is not found it is created and set to +amount+.
-        def modify_value(name, amount, options)
+        def modify_value(name, amount, **options)
           options = merged_options(options)
           key     = normalize_key(name, options)
           version = normalize_version(name, options)

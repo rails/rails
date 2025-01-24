@@ -207,15 +207,23 @@ module ActiveSupport
     #
     #   Rails.error.report(error)
     #
+    # The +error+ argument must be an instance of Exception.
+    #
+    #   Rails.error.report(Exception.new("Something went wrong"))
+    #
+    # Otherwise you can use #unexpected to report an error which does accept a
+    # string argument.
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       return if error.instance_variable_defined?(:@__rails_error_reported)
+      raise ArgumentError, "Reported error must be an Exception, got: #{error.inspect}" unless error.is_a?(Exception)
+
       ensure_backtrace(error)
 
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
 
-      full_context = ActiveSupport::ExecutionContext.to_h.merge(context)
+      full_context = ActiveSupport::ExecutionContext.to_h.merge(context || {})
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }

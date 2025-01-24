@@ -71,7 +71,7 @@ module ActiveRecord
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         case value
-        when String, Symbol
+        when String, Symbol, ActiveSupport::Multibyte::Chars
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
         when false      then quoted_false
@@ -84,11 +84,7 @@ module ActiveRecord
         when Date, Time then "'#{quoted_date(value)}'"
         when Class      then "'#{value}'"
         else
-          if value.class.name == "ActiveSupport::Multibyte::Chars"
-            "'#{quote_string(value.to_s)}'"
-          else
-            raise TypeError, "can't quote #{value.class.name}"
-          end
+          raise TypeError, "can't quote #{value.class.name}"
         end
       end
 
@@ -97,7 +93,7 @@ module ActiveRecord
       # to a String.
       def type_cast(value)
         case value
-        when Symbol, Type::Binary::Data
+        when Symbol, Type::Binary::Data, ActiveSupport::Multibyte::Chars
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
@@ -107,11 +103,7 @@ module ActiveRecord
         when Type::Time::Value then quoted_time(value)
         when Date, Time then quoted_date(value)
         else
-          if value.class.name == "ActiveSupport::Multibyte::Chars"
-            value.to_s
-          else
-            raise TypeError, "can't cast #{value.class.name}"
-          end
+          raise TypeError, "can't cast #{value.class.name}"
         end
       end
 
@@ -120,19 +112,6 @@ module ActiveRecord
       # so this method will cast numbers to string.
       def cast_bound_value(value) # :nodoc:
         value
-      end
-
-      # If you are having to call this function, you are likely doing something
-      # wrong. The column does not have sufficient type information if the user
-      # provided a custom type on the class level either explicitly (via
-      # Attributes::ClassMethods#attribute) or implicitly (via
-      # AttributeMethods::Serialization::ClassMethods#serialize, +time_zone_aware_attributes+).
-      # In almost all cases, the sql type should only be used to change quoting behavior, when the primitive to
-      # represent the type doesn't sufficiently reflect the differences
-      # (varchar vs binary) for example. The type used to get this primitive
-      # should have been provided before reaching the connection adapter.
-      def lookup_cast_type_from_column(column) # :nodoc:
-        lookup_cast_type(column.sql_type)
       end
 
       # Quotes a string, escaping any ' (single quote) and \ (backslash)
@@ -167,7 +146,8 @@ module ActiveRecord
         if value.is_a?(Proc)
           value.call
         else
-          value = lookup_cast_type(column.sql_type).serialize(value)
+          cast_type = column.respond_to?(:cast_type) ? column.cast_type : lookup_cast_type(column.sql_type)
+          value = cast_type.serialize(value)
           quote(value)
         end
       end
@@ -240,6 +220,8 @@ module ActiveRecord
           end
         end
 
+        # In some adapters this executes queries; it should not be used in any
+        # hot paths. Instead prefer using `column.cast_type`.
         def lookup_cast_type(sql_type)
           type_map.lookup(sql_type)
         end

@@ -2,13 +2,17 @@
 
 module ActiveRecord
   module Coders # :nodoc:
-    module JSON # :nodoc:
-      def self.dump(obj)
+    class JSON # :nodoc:
+      def initialize(options = {})
+        @options = options
+      end
+
+      def dump(obj)
         ActiveSupport::JSON.encode(obj)
       end
 
-      def self.load(json)
-        ActiveSupport::JSON.decode(json) unless json.blank?
+      def load(json)
+        ActiveSupport::JSON.decode(json, @options) unless json.blank?
       end
     end
   end

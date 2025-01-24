@@ -920,9 +920,10 @@ Some key steps in the migration include:
 4. Remove the `config.assets.paths << Rails.root.join('app', 'assets')` line
    from your `application.rb` file.
 
-5. Migrate asset helpers by replacing all instances of asset helpers (e.g.,
-   `image_url`) with standard URLs because Propshaft utilizes relative paths.
-   For example, `image_url("logo.png")` will become `url("/logo.png")`.
+5. Migrate asset helpers by replacing all instances of asset helpers in your CSS
+   files (e.g., `image_url`) with standard `url()` functions, keeping in mind
+   that Propshaft utilizes relative paths.
+   For example, `image_url("logo.png")` may become `url("/logo.png")`.
 
 6. If you're relying on Sprockets for transpiling, you'll need to switch to a
    Node-based transpiler like Webpack, esbuild, or Vite. You can use the

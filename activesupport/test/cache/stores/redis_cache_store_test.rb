@@ -220,7 +220,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def test_increment_expires_in
-      @cache.increment "foo", 1, expires_in: 60
+      @cache.increment "foo", expires_in: 60
       redis_backend do |r|
         assert r.exists?("#{@namespace}:foo")
         assert r.ttl("#{@namespace}:foo") > 0
@@ -228,14 +228,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
       # key and ttl exist
       redis_backend { |r| r.setex "#{@namespace}:bar", 120, 1 }
-      @cache.increment "bar", 1, expires_in: 60
+      @cache.increment "bar", expires_in: 60
       redis_backend do |r|
         assert r.ttl("#{@namespace}:bar") > 60
       end
 
       # key exist but not have expire
       redis_backend(@cache_no_ttl) { |r| r.set "#{@namespace}:dar", 10 }
-      @cache_no_ttl.increment "dar", 1, expires_in: 60
+      @cache_no_ttl.increment "dar", expires_in: 60
       redis_backend(@cache_no_ttl) do |r|
         assert r.ttl("#{@namespace}:dar") > 0
       end

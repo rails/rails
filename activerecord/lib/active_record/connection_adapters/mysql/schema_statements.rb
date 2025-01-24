@@ -214,6 +214,7 @@ module ActiveRecord
 
             MySQL::Column.new(
               field_name,
+              lookup_cast_type(type_metadata.sql_type),
               default,
               type_metadata,
               field.fetch("IS_NULLABLE") == "YES",

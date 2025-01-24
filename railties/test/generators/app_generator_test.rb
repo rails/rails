@@ -443,6 +443,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
     assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "My Web Site"/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /meta\sname="application-name"\scontent="My Web Site/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
@@ -1320,6 +1321,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
+      assert_match(/ENV BINDING="0.0.0.0"/, content)
     end
     assert_file("test/application_system_test_case.rb") do |content|
       assert_match(/^    served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)

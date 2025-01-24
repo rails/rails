@@ -22,7 +22,7 @@ require "active_support"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport.deprecator.debug = true
+ActiveSupport.deprecator.behavior = :raise
 
 # Default to Ruby 2.4+ to_time behavior but allow running tests with old behavior
 ActiveSupport.deprecator.silence do
@@ -33,10 +33,6 @@ ActiveSupport::Cache.format_version = 7.1
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
-
-ActiveSupport.deprecator.silence do
-  ActiveSupport::Multibyte.const_get(:Chars)
-end
 
 class ActiveSupport::TestCase
   if Process.respond_to?(:fork) && !Gem.win_platform?

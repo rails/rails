@@ -445,7 +445,7 @@ module ActiveRecord
           super
         end
 
-        def index_exists?(table_name, column_name, **options)
+        def index_exists?(table_name, column_name = nil, **options)
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
             if options[:name].present?

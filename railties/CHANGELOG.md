@@ -1,3 +1,22 @@
+*   Add `application-name` metadata to application layout
+
+    The following metatag will be added to `app/views/layouts/application.html.erb`
+
+    ```html
+    <meta name="application-name" content="Name of Rails Application">
+    ```
+
+    *Steve Polito*
+
+*   Use `secret_key_base` from ENV or credentials when present locally.
+
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
+
+    *Petrik de Heus*
+
 *   The authentication generator's `SessionsController` sets the `Clear-Site-Data` header on logout.
 
     By default the header will be set to `"cache","storage"` to help prevent data leakage after

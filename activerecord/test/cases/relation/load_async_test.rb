@@ -163,7 +163,7 @@ module ActiveRecord
       status = {}
 
       subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload[:name] == "SQL"
+        if event.payload[:name] == "Post Eager Load"
           status[:executed] = true
           status[:async] = event.payload[:async]
         end
@@ -444,7 +444,7 @@ module ActiveRecord
 
         status = {}
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-          if event.payload[:name] == "SQL"
+          if event.payload[:name] == "Post Eager Load"
             status[:executed] = true
             status[:async] = event.payload[:async]
           end

@@ -863,6 +863,106 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_with_unpersisted_records_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.insert({ title: "New Book" })
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_insert_all_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.insert_all([{ title: "New Book" }])
+    end
+  end
+
+  def test_insert_with_unpersisted_records_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.insert({ title: "New Book" })
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_insert_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.insert({ title: "New Book" })
+    end
+  end
+
+  def test_insert_all_bang_with_unpersisted_record_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.insert_all!([{ title: "New Book" }])
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_insert_all_bang_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.insert_all!([{ title: "New Book" }])
+    end
+  end
+
+  def test_upsert_all_with_unpersisted_record_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.upsert_all([{ title: "New Book" }])
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_upsert_all_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.upsert_all([{ title: "New Book" }])
+    end
+  end
+
+  def test_upsert_with_unpersisted_record_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      author.books.upsert({ title: "New Book" })
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_upsert_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.upsert({ title: "New Book" })
+    end
+  end
+
   private
     def capture_log_output
       output = StringIO.new
