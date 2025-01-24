@@ -160,7 +160,8 @@ module ActiveRecord
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            quote(column.cast_type.serialize(value))
+            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+            quote(column.fetch_cast_type(self).serialize(value))
           else
             super
           end
@@ -186,11 +187,12 @@ module ActiveRecord
           end
         end
 
-        private
-          def lookup_cast_type(sql_type)
-            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
-          end
+        # TODO: Make this method private after we release 8.1.
+        def lookup_cast_type(sql_type) # :nodoc:
+          super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+        end
 
+        private
           def encode_array(array_data)
             encoder = array_data.encoder
             values = type_cast_array(array_data.values)
