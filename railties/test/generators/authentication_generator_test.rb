@@ -47,7 +47,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
     end
 
-    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! password_salt:string! --force"
     assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
@@ -91,7 +91,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_match(/resource :session/, content)
     end
 
-    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! password_salt:string! --force"
     assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
 
     assert_file "test/models/user_test.rb"
