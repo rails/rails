@@ -7,6 +7,7 @@ class Arel::Nodes::DeleteStatementTest < Arel::Spec
     it "clones wheres" do
       statement = Arel::Nodes::DeleteStatement.new
       statement.wheres = %w[a b c]
+      statement.with   = "bar"
 
       dolly = statement.clone
       _(dolly.wheres).must_equal statement.wheres
@@ -18,8 +19,10 @@ class Arel::Nodes::DeleteStatementTest < Arel::Spec
     it "is equal with equal ivars" do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
+      statement1.with   = "bar"
       statement2 = Arel::Nodes::DeleteStatement.new
       statement2.wheres = %w[a b c]
+      statement2.with   = "bar"
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end
@@ -27,8 +30,10 @@ class Arel::Nodes::DeleteStatementTest < Arel::Spec
     it "is not equal with different ivars" do
       statement1 = Arel::Nodes::DeleteStatement.new
       statement1.wheres = %w[a b c]
+      statement1.with   = "bar"
       statement2 = Arel::Nodes::DeleteStatement.new
       statement2.wheres = %w[1 2 3]
+      statement2.with   = "bar"
       array = [statement1, statement2]
       assert_equal 2, array.uniq.size
     end
