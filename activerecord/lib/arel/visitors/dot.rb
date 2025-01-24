@@ -148,6 +148,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_UpdateStatement(o)
           visit_edge o, "relation"
+          visit_edge o, "from"
           visit_edge o, "wheres"
           visit_edge o, "values"
           visit_edge o, "orders"
