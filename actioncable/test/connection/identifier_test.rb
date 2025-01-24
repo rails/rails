@@ -16,62 +16,46 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     end
   end
 
+  setup do
+    @server = TestServer.new
+  end
+
   test "connection identifier" do
-    run_in_eventmachine do
-      open_connection
-      assert_equal "User#lifo", @connection.connection_identifier
-    end
+    open_connection
+    assert_equal "User#lifo", @connection.connection_identifier
   end
 
   test "should subscribe to internal channel on open and unsubscribe on close" do
-    run_in_eventmachine do
-      server = TestServer.new
+    assert_called(@server.pubsub, :subscribe, [{ channel: "action_cable/User#lifo" }]) do
+      open_connection
+    end
 
-      open_connection(server)
-      close_connection
-      wait_for_async
-
-      %w[subscribe unsubscribe].each do |method|
-        pubsub_call = server.pubsub.class.class_variable_get "@@#{method}_called"
-
-        assert_equal "action_cable/User#lifo", pubsub_call[:channel]
-        assert_instance_of Proc, pubsub_call[:callback]
-      end
+    assert_called(@server.pubsub, :unsubscribe, [{ channel: "action_cable/User#lifo" }]) do
+      @connection.handle_close
     end
   end
 
   test "processing disconnect message" do
-    run_in_eventmachine do
-      open_connection
+    open_connection
 
-      assert_called(@connection.websocket, :close) do
-        @connection.process_internal_message "type" => "disconnect"
-      end
+    assert_called(@socket, :close) do
+      @connection.process_internal_message "type" => "disconnect"
     end
   end
 
   test "processing invalid message" do
-    run_in_eventmachine do
-      open_connection
+    open_connection
 
-      assert_not_called(@connection.websocket, :close) do
-        @connection.process_internal_message "type" => "unknown"
-      end
+    assert_not_called(@socket, :close) do
+      @connection.process_internal_message "type" => "unknown"
     end
   end
 
   private
-    def open_connection(server = nil)
-      server ||= TestServer.new
-
+    def open_connection
       env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-      @connection = Connection.new(server, env)
 
-      @connection.process
-      @connection.send :handle_open
-    end
-
-    def close_connection
-      @connection.send :handle_close
+      @socket = ActionCable::Server::Socket.new(@server, env)
+      @connection = Connection.new(@server, @socket).tap(&:handle_open)
     end
 end

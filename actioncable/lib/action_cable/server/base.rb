@@ -6,6 +6,29 @@ require "monitor"
 
 module ActionCable
   module Server
+    # A wrapper over ConcurrentRuby::ThreadPoolExecutor and Concurrent::TimerTask
+    class ThreadedExecutor # :nodoc:
+      def initialize(max_size: 10)
+        @executor = Concurrent::ThreadPoolExecutor.new(
+          name: "ActionCable server",
+          min_threads: 1,
+          max_threads: max_size,
+          max_queue: 0,
+        )
+      end
+
+      def post(task = nil, &block)
+        task ||= block
+        @executor << task
+      end
+
+      def timer(interval, &block)
+        Concurrent::TimerTask.new(execution_interval: interval, &block).tap(&:execute)
+      end
+
+      def shutdown = @executor.shutdown
+    end
+
     # # Action Cable Server Base
     #
     # A singleton ActionCable::Server instance is available via ActionCable.server.
@@ -31,14 +54,14 @@ module ActionCable
       def initialize(config: self.class.config)
         @config = config
         @mutex = Monitor.new
-        @remote_connections = @event_loop = @worker_pool = @pubsub = nil
+        @remote_connections = @event_loop = @worker_pool = @executor = @pubsub = nil
       end
 
       # Called by Rack to set up the server.
       def call(env)
         return config.health_check_application.call(env) if env["PATH_INFO"] == config.health_check_path
         setup_heartbeat_timer
-        config.connection_class.call.new(self, env).process
+        Socket.new(self, env).process
       end
 
       # Disconnect all the connections identified by `identifiers` on this server or
@@ -57,6 +80,10 @@ module ActionCable
           @worker_pool.halt if @worker_pool
           @worker_pool = nil
 
+          # Shutdown the executor
+          @executor.shutdown if @executor
+          @executor = nil
+
           # Shutdown the pub/sub adapter
           @pubsub.shutdown if @pubsub
           @pubsub = nil
@@ -69,7 +96,7 @@ module ActionCable
       end
 
       def event_loop
-        @event_loop || @mutex.synchronize { @event_loop ||= ActionCable::Connection::StreamEventLoop.new }
+        @event_loop || @mutex.synchronize { @event_loop ||= StreamEventLoop.new }
       end
 
       # The worker pool is where we run connection callbacks and channel actions. We
@@ -92,15 +119,42 @@ module ActionCable
         @worker_pool || @mutex.synchronize { @worker_pool ||= ActionCable::Server::Worker.new(max_size: config.worker_pool_size) }
       end
 
+      # Executor is used by various actions within Action Cable (e.g., pub/sub operations) to run code asynchronously.
+      def executor
+        @executor || @mutex.synchronize { @executor ||= ThreadedExecutor.new(max_size: config.executor_pool_size) }
+      end
+
       # Adapter used for all streams/broadcasting.
       def pubsub
-        @pubsub || @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) }
+        @pubsub || (executor && @mutex.synchronize { @pubsub ||= config.pubsub_adapter.new(self) })
       end
 
       # All of the identifiers applied to the connection class associated with this
       # server.
       def connection_identifiers
         config.connection_class.call.identifiers
+      end
+
+      # Tags are declared in the server but computed in the connection. This allows us per-connection tailored tags.
+      # You can pass request object either directly or via block to lazily evaluate it.
+      def new_tagged_logger(request = nil, &block)
+        TaggedLoggerProxy.new logger,
+          tags: config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request ||= block.call) : tag.to_s.camelize }
+      end
+
+      # Check if the request origin is allowed to connect to the Action Cable server.
+      def allow_request_origin?(env)
+        return true if config.disable_request_forgery_protection
+
+        proto = Rack::Request.new(env).ssl? ? "https" : "http"
+        if config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+          true
+        elsif Array(config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
+          true
+        else
+          logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
+          false
+        end
       end
     end
 

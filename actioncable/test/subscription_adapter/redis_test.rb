@@ -79,7 +79,6 @@ class RedisAdapterTest::ConnectorDefaultID < ActionCable::TestCase
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.merge(adapter: "redis").with_indifferent_access
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     @adapter = server.config.pubsub_adapter.new(server)
   end
@@ -127,7 +126,6 @@ class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
   def setup
     server = ActionCable::Server::Base.new
     server.config.cable = cable_config.merge(adapter: "redis").with_indifferent_access
-    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
 
     @adapter = server.config.pubsub_adapter.new(server)
   end
