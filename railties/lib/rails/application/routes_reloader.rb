@@ -8,7 +8,7 @@ module Rails
 
       attr_reader :route_sets, :paths, :external_routes, :loaded
       attr_accessor :eager_load
-      attr_writer :run_after_load_paths # :nodoc:
+      attr_writer :run_after_load_paths, :loaded # :nodoc:
       delegate :execute_if_updated, :updated?, to: :updater
 
       def initialize
