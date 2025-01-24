@@ -7,7 +7,6 @@ module ActiveRecord
 
       attr_reader :db_config, :role, :shard
       attr_writer :schema_reflection, :server_version
-      attr_accessor :connection_class
 
       def schema_reflection
         @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)
@@ -29,7 +28,7 @@ module ActiveRecord
       def initialize(connection_class, db_config, role, shard)
         super()
         @server_version = nil
-        @connection_class = connection_class
+        self.connection_class = connection_class
         @db_config = db_config
         @role = role
         @shard = shard
@@ -41,11 +40,33 @@ module ActiveRecord
         @server_version || synchronize { @server_version ||= connection.get_database_version }
       end
 
-      def connection_name
-        if connection_class.primary_class?
-          "ActiveRecord::Base"
+      def connection_class=(connection_class)
+        case connection_class
+        when ConnectionHandler::StringConnectionName
+          @connection_class_name = connection_class
         else
-          connection_class.name
+          @connection_class_name = connection_class.name
+        end
+        @connection_class_primary_p = connection_class.primary_class?
+      end
+
+      def connection_class
+        case @connection_class_name
+        when ConnectionHandler::StringConnectionName
+          @connection_class_name
+        else
+          @connection_class_name.constantize
+        end
+      end
+
+      def connection_name
+        return "ActiveRecord::Base" if @connection_class_primary_p
+
+        case @connection_class_name
+        when ConnectionHandler::StringConnectionName
+          @connection_class_name.name
+        else
+          @connection_class_name
         end
       end
 
