@@ -22,6 +22,10 @@ module ActiveStorage
       end
     end
 
+    def names
+      configurations.keys
+    end
+
     private
       attr_reader :configurations, :services
 

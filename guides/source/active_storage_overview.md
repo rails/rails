@@ -1437,7 +1437,10 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # ...
   def after_teardown
     super
-    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+    directories = ActiveStorage::Blob.services.names.map do |service_name|
+      ActiveStorage::Blob.services.fetch(service_name).root
+    end
+    FileUtils.rm_rf(directories)
   end
   # ...
 end
@@ -1451,7 +1454,10 @@ tests.
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # ...
   parallelize_setup do |i|
-    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+    ActiveStorage::Blob.services.names.each do |service_name|
+      service = ActiveStorage::Blob.services.fetch(service_name)
+      service.root = "#{service.root}-#{i}"
+    end
   end
   # ...
 end
@@ -1478,7 +1484,10 @@ automatically cleaned up. If you want to clear the files, you can do it in an
 class ActionDispatch::IntegrationTest
   def after_teardown
     super
-    FileUtils.rm_rf(ActiveStorage::Blob.service.root)
+    directories = ActiveStorage::Blob.services.names.map do |service_name|
+      ActiveStorage::Blob.services.fetch(service_name).root
+    end
+    FileUtils.rm_rf(directories)
   end
 end
 ```
@@ -1490,7 +1499,10 @@ tests.
 ```ruby
 class ActionDispatch::IntegrationTest
   parallelize_setup do |i|
-    ActiveStorage::Blob.service.root = "#{ActiveStorage::Blob.service.root}-#{i}"
+    ActiveStorage::Blob.services.names.each do |service_name|
+      service = ActiveStorage::Blob.services.fetch(service_name)
+      service.root = "#{service.root}-#{i}"
+    end
   end
 end
 ```
