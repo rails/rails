@@ -206,7 +206,7 @@ module ActiveRecord
         hash = {}
         length  = columns.length
         while index < length
-          hash[columns[index]] = index
+          hash[columns[index]] ||= index
           index += 1
         end
         hash.freeze
