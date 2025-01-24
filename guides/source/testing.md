@@ -1023,7 +1023,7 @@ request type, request tests are available, making your tests more purposeful.
 
 ### Testing XHR (AJAX) Requests
 
-An AJAX request (Asynchronous Javscript and XML) is a technique where content is
+An AJAX request (Asynchronous JavaScript and XML) is a technique where content is
 fetched from the server using asynchronous HTTP requests and the relevant parts
 of the page are updated without requiring a full page load.
 
