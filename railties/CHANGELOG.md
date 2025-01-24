@@ -1,3 +1,8 @@
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
+
+    *Bijan Rahnema*
+
 *   Add `application-name` metadata to application layout
 
     The following metatag will be added to `app/views/layouts/application.html.erb`
