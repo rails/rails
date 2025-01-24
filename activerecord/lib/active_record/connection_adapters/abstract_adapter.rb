@@ -884,7 +884,7 @@ module ActiveRecord
         def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
           mapping.register_type(key) do |*args|
             precision = extract_precision(args.last)
-            klass.new(precision: precision, **kwargs)
+            klass.new(precision: precision, **kwargs).freeze
           end
         end
 
@@ -915,7 +915,7 @@ module ActiveRecord
             m.alias_type %r(number)i,    "decimal"
             m.alias_type %r(double)i,    "float"
 
-            m.register_type %r(^json)i, Type::Json.new
+            m.register_type %r(^json)i, Type::Json.new.freeze
 
             m.register_type(%r(decimal)i) do |sql_type|
               scale = extract_scale(sql_type)
@@ -923,9 +923,9 @@ module ActiveRecord
 
               if scale == 0
                 # FIXME: Remove this class as well
-                Type::DecimalWithoutScale.new(precision: precision)
+                Type::DecimalWithoutScale.new(precision: precision).freeze
               else
-                Type::Decimal.new(precision: precision, scale: scale)
+                Type::Decimal.new(precision: precision, scale: scale).freeze
               end
             end
           end
@@ -933,7 +933,7 @@ module ActiveRecord
           def register_class_with_limit(mapping, key, klass)
             mapping.register_type(key) do |*args|
               limit = extract_limit(args.last)
-              klass.new(limit: limit)
+              klass.new(limit: limit).freeze
             end
           end
 

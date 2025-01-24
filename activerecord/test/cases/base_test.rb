@@ -264,6 +264,12 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal 129346, Topic.find(3).written_on.usec
   end
 
+  def test_default_values_ractor_shareable
+    skip unless defined?(Ractor)
+    assert_predicate Default._default_attributes, :frozen?
+    assert Ractor.shareable?(Default._default_attributes)
+  end
+
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do
@@ -1118,6 +1124,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     def test_default_in_local_time
       with_env_tz do
+        Default.reset_column_information
         with_timezone_config default: :local do
           default = Default.new
 
@@ -1132,6 +1139,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_utc
+      Default.reset_column_information
       with_timezone_config default: :utc do
         default = Default.new
 
@@ -1145,6 +1153,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
 
     def test_default_in_utc_with_time_zone
+      Default.reset_column_information
       with_timezone_config default: :utc do
         Time.use_zone "Central Time (US & Canada)" do
           default = Default.new
@@ -1162,9 +1171,11 @@ class BasicsTest < ActiveRecord::TestCase
     def test_switching_default_time_zone
       with_env_tz do
         2.times do
+          Default.reset_column_information
           with_timezone_config default: :local do
             assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
           end
+          Default.reset_column_information
           with_timezone_config default: :utc do
             assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
           end
@@ -1174,6 +1185,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     def test_mutating_time_objects
       with_env_tz do
+        Default.reset_column_information
         with_timezone_config default: :local do
           assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), Default.new.fixed_time
           assert_equal Time.utc(2004, 1, 1, 5, 0, 0, 0), Default.new.fixed_time.utc
@@ -1184,6 +1196,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     unless in_memory_db?
       def test_connection_in_local_time
+        Default.reset_column_information
         with_timezone_config default: :utc do
           new_config = ActiveRecord::Base.connection_db_config.configuration_hash.merge(default_timezone: "local")
           ActiveRecord::Base.establish_connection(new_config)
