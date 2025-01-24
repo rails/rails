@@ -108,9 +108,9 @@ module ActiveRecord
           begin
             if pending?
               @event_buffer = EventBuffer.new(self, @instrumenter)
-              connection.with_instrumenter(@event_buffer) do
-                execute_query(connection, async: true)
-              end
+              ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
+
+              execute_query(connection, async: true)
             end
           ensure
             @mutex.unlock
