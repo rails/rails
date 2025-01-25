@@ -276,8 +276,8 @@ module ActiveRecord
       end
 
       def inspect # :nodoc:
-        name_field = " name=#{db_config.name.inspect}" unless db_config.name == "primary"
-        shard_field = " shard=#{@shard.inspect}" unless @shard == :default
+        name_field = " name=#{name_inspect}" if name_inspect
+        shard_field = " shard=#{shard_inspect}" if shard_inspect
 
         "#<#{self.class.name} env_name=#{db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
@@ -715,7 +715,9 @@ module ActiveRecord
           case ActiveRecord.async_query_executor
           when :multi_thread_pool
             if @db_config.max_threads > 0
+              name_with_shard = [name_inspect, shard_inspect].join("-").tr("_", "-")
               Concurrent::ThreadPoolExecutor.new(
+                name: "ActiveRecord-#{name_with_shard}-async-query-executor",
                 min_threads: @db_config.min_threads,
                 max_threads: @db_config.max_threads,
                 max_queue: @db_config.max_queue,
@@ -948,6 +950,14 @@ module ActiveRecord
           remove c
           c.disconnect!
           raise
+        end
+
+        def name_inspect
+          db_config.name.inspect unless db_config.name == "primary"
+        end
+
+        def shard_inspect
+          shard.inspect unless shard == :default
         end
     end
   end

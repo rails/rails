@@ -288,6 +288,7 @@ module ActiveRecord
   def self.global_thread_pool_async_query_executor # :nodoc:
     concurrency = global_executor_concurrency || 4
     @global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+      name: "ActiveRecord-global-async-query-executor",
       min_threads: 0,
       max_threads: concurrency,
       max_queue: concurrency * 4,
