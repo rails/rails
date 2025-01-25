@@ -16,6 +16,10 @@ module ActiveRecord
         def default_timezone
           @timezone || ActiveRecord.default_timezone
         end
+
+        def ==(other)
+          super(other) && is_utc? == other.is_utc?
+        end
       end
     end
   end
