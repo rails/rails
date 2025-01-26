@@ -1,3 +1,15 @@
+*   Add `Symbol` class support for inflections
+
+    ```ruby
+    :post.pluralize # => :posts
+    :posts.singularize # => :post
+
+    :FirstName.underscore # => :first_name
+    :first_name.camelcase # => :FirstName
+    ```
+
+    *Sean Doyle*
+
 *   Make `ActiveSupport::Gzip.compress` deterministic based on input.
 
     `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
