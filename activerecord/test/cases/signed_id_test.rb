@@ -192,6 +192,24 @@ class SignedIdTest < ActiveRecord::TestCase
     Account.signed_id_verifier = old_verifier
   end
 
+  test "secret key rotation" do
+    old_verifier = Account.signed_id_verifier
+
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("old secret")
+    old_account_signed_id = @account.signed_id
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("new secret")
+    new_account_signed_id = @account.signed_id
+    assert_not_equal old_account_signed_id, new_account_signed_id
+    assert_not Account.find_signed(old_account_signed_id)
+    assert Account.find_signed(new_account_signed_id)
+
+    Account.signed_id_verifier.rotate("old secret")
+    assert Account.find_signed(old_account_signed_id)
+    assert Account.find_signed(new_account_signed_id)
+  ensure
+    Account.signed_id_verifier = old_verifier
+  end
+
   test "cannot get a signed ID for a new record" do
     assert_raises ArgumentError, match: /Cannot get a signed_id for a new record/ do
       Account.new.signed_id
