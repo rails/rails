@@ -811,7 +811,7 @@ module ActiveRecord
 
         connection.remove_column("barcode_cpks", "other_attr")
 
-        assert_equal ["region", "code"], connection.primary_keys("barcode_cpks")
+        assert_equal ["region", "code"], connection.primary_key("barcode_cpks")
 
         barcode = BarcodeCpk.first
         assert_equal region, barcode.region

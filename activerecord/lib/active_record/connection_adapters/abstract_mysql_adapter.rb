@@ -582,21 +582,6 @@ module ActiveRecord
         nil
       end
 
-      def primary_keys(table_name) # :nodoc:
-        raise ArgumentError unless table_name.present?
-
-        scope = quoted_scope(table_name)
-
-        query_values(<<~SQL, "SCHEMA")
-          SELECT column_name
-          FROM information_schema.statistics
-          WHERE index_name = 'PRIMARY'
-            AND table_schema = #{scope[:schema]}
-            AND table_name = #{scope[:name]}
-          ORDER BY seq_in_index
-        SQL
-      end
-
       def case_sensitive_comparison(attribute, value) # :nodoc:
         column = column_for_attribute(attribute)
 
@@ -960,7 +945,33 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+          scope = quoted_scope(table_name)
+          result = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true)
+            SELECT
+              c.COLUMN_NAME AS `Field`,
+              c.COLUMN_TYPE AS `Type`,
+              c.COLLATION_NAME AS `Collation`,
+              c.IS_NULLABLE AS `Null`,
+              c.COLUMN_KEY AS `Key`,
+              s.SEQ_IN_INDEX AS `SeqInIndex`,
+              c.COLUMN_DEFAULT AS `Default`,
+              c.EXTRA AS `Extra`,
+              c.PRIVILEGES AS `Privileges`,
+              c.COLUMN_COMMENT AS `Comment`
+            FROM INFORMATION_SCHEMA.COLUMNS c
+            LEFT JOIN INFORMATION_SCHEMA.STATISTICS s
+              ON c.TABLE_SCHEMA = s.TABLE_SCHEMA
+              AND c.TABLE_NAME = s.TABLE_NAME
+              AND c.COLUMN_NAME = s.COLUMN_NAME
+              AND s.INDEX_NAME = 'PRIMARY'
+            WHERE c.TABLE_SCHEMA = #{scope[:schema]}
+              AND c.TABLE_NAME = #{scope[:name]}
+            ORDER BY c.ORDINAL_POSITION
+          SQL
+
+          raise StatementInvalid, "Table '#{table_name}' doesn't exist" if result.empty?
+
+          result
         end
 
         def create_table_info(table_name) # :nodoc:

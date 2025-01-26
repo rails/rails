@@ -160,6 +160,8 @@ module ActiveRecord
               lookup_cast_type(field["type"]),
               default_value,
               type_metadata,
+              field["pk"] > 0,
+              (field["pk"] if field["pk"] > 0),
               field["notnull"].to_i == 0,
               default_function,
               collation: field["collation"],

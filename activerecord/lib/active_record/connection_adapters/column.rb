@@ -7,7 +7,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :cast_type, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
+      attr_reader :name, :cast_type, :default, :sql_type_metadata, :primary, :primary_idx, :null, :default_function, :collation, :comment
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -17,15 +17,21 @@ module ActiveRecord
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
+      def initialize(name, cast_type, default, sql_type_metadata = nil, primary = false, primary_idx = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
         @name = name.freeze
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
+        @primary = primary
+        @primary_idx = primary_idx
         @null = null
         @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment
+      end
+
+      def primary?
+        @primary
       end
 
       def has_default?
@@ -48,6 +54,8 @@ module ActiveRecord
         @name = coder["name"]
         @cast_type = coder["cast_type"]
         @sql_type_metadata = coder["sql_type_metadata"]
+        @primary = coder["primary"]
+        @primary_idx = coder["primary_idx"]
         @null = coder["null"]
         @default = coder["default"]
         @default_function = coder["default_function"]
@@ -59,6 +67,8 @@ module ActiveRecord
         coder["name"] = @name
         coder["cast_type"] = @cast_type
         coder["sql_type_metadata"] = @sql_type_metadata
+        coder["primary"] = @primary
+        coder["primary_idx"] = @primary_idx
         coder["null"] = @null
         coder["default"] = @default
         coder["default_function"] = @default_function
@@ -79,9 +89,11 @@ module ActiveRecord
         other.is_a?(Column) &&
           name == other.name &&
           cast_type == other.cast_type &&
-          default == other.default &&
           sql_type_metadata == other.sql_type_metadata &&
+          primary == other.primary &&
+          primary_idx == other.primary_idx &&
           null == other.null &&
+          default == other.default &&
           default_function == other.default_function &&
           collation == other.collation &&
           comment == other.comment
@@ -93,9 +105,11 @@ module ActiveRecord
           name.hash ^
           name.encoding.hash ^
           cast_type.hash ^
-          default.hash ^
           sql_type_metadata.hash ^
+          primary.hash ^
+          primary_idx.hash ^
           null.hash ^
+          default.hash ^
           default_function.hash ^
           collation.hash ^
           comment.hash

@@ -143,9 +143,10 @@ module ActiveRecord
 
       # Returns just a table's primary key
       def primary_key(table_name)
-        pk = primary_keys(table_name)
-        pk = pk.first unless pk.size > 1
-        pk
+        columns(table_name)
+          .sort_by { |column| column.primary_idx || Float::INFINITY }
+          .filter_map { |column| column.name if column.primary? }
+          .then { |keys| keys.size > 1 ? keys : keys.first }
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either

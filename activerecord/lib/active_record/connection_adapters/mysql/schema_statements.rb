@@ -212,6 +212,8 @@ module ActiveRecord
               lookup_cast_type(type_metadata.sql_type),
               default,
               type_metadata,
+              field["Key"] == "PRI" && field["SeqInIndex"],
+              field["SeqInIndex"],
               field["Null"] == "YES",
               default_function,
               collation: field["Collation"],
