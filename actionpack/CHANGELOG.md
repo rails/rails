@@ -1,3 +1,7 @@
+*   Deprecate `ActionController::MissingRenderer`
+
+    *zzak*
+
 *   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
 
     This makes it easier to locate the source of the problem, especially for routes drawn by gems.
