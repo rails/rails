@@ -3,6 +3,13 @@
 
     *Bijan Rahnema*
 
+*   Update `rails new --minimal` option
+
+    Extend the `--minimal` flag to exlcude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
+
+    *eelcoj*
+
 *   Add `application-name` metadata to application layout
 
     The following metatag will be added to `app/views/layouts/application.html.erb`

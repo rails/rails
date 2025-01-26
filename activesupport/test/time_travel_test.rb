@@ -487,6 +487,16 @@ class TimeTravelTest < ActiveSupport::TestCase
     travel_back
   end
 
+  def test_time_helper_freeze_time_with_time_arg
+    expected_time = Time.now + 1.day
+    freeze_time expected_time
+    sleep(1)
+
+    assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
+  ensure
+    travel_back
+  end
+
   def test_time_helper_freeze_time_with_block
     expected_time = Time.now
 

@@ -370,7 +370,9 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          end
 
           assert File.file?(path)
         end
@@ -389,7 +391,9 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          end
 
           assert File.file?(path)
         end

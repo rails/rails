@@ -1,3 +1,23 @@
+*   Allow the `#freeze_time` testing helper to accept a date or time argument.
+
+    ```ruby
+    Time.current # => Sun, 09 Jul 2024 15:34:49 EST -05:00
+    freeze_time Time.current + 1.day
+    sleep 1
+    Time.current # => Mon, 10 Jul 2024 15:34:49 EST -05:00
+    ```
+
+    *Joshua Young*
+
+*   `ActiveSupport::JSON` now accepts options
+
+    It is now possible to pass options to `ActiveSupport::JSON`:
+    ```ruby
+    ActiveSupport::JSON.decode('{"key": "value"}', symbolize_names: true) # => { key: "value" }
+    ```
+
+    *matthaigh27*
+
 *   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
 
     Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.

@@ -764,7 +764,7 @@ module ActiveRecord
       #  end
       #
       # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
-      def index_exists?(column_name, **options)
+      def index_exists?(column_name = nil, **options)
         @base.index_exists?(name, column_name, **options)
       end
 

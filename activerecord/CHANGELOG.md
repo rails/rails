@@ -1,3 +1,49 @@
+*   Fix SQL notifications sometimes not sent when using async queries.
+
+    ```ruby
+    Post.async_count
+    ActiveSupport::Notifications.subscribed(->(*) { "Will never reach here" }) do
+      Post.count
+    end
+    ```
+
+    In rare circumstances and under the right race condition, Active Support notifications
+    would no longer be dispatched after using an asynchronous query.
+    This is now fixed.
+
+    *Edouard Chin*
+
+*   Eliminate queries loading dumped schema cache on Postgres
+
+    Improve resiliency by avoiding needing to open a database connection to load the
+    type map while defining attribute methods at boot when a schema cache file is
+    configured on PostgreSQL databases.
+
+    *James Coleman*
+
+*   `ActiveRecord::Coder::JSON` can be instantiated
+
+    Options can now be passed to `ActiveRecord::Coder::JSON` when instantiating the coder. This allows:
+    ```ruby
+    serialize :config, coder: ActiveRecord::Coder::JSON.new(symbolize_names: true)
+    ```
+    *matthaigh27*
+
+*   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
+
+    Using these methods on associations containing unpersisted records will now
+    show a deprecation warning, as the unpersisted records will be lost after
+    the operation.
+
+    *Nick Schwaderer*
+
+*   Make column name optional for `index_exists?`.
+
+    This aligns well with `remove_index` signature as well, where
+    index name doesn't need to be derived from the column names.
+
+    *Ali Ismayiliov*
+
 *   Change the payload name of `sql.active_record` notification for eager
     loading from "SQL" to "#{model.name} Eager Load".
 

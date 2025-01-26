@@ -305,11 +305,18 @@ module Rails
             :skip_active_job,
             :skip_active_storage,
             :skip_bootsnap,
+            :skip_brakeman,
+            :skip_ci,
             :skip_dev_gems,
+            :skip_docker,
             :skip_hotwire,
             :skip_javascript,
             :skip_jbuilder,
+            :skip_kamal,
+            :skip_rubocop,
+            :skip_solid,
             :skip_system_test,
+            :skip_thruster
           ],
           api: [
             :skip_asset_pipeline,

@@ -99,7 +99,7 @@ module ActiveRecord
       #   # Check a valid index exists (PostgreSQL only)
       #   index_exists?(:suppliers, :company_id, valid: true)
       #
-      def index_exists?(table_name, column_name, **options)
+      def index_exists?(table_name, column_name = nil, **options)
         indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 

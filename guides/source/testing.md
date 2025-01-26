@@ -1023,7 +1023,7 @@ request type, request tests are available, making your tests more purposeful.
 
 ### Testing XHR (AJAX) Requests
 
-An AJAX request (Asynchronous Javscript and XML) is a technique where content is
+An AJAX request (Asynchronous JavaScript and XML) is a technique where content is
 fetched from the server using asynchronous HTTP requests and the relevant parts
 of the page are updated without requiring a full page load.
 
@@ -1334,7 +1334,7 @@ require "test_helper"
 class BlogFlowTest < ActionDispatch::IntegrationTest
   test "can see the welcome page" do
     get "/"
-    assert_selector "h1", "Welcome#index"
+    assert_dom "h1", "Welcome#index"
   end
 end
 ```
@@ -1342,10 +1342,8 @@ end
 If you visit the root path, you should see `welcome/index.html.erb` rendered for
 the view. So this assertion should pass.
 
-NOTE: The assertion `assert_selector` is available in integration tests to check
-the presence of key HTML elements and their content. It is similar to
-`assert_dom`, which should be used when [testing views](#testing-views) as
-outlined in the section below.
+NOTE: The assertion `assert_dom` (aliased to `assert_select`) is available in integration tests to check
+the presence of key HTML elements and their content.
 
 #### Creating Articles Integration
 
@@ -1439,7 +1437,7 @@ class UsersTest < ApplicationSystemTestCase
   # test "visiting the index" do
   #   visit users_url
   #
-  #   assert_selector "h1", text: "Users"
+  #   assert_dom "h1", text: "Users"
   # end
 end
 ```

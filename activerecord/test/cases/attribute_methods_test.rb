@@ -1135,6 +1135,33 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "New topic", topic.title_alias_to_be_undefined
   end
 
+  test "#define_attribute_methods doesn't connect to the database when schema cache is present" do
+    with_temporary_connection_pool do
+      if in_memory_db?
+        # Separate connections to an in-memory database create an entirely new database,
+        # with an empty schema etc, so we just stub out this schema on the fly.
+        ActiveRecord::Base.connection_pool.with_connection do |connection|
+          connection.create_table :tasks do |t|
+            t.datetime :starting
+            t.datetime :ending
+          end
+        end
+      end
+
+      @target.table_name = "tasks"
+
+      @target.connection_pool.schema_cache.load!
+      @target.connection_pool.schema_cache.add("tasks")
+      @target.connection_pool.disconnect!
+
+      assert_no_queries(include_schema: true) do
+        @target.define_attribute_methods
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.disconnect!
+    end
+  end
+
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
     klass.table_name = "foo"
@@ -1603,5 +1630,12 @@ class AttributeMethodsTest < ActiveRecord::TestCase
           "I'm private"
         end
       private_method
+    end
+
+    def with_temporary_connection_pool(&block)
+      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
+
+      pool_config.stub(:pool, new_pool, &block)
     end
 end
