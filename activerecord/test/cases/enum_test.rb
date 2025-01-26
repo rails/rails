@@ -87,6 +87,7 @@ class EnumTest < ActiveRecord::TestCase
   test "find via negative scope" do
     assert Book.not_published.exclude?(@book)
     assert Book.not_proposed.include?(@book)
+    assert Book.not_single.include?(@book)
   end
 
   test "find via where with values" do
