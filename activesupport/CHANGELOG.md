@@ -1,3 +1,17 @@
+*   Fix `ActiveSupport::MessageVerifier` and `ActiveSupport::MessageEncryptor` configuration of `on_rotation` callback.
+
+    ```ruby
+    verifier.rotate(old_secret, on_rotation: proc { ... })
+    ```
+
+    ```ruby
+    verifier.rotate(old_secret).on_rotation { ... }
+    ```
+
+    Now both work as documented.
+
+    *Jean Boussier*
+
 *   Fix `ActiveSupport::MessageVerifier` to always be able to verify both URL-safe and URL-unsafe payloads.
 
     This is to allow transitioning seemlessly from either configuration without immediately invalidating
