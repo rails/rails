@@ -226,9 +226,9 @@ module ActiveRecord
       # the value of +current_preventing_writes+.
       def preventing_writes?
         return true if replica?
-        return false if connection_class.nil?
+        return false if connection_descriptor.nil?
 
-        connection_class.current_preventing_writes
+        connection_descriptor.current_preventing_writes
       end
 
       def prepared_statements?
@@ -279,8 +279,8 @@ module ActiveRecord
         @owner = ActiveSupport::IsolatedExecutionState.context
       end
 
-      def connection_class # :nodoc:
-        @pool.connection_class
+      def connection_descriptor # :nodoc:
+        @pool.connection_descriptor
       end
 
       # The role (e.g. +:writing+) for the current connection. In a

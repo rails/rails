@@ -1,3 +1,10 @@
+*   PoolConfig no longer keeps a reference to the connection class.
+
+    Keeping a reference to the class caused subtle issues when combined with reloading in
+    development. Fixes #54343.
+
+    *Mike Dalessio*
+
 *   Fix SQL notifications sometimes not sent when using async queries.
 
     ```ruby
