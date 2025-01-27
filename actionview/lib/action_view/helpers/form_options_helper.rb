@@ -305,17 +305,20 @@ module ActionView
       # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag. +selected+
       # may also be an array of values to be selected when using a multiple select.
       #
-      #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
+      #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"], "---"])
       #   # => <option value="$">Dollar</option>
       #   # => <option value="DKK">Kroner</option>
+      #   # => <hr>
       #
-      #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      #   options_for_select([ "VISA", "MasterCard", "---" ], "MasterCard")
       #   # => <option value="VISA">VISA</option>
       #   # => <option selected="selected" value="MasterCard">MasterCard</option>
+      #   # => <hr>
       #
-      #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
+      #   options_for_select({ "Basic" => "$20", "Plus" => "$40", "Section 1" => "---" }, "$40")
       #   # => <option value="$20">Basic</option>
       #   # => <option value="$40" selected="selected">Plus</option>
+      #   # => <hr>
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
       #   # => <option selected="selected" value="VISA">VISA</option>
@@ -370,7 +373,11 @@ module ActionView
           html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          tag_builder.content_tag_string(:option, text, html_attributes)
+          if [text, value].include?("---")
+            tag_builder.hr
+          else
+            tag_builder.content_tag_string(:option, text, html_attributes)
+          end
         end.join("\n").html_safe
       end
 

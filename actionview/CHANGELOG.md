@@ -1,3 +1,7 @@
+*   Support horizontal rules in `options_for_select` by rendering `---` values as `<hr>`.
+
+    *Lázaro Nixon*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
