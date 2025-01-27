@@ -9,6 +9,7 @@ class ActiveStorage::Checksum # :nodoc:
   @crc32_class  = nil
   @crc32c_class = nil
   @crc64_class  = nil
+  @crc64nvme_class  = nil
 
   SUPPORTED_CHECKSUMS = [
     :MD5,
@@ -16,8 +17,8 @@ class ActiveStorage::Checksum # :nodoc:
     :CRC32c,
     :CRC64,
     :SHA1,
-    :SHA256
-    # :CRC64NVMe
+    :SHA256,
+    :CRC64NVMe
   ]
 
   def initialize(digest, algorithm = nil)
@@ -127,6 +128,16 @@ class ActiveStorage::Checksum # :nodoc:
         raise LoadError, 'digest/crc64 not loaded. Please add `gem "digest-crc"` to your gemfile.'
       end
       @crc64_class = Digest::CRC64
+    end
+
+    def crc64nvme
+      return @crc64nvme_class if @crc64nvme_class
+      begin
+        require "digest/crc64nvme"
+      rescue LoadError
+        raise LoadError, 'digest/crc64nvme not loaded. Please add `gem "digest-crc"` to your gemfile.'
+      end
+      @crc64nvme_class = Digest::CRC64NVMe
     end
   end
 end

@@ -19,8 +19,8 @@ module ActiveStorage
       :CRC32c,
       :MD5,
       :SHA1,
-      :SHA256
-      # :CRC64NVMe
+      :SHA256,
+      :CRC64NVMe
     ]
 
     def initialize(bucket:, upload: {}, public: false, checksum_algorithm: :MD5, **options)
@@ -195,7 +195,7 @@ module ActiveStorage
         case checksum.algorithm
         when :MD5
           { "Content-MD5" => checksum.digest }
-        when :SHA1, :SHA256, :CRC32, :CRC32c
+        when :SHA1, :SHA256, :CRC32, :CRC32c, :CRCNVMe
           { "x-amz-checksum-#{checksum.algorithm.downcase}" => checksum.digest }
         end
       end
