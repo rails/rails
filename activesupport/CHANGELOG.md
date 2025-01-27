@@ -1,18 +1,3 @@
-*   Fix `ActiveSupport::MessageVerifier` and `ActiveSupport::MessageEncryptor` configuration of `on_rotation` callback.
-
-    ```ruby
-    verifier.rotate(old_secret, on_rotation: proc { ... })
-    ```
-
-    ```ruby
-    verifier.rotate(old_secret).on_rotation { ... }
-    ```
-
-    Now both work as documented.
-
-    *Jean Boussier*
-
-
 ## Rails 7.1.5.1 (December 10, 2024) ##
 
 *   No changes.
