@@ -201,6 +201,17 @@ module ActiveRecord
         false
       end
 
+      # Intended to behave like `.current_preventing_writes` given the class name as input.
+      # See PoolConfig and ConnectionHandler::ConnectionDescriptor.
+      def self.preventing_writes?(class_name) # :nodoc:
+        connected_to_stack.reverse_each do |hash|
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].any? { |klass| klass.name == class_name }
+        end
+
+        false
+      end
+
       def self.connected_to_stack # :nodoc:
         if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
           connected_to_stack

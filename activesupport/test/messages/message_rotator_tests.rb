@@ -45,6 +45,17 @@ module MessageRotatorTests
       assert called
     end
 
+    test "rotate().on_rotation is called on successful rotation" do
+      called = nil
+      codec = make_codec(secret("new")).rotate(secret("old")).on_rotation do
+        called = true
+      end
+      old_codec = make_codec(secret("old"))
+      old_message = encode(DATA, old_codec)
+      assert_equal DATA, decode(old_message, codec)
+      assert called
+    end
+
     test "on_rotation is not called when no rotation is necessary" do
       called = nil
       assert_rotate [secret("same"), on_rotation: proc { called = true }], [secret("same")]

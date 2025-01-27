@@ -30,6 +30,7 @@ module ActiveStorage
     def initialize(primary:, mirrors:)
       @primary, @mirrors = primary, mirrors
       @executor = Concurrent::ThreadPoolExecutor.new(
+        name: "ActiveStorage-mirror-service",
         min_threads: 1,
         max_threads: mirrors.size,
         max_queue: 0,
