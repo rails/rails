@@ -49,10 +49,10 @@ module ActiveRecord
       #
       #   travel_back
       #   User.find_signed signed_id, purpose: :password_reset # => User.first
-      def find_signed(signed_id, purpose: nil)
+      def find_signed(signed_id, purpose: nil, on_rotation: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), on_rotation: on_rotation)
           find_by primary_key => id
         end
       end
@@ -69,8 +69,8 @@ module ActiveRecord
       #   signed_id = User.first.signed_id
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
-      def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+      def find_signed!(signed_id, purpose: nil, on_rotation: nil)
+        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), on_rotation: on_rotation)
           find(id)
         end
       end
