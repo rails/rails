@@ -152,7 +152,7 @@ module Arel # :nodoc: all
         end
       end
 
-      def fetch_attribute(&_)
+      def fetch_attribute(&)
       end
 
       def equality?; false; end

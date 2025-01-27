@@ -15,12 +15,12 @@ module Arel # :nodoc: all
         self
       end
 
-      def add_bind(bind, &_)
+      def add_bind(bind, &)
         bind = bind.value_for_database if bind.respond_to?(:value_for_database)
         self << quoter.quote(bind)
       end
 
-      def add_binds(binds, proc_for_binds = nil, &_)
+      def add_binds(binds, proc_for_binds = nil, &)
         self << binds.map { |bind| quoter.quote(bind) }.join(", ")
       end
 
