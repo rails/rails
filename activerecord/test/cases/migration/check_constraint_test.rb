@@ -206,6 +206,18 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
             assert_match %r{\s+t.check_constraint "quantity > 0", name: "quantity_check"$}, output
           end
+
+          def test_not_valid_check_constraint_in_create_table_is_deprecated
+            assert_deprecated(ActiveRecord.deprecator) do
+              @connection.create_table :nonvalid_constraints, id: false, force: true do |t|
+                t.string :name
+                t.check_constraint "char_length(name) >= 5", name: "name_const", validate: false
+              end
+            ensure
+              @connection.drop_table(:nonvalid_constraints, if_exists: true)
+              ActiveRecord::Base.clear_cache!
+            end
+          end
         else
           # Check constraint should still be created, but should not be invalid
           def test_add_invalid_check_constraint
