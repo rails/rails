@@ -1,3 +1,16 @@
+*   Enum negative scopes should match nil values.
+
+    ```ruby
+    enum :nullable_status, [:single, :married]
+
+    # Before:
+    scope :not_single, -> { where.not(nullable_status: 0) }
+    # Later:
+    scope :not_single, -> { where.not(nullable_status: 0).or(where(nullable_status: nil)) }
+    ```
+
+    *Lázaro Nixon*
+
 *   Fix SQL notifications sometimes not sent when using async queries.
 
     ```ruby
