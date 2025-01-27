@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def schema_cache; end
-      def connection_class; end
+      def connection_descriptor; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
@@ -364,8 +364,8 @@ module ActiveRecord
         clean
       end
 
-      def connection_class # :nodoc:
-        pool_config.connection_class
+      def connection_descriptor # :nodoc:
+        pool_config.connection_descriptor
       end
 
       # Returns true if there is an open connection being used for the current thread.
