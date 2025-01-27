@@ -190,8 +190,10 @@ module ActiveRecord
       end
 
       def test_quote_as_mb_chars_no_column
-        string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string)
+        assert_deprecated(ActiveSupport.deprecator) do
+          string = ActiveSupport::Multibyte::Chars.new('lo\l')
+          assert_equal "'lo\\\\l'", @quoter.quote(string)
+        end
       end
 
       def test_quote_duration
