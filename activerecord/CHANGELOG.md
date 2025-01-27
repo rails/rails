@@ -1,3 +1,10 @@
+*   Introduce a before-fork hook in `ActiveSupport::Testing::Parallelization` to clear existing
+    connections, to avoid fork-safety issues with the mysql2 adapter.
+
+    Fixes #41776
+
+    *Mike Dalessio*, *Donal McBreen*
+
 *   PoolConfig no longer keeps a reference to the connection class.
 
     Keeping a reference to the class caused subtle issues when combined with reloading in
