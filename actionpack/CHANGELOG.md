@@ -1,3 +1,26 @@
+*   Accept render options and block in `render` calls made with `:renderable`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello, <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    ApplicationController.render(Greeting.new)                                        # => "Hello, World"
+    ApplicationController.render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ApplicationController.render(renderable: Greeting.new)                            # => "Hello, World"
+    ApplicationController.render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+    ```
+
+    *Sean Doyle*
+
 *   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
 
     This makes it easier to locate the source of the problem, especially for routes drawn by gems.

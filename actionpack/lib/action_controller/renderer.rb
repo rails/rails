@@ -126,14 +126,14 @@ module ActionController
 
     # Renders a template to a string, just like
     # ActionController::Rendering#render_to_string.
-    def render(*args)
+    def render(...)
       request = ActionDispatch::Request.new(env_for_request)
       request.routes = controller._routes
 
       instance = controller.new
       instance.set_request! request
       instance.set_response! controller.make_response!(request)
-      instance.render_to_string(*args)
+      instance.render_to_string(...)
     end
     alias_method :render_to_string, :render # :nodoc:
 
