@@ -11,8 +11,14 @@ module ActiveSupport
         @on_rotation = on_rotation
       end
 
-      def rotate(*args, **options)
+      def rotate(*args, on_rotation: nil, **options)
+        @on_rotation = on_rotation if on_rotation
         fall_back_to build_rotation(*args, **options)
+      end
+
+      def on_rotation(&on_rotation)
+        @on_rotation = on_rotation
+        self
       end
 
       def fall_back_to(fallback)
