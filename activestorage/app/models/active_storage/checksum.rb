@@ -5,6 +5,21 @@ class ActiveStorage::Checksum # :nodoc:
 
   attr_reader :digest, :algorithm
 
+  @md5_class    = nil
+  @crc32_class  = nil
+  @crc32c_class = nil
+  @crc64_class  = nil
+
+  SUPPORTED_CHECKSUMS = [
+    :MD5,
+    :CRC32,
+    :CRC32c,
+    :CRC64,
+    :SHA1,
+    :SHA256
+    # :CRC64NVMe
+  ]
+
   def initialize(digest, algorithm = nil)
     @digest, @algorithm = digest, algorithm || :MD5
   end
@@ -15,10 +30,8 @@ class ActiveStorage::Checksum # :nodoc:
   end
 
   class << self
-    attr_accessor :crc32_class, :crc32c_class, :crc64_class, :md5_class
-
     def load(checksum)
-      # checksum is string in format of "MD5:<MD5hash>" or "SHA256:<SHA256Hash>"
+      # checksum is string in format of "<algorithm>:<digest>" like "SHA256:<SHA256Hash>"
       # or legacy case "<MD5hash>"
 
       unless checksum.blank?
@@ -34,25 +47,16 @@ class ActiveStorage::Checksum # :nodoc:
     end
 
     def dump(checksum)
+      return unless checksum
+
+      # preserve legacy data format for MD5
+      return checksum.digest if checksum.algorithm == :MD5
+
       "#{checksum.algorithm}:#{checksum.digest}" if checksum
     end
 
-
     def implementation_class(checksum_algorithm)
-      case checksum_algorithm
-      when :MD5
-        md5
-      when :SHA1
-        sha1
-      when :SHA256
-        sha256
-      when :CRC32
-        crc32
-      when :CRC32c
-        crc32c
-      when :CRC64
-        crc64
-      end
+      send(checksum_algorithm.downcase) if SUPPORTED_CHECKSUMS.include?(checksum_algorithm)
     end
 
     def file(file, algorithm)
