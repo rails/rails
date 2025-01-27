@@ -16,6 +16,13 @@ module ActiveRecord
         def default_timezone
           @timezone || ActiveRecord.default_timezone
         end
+
+        def ==(other)
+          super(other) && timezone == other.timezone
+        end
+
+        protected
+          attr_reader :timezone
       end
     end
   end

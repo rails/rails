@@ -1982,4 +1982,12 @@ class BasicsTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
+
+  private
+    def with_timezone_config(cfg, &block)
+      super(cfg) do
+        Default.reset_column_information
+        block.call
+      end
+    end
 end
