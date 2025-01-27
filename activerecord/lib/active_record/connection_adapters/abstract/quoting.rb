@@ -147,7 +147,7 @@ module ActiveRecord
           value.call
         else
           # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-          cast_type = column.respond_to?(:fetch_cast_type) ? column.fetch_cast_type(self) : lookup_cast_type(column.sql_type)
+          cast_type = column.fetch_cast_type(self)
           value = cast_type.serialize(value)
           quote(value)
         end

@@ -17,7 +17,7 @@ module ActiveRecord
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
         :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
-        :supports_nulls_not_distinct?,
+        :supports_nulls_not_distinct?, :lookup_cast_type,
         to: :@conn, private: true
 
       private
@@ -148,7 +148,7 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
+          sql << " DEFAULT #{quote_default_expression_for_column_definition(options[:default], options[:column])}" if options_include_default?(options)
           # must explicitly check for :null to allow change_column to work on migrations
           if options[:null] == false
             sql << " NOT NULL"
@@ -160,6 +160,11 @@ module ActiveRecord
             sql << " PRIMARY KEY"
           end
           sql
+        end
+
+        def quote_default_expression_for_column_definition(default, column_definition)
+          column_definition.cast_type = lookup_cast_type(column_definition.sql_type)
+          quote_default_expression(default, column_definition)
         end
 
         def to_sql(sql)
