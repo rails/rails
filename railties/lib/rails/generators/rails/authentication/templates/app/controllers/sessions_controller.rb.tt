@@ -16,7 +16,18 @@ class SessionsController < ApplicationController
 
   def destroy
     terminate_session
-    clear_site_data
+
+    # Prompt the browser to clear storage and cache data, except on Chrome where it can
+    # take 20+ seconds (see https://issues.chromium.org/issues/41343050)
+    clear_site_data unless parsed_user_agent.browser == "Chrome"
+
     redirect_to new_session_path
   end
+
+  private
+
+    def parsed_user_agent
+      require "useragent"
+      UserAgent.parse(request.user_agent)
+    end
 end
