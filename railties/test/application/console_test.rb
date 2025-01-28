@@ -186,6 +186,18 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "app.foo_path", "/foo"
   end
 
+  def test_app_routes_are_loaded
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index'
+      end
+    RUBY
+
+    spawn_console("-e development")
+
+    write_prompt "app.methods.grep(/foo_path/)", "[:foo_path]"
+  end
+
   def test_reload_command_fires_preparation_and_cleanup_callbacks
     options = "-e development"
     spawn_console(options)
