@@ -74,13 +74,13 @@ module ActiveRecord
         self
       end
 
-      def add_bind(obj)
+      def add_bind(obj, &)
         @binds << obj
         @parts << Substitute.new
         self
       end
 
-      def add_binds(binds, proc_for_binds = nil)
+      def add_binds(binds, proc_for_binds = nil, &)
         @binds.concat proc_for_binds ? binds.map(&proc_for_binds) : binds
         binds.size.times do |i|
           @parts << ", " unless i == 0
