@@ -66,18 +66,6 @@ module ActiveJob
       # Job#arguments or +false+ if the enqueue did not succeed.
       #
       # After the attempted enqueue, the job will be yielded to an optional block.
-      #
-      # If Active Job is used conjointly with Active Record, and #perform_later is called
-      # inside an Active Record transaction, then the enqueue is implicitly deferred to after
-      # the transaction is committed, or dropped if it's rolled back. In such case #perform_later
-      # will return the job instance like if it was successfully enqueued, but will still return
-      # +false+ if a callback prevented the job from being enqueued.
-      #
-      # This behavior can be changed on a per job basis:
-      #
-      #  class NotificationJob < ApplicationJob
-      #    self.enqueue_after_transaction_commit = false
-      #  end
       def perform_later(...)
         job = job_or_instantiate(...)
         enqueue_result = job.enqueue
