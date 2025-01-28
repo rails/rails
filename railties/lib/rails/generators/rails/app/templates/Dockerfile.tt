@@ -96,7 +96,7 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
-<% if using_node? -%>
+<% if using_node? || using_bun? -%>
 RUN rm -rf node_modules
 <% end %>
 
