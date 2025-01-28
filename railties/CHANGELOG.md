@@ -1,3 +1,9 @@
+*   Fix Rails console to load routes.
+
+    Otherwise `*_path` and `*url` methods are missing on the `app` object.
+
+    *Édouard Chin*
+
 *   Update `rails new --minimal` option
 
     Extend the `--minimal` flag to exclude recently added features:

@@ -31,6 +31,7 @@ module Rails
 
       def execute(*)
         app = Rails.application
+        app.reload_routes_unless_loaded
         session = ActionDispatch::Integration::Session.new(app)
 
         # This makes app.url_for and app.foo_path available in the console
