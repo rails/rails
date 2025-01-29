@@ -1,3 +1,15 @@
+*   Add `active_support/core_ext/symbol/inflections`
+
+    ```ruby
+    :post.pluralize # => :posts
+    :posts.singularize # => :post
+
+    :FirstName.underscore # => :first_name
+    :first_name.camelcase # => :FirstName
+    ```
+
+    *Sean Doyle*
+
 *   Allow the `#freeze_time` testing helper to accept a date or time argument.
 
     ```ruby
