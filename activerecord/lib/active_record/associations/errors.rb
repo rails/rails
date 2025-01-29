@@ -49,8 +49,11 @@ module ActiveRecord
       def corrections
         if reflection && associated_class
           @corrections ||= begin
-            maybe_these = associated_class.reflections.keys
-            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:inverse_of].to_s)
+            maybe_these = associated_class.reflections.filter_map do |name, ref|
+              name if !ref.polymorphic? && ref.table_name == reflection.active_record.table_name
+            end
+
+            DidYouMean::SpellChecker.new(dictionary: maybe_these).correct(reflection.options[:inverse_of].to_s).presence || maybe_these
           end
         else
           []
