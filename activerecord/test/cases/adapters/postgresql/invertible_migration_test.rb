@@ -35,6 +35,12 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  class RenameEnumValueMigration < SilentMigration
+    def change
+      rename_enum_value :color, from: "blue", to: "red"
+    end
+  end
+
   class AddAndValidateCheckConstraint < SilentMigration
     def change
       add_check_constraint :settings, "value >= 0", name: "positive_value", validate: false
@@ -94,6 +100,17 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [], @connection.enum_types
 
     DropEnumMigration.new.migrate(:down)
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
+  end
+
+  def test_migrate_revert_rename_enum_value
+    CreateEnumMigration.new.migrate(:up)
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
+
+    RenameEnumValueMigration.new.migrate(:up)
+    assert_equal [["color", ["red", "green"]]], @connection.enum_types
+
+    RenameEnumValueMigration.new.migrate(:down)
     assert_equal [["color", ["blue", "green"]]], @connection.enum_types
   end
 
