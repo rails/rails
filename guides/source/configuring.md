@@ -3138,7 +3138,7 @@ The value must respond to Ruby's `Digest` interface.
 
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -3153,10 +3153,21 @@ Accepts an array of classes indicating the analyzers available for Active Storag
 By default, this is defined as:
 
 ```ruby
-config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
+config.active_storage.analyzers = [
+  ActiveStorage::Analyzer::ImageAnalyzer::Vips,
+  ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
+  ActiveStorage::Analyzer::VideoAnalyzer,
+  ActiveStorage::Analyzer::AudioAnalyzer
+]
 ```
 
 The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+
+If you want to disable analyzers, you can set this to an empty array:
+
+```ruby
+config.active_storage.analyzers = []
+```
 
 #### `config.active_storage.previewers`
 
