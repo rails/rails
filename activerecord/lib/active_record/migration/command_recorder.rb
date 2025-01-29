@@ -382,7 +382,8 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "rename_enum_value is only reversible if given a :from and :to option."
           end
 
-          [:rename_enum_value, [type_name, from: options[:to], to: options[:from]]]
+          options[:to], options[:from] = options[:from], options[:to]
+          [:rename_enum_value, [type_name, options]]
         end
 
         def invert_drop_virtual_table(args)
