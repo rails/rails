@@ -90,6 +90,11 @@ class Time
     #
     #   Time.find_zone "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
     #   Time.find_zone "NOT-A-TIMEZONE"   # => nil
+    #
+    # Unlike `ActiveSupport::TimeZone[time_zone]`, this will not raise an error on an invalid input:
+    #
+    #   Time.find_zone(Object.new) => nil
+    #   ActiveSupport::TimeZone[Object.new] => ArgumentError
     def find_zone(time_zone)
       return time_zone unless time_zone
 

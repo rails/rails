@@ -224,10 +224,23 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
-      # Locate a specific time zone object. If the argument is a string, it
-      # is interpreted to mean the name of the timezone to locate. If it is a
-      # numeric value it is either the hour offset, or the second offset, of the
-      # timezone to find. (The first one with that offset will be returned.)
+      # Locate a specific time zone object.
+      #
+      # If the argument is a `String`, it is interpreted to mean the name of the
+      # timezone to locate e.g., "America/Chicago".
+      # If it is a `Numeric` or `Duration` value, it is either the hour offset or the second
+      # offset, of the timezone to find. (The first one with that offset will be returned.)
+      # If the input is an instance of `ActiveSupport::TimeZone` the input argument
+      # will be returned. If the input is an instance of `TZInfo::Timezone` it
+      # will return a lookup of the name, or add the timezone to the list of
+      # known timezones and then return the argument.
+      #
+      # An `ArgumentError`` will be raised for all other input classes. This behavior differs from
+      # `Time.find_zone` which will not error, but instead return nil:
+      #
+      #   ActiveSupport::TimeZone[Object.new] => ArgumentError
+      #   Time.find_zone(Object.new) => nil
+      #
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
         find!(arg, error_not_found: false)
@@ -235,8 +248,8 @@ module ActiveSupport
 
       # Private API, do not use outside of ActiveSupport, it is unstable
       #
-      # Finda timezone, if `raise_error` is truthy, an
-      # exception is raised.
+      # Find a timezone, otherwise if `error_not_found` is truthy, an
+      # exception is raised. If the input argument's class is unknown
       # and `error_invalid_input` is truthy, an exception is raised.
       #
       # The error message can differ based on the class of `self`.
