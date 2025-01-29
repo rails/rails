@@ -260,7 +260,17 @@ module ActiveSupport
         end
 
         if !value && raise_error
-          raise(ArgumentError, "Invalid Timezone: #{time_zone}")
+          message = "Invalid Timezone: #{arg}"
+          case self
+          when TZInfo::Timezone
+            if defined?(TZInfo::Data)
+              raise(ArgumentError, "#{message}.\nTimezones sourced from `tzinfo-data` gem")
+            else
+              raise(ArgumentError, "#{message}.\nTimezones sourced from the system zoneinfo file (`tzinfo-data` gem not loaded)")
+            end
+          else
+            raise(ArgumentError, "#{message}")
+          end
         else
           value
         end
