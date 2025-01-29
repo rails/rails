@@ -28,7 +28,7 @@ ENV RAILS_ENV="production" \
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
-# Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
+# Install packages needed to build gems<%= (using_node? || using_bun?) ? " and node modules" : "" %>
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
