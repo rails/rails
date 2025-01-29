@@ -25,7 +25,7 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
@@ -88,26 +88,26 @@ module ActiveStorage
 
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
-        ActiveStorage.variant_processor = app.config.active_storage.variant_processor
+        ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
+        ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
 
         begin
-          analyzer, transformer =
+          ActiveStorage.variant_transformer =
             case ActiveStorage.variant_processor
+            when :disabled
+              ActiveStorage::Transformers::NullTransformer
             when :vips
-              [
-                ActiveStorage::Analyzer::ImageAnalyzer::Vips,
-                ActiveStorage::Transformers::Vips
-              ]
+              ActiveStorage::Transformers::Vips
             when :mini_magick
-              [
-                ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
-                ActiveStorage::Transformers::ImageMagick
-              ]
+              ActiveStorage::Transformers::ImageMagick
+            else
+              ActiveStorage.deprecator.warn(<<~WARN.squish)
+                ActiveStorage.variant_processor must be set to :vips, :mini_magick, or :disabled.
+                Passing #{ActiveStorage.variant_processor.inspect} is deprecated and will raise an exception in Rails 8.1.
+              WARN
+              ActiveStorage.variant_processor
             end
-
-          ActiveStorage.analyzers = [analyzer].compact.concat(app.config.active_storage.analyzers || [])
-          ActiveStorage.variant_transformer = transformer
         rescue LoadError => error
           case error.message
           when /libvips/

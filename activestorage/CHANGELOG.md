@@ -1,3 +1,27 @@
+*   Allow analyzers and variant transformer to be fully configurable
+
+    ```ruby
+    # ActiveStorage.analyzers can be set to an empty array:
+    config.active_storage.analyzers = []
+    # => ActiveStorage.analyzers = []
+
+    # or use custom analyzer:
+    config.active_storage.analyzers = [ CustomAnalyzer ]
+    # => ActiveStorage.analyzers = [ CustomAnalyzer ]
+    ```
+
+    If no configuration is provided, it will use the default analyzers.
+
+    You can also disable variant processor to remove warnings on startup about missing gems.
+
+    ```ruby
+    config.active_storage.variant_processor = :disabled
+    ```
+
+    Passing any value except `:vips`, `:mini_magick`, or `:disabled` is now deprecated.
+
+    *zzak*, *Alexandre Ruban*
+
 *   Remove unnecessary calls to the GCP metadata server.
 
     Calling Google::Auth.get_application_default triggers an explicit call to
