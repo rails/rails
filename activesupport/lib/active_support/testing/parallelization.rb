@@ -41,7 +41,7 @@ module ActiveSupport
       end
 
       def before_fork
-        Parallelization.before_fork_hooks.each(&:cb)
+        Parallelization.before_fork_hooks.each(&:call)
       end
 
       def start
