@@ -19,3 +19,10 @@ class SymbolStartsEndsWithTest < ActiveSupport::TestCase
     assert_not s.ends_with?("he", "ll")
   end
 end
+
+class SymbolInquiryTest < ActiveSupport::TestCase
+  def test_string_inquiry
+    assert_predicate :production.inquiry, :production?
+    assert_not_predicate :production.inquiry, :development?
+  end
+end

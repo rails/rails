@@ -1,3 +1,13 @@
+*   Add `active_support/core_ext/symbol/inquiry`
+
+    ```ruby
+    env = :test
+    env.inquiry.test? # => true
+    env.inquiry.production? # => false
+    ```
+
+    *Sean Doyle*
+
 *   Allow the `#freeze_time` testing helper to accept a date or time argument.
 
     ```ruby
