@@ -1,3 +1,8 @@
+*   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
+    are invoked immediately before forking test workers.
+
+    *Mike Dalessio*
+
 *   Allow the `#freeze_time` testing helper to accept a date or time argument.
 
     ```ruby
