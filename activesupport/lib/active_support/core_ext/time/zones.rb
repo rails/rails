@@ -93,7 +93,7 @@ class Time
     def find_zone(time_zone)
       return time_zone unless time_zone
 
-      ActiveSupport::TimeZone.find!(time_zone, raise_error: false)
+      ActiveSupport::TimeZone.find!(time_zone, error_not_found: false, error_invalid_input: false)
     end
   end
 end

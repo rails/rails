@@ -230,17 +230,17 @@ module ActiveSupport
       # timezone to find. (The first one with that offset will be returned.)
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
-        find!(arg, raise_error: false)
+        find!(arg, error_not_found: false)
       end
-
 
       # Private API, do not use outside of ActiveSupport, it is unstable
       #
       # Finda timezone, if `raise_error` is truthy, an
       # exception is raised.
+      # and `error_invalid_input` is truthy, an exception is raised.
       #
       # The error message can differ based on the class of `self`.
-      def find!(arg, raise_error: true) # :nodoc:
+      def find!(arg, error_not_found: true, error_invalid_input: true) # :nodoc:
         value = case arg
         when self
           arg
@@ -256,10 +256,10 @@ module ActiveSupport
           arg *= 3600 if arg.abs <= 13
           all.find { |z| z.utc_offset == arg.to_i }
         else
-          raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
+          raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}" if error_invalid_input
         end
 
-        if !value && raise_error
+        if !value && error_not_found
           message = "Invalid Timezone: #{arg}"
           if defined?(TZInfo::Data)
             raise(ArgumentError, "#{message}.\nTimezones sourced from `tzinfo-data` gem")
