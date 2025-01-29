@@ -30,6 +30,10 @@ class ActiveStorage::Checksum # :nodoc:
     digest == other.digest && algorithm == other.algorithm
   end
 
+  def to_s
+    self.class.dump(self)
+  end
+
   class << self
     def load(checksum)
       # checksum is string in format of "<algorithm>:<digest>" like "SHA256:<SHA256Hash>"

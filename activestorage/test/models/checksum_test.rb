@@ -78,6 +78,28 @@ class ActiveStorage::ChecksumTest < ActiveSupport::TestCase
     assert_equal ActiveStorage::Checksum.dump(cksum), "#{algorithm}:#{digest}"
   end
 
+  test "to_s returns nil when no digest" do
+    cksum = ActiveStorage::Checksum.new(nil)
+
+    assert_nil cksum.to_s
+  end
+
+  test "to_s returns MD5 digest for MD5 algorithm" do
+    algorithm = :MD5
+    digest = "ixqZU8RhEpaoJ6v4xHgE1w=="
+    cksum = ActiveStorage::Checksum.new(digest, algorithm)
+
+    assert_equal cksum.to_s, cksum.digest
+  end
+
+  test "to_s returns concatenated format" do
+    algorithm = :SHA256
+    digest = "GF+NsyJx/iX1Yab8k4suJkMG7DBO2lGAB9F2SCY4GWk="
+    cksum = ActiveStorage::Checksum.new(digest, algorithm)
+
+    assert_equal cksum.to_s, "#{algorithm}:#{digest}"
+  end
+
   test "load returns instance when legacy MD5 format" do
     algorithm = :MD5
     digest = "ixqZU8RhEpaoJ6v4xHgE1w=="
