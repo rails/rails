@@ -81,7 +81,7 @@ class Time
     def find_zone!(time_zone)
       return time_zone unless time_zone
 
-      ActiveSupport::TimeZone[time_zone] || raise(ArgumentError, "Invalid Timezone: #{time_zone}")
+      ActiveSupport::TimeZone.find!(time_zone)
     end
 
     # Returns a TimeZone instance matching the time zone provided.
@@ -91,7 +91,9 @@ class Time
     #   Time.find_zone "America/New_York" # => #<ActiveSupport::TimeZone @name="America/New_York" ...>
     #   Time.find_zone "NOT-A-TIMEZONE"   # => nil
     def find_zone(time_zone)
-      find_zone!(time_zone) rescue nil
+      return time_zone unless time_zone
+
+      ActiveSupport::TimeZone.find!(time_zone, raise_error: false)
     end
   end
 end
