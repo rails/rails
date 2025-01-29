@@ -1,6 +1,14 @@
 # frozen_string_literal: true
 
 begin
+  require "nokogiri"
+rescue LoadError
+  # Ensure nokogiri is loaded before vips, which also depends on libxml2.
+  # See Nokogiri RFC: Stop exporting symbols:
+  #   https://github.com/sparklemotion/nokogiri/discussions/2746
+end
+
+begin
   gem "ruby-vips"
   require "ruby-vips"
 rescue LoadError => error
