@@ -848,7 +848,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
-        def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, **) # :nodoc:
+        def type_to_sql(type, column_name: nil, limit: nil, precision: nil, scale: nil, array: nil, enum_type: nil, values: nil, **) # :nodoc:
           sql = \
             case type.to_s
             when "binary"
@@ -873,9 +873,9 @@ module ActiveRecord
               else raise ArgumentError, "No integer type has byte size #{limit}. Use a numeric with scale 0 instead."
               end
             when "enum"
-              raise ArgumentError, "enum_type is required for enums" if enum_type.nil?
+              raise ArgumentError, "enum_type or values is required for enums" if enum_type.nil? && values.nil?
 
-              enum_type
+              enum_type || column_name
             else
               super
             end

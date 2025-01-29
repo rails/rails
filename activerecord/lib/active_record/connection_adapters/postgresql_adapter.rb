@@ -550,6 +550,11 @@ module ActiveRecord
                 JOIN pg_namespace n ON t.typnamespace = n.oid
                 WHERE t.typname = #{scope[:name]}
                   AND n.nspname = #{scope[:schema]}
+                  AND (
+                    SELECT array_agg(e.enumlabel ORDER BY e.enumsortorder)
+                    FROM pg_enum e
+                    WHERE e.enumtypid = t.oid
+                  ) = ARRAY[#{sql_values}]::name[]
               ) THEN
                   CREATE TYPE #{quote_table_name(name)} AS ENUM (#{sql_values});
               END IF;

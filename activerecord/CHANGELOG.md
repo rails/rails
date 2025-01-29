@@ -1,3 +1,20 @@
+*   Add enum values option to PostgreSQL enum columns.
+
+    It is now possible to specify the values of an enum type column when
+    defining a column. If an `enum_type` is not specified, the enum type
+    name will default to the column name. Schemas will include the values
+    of the enum type in each column definition.
+
+    ```ruby
+    def up
+      create_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", values: ["happy", "sad"], default: "happy", null: false
+      end
+    end
+    ```
+
+    *Jenny Shen*
+
 *   Introduce a before-fork hook in `ActiveSupport::Testing::Parallelization` to clear existing
     connections, to avoid fork-safety issues with the mysql2 adapter.
 
