@@ -1,4 +1,4 @@
-*   Support horizontal rules in `options_for_select` by rendering `---` values as `<hr>`.
+*   Support horizontal rules in `options_for_select` by rendering `:horizontal_rule` values as `<hr>`.
 
     *Lázaro Nixon*
 
