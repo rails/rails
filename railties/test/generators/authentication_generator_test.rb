@@ -13,6 +13,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       class ApplicationController < ActionController::Base
       end
     RUBY
+    FileUtils.mkdir_p("#{destination_root}/test")
+    File.write("#{destination_root}/test/test_helper.rb", <<~RUBY)
+      require "rails/test_help"
+      module ActiveSupport
+        class TestCase
+        end
+      end
+    RUBY
 
     copy_gemfile
 
@@ -52,6 +60,11 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match(/session_test_helper/, content)
+      assert_match(/SessionTestHelper/, content)
+    end
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
@@ -96,6 +109,11 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match(/session_test_helper/, content)
+      assert_match(/SessionTestHelper/, content)
+    end
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given
