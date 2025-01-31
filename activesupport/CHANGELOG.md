@@ -1,3 +1,7 @@
+*   Fix `ActiveSupport::Cache#read_multi` to respect version expiry when using local cache.
+
+    *zzak*
+
 *   Fix `ActiveSupport::MessageVerifier` and `ActiveSupport::MessageEncryptor` configuration of `on_rotation` callback.
 
     ```ruby
