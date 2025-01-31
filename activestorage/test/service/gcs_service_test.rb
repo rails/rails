@@ -16,14 +16,14 @@ if SERVICE_CONFIGURATIONS[:gcs]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", ""
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -33,10 +33,33 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
+    test "direct upload with CRC32c checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ checksum_algorithm: :CRC32c }) }
+      service  = ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", ""
+      request.add_field "x-goog-hash", "#{service.checksum_algorithm.downcase}=#{checksum.digest}"
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal data, service.download(key)
+    ensure
+      service.delete key
+    end
+
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -63,7 +86,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       key      = SecureRandom.base58(24)
       data     = "Some text"
-      checksum = Digest::MD5.base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
       url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -91,7 +114,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
 
-      @service.upload(key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data), disposition: :attachment, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+      @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm), disposition: :attachment, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
       response = Net::HTTP.get_response(URI(url))
@@ -105,7 +128,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
 
-      @service.upload(key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data), content_type: "text/plain")
+      @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm), content_type: "text/plain")
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
       response = Net::HTTP.get_response(URI(url))
@@ -115,6 +138,29 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
+    test "upload with unsupported checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ checksum_algorithm: :UnknownHashingFunction }) }
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum) }
+    end
+
+    test "upload with CRC32c checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ checksum_algorithm: :CRC32c }) }
+      service = ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
+
+      service.upload(key, StringIO.new(data), checksum: checksum, content_type: "text/plain")
+
+      url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+      assert_match("#{service.checksum_algorithm.downcase}=#{checksum.digest}", response["x-goog-hash"])
+    ensure
+      service.delete key
+    end
+
     test "upload with cache_control" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -122,7 +168,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
 
-      service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain")
+      service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm), content_type: "text/plain")
 
       url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
@@ -135,7 +181,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     test "upload with custom_metadata" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain", custom_metadata: { "foo" => "baz" })
+      @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm), content_type: "text/plain", custom_metadata: { "foo" => "baz" })
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
@@ -148,7 +194,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     test "update custom_metadata" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data), disposition: :attachment, filename: ActiveStorage::Filename.new("test.html"), content_type: "text/html", custom_metadata: { "foo" => "baz" })
+      @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm), disposition: :attachment, filename: ActiveStorage::Filename.new("test.html"), content_type: "text/html", custom_metadata: { "foo" => "baz" })
 
       @service.update_metadata(key, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain", custom_metadata: { "foo" => "bar" })
       url = @service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
@@ -173,7 +219,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         key      = SecureRandom.base58(24)
         data     = "Some text"
-        checksum = Digest::MD5.base64digest(data)
+        checksum = ActiveStorage::Checksum.base64digest(data, service.checksum_algorithm)
         url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
         uri = URI.parse(url)

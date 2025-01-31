@@ -182,6 +182,7 @@ amazon:
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
+  checksum_algorithm: "SHA256"
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
     cache_control: "private, max-age=<%= 1.day.to_i %>"
@@ -226,6 +227,7 @@ azure:
   storage_account_name: your_account_name
   storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
   container: your_container_name-<%= Rails.env %>
+  checksum_algorithm: "CRC64"
 ```
 
 Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
@@ -265,6 +267,7 @@ google:
     client_x509_cert_url: ""
   project: ""
   bucket: your_own_bucket-<%= Rails.env %>
+  checksum_algorithm: "CRC32c"
 ```
 
 Optionally provide a Cache-Control metadata to set on uploaded assets:
