@@ -2740,6 +2740,23 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
 [Array#split]: https://api.rubyonrails.org/classes/Array.html#method-i-split
 
+### Filtration
+
+The method [`Array#sift`][Array#sift] lets you perform a simple filtration
+on the array and only allowing value that exists in the array to pass through.
+
+This method can be used to filter out unauthorized values
+from a list of options.
+
+```ruby
+# Will only allow `"asc"` and `"desc"`, otherwise falling back to `"asc"`
+sort_order = ["asc", "desc"].sift(params[:order]) || "asc"
+```
+
+NOTE: Defined in `active_support/core_ext/array/sift.rb`.
+
+[Array.sift](https://api.rubyonrails.org/classes/Array.html#method-i-sift)
+
 Extensions to `Hash`
 --------------------
 

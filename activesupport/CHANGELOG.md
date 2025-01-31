@@ -1,3 +1,16 @@
+*   Add `Array#sift`.
+
+    This method returns the `object` if the `object` is included in the array.
+    This can be used to perform a simple filtration of an unauthorized value
+    from the user input.
+
+    ```ruby
+    # Will only allow `"asc"` and `"desc"`, otherwise falling back to `"asc"`
+    sort_order = ["asc", "desc"].sift(params[:order]) || "asc"
+    ```
+
+    *Prem Sichanugrist*
+
 *   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
     are invoked immediately before forking test workers.
 
