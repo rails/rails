@@ -332,8 +332,8 @@ module ActiveRecord
         return unless record && (record.changed_for_autosave? || custom_validation_context?)
 
         inverse_association = reflection.inverse_of && record.association(reflection.inverse_of.name)
-        return if inverse_association && (record.validating_belongs_to_for?(inverse_association) ||
-          record.autosaving_belongs_to_for?(inverse_association))
+
+        return if inverse_association && record.autosaving_belongs_to_for?(inverse_association)
 
         association_valid?(association, record)
       end
