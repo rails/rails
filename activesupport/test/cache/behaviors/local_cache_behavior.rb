@@ -242,6 +242,37 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_multi_with_expiry
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.with_local_cache do
+      time = Time.now
+      @cache.write(key, value, expires_in: 60)
+      assert_equal value, @cache.read_multi(key)[key]
+      Time.stub(:now, time + 61) do
+        assert_nil @cache.read_multi(key)[key]
+      end
+    end
+  end
+
+  def test_local_cache_of_read_multi_with_versions
+    model = Struct.new(:to_param, :cache_version)
+
+    @cache.with_local_cache do
+      thing = model.new(1, 1)
+      key = ["foo", thing]
+
+      @cache.write(key, "contents")
+
+      assert_equal "contents", @cache.read(key)
+      assert_equal "contents", @cache.read_multi(key)[key]
+
+      thing.cache_version = "002"
+      assert_nil @cache.read(key)
+      assert_nil @cache.read_multi(key)[key]
+    end
+  end
+
   def test_local_cache_of_read_multi_prioritizes_local_entries
     key = "key#{rand}"
     @cache.with_local_cache do
