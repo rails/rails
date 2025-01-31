@@ -70,7 +70,7 @@ module ActiveStorage
     #   person.avatar.attach!(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
     #   person.avatar.attach!(avatar_blob) # ActiveStorage::Blob object
     def attach!(attachable)
-      attach(attachable) || raise(RecordNotSaved.new("Failed to save the record", record))
+      attach(attachable) || raise(ActiveRecord::RecordNotSaved.new("Failed to save the record", record))
     end
 
     # Returns +true+ if an attachment has been made.
