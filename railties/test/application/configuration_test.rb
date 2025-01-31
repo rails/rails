@@ -3930,6 +3930,26 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "ActiveStorage.analyzers can be configured to be an empty array" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = []
+      RUBY
+
+      app "development"
+
+      assert_equal [], ActiveStorage.analyzers
+    end
+
+    test "ActiveStorage.analyzers can be configured to custom analyzers" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick ]
+      RUBY
+
+      app "development"
+
+      assert_equal [ ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick ], ActiveStorage.analyzers
+    end
+
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
