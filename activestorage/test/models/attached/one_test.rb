@@ -116,6 +116,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_nil return_value
   end
 
+  test "raises error when calling attach! to attach a blob to a persisted, unchanged, and invalid record" do
+    @user.update_attribute(:name, nil)
+    assert_not @user.valid?
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      @user.avatar.attach! create_blob(filename: "funky.jpg")
+    end
+  end
+
   test "attaching a blob to a changed record, returns the attachment" do
     @user.name = "Tina"
     return_value = @user.avatar.attach create_blob(filename: "funky.jpg")

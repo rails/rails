@@ -56,6 +56,16 @@ module ActiveStorage
       record.public_send("#{name}")
     end
 
+    # Calls attach, and raises an exception if the record was meant to be saved but at least one of the validations failed.
+    #
+    #   document.images.attach!(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
+    #   document.images.attach!(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    #   document.images.attach!(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
+    #   document.images.attach!([ first_blob, second_blob ])
+    def attach!(*attachables)
+      attach(attachable) || raise(RecordNotSaved.new("Failed to save the record", record))
+    end
+
     # Returns true if any attachments have been made.
     #
     #   class Gallery < ApplicationRecord
