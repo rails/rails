@@ -448,7 +448,17 @@ module ActionView
           apply_form_for_options!(object, options)
         end
 
-        remote = options.delete(:remote)
+        remote =
+          if options.key?(:remote)
+            ActionView.deprecator.warn(<<~MSG.squish)
+              Passing :remote as an option is deprecated and will be removed in Rails 8.2.
+              To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+              To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+              Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+            MSG
+
+            options.delete(:remote)
+          end
 
         if remote && !embed_authenticity_token_in_remote_forms && options[:authenticity_token].blank?
           options[:authenticity_token] = false
@@ -456,7 +466,12 @@ module ActionView
 
         options[:model]                               = model
         options[:scope]                               = object_name
-        options[:local]                               = !remote
+
+        case options[:data]
+        when Hash then options[:data][:remote]        = remote
+        else options[:"data-remote"]                  = remote
+        end
+
         options[:skip_default_ids]                    = false
         options[:allow_method_names_outside_object]   = options.fetch(:allow_method_names_outside_object, false)
 
@@ -478,6 +493,23 @@ module ActionView
       private :apply_form_for_options!
 
       mattr_accessor :form_with_generates_remote_forms, default: true
+      redefine_method :form_with_generates_remote_forms= do |value|
+        ActionView.deprecator.warn(<<~MSG.squish)
+          `ActionView::Helpers::FormHelper.form_with_generates_remote_forms=` is deprecated and will be removed in Rails 8.2.
+          Please use `actionview-remote-form-helpers` gem instead.
+        MSG
+        @@form_with_generates_remote_forms = value
+      end
+
+      class << self
+        redefine_method :form_with_generates_remote_forms= do |value|
+          ActionView.deprecator.warn(<<~MSG.squish)
+            `ActionView::Helpers::FormHelper.form_with_generates_remote_forms=` is deprecated and will be removed in Rails 8.2.
+            Please use `actionview-remote-form-helpers` gem instead.
+          MSG
+          @@form_with_generates_remote_forms = value
+        end
+      end
 
       mattr_accessor :form_with_generates_ids, default: false
 
@@ -1593,10 +1625,54 @@ module ActionView
       end
 
       private
-        def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
+        def html_options_for_form_with(url_for_options = nil, model = nil, html: {},
           skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data, :authenticity_token).merge!(html)
-          html_options[:remote] = html.delete(:remote) || !local
+          if html_options.key?(:remote)
+            ActionView.deprecator.warn(<<~MSG.squish)
+              Passing :remote as an option nested inside :html is deprecated and will be removed in Rails 8.2.
+              To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+              To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+              Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+            MSG
+          end
+
+          remote =
+            if options.key?(:remote)
+              ActionView.deprecator.warn(<<~MSG.squish)
+                Passing :remote as an option is deprecated and will be removed in Rails 8.2.
+                To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+                To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+                Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+              MSG
+
+              options.delete(:remote)
+            elsif options.key?(:local)
+              ActionView.deprecator.warn(<<~MSG.squish)
+                Passing :local as an option is deprecated and will be removed in Rails 8.2.
+                To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+                To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+                Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+              MSG
+
+              !options.delete(:local)
+            elsif (data = options[:data]) && data.is_a?(Hash) && data.key?(:remote)
+              options.dig(:data, :remote)
+            elsif options.key?(:"data-remote")
+              options[:"data-remote"]
+            elsif options.key?("data-remote")
+              options["data-remote"]
+            else
+              form_with_generates_remote_forms
+            end
+
+          if remote
+            case html_options[:data]
+            when Hash then html_options[:data][:remote] = true
+            else html_options[:"data-remote"] = true
+            end
+          end
+
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
           if skip_enforcing_utf8.nil?
             if options.key?(:enforce_utf8)
