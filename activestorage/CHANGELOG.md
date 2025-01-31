@@ -32,6 +32,10 @@
 
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activestorage/CHANGELOG.md) for previous changes.
 
-*   Implement `attach!`. This method raises an exception if the attachment was not saved.
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an ActiveRecord object is found to
+    be invalid prior to be persisted.
 
     *Quentin de Metz*
