@@ -129,6 +129,7 @@ end
 gem "aws-sdk-sns", require: false
 gem "webmock"
 gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
+gem "net-smtp", github: "ruby/net-smtp", ref: "d496a829f9b99adb44ecc1768c4d005e5f7b779e", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)

@@ -10,6 +10,7 @@ gemfile(true) do
   # gem "rails", github: "rails/rails", branch: "main"
 
   gem "sqlite3"
+  gem "net-smtp", github: "ruby/net-smtp", ref: "d496a829f9b99adb44ecc1768c4d005e5f7b779e", require: false
 end
 
 require "active_record/railtie"
