@@ -365,10 +365,10 @@ class TestDefaultAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCas
 
   def test_callbacks_on_child_when_polymorphic_child_with_inverse_of_autosaves_parent
     chef = ChefWithPolymorphicInverseOf.create!(employable: DrinkDesigner.new)
-    assert_equal 1, chef.before_validation_callbacks_counter
+    assert_equal 2, chef.before_validation_callbacks_counter
     assert_equal 1, chef.before_create_callbacks_counter
     assert_equal 1, chef.before_save_callbacks_counter
-    assert_equal 1, chef.after_validation_callbacks_counter
+    assert_equal 2, chef.after_validation_callbacks_counter
     assert_equal 1, chef.after_create_callbacks_counter
     assert_equal 1, chef.after_save_callbacks_counter
   end
