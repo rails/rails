@@ -809,7 +809,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_not @user.valid?
 
     assert_raises(ActiveRecord::RecordNotSaved) do
-      @user.highlights.attach create_blob(filename: "racecar.jpg"), create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+      @user.highlights.attach! create_blob(filename: "racecar.jpg"), create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
     end
   end
 
