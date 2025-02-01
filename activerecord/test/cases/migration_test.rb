@@ -1214,6 +1214,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
   class BulkAlterTableMigrationsTest < ActiveRecord::TestCase
     def setup
       @connection = Person.lease_connection
+      @connection.create_table(:delete_me2, force: true) { |t| }
       @connection.create_table(:delete_me, force: true) { |t| }
       Person.reset_column_information
       Person.reset_sequence_name
@@ -1221,6 +1222,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
     teardown do
       Person.lease_connection.drop_table(:delete_me) rescue nil
+      Person.lease_connection.drop_table(:delete_me2) rescue nil
     end
 
     def test_adding_multiple_columns
@@ -1482,6 +1484,43 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
           t.change :id, :bigint, auto_increment: false
         end
         assert_not column(:id).auto_increment?
+      end
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_constraints
+        conn = Person.lease_connection
+
+        conn.add_reference :delete_me, :delete_me2
+
+        assert_queries_count(1, include_schema: true) do
+          with_bulk_change_table do |t|
+            t.foreign_key :delete_me2
+            t.check_constraint "id IS NOT NULL", name: "id_chk"
+            t.exclusion_constraint "id WITH =", name: "id_exclusion"
+            t.unique_constraint "id", name: "id_uniq"
+          end
+        end
+
+        assert conn.foreign_key_exists?(:delete_me, :delete_me2)
+        assert conn.check_constraint_exists?(:delete_me, name: "id_chk")
+        assert conn.exclusion_constraints(:delete_me).any? { |c| c.name == "id_exclusion" }
+        assert conn.unique_constraints(:delete_me).any? { |c| c.name == "id_uniq" }
+
+        assert_queries_count(2, include_schema: true) do # one extra query to find the FK name
+          with_bulk_change_table do |t|
+            t.remove_foreign_key :delete_me2
+            t.remove_check_constraint name: "id_chk"
+            t.remove_exclusion_constraint name: "id_exclusion"
+            t.remove_unique_constraint name: "id_uniq", if_exists: true
+            t.remove_unique_constraint name: "non_existinent", if_exists: true
+          end
+        end
+
+        assert_not conn.foreign_key_exists?(:delete_me, :delete_me2)
+        assert_not conn.check_constraint_exists?(:delete_me, name: "id_chk")
+        assert_not conn.exclusion_constraints(:delete_me).any? { |c| c.name == "id_exclusion" }
+        assert_not conn.unique_constraints(:delete_me).any? { |c| c.name == "id_uniq" }
       end
     end
 
