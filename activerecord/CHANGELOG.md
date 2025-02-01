@@ -1,3 +1,7 @@
+*   Handle circular references when autosaving associations.
+
+    *zzak*
+
 *   Fix support for PostgreSQL enum types with commas in their name.
 
     *Arthur Hess*
