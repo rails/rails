@@ -80,7 +80,11 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
-            spec[:enum_type] = column.sql_type.inspect if column.enum?
+            if column.enum?
+              spec[:enum_type] = column.sql_type.inspect unless column.name == column.sql_type
+              _name, values = @connection.enum_types.find { |name, _values| name == column.sql_type }
+              spec[:values] = values.inspect
+            end
 
             spec
           end
