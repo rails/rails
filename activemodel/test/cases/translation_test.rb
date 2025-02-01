@@ -104,6 +104,16 @@ class ActiveModelI18nTests < ActiveModel::TestCase
     assert_equal "person model", Child.model_name.human
   end
 
+  def test_translated_attributes_when_nil
+    I18n.backend.store_translations "en", activemodel: { attributes: { "person/addresses": { street: "Person Address Street" } } }
+    assert_equal("Addresses", Person.human_attribute_name("addresses.#{nil}"))
+  end
+
+  def test_translated_deeply_nested_attributes_when_nil
+    I18n.backend.store_translations "en", activemodel: { attributes: { "person/contacts/addresses": { street: "Deeply Nested Address Street" } } }
+    assert_equal("Addresses/contacts", Person.human_attribute_name("addresses.contacts.#{nil}"))
+  end
+
   def test_translated_subclass_model_when_missing_translation
     assert_equal "Child", Child.model_name.human
   end
