@@ -877,6 +877,35 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 1, Client.count
   end
 
+  def test_circular_autosave_does_not_validate_children
+    person = Class.new(ActiveRecord::Base) {
+      self.table_name = "readers"
+      validate :should_be_funny
+      def self.name; "Reader"; end
+
+      attribute :catch_phrase, :string
+      attribute :reader_id
+
+      has_many :children, autosave: true, anonymous_class: self
+      belongs_to :parent, autosave: true, anonymous_class: self
+
+      private
+        def should_be_funny
+          unless catch_phrase == "funny"
+            errors.add :base, "not funny"
+          end
+        end
+    }
+    c = person.new(catch_phrase: "boring")
+    c.children << c
+    c.post_id = 0
+    c.person_id = 0
+    c.save
+
+    assert_not_predicate c, :persisted?
+    assert_not_predicate c, :valid?
+  end
+
   def test_parent_should_save_children_record_with_foreign_key_validation_set_in_before_save_callback
     company = NewlyContractedCompany.new(name: "test")
 

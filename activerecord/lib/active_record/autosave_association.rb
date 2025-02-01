@@ -383,6 +383,8 @@ module ActiveRecord
         end
 
         if association.options[:autosave]
+          return if equal?(record)
+
           associated_errors.each { |error|
             errors.objects.append(
               Associations::NestedError.new(association, error)

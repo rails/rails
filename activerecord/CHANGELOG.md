@@ -1,3 +1,7 @@
+*   Handle circular references when autosaving associations.
+
+    *zzak*
+
 *   PoolConfig no longer keeps a reference to the connection class.
 
     Keeping a reference to the class caused subtle issues when combined with reloading in
