@@ -50,10 +50,19 @@ module ActiveModel
         namespace, _, attribute = attribute.rpartition(".")
         namespace.tr!(".", "/")
 
-        defaults = lookup_ancestors.map do |klass|
-          :"#{i18n_scope}.attributes.#{klass.model_name.i18n_key}/#{namespace}.#{attribute}"
+        if attribute.present?
+          key = "#{namespace}.#{attribute}"
+          separator = "/"
+        else
+          key = namespace
+          separator = "."
         end
-        defaults << :"#{i18n_scope}.attributes.#{namespace}.#{attribute}"
+
+        defaults = lookup_ancestors.map do |klass|
+          :"#{i18n_scope}.attributes.#{klass.model_name.i18n_key}#{separator}#{key}"
+        end
+        defaults << :"#{i18n_scope}.attributes.#{key}"
+        defaults << :"attributes.#{key}"
       else
         defaults = lookup_ancestors.map do |klass|
           :"#{i18n_scope}.attributes.#{klass.model_name.i18n_key}.#{attribute}"
@@ -65,7 +74,10 @@ module ActiveModel
       defaults << MISSING_TRANSLATION
 
       translation = I18n.translate(defaults.shift, count: 1, **options, default: defaults)
-      translation = attribute.humanize if translation == MISSING_TRANSLATION
+      if translation == MISSING_TRANSLATION
+        translation = attribute.present? ? attribute.humanize : namespace.humanize
+      end
+
       translation
     end
   end
