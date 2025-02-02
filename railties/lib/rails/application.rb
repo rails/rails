@@ -211,7 +211,7 @@ module Rails
       @message_verifiers ||=
         ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
           key_generator(secret_key_base).generate_key(salt)
-        end.rotate_defaults
+        end
     end
 
     # Returns a message verifier object.

@@ -19,6 +19,10 @@ module ActiveSupport
         @codecs[salt] ||= build_with_rotations(salt)
       end
 
+      def build_with_options(salt, **options)
+        @codecs[salt] = build_with_rotations(salt, **options)
+      end
+
       def []=(salt, codec)
         @codecs[salt] = codec
       end
@@ -73,8 +77,9 @@ module ActiveSupport
           options
         end
 
-        def build_with_rotations(salt)
-          rotate_options = @rotate_options.map { |options| options.is_a?(Proc) ? options.(salt) : options }
+        def build_with_rotations(salt, **build_options)
+          rotate_options = (build_options.blank? ? [{}] : [build_options]) + @rotate_options
+          rotate_options = rotate_options.map { |options| options.is_a?(Proc) ? options.(salt) : options }
           transitional = self.transitional && rotate_options.first
           rotate_options.compact!
           rotate_options[0..1] = rotate_options[0..1].reverse if transitional
