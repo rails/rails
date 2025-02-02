@@ -1326,7 +1326,7 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +checkbox_tag+ or to use
+      # In that case it is preferable to either use FormTagHelper#checkbox_tag or to use
       # hashes instead of arrays.
       #
       # ==== Examples
@@ -2451,7 +2451,7 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +checkbox_tag+ or to use
+      # In that case it is preferable to either use FormTagHelper#checkbox_tag or to use
       # hashes instead of arrays.
       #
       # ==== Examples
