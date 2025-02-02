@@ -31,7 +31,7 @@ module ActiveRecord
       #   # For posts with ids #1 and #2, reset the comments_count
       #   Post.reset_counters([1, 2], :comments)
       #
-      #   # Like above, but also touch the +updated_at+ and/or +updated_on+
+      #   # Like above, but also touch the updated_at and/or updated_on
       #   # attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)

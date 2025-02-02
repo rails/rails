@@ -1048,7 +1048,7 @@ module ActionView
       #   <% end %>
       #   # => <input type="text" name="comment[body]" value="full bodied">
       #
-      #   # Using +fields+ with +form_with+:
+      #   # Using `fields` with `form_with`:
       #   <%= form_with model: @article do |form| %>
       #     <%= form.text_field :title %>
       #

@@ -437,7 +437,7 @@ module ActiveRecord
       #
       # == Examples
       #
-      #  # Assuming +td+ is an instance of TableDefinition
+      #  # Assuming `td` is an instance of TableDefinition
       #  td.column(:granted, :boolean, index: true)
       #
       # == Short-hand examples

@@ -206,7 +206,7 @@ module ActionView
       #     "#{project.name} - #{Time.now}"
       #   end
       #
-      #   # Which will then raise if used within a +cache+ block:
+      #   # Which will then raise if used within a `cache` block:
       #   <% cache project do %>
       #     <%= project_name_with_time(project) %>
       #   <% end %>

@@ -179,8 +179,8 @@ module ActiveRecord
       #       @currency_converter = currency_converter
       #     end
       #
-      #     # value will be the result of +deserialize+ or
-      #     # +cast+. Assumed to be an instance of +Money+ in
+      #     # value will be the result of #deserialize or
+      #     # #cast. Assumed to be an instance of Money in
       #     # this case.
       #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
