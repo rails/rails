@@ -847,7 +847,7 @@ module ActionView
       # === Nested Attributes Examples
       #
       # When the object belonging to the current scope has a nested attribute
-      # writer for a certain attribute, fields_for will yield a new scope
+      # writer for a certain attribute, +fields_for+ will yield a new scope
       # for that attribute. This allows you to create forms that set or change
       # the attributes of a parent object and its associations in one go.
       #
@@ -936,7 +936,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for +fields_for+ to correctly identify <tt>:projects</tt> as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -948,7 +948,7 @@ module ActionView
       #   end
       #
       # This model can now be used with a nested fields_for. The block given to
-      # the nested fields_for call will be repeated for each instance in the
+      # the nested +fields_for+ call will be repeated for each instance in the
       # collection:
       #
       #   <%= form_with model: @person do |person_form| %>
@@ -1020,10 +1020,10 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # Note that fields_for will automatically generate a hidden field
+      # Note that +fields_for+ will automatically generate a hidden field
       # to store the ID of the record if it responds to <tt>persisted?</tt>.
       # There are circumstances where this hidden field is not needed and you
-      # can pass <tt>include_id: false</tt> to prevent fields_for from
+      # can pass <tt>include_id: false</tt> to prevent +fields_for+ from
       # rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         options = { model: record_object, allow_method_names_outside_object: false, skip_default_ids: false }.merge!(options)
