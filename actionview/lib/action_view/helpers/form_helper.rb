@@ -2109,7 +2109,7 @@ module ActionView
       # === Nested Attributes Examples
       #
       # When the object belonging to the current scope has a nested attribute
-      # writer for a certain attribute, fields_for will yield a new scope
+      # writer for a certain attribute, +fields_for+ will yield a new scope
       # for that attribute. This allows you to create forms that set or change
       # the attributes of a parent object and its associations in one go.
       #
@@ -2140,7 +2140,7 @@ module ActionView
       #     end
       #   end
       #
-      # This model can now be used with a nested fields_for, like so:
+      # This model can now be used with a nested +fields_for+, like so:
       #
       #   <%= form_with model: @person do |person_form| %>
       #     ...
@@ -2198,7 +2198,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for +fields_for+ to correctly identify <tt>:projects</tt> as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -2209,8 +2209,8 @@ module ActionView
       #     accepts_nested_attributes_for :projects
       #   end
       #
-      # This model can now be used with a nested fields_for. The block given to
-      # the nested fields_for call will be repeated for each instance in the
+      # This model can now be used with a nested +fields_for+. The block given to
+      # the nested +fields_for+ call will be repeated for each instance in the
       # collection:
       #
       #   <%= form_with model: @person do |person_form| %>
@@ -2282,10 +2282,10 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # Note that fields_for will automatically generate a hidden field
+      # Note that +fields_for+ will automatically generate a hidden field
       # to store the ID of the record. There are circumstances where this
       # hidden field is not needed and you can pass <tt>include_id: false</tt>
-      # to prevent fields_for from rendering it automatically.
+      # to prevent +fields_for+ from rendering it automatically.
       def fields_for(record_name, record_object = nil, fields_options = nil, &block)
         fields_options, record_object = record_object, nil if fields_options.nil? && record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options ||= {}
