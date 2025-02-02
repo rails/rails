@@ -783,12 +783,12 @@ module ActionView
         end
       end
 
-      # Creates a scope around a specific model object like form_with, but
+      # Creates a scope around a specific model object like #form_with, but
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
-      # its method signature is slightly different. Like +form_with+, it yields
+      # Although the usage and purpose of +fields_for+ is similar to #form_with's,
+      # its method signature is slightly different. Like #form_with, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to
       # generate fields associated with the model object. Fields may reflect
@@ -1032,7 +1032,7 @@ module ActionView
       end
 
       # Scopes input fields with either an explicit scope or model.
-      # Like +form_with+ does with <tt>:scope</tt> or <tt>:model</tt>,
+      # Like #form_with does with <tt>:scope</tt> or <tt>:model</tt>,
       # except it doesn't output the form tags.
       #
       #   # Using a scope prefixes the input field names:
@@ -1056,13 +1056,13 @@ module ActionView
       #     <% end %>
       #   <% end %>
       #
-      # Much like +form_with+ a FormBuilder instance associated with the scope
+      # Much like #form_with a FormBuilder instance associated with the scope
       # or model is yielded, so any generated field names are prefixed with
       # either the passed scope or the scope inferred from the <tt>:model</tt>.
       #
       # === Mixing with other form helpers
       #
-      # While +form_with+ uses a FormBuilder object it's possible to mix and
+      # While #form_with uses a FormBuilder object it's possible to mix and
       # match the stand-alone FormHelper methods and methods
       # from FormTagHelper:
       #
@@ -1220,7 +1220,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a #form_with block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
