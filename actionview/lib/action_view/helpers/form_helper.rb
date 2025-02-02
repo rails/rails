@@ -1767,7 +1767,7 @@ module ActionView
       #   <% end %>
       #
       # In the example above, the <tt><input type="text"></tt> element built by
-      # the call to <tt>FormBuilder#text_field</tt> declares an
+      # the call to #text_field declares an
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>article_title</tt>, in this
       # case).
