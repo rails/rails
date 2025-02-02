@@ -208,7 +208,7 @@ module ActionView
       # are designed to work with an object as base, like
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
-      # === #form_for with a model object
+      # === +form_for+ with a model object
       #
       # In the examples above, the object to be created or edited was
       # represented by a symbol passed to +form_for+, and we noted that
@@ -363,7 +363,7 @@ module ActionView
       #
       # === Removing hidden model id's
       #
-      # The form_for method automatically includes the model id as a hidden field in the form.
+      # The +form_for+ method automatically includes the model id as a hidden field in the form.
       # This is used to maintain the correlation between the form data and its associated model.
       # Some ORM systems do not use IDs on nested models so in this case you want to be able
       # to disable the hidden id.
