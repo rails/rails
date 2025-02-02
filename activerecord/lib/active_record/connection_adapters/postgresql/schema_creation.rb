@@ -5,13 +5,28 @@ module ActiveRecord
     module PostgreSQL
       class SchemaCreation < SchemaCreation # :nodoc:
         private
-          delegate :quoted_include_columns_for_index, to: :@conn
+          delegate :quoted_include_columns_for_index, :create_enum, to: :@conn
+
+          def visit_TableDefinition(o)
+            create_enums(o.columns)
+            super
+          end
 
           def visit_AlterTable(o)
+            create_enums(o.adds.map(&:column))
             sql = super
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
             sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
+          end
+
+          def create_enums(columns)
+            columns.each do |c|
+              next unless c.type == :enum && c.options[:values]
+
+              enum_type = c.options[:enum_type] || c.name
+              create_enum(enum_type, c.options[:values])
+            end
           end
 
           def visit_AddForeignKey(o)
@@ -77,7 +92,7 @@ module ActiveRecord
 
           def visit_ChangeColumnDefinition(o)
             column = o.column
-            column.sql_type = type_to_sql(column.type, **column.options)
+            column.sql_type = type_to_sql(column.type, column_name: column.name, **column.options)
             quoted_column_name = quote_column_name(o.name)
 
             change_column_sql = +"ALTER COLUMN #{quoted_column_name} TYPE #{column.sql_type}"
@@ -91,7 +106,7 @@ module ActiveRecord
             if options[:using]
               change_column_sql << " USING #{options[:using]}"
             elsif options[:cast_as]
-              cast_as_type = type_to_sql(options[:cast_as], **options)
+              cast_as_type = type_to_sql(options[:cast_as], column_name: column.name, **options)
               change_column_sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
             end
 
