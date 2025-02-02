@@ -181,16 +181,16 @@ module ActiveRecord
     #     delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
     #   end
     #
-    #   Entry#entryable_class # => Message or Comment
-    #   Entry#entryable_name  # => "message" or "comment"
-    #   Entry.messages        # => Entry.where(entryable_type: "Message")
-    #   Entry#message?        # => true when entryable_type == "Message"
-    #   Entry#message         # => returns the message record, when entryable_type == "Message", otherwise nil
-    #   Entry#message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
-    #   Entry.comments        # => Entry.where(entryable_type: "Comment")
-    #   Entry#comment?        # => true when entryable_type == "Comment"
-    #   Entry#comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
-    #   Entry#comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
+    #   @entry.entryable_class # => Message or Comment
+    #   @entry.entryable_name  # => "message" or "comment"
+    #   Entry.messages         # => Entry.where(entryable_type: "Message")
+    #   @entry.message?        # => true when entryable_type == "Message"
+    #   @entry.message         # => returns the message record, when entryable_type == "Message", otherwise nil
+    #   @entry.message_id      # => returns entryable_id, when entryable_type == "Message", otherwise nil
+    #   Entry.comments         # => Entry.where(entryable_type: "Comment")
+    #   @entry.comment?        # => true when entryable_type == "Comment"
+    #   @entry.comment         # => returns the comment record, when entryable_type == "Comment", otherwise nil
+    #   @entry.comment_id      # => returns entryable_id, when entryable_type == "Comment", otherwise nil
     #
     # You can also declare namespaced types:
     #
@@ -199,8 +199,8 @@ module ActiveRecord
     #   end
     #
     #   Entry.access_notice_messages
-    #   entry.access_notice_message
-    #   entry.access_notice_message?
+    #   @entry.access_notice_message
+    #   @entry.access_notice_message?
     #
     # === Options
     #
@@ -226,8 +226,8 @@ module ActiveRecord
     #     delegated_type :entryable, types: %w[ Message Comment ], primary_key: :uuid, foreign_key: :entryable_uuid
     #   end
     #
-    #   Entry#message_uuid      # => returns entryable_uuid, when entryable_type == "Message", otherwise nil
-    #   Entry#comment_uuid      # => returns entryable_uuid, when entryable_type == "Comment", otherwise nil
+    #   @entry.message_uuid # => returns entryable_uuid, when entryable_type == "Message", otherwise nil
+    #   @entry.comment_uuid # => returns entryable_uuid, when entryable_type == "Comment", otherwise nil
     def delegated_type(role, types:, **options)
       belongs_to role, options.delete(:scope), **options.merge(polymorphic: true)
       define_delegated_type_methods role, types: types, options: options
