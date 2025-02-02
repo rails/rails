@@ -1629,7 +1629,7 @@ module ActionView
     #
     # A +FormBuilder+ object is associated with a particular model object and
     # allows you to generate fields associated with the model object. The
-    # +FormBuilder+ object is yielded when using +form_with+ or +fields_for+.
+    # +FormBuilder+ object is yielded when using #form_with or +fields_for+.
     # For example:
     #
     #   <%= form_with model: @person do |person_form| %>
@@ -2034,12 +2034,12 @@ module ActionView
         end
       end
 
-      # Creates a scope around a specific model object like form_with, but
+      # Creates a scope around a specific model object like #form_with, but
       # doesn't create the form tags themselves. This makes fields_for suitable
       # for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
-      # its method signature is slightly different. Like +form_with+, it yields
+      # Although the usage and purpose of +fields_for+ is similar to #form_with's,
+      # its method signature is slightly different. Like #form_with, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to
       # generate fields associated with the model object. Fields may reflect
@@ -2525,7 +2525,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a #form_with block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
