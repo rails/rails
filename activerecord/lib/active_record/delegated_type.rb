@@ -207,17 +207,17 @@ module ActiveRecord
     # The +options+ are passed directly to the +belongs_to+ call, so this is where you declare +dependent+ etc.
     # The following options can be included to specialize the behavior of the delegated type convenience methods.
     #
-    # [:foreign_key]
+    # [+:foreign_key+]
     #   Specify the foreign key used for the convenience methods. By default this is guessed to be the passed
     #   +role+ with an "_id" suffix. So a class that defines a
     #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_id" as
     #   the default <tt>:foreign_key</tt>.
-    # [:foreign_type]
+    # [+:foreign_type+]
     #   Specify the column used to store the associated object's type. By default this is inferred to be the passed
     #   +role+ with a "_type" suffix. A class that defines a
     #   <tt>delegated_type :entryable, types: %w[ Message Comment ]</tt> association will use "entryable_type" as
     #   the default <tt>:foreign_type</tt>.
-    # [:primary_key]
+    # [+:primary_key+]
     #   Specify the method that returns the primary key of associated object used for the convenience methods.
     #   By default this is +id+.
     #
