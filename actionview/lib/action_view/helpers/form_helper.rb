@@ -30,8 +30,8 @@ module ActionView
     # when the form is initially displayed, input fields corresponding to attributes
     # of the resource should show the current values of those attributes.
     #
-    # In \Rails, this is usually achieved by creating the form using +form_for+ and
-    # a number of related helper methods. +form_for+ generates an appropriate <tt>form</tt>
+    # In \Rails, this is usually achieved by creating the form using #form_for and
+    # a number of related helper methods. #form_for generates an appropriate <tt>form</tt>
     # tag and yields a form builder object that knows the model the form is about.
     # Input fields are created by calling methods defined on the form builder, which
     # means they are able to generate the appropriate names and default values
@@ -41,7 +41,7 @@ module ActionView
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # in the view template pass that object to +form_for+:
+    # in the view template pass that object to #form_for:
     #
     #   <%= form_for @person do |f| %>
     #     <%= f.label :first_name %>:
