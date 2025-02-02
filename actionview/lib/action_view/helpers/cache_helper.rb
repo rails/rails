@@ -189,7 +189,7 @@ module ActionView
         CachingRegistry.caching?
       end
 
-      # Raises +UncacheableFragmentError+ when called from within a +cache+ block.
+      # Raises UncacheableFragmentError when called from within a +cache+ block.
       #
       # Useful to denote helper methods that can't participate in fragment caching:
       #
