@@ -31,7 +31,7 @@ module ActionView
     # of the resource should show the current values of those attributes.
     #
     # In \Rails, this is usually achieved by creating the form using either
-    # #form_with or +form_for+ and a number of related helper methods. These
+    # #form_with or #form_for and a number of related helper methods. These
     # methods generate an appropriate <tt>form</tt> tag and yield a form
     # builder object that knows the model the form is about. Input fields are
     # created by calling methods defined on the form builder, which means they
@@ -42,7 +42,7 @@ module ActionView
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # in the view template pass that object to #form_with or +form_for+:
+    # in the view template pass that object to #form_with or #form_for:
     #
     #   <%= form_with model: @person do |f| %>
     #     <%= f.label :first_name %>:
