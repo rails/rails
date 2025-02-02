@@ -198,14 +198,14 @@ module ActionController
       #       # enables the parameter wrapper for XML format
       #
       #     wrap_parameters :person
-      #       # wraps parameters into +params[:person]+ hash
+      #       # wraps parameters into params[:person] hash
       #
       #     wrap_parameters Person
       #       # wraps parameters by determining the wrapper key from Person class
-      #       # (+person+, in this case) and the list of attribute names
+      #       # (:person, in this case) and the list of attribute names
       #
       #     wrap_parameters include: [:username, :title]
-      #       # wraps only +:username+ and +:title+ attributes from parameters.
+      #       # wraps only :username and :title attributes from parameters.
       #
       #     wrap_parameters false
       #       # disables parameters wrapping for this controller altogether.

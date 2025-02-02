@@ -181,7 +181,7 @@ module ActiveRecord
     #     delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
     #   end
     #
-    #   Entry#entryable_class # => +Message+ or +Comment+
+    #   Entry#entryable_class # => Message or Comment
     #   Entry#entryable_name  # => "message" or "comment"
     #   Entry.messages        # => Entry.where(entryable_type: "Message")
     #   Entry#message?        # => true when entryable_type == "Message"
