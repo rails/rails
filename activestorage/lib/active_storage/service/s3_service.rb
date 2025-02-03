@@ -11,12 +11,23 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket
+    attr_reader :bucket, :checksum_algorithm, :client
     attr_reader :multipart_upload_threshold, :upload_options
 
-    def initialize(bucket:, upload: {}, public: false, **options)
+    SUPPORTED_CHECKSUMS = [
+      :CRC32,
+      :CRC32c,
+      :MD5,
+      :SHA1,
+      :SHA256,
+      :CRC64NVMe
+    ]
+
+    def initialize(bucket:, upload: {}, public: false, checksum_algorithm: :MD5, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
+      @checksum_algorithm = checksum_algorithm.to_sym
+      raise ActiveStorage::UnsupportedChecksumError unless SUPPORTED_CHECKSUMS.include?(@checksum_algorithm)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public
@@ -82,7 +93,7 @@ module ActiveStorage
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
-          content_type: content_type, content_length: content_length, content_md5: checksum,
+          content_type: content_type, content_length: content_length, **s3_checksum_params(checksum),
           metadata: custom_metadata, whitelist_headers: ["content-length"], **upload_options
 
         payload[:url] = generated_url
@@ -94,7 +105,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      { "Content-Type" => content_type, **custom_checksum_headers(checksum), "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
     end
 
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
@@ -131,9 +142,11 @@ module ActiveStorage
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
       def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil, custom_metadata: {})
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
+        object_for(key).put(body: io, **s3_checksum_params(checksum), content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
+      rescue Aws::S3::Errors::InvalidRequest => e
+        raise ActiveStorage::IntegrityError if e.message == "Value for x-amz-checksum-#{checksum&.algorithm&.downcase} header is invalid."
       end
 
       def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
@@ -166,6 +179,25 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-amz-meta-#{key}" }
+      end
+
+      def s3_checksum_params(checksum)
+        return {} unless checksum
+        return { content_md5: checksum.digest } if checksum.algorithm == :MD5
+        {
+          checksum_algorithm: checksum.algorithm,
+          "checksum_#{checksum.algorithm.downcase}": checksum.digest
+        }
+      end
+
+      def custom_checksum_headers(checksum)
+        return {} unless checksum
+        case checksum.algorithm
+        when :MD5
+          { "Content-MD5" => checksum.digest }
+        when :SHA1, :SHA256, :CRC32, :CRC32c, :CRCNVMe
+          { "x-amz-checksum-#{checksum.algorithm.downcase}" => checksum.digest }
+        end
       end
   end
 end

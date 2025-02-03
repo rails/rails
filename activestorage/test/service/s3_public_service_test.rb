@@ -35,14 +35,14 @@ if SERVICE_CONFIGURATIONS[:s3_public]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = ActiveStorage::Checksum.base64digest(data, ActiveStorage::Blob.service.checksum_algorithm)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end

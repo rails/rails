@@ -73,7 +73,15 @@ module ActiveStorage
       instance.assign_attributes(attributes)
       instance.upload_without_unfurling(io)
 
-      instance.attributes.transform_values { |value| value.is_a?(Hash) ? value.to_json : value }.compact.to_json
+      instance.attributes.transform_values do |value|
+        if value.is_a?(Hash)
+          value.to_json
+        elsif value.is_a?(ActiveStorage::Checksum)
+          ActiveStorage::Checksum.dump(value)
+        else
+          value
+        end
+      end.compact.to_json
     end
   end
 end

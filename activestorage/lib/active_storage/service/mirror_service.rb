@@ -14,7 +14,7 @@ module ActiveStorage
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :download_chunk, :exist?, :url,
+    delegate :checksum_algorithm, :download, :download_chunk, :exist?, :url,
       :url_for_direct_upload, :headers_for_direct_upload, :path_for, :compose, to: :primary
 
     # Stitch together from named services.
@@ -59,12 +59,12 @@ module ActiveStorage
     end
 
     def mirror_later(key, checksum:) # :nodoc:
-      ActiveStorage::MirrorJob.perform_later key, checksum: checksum
+      ActiveStorage::MirrorJob.perform_later key, checksum: ActiveStorage::Checksum.dump(checksum)
     end
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
     def mirror(key, checksum:)
-      instrument :mirror, key: key, checksum: checksum do
+      instrument :mirror, key: key, checksum: checksum.digest do
         if (mirrors_in_need_of_mirroring = mirrors.select { |service| !service.exist?(key) }).any?
           primary.open(key, checksum: checksum) do |io|
             mirrors_in_need_of_mirroring.each do |service|
