@@ -125,7 +125,7 @@ To verify that Rails is installed correctly, run the following and you should se
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.0.1
 ```
 
 NOTE: If the `rails` command is not found, try restarting your terminal.
