@@ -26,6 +26,8 @@ module Minitest
   end
 
   class ProfileReporter < Reporter
+    attr_accessor :results
+
     def initialize(io = $stdout, options = {})
       super
       @results = []
@@ -33,26 +35,49 @@ module Minitest
     end
 
     def record(result)
-      @results << result
+      if output_file = ENV["RAILTIES_OUTPUT_FILE"]
+        File.open(output_file, "a") do |f|
+          # Round-trip for re-serialization
+          data = JSON.parse(result.to_json)
+          data[:location] = result.location
+          f.puts(data.to_json)
+        end
+      else
+        @results << result
+      end
+    end
+
+    def passed?
+      true
     end
 
     def report
-      total_time = @results.sum(&:time)
+      # Skip if we're outputting to a file
+      return if ENV["RAILTIES_OUTPUT_FILE"]
+      print_summary
+    end
 
-      @results.sort! { |a, b| b.time <=> a.time }
-      slow_results = @results.take(@count)
-      slow_tests_total_time = slow_results.sum(&:time)
-
-      ratio = (total_time == 0) ? 0.0 : (slow_tests_total_time / total_time) * 100
-
-      io.puts("\nTop %d slowest tests (%.2f seconds, %.1f%% of total time):\n" % [slow_results.size, slow_tests_total_time, ratio])
-      slow_results.each do |result|
-        io.puts("  %s\n    %.4f seconds %s\n" % [result.location, result.time, source_location(result)])
-      end
-      io.puts("\n")
+    def summary
+      print_summary
     end
 
     private
+      def print_summary
+        total_time = @results.sum(&:time)
+
+        @results.sort! { |a, b| b.time <=> a.time }
+        slow_results = @results.take(@count)
+        slow_tests_total_time = slow_results.sum(&:time)
+
+        ratio = (total_time == 0) ? 0.0 : (slow_tests_total_time / total_time) * 100
+
+        io.puts("\nTop %d slowest tests (%.2f seconds, %.1f%% of total time):\n" % [slow_results.size, slow_tests_total_time, ratio])
+        slow_results.each do |result|
+          io.puts("  %s\n    %.4f seconds %s\n" % [result.location, result.time, source_location(result)])
+        end
+        io.puts("\n")
+      end
+
       def source_location(result)
         filename, line = result.source_location
         return "" unless filename
