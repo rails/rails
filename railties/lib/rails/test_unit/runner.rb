@@ -20,7 +20,6 @@ module Rails
 
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
-      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
 
       class << self
@@ -87,9 +86,17 @@ module Rails
 
         private
           def extract_filters(argv)
-            # Extract absolute and relative paths but skip -n /.*/ regexp filters.
+            # Extract absolute and relative paths
+            # but skip -n <filter> and --name <filter> arguments.
+
+            prev_was_name_flag = false
             argv.filter_map do |path|
-              next unless path_argument?(path)
+              if prev_was_name_flag || ["--name", "-n"].include?(path)
+                prev_was_name_flag = !prev_was_name_flag
+                next
+              end
+
+              next if path.start_with?("-")
 
               path = path.tr("\\", "/")
               case
@@ -116,10 +123,6 @@ module Rails
 
           def regexp_filter?(arg)
             arg.start_with?("/") && arg.end_with?("/")
-          end
-
-          def path_argument?(arg)
-            PATH_ARGUMENT_PATTERN.match?(arg)
           end
 
           def list_tests(patterns)
