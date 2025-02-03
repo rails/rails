@@ -28,14 +28,12 @@ module SharedEnumTestCases
   end
 
   def teardown
-    reset_connection
     @connection.drop_table "enum_tests", if_exists: true
     if current_adapter?(:PostgreSQLAdapter)
       @connection.enum_types.each do |enum_type, values|
         @connection.drop_enum enum_type
       end
     end
-    reset_connection
 
     super
   end

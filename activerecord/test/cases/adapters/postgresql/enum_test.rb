@@ -6,6 +6,11 @@ require "cases/enum_shared_test_cases"
 module PostgresqlEnumSharedTestCases
   include SharedEnumTestCases
 
+  def teardown
+    reset_connection
+    super
+  end
+
   def test_column
     EnumTest.reset_column_information
     column = EnumTest.columns_hash["current_mood"]
