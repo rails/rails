@@ -25,8 +25,16 @@ class SignedIdTest < ActiveRecord::TestCase
   fixtures :accounts, :toys, :companies
 
   setup do
+    @original_verifier = ActiveRecord::Base.signed_id_verifier
+    ActiveRecord::Base.signed_id_verifier =
+      ActiveSupport::MessageVerifier.new "secret", digest: "SHA256", serializer: JSON, url_safe: true
+
     @account = Account.first
     @toy = Toy.first
+  end
+
+  teardown do
+    ActiveRecord::Base.signed_id_verifier = @original_verifier
   end
 
   test "find signed record" do
@@ -154,28 +162,6 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       Account.find_signed!(@account.signed_id(purpose: :v1), purpose: :v2)
     end
-  end
-
-  test "fail to work without a signed_id_verifier_secret" do
-    ActiveRecord::Base.signed_id_verifier_secret = nil
-    Account.instance_variable_set :@signed_id_verifier, nil
-
-    assert_raises(ArgumentError) do
-      @account.signed_id
-    end
-  ensure
-    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
-  end
-
-  test "fail to work without when signed_id_verifier_secret lambda is nil" do
-    ActiveRecord::Base.signed_id_verifier_secret = -> { nil }
-    Account.instance_variable_set :@signed_id_verifier, nil
-
-    assert_raises(ArgumentError) do
-      @account.signed_id
-    end
-  ensure
-    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
   end
 
   test "always output url_safe" do
