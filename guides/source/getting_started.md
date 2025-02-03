@@ -168,9 +168,15 @@ Rails.
 Hello, Rails!
 -------------
 
-Let's start easy and boot up our Rails server for the first time.
+Let's start easy by creating our application's database and boot up our Rails server for the first time.
 
-In your terminal, run the following command in the `store` directory:
+In your terminal, run the following commands in the `store` directory:
+
+```bash
+$ bin/rails db:create
+```
+
+This will initially create the application's database.
 
 ```bash
 $ bin/rails server
