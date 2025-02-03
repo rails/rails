@@ -156,8 +156,18 @@ module ActiveStorage
       checksum_implementation.file(file).base64digest
     end
 
+    @@checksum_implementation = nil
     def checksum_implementation
-      ActiveStorage.checksum_implementation
+      return @@checksum_implementation if @@checksum_implementation
+
+      @@checksum_implementation = OpenSSL::Digest::MD5
+      begin
+        @@checksum_implementation.hexdigest("test")
+        @@checksum_implementation
+      rescue # OpenSSL may have MD5 disabled
+        require "digest/md5"
+        @@checksum_implementation = Digest::MD5
+      end
     end
 
     private
