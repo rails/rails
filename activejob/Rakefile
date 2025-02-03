@@ -41,6 +41,7 @@ namespace :test do
           (x.include?("async") && adapter != "async")
       }
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
@@ -62,6 +63,7 @@ namespace :test do
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
         t.verbose = true
+        t.options = "--profile" if ENV["CI"]
         t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end
