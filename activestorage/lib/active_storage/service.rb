@@ -148,6 +148,18 @@ module ActiveStorage
       @public
     end
 
+    def base64digest(io)
+      checksum_implementation.base64digest(io)
+    end
+
+    def file(file)
+      checksum_implementation.file(file).base64digest
+    end
+
+    def checksum_implementation
+      ActiveStorage.checksum_implementation
+    end
+
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError

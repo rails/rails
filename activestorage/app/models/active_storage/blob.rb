@@ -331,8 +331,9 @@ class ActiveStorage::Blob < ActiveStorage::Record
   private
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
+      return unless service_name
 
-      ActiveStorage.checksum_implementation.new.tap do |checksum|
+      service.checksum_implementation.new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer
