@@ -172,6 +172,28 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "Foo", view.render(template: "translations/templates/default").strip
   end
 
+  def test_missing_translation_reported_to_i18n_exception_handler
+    previous_handler = I18n.exception_handler
+
+    calls = []
+    I18n.exception_handler = ->(*args) { calls << args }
+    view.render(template: "translations/templates/missing")
+
+    first_call = calls.first
+    assert_not_nil first_call
+    exception = first_call.first
+    assert_instance_of I18n::MissingTranslation, exception
+    assert_equal "translations.templates.missing.missing", exception.key
+
+    assert_equal 1, calls.size
+
+    assert_nothing_raised do
+      previous_handler.call(*first_call)
+    end
+  ensure
+    I18n.exception_handler = previous_handler
+  end
+
   def test_missing_translation_scoped_by_partial
     expected = '<span class="translation_missing" title="translation missing: en.translations.templates.missing.missing">Missing</span>'
     assert_equal expected, view.render(template: "translations/templates/missing").strip
