@@ -10,8 +10,11 @@ module ActiveRecord
             spec[:unsigned] = "true" if column.unsigned?
             spec[:auto_increment] = "true" if column.auto_increment?
 
-            if /\A(?<size>tiny|medium|long)(?:text|blob)/ =~ column.sql_type
-              spec = { size: size.to_sym.inspect }.merge!(spec)
+            case column.sql_type
+            when /\A(?<size>tiny|medium|long)(?:text|blob)/
+              spec = { size: $~[:size].to_sym.inspect }.merge!(spec)
+            when /\Aenum\((?<values>.*)\)\z/
+              spec[:values] = $~[:values].split(",").map { |value| value.tr("'", "") }
             end
 
             if @connection.supports_virtual_columns? && column.virtual?
@@ -41,8 +44,10 @@ module ActiveRecord
             case column.sql_type
             when /\Atimestamp\b/
               :timestamp
-            when /\A(?:enum|set)\b/
+            when /\Aset\b/
               column.sql_type
+            when /\Aenum\b/
+              :enum
             else
               super
             end

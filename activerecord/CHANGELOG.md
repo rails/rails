@@ -1,3 +1,20 @@
+*   Introduce enum column type to MySQL and SQLite
+
+    All database adapters now support the `enum` column type to allow database
+    agnostic operations. To specify values for an enum column in MySQL adapters,
+    use the `values` option. Using the `values` option in PostgreSQL would allow
+    implicit creation of enum types. Enums in SQLite are represented as strings.
+
+    ```ruby
+    def up
+      create_table :cats do |t|
+        t.enum :current_mood, enum_type: "mood", values: ["happy", "sad"], default: "happy", null: false
+      end
+    end
+    ```
+
+    *Jenny Shen*
+
 *   Introduce a before-fork hook in `ActiveSupport::Testing::Parallelization` to clear existing
     connections, to avoid fork-safety issues with the mysql2 adapter.
 

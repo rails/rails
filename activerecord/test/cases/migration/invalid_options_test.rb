@@ -8,12 +8,12 @@ module ActiveRecord
       include ActiveRecord::Migration::TestHelper
 
       def invalid_add_column_option_exception_message(key)
-        default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists"]
+        default_keys = [":limit", ":precision", ":scale", ":default", ":null", ":collation", ":comment", ":primary_key", ":if_exists", ":if_not_exists", ":values", ":enum_type"]
 
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           default_keys.concat([":auto_increment", ":charset", ":as", ":size", ":unsigned", ":first", ":after", ":type", ":stored"])
         elsif current_adapter?(:PostgreSQLAdapter)
-          default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":enum_type", ":stored"])
+          default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":stored"])
         elsif current_adapter?(:SQLite3Adapter)
           default_keys.concat([":as", ":type", ":stored"])
         end

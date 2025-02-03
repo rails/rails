@@ -185,7 +185,7 @@ module ActiveRecord
         define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
           :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
           :money, :numrange, :oid, :point, :line, :lseg, :box, :path, :polygon, :circle,
-          :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz, :enum
+          :serial, :tsrange, :tstzrange, :tsvector, :uuid, :xml, :timestamptz
       end
 
       ExclusionConstraintDefinition = Struct.new(:table_name, :expression, :options) do
@@ -282,7 +282,7 @@ module ActiveRecord
 
         private
           def valid_column_definition_options
-            super + [:array, :using, :cast_as, :as, :type, :enum_type, :stored]
+            super + [:array, :using, :cast_as, :as, :type, :stored]
           end
 
           def aliased_types(name, fallback)

@@ -44,6 +44,7 @@ module ActiveRecord
         blob:        { name: "blob" },
         boolean:     { name: "boolean" },
         json:        { name: "json" },
+        enum:        {}, # set dynamically based on values spec
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:

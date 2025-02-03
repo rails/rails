@@ -86,7 +86,9 @@ module ActiveRecord
         :comment,
         :primary_key,
         :if_exists,
-        :if_not_exists
+        :if_not_exists,
+        :values,
+        :enum_type
       ]
 
       def primary_key?
@@ -339,7 +341,7 @@ module ActiveRecord
       #
       # See TableDefinition#column
 
-      define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
+      define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal, :enum,
         :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
       alias :blob :binary

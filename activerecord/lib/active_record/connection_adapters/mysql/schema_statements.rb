@@ -109,7 +109,7 @@ module ActiveRecord
         end
 
         # Maps logical Rails types to MySQL-specific data types.
-        def type_to_sql(type, limit: nil, precision: nil, scale: nil, size: limit_to_size(limit, type), unsigned: nil, **)
+        def type_to_sql(type, limit: nil, precision: nil, scale: nil, size: limit_to_size(limit, type), unsigned: nil, values: nil, **)
           sql =
             case type.to_s
             when "integer"
@@ -124,6 +124,10 @@ module ActiveRecord
               else
                 type_with_size_to_sql("blob", size)
               end
+            when "enum"
+              raise ArgumentError, "values are required for enums" if values.nil?
+
+              "ENUM(#{values.map { |value| "'#{value}'" }.join(",")})"
             else
               super
             end

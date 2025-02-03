@@ -5,7 +5,7 @@ require "models/author"
 require "models/book"
 require "active_support/log_subscriber/test_helper"
 
-class EnumTest < ActiveRecord::TestCase
+class EnumAttributeTest < ActiveRecord::TestCase
   fixtures :books, :authors, :author_addresses
 
   setup do
