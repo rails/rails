@@ -157,5 +157,25 @@ module ActiveStorage::Service::SharedServiceTests
 
       assert_equal "Together", @service.download(destination_key)
     end
+
+    test "md5 returns OpenSSL::Digest::MD5 class" do
+      old_class = @service.instance_variable_get(:@md5_class)
+      @service.instance_variable_set(:@md5_class, nil)
+
+      assert_equal OpenSSL::Digest::MD5, @service.send(:md5)
+
+      @service.instance_variable_set(:@md5_class, old_class)
+    end
+
+    test "md5 returns Digest::MD5 class when OpenSSL unavailable" do
+      old_class = @service.instance_variable_get(:@md5_class)
+      @service.instance_variable_set(:@md5_class, nil)
+
+      OpenSSL::Digest::MD5.stub :hexdigest, proc { |input| raise StandardError } do
+        assert_equal Digest::MD5, @service.send(:md5)
+      end
+
+      @service.instance_variable_set(:@md5_class, old_class)
+    end
   end
 end
