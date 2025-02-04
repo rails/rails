@@ -30,7 +30,7 @@ module ActiveModel
         # Can't elide dup when the default is a Proc
         # See Attribute#dup_or_share
         if @user_provided_value.is_a?(Proc)
-          dup
+          deep_dup
         else
           super
         end

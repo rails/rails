@@ -54,6 +54,10 @@ module ActiveModel
         value.to_s.inspect
       end
 
+      def mutable? # :nodoc:
+        false
+      end
+
       private
         def cast_value(value)
           casted_value = \

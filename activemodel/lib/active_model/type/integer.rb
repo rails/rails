@@ -99,6 +99,10 @@ module ActiveModel
         false
       end
 
+      def mutable? # :nodoc:
+        false
+      end
+
       private
         def out_of_range?(value)
           value && (@max <= value || @min > value)
