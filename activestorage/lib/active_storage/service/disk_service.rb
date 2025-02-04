@@ -11,11 +11,23 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_accessor :root
+    attr_accessor :default_digest_algorithm, :root
 
-    def initialize(root:, public: false, **options)
+    SUPPORTED_CHECKSUM_ALGORITHMS = [
+      :CRC32,
+      :CRC32c,
+      :MD5,
+      :SHA1,
+      :SHA256,
+      :CRC64,
+      :CRC64NVMe
+    ]
+
+    def initialize(root:, public: false, default_digest_algorithm: :MD5, **options)
       @root = root
       @public = public
+      @default_digest_algorithm = default_digest_algorithm.to_sym
+      raise ActiveStorage::UnsupportedChecksumError unless SUPPORTED_CHECKSUM_ALGORITHMS.include?(@default_digest_algorithm)
     end
 
     def upload(key, io, checksum: nil, **)
@@ -173,6 +185,54 @@ module ActiveStorage
 
       def url_options
         ActiveStorage::Current.url_options
+      end
+
+      def sha1
+        OpenSSL::Digest::SHA1
+      end
+
+      def sha256
+        OpenSSL::Digest::SHA256
+      end
+
+      def crc32
+        return @crc32_class if @crc32_class
+        begin
+          require "digest/crc32"
+        rescue LoadError
+          raise LoadError, 'digest/crc32 not loaded. Please add `gem "digest-crc"` to your gemfile.'
+        end
+        @crc32_class = Digest::CRC32
+      end
+
+      def crc32c
+        return @crc32c_class if @crc32c_class
+        begin
+          require "digest/crc32c"
+        rescue LoadError
+          raise LoadError, 'digest/crc32c not loaded. Please add `gem "digest-crc"` to your gemfile.'
+        end
+        @crc32c_class = Digest::CRC32c
+      end
+
+      def crc64
+        return @crc64_class if @crc64_class
+        begin
+          require "digest/crc64nvme"
+        rescue LoadError
+          raise LoadError, 'digest/crc64 not loaded. Please add `gem "digest-crc"` to your gemfile.'
+        end
+        @crc64_class = Digest::CRC64
+      end
+
+      def crc64nvme
+        return @crc64nvme_class if @crc64nvme_class
+        begin
+          require "digest/crc64nvme"
+        rescue LoadError
+          raise LoadError, 'digest/crc64nvme not loaded. Please add `gem "digest-crc"` to your gemfile.'
+        end
+        @crc64nvme_class = Digest::CRC64NVMe
       end
   end
 end

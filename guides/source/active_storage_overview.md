@@ -153,6 +153,7 @@ Declare a Disk service in `config/storage.yml`:
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
+  default_digest_algorithm: "SHA256"
 ```
 
 ### S3 Service (Amazon S3 and S3-compatible APIs)
