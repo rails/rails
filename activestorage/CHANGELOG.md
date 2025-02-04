@@ -1,3 +1,9 @@
+*   Introduce ActiveSupport::Checksum
+
+    Refactor to support file additional integrity check algorithm in services
+
+    *Matt Pasquini*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
