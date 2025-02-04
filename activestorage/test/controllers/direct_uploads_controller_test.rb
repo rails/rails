@@ -15,7 +15,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Blob.service.base64digest("Hello")
+      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -34,7 +34,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
-        assert_equal checksum, details["checksum"]
+        assert_equal checksum.as_json, details["checksum"]
         assert_equal metadata, details["metadata"]
         assert_equal "text/plain", details["content_type"]
         assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], details["direct_upload"]["url"]
@@ -61,7 +61,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Blob.service.base64digest("Hello")
+      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -80,7 +80,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
-        assert_equal checksum, details["checksum"]
+        assert_equal checksum.as_json, details["checksum"]
         assert_equal metadata, details["metadata"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
@@ -106,7 +106,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Blob.service.base64digest("Hello")
+      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -122,7 +122,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
         assert_equal "hello.txt", details["filename"]
         assert_equal 6, details["byte_size"]
-        assert_equal checksum, details["checksum"]
+        assert_equal checksum.as_json, details["checksum"]
         assert_equal metadata, details["metadata"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{#{@config[:storage_account_name]}\.blob\.core\.windows\.net/#{@config[:container]}}, details["direct_upload"]["url"]
@@ -146,13 +146,13 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     }
 
     post rails_direct_uploads_url, params: { blob: {
-      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
+      filename: "hello.txt", byte_size: 6, checksum: checksum.to_s, content_type: "text/plain", metadata: metadata } }
 
     response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
       assert_equal "hello.txt", details["filename"]
       assert_equal 6, details["byte_size"]
-      assert_equal checksum, details["checksum"]
+      assert_equal checksum.as_json, details["checksum"]
       assert_equal metadata, details["metadata"]
       assert_equal "text/plain", details["content_type"]
       assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
@@ -172,7 +172,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
 
     set_include_root_in_json(true) do
       post rails_direct_uploads_url, params: { blob: {
-        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
+        filename: "hello.txt", byte_size: 6, checksum: checksum.to_s, content_type: "text/plain", metadata: metadata } }
     end
 
     response.parsed_body.tap do |details|

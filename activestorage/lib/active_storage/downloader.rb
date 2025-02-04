@@ -35,7 +35,9 @@ module ActiveStorage
       end
 
       def verify_integrity_of(file, checksum:)
-        unless service.file(file) == checksum
+        file_checksum = service.file(file)
+        checksum = checksum.digest if file_checksum.is_a?(String)
+        unless file_checksum == checksum
           raise ActiveStorage::IntegrityError
         end
       end

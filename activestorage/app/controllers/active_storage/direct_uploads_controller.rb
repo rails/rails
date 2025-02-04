@@ -5,13 +5,24 @@
 # the blob that was created up front.
 class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
   def create
-    blob = ActiveStorage::Blob.create_before_direct_upload!(**blob_args)
+    direct_upload_params = blob_args
+
+    direct_upload_params[:checksum] = if direct_upload_params[:checksum].is_a?(Hash)
+      # Accept {checksum: {digest:, algorithm:}}
+      ActiveStorage::Checksum.new(direct_upload_params[:checksum][:digest], direct_upload_params[:checksum][:algorithm])
+    else
+      # Accept "<MD5digest>" or "<algorithm>:<digest>"
+      ActiveStorage::Checksum.load(direct_upload_params[:checksum])
+    end
+
+    blob = ActiveStorage::Blob.create_before_direct_upload!(**direct_upload_params)
+
     render json: direct_upload_json(blob)
   end
 
   private
     def blob_args
-      params.expect(blob: [:filename, :byte_size, :checksum, :content_type, metadata: {}]).to_h.symbolize_keys
+      params.expect(blob: [:filename, :byte_size, :checksum, { checksum: [:algorithm, :digest] }, :content_type, metadata: {}]).to_h.deep_symbolize_keys
     end
 
     def direct_upload_json(blob)

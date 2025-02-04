@@ -25,7 +25,7 @@ module ActiveStorage
         # binary and attachment when the file's content type requires it. The only way to force them is to
         # store them as object's metadata.
         content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-        bucket.create_file(io, key, md5: checksum, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
+        bucket.create_file(io, key, md5: checksum&.digest, cache_control: @config[:cache_control], content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
       rescue Google::Cloud::InvalidArgumentError
         raise ActiveStorage::IntegrityError
       end
@@ -105,7 +105,7 @@ module ActiveStorage
         headers.merge!(custom_metadata_headers(custom_metadata))
 
         args = {
-          content_md5: checksum,
+          content_md5: checksum&.digest,
           expires: expires_in,
           headers: headers,
           method: "PUT",
@@ -128,7 +128,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      headers = { "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      headers = { "Content-MD5" => checksum&.digest, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
       if @config[:cache_control].present?
         headers["Cache-Control"] = @config[:cache_control]
       end

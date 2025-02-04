@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "active_support/core_ext/securerandom"
+require "active_support/testing/method_call_assertions"
 
 module ActiveStorage::Service::SharedServiceTests
   extend ActiveSupport::Concern
@@ -22,7 +23,7 @@ module ActiveStorage::Service::SharedServiceTests
     test "uploading with integrity" do
       key  = SecureRandom.base58(24)
       data = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: @service.base64digest(data))
+      @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.load(@service.base64digest(data).to_s))
 
       assert_equal data, @service.download(key)
     ensure
@@ -34,7 +35,7 @@ module ActiveStorage::Service::SharedServiceTests
       data = "Something else entirely!"
 
       assert_raises(ActiveStorage::IntegrityError) do
-        @service.upload(key, StringIO.new(data), checksum: @service.base64digest("bad data"))
+        @service.upload(key, StringIO.new(data), checksum: ActiveStorage::Checksum.load(@service.base64digest("bad data").to_s))
       end
 
       assert_not @service.exist?(key)
@@ -48,7 +49,7 @@ module ActiveStorage::Service::SharedServiceTests
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: @service.base64digest(data),
+        checksum: ActiveStorage::Checksum.load(@service.base64digest(data).to_s),
         filename: "racecar.jpg",
         content_type: "image/jpeg"
       )
@@ -146,7 +147,7 @@ module ActiveStorage::Service::SharedServiceTests
         @service.upload(
           key,
           StringIO.new(data),
-          checksum: @service.base64digest(data),
+          checksum: ActiveStorage::Checksum.load(@service.base64digest(data).to_s),
           disposition: :attachment,
           filename: ActiveStorage::Filename.new("test.html"),
           content_type: "text/html",

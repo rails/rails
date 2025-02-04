@@ -149,24 +149,24 @@ module ActiveStorage
     end
 
     def base64digest(io, algorithm: :MD5)
-      ActiveStorage::Checksum.new(checksum_implementation(algorithm:).base64digest(io), algorithm).digest
+      ActiveStorage::Checksum.new(checksum_implementation(algorithm:).base64digest(io), algorithm)
     end
 
     def file(file, algorithm: :MD5)
-      ActiveStorage::Checksum.new(checksum_implementation(algorithm:).file(file).base64digest, algorithm).digest
+      ActiveStorage::Checksum.new(checksum_implementation(algorithm:).file(file).base64digest, algorithm)
     end
 
     def compute_checksum_in_chunks(io, algorithm: :MD5)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
-      checksum_implementation(algorithm:).new.tap do |checksum|
+      ActiveStorage::Checksum.new(checksum_implementation(algorithm:).new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer
         end
 
         io.rewind
-      end.base64digest
+      end.base64digest, algorithm)
     end
 
     def checksum_implementation(algorithm: :MD5)

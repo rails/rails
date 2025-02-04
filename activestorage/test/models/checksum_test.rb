@@ -111,5 +111,4 @@ class ActiveStorage::ChecksumTest < ActiveSupport::TestCase
   test "load returns nil when nil" do
     assert_nil ActiveStorage::Checksum.load(nil)
   end
-
 end

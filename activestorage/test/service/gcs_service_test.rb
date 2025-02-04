@@ -23,7 +23,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", ""
-      request.add_field "Content-MD5", checksum
+      request.add_field "Content-MD5", checksum.digest
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -63,7 +63,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
       key      = SecureRandom.base58(24)
       data     = "Some text"
-      checksum = Digest::MD5.base64digest(data)
+      checksum = service.base64digest(data)
       url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -122,7 +122,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
       config_with_cache_control = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ cache_control: "public, max-age=1800" }) }
       service = ActiveStorage::Service.configure(:gcs, config_with_cache_control)
 
-      service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain")
+      service.upload(key, StringIO.new(data), checksum: service.base64digest(data), content_type: "text/plain")
 
       url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
@@ -135,7 +135,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     test "upload with custom_metadata" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), content_type: "text/plain", custom_metadata: { "foo" => "baz" })
+      @service.upload(key, StringIO.new(data), checksum: @service.base64digest(data), content_type: "text/plain", custom_metadata: { "foo" => "baz" })
 
       url = @service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
 
@@ -173,14 +173,14 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         key      = SecureRandom.base58(24)
         data     = "Some text"
-        checksum = Digest::MD5.base64digest(data)
+        checksum = service.base64digest(data)
         url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
         uri = URI.parse(url)
         request = Net::HTTP::Put.new(uri.request_uri)
         request.body = data
         request.add_field("Content-Type", "")
-        request.add_field("Content-MD5", checksum)
+        request.add_field("Content-MD5", checksum.digest)
         Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
           http.request request
         end

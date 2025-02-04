@@ -33,7 +33,7 @@ module ActiveStorage
         handle_errors do
           content_disposition = content_disposition_with(filename: filename, type: disposition) if disposition && filename
 
-          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
+          client.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum&.digest, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata)
         end
       end
     end
@@ -110,10 +110,10 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
+    def headers_for_direct_upload(key, content_type:, config:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
+      { "Content-Type" => content_type, "Content-MD5" => checksum&.digest, "x-ms-blob-content-disposition" => content_disposition, "x-ms-blob-type" => "BlockBlob", **custom_metadata_headers(custom_metadata) }
     end
 
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})

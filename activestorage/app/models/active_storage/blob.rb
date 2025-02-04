@@ -21,6 +21,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
+  serialize :checksum, coder: ActiveStorage::Checksum
 
   class_attribute :services, default: {}
   class_attribute :service, instance_accessor: false
@@ -219,6 +220,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
   def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
+    checksum = ActiveStorage::Checksum.load(self.checksum.to_s)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum, custom_metadata: custom_metadata
   end
 
@@ -297,7 +299,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   end
 
   def mirror_later # :nodoc:
-    service.mirror_later key, checksum: checksum if service.respond_to?(:mirror_later)
+    service.mirror_later key, checksum: checksum.to_s if service.respond_to?(:mirror_later)
   end
 
   # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be

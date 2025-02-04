@@ -2,11 +2,9 @@
 
 class ActiveStorage::Checksum # :nodoc:
   attr_reader :digest, :algorithm
-  SUPPORTED_CHECKSUMS = [:MD5]
-  @md5_class    = nil
 
-  def initialize(digest, algorithm = nil)
-    @digest, @algorithm = digest, algorithm || :MD5
+  def initialize(digest, algorithm = :MD5)
+    @digest, @algorithm = digest, algorithm&.to_sym
   end
 
   def ==(other)
@@ -20,8 +18,7 @@ class ActiveStorage::Checksum # :nodoc:
 
   class << self
     def load(checksum)
-      # checksum is string in format of "<algorithm>:<digest>" like "SHA256:<SHA256Hash>"
-      # or legacy case "<MD5hash>"
+      # checksum is string in format "<MD5hash>" or "<algorithm>:<digest>" like "SHA256:<SHA256Hash>"
 
       unless checksum.blank?
         algorithm, digest = checksum.split(":", 2)
@@ -31,7 +28,7 @@ class ActiveStorage::Checksum # :nodoc:
           algorithm = :MD5
         end
 
-        new(digest, algorithm.to_sym)
+        new(digest, algorithm)
       end
     end
 

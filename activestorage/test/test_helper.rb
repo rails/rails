@@ -48,6 +48,7 @@ class ActiveSupport::TestCase
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
+      checksum = ActiveStorage::Checksum.load(checksum.to_s) if checksum
       ActiveStorage::Blob.create_before_direct_upload! key: key, filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record
     end
 
