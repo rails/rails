@@ -116,6 +116,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_no_anonymous_modules
+    assert_empty Photo.ancestors.select { |m| m.name.nil? }
+  end
+
   def test_arel_attribute_normalization
     assert_equal Post.arel_table["body"], Post.arel_table[:body]
     assert_equal Post.arel_table["body"], Post.arel_table[:text]

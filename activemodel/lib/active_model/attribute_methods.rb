@@ -373,7 +373,7 @@ module ActiveModel
       #   person.name_short? # => NoMethodError
       #   person.first_name  # => NoMethodError
       def undefine_attribute_methods
-        generated_attribute_methods.module_eval do
+        @generated_attribute_methods&.module_eval do
           undef_method(*instance_methods)
         end
         attribute_method_patterns_cache.clear
@@ -402,7 +402,7 @@ module ActiveModel
         end
 
         def instance_method_already_implemented?(method_name)
-          generated_attribute_methods.method_defined?(method_name)
+          @generated_attribute_methods&.method_defined?(method_name)
         end
 
         # The methods +method_missing+ and +respond_to?+ of this module are
