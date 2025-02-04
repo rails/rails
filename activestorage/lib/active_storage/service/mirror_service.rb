@@ -59,7 +59,7 @@ module ActiveStorage
     end
 
     def mirror_later(key, checksum:) # :nodoc:
-      ActiveStorage::MirrorJob.perform_later key, checksum: checksum.to_s
+      ActiveStorage::MirrorJob.perform_later key, checksum: ActiveStorage::Checksum.dump(checksum)
     end
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.

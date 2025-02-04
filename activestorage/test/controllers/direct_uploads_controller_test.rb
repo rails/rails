@@ -15,7 +15,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
+      checksum = ActiveStorage::Blob.service.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -61,7 +61,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
+      checksum = ActiveStorage::Blob.service.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -106,7 +106,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
 
     test "creating new direct upload" do
-      checksum = ActiveStorage::Checksum.load(ActiveStorage::Blob.service.base64digest("Hello").to_s)
+      checksum = ActiveStorage::Blob.service.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -161,7 +161,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   end
 
   test "creating new direct upload (checksum non-MD5 string, not matching default_digest_algorithm)" do
-    checksum = OpenSSL::Digest::SHA256.base64digest("Hello")
+    checksum = ActiveStorage::Checksum.new(OpenSSL::Digest::SHA256.base64digest("Hello"), :SHA256)
     metadata = {
       "foo" => "bar",
       "my_key_1" => "my_value_1",
@@ -186,7 +186,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   end
 
   test "creating new direct upload (checksum as hash)" do
-    checksum = ActiveStorage::Blob.base64digest("Hello")
+    checksum = ActiveStorage::Blob.service.base64digest("Hello")
     metadata = {
       "foo" => "bar",
       "my_key_1" => "my_value_1",
