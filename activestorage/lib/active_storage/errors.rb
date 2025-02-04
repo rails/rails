@@ -26,4 +26,7 @@ module ActiveStorage
 
   # Raised when a Previewer is unable to generate a preview image.
   class PreviewError < Error; end
+
+  # Raised when a checksum is not supported by a service
+  class UnsupportedChecksumError < Error; end
 end
