@@ -21,7 +21,7 @@ module ActiveRecord
                 index_using = mysql_index_type
               end
 
-              indexes << [
+              index = [
                 row["Table"],
                 row["Key_name"],
                 row["Non_unique"].to_i == 0,
@@ -31,8 +31,13 @@ module ActiveRecord
                 type: index_type,
                 using: index_using,
                 comment: row["Index_comment"].presence,
-                visible: row["Visible"] == "YES",
               ]
+
+              if supports_disabling_use_of_index_for_queries?
+                index[-1][:enabled] = mariadb? ? row["Ignored"] == "NO" : row["Visible"] == "YES"
+              end
+
+              indexes << index
             end
 
             if expression = row["Expression"]
@@ -80,14 +85,8 @@ module ActiveRecord
 
         def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
           index, algorithm, if_not_exists = super
-          index.visible = options[:visible]
+          index.enabled = options[:enabled]
           [index, algorithm, if_not_exists]
-        end
-
-        def valid_index_options
-          index_options = super
-          index_options << :visible if supports_index_visibility?
-          index_options
         end
 
         def remove_column(table_name, column_name, type = nil, **options)
@@ -248,6 +247,12 @@ module ActiveRecord
             quoted_columns.each do |name, column|
               column << "(#{lengths[name]})" if lengths[name].present?
             end
+          end
+
+          def valid_index_options
+            index_options = super
+            index_options << :enabled if supports_enabling_use_of_index_for_queries?
+            index_options
           end
 
           def add_options_for_index_columns(quoted_columns, **options)

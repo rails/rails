@@ -913,15 +913,17 @@ module ActiveRecord
       #
       # For more information see the {"Transactional Migrations" section}[rdoc-ref:Migration].
       #
-      # ====== Creating an invisible index
+      # ====== Creating an index that is not used by queries
       #
-      #   add_index(:developers, :name, visible: false)
+      #   add_index(:developers, :name, enabled: false)
       #
       # generates:
       #
       #   CREATE INDEX index_developers_on_name ON developers (name) INVISIBLE -- MySQL
       #
-      # Note: only supported by MySQL version 8.0.0 and greater.
+      #   CREATE INDEX index_developers_on_name ON developers (name) IGNORED -- MariaDB
+      #
+      # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
       #
       def add_index(table_name, column_name, **options)
         create_index = build_create_index_definition(table_name, column_name, **options)
@@ -1485,10 +1487,6 @@ module ActiveRecord
         Table.new(table_name, base)
       end
 
-      def valid_index_options
-        [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
-      end
-
       def add_index_options(table_name, column_name, name: nil, if_not_exists: false, internal: false, **options) # :nodoc:
         options.assert_valid_keys(valid_index_options)
 
@@ -1554,11 +1552,18 @@ module ActiveRecord
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
-      # Changes the visibility of an index and it is a reversible operation.
+      # Enables an index to be used by queries.
       #
-      #   alter_index(:users, :email, visible: false)
-      def alter_index(table_name, index_name, visible: true)
-        raise NotImplementedError, "#{self.class} does not support altering index visibility"
+      #   enable_index(:users, :email)
+      def enable_index(table_name, index_name)
+        raise NotImplementedError, "#{self.class} does not support enabling indexes"
+      end
+
+      # Disables an index not to be used by queries.
+      #
+      #   disable_index(:users, :email)
+      def disable_index(table_name, index_name)
+        raise NotImplementedError, "#{self.class} does not support disabling indexes"
       end
 
       def create_schema_dumper(options) # :nodoc:
@@ -1647,6 +1652,10 @@ module ActiveRecord
           quoted_columns.each do |name, column|
             column << " #{orders[name].upcase}" if orders[name].present?
           end
+        end
+
+        def valid_index_options
+          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
         end
 
         def options_for_index_columns(options)

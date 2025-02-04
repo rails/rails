@@ -52,27 +52,27 @@ module ActiveRecord
 
       # = Active Record MySQL Adapter \Index Definition
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
-        attr_reader :visible
+        attr_reader :enabled
 
         def initialize(*args, **kwargs)
-          visible = kwargs.delete(:visible)
+          @enabled = kwargs.delete(:enabled)
           super
-          @visible = visible.nil? ? true : visible
+          @enabled = enabled.nil? ? true : enabled
         end
 
-        def visible=(value)
+        def enabled=(value)
           return if value.nil?
 
-          @visible = value
+          @enabled = value
         end
 
-        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, visible: nil, **options)
+        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
           super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
-            (visible.nil? || self.visible == visible)
+            (enabled.nil? || self.enabled == enabled)
         end
 
-        def invisible?
-          !@visible
+        def disabled?
+          !@enabled
         end
       end
 
@@ -126,15 +126,26 @@ module ActiveRecord
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
-        # Changes the visibility of an index.
+        # Enables an index to be used by query optimizers.
         #
-        #   t.alter_index(:email, visible: false)
+        #   t.enable_index(:email)
         #
-        # Note: only supported by MySQL version 8.0.0 and greater.
+        # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
         #
-        # See {connection.alter_index}[rdoc-ref:SchemaStatements#alter_index]
-        def alter_index(index_name, visible:)
-          @base.alter_index(name, index_name, visible:)
+        # See {connection.enable_index}[rdoc-ref:SchemaStatements#enable_index]
+        def enable_index(index_name)
+          @base.enable_index(name, index_name)
+        end
+
+        # Disables an index not to be used by query optimizers.
+        #
+        #   t.disable_index(:email)
+        #
+        # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
+        #
+        # See {connection.disable_index}[rdoc-ref:SchemaStatements#disable_index]
+        def disable_index(index_name)
+          @base.disable_index(name, index_name)
         end
       end
     end

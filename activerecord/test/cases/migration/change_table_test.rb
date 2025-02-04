@@ -214,26 +214,33 @@ module ActiveRecord
         end
       end
 
-      if ActiveRecord::Base.lease_connection.supports_index_visibility?
-        def test_column_creates_column_with_invisible_index
+      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+        def test_column_creates_column_with_disabled_index
           with_change_table do |t|
             expect :add_column, nil, [:delete_me, :bar, :integer]
-            expect :add_index, nil, [:delete_me, :bar], visible: false
-            t.column :bar, :integer, index: { visible: false }
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.column :bar, :integer, index: { enabled: false }
           end
         end
 
-        def test_index_creates_invisible_index
+        def test_index_creates_disabled_index
           with_change_table do |t|
-            expect :add_index, nil, [:delete_me, :bar], visible: false
-            t.index :bar, visible: false
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.index :bar, enabled: false
           end
         end
 
-        def test_alter_index_changes_index_visibility
+        def test_disable_index_disables_index
           with_change_table do |t|
-            expect :alter_index, nil, [:delete_me, :bar], visible: false
-            t.alter_index :bar, visible: false
+            expect :disable_index, nil, [:delete_me, :bar]
+            t.disable_index :bar
+          end
+        end
+
+        def test_enable_index_enables_index
+          with_change_table do |t|
+            expect :enable_index, nil, [:delete_me, :bar]
+            t.enable_index :bar
           end
         end
       end

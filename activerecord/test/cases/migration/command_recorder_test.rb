@@ -315,20 +315,25 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
       end
 
-      if ActiveRecord::Base.lease_connection.supports_index_visibility?
-        def test_invert_add_index_with_invisible_option
-          remove = @recorder.inverse_of :add_index, [:table, :one, visible: false]
-          assert_equal [:remove_index, [:table, :one, visible: false], nil], remove
+      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+        def test_invert_add_index_with_disabled_option
+          remove = @recorder.inverse_of :add_index, [:table, :one, enabled: false]
+          assert_equal [:remove_index, [:table, :one, enabled: false], nil], remove
         end
 
-        def test_invert_remove_index_with_invisible_option
-          add = @recorder.inverse_of :remove_index, [:table, :one, visible: false]
-          assert_equal [:add_index, [:table, :one, visible: false]], add
+        def test_invert_remove_index_with_disabled_option
+          add = @recorder.inverse_of :remove_index, [:table, :one, enabled: false]
+          assert_equal [:add_index, [:table, :one, enabled: false]], add
         end
 
-        def test_invert_alter_index
-          alter = @recorder.inverse_of :alter_index, [:table, :invisible_index, visible: false]
-          assert_equal [:alter_index, [:table, :invisible_index, visible: true]], alter
+        def test_invert_disable_index
+          enable = @recorder.inverse_of :disable_index, [:table, :disabled_index]
+          assert_equal [:enable_index, [:table, :disabled_index]], enable
+        end
+
+        def test_invert_enable_index
+          disable = @recorder.inverse_of :enable_index, [:table, :enabled_index]
+          assert_equal [:disable_index, [:table, :enabled_index]], disable
         end
       end
 

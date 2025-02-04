@@ -18,7 +18,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     @connection.drop_table :fruits rescue nil
     @connection.drop_table :has_timestamps rescue nil
     @connection.drop_table :multiple_indexes rescue nil
-    @connection.drop_table :invisible_index rescue nil
+    @connection.drop_table :disabled_index rescue nil
     @schema_migration.delete_all_versions
     ActiveRecord::Migration.verbose = @original_verbose
   end
@@ -121,17 +121,17 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_equal ["multiple_indexes_foo_1", "multiple_indexes_foo_2"], indexes.collect(&:name).sort
   end
 
-  if ActiveRecord::Base.lease_connection.supports_index_visibility?
+  if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
     def test_schema_load_for_index_visibility
       ActiveRecord::Schema.define do
-        create_table :invisible_index do |t|
+        create_table :disabled_index do |t|
           t.string "foo"
-          t.index ["foo"], name: "invisible_foo_index", visible: false
+          t.index ["foo"], name: "disabled_foo_index", enabled: false
         end
       end
 
-      indexes = @connection.indexes("invisible_index").find { |index| index.name == "invisible_foo_index" }
-      assert_predicate indexes, :invisible?
+      indexes = @connection.indexes("disabled_index").find { |index| index.name == "disabled_foo_index" }
+      assert_predicate indexes, :disabled?
     end
   end
 

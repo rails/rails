@@ -428,8 +428,8 @@ ActiveRecord::Schema.define do
       end
     end
 
-    if supports_index_visibility?
-      t.index [:firm_id, :client_of], name: "company_invisible_index", visible: false
+    if supports_disabling_use_of_index_for_queries?
+      t.index [:firm_id, :client_of], name: "company_disabled_index", enabled: false
     end
   end
 
