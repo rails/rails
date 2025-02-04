@@ -246,6 +246,7 @@ google:
   credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
   bucket: your_own_bucket-<%= Rails.env %>
+  default_digest_algorithm: "CRC32c"
 ```
 
 Optionally provide a Hash of credentials instead of a keyfile path:

@@ -23,7 +23,12 @@ if SERVICE_CONFIGURATIONS[:gcs]
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", ""
-      request.add_field "Content-MD5", checksum.digest
+      if checksum.algorithm == :MD5
+        request.add_field "Content-MD5", checksum.digest
+      else
+        request.add_field "x-goog-hash", "#{checksum.algorithm}=#{checksum.digest}"
+      end
+
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -31,6 +36,31 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_equal data, @service.download(key)
     ensure
       @service.delete key
+    end
+
+    test "direct upload with CRC32c checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ default_digest_algorithm: :CRC32c }) }
+      service  = ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = service.base64digest(data)
+
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", ""
+      request.add_field "x-goog-hash", "#{checksum.algorithm.downcase}=#{checksum.digest}"
+      Net::HTTP.start(uri.host, uri.port, use_ssl: false) do |http|
+        http.request request
+      end
+
+      assert_equal :CRC32c, checksum.algorithm
+      assert_equal checksum, service.base64digest(service.download(key))
+    ensure
+      service.delete key
     end
 
     test "direct upload with content disposition" do
@@ -161,6 +191,31 @@ if SERVICE_CONFIGURATIONS[:gcs]
       @service.delete key
     end
 
+    test "upload with unsupported checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ default_digest_algorithm: :UnknownHashingFunction }) }
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum) }
+    end
+
+    test "upload with CRC32c checksum" do
+      config_with_crc32c_checksum = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ default_digest_algorithm: :CRC32c }) }
+      service = ActiveStorage::Service.configure(:gcs, config_with_crc32c_checksum)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = service.base64digest(data)
+
+      service.upload(key, StringIO.new(data), checksum: checksum, content_type: "text/plain")
+
+      url = service.url(key, expires_in: 2.minutes, disposition: :inline, content_type: "text/html", filename: ActiveStorage::Filename.new("test.html"))
+
+      response = Net::HTTP.get_response(URI(url))
+
+      assert_equal :CRC32c, checksum.algorithm
+      assert_match("#{checksum.algorithm.downcase}=#{checksum.digest}", response["x-goog-hash"])
+    ensure
+      service.delete key
+    end
+
     test "signed URL generation" do
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
         @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
@@ -180,7 +235,11 @@ if SERVICE_CONFIGURATIONS[:gcs]
         request = Net::HTTP::Put.new(uri.request_uri)
         request.body = data
         request.add_field("Content-Type", "")
-        request.add_field("Content-MD5", checksum.digest)
+        if checksum.algorithm == :MD5
+          request.add_field "Content-MD5", checksum.digest
+        else
+          request.add_field "x-goog-hash", "#{checksum.algorithm}=#{checksum.digest}"
+        end
         Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
           http.request request
         end
