@@ -1,3 +1,12 @@
+*   Support additional file checksum algorithms in Azure Adapter
+
+    Add support for CRC64 to S3 service for
+    file integrity checking.
+    Add default_digest_algorithm configuration allowing selection of default
+    checksum algorithm for service. Keep default value as MD5
+
+    *Matt Pasquini*
+
 *   Support additional file checksum algorithms in GCS Adapter
 
     Add support for CRC32c to S3 service for

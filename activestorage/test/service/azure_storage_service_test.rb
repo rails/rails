@@ -31,6 +31,33 @@ if SERVICE_CONFIGURATIONS[:azure]
       @service.delete key
     end
 
+    test "direct upload with CRC64 Checksum" do
+      config_with_crc64_checksum = { azure: SERVICE_CONFIGURATIONS[:azure].merge({ default_digest_algorithm: :CRC64 }) }
+      service = ActiveStorage::Service.configure(:azure, config_with_crc64_checksum)
+
+      key          = SecureRandom.base58(24)
+      data         = "Something else entirely!"
+      checksum     = service.base64digest(data)
+
+      content_type = "text/xml"
+      url          = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: content_type, content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      @service.headers_for_direct_upload(key, checksum: checksum, content_type: content_type, filename: ActiveStorage::Filename.new("test.txt")).each do |k, v|
+        request.add_field k, v
+      end
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal :CRC64, checksum.algorithm
+      assert_equal checksum, @service.base64digest(@service.download(key))
+    ensure
+      @service.delete key
+    end
+
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
@@ -94,6 +121,30 @@ if SERVICE_CONFIGURATIONS[:azure]
       @service.delete key
     end
 
+    test "upload with unsupported default_digest_algorithm" do
+      config_with_crc64_checksum = { azure: SERVICE_CONFIGURATIONS[:azure].merge({ default_digest_algorithm: :UnknownHashingFunction }) }
+      assert_raises(ActiveStorage::UnsupportedChecksumError) { ActiveStorage::Service.configure(:azure, config_with_crc64_checksum) }
+    end
+
+    test "upload upload with CRC64 checksum" do
+      config_with_crc64_checksum = { azure: SERVICE_CONFIGURATIONS[:azure].merge({ default_digest_algorithm: :CRC64 }) }
+      service = ActiveStorage::Service.configure(:azure, config_with_crc64_checksum)
+
+      key      = SecureRandom.base58(24)
+      data     = "Foobar"
+      checksum = service.base64digest(data)
+
+      service.upload(key, StringIO.new(data), checksum: checksum, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+
+      url = service.url(key, expires_in: 2.minutes, disposition: :attachment, content_type: nil, filename: ActiveStorage::Filename.new("test.html"))
+      Net::HTTP.get_response(URI(url))
+
+      assert_equal :CRC64, checksum.algorithm
+      assert_equal checksum, service.base64digest(service.download(key))
+    ensure
+      @service.delete key
+    end
+
     test "signed URL generation" do
       url = @service.url(@key, expires_in: 5.minutes,
         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
@@ -112,7 +163,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         @service.upload(key, file)
       end
 
-      assert_equal data, @service.download(key)
+      assert_equal(checksum, @service.client.get_blob_properties(container, key).checksum)
     ensure
       @service.delete(key)
     end

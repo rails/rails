@@ -228,6 +228,7 @@ azure:
   storage_account_name: your_account_name
   storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
   container: your_container_name-<%= Rails.env %>
+  default_digest_algorithm: "CRC64"
 ```
 
 Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
