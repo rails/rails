@@ -1100,7 +1100,7 @@ Let's refactor this to use these helpers:
 <div id="products">
   <% @products.each do |product| %>
     <div>
-      <%= link_to product.name, product %>
+      <%= link_to product.name, product_path(product.id) %>
     </div>
   <% end %>
 </div>
@@ -1147,7 +1147,7 @@ We can update `app/views/products/index.html.erb` to link to the new action.
 <div id="products">
   <% @products.each do |product| %>
     <div>
-      <%= link_to product.name, product %>
+      <%= link_to product.name, product_path(product.id) %>
     </div>
   <% end %>
 </div>
