@@ -388,14 +388,14 @@ module ActiveRecord
         connection.drop_table(:my_table) rescue nil
       end
 
-      if ActiveRecord::Base.lease_connection.supports_index_visibility?
-        def test_column_with_invisible_index
+      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+        def test_column_with_disabled_index
           connection.create_table "my_table", force: true do |t|
             t.column "col_one", :bigint
-            t.column "col_two", :bigint, index: { visible: false }
+            t.column "col_two", :bigint, index: { enabled: false }
           end
 
-          assert connection.index_exists?("my_table", :col_two, visible: false)
+          assert connection.index_exists?("my_table", :col_two, enabled: false)
         ensure
           connection.drop_table(:my_table) rescue nil
         end
