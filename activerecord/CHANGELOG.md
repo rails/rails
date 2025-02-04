@@ -1,3 +1,8 @@
+*   Enable automatically retrying idempotent association queries on connection
+    errors.
+
+    *Hartley McGuire*
+
 *   Add `allow_retry` to `sql.active_record` instrumentation.
 
     This enables identifying queries which are and are not automatically
