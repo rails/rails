@@ -1,3 +1,9 @@
+*   Fix `RedisCacheStore` and `MemCacheStore` to also handle connection pool related errors.
+
+    These errors are rescued and reported to `Rails.error`.
+
+    *Jean Boussier*
+
 *   Fix `ActiveSupport::Cache#read_multi` to respect version expiry when using local cache.
 
     *zzak*

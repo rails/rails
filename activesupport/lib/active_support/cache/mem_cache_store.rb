@@ -276,7 +276,7 @@ module ActiveSupport
 
         def rescue_error_with(fallback)
           yield
-        rescue Dalli::DalliError => error
+        rescue Dalli::DalliError, ConnectionPool::Error => error
           logger.error("DalliError (#{error}): #{error.message}") if logger
           ActiveSupport.error_reporter&.report(
             error,
