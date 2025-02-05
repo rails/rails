@@ -1,3 +1,8 @@
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
+
+    *Bijan Rahnema*
+
 *   Update `rails new --minimal` option
 
     Extend the `--minimal` flag to exlcude recently added features:
