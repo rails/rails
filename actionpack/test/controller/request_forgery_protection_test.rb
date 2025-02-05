@@ -675,7 +675,7 @@ module RequestForgeryProtectionTests
 
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
-      patch :index, params: { custom_authenticity_token: { foo: "bar" } }
+      patch :index, params: { custom_authenticity_token: 1 }, as: :json
     end
   end
 
