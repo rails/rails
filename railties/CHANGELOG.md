@@ -1,3 +1,9 @@
+*   Rate limit password resets in authentication generator
+
+    This helps mitigate abuse from attackers spamming the password reset form.
+
+    *Chris Oliver*
+
 *   Update `rails new --minimal` option
 
     Extend the `--minimal` flag to exlcude recently added features:
