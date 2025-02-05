@@ -26,7 +26,7 @@ module ActiveModel
     def changes
       attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
         if change = change_to_attribute(attr_name)
-          result.merge!(attr_name => change)
+          result[attr_name] = change
         end
       end
     end
