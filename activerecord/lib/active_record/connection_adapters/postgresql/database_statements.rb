@@ -11,8 +11,8 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
-          result = internal_execute(sql, name, allow_retry:, materialize_transactions:)
+        def query(sql, name = nil) # :nodoc:
+          result = internal_execute(sql, name)
           result.map_types!(@type_map_for_results).values
         end
 
