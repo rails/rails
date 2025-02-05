@@ -498,7 +498,7 @@ module ActionController # :nodoc:
       # Checks the client's masked token to see if it matches the session token.
       # Essentially the inverse of `masked_authenticity_token`.
       def valid_authenticity_token?(session, encoded_masked_token) # :doc:
-        if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+        if !encoded_masked_token.is_a?(String) || encoded_masked_token.empty?
           return false
         end
 
