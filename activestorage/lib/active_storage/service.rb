@@ -148,6 +148,10 @@ module ActiveStorage
       @public
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class}#{name.present? ? " name=#{name.inspect}" : ""}>"
+    end
+
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError

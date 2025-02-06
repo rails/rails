@@ -19,7 +19,15 @@ module ActiveStorage
       )
     end
 
+    def inspect # :nodoc:
+      "#<#{self.class}#{configurations_for_inspect}>"
+    end
+
     private
+      def configurations_for_inspect
+        configurations.any? ? " configurations=[#{configurations.keys.map(&:inspect).join(", ")}]" : ""
+      end
+
       def config_for(name)
         configurations.fetch name do
           raise "Missing configuration for the #{name.inspect} Active Storage service. Configurations available for #{configurations.keys.inspect}"
