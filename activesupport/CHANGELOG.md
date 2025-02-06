@@ -1,3 +1,12 @@
+*   Allow execution wrapping to handle all exceptions
+
+    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
+    the error reporter should be able to report these kinds of exceptions.
+    Some are not recoverable, but many are, so we should at least try to
+    report them.
+
+    *Gannon McGibbon*
+
 *   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
     are invoked immediately before forking test workers.
 
