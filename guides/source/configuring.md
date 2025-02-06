@@ -2954,7 +2954,7 @@ only the configured origins.
 
 #### `config.action_cable.allowed_request_origins`
 
-Determines the request origins which will be accepted but the cable server.
+Determines the request origins which will be accepted by the cable server.
 The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
 
 ### Configuring Active Storage
