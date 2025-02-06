@@ -702,14 +702,15 @@ module ActiveRecord
 
       test "idempotent SELECT queries allow retries" do
         notifications = capture_notifications("sql.active_record") do
-          assert Post.first
+          assert (a = Author.first)
           assert Post.where(id: [1, 2]).first
           assert Post.find(1)
           assert Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
+          a.books.to_a
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 5, notifications.length
+        assert_equal 6, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry]
