@@ -33,6 +33,10 @@ module TestGenerationPrefix
         get "/conflicting_url", to: "inside_engine_generating#conflicting"
         get "/foo", to: "never#invoked", as: :named_helper_that_should_be_invoked_only_in_respond_to_test
 
+        constraints host: "developer.net" do
+          get "panel", to: redirect(""), as: :panel
+        end
+
         get "/relative_path_root",       to: redirect("")
         get "/relative_path_redirect",   to: redirect("foo")
         get "/relative_option_root",     to: redirect(path: "")
@@ -54,6 +58,13 @@ module TestGenerationPrefix
         scope "/:omg", omg: "awesome" do
           mount BlogEngine => "/blog", :as => "blog_engine"
         end
+
+        constraints host: "w3c.org" do
+          defaults subdomain: "tools" do
+            get "/lint", to: redirect(""), as: :lint
+          end
+        end
+
         get "/posts/:id", to: "outside_engine_generating#post", as: :post
         get "/generate", to: "outside_engine_generating#index"
         get "/polymorphic_path_for_app", to: "outside_engine_generating#polymorphic_path_for_app"
@@ -141,6 +152,11 @@ module TestGenerationPrefix
       include KwObject
       include ActionDispatch::Routing::UrlFor
       include RailsApplication.routes.url_helpers
+    end
+
+    class Service
+      include RailsApplication.routes.url_helpers
+      include RailsApplication.routes.mounted_helpers
     end
 
     def app
@@ -325,6 +341,44 @@ module TestGenerationPrefix
 
       path = engine_object.polymorphic_url(Post.new, host: "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
+    end
+
+    test "[SERVICE] overriding a url part that has a literal constraint is deprecated" do
+      service = Service.new
+
+      expected = <<~MSG
+        The literal constraints on the route are: #{Regexp.compile(/{:?host(=>|: )"w3c.org"}/)} and you override
+        the URL with the following parts: #{Regexp.compile(/{:?host(=>|: )"ignored.com"}/)}\.
+
+        In a future Rails version, the literal constraints on the route will take precedence over the options
+        passed to the `lint_url` helper.
+      MSG
+
+      assert_deprecated(Regexp.new(expected), ActionDispatch.deprecator) do
+        assert_equal("http://tools.ignored.com/lint", service.lint_url(host: "ignored.com"))
+      end
+
+      expected = <<~MSG
+        The literal constraints on the route are: #{Regexp.compile(/{:?host(=>|: )"developer.net"}/)} and you override
+        the URL with the following parts: #{Regexp.compile(/{:?host(=>|: )"ignored.com"}/)}\.
+
+        In a future Rails version, the literal constraints on the route will take precedence over the options
+        passed to the `panel_url` helper.
+      MSG
+
+      assert_deprecated(Regexp.new(expected), ActionDispatch.deprecator) do
+        assert_equal("http://ignored.com/awesome/blog/panel", service.blog_engine.panel_url(host: "ignored.com"))
+      end
+    end
+
+    test "[SERVICE] overidding a url part that has no literal constraint is not deprecated" do
+      service = Service.new
+
+      assert_not_deprecated(ActionDispatch.deprecator) do
+        assert_equal("http://tools.w3c.org/lint", service.lint_url)
+        assert_equal("http://old.w3c.org/lint", service.lint_url(subdomain: "old"))
+        assert_equal("http://ignored.com/posts/1", service.post_url(id: 1, host: "ignored.com"))
+      end
     end
 
     private

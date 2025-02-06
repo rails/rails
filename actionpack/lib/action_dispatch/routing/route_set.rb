@@ -279,17 +279,23 @@ module ActionDispatch
 
           def call(t, method_name, args, inner_options, url_strategy)
             controller_options = t.url_options
-            options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
                                           inner_options || {},
                                           args,
-                                          options,
-                                          @segment_keys)
+                                          @options.dup,
+                                          @segment_keys,
+                                          method_name)
 
             t._routes.url_for(hash, route_name, url_strategy, method_name)
           end
 
-          def handle_positional_args(controller_options, inner_options, args, result, path_params)
+          def handle_positional_args(controller_options, inner_options, args, result, path_params, method_name)
+            literal_constraints = result.select do |k, v|
+              Mapper::URL_OPTIONS.include?(k) && @route.constraints.key?(k) && (v.is_a?(String) || v.is_a?(Integer))
+            end
+            result.extract!(*literal_constraints.keys)
+            result = controller_options.merge(result)
+
             if args.size > 0
               # take format into account
               if path_params.include?(:format)
@@ -314,7 +320,24 @@ module ActionDispatch
               end
             end
 
-            result.merge!(inner_options)
+            overriden_url_parts = inner_options.slice(*literal_constraints.keys)
+            if overriden_url_parts.empty?
+              result.merge(inner_options).merge(literal_constraints)
+            else
+              ActionDispatch.deprecator.warn(<<~MSG)
+                You called a helper with URL parts that overrides the literal constraint(s) set on
+                the route. This behaviour is deprecated as this was previously generating a URL that
+                the Rails router wouldn't be able to recognize.
+
+                The literal constraints on the route are: #{literal_constraints} and you override
+                the URL with the following parts: #{overriden_url_parts}.
+
+                In a future Rails version, the literal constraints on the route will take precedence over the options
+                passed to the `#{method_name}` helper.
+              MSG
+
+              result.merge(literal_constraints).merge(inner_options)
+            end
           end
         end
 
