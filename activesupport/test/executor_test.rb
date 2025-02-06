@@ -3,7 +3,7 @@
 require_relative "abstract_unit"
 
 class ExecutorTest < ActiveSupport::TestCase
-  class DummyError < RuntimeError
+  class DummyError < Exception
   end
 
   class ErrorSubscriber

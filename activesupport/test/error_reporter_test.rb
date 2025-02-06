@@ -100,6 +100,14 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil result
   end
 
+  test "#handle supports all exceptions by default" do
+    error = Exception.new("oops")
+    @reporter.handle do
+      raise error
+    end
+    assert_equal [[error, true, :warning, "application", {}]], @subscriber.events
+  end
+
   test "#handle returns the value of the fallback as a proc on handled raise" do
     result = @reporter.handle(fallback: -> { 2 + 2 }) do
       raise StandardError
@@ -149,6 +157,16 @@ class ErrorReporterTest < ActiveSupport::TestCase
       end
     end
     assert_equal [], @subscriber.events
+  end
+
+  test "#record supports all exceptions by default" do
+    error = Exception.new("oops")
+    assert_raises(Exception) do
+      @reporter.record do
+        raise error
+      end
+    end
+    assert_equal [[error, false, :error, "application", {}]], @subscriber.events
   end
 
   test "#record report any matching, unhandled error and re-raise them" do
@@ -360,6 +378,17 @@ class ErrorReporterTest < ActiveSupport::TestCase
     @reporter.report(@error, handled: true)
 
     expected = "Error subscriber raised an error: Big Oopsie (ErrorReporterTest::FailingErrorSubscriber::Error)"
+    assert_equal expected, log.string.lines.first.chomp
+  end
+
+  test "subscriber excetions are logged if logger is set" do
+    subscriber_error = Exception.new("Big Oopsie")
+    @reporter.subscribe(FailingErrorSubscriber.new(subscriber_error))
+    log = StringIO.new
+    @reporter.logger = ActiveSupport::Logger.new(log)
+    @reporter.report(@error, handled: true)
+
+    expected = "Error subscriber raised an error: Big Oopsie (Exception)"
     assert_equal expected, log.string.lines.first.chomp
   end
 end
