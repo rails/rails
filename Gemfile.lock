@@ -374,7 +374,7 @@ GEM
       net-ssh (>= 2.6.5, < 8.0.0)
     net-sftp (4.0.0)
       net-ssh (>= 5.0.0, < 8.0.0)
-    net-smtp (0.4.0)
+    net-smtp (0.5.1)
       net-protocol
     net-ssh (7.2.3)
     nio4r (2.7.0)
@@ -592,7 +592,7 @@ GEM
     thruster (0.1.7)
     thruster (0.1.7-x86_64-darwin)
     thruster (0.1.7-x86_64-linux)
-    timeout (0.4.1)
+    timeout (0.4.3)
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
     trilogy (2.7.0)
