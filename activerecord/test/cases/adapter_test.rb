@@ -717,6 +717,27 @@ module ActiveRecord
         end
       end
 
+      test "query cacheable idempotent SELECT queries allow retries" do
+        @connection.enable_query_cache!
+
+        notifications = capture_notifications("sql.active_record") do
+          assert_not_nil (a = Author.first)
+          assert_not_nil Post.where(id: [1, 2]).first
+          assert_not_nil Post.find(1)
+          assert_not_nil Post.find_by(title: "Welcome to the weblog")
+          assert_predicate Post, :exists?
+          a.books.to_a
+        end.select { |n| n.payload[:name] != "SCHEMA" }
+
+        assert_equal 6, notifications.length
+
+        notifications.each do |n|
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
+        end
+      ensure
+        @connection.disable_query_cache!
+      end
+
       test "queries containing SQL fragments do not allow retries" do
         notifications = capture_notifications("sql.active_record") do
           Post.where("1 = 1").to_a
