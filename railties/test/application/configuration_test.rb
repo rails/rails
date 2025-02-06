@@ -159,7 +159,7 @@ module ApplicationTests
       assert_match(/You're using a cache/, error.message)
     end
 
-    test "a renders exception on pending migration" do
+    test "renders an exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
         config.consider_all_requests_local      = true
@@ -189,6 +189,67 @@ module ApplicationTests
           end
 
           assert_match(/\d{14}\s+CreateUser/, output)
+        end
+
+        assert_equal 302, last_response.status
+
+        get "/foo"
+        assert_equal 404, last_response.status
+      ensure
+        ActiveRecord::Migrator.migrations_paths = nil
+      end
+    end
+
+    test "renders an exception on pending migration for multiple DBs" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = :all
+      RUBY
+
+      app_file "config/database.yml", <<-YAML
+        <%= Rails.env %>:
+          primary:
+            adapter: sqlite3
+            database: 'dev_db'
+          other:
+            adapter: sqlite3
+            database: 'other_dev_db'
+            migrations_paths: db/other_migrate
+      YAML
+
+      app_file "db/migrate/20140708012246_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration::Current
+          def change
+            create_table :users
+          end
+        end
+      RUBY
+
+      app_file "db/other_migrate/20140708012247_create_blogs.rb", <<-RUBY
+        class CreateBlogs < ActiveRecord::Migration::Current
+          def change
+            create_table :blogs
+          end
+        end
+      RUBY
+
+      app "development"
+
+      begin
+        ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate", "#{app_path}/db/other_migrate"]
+
+        get "/foo"
+        assert_equal 500, last_response.status
+        assert_match "ActiveRecord::PendingMigrationError", last_response.body
+
+        assert_changes -> { File.exist?(File.join(app_path, "db", "schema.rb")) }, from: false, to: true do
+          output = capture(:stdout) do
+            post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations", location: "/foo" }
+          end
+
+          assert_match(/\d{14}\s+CreateUsers/, output)
+          assert_match(/\d{14}\s+CreateBlogs/, output)
         end
 
         assert_equal 302, last_response.status

@@ -148,11 +148,10 @@ module ActiveRecord
     include ActiveSupport::ActionableError
 
     action "Run pending migrations" do
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      ActiveRecord::Tasks::DatabaseTasks.migrate_all
 
       if ActiveRecord.dump_schema_after_migration
-        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(connection.pool.db_config)
+        ActiveRecord::Tasks::DatabaseTasks.dump_all
       end
     end
 

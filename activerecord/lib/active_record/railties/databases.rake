@@ -447,11 +447,7 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task dump: :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each do |pool|
-        db_config = pool.db_config
-        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
-      end
+      ActiveRecord::Tasks::DatabaseTasks.dump_all
 
       db_namespace["schema:dump"].reenable
     end
