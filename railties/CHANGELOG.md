@@ -1,3 +1,7 @@
+*   The scaffold generator now generates valid html when the model has_many_attached.
+
+    *Patricio Mac Adden*
+
 *   Update `rails new --minimal` option
 
     Extend the `--minimal` flag to exlcude recently added features:
