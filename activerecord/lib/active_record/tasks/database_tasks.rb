@@ -428,6 +428,14 @@ module ActiveRecord
         end
       end
 
+      def dump_all
+        with_temporary_pool_for_each do |pool|
+          db_config = pool.db_config
+          schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+        end
+      end
+
       def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
         return unless db_config.schema_dump
 
