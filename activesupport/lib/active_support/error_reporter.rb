@@ -26,7 +26,7 @@ module ActiveSupport
   class ErrorReporter
     SEVERITIES = %i(error warning info)
     DEFAULT_SOURCE = "application"
-    DEFAULT_RESCUE = [StandardError].freeze
+    DEFAULT_RESCUE = [Exception].freeze
 
     attr_accessor :logger, :debug_mode
 
@@ -229,7 +229,7 @@ module ActiveSupport
         unless disabled_subscribers&.any? { |s| s === subscriber }
           subscriber.report(error, handled: handled, severity: severity, context: full_context, source: source)
         end
-      rescue => subscriber_error
+      rescue Exception => subscriber_error
         if logger
           logger.fatal(
             "Error subscriber raised an error: #{subscriber_error.message} (#{subscriber_error.class})\n" +

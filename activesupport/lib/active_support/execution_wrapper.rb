@@ -89,7 +89,7 @@ module ActiveSupport
       instance = run!
       begin
         yield
-      rescue => error
+      rescue Exception => error
         error_reporter&.report(error, handled: false, source: source)
         raise
       ensure

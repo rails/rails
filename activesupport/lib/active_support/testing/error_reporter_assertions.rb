@@ -85,7 +85,7 @@ module ActiveSupport
       #   assert_equal "admin", report.context[:section]
       #   assert_equal :warning, report.severity
       #   assert_predicate report, :handled?
-      def assert_error_reported(error_class = StandardError, &block)
+      def assert_error_reported(error_class = Exception, &block)
         reports = ErrorCollector.record do
           _assert_nothing_raised_or_warn("assert_error_reported", &block)
         end
