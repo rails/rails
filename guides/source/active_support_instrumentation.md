@@ -362,6 +362,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:binds`             | Bind parameters                                        |
 | `:type_casted_binds` | Typecasted bind parameters                             |
 | `:async`             | `true` if query is loaded asynchronously               |
+| `:allow_retry`       | `true` if the query can be automatically retried       |
 | `:connection`        | Connection object                                      |
 | `:transaction`       | Current transaction, if any                            |
 | `:affected_rows`     | Number of rows affected by the query                   |
@@ -378,6 +379,7 @@ Adapters may add their own data as well.
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
   async: false,
+  allow_retry: true,
   connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
   affected_rows: 0
