@@ -138,7 +138,7 @@ module ActiveModel
       end
 
       def mutable? # :nodoc:
-        false
+        true
       end
 
       def as_json(*)

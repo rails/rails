@@ -35,6 +35,10 @@ module ActiveModel
         value.to_fs(:db).inspect
       end
 
+      def mutable? # :nodoc:
+        false
+      end
+
       private
         def cast_value(value)
           if value.is_a?(::String)

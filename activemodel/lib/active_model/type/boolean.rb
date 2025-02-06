@@ -35,6 +35,10 @@ module ActiveModel
         value
       end
 
+      def mutable? # :nodoc:
+        false
+      end
+
       private
         def cast_value(value)
           if value == ""
