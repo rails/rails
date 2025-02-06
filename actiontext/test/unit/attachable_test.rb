@@ -14,7 +14,7 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
         metadata: { identified: true },
         service_name: "test",
         byte_size: 4,
-        checksum: "CY9rzUYh03PK3k6DJie09g==",
+        checksum: ActiveStorage::Checksum.new("CY9rzUYh03PK3k6DJie09g==", :MD5).as_json,
         created_at: Time.zone.now.as_json,
         attachable_sgid: attachable.attachable_sgid
       }.deep_stringify_keys
@@ -33,7 +33,7 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
       metadata: { identified: true },
       service_name: "test",
       byte_size: 4,
-      checksum: "CY9rzUYh03PK3k6DJie09g==",
+      checksum: ActiveStorage::Checksum.new("CY9rzUYh03PK3k6DJie09g==", :MD5).as_json,
       created_at: nil,
       attachable_sgid: nil
     }.deep_stringify_keys

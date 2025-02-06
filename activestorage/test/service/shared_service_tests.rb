@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "active_support/core_ext/securerandom"
+require "active_support/testing/method_call_assertions"
 
 module ActiveStorage::Service::SharedServiceTests
   extend ActiveSupport::Concern
@@ -22,7 +23,7 @@ module ActiveStorage::Service::SharedServiceTests
     test "uploading with integrity" do
       key  = SecureRandom.base58(24)
       data = "Something else entirely!"
-      @service.upload(key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data))
+      @service.upload(key, StringIO.new(data), checksum: @service.base64digest(data))
 
       assert_equal data, @service.download(key)
     ensure
@@ -34,7 +35,7 @@ module ActiveStorage::Service::SharedServiceTests
       data = "Something else entirely!"
 
       assert_raises(ActiveStorage::IntegrityError) do
-        @service.upload(key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest("bad data"))
+        @service.upload(key, StringIO.new(data), checksum: @service.base64digest("bad data"))
       end
 
       assert_not @service.exist?(key)
@@ -48,7 +49,7 @@ module ActiveStorage::Service::SharedServiceTests
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage.checksum_implementation.base64digest(data),
+        checksum: @service.base64digest(data),
         filename: "racecar.jpg",
         content_type: "image/jpeg"
       )
@@ -146,7 +147,7 @@ module ActiveStorage::Service::SharedServiceTests
         @service.upload(
           key,
           StringIO.new(data),
-          checksum: Digest::MD5.base64digest(data),
+          checksum: @service.base64digest(data),
           disposition: :attachment,
           filename: ActiveStorage::Filename.new("test.html"),
           content_type: "text/html",
@@ -156,6 +157,26 @@ module ActiveStorage::Service::SharedServiceTests
       @service.compose(keys, destination_key)
 
       assert_equal "Together", @service.download(destination_key)
+    end
+
+    test "md5 returns OpenSSL::Digest::MD5 class" do
+      old_class = @service.instance_variable_get(:@md5_class)
+      @service.instance_variable_set(:@md5_class, nil)
+
+      assert_equal OpenSSL::Digest::MD5, @service.send(:md5)
+
+      @service.instance_variable_set(:@md5_class, old_class)
+    end
+
+    test "md5 returns Digest::MD5 class when OpenSSL unavailable" do
+      old_class = @service.instance_variable_get(:@md5_class)
+      @service.instance_variable_set(:@md5_class, nil)
+
+      OpenSSL::Digest::MD5.stub :hexdigest, proc { |input| raise StandardError } do
+        assert_equal Digest::MD5, @service.send(:md5)
+      end
+
+      @service.instance_variable_set(:@md5_class, old_class)
     end
   end
 end

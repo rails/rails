@@ -153,6 +153,7 @@ Declare a Disk service in `config/storage.yml`:
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
+  default_digest_algorithm: "SHA256"
 ```
 
 ### S3 Service (Amazon S3 and S3-compatible APIs)
@@ -182,6 +183,7 @@ amazon:
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
+  default_digest_algorithm: "SHA256"
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
     cache_control: "private, max-age=<%= 1.day.to_i %>"
@@ -226,6 +228,7 @@ azure:
   storage_account_name: your_account_name
   storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
   container: your_container_name-<%= Rails.env %>
+  default_digest_algorithm: "CRC64"
 ```
 
 Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
@@ -244,6 +247,7 @@ google:
   credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
   bucket: your_own_bucket-<%= Rails.env %>
+  default_digest_algorithm: "CRC32c"
 ```
 
 Optionally provide a Hash of credentials instead of a keyfile path:
