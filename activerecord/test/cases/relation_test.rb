@@ -445,7 +445,19 @@ module ActiveRecord
       end
     end
 
-    test "runs queries when using pick with expression column and empty IN" do
+    test "no queries when using pick with non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"))
+      end
+    end
+
+    test "no queries when using pick with any non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"), Arel.sql("LENGTH(title)"))
+      end
+    end
+
+    test "runs queries when using pick with aggregate expression despite empty IN" do
       assert_queries_count(1) do
         assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end
