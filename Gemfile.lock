@@ -115,8 +115,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.1)
-      public_suffix (>= 2.0.2, < 6.0)
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     amq-protocol (2.3.2)
     ast (2.4.2)
     aws-eventstream (1.2.0)
@@ -192,7 +192,8 @@ GEM
     concurrent-ruby (1.2.2)
     connection_pool (2.3.0)
     cookiejar (0.3.4)
-    crack (0.4.5)
+    crack (1.0.0)
+      bigdecimal
       rexml
     crass (1.0.6)
     cssbundling-rails (1.1.2)
@@ -304,7 +305,7 @@ GEM
       multi_json (~> 1.11)
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
-    hashdiff (1.0.1)
+    hashdiff (1.1.2)
     hiredis (0.6.3)
     http_parser.rb (0.8.0)
     httpclient (2.8.3)
@@ -393,7 +394,7 @@ GEM
       railties (>= 7.0.0)
     psych (5.1.0)
       stringio
-    public_suffix (5.0.1)
+    public_suffix (6.0.1)
     puma (6.0.2)
       nio4r (~> 2.0)
     que (1.4.0)
@@ -448,7 +449,7 @@ GEM
       resque (>= 1.27)
       rufus-scheduler (~> 3.2, != 3.3)
     retriable (3.1.2)
-    rexml (3.3.9)
+    rexml (3.4.0)
     rouge (4.0.1)
     rubocop (1.69.1)
       json (~> 2.3)
@@ -570,7 +571,7 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
       rexml (~> 3.2)
-    webmock (3.18.1)
+    webmock (3.25.0)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
