@@ -1,3 +1,10 @@
+*   Add `allow_retry` to `sql.active_record` instrumentation.
+
+    This enables identifying queries which are and are not automatically
+    retryable on connection errors.
+
+    *Hartley McGuire*
+
 *   Better support UPDATE with JOIN for Postgresql and SQLite3
 
     Previously when generating update queries with one or more JOIN clauses,
