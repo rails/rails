@@ -1,3 +1,7 @@
+*   Fix migrating multiple databases with `ActiveRecord::PendingMigration` action.
+
+    *Gannon McGibbon*
+
 *   Enable automatically retrying idempotent association queries on connection
     errors.
 
