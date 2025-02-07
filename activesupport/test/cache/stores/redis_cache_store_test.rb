@@ -10,7 +10,7 @@ require_relative "../behaviors"
 class SlowRedis < Redis
   def get(key)
     if /latency/.match?(key)
-      sleep 3
+      sleep 0.2
       super
     else
       super
