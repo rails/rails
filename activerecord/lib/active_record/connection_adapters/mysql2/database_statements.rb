@@ -23,7 +23,7 @@ module ActiveRecord
               end
             end
           else
-            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare, async: async) do |_, result|
+            exec_stmt_and_free(sql, name, binds, cache_stmt: prepare, async: async, allow_retry: allow_retry) do |_, result|
               if result
                 build_result(columns: result.fields, rows: result.to_a)
               else
@@ -105,7 +105,7 @@ module ActiveRecord
             end
           end
 
-          def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false)
+          def exec_stmt_and_free(sql, name, binds, cache_stmt: false, async: false, allow_retry: false)
             sql = transform_query(sql)
             check_if_write_query(sql)
 
@@ -114,7 +114,7 @@ module ActiveRecord
             type_casted_binds = type_casted_binds(binds)
 
             log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-              with_raw_connection do |conn|
+              with_raw_connection(allow_retry: allow_retry) do |conn|
                 sync_timezone_changes(conn)
 
                 if cache_stmt
