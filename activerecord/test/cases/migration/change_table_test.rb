@@ -172,7 +172,7 @@ module ActiveRecord
 
         def test_remove_exclusion_constraint_removes_exclusion_constraint
           with_change_table do |t|
-            expect :remove_exclusion_constraint, nil, [:delete_me, name: "date_overlap"]
+            expect :remove_exclusion_constraint, nil, [:delete_me], name: "date_overlap"
             t.remove_exclusion_constraint name: "date_overlap"
           end
         end
@@ -186,7 +186,7 @@ module ActiveRecord
 
         def test_remove_unique_constraint_removes_unique_constraint
           with_change_table do |t|
-            expect :remove_unique_constraint, nil, [:delete_me, name: "unique_constraint"]
+            expect :remove_unique_constraint, nil, [:delete_me], name: "unique_constraint"
             t.remove_unique_constraint name: "unique_constraint"
           end
         end
