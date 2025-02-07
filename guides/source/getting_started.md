@@ -93,8 +93,8 @@ The version shown should be Rails 8.1.0 or higher.
 ### Creating Your First Rails App
 
 Note: In this guide, while specifying commands we use `rails` or `bin/rails`. 
-`rails` will always delegate to `bin/rails`. But we should use commands from the 
-`bin/` folder when running them within an application. 
+Both commands are correct. `rails` will always delegate to `bin/rails`. But 
+we should use commands from the `bin/` folder when running them within an application. 
 
 
 Rails comes with several commands to make life easier. Run `rails --help` to see
