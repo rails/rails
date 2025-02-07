@@ -7,7 +7,7 @@ module ConnectionPoolBehavior
     threads = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(*store, { pool: { size: 2, timeout: 1 } }.merge(store_options))
+      cache = ActiveSupport::Cache.lookup_store(*store, { pool: { size: 2, timeout: 0.1 } }.merge(store_options))
       cache.read("foo")
 
       assert_nothing_raised do
@@ -35,7 +35,7 @@ module ConnectionPoolBehavior
     results = []
 
     emulating_latency do
-      cache = ActiveSupport::Cache.lookup_store(*store, { pool: { size: 2, timeout: 1 } }.merge(store_options))
+      cache = ActiveSupport::Cache.lookup_store(*store, { pool: { size: 2, timeout: 0.1 } }.merge(store_options))
       value = SecureRandom.alphanumeric
       base_key = "latency:#{SecureRandom.uuid}"
 
