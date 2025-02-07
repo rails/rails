@@ -73,6 +73,7 @@ module Arel
         it "should mark collector as non-retryable when visiting named function" do
           function = Nodes::NamedFunction.new("ABS", [@table])
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(function, collector)
 
           assert_equal false, collector.retryable
@@ -81,22 +82,37 @@ module Arel
         it "should mark collector as non-retryable when visiting SQL literal" do
           node = Nodes::SqlLiteral.new("COUNT(*)")
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(node, collector)
 
           assert_equal false, collector.retryable
         end
 
-        it "should mark collector as retryable if SQL literal is marked as retryable" do
+        it "should not change retryable if SQL literal is marked as retryable" do
           node = Nodes::SqlLiteral.new("COUNT(*)", retryable: true)
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(node, collector)
 
-          assert collector.retryable
+          assert_predicate collector, :retryable
+        end
+
+        it "should mark collector as non-retryable if SQL literal is not retryable" do
+          node = Nodes::As.new(
+            Nodes::SqlLiteral.new("`product.id`"),
+            Nodes::SqlLiteral.new("`product.id`", retryable: true)
+          )
+          collector = Collectors::SQLString.new
+          collector.retryable = true
+          @visitor.accept(node, collector)
+
+          assert_equal false, collector.retryable
         end
 
         it "should mark collector as non-retryable when visiting bound SQL literal" do
           node = Nodes::BoundSqlLiteral.new("id IN (?)", [[1, 2, 3]], {})
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(node, collector)
 
           assert_equal false, collector.retryable
@@ -105,6 +121,7 @@ module Arel
         it "should mark collector as non-retryable when visiting insert statement node" do
           statement = Arel::Nodes::InsertStatement.new(@table)
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(statement, collector)
 
           assert_equal false, collector.retryable
@@ -113,6 +130,7 @@ module Arel
         it "should mark collector as non-retryable when visiting update statement node" do
           statement = Arel::Nodes::UpdateStatement.new(@table)
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(statement, collector)
 
           assert_equal false, collector.retryable
@@ -121,6 +139,7 @@ module Arel
         it "should mark collector as non-retryable when visiting delete statement node" do
           statement = Arel::Nodes::DeleteStatement.new(@table)
           collector = Collectors::SQLString.new
+          collector.retryable = true
           @visitor.accept(statement, collector)
 
           assert_equal false, collector.retryable
