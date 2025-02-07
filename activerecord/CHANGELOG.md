@@ -1,3 +1,7 @@
+*   Fix a case where a non-retryable query could be marked retryable.
+
+    *Hartley McGuire*
+
 *   Handle circular references when autosaving associations.
 
     *zzak*
