@@ -483,7 +483,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseError, ConnectionPool::Error => error
+        rescue ::Redis::BaseError, ConnectionPool::Error, ConnectionPool::TimeoutError => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end
