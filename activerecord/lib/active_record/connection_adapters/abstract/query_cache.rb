@@ -239,7 +239,7 @@ module ActiveRecord
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
         if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
-          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable)
+          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
