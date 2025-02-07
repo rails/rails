@@ -9,8 +9,7 @@
 
 *   Add `allow_retry` to `sql.active_record` instrumentation.
 
-    This enables identifying queries which are and are not automatically
-    retryable on connection errors.
+    This enables identifying queries which queries are automatically retryable on connection errors.
 
     *Hartley McGuire*
 
