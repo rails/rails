@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
@@ -219,8 +218,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = create_blob(content_type: "text/html")
 
     freeze_time do
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url
-      assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url(disposition: :inline)
+      with_binary_content_types(%w(text/html)) do
+        assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url
+        assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url(disposition: :inline)
+      end
     end
   end
 
@@ -273,11 +274,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "purge deletes variants from external service with the purge_later" do
-    blob = create_file_blob
-    variant = blob.variant(resize_to_limit: [100, nil]).processed
+    process_variants_with :vips do
+      with_variant_tracking do
+        with_variable_content_types(%w(image/jpeg)) do
+          blob = create_file_blob
+          variant = blob.variant(resize_to_limit: [100, nil]).processed
 
-    blob.purge
-    assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
+          blob.purge
+          assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [variant.image.blob])
+        end
+      end
+    end
   end
 
   test "purge does nothing when attachments exist" do
@@ -322,7 +329,9 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     blob = directly_upload_file_blob(filename: "racecar.jpg", content_type: "application/octet-stream")
 
     assert_called_with(blob.service, :update_metadata, [blob.key], content_type: "image/jpeg", custom_metadata: {}) do
-      blob.update!(content_type: "image/jpeg")
+      with_inline_content_types %w(image/jpeg) do
+        blob.update!(content_type: "image/jpeg")
+      end
     end
   end
 
@@ -349,11 +358,11 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
 
     with_strict_loading_by_default do
-      assert_not_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
-
-      without_variant_tracking do
-        assert_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
+      with_variant_tracking do
+        assert_not_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
       end
+
+      assert_empty ActiveStorage::Blob.scope_for_strict_loading.includes_values
     end
   end
 

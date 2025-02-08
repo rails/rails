@@ -2,17 +2,180 @@
 
 require "active_support/testing/strict_warnings"
 
-ENV["RAILS_ENV"] ||= "test"
-require_relative "dummy/config/environment.rb"
-
 require "bundler/setup"
 require "active_support"
-require "active_support/test_case"
-require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
-require "image_processing/mini_magick"
 
 require "active_record/testing/query_assertions"
+
+require "zeitwerk"
+loader = Zeitwerk::Loader.new
+loader.push_dir("app/controllers")
+loader.push_dir("app/controllers/concerns")
+loader.push_dir("app/jobs")
+loader.push_dir("app/models")
+loader.setup
+
+require "action_view"
+require "action_controller"
+
+require "openssl"
+require "active_storage"
+require "active_storage/reflection"
+require "active_storage/service/registry"
+
+module Rails
+  def self.application
+    @app ||= Application.new
+  end
+
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
+  def self.env
+    "test"
+  end
+
+  class Application
+    def config
+      Rails.configuration
+    end
+
+    def env_config
+      {}
+    end
+
+    def routes
+      @routes ||= ActionDispatch::Routing::RouteSet.new
+    end
+  end
+
+  class Configuration
+    def active_storage
+      @active_storage ||= ActiveSupport::OrderedOptions.new.tap do |config|
+        config.service = :local
+      end
+    end
+
+    def generators(&block)
+      @generators ||= Generators.new
+      yield @generators if block_given?
+      @generators
+    end
+  end
+
+  class Generators
+    attr_accessor :options
+
+    def initialize
+      @options = { active_record: { primary_key_type: nil } }
+      @orm = :active_record
+    end
+
+    def orm(orm = nil, options = {})
+      if orm
+        @options[orm] = options
+      else
+        @orm
+      end
+    end
+  end
+end
+
+load "config/routes.rb"
+Rails.application.routes.default_url_options = { host: "example.com" }
+
+class RoutedRackApp
+  attr_reader :routes
+
+  def initialize(routes, &blk)
+    @routes = routes
+    @stack = ActionDispatch::MiddlewareStack.new(&blk)
+    @app = @stack.build(@routes)
+  end
+
+  def call(env)
+    @app.call(env)
+  end
+end
+
+class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
+  def self.build_app
+    RoutedRackApp.new(Rails.application.routes) do |middleware|
+      yield(middleware) if block_given?
+    end
+  end
+
+  self.app = build_app
+end
+
+ActionView::TestCase.include(Rails.application.routes.url_helpers)
+
+ActiveRecord.include(ActiveStorage::Attached::Model)
+ActiveRecord::Base.include(ActiveStorage::Attached::Model)
+
+ActiveRecord::Base.include(ActiveStorage::Reflection::ActiveRecordExtensions)
+ActiveRecord::Reflection.singleton_class.prepend(ActiveStorage::Reflection::ReflectionExtension)
+
+ActiveSupport.on_load(:active_record) do
+  ActiveStorage.singleton_class.redefine_method(:table_name_prefix) do
+    "#{ActiveRecord::Base.table_name_prefix}active_storage_"
+  end
+end
+
+SERVICE_CONFIGURATIONS = begin
+  config_file = File.join(__dir__, "service/configurations.yml")
+  ActiveSupport::ConfigurationFile.parse(config_file, symbolize_names: true)
+rescue Errno::ENOENT
+  puts "Missing service configuration file in #{config_file}"
+  {}
+end
+# Azure service tests are currently failing on the main branch.
+# We temporarily disable them while we get things working again.
+if ENV["BUILDKITE"]
+  SERVICE_CONFIGURATIONS.delete(:azure)
+  SERVICE_CONFIGURATIONS.delete(:azure_public)
+end
+
+ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(SERVICE_CONFIGURATIONS.merge(
+  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
+  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
+  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
+  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
+  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
+  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
+).deep_stringify_keys)
+
+ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(:local)
+
+ActiveStorage::Blob.service.class.redefine_method(:url_helpers) do
+  @url_helpers ||= Rails.application.routes.url_helpers
+end
+
+class ActiveStorageCreateGroups < ActiveRecord::Migration[6.0]
+  def change
+    create_table :groups do |t|
+    end
+  end
+end
+
+class ActiveStorageCreateUsers < ActiveRecord::Migration[5.2]
+  def change
+    create_table :users do |t|
+      t.string :name
+      t.integer :group_id
+      t.timestamps
+    end
+  end
+end
+
+# Writing and reading roles are required for the "previewing on the writer DB" test
+ActiveRecord::Base.connects_to(database: { writing: "sqlite3::memory:", reading: "sqlite3::memory:" })
+ActiveRecord::Base.connection_pool.migration_context.migrate
+
+ActiveStorageCreateUsers.migrate(:up)
+ActiveStorageCreateGroups.migrate(:up)
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
@@ -35,6 +198,7 @@ class ActiveSupport::TestCase
   end
 
   teardown do
+    @after_teardown_analyzers = ActiveStorage.analyzers
     ActiveStorage::Current.reset
   end
 
@@ -78,13 +242,54 @@ class ActiveSupport::TestCase
       Rack::Test::UploadedFile.new file_fixture(filename).to_s
     end
 
+    def process_variants_with(processor)
+      previous_transformer = ActiveStorage.variant_transformer
+      ActiveStorage.variant_transformer =
+        case processor
+        when :vips
+          ActiveStorage::Transformers::Vips
+        when :mini_magick
+          ActiveStorage::Transformers::ImageMagick
+        else
+          raise "#{processor.inspect} is not a valid image transformer"
+        end
+
+      yield
+    rescue LoadError
+      ENV["BUILDKITE"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
+    ensure
+      ActiveStorage.variant_transformer = previous_transformer
+    end
+
+    def analyze_with(*analyzers)
+      previous_analyzers = ActiveStorage.analyzers
+      ActiveStorage.analyzers = analyzers.map do |analyzer|
+        ActiveStorage::Analyzer.const_get(analyzer)
+      end
+      yield
+    ensure
+      ActiveStorage.analyzers = previous_analyzers
+    end
+
+    def preview_with(*previewers)
+      previous_previewers = ActiveStorage.previewers
+      ActiveStorage.previewers = previewers.map do |previewer|
+        ActiveStorage::Previewer.const_get(previewer)
+      end
+      yield
+    ensure
+      ActiveStorage.previewers = previous_previewers
+    end
+
     def with_service(service_name)
       previous_service = ActiveStorage::Blob.service
+      prevous_config = Rails.application.config.active_storage.service
       ActiveStorage::Blob.service = service_name ? ActiveStorage::Blob.services.fetch(service_name) : nil
-
+      Rails.application.config.active_storage.service = service_name
       yield
     ensure
       ActiveStorage::Blob.service = previous_service
+      Rails.application.config.active_storage.service = prevous_config
     end
 
     def with_strict_loading_by_default(&block)
@@ -95,9 +300,9 @@ class ActiveSupport::TestCase
       ActiveRecord::Base.strict_loading_by_default = strict_loading_was
     end
 
-    def without_variant_tracking(&block)
+    def with_variant_tracking(&block)
       variant_tracking_was = ActiveStorage.track_variants
-      ActiveStorage.track_variants = false
+      ActiveStorage.track_variants = true
       yield
     ensure
       ActiveStorage.track_variants = variant_tracking_was
@@ -113,6 +318,38 @@ class ActiveSupport::TestCase
     ensure
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
+    end
+
+    def with_binary_content_types(content_types)
+      old_content_types = ActiveStorage.content_types_to_serve_as_binary
+      ActiveStorage.content_types_to_serve_as_binary = content_types
+      yield
+    ensure
+      ActiveStorage.content_types_to_serve_as_binary = old_content_types
+    end
+
+    def with_variable_content_types(content_types)
+      old_content_types = ActiveStorage.variable_content_types
+      ActiveStorage.variable_content_types = content_types
+      yield
+    ensure
+      ActiveStorage.variable_content_types = old_content_types
+    end
+
+    def with_web_content_types(content_types)
+      old_content_types = ActiveStorage.web_image_content_types
+      ActiveStorage.web_image_content_types = content_types
+      yield
+    ensure
+      ActiveStorage.web_image_content_types = old_content_types
+    end
+
+    def with_inline_content_types(content_types)
+      old_content_types = ActiveStorage.content_types_allowed_inline
+      ActiveStorage.content_types_allowed_inline = content_types
+      yield
+    ensure
+      ActiveStorage.content_types_allowed_inline = old_content_types
     end
 end
 

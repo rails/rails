@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::StrictLoadingTest < ActiveSupport::TestCase
   class Admin < User

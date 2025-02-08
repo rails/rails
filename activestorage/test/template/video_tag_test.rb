@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::VideoTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
