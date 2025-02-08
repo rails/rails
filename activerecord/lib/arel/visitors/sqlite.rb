@@ -36,6 +36,7 @@ module Arel # :nodoc: all
               collector << " "
               remaining_joins.each do |join|
                 visit join, collector
+                collector << " "
               end
             end
 
