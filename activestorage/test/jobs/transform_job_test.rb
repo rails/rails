@@ -1,10 +1,30 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
+
+require "active_storage/analyzer/image_analyzer"
+require "active_storage/previewer/poppler_pdf_previewer"
 
 class ActiveStorage::TransformJobTest < ActiveJob::TestCase
-  setup { @blob = create_file_blob }
+  setup do
+    @blob = create_file_blob
+    @was_analyzers = ActiveStorage.analyzers
+    @was_previewers = ActiveStorage.previewers
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips]
+    ActiveStorage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer]
+    ActiveStorage.variable_content_types = %w(image/jpeg image/png)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+  end
+
+  teardown do
+    ActiveStorage.analyzers = @previous_analyzers
+    ActiveStorage.previewers = @previous_previewers
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+  end
 
   test "creates variant" do
     transformations = { resize_to_limit: [100, 100] }

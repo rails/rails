@@ -1,9 +1,24 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @was_content_types = ActiveStorage.content_types_allowed_inline
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+
+    ActiveStorage.content_types_allowed_inline = %w(image/jpeg)
+    ActiveStorage.variable_content_types = %w(image/jpeg)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+  end
+
+  teardown do
+    ActiveStorage.content_types_allowed_inline = @was_content_types
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+  end
+
   test "showing blob inline" do
     blob = create_blob(filename: "hello.jpg", content_type: "image/jpeg")
 
@@ -64,9 +79,11 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
 
   test "showing public blob variant" do
     with_service("local_public") do
-      blob = create_file_blob.variant(resize_to_limit: [100, 100]).processed
+      with_web_content_types(%w(image/jpeg)) do
+        blob = create_file_blob.variant(resize_to_limit: [100, 100]).processed
 
-      get blob.url
+        get blob.url
+      end
       assert_response :ok
       assert_equal "image/jpeg", response.headers["Content-Type"]
     end
