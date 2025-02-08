@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
+
+require "active_storage/analyzer/image_analyzer"
+require "active_storage/previewer/poppler_pdf_previewer"
 
 class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -819,25 +821,27 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "raises error when global service configuration is missing" do
-    Rails.configuration.active_storage.stub(:service, nil) do
-      error = assert_raises RuntimeError do
-        User.class_eval do
+    with_service(nil) do
+      msg = <<~MSG.squish
+        Missing Active Storage service name.
+        Specify Active Storage service name for config.active_storage.service in config/environments/test.rb
+      MSG
+      assert_raises(RuntimeError, match: msg) do
+        Class.new(ActiveRecord::Base) do
           has_many_attached :featured_photos
         end
       end
-
-      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
     end
   end
 
   test "raises error when misconfigured service is passed" do
     error = assert_raises ArgumentError do
-      User.class_eval do
+      Class.new(ActiveRecord::Base) do
         has_many_attached :featured_photos, service: :unknown
       end
     end
 
-    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+    assert_match(/Cannot configure service :unknown for (.*)#featured_photos/, error.message)
   end
 
   test "raises error when misconfigured service is defined at runtime" do
@@ -855,15 +859,21 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating variation by variation name" do
-    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
-      @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
-    end
-    variant = @user.highlights_with_variants.first.variant(:thumb).processed
+    process_variants_with :mini_magick do
+      with_variable_content_types(%w(image/jpeg)) do
+        with_web_content_types(%w(image/jpeg)) do
+          assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+            @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+          end
+          variant = @user.highlights_with_variants.first.variant(:thumb).processed
 
-    image = read_image(variant)
-    assert_equal "JPEG", image.type
-    assert_equal 100, image.width
-    assert_equal 67, image.height
+          image = read_image(variant)
+          assert_equal "JPEG", image.type
+          assert_equal 100, image.width
+          assert_equal 67, image.height
+        end
+      end
+    end
   end
 
   test "raises error when unknown variant name is used to generate variant" do
@@ -877,13 +887,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating preview by variation name" do
-    @user.highlights_with_variants.attach fixture_file_upload("report.pdf")
-    preview = @user.highlights_with_variants.first.preview(:thumb).processed
+    preview_with("PopplerPDFPreviewer") do
+      process_variants_with :mini_magick do
+        with_variable_content_types(%w(image/png)) do
+          @user.highlights_with_variants.attach fixture_file_upload("report.pdf")
+          preview = @user.highlights_with_variants.first.preview(:thumb).processed
 
-    image = read_image(preview.send(:variant))
-    assert_equal "PNG", image.type
-    assert_equal 77, image.width
-    assert_equal 100, image.height
+          image = read_image(preview.send(:variant))
+          assert_equal "PNG", image.type
+          assert_equal 77, image.width
+          assert_equal 100, image.height
+        end
+      end
+    end
   end
 
   test "raises error when unknown variant name is used to generate preview" do
@@ -897,13 +913,19 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating representation by variation name" do
-    @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
-    variant = @user.highlights_with_variants.first.representation(:thumb).processed
+    process_variants_with :mini_magick do
+      with_variable_content_types(%w(image/jpeg)) do
+        with_web_content_types(%w(image/jpeg)) do
+          @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
+          variant = @user.highlights_with_variants.first.representation(:thumb).processed
 
-    image = read_image(variant)
-    assert_equal "JPEG", image.type
-    assert_equal 100, image.width
-    assert_equal 67, image.height
+          image = read_image(variant)
+          assert_equal "JPEG", image.type
+          assert_equal 100, image.width
+          assert_equal 67, image.height
+        end
+      end
+    end
   end
 
   test "raises error when unknown variant name is used to generate representation" do
@@ -917,37 +939,43 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "transforms variants later" do
-    blob = create_file_blob(filename: "racecar.jpg")
+    with_variable_content_types(%w(image/jpeg)) do
+      blob = create_file_blob(filename: "racecar.jpg")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
-      @user.highlights_with_preprocessed.attach blob
+      assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [1, 1]] do
+        @user.highlights_with_preprocessed.attach blob
+      end
     end
   end
 
   test "transforms variants later conditionally via proc" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
-      @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
-    end
+    with_variable_content_types(%w(image/jpeg)) do
+      assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
+        @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
+      end
 
-    blob = create_file_blob(filename: "racecar.jpg")
-    @user.update(name: "transform via proc")
+      blob = create_file_blob(filename: "racecar.jpg")
+      @user.update(name: "transform via proc")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
-      @user.highlights_with_conditional_preprocessed.attach blob
+      assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [2, 2]] do
+        @user.highlights_with_conditional_preprocessed.attach blob
+      end
     end
   end
 
   test "transforms variants later conditionally via method" do
-    assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
-      @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
-    end
+    with_variable_content_types(%w(image/jpeg)) do
+      assert_no_enqueued_jobs only: [ ActiveStorage::TransformJob, ActiveStorage::PreviewImageJob ] do
+        @user.highlights_with_conditional_preprocessed.attach create_file_blob(filename: "racecar.jpg")
+      end
 
-    blob = create_file_blob(filename: "racecar.jpg")
-    @user.update(name: "transform via method")
+      blob = create_file_blob(filename: "racecar.jpg")
+      @user.update(name: "transform via method")
 
-    assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
-      assert_no_enqueued_jobs only: ActiveStorage::PreviewImageJob do
-        @user.highlights_with_conditional_preprocessed.attach blob
+      assert_enqueued_with job: ActiveStorage::TransformJob, args: [blob, resize_to_limit: [3, 3]] do
+        assert_no_enqueued_jobs only: ActiveStorage::PreviewImageJob do
+          @user.highlights_with_conditional_preprocessed.attach blob
+        end
       end
     end
   end
