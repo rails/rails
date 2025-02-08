@@ -1,9 +1,7 @@
-*   Allow execution wrapping to handle all exceptions
+*   Change execution wrapping to report all exceptions, including `Exception`.
 
     If a more serious error like `SystemStackError` or `NoMemoryError` happens,
     the error reporter should be able to report these kinds of exceptions.
-    Some are not recoverable, but many are, so we should at least try to
-    report them.
 
     *Gannon McGibbon*
 
