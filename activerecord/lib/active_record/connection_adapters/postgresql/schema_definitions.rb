@@ -308,8 +308,8 @@ module ActiveRecord
         #  t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
         #
         # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
-        def exclusion_constraint(*args)
-          @base.add_exclusion_constraint(name, *args)
+        def exclusion_constraint(...)
+          @base.add_exclusion_constraint(name, ...)
         end
 
         # Removes the given exclusion constraint from the table.
@@ -317,8 +317,8 @@ module ActiveRecord
         #  t.remove_exclusion_constraint(name: "price_check")
         #
         # See {connection.remove_exclusion_constraint}[rdoc-ref:SchemaStatements#remove_exclusion_constraint]
-        def remove_exclusion_constraint(*args)
-          @base.remove_exclusion_constraint(name, *args)
+        def remove_exclusion_constraint(...)
+          @base.remove_exclusion_constraint(name, ...)
         end
 
         # Adds a unique constraint.
@@ -326,8 +326,8 @@ module ActiveRecord
         #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
         #
         # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
-        def unique_constraint(*args)
-          @base.add_unique_constraint(name, *args)
+        def unique_constraint(...)
+          @base.add_unique_constraint(name, ...)
         end
 
         # Removes the given unique constraint from the table.
@@ -335,8 +335,8 @@ module ActiveRecord
         #  t.remove_unique_constraint(name: "unique_position")
         #
         # See {connection.remove_unique_constraint}[rdoc-ref:SchemaStatements#remove_unique_constraint]
-        def remove_unique_constraint(*args)
-          @base.remove_unique_constraint(name, *args)
+        def remove_unique_constraint(...)
+          @base.remove_unique_constraint(name, ...)
         end
 
         # Validates the given constraint on the table.
@@ -345,8 +345,8 @@ module ActiveRecord
         #  t.validate_constraint "price_check"
         #
         # See {connection.validate_constraint}[rdoc-ref:SchemaStatements#validate_constraint]
-        def validate_constraint(*args)
-          @base.validate_constraint(name, *args)
+        def validate_constraint(...)
+          @base.validate_constraint(name, ...)
         end
 
         # Validates the given check constraint on the table
@@ -355,8 +355,8 @@ module ActiveRecord
         #  t.validate_check_constraint name: "price_check"
         #
         # See {connection.validate_check_constraint}[rdoc-ref:SchemaStatements#validate_check_constraint]
-        def validate_check_constraint(*args)
-          @base.validate_check_constraint(name, *args)
+        def validate_check_constraint(...)
+          @base.validate_check_constraint(name, ...)
         end
       end
 
