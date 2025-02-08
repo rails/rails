@@ -34,7 +34,7 @@ GET /users/17
 If the first matching route is:
 
 ```ruby
-get "/users/:id", to: "user#show"
+get "/users/:id", to: "users#show"
 ```
 
 The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
