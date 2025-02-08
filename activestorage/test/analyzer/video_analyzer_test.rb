@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 require "active_storage/analyzer/video_analyzer"
 
 class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
+  setup do
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::VideoAnalyzer]
+  end
+
   test "analyzing a video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     metadata = extract_metadata_from(blob)

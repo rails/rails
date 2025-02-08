@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "active_support/testing/method_call_assertions"
+
+require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -14,6 +15,8 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   teardown { ActiveStorage::Blob.all.each(&:delete) }
 
   test "analyzing a directly-uploaded blob after attaching it" do
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips]
+
     blob = directly_upload_file_blob(filename: "racecar.jpg")
     assert_not blob.analyzed?
 
@@ -60,6 +63,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   end
 
   test "mirroring a directly-uploaded blob after attaching it" do
+    ActiveStorage.analyzers = []
     with_service("mirror") do
       blob = directly_upload_file_blob
       assert_not ActiveStorage::Blob.service.mirrors.second.exist?(blob.key)

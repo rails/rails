@@ -1,10 +1,22 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
+
+class ActiveStorage::DirectUploadsControllerTestCase < ActionDispatch::IntegrationTest
+  # These tests were written assuming the test environment was loaded in the
+  # dummy app which was configured to disable forgery protection.
+  setup do
+    @original_forgery_protection_value = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = false
+  end
+
+  teardown do
+    ActionController::Base.allow_forgery_protection = @original_forgery_protection_value
+  end
+end
 
 if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
-  class ActiveStorage::S3DirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  class ActiveStorage::S3DirectUploadsControllerTest < ActiveStorage::DirectUploadsControllerTestCase
     setup do
       @old_service = ActiveStorage::Blob.service
       ActiveStorage::Blob.service = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
@@ -48,7 +60,7 @@ else
 end
 
 if SERVICE_CONFIGURATIONS[:gcs]
-  class ActiveStorage::GCSDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+  class ActiveStorage::GCSDirectUploadsControllerTest < ActiveStorage::DirectUploadsControllerTestCase
     setup do
       @config = SERVICE_CONFIGURATIONS[:gcs]
 
@@ -92,7 +104,7 @@ else
   puts "Skipping GCS Direct Upload tests because no GCS configuration was supplied"
 end
 
-class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+class ActiveStorage::DiskDirectUploadsControllerTest < ActiveStorage::DirectUploadsControllerTestCase
   test "creating new direct upload" do
     checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
     metadata = {

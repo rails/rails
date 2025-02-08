@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::FixtureSetTest < ActiveSupport::TestCase
   fixtures :all
@@ -28,6 +27,7 @@ class ActiveStorage::FixtureSetTest < ActiveSupport::TestCase
   end
 
   def test_active_storage_metadata
+    ActiveStorage.analyzers = []
     user = users(:first)
 
     avatar = user.avatar.tap(&:analyze)
