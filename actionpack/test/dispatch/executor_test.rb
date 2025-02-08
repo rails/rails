@@ -122,9 +122,9 @@ class ExecutorTest < ActiveSupport::TestCase
 
   def test_error_reporting
     raised_error = nil
-    error_report = assert_error_reported do
-      raised_error = assert_raises TypeError do
-        call_and_return_body { 1 + "1" }
+    error_report = assert_error_reported(Exception) do
+      raised_error = assert_raises Exception do
+        call_and_return_body { raise Exception }
       end
     end
     assert_same raised_error, error_report.error
