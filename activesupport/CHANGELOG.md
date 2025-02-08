@@ -1,3 +1,10 @@
+*   Fix execution wrapping to report all exceptions, including `Exception`.
+
+    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
+    the error reporter should be able to report these kinds of exceptions.
+
+    *Gannon McGibbon*
+
 *   Fix `RedisCacheStore` and `MemCacheStore` to also handle connection pool related errors.
 
     These errors are rescued and reported to `Rails.error`.
