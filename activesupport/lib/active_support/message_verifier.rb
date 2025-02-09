@@ -166,6 +166,8 @@ module ActiveSupport
     #   +config.active_support.use_message_serializer_for_metadata+.
     def initialize(secret, **options)
       raise ArgumentError, "Secret should not be nil." unless secret
+
+      options[:url_safe] = true if options[:url_safe].nil?
       super(**options)
       @secret = secret
       @digest = options[:digest]&.to_s || "SHA1"
