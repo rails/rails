@@ -31,6 +31,14 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "37signals.com", @john.homepage
   end
 
+  test "reading store attributes with indifferent access" do
+    @john.preferences = { "remember_login" => "yes" }
+    assert_equal "yes", @john.remember_login
+
+    @john.preferences = { remember_login: "no" }
+    assert_equal "no", @john.remember_login
+  end
+
   test "writing store attributes does not update unchanged value" do
     admin_user = Admin::User.new(homepage: nil)
     admin_user.homepage = nil
