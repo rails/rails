@@ -89,10 +89,8 @@ class UpdateAllTest < ActiveRecord::TestCase
   def test_dynamic_update_all_with_one_joined_table
     update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
       "toys.name = pets.name"
-    elsif current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    else # PostgreSQLAdapter, SQLite3Adapter
       "name = pets.name"
-    else
-      raise NotImplementedError
     end
 
     toys = Toy.joins(:pet)
@@ -107,10 +105,8 @@ class UpdateAllTest < ActiveRecord::TestCase
   def test_dynamic_update_all_with_two_joined_table
     update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
       "toys.name = owners.name"
-    elsif current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
+    else # PostgreSQLAdapter, SQLite3Adapter
       "name = owners.name"
-    else
-      raise NotImplementedError
     end
 
     toys = Toy.joins(pet: [:owner])
