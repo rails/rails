@@ -316,13 +316,14 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal([:default], json)
   end
 
+  UserNameAndEmail = Struct.new(:name, :email)
+  UserNameAndDate = Struct.new(:name, :date)
+  Custom = Struct.new(:name, :sub)
+
   def test_struct_encoding
-    Struct.new("UserNameAndEmail", :name, :email)
-    Struct.new("UserNameAndDate", :name, :date)
-    Struct.new("Custom", :name, :sub)
-    user_email = Struct::UserNameAndEmail.new "David", "sample@example.com"
-    user_birthday = Struct::UserNameAndDate.new "David", Date.new(2010, 01, 01)
-    custom = Struct::Custom.new "David", user_birthday
+    user_email = UserNameAndEmail.new "David", "sample@example.com"
+    user_birthday = UserNameAndDate.new "David", Date.new(2010, 01, 01)
+    custom = Custom.new "David", user_birthday
 
     json_strings = ""
     json_string_and_date = ""
