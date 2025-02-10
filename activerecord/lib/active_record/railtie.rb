@@ -319,9 +319,24 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.set_signed_id_verifier_secret" do
-      ActiveSupport.on_load(:active_record) do
-        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+    initializer "active_record.signed_id_verifier" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          secret = self.signed_id_verifier_secret
+          secret_generator = if secret
+            secret.respond_to?(:call) ? secret : -> (_) { secret }
+          end
+          options = { secret_generator: secret_generator, digest: "SHA256", serializer: JSON, url_safe: true }.compact
+
+          # This rotation method is only used for the ActiveRecord signed_id_verifier
+          app.message_verifiers.rotate do |salt|
+            next nil if salt != "active_record/signed_id"
+
+            options
+          end
+
+          self.signed_id_verifier ||= app.message_verifier("active_record/signed_id")
+        end
       end
     end
 
