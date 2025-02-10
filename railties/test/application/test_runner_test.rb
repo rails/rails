@@ -969,8 +969,13 @@ module ApplicationTests
       create_test_file :models, "account"
       output = run_test_command("test/models/accnt.rb")
 
-      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
-      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
+      expected = <<~MSG
+        bin/rails: Could not load test file: test/models/accnt.rb. (Rails::TestUnit::InvalidTestError)
+
+        Did you mean?  test/models/account_test.rb
+      MSG
+
+      assert_equal(expected, output)
       assert_not_predicate $?, :success?
     end
 
