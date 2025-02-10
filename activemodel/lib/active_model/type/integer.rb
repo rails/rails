@@ -42,6 +42,7 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       # Column storage size in bytes.
