@@ -1,3 +1,12 @@
+*   Support additional file checksum algorithms in S3 Adapter
+
+    Add support for CRC32, CRC32c, SHA1, SHA256, and CRC64NVMe to S3 service for
+    file integrity checking.
+    Add default_digest_algorithm configuration allowing selection of default
+    checksum algorithm for service. Keep default value as MD5
+
+    *Matt Pasquini*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
