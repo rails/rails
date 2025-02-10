@@ -34,6 +34,30 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
+    test "direct upload with SHA256 checksum" do
+      algorithm = :SHA256
+      service = build_service(default_digest_algorithm: algorithm)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = service.base64digest(data)
+
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", "text/plain"
+      request.add_field "x-amz-checksum-#{algorithm.downcase}", checksum.split(":").last
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal checksum, service.base64digest(service.download(key))
+    ensure
+      service.delete key
+    end
+
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
