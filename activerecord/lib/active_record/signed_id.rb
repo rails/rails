@@ -76,8 +76,9 @@ module ActiveRecord
       end
 
       # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
-      # with the class-level +signed_id_verifier_secret+, which within \Rails comes from the
-      # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
+      # with the class-level +signed_id_verifier_secret+, which within Rails comes from
+      # {Rails.application.key_generator}[rdoc-ref:Rails::Application#key_generator].
+      # By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
         @signed_id_verifier ||= begin
           secret = signed_id_verifier_secret
