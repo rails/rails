@@ -321,7 +321,7 @@ module ActionDispatch
             end
 
             overriden_url_parts = inner_options.slice(*literal_constraints.keys)
-            if overriden_url_parts.empty?
+            if inner_options.delete(RoutesProxy::INTERNAL) || overriden_url_parts.empty?
               result.merge(inner_options).merge(literal_constraints)
             else
               ActionDispatch.deprecator.warn(<<~MSG)

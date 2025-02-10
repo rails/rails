@@ -157,6 +157,10 @@ module TestGenerationPrefix
     class Service
       include RailsApplication.routes.url_helpers
       include RailsApplication.routes.mounted_helpers
+
+      def url_options
+        { host: "www.example.com" }
+      end
     end
 
     def app
@@ -341,6 +345,15 @@ module TestGenerationPrefix
 
       path = engine_object.polymorphic_url(Post.new, host: "www.example.com")
       assert_equal "http://www.example.com/awesome/blog/posts/1", path
+    end
+
+    test "[SERVICE] literal url constraints have precedence" do
+      service = Service.new
+
+      assert_not_deprecated(ActionDispatch.deprecator) do
+        assert_equal("http://developer.net/awesome/blog/panel", service.blog_engine.panel_url)
+        assert_equal("http://tools.w3c.org/lint", service.main_app.lint_url)
+      end
     end
 
     test "[SERVICE] overriding a url part that has a literal constraint is deprecated" do
