@@ -20,7 +20,11 @@ module ActiveSupport
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     class << self
       def encode(value, options = nil)
-        Encoding.json_encoder.new(options).encode(value)
+        if options.nil?
+          Encoding.encode_without_options(value)
+        else
+          Encoding.json_encoder.new(options).encode(value)
+        end
       end
       alias_method :dump, :encode
     end
@@ -108,7 +112,16 @@ module ActiveSupport
 
         # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
-        attr_accessor :json_encoder
+        attr_reader :json_encoder
+
+        def json_encoder=(encoder)
+          @json_encoder = encoder
+          @encoder_without_options = encoder.new
+        end
+
+        def encode_without_options(value) # :nodoc:
+          @encoder_without_options.encode(value)
+        end
       end
 
       self.use_standard_json_time_format = true
