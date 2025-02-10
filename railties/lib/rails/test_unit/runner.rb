@@ -11,10 +11,7 @@ module Rails
   module TestUnit
     class InvalidTestError < StandardError
       def initialize(path, suggestion)
-        super(<<~MESSAGE.squish)
-          Could not load test file: #{path}.
-          #{suggestion}
-        MESSAGE
+        super("Could not load test file: #{path}. #{suggestion}")
       end
     end
 
