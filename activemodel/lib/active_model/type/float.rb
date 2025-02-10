@@ -34,6 +34,7 @@ module ActiveModel
     # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
     # - <tt>"NaN"</tt> is cast to +Float::NAN+.
     class Float < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       def type
