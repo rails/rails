@@ -96,7 +96,13 @@ module ActiveRecord
         end
 
         def schema_expression(column)
-          "-> { #{column.default_function.inspect} }" if column.default_function
+          return unless column.default_function
+
+          if column.default_function.match?(/^#{Regexp.escape(@connection.high_precision_current_timestamp)}$/i)
+            "-> { high_precision_current_timestamp } "
+          else
+            "-> { #{column.default_function.inspect} }"
+          end
         end
 
         def schema_collation(column)

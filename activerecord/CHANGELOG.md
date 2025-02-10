@@ -1,3 +1,7 @@
+*   High precision timestamp column is dumped as `high_precision_current_timestamp` in `.rb` schemas.
+
+    *Nikita Vasilevsky*
+
 *   Fix migrating multiple databases with `ActiveRecord::PendingMigration` action.
 
     *Gannon McGibbon*

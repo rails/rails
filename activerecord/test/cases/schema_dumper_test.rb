@@ -931,12 +931,14 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
+    high_precision_timestamp_function = @connection.high_precision_current_timestamp
     @connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
       t.time     :time_with_default,     default: "07:17:04"
       t.decimal  :decimal_with_default,  default: "1234567890.0123456789", precision: 20, scale: 10
+      t.datetime :high_precision_published_at, default: -> { high_precision_timestamp_function }
 
       if supports_text_column_with_default?
         t.text :text_with_default, default: "John' Doe"
@@ -963,6 +965,11 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   teardown do
     @connection.drop_table "dump_defaults", if_exists: true
+  end
+
+  def test_schema_dump_abstracts_high_precision_current_timestamp
+    output = dump_table_schema("dump_defaults")
+    assert_match %r{t\.datetime\s+"high_precision_published_at",\s+default: -> \{ high_precision_current_timestamp \}}, output
   end
 
   def test_schema_dump_defaults_with_universally_supported_types
