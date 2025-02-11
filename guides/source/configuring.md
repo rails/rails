@@ -2986,8 +2986,28 @@ The default value depends on the `config.load_defaults` target version:
 Accepts an array of classes indicating the analyzers available for Active Storage blobs.
 By default, this is defined as:
 
+When the variant processor is set to `:vips`:
+
 ```ruby
-config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
+config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+```
+
+When the variant processor is set to `:mini_magick`:
+
+```ruby
+config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
+```
+
+It can also be configured to use custom analyzers:
+
+```ruby
+config.active_storage.analyzers = [ CustomAnalyzer ]
+```
+
+Finally, it can also be configured not to use any analyzers:
+
+```ruby
+config.active_storage.analyzers = []
 ```
 
 The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
