@@ -243,7 +243,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_restrict_with_error_with_locale
     I18n.backend = I18n::Backend::Simple.new
-    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { account: "firm account" } } }
+    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { account: "LLC account" } } }
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.create_account(credit_limit: 10)
 
@@ -252,7 +252,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     firm.destroy
 
     assert_not_empty firm.errors
-    assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
+    assert_equal "Cannot delete record because a dependent LLC account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert_predicate firm.account, :present?
   ensure
