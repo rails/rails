@@ -48,26 +48,22 @@ module ActionDispatch
         end
 
         def move(t, full_string, token, start_index, token_matches_default)
-          return [] if t.empty?
-
-          next_states = []
-
           transitions_count = t.size
           i = 0
           while i < transitions_count
-            s = t[i]
-            previous_start = t[i + 1]
+            s = t.shift
+            previous_start = t.shift
             if previous_start.nil?
               # In the simple case of a "default" param regex do this fast-path and add all
               # next states.
               if token_matches_default && std_state = @stdparam_states[s]
-                next_states << std_state << nil
+                t << std_state << nil
               end
 
               # When we have a literal string, we can just pull the next state
               if states = @string_states[s]
                 state = states[token]
-                next_states << state << nil unless state.nil?
+                t << state << nil unless state.nil?
               end
             end
 
@@ -87,18 +83,16 @@ module ActionDispatch
 
               states.each { |re, v|
                 # if we match, we can try moving past this
-                next_states << v << nil if !v.nil? && re.match?(curr_slice)
+                t << v << nil if !v.nil? && re.match?(curr_slice)
               }
 
               # and regardless, we must continue accepting tokens and retrying this regexp. we
               # need to remember where we started as well so we can take bigger slices.
-              next_states << s << slice_start
+              t << s << slice_start
             end
 
             i += 2
           end
-
-          next_states
         end
 
         def as_json(options = nil)

@@ -20,8 +20,6 @@ module ActionDispatch
         STATIC_TOKENS["?".ord] = "?"
         STATIC_TOKENS.freeze
 
-        INITIAL_STATE = [0, nil].freeze
-
         attr_reader :tt
 
         def initialize(transition_table)
@@ -29,7 +27,7 @@ module ActionDispatch
         end
 
         def memos(string)
-          state = INITIAL_STATE
+          state = [0, nil]
 
           pos = 0
           eos = string.bytesize
@@ -39,14 +37,14 @@ module ActionDispatch
             pos += 1
 
             if (token = STATIC_TOKENS[string.getbyte(start_index)])
-              state = tt.move(state, string, token, start_index, false)
+              tt.move(state, string, token, start_index, false)
             else
               while pos < eos && STATIC_TOKENS[string.getbyte(pos)].nil?
                 pos += 1
               end
 
               token = string.byteslice(start_index, pos - start_index)
-              state = tt.move(state, string, token, start_index, true)
+              tt.move(state, string, token, start_index, true)
             end
           end
 
