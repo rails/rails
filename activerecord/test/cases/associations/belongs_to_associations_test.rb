@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "activejob/helper"
+
 require "cases/helper"
 require "models/developer"
 require "models/project"
@@ -33,6 +35,8 @@ require "models/club"
 require "models/cpk"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
+  include ActiveJob::TestHelper
+
   fixtures :accounts, :companies, :developers, :projects, :topics,
            :developers_projects, :computers, :authors, :author_addresses,
            :essays, :posts, :tags, :taggings, :comments, :sponsors, :members, :nodes, :cpk_books
@@ -1197,6 +1201,47 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       Class.new(Author).belongs_to :special_author_address, dependent: :nullify
     end
     assert_equal "The :dependent option must be one of [:destroy, :delete, :destroy_async], but is :nullify", error.message
+  end
+
+  class DestroyViaBelongsToBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyViaBelongsToAuthor", dependent: :destroy
+  end
+
+  class DestroyAsyncViaBelongsToBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyViaBelongsToAuthor", dependent: :destroy_async
+  end
+
+  class DestroyViaBelongsToAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "DestroyViaBelongsToBook", foreign_key: "author_id"
+    before_destroy :dont, unless: :destroyed_by_association
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  test "destroyed_by_association set in child destroy callback on parent destroy" do
+    author = DestroyViaBelongsToAuthor.create!(name: "Test")
+    book = DestroyViaBelongsToBook.create!(author: author)
+
+    book.destroy
+
+    assert_not DestroyViaBelongsToAuthor.exists?(book.id)
+  end
+
+  test "destroyed_by_association set in child destroy callback on parent destroy_async" do
+    author = DestroyViaBelongsToAuthor.create!(name: "Test")
+    book = DestroyAsyncViaBelongsToBook.create!(author: author)
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_not DestroyViaBelongsToAuthor.exists?(book.id)
   end
 
   class EssayDestroy < ActiveRecord::Base
