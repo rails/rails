@@ -151,9 +151,9 @@ class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
       output = dump_table_schema("defaults")
       if ActiveRecord::Base.lease_connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
-        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-        assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { high_precision_current_timestamp }/, output
+        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { high_precision_current_timestamp }/, output
+        assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { high_precision_current_timestamp }/, output
       else
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
@@ -189,7 +189,7 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
 
     test "schema dump datetime includes precise default expression" do
       output = dump_table_schema("datetime_defaults")
-      assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+      assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { high_precision_current_timestamp }/i, output
     end
 
     test "schema dump datetime includes precise default expression with on update" do
@@ -204,7 +204,7 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
 
     test "schema dump timestamp includes precise default expression" do
       output = dump_table_schema("timestamp_defaults")
-      assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+      assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { high_precision_current_timestamp }/i, output
     end
 
     test "schema dump timestamp includes precise default expression with on update" do
