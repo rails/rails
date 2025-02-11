@@ -43,6 +43,10 @@ module ActiveSupport
           deserialize_entry(read_serialized_entry(key))
         end
 
+        def read_multi_entries(names, **options)
+          names.index_with(nil)
+        end
+
         def read_serialized_entry(_key, **)
         end
 

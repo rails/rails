@@ -61,6 +61,10 @@ module ActiveSupport
           def fetch_entry(key) # :nodoc:
             @data.fetch(key) { @data[key] = yield }
           end
+
+          def exist?(key)
+            @data.key?(key)
+          end
         end
 
         # Use a local cache for the duration of block.
@@ -111,11 +115,15 @@ module ActiveSupport
         private
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
-              hit = true
-              entry = cache.fetch_entry(key) do
+              if cache.exist?(key)
+                hit = true
+                entry = cache.read_entry(key)
+              else
                 hit = false
-                super
+                entry = super
+                cache.write_entry(key, entry) if entry
               end
+
               options[:event][:store] = cache.class.name if hit && options[:event]
               entry
             else

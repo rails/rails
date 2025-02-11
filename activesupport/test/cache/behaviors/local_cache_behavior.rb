@@ -111,7 +111,7 @@ module LocalCacheBehavior
     @cache.with_local_cache do
       assert_nil @cache.read(key)
       @cache.send(:bypass_local_cache) { @cache.write(key, value) }
-      assert_nil @cache.read(key)
+      assert_equal value, @cache.read(key)
     end
   end
 
@@ -183,6 +183,11 @@ module LocalCacheBehavior
       @cache.write(key, SecureRandom.alphanumeric)
       @peek.delete(key)
       assert @cache.exist?(key)
+
+      @cache.delete(key)
+      assert_not @cache.exist?(key)
+      result = @cache.fetch_multi(key) { "value" }
+      assert_equal({ key => "value" }, result)
     end
   end
 
