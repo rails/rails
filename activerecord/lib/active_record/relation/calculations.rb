@@ -463,9 +463,12 @@ module ActiveRecord
       end
 
       def possible_aggregation?(column_names)
-        column_names.any? do |column_name|
-          Arel.arel_node?(column_name) ||
-            (column_name.is_a?(String) && column_name.include?("("))
+        column_names.all? do |column_name|
+          if column_name.is_a?(String)
+            column_name.include?("(")
+          else
+            Arel.arel_node?(column_name)
+          end
         end
       end
 
