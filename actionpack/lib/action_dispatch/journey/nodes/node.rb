@@ -81,7 +81,7 @@ module ActionDispatch
         end
 
         def to_s
-          Visitors::String::INSTANCE.accept(self, "")
+          Visitors::String::INSTANCE.accept(self, "".dup)
         end
 
         def to_dot
