@@ -297,6 +297,16 @@ class LoggingTest < ActiveSupport::TestCase
         assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
       end
     end
+
+    def test_retry_different_queue_logging
+      perform_enqueued_jobs do
+        perform_enqueued_jobs do
+          RetryJob.perform_later("HeavyError", 2)
+          assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(default\) in .*ms/, @logger.messages)
+        end
+        assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(low\) in .*ms/, @logger.messages)
+      end
+    end
   end
 
   def test_enqueue_retry_logging_on_retry_job
