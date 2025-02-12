@@ -20,7 +20,7 @@ module ActionDispatch
         STATIC_TOKENS["?".ord] = "?"
         STATIC_TOKENS.freeze
 
-        INITIAL_STATE = [ [0, nil] ].freeze
+        INITIAL_STATE = [0, nil].freeze
 
         attr_reader :tt
 
@@ -50,9 +50,17 @@ module ActionDispatch
             end
           end
 
-          acceptance_states = state.each_with_object([]) do |s_d, memos|
-            s, idx = s_d
-            memos.concat(tt.memo(s)) if idx.nil? && tt.accepting?(s)
+          acceptance_states = []
+          states_count = state.size
+          i = 0
+          while i < states_count
+            if state[i + 1].nil?
+              s = state[i]
+              if tt.accepting?(s)
+                acceptance_states.concat(tt.memo(s))
+              end
+            end
+            i += 2
           end
 
           acceptance_states.empty? ? yield : acceptance_states

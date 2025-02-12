@@ -52,17 +52,22 @@ module ActionDispatch
 
           next_states = []
 
-          t.each { |s, previous_start|
+          transitions_count = t.size
+          i = 0
+          while i < transitions_count
+            s = t[i]
+            previous_start = t[i + 1]
             if previous_start.nil?
               # In the simple case of a "default" param regex do this fast-path and add all
               # next states.
               if token_matches_default && std_state = @stdparam_states[s]
-                next_states << [std_state, nil].freeze
+                next_states << std_state << nil
               end
 
               # When we have a literal string, we can just pull the next state
               if states = @string_states[s]
-                next_states << [states[token], nil].freeze unless states[token].nil?
+                state = states[token]
+                next_states << state << nil unless state.nil?
               end
             end
 
@@ -82,14 +87,16 @@ module ActionDispatch
 
               states.each { |re, v|
                 # if we match, we can try moving past this
-                next_states << [v, nil].freeze if !v.nil? && re.match?(curr_slice)
+                next_states << v << nil if !v.nil? && re.match?(curr_slice)
               }
 
               # and regardless, we must continue accepting tokens and retrying this regexp. we
               # need to remember where we started as well so we can take bigger slices.
-              next_states << [s, slice_start].freeze
+              next_states << s << slice_start
             end
-          }
+
+            i += 2
+          end
 
           next_states
         end
