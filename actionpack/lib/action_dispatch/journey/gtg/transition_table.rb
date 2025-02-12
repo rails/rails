@@ -47,25 +47,22 @@ module ActionDispatch
           Array(t)
         end
 
-        def move(t, full_string, start_index, end_index)
+        def move(t, full_string, token, start_index, token_matches_default)
           return [] if t.empty?
 
           next_states = []
-
-          tok = full_string.slice(start_index, end_index - start_index)
-          token_matches_default_component = DEFAULT_EXP_ANCHORED.match?(tok)
 
           t.each { |s, previous_start|
             if previous_start.nil?
               # In the simple case of a "default" param regex do this fast-path and add all
               # next states.
-              if token_matches_default_component && std_state = @stdparam_states[s]
+              if token_matches_default && std_state = @stdparam_states[s]
                 next_states << [std_state, nil].freeze
               end
 
               # When we have a literal string, we can just pull the next state
               if states = @string_states[s]
-                next_states << [states[tok], nil].freeze unless states[tok].nil?
+                next_states << [states[token], nil].freeze unless states[token].nil?
               end
             end
 
@@ -80,7 +77,7 @@ module ActionDispatch
                 previous_start
               end
 
-              slice_length = end_index - slice_start
+              slice_length = start_index + token.length - slice_start
               curr_slice = full_string.slice(slice_start, slice_length)
 
               states.each { |re, v|
