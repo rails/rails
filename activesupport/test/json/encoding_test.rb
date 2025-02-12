@@ -484,6 +484,33 @@ EXPECTED
     assert_equal STDOUT.to_s.to_json, STDOUT.to_json
   end
 
+  class AsJSONLoop
+    def initialize(count)
+      @count = count
+    end
+
+    def as_json
+      if @count > 0
+        @count -= 1
+        dup
+      else
+        self
+      end
+    end
+  end
+
+  def test_as_json_infinite_loop
+    assert_raise SystemStackError do
+      AsJSONLoop.new(Float::INFINITY).to_json
+    end
+  end
+
+  def test_as_json_too_recursive
+    assert_raise SystemStackError do
+      AsJSONLoop.new(20).to_json
+    end
+  end
+
   private
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
@@ -503,4 +530,17 @@ EXPECTED
     ensure
       ActiveSupport::JSON::Encoding.time_precision = old_value
     end
+end
+
+if defined?(::JSON::Coder)
+  class OldJSONEncodingTest < TestJSONEncoding
+    setup do
+      @json_encoder = ActiveSupport::JSON::Encoding.json_encoder
+      ActiveSupport::JSON::Encoding.json_encoder = ActiveSupport::JSON::Encoding::JSONGemEncoder
+    end
+
+    teardown do
+      ActiveSupport::JSON::Encoding.json_encoder = @json_encoder
+    end
+  end
 end
