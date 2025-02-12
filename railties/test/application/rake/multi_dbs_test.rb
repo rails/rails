@@ -718,6 +718,60 @@ module ApplicationTests
         db_migrate_and_schema_dump_and_load_one_database("animals", "sql")
       end
 
+      test "db:schema:load:name loads schema to development and test databases" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/development.sqlite3
+              adapter: sqlite3
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+          test:
+            primary:
+              database: storage/test.sqlite3
+              adapter: sqlite3
+            animals:
+              database: storage/test_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary"
+
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          assert_equal "[]", ar_tables[]
+
+          rails "db:schema:load:primary"
+
+          ar_tables = lambda { rails("runner", "-e", "test", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
+        end
+      end
+
+      test "db:schema:load:name loads schema only to development database if there is no test database" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/development.sqlite3
+              adapter: sqlite3
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+        YAML
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate:primary"
+
+          rails "db:schema:load:primary"
+
+          ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
+          assert_equal '["ar_internal_metadata", "books", "schema_migrations"]', ar_tables[]
+        end
+      end
+
       test "db:test:prepare:name works for the primary database with a ruby schema" do
         db_test_prepare_name("primary", "ruby")
       end
