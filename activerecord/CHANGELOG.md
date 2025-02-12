@@ -1,3 +1,7 @@
+*   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
+
+    *Hartley McGuire*
+
 *   Fix migrating multiple databases with `ActiveRecord::PendingMigration` action.
 
     *Gannon McGibbon*
