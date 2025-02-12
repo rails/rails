@@ -52,7 +52,11 @@ module ActionDispatch
 
           next_states = []
 
-          t.each_slice(2) { |s, previous_start|
+          transitions_count = t.size
+          i = 0
+          while i < transitions_count
+            s = t[i]
+            previous_start = t[i + 1]
             if previous_start.nil?
               # In the simple case of a "default" param regex do this fast-path and add all
               # next states.
@@ -90,7 +94,9 @@ module ActionDispatch
               # need to remember where we started as well so we can take bigger slices.
               next_states << s << slice_start
             end
-          }
+
+            i += 2
+          end
 
           next_states
         end
