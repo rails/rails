@@ -284,6 +284,11 @@ module ActiveRecord
         end
 
       private
+        def instantiate_instance_of(klass, attributes, column_types = {}, &block)
+          attributes.except!(*klass.ignored_columns) if using_single_table_inheritance?(attributes)
+          super
+        end
+
         def inherited(subclass)
           super
           subclass.set_base_class
