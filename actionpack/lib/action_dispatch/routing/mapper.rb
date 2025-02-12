@@ -87,7 +87,7 @@ module ActionDispatch
         attr_reader :path, :requirements, :defaults, :to, :default_controller,
                     :default_action, :required_defaults, :ast, :scope_options
 
-        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
+        def self.build(scope, set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, internal, options)
           scope_params = {
             blocks: scope[:blocks] || [],
             constraints: scope[:constraints] || {},
@@ -98,7 +98,7 @@ module ActionDispatch
 
           new set: set, ast: ast, controller: controller, default_action: default_action,
               to: to, formatted: formatted, via: via, options_constraints: options_constraints,
-              anchor: anchor, scope_params: scope_params, options: scope_params[:options].merge(options)
+              anchor: anchor, scope_params: scope_params, internal: internal, options: scope_params[:options].merge(options)
         end
 
         def self.check_via(via)
@@ -129,7 +129,7 @@ module ActionDispatch
           format != false && !path.match?(OPTIONAL_FORMAT_REGEX)
         end
 
-        def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, options:)
+        def initialize(set:, ast:, controller:, default_action:, to:, formatted:, via:, options_constraints:, anchor:, scope_params:, internal:, options:)
           @defaults           = scope_params[:defaults]
           @set                = set
           @to                 = intern(to)
@@ -137,7 +137,7 @@ module ActionDispatch
           @default_action     = intern(default_action)
           @anchor             = anchor
           @via                = via
-          @internal           = options.delete(:internal)
+          @internal           = internal
           @scope_options      = scope_params[:options]
           ast                 = Journey::Ast.new(ast, formatted)
 
@@ -375,35 +375,18 @@ module ActionDispatch
             Routing::RouteSet::Dispatcher.new raise_on_name_error
           end
 
-          if Thread.respond_to?(:each_caller_location)
-            def route_source_location
-              if Mapper.route_source_locations
-                action_dispatch_dir = File.expand_path("..", __dir__)
-                Thread.each_caller_location do |location|
-                  next if location.path.start_with?(action_dispatch_dir)
+          def route_source_location
+            if Mapper.route_source_locations
+              action_dispatch_dir = File.expand_path("..", __dir__)
+              Thread.each_caller_location do |location|
+                next if location.path.start_with?(action_dispatch_dir)
 
-                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                  next if cleaned_path.nil?
+                cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
+                next if cleaned_path.nil?
 
-                  return "#{cleaned_path}:#{location.lineno}"
-                end
-                nil
+                return "#{cleaned_path}:#{location.lineno}"
               end
-            end
-          else
-            def route_source_location
-              if Mapper.route_source_locations
-                action_dispatch_dir = File.expand_path("..", __dir__)
-                caller_locations.each do |location|
-                  next if location.path.start_with?(action_dispatch_dir)
-
-                  cleaned_path = Mapper.backtrace_cleaner.clean_frame(location.path)
-                  next if cleaned_path.nil?
-
-                  return "#{cleaned_path}:#{location.lineno}"
-                end
-                nil
-              end
+              nil
             end
           end
       end
@@ -470,7 +453,6 @@ module ActionDispatch
         # When a pattern points to an internal route, the route's `:action` and
         # `:controller` should be set in options or hash shorthand. Examples:
         #
-        #     match 'photos/:id' => 'photos#show', via: :get
         #     match 'photos/:id', to: 'photos#show', via: :get
         #     match 'photos/:id', controller: 'photos', action: 'show', via: :get
         #
@@ -614,10 +596,6 @@ module ActionDispatch
         #
         #     mount SomeRackApp, at: "some_route"
         #
-        # Alternatively:
-        #
-        #     mount(SomeRackApp => "some_route")
-        #
         # For options, see `match`, as `mount` uses it internally.
         #
         # All mounted applications come with routing helpers to access them. These are
@@ -625,21 +603,36 @@ module ActionDispatch
         # `some_rack_app_path` or `some_rack_app_url`. To customize this helper's name,
         # use the `:as` option:
         #
-        #     mount(SomeRackApp => "some_route", as: "exciting")
+        #     mount(SomeRackApp, at: "some_route", as: "exciting")
         #
         # This will generate the `exciting_path` and `exciting_url` helpers which can be
         # used to navigate to this mounted app.
-        def mount(app, options = nil)
-          if options
-            path = options.delete(:at)
-          elsif Hash === app
-            options = app
-            app, path = options.find { |k, _| k.respond_to?(:call) }
-            options.delete(app) if app
+        def mount(app = nil, deprecated_options = nil, as: DEFAULT, via: nil, at: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          if deprecated_options.is_a?(Hash)
+            as = assign_deprecated_option(deprecated_options, :as, :mount) if deprecated_options.key?(:as)
+            via ||= assign_deprecated_option(deprecated_options, :via, :mount)
+            at ||= assign_deprecated_option(deprecated_options, :at, :mount)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :mount)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :mount)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :mount) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :mount) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :mount)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :mount)
+            assign_deprecated_options(deprecated_options, mapping, :mount)
+          end
+
+          path_or_action = at
+
+          if app.nil?
+            hash_app, hash_path = mapping.find { |key, _| key.respond_to?(:call) }
+            mapping.delete(hash_app) if hash_app
+
+            app ||= hash_app
+            path_or_action ||= hash_path
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<~MSG unless path
+          raise ArgumentError, <<~MSG unless path_or_action
             Must be called with mount point
 
               mount SomeRackApp, at: "some_route"
@@ -648,12 +641,12 @@ module ActionDispatch
           MSG
 
           rails_app = rails_app? app
-          options[:as] ||= app_name(app, rails_app)
+          as = app_name(app, rails_app) if as == DEFAULT
 
-          target_as       = name_for_action(options[:as], path)
-          options[:via] ||= :all
+          target_as = name_for_action(as, path_or_action)
+          via ||= :all
 
-          match(path, { to: app, anchor: false, format: false }.merge(options))
+          match(path_or_action, to: app, as:, via:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, &block)
 
           define_generate_prefix(app, target_as) if rails_app
           self
@@ -665,7 +658,7 @@ module ActionDispatch
         alias_method :default_url_options, :default_url_options=
 
         def with_default_scope(scope, &block)
-          scope(scope) do
+          scope(**scope) do
             instance_exec(&block)
           end
         end
@@ -676,6 +669,24 @@ module ActionDispatch
         end
 
         private
+          def assign_deprecated_option(deprecated_options, key, method_name)
+            if (deprecated_value = deprecated_options.delete(key))
+              ActionDispatch.deprecator.warn(<<~MSG.squish)
+                #{method_name} received a hash argument #{key}. Please use a keyword instead.
+              MSG
+              deprecated_value
+            end
+          end
+
+          def assign_deprecated_options(deprecated_options, options, method_name)
+            deprecated_options.each do |key, value|
+              ActionDispatch.deprecator.warn(<<~MSG.squish)
+                #{method_name} received a hash argument #{key}. Please use a keyword instead.
+              MSG
+              options[key] = value
+            end
+          end
+
           def rails_app?(app)
             app.is_a?(Class) && app < Rails::Railtie
           end
@@ -729,57 +740,171 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match)
         #
         #     get 'bacon', to: 'food#bacon'
-        def get(*args, &block)
-          map_method(:get, args, &block)
+        def get(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :get) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :get)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :get)
+            action ||= assign_deprecated_option(deprecated_options, :action, :get)
+            on ||= assign_deprecated_option(deprecated_options, :on, :get)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :get)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :get)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :get) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :get) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :get)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :get)
+            assign_deprecated_options(deprecated_options, mapping, :get)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :get, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP POST. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     post 'bacon', to: 'food#bacon'
-        def post(*args, &block)
-          map_method(:post, args, &block)
+        def post(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :post) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :post)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :post)
+            action ||= assign_deprecated_option(deprecated_options, :action, :post)
+            on ||= assign_deprecated_option(deprecated_options, :on, :post)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :post)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :post)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :post) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :post) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :post)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :post)
+            assign_deprecated_options(deprecated_options, mapping, :post)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :post, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP PATCH. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     patch 'bacon', to: 'food#bacon'
-        def patch(*args, &block)
-          map_method(:patch, args, &block)
+        def patch(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :patch) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :patch)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :patch)
+            action ||= assign_deprecated_option(deprecated_options, :action, :patch)
+            on ||= assign_deprecated_option(deprecated_options, :on, :patch)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :patch)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :patch)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :patch) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :patch) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :patch)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :patch)
+            assign_deprecated_options(deprecated_options, mapping, :patch)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :patch, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP PUT. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     put 'bacon', to: 'food#bacon'
-        def put(*args, &block)
-          map_method(:put, args, &block)
+        def put(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :put) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :put)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :put)
+            action ||= assign_deprecated_option(deprecated_options, :action, :put)
+            on ||= assign_deprecated_option(deprecated_options, :on, :put)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :put)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :put)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :put) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :put) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :put)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :put)
+            assign_deprecated_options(deprecated_options, mapping, :put)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :put, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP DELETE. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     delete 'broccoli', to: 'food#broccoli'
-        def delete(*args, &block)
-          map_method(:delete, args, &block)
+        def delete(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :delete) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :delete)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :delete)
+            action ||= assign_deprecated_option(deprecated_options, :action, :delete)
+            on ||= assign_deprecated_option(deprecated_options, :on, :delete)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :delete)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :delete)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :delete) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :delete) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :delete)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :delete)
+            assign_deprecated_options(deprecated_options, mapping, :delete)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :delete, &block)
+          self
         end
 
         # Define a route that only recognizes HTTP OPTIONS. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
         #     options 'carrots', to: 'food#carrots'
-        def options(*args, &block)
-          map_method(:options, args, &block)
+        def options(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :options) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :options)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :options)
+            action ||= assign_deprecated_option(deprecated_options, :action, :options)
+            on ||= assign_deprecated_option(deprecated_options, :on, :options)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :options)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :options)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :options) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :options) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :options)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :options)
+            assign_deprecated_options(deprecated_options, mapping, :options)
+          end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :options, &block)
+          self
         end
 
-        private
-          def map_method(method, args, &block)
-            options = args.extract_options!
-            options[:via] = method
-            match(*args, options, &block)
-            self
+        # Define a route that recognizes HTTP CONNECT (and GET) requests. More
+        # specifically this recognizes HTTP/1 protocol upgrade requests and HTTP/2
+        # CONNECT requests with the protocol pseudo header. For supported arguments,
+        # see [match](rdoc-ref:Base#match)
+        #
+        #     connect 'live', to: 'live#index'
+        def connect(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: false, format: false, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :connect) if deprecated_options.key?(:as)
+            to ||= assign_deprecated_option(deprecated_options, :to, :connect)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :connect)
+            action ||= assign_deprecated_option(deprecated_options, :action, :connect)
+            on ||= assign_deprecated_option(deprecated_options, :on, :connect)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :connect)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :connect)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :connect) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :connect) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :connect)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :connect)
+            assign_deprecated_options(deprecated_options, mapping, :connect)
           end
+
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: [:get, :connect], &block)
+          self
+        end
       end
 
       # You may wish to organize groups of controllers under a namespace. Most
@@ -852,7 +977,7 @@ module ActionDispatch
         #
         # Takes same options as `Base#match` and `Resources#resources`.
         #
-        #     # route /posts (without the prefix /admin) to +Admin::PostsController+
+        #     # route /posts (without the prefix /admin) to Admin::PostsController
         #     scope module: "admin" do
         #       resources :posts
         #     end
@@ -862,12 +987,17 @@ module ActionDispatch
         #       resources :posts
         #     end
         #
-        #     # prefix the routing helper name: +sekret_posts_path+ instead of +posts_path+
+        #     # prefix the routing helper name: sekret_posts_path instead of posts_path
         #     scope as: "sekret" do
         #       resources :posts
         #     end
-        def scope(*args)
-          options = args.extract_options!.dup
+        def scope(*args, only: nil, except: nil, **options)
+          if args.grep(Hash).any? && (deprecated_options = args.extract_options!)
+            only ||= assign_deprecated_option(deprecated_options, :only, :scope)
+            only ||= assign_deprecated_option(deprecated_options, :except, :scope)
+            assign_deprecated_options(deprecated_options, options, :scope)
+          end
+
           scope = {}
 
           options[:path] = args.flatten.join("/") if args.any?
@@ -888,9 +1018,8 @@ module ActionDispatch
             block, options[:constraints] = options[:constraints], {}
           end
 
-          if options.key?(:only) || options.key?(:except)
-            scope[:action_options] = { only: options.delete(:only),
-                                       except: options.delete(:except) }
+          if only || except
+            scope[:action_options] = { only:, except: }
           end
 
           if options.key? :anchor
@@ -961,27 +1090,33 @@ module ActionDispatch
         #       resources :posts
         #     end
         #
-        #     # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
+        #     # maps to Sekret::PostsController rather than Admin::PostsController
         #     namespace :admin, module: "sekret" do
         #       resources :posts
         #     end
         #
-        #     # generates +sekret_posts_path+ rather than +admin_posts_path+
+        #     # generates sekret_posts_path rather than admin_posts_path
         #     namespace :admin, as: "sekret" do
         #       resources :posts
         #     end
-        def namespace(path, options = {}, &block)
-          path = path.to_s
+        def namespace(name, deprecated_options = nil, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
+          if deprecated_options.is_a?(Hash)
+            as = assign_deprecated_option(deprecated_options, :as, :namespace) if deprecated_options.key?(:as)
+            path ||= assign_deprecated_option(deprecated_options, :path, :namespace)  if deprecated_options.key?(:path)
+            shallow_path ||= assign_deprecated_option(deprecated_options, :shallow_path, :namespace) if deprecated_options.key?(:shallow_path)
+            shallow_prefix ||= assign_deprecated_option(deprecated_options, :shallow_prefix, :namespace)  if deprecated_options.key?(:shallow_prefix)
+            assign_deprecated_options(deprecated_options, options, :namespace)
+          end
 
-          defaults = {
-            module:         path,
-            as:             options.fetch(:as, path),
-            shallow_path:   options.fetch(:path, path),
-            shallow_prefix: options.fetch(:as, path)
-          }
+          name = name.to_s
+          options[:module] ||= name
+          as = name if as == DEFAULT
+          path = name if path == DEFAULT
+          shallow_path = path if shallow_path == DEFAULT
+          shallow_prefix = as if shallow_prefix == DEFAULT
 
-          path_scope(options.delete(:path) { path }) do
-            scope(defaults.merge!(options), &block)
+          path_scope(path) do
+            scope(**options, as:, shallow_path:, shallow_prefix:, &block)
           end
         end
 
@@ -1048,6 +1183,7 @@ module ActionDispatch
         end
 
         # Allows you to set default parameters for a route, such as this:
+        #
         #     defaults id: 'home' do
         #       match 'scoped_pages/(:id)', to: 'pages#show'
         #     end
@@ -1173,11 +1309,27 @@ module ActionDispatch
         CANONICAL_ACTIONS = %w(index create new show update destroy)
 
         class Resource # :nodoc:
+          class << self
+            def default_actions(api_only)
+              if api_only
+                [:index, :create, :show, :update, :destroy]
+              else
+                [:index, :create, :new, :show, :update, :destroy, :edit]
+              end
+            end
+          end
+
           attr_reader :controller, :path, :param
 
-          def initialize(entities, api_only, shallow, options = {})
+          def initialize(entities, api_only, shallow, only: nil, except: nil, **options)
             if options[:param].to_s.include?(":")
               raise ArgumentError, ":param option can't contain colons"
+            end
+
+            valid_actions = self.class.default_actions(false) # ignore api_only for this validation
+            if (invalid_actions = invalid_only_except_options(valid_actions, only:, except:).presence)
+              error_prefix = "Route `resource#{"s" unless singleton?} :#{entities}`"
+              raise ArgumentError, "#{error_prefix} - :only and :except must include only #{valid_actions}, but also included #{invalid_actions}"
             end
 
             @name       = entities.to_s
@@ -1188,16 +1340,12 @@ module ActionDispatch
             @options    = options
             @shallow    = shallow
             @api_only   = api_only
-            @only       = options.delete :only
-            @except     = options.delete :except
+            @only       = only
+            @except     = except
           end
 
           def default_actions
-            if @api_only
-              [:index, :create, :show, :update, :destroy]
-            else
-              [:index, :create, :new, :show, :update, :destroy, :edit]
-            end
+            self.class.default_actions(@api_only)
           end
 
           def actions
@@ -1265,10 +1413,25 @@ module ActionDispatch
           end
 
           def singleton?; false; end
+
+          private
+            def invalid_only_except_options(valid_actions, only:, except:)
+              [only, except].flatten.compact.uniq.map(&:to_sym) - valid_actions
+            end
         end
 
         class SingletonResource < Resource # :nodoc:
-          def initialize(entities, api_only, shallow, options)
+          class << self
+            def default_actions(api_only)
+              if api_only
+                [:show, :create, :update, :destroy]
+              else
+                [:show, :create, :update, :destroy, :new, :edit]
+              end
+            end
+          end
+
+          def initialize(entities, api_only, shallow, **options)
             super
             @as         = nil
             @controller = (options[:controller] || plural).to_s
@@ -1276,11 +1439,7 @@ module ActionDispatch
           end
 
           def default_actions
-            if @api_only
-              [:show, :create, :update, :destroy]
-            else
-              [:show, :create, :update, :destroy, :new, :edit]
-            end
+            self.class.default_actions(@api_only)
           end
 
           def plural
@@ -1333,19 +1492,22 @@ module ActionDispatch
         #
         # ### Options
         # Takes same options as [resources](rdoc-ref:#resources)
-        def resource(*resources, &block)
-          options = resources.extract_options!.dup
+        def resource(*resources, concerns: nil, **options, &block)
+          if resources.grep(Hash).any? && (deprecated_options = resources.extract_options!)
+            concerns = assign_deprecated_option(deprecated_options, :concerns, :resource) if deprecated_options.key?(:concerns)
+            assign_deprecated_options(deprecated_options, options, :resource)
+          end
 
-          if apply_common_behavior_for(:resource, resources, options, &block)
+          if apply_common_behavior_for(:resource, resources, concerns:, **options, &block)
             return self
           end
 
           with_scope_level(:resource) do
-            options = apply_action_options options
-            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            options = apply_action_options :resource, options
+            resource_scope(SingletonResource.new(resources.pop, api_only?, @scope[:shallow], **options)) do
               yield if block_given?
 
-              concerns(options[:concerns]) if options[:concerns]
+              concerns(*concerns) if concerns
 
               new do
                 get :new
@@ -1498,24 +1660,27 @@ module ActionDispatch
         #
         # ### Examples
         #
-        #     # routes call +Admin::PostsController+
+        #     # routes call Admin::PostsController
         #     resources :posts, module: "admin"
         #
         #     # resource actions are at /admin/posts.
         #     resources :posts, path: "admin/posts"
-        def resources(*resources, &block)
-          options = resources.extract_options!.dup
+        def resources(*resources, concerns: nil, **options, &block)
+          if resources.grep(Hash).any? && (deprecated_options = resources.extract_options!)
+            concerns = assign_deprecated_option(deprecated_options, :concerns, :resources) if deprecated_options.key?(:concerns)
+            assign_deprecated_options(deprecated_options, options, :resources)
+          end
 
-          if apply_common_behavior_for(:resources, resources, options, &block)
+          if apply_common_behavior_for(:resources, resources, concerns:, **options, &block)
             return self
           end
 
           with_scope_level(:resources) do
-            options = apply_action_options options
-            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], options)) do
+            options = apply_action_options :resources, options
+            resource_scope(Resource.new(resources.pop, api_only?, @scope[:shallow], **options)) do
               yield if block_given?
 
-              concerns(options[:concerns]) if options[:concerns]
+              concerns(*concerns) if concerns
 
               collection do
                 get  :index if parent_resource.actions.include?(:index)
@@ -1600,19 +1765,19 @@ module ActionDispatch
             if shallow? && shallow_nesting_depth >= 1
               shallow_scope do
                 path_scope(parent_resource.nested_scope) do
-                  scope(nested_options, &block)
+                  scope(**nested_options, &block)
                 end
               end
             else
               path_scope(parent_resource.nested_scope) do
-                scope(nested_options, &block)
+                scope(**nested_options, &block)
               end
             end
           end
         end
 
         # See ActionDispatch::Routing::Mapper::Scoping#namespace.
-        def namespace(path, options = {})
+        def namespace(name, deprecated_options = nil, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
           if resource_scope?
             nested { super }
           else
@@ -1672,40 +1837,61 @@ module ActionDispatch
         # Matches a URL pattern to one or more routes. For more information, see
         # [match](rdoc-ref:Base#match).
         #
-        #     match 'path' => 'controller#action', via: :patch
         #     match 'path', to: 'controller#action', via: :post
         #     match 'path', 'otherpath', on: :member, via: :get
-        def match(path, *rest, &block)
-          if rest.empty? && Hash === path
-            options  = path
-            path, to = options.find { |name, _value| name.is_a?(String) }
-
-            raise ArgumentError, "Route path not specified" if path.nil?
-
-            case to
-            when Symbol
-              options[:action] = to
-            when String
-              if to.include?("#")
-                options[:to] = to
-              else
-                options[:controller] = to
-              end
-            else
-              options[:to] = to
-            end
-
-            options.delete(path)
-            paths = [path]
-          else
-            options = rest.pop || {}
-            paths = [path] + rest
+        def match(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
+            as = assign_deprecated_option(deprecated_options, :as, :match) if deprecated_options.key?(:as)
+            via ||= assign_deprecated_option(deprecated_options, :via, :match)
+            to ||= assign_deprecated_option(deprecated_options, :to, :match)
+            controller ||= assign_deprecated_option(deprecated_options, :controller, :match)
+            action ||= assign_deprecated_option(deprecated_options, :action, :match)
+            on ||= assign_deprecated_option(deprecated_options, :on, :match)
+            defaults ||= assign_deprecated_option(deprecated_options, :defaults, :match)
+            constraints ||= assign_deprecated_option(deprecated_options, :constraints, :match)
+            anchor = assign_deprecated_option(deprecated_options, :anchor, :match) if deprecated_options.key?(:anchor)
+            format = assign_deprecated_option(deprecated_options, :format, :match) if deprecated_options.key?(:format)
+            path ||= assign_deprecated_option(deprecated_options, :path, :match)
+            internal ||= assign_deprecated_option(deprecated_options, :internal, :match)
+            assign_deprecated_options(deprecated_options, mapping, :match)
           end
 
-          if options.key?(:defaults)
-            defaults(options.delete(:defaults)) { map_match(paths, options, &block) }
-          else
-            map_match(paths, options, &block)
+          ActionDispatch.deprecator.warn(<<-MSG.squish) if path_or_actions.count > 1
+            Mapping a route with multiple paths is deprecated and
+            will be removed in Rails 8.1. Please use multiple method calls instead.
+          MSG
+
+          if path_or_actions.none? && mapping.any?
+            hash_path, hash_to = mapping.find { |key, _| key.is_a?(String) }
+            if hash_path.nil?
+              raise ArgumentError, "Route path not specified"
+            else
+              mapping.delete(hash_path)
+            end
+
+            if hash_path
+              path_or_actions.push hash_path
+              case hash_to
+              when Symbol
+                action ||= hash_to
+              when String
+                if hash_to.include?("#")
+                  to ||= hash_to
+                else
+                  controller ||= hash_to
+                end
+              else
+                to ||= hash_to
+              end
+            end
+          end
+
+          path_or_actions.each do |path_or_action|
+            if defaults
+              defaults(defaults) { map_match(path_or_action, as:, via:, to:, controller:, action:, on:, constraints:, anchor:, format:, path:, internal:, mapping:, &block) }
+            else
+              map_match(path_or_action, as:, via:, to:, controller:, action:, on:, constraints:, anchor:, format:, path:, internal:, mapping:, &block)
+            end
           end
         end
 
@@ -1747,22 +1933,21 @@ module ActionDispatch
             @scope[:scope_level_resource]
           end
 
-          def apply_common_behavior_for(method, resources, options, &block)
+          def apply_common_behavior_for(method, resources, shallow: nil, **options, &block)
             if resources.length > 1
-              resources.each { |r| public_send(method, r, options, &block) }
+              resources.each { |r| public_send(method, r, shallow:, **options, &block) }
               return true
             end
 
-            if options[:shallow]
-              options.delete(:shallow)
-              shallow do
-                public_send(method, resources.pop, options, &block)
+            if shallow
+              self.shallow do
+                public_send(method, resources.pop, **options, &block)
               end
               return true
             end
 
             if resource_scope?
-              nested { public_send(method, resources.pop, options, &block) }
+              nested { public_send(method, resources.pop, shallow:, **options, &block) }
               return true
             end
 
@@ -1771,9 +1956,9 @@ module ActionDispatch
             end
 
             scope_options = options.slice!(*RESOURCE_OPTIONS)
-            unless scope_options.empty?
-              scope(scope_options) do
-                public_send(method, resources.pop, options, &block)
+            if !scope_options.empty? || !shallow.nil?
+              scope(**scope_options, shallow:) do
+                public_send(method, resources.pop, **options, &block)
               end
               return true
             end
@@ -1781,17 +1966,32 @@ module ActionDispatch
             false
           end
 
-          def apply_action_options(options)
+          def apply_action_options(method, options)
             return options if action_options? options
-            options.merge scope_action_options
+            options.merge scope_action_options(method)
           end
 
           def action_options?(options)
             options[:only] || options[:except]
           end
 
-          def scope_action_options
-            @scope[:action_options] || {}
+          def scope_action_options(method)
+            return {} unless @scope[:action_options]
+
+            actions = applicable_actions_for(method)
+            @scope[:action_options].dup.tap do |options|
+              (options[:only] = Array(options[:only]) & actions) if options[:only]
+              (options[:except] = Array(options[:except]) & actions) if options[:except]
+            end
+          end
+
+          def applicable_actions_for(method)
+            case method
+            when :resource
+              SingletonResource.default_actions(api_only?)
+            when :resources
+              Resource.default_actions(api_only?)
+            end
           end
 
           def resource_scope?
@@ -1849,9 +2049,10 @@ module ActionDispatch
           end
 
           def shallow_scope
-            scope = { as: @scope[:shallow_prefix],
-                      path: @scope[:shallow_path] }
-            @scope = @scope.new scope
+            @scope = @scope.new(
+              as: @scope[:shallow_prefix],
+              path: @scope[:shallow_path],
+            )
 
             yield
           ensure
@@ -1873,7 +2074,7 @@ module ActionDispatch
           end
 
           def prefix_name_for_action(as, action)
-            if as
+            if as && as != DEFAULT
               prefix = as
             elsif !canonical_action?(action)
               prefix = action
@@ -1889,7 +2090,7 @@ module ActionDispatch
             name_prefix = @scope[:as]
 
             if parent_resource
-              return nil unless as || action
+              return nil unless as != DEFAULT || action
 
               collection_name = parent_resource.collection_name
               member_name = parent_resource.member_name
@@ -1902,7 +2103,7 @@ module ActionDispatch
               # If a name was not explicitly given, we check if it is valid and return nil in
               # case it isn't. Otherwise, we pass the invalid name forward so the underlying
               # router engine treats it and raises an exception.
-              if as.nil?
+              if as == DEFAULT
                 candidate unless !candidate.match?(/\A[_a-z]/i) || has_named_route?(candidate)
               else
                 candidate
@@ -1933,42 +2134,35 @@ module ActionDispatch
             @scope = @scope.parent
           end
 
-          def map_match(paths, options)
-            if (on = options[:on]) && !VALID_ON_OPTIONS.include?(on)
+          def map_match(path_or_action, constraints: nil, anchor: nil, format: nil, path: nil, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, internal: nil, mapping: nil)
+            if on && !VALID_ON_OPTIONS.include?(on)
               raise ArgumentError, "Unknown scope #{on.inspect} given to :on"
             end
 
             if @scope[:to]
-              options[:to] ||= @scope[:to]
+              to ||= @scope[:to]
             end
 
             if @scope[:controller] && @scope[:action]
-              options[:to] ||= "#{@scope[:controller]}##{@scope[:action]}"
+              to ||= "#{@scope[:controller]}##{@scope[:action]}"
             end
 
-            controller = options.delete(:controller) || @scope[:controller]
-            option_path = options.delete :path
-            to = options.delete :to
-            via = Mapping.check_via Array(options.delete(:via) {
-              @scope[:via]
-            })
-            formatted = options.delete(:format) { @scope[:format] }
-            anchor = options.delete(:anchor) { true }
-            options_constraints = options.delete(:constraints) || {}
+            controller ||= @scope[:controller]
+            via = Mapping.check_via Array(via || @scope[:via])
+            format ||= @scope[:format] if format.nil?
+            anchor ||= true if anchor.nil?
+            constraints ||= {}
 
-            path_types = paths.group_by(&:class)
-            (path_types[String] || []).each do |_path|
-              route_options = options.dup
-              if _path && option_path
+            case path_or_action
+            when String
+              if path_or_action && path
                 raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
               end
-              to = get_to_from_path(_path, to, route_options[:action])
-              decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
-            end
-
-            (path_types[Symbol] || []).each do |action|
-              route_options = options.dup
-              decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
+              path = path_or_action
+              to = get_to_from_path(path_or_action, to, action)
+              decomposed_match(path, controller, as, action, path, to, via, format, anchor, constraints, internal, mapping, on)
+            when Symbol
+              decomposed_match(path_or_action, controller, as, action, path, to, via, format, anchor, constraints, internal, mapping, on)
             end
 
             self
@@ -1989,28 +2183,28 @@ module ActionDispatch
             %r{^/?[-\w]+/[-\w/]+$}.match?(path)
           end
 
-          def decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
-            if on = options.delete(:on)
-              send(on) { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+          def decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping, on = nil)
+            if on
+              send(on) { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
             else
               case @scope.scope_level
               when :resources
-                nested { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+                nested { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
               when :resource
-                member { decomposed_match(path, controller, options, _path, to, via, formatted, anchor, options_constraints) }
+                member { decomposed_match(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping) }
               else
-                add_route(path, controller, options, _path, to, via, formatted, anchor, options_constraints)
+                add_route(path, controller, as, action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping)
               end
             end
           end
 
-          def add_route(action, controller, options, _path, to, via, formatted, anchor, options_constraints)
+          def add_route(action, controller, as, options_action, _path, to, via, formatted, anchor, options_constraints, internal, options_mapping)
             path = path_for_action(action, _path)
             raise ArgumentError, "path is required" if path.blank?
 
             action = action.to_s
 
-            default_action = options.delete(:action) || @scope[:action]
+            default_action = options_action || @scope[:action]
 
             if /^[\w\-\/]+$/.match?(action)
               default_action ||= action.tr("-", "_") unless action.include?("/")
@@ -2018,22 +2212,16 @@ module ActionDispatch
               action = nil
             end
 
-            as = if !options.fetch(:as, true) # if it's set to nil or false
-              options.delete(:as)
-            else
-              name_for_action(options.delete(:as), action)
-            end
+            as   = name_for_action(as, action) if as
+            path = Mapping.normalize_path URI::RFC2396_PARSER.escape(path), formatted
+            ast  = Journey::Parser.parse path
 
-            path = Mapping.normalize_path URI::DEFAULT_PARSER.escape(path), formatted
-            ast = Journey::Parser.parse path
-
-            mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, options)
+            mapping = Mapping.build(@scope, @set, ast, controller, default_action, to, via, formatted, options_constraints, anchor, internal, options_mapping)
             @set.add_route(mapping, as)
           end
 
           def match_root_route(options)
-            args = ["/", { as: :root, via: :get }.merge(options)]
-            match(*args)
+            match("/", as: :root, via: :get, **options)
           end
       end
 
@@ -2128,8 +2316,7 @@ module ActionDispatch
         #     namespace :posts do
         #       concerns :commentable
         #     end
-        def concerns(*args)
-          options = args.extract_options!
+        def concerns(*args, **options)
           args.flatten.each do |name|
             if concern = @concerns[name]
               concern.call(self, options)
@@ -2199,8 +2386,8 @@ module ActionDispatch
         end
 
         # Define custom polymorphic mappings of models to URLs. This alters the behavior
-        # of `polymorphic_url` and consequently the behavior of `link_to` and `form_for`
-        # when passed a model instance, e.g:
+        # of `polymorphic_url` and consequently the behavior of `link_to`, `form_with`
+        # and `form_for` when passed a model instance, e.g:
         #
         #     resource :basket
         #
@@ -2209,7 +2396,7 @@ module ActionDispatch
         #     end
         #
         # This will now generate "/basket" when a `Basket` instance is passed to
-        # `link_to` or `form_for` instead of the standard "/baskets/:id".
+        # `link_to`, `form_with` or `form_for` instead of the standard "/baskets/:id".
         #
         # NOTE: This custom behavior only applies to simple polymorphic URLs where a
         # single model instance is passed and not more complicated forms, e.g:
@@ -2266,9 +2453,9 @@ module ActionDispatch
 
         attr_reader :parent, :scope_level
 
-        def initialize(hash, parent = NULL, scope_level = nil)
-          @hash = hash
+        def initialize(hash, parent = ROOT, scope_level = nil)
           @parent = parent
+          @hash = parent ? parent.frame.merge(hash) : hash
           @scope_level = scope_level
         end
 
@@ -2281,7 +2468,7 @@ module ActionDispatch
         end
 
         def root?
-          @parent.null?
+          @parent == ROOT
         end
 
         def resources?
@@ -2326,24 +2513,25 @@ module ActionDispatch
         end
 
         def [](key)
-          scope = find { |node| node.frame.key? key }
-          scope && scope.frame[key]
+          frame[key]
         end
+
+        def frame; @hash; end
 
         include Enumerable
 
         def each
           node = self
-          until node.equal? NULL
+          until node.equal? ROOT
             yield node
             node = node.parent
           end
         end
 
-        def frame; @hash; end
-
-        NULL = Scope.new(nil, nil)
+        ROOT = Scope.new({}, nil)
       end
+
+      DEFAULT = Object.new # :nodoc:
 
       def initialize(set) # :nodoc:
         @set = set

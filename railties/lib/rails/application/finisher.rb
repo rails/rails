@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -143,6 +142,7 @@ module Rails
           app.routes.prepend do
             get "/rails/info/properties" => "rails/info#properties", internal: true
             get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info/notes"      => "rails/info#notes",      internal: true
             get "/rails/info"            => "rails/info#index",      internal: true
           end
 
@@ -176,12 +176,7 @@ module Rails
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
 
-        if reloader.eager_load
-          reloader.execute
-          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
-        elsif reloader.loaded
-          ActiveSupport.run_load_hooks(:after_routes_loaded, self)
-        end
+        reloader.execute_unless_loaded if !app.routes.is_a?(Engine::LazyRouteSet) || app.config.eager_load
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths

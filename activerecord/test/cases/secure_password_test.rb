@@ -29,17 +29,17 @@ class SecurePasswordTest < ActiveRecord::TestCase
     User.authenticate_by(token: @user.token, password: @user.password)
 
     retry_flaky_test do
-      # Benchmark.realtime returns fractional seconds.  Thus, summing over 1000
+      # ActiveSupport::Benchmark.realtime returns fractional seconds. Thus, summing over 1000
       # iterations is equivalent to averaging over 1000 iterations and then
       # multiplying by 1000 to convert to milliseconds.
       found_average_time_in_ms = 1000.times.sum do
-        Benchmark.realtime do
+        ActiveSupport::Benchmark.realtime do
           User.authenticate_by(token: @user.token, password: @user.password)
         end
       end
 
       not_found_average_time_in_ms = 1000.times.sum do
-        Benchmark.realtime do
+        ActiveSupport::Benchmark.realtime do
           User.authenticate_by(token: "wrong", password: @user.password)
         end
       end

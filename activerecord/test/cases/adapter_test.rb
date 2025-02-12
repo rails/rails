@@ -14,6 +14,17 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
+    def test_type_map_is_ractor_shareable
+      # This is testing internals. Please feel free to remove this test
+      # or change it when internals change. The point is to make sure
+      # the type map is Ractor shareable.
+      @connection.tables.each do |table|
+        @connection.columns(table).each do |column|
+          assert_ractor_shareable @connection.send(:lookup_cast_type, column.sql_type)
+        end
+      end
+    end
+
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||
@@ -126,9 +137,18 @@ module ActiveRecord
       end
     end
 
-    def test_exec_query_returns_an_empty_result
+    test "#exec_query queries with no result set return an empty ActiveRecord::Result" do
       result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
       assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_empty result.columns
+    end
+
+    test "#exec_query queries with an empty result set still return the columns" do
+      result = @connection.exec_query "SELECT * FROM subscribers WHERE 1=0"
+      assert_instance_of(ActiveRecord::Result, result)
+      assert_empty result.rows
+      assert_not_empty result.columns
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -323,6 +343,19 @@ module ActiveRecord
     test "type_to_sql returns a String for unmapped types" do
       assert_equal "special_db_type", @connection.type_to_sql(:special_db_type)
     end
+
+    test "inspect does not show secrets" do
+      output = @connection.inspect
+
+      assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
+    end
+
+    private
+      def assert_ractor_shareable(obj)
+        # rubocop:disable Minitest/AssertWithExpectedArgument
+        assert(Ractor.shareable?(obj), -> { "Expected #{obj} to be shareable, but it wasn't" })
+        # rubocop:enable Minitest/AssertWithExpectedArgument
+      end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
@@ -596,10 +629,13 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying a 'clean' failed connection restores and succeeds" do
+      test "querying a 'clean' long-failed connection restores and succeeds" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -612,10 +648,29 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "querying a 'clean' recently-used but now-failed connection skips verification" do
+        remote_disconnect @connection
+
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # Because the query cannot be retried, and we (mistakenly) believe the
+        # connection is still good, the query will fail. This is what we want,
+        # because the alternative would be excessive reverification.
+        assert_raises(ActiveRecord::AdapterError) do
+          Post.delete_all
+        end
+      end
+
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -645,65 +700,71 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "idempotent SELECT queries are retried and result in a reconnect" do
-        Post.first
+      test "idempotent SELECT queries allow retries" do
+        notifications = capture_notifications("sql.active_record") do
+          assert (a = Author.first)
+          assert Post.where(id: [1, 2]).first
+          assert Post.find(1)
+          assert Post.find_by(title: "Welcome to the weblog")
+          assert_predicate Post, :exists?
+          a.books.to_a
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        remote_disconnect @connection
+        assert_equal 6, notifications.length
 
-        assert Post.first
-        assert_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert Post.where(id: [1, 2]).first
-        assert_predicate @connection, :active?
+        notifications.each do |n|
+          assert n.payload[:allow_retry]
+        end
       end
 
-      test "#find and #find_by queries with known attributes are retried and result in a reconnect" do
-        Post.first
+      test "query cacheable idempotent SELECT queries allow retries" do
+        @connection.enable_query_cache!
 
-        remote_disconnect @connection
+        notifications = capture_notifications("sql.active_record") do
+          assert_not_nil (a = Author.first)
+          assert_not_nil Post.where(id: [1, 2]).first
+          assert_not_nil Post.find(1)
+          assert_not_nil Post.find_by(title: "Welcome to the weblog")
+          assert_predicate Post, :exists?
+          a.books.to_a
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert Post.find(1)
-        assert_predicate @connection, :active?
+        assert_equal 6, notifications.length
 
-        remote_disconnect @connection
-
-        assert Post.find_by(title: "Welcome to the weblog")
-        assert_predicate @connection, :active?
+        notifications.each do |n|
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
+        end
+      ensure
+        @connection.disable_query_cache!
       end
 
-      test "queries containing SQL fragments are not retried" do
-        Post.first
+      test "queries containing SQL fragments do not allow retries" do
+        notifications = capture_notifications("sql.active_record") do
+          Post.where("1 = 1").to_a
+          Post.select("title AS custom_title").first
+          Book.find_by("updated_at < ?", 2.weeks.ago)
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        remote_disconnect @connection
+        assert_equal 3, notifications.length
 
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.where("1 = 1").to_a }
-        assert_not_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.select("title AS custom_title").first }
-        assert_not_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.find_by("updated_at < ?", 2.weeks.ago) }
-        assert_not_predicate @connection, :active?
+        notifications.each do |n|
+          assert_not n.payload[:allow_retry]
+        end
       end
 
-      test "queries containing SQL functions are not retried" do
-        Post.first
-
-        remote_disconnect @connection
-
+      test "queries containing SQL functions do not allow retries" do
         tags_count_attr = Post.arel_table[:tags_count]
         abs_tags_count = Arel::Nodes::NamedFunction.new("ABS", [tags_count_attr])
 
-        assert_raises(ActiveRecord::ConnectionFailed) do
+        notifications = capture_notifications("sql.active_record") do
           Post.where(abs_tags_count.eq(2)).first
+        end.select { |n| n.payload[:name] != "SCHEMA" }
+
+        assert_equal 1, notifications.length
+
+        notifications.each do |n|
+          assert_not n.payload[:allow_retry]
         end
-        assert_not_predicate @connection, :active?
       end
 
       test "transaction restores after remote disconnection" do

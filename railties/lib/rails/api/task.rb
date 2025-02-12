@@ -160,8 +160,9 @@ module Rails
 
         # Only generate documentation for files that have been
         # changed since the API was generated.
-        if Dir.exist?(api_dir) && !ENV["ALL"]
-          last_generation = DateTime.rfc2822(File.open("#{api_dir}/created.rid", &:readline))
+        timestamp_path = "#{api_dir}/created.rid"
+        if File.exist?(timestamp_path) && !File.zero?(timestamp_path) && !ENV["ALL"]
+          last_generation = DateTime.rfc2822(File.open(timestamp_path, &:readline))
 
           rdoc_files.keep_if do |file|
             File.mtime(file).to_datetime > last_generation

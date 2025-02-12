@@ -50,6 +50,14 @@ module ActiveModel
         :datetime
       end
 
+      def mutable? # :nodoc:
+        # Time#zone can be mutated by #utc or #localtime
+        # However when serializing the time zone will always
+        # be coerced and even if the zone was mutated Time instances
+        # remain equal, so we don't need to implement `#changed_in_place?`
+        true
+      end
+
       private
         def cast_value(value)
           return apply_seconds_precision(value) unless value.is_a?(::String)

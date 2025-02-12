@@ -86,7 +86,7 @@ module ActiveRecord
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
             end.join(" ")
           end
-          find_cmd_and_exec("psql", config.database)
+          find_cmd_and_exec(ActiveRecord.database_cli[:postgresql], config.database)
         end
       end
 
@@ -284,6 +284,10 @@ module ActiveRecord
         database_version >= 15_00_00 # >= 15.0
       end
 
+      def supports_native_partitioning? # :nodoc:
+        database_version >= 10_00_00 # >= 10.0
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -345,6 +349,7 @@ module ActiveRecord
         @lock.synchronize do
           return false unless @raw_connection
           @raw_connection.query ";"
+          verified!
         end
         true
       rescue PG::Error
@@ -405,7 +410,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        internal_execute("SET standard_conforming_strings = on")
+        internal_execute("SET standard_conforming_strings = on", "SCHEMA")
       end
 
       def supports_ddl_transactions?
@@ -479,6 +484,7 @@ module ActiveRecord
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
       def disable_extension(name, force: false)
+        _schema, name = name.to_s.split(".").values_at(-2, -1)
         internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
           reload_type_map
         }
@@ -493,7 +499,19 @@ module ActiveRecord
       end
 
       def extensions
-        internal_exec_query("SELECT extname FROM pg_extension", "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values
+        query = <<~SQL
+          SELECT
+            pg_extension.extname,
+            n.nspname AS schema
+          FROM pg_extension
+          JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+        SQL
+
+        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+          name, schema = row[0], row[1]
+          schema = nil if schema == current_schema
+          [schema, name].compact.join(".")
+        end
       end
 
       # Returns a list of defined enum types, and their values.
@@ -503,7 +521,7 @@ module ActiveRecord
             type.typname AS name,
             type.OID AS oid,
             n.nspname AS schema,
-            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+            array_agg(enum.enumlabel ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
           JOIN pg_type AS type ON (type.oid = enum.enumtypid)
           JOIN pg_namespace n ON type.typnamespace = n.oid
@@ -558,30 +576,34 @@ module ActiveRecord
       end
 
       # Rename an existing enum type to something else.
-      def rename_enum(name, options = {})
-        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+      def rename_enum(name, new_name = nil, **options)
+        new_name ||= options.fetch(:to) do
+          raise ArgumentError, "rename_enum requires two from/to name positional arguments."
+        end
 
-        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}").tap { reload_type_map }
       end
 
       # Add enum value to an existing enum type.
-      def add_enum_value(type_name, value, options = {})
+      def add_enum_value(type_name, value, **options)
         before, after = options.values_at(:before, :after)
-        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
+        sql << " IF NOT EXISTS" if options[:if_not_exists]
+        sql << " #{quote(value)}"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"
         elsif before
-          sql << " BEFORE '#{before}'"
+          sql << " BEFORE #{quote(before)}"
         elsif after
-          sql << " AFTER '#{after}'"
+          sql << " AFTER #{quote(after)}"
         end
 
         execute(sql).tap { reload_type_map }
       end
 
       # Rename enum value on an existing enum type.
-      def rename_enum_value(type_name, options = {})
+      def rename_enum_value(type_name, **options)
         unless database_version >= 10_00_00 # >= 10.0
           raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
         end
@@ -589,7 +611,7 @@ module ActiveRecord
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
-        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE #{quote(from)} TO #{quote(to)}").tap {
           reload_type_map
         }
       end
@@ -652,8 +674,8 @@ module ActiveRecord
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
           m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
+          m.register_type "float4", Type::Float.new(limit: 24)
+          m.register_type "float8", Type::Float.new
           m.register_type "text", Type::Text.new
           register_class_with_limit m, "varchar", Type::String
           m.alias_type "char", "varchar"
@@ -777,7 +799,7 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
-            if exception.message.match?(/connection is closed/i)
+            if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
@@ -841,9 +863,8 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
-            execute_and_clear(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |records|
-              initializer.run(records)
-            end
+            records = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            initializer.run(records)
           end
         end
 
@@ -864,73 +885,6 @@ module ActiveRecord
 
         FEATURE_NOT_SUPPORTED = "0A000" # :nodoc:
 
-        def execute_and_clear(sql, name, binds, prepare: false, async: false, allow_retry: false, materialize_transactions: true)
-          sql = transform_query(sql)
-          check_if_write_query(sql)
-
-          if !prepare || without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, binds, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
-          else
-            result = exec_cache(sql, name, binds, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions)
-          end
-          begin
-            ret = yield result
-          ensure
-            result.clear
-          end
-          ret
-        end
-
-        def exec_no_cache(sql, name, binds, async:, allow_retry:, materialize_transactions:)
-          mark_transaction_written_if_write(sql)
-
-          # make sure we carry over any changes to ActiveRecord.default_timezone that have been
-          # made since we established the connection
-          update_typemap_for_default_timezone
-
-          type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
-            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = conn.exec_params(sql, type_casted_binds)
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        end
-
-        def exec_cache(sql, name, binds, async:, allow_retry:, materialize_transactions:)
-          mark_transaction_written_if_write(sql)
-
-          update_typemap_for_default_timezone
-
-          with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-            stmt_key = prepare_statement(sql, binds, conn)
-            type_casted_binds = type_casted_binds(binds)
-
-            log(sql, name, binds, type_casted_binds, stmt_key, async: async) do |notification_payload|
-              result = conn.exec_prepared(stmt_key, type_casted_binds)
-              verified!
-              notification_payload[:row_count] = result.count
-              result
-            end
-          end
-        rescue ActiveRecord::StatementInvalid => e
-          raise unless is_cached_plan_failure?(e)
-
-          # Nothing we can do if we are in a transaction because all commands
-          # will raise InFailedSQLTransaction
-          if in_transaction?
-            raise ActiveRecord::PreparedStatementCacheExpired.new(e.cause.message, connection_pool: @pool)
-          else
-            @lock.synchronize do
-              # outside of transactions we can simply flush this query and retry
-              @statements.delete sql_key(sql)
-            end
-            retry
-          end
-        end
-
         # Annoyingly, the code for prepared statements whose return value may
         # have changed is FEATURE_NOT_SUPPORTED.
         #
@@ -940,8 +894,7 @@ module ActiveRecord
         #
         # Check here for more details:
         # https://git.postgresql.org/gitweb/?p=postgresql.git;a=blob;f=src/backend/utils/cache/plancache.c#l573
-        def is_cached_plan_failure?(e)
-          pgerror = e.cause
+        def is_cached_plan_failure?(pgerror)
           pgerror.result.result_error_field(PG::PG_DIAG_SQLSTATE) == FEATURE_NOT_SUPPORTED &&
             pgerror.result.result_error_field(PG::PG_DIAG_SOURCE_FUNCTION) == "RevalidateCachedQuery"
         rescue
@@ -1020,16 +973,16 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          internal_execute("SET intervalstyle = iso_8601")
+          internal_execute("SET intervalstyle = iso_8601", "SCHEMA")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              internal_execute("SET SESSION #{k} TO DEFAULT")
+              internal_execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
             elsif !v.nil?
-              internal_execute("SET SESSION #{k} TO #{quote(v)}")
+              internal_execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
             end
           end
 
@@ -1050,9 +1003,9 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            internal_execute("SET SESSION timezone TO 'UTC'")
+            raw_execute("SET SESSION timezone TO 'UTC'", "SCHEMA")
           else
-            internal_execute("SET SESSION timezone TO DEFAULT")
+            raw_execute("SET SESSION timezone TO DEFAULT", "SCHEMA")
           end
         end
 
@@ -1119,9 +1072,8 @@ module ActiveRecord
                     AND castsource = #{quote column.sql_type}::regtype
                 )
               SQL
-              execute_and_clear(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |result|
-                result.getvalue(0, 0)
-              end
+              result = internal_execute(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+              result.getvalue(0, 0)
             end
           end
         end
@@ -1177,9 +1129,8 @@ module ActiveRecord
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          coders = execute_and_clear(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false) do |result|
-            result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
-          end
+          result = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          coders = result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
 
           map = PG::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }

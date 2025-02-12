@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module Rails
   class Application
@@ -9,8 +8,8 @@ module Rails
 
       attr_reader :route_sets, :paths, :external_routes, :loaded
       attr_accessor :eager_load
-      attr_writer :run_after_load_paths # :nodoc:
-      delegate :execute_if_updated, :execute, :updated?, to: :updater
+      attr_writer :run_after_load_paths, :loaded # :nodoc:
+      delegate :execute_if_updated, :updated?, to: :updater
 
       def initialize
         @paths      = []
@@ -21,13 +20,17 @@ module Rails
       end
 
       def reload!
-        @loaded = true
         clear!
         load_paths
         finalize!
         route_sets.each(&:eager_load!) if eager_load
       ensure
         revert
+      end
+
+      def execute
+        @loaded = true
+        updater.execute
       end
 
       def execute_unless_loaded

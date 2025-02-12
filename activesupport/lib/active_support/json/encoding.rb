@@ -20,7 +20,11 @@ module ActiveSupport
     #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     class << self
       def encode(value, options = nil)
-        Encoding.json_encoder.new(options).encode(value)
+        if options.nil?
+          Encoding.encode_without_options(value)
+        else
+          Encoding.json_encoder.new(options).encode(value)
+        end
       end
       alias_method :dump, :encode
     end
@@ -36,14 +40,14 @@ module ActiveSupport
         # Encode the given object into a JSON string
         def encode(value)
           unless options.empty?
-            value = value.as_json(options.dup)
+            value = value.as_json(options.dup.freeze)
           end
           json = stringify(jsonify(value))
 
           # Rails does more escaping than the JSON gem natively does (we
           # escape \u2028 and \u2029 and optionally >, <, & to work around
           # certain browser problems).
-          if Encoding.escape_html_entities_in_json
+          if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
             json.gsub!(">", '\u003e')
             json.gsub!("<", '\u003c')
             json.gsub!("&", '\u0026')
@@ -89,7 +93,7 @@ module ActiveSupport
 
           # Encode a "jsonified" Ruby data structure using the JSON gem
           def stringify(jsonified)
-            ::JSON.generate(jsonified, quirks_mode: true, max_nesting: false)
+            ::JSON.generate(jsonified)
           end
       end
 
@@ -108,7 +112,16 @@ module ActiveSupport
 
         # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
         # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
-        attr_accessor :json_encoder
+        attr_reader :json_encoder
+
+        def json_encoder=(encoder)
+          @json_encoder = encoder
+          @encoder_without_options = encoder.new
+        end
+
+        def encode_without_options(value) # :nodoc:
+          @encoder_without_options.encode(value)
+        end
       end
 
       self.use_standard_json_time_format = true

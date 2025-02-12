@@ -578,7 +578,7 @@ module ActiveRecord
         e = assert_raise(StandardError) do
           ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
         end
-        assert_includes e.message, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}"
+        assert_includes e.message, "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{{ from: true, to: false }}"
       end
 
       def test_change_column_null_with_non_boolean_arguments_does_not_raise_in_old_rails_versions

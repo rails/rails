@@ -42,7 +42,7 @@ module ActiveRecord
         date:        { name: "date" },
         binary:      { name: "blob" },
         blob:        { name: "blob" },
-        boolean:     { name: "tinyint", limit: 1 },
+        boolean:     { name: "boolean" },
         json:        { name: "json" },
       }
 
@@ -79,7 +79,7 @@ module ActiveRecord
 
           args << config.database
 
-          find_cmd_and_exec(["mysql", "mysql5"], *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:mysql], *args)
         end
       end
 
@@ -98,7 +98,7 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        !mariadb? && database_version >= "8.0.1"
+        mariadb? ? database_version >= "10.8.1" : database_version >= "8.0.1"
       end
 
       def supports_expression_index?
@@ -138,7 +138,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || database_version >= "5.6.4"
+        true
       end
 
       def supports_virtual_columns?
@@ -174,6 +174,10 @@ module ActiveRecord
         mariadb? && database_version >= "10.5.0"
       end
 
+      def return_value_after_insert?(column) # :nodoc:
+        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -196,12 +200,6 @@ module ActiveRecord
       end
 
       # HELPER METHODS ===========================================
-
-      # The two drivers have slightly different ways of yielding hashes of results, so
-      # this method must be implemented to provide a uniform interface.
-      def each_hash(result) # :nodoc:
-        raise NotImplementedError
-      end
 
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
@@ -226,24 +224,19 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
-      # to write stuff in an abstract way without concerning ourselves about whether it
-      # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil, async: false, allow_retry: false) # :nodoc:
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        mark_transaction_written_if_write(sql)
-        yield raw_execute(sql, name, async: async, allow_retry: allow_retry)
-      end
-
       def begin_db_transaction # :nodoc:
         internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
-        begin_db_transaction
+        # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
+        # So we don't need to implement #reset_isolation_level
+        execute_batch(
+          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+          "TRANSACTION",
+          allow_retry: true,
+          materialize_transactions: false,
+        )
       end
 
       def commit_db_transaction # :nodoc:
@@ -343,7 +336,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name, **options)
       end
 
-      # Drops a table from the database.
+      # Drops a table or tables from the database.
       #
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
@@ -357,10 +350,10 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, **options)
-        schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      def drop_table(*table_names, **options)
+        table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -414,7 +407,11 @@ module ActiveRecord
         type ||= column.sql_type
 
         unless options.key?(:default)
-          options[:default] = column.default
+          options[:default] = if column.default_function
+            -> { column.default_function }
+          else
+            column.default
+          end
         end
 
         unless options.key?(:null)
@@ -580,7 +577,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA")
+        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -639,22 +636,26 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        no_op_column = quote_column_name(insert.keys.first)
+        # Can use any column as it will be assigned to itself.
+        no_op_column = quote_column_name(insert.keys.first) if insert.keys.first
 
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
         if supports_insert_raw_alias_syntax?
+          quoted_table_name = insert.model.quoted_table_name
           values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
 
           if insert.skip_duplicates?
-            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{values_alias}.#{no_op_column}"
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{quoted_table_name}.#{no_op_column}"
+            end
           elsif insert.update_duplicates?
             if insert.raw_update_sql?
               sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
             else
               sql << " ON DUPLICATE KEY UPDATE "
-              sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+              sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
               sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
             end
           end
@@ -662,7 +663,9 @@ module ActiveRecord
           sql = +"INSERT #{insert.into} #{insert.values_list}"
 
           if insert.skip_duplicates?
-            sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+            end
           elsif insert.update_duplicates?
             sql << " ON DUPLICATE KEY UPDATE "
             if insert.raw_update_sql?
@@ -679,8 +682,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.5.8"
-          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+        if database_version < "5.6.4"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
         end
       end
 
@@ -729,12 +732,12 @@ module ActiveRecord
             m.alias_type %r(bit)i,  "binary"
           end
 
-          def register_integer_type(mapping, key, **options)
+          def register_integer_type(mapping, key, limit:)
             mapping.register_type(key) do |sql_type|
               if /\bunsigned\b/.match?(sql_type)
-                Type::UnsignedInteger.new(**options)
+                Type::UnsignedInteger.new(limit: limit)
               else
-                Type::Integer.new(**options)
+                Type::Integer.new(limit: limit)
               end
             end
           end
@@ -753,9 +756,7 @@ module ActiveRecord
 
       private
         def strip_whitespace_characters(expression)
-          expression = expression.gsub(/\\n|\\\\/, "")
-          expression = expression.gsub(/\s{2,}/, " ")
-          expression
+          expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
 
         def extended_type_map_key
@@ -766,14 +767,13 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(sql)
+        def handle_warnings(_initial_result, sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
-          @affected_rows_before_warnings = @raw_connection.affected_rows
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
           result = [
-            ["Warning", nil, "Query had warning_count=#{warning_count} but ‘SHOW WARNINGS’ did not return the warnings. Check MySQL logs or database configuration."],
+            ["Warning", nil, "Query had warning_count=#{warning_count} but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."],
           ] if result.count == 0
           result.each do |level, code, message|
             warning = SQLWarning.new(message, code, level, sql, @pool)
@@ -785,11 +785,6 @@ module ActiveRecord
 
         def warning_ignored?(warning)
           warning.level == "Note" || super
-        end
-
-        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-        # made since we established the connection
-        def sync_timezone_changes(raw_connection)
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
@@ -961,13 +956,11 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
+          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-            each_hash(result)
-          end
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
         end
 
         def create_table_info(table_name) # :nodoc:

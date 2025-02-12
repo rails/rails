@@ -27,8 +27,6 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/Rakefile
   test/dummy/app/assets/images/.keep
   test/dummy/app/assets/stylesheets/application.css
-  test/dummy/app/channels/application_cable/channel.rb
-  test/dummy/app/channels/application_cable/connection.rb
   test/dummy/app/controllers/application_controller.rb
   test/dummy/app/controllers/concerns/.keep
   test/dummy/app/helpers/application_helper.rb
@@ -41,6 +39,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
   test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/dev
   test/dummy/bin/rails
   test/dummy/bin/rake
   test/dummy/bin/setup
@@ -56,13 +55,12 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/initializers/content_security_policy.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
-  test/dummy/config/initializers/permissions_policy.rb
   test/dummy/config/locales/en.yml
   test/dummy/config/puma.rb
   test/dummy/config/routes.rb
   test/dummy/config/storage.yml
-  test/dummy/lib/assets/.keep
   test/dummy/log/.keep
+  test/dummy/public/400.html
   test/dummy/public/404.html
   test/dummy/public/406-unsupported-browser.html
   test/dummy/public/422.html
@@ -397,7 +395,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/test"
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_name
     run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
     assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
@@ -419,7 +417,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_and_underscored_name
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
     assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
@@ -441,7 +439,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
+  def test_create_mountable_application_with_mountable_option_and_multiple_hyphenates_in_name
     run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
     assert_no_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
@@ -642,7 +640,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_skips_asset_pipeline_when_simple_railtie
     run_generator
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
@@ -660,28 +658,18 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full"]
 
     assert_gem "propshaft"
-    assert_no_gem "sprockets-rails"
     assert_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
+    assert_file "test/dummy/config/environments/development.rb"
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
     run_generator [destination_root, "--mountable", "--skip-asset-pipeline"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end
-  end
-
-  def test_dummy_application_respects_asset_pipeline_gem_choice
-    run_generator [destination_root, "--mountable", "--asset-pipeline=sprockets"]
-
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
   end
 
   def test_no_asset_pipeline_gem_when_no_dummy_application
@@ -923,6 +911,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")
+  end
+
+  def test_railtie_test_command
+    run_generator [destination_root]
+    assert_file ".github/workflows/ci.yml", /run: bin\/test/
+  end
+
+  def test_engine_test_command
+    run_generator [destination_root, "--full"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails db:test:prepare test/
+  end
+
+  def test_engine_without_active_record_test_command
+    run_generator [destination_root, "--full", "--skip-active-record"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails test/
   end
 
   private

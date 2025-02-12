@@ -79,7 +79,7 @@ module ActiveRecord
         normalized_reflections.stringify_keys
       end
 
-      def normalized_reflections # :nodoc
+      def normalized_reflections # :nodoc:
         @__reflections ||= begin
           ref = {}
 
@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def join_scope(table, foreign_table, foreign_klass)
-        predicate_builder = predicate_builder(table)
+        predicate_builder = klass.predicate_builder.with(TableMetadata.new(klass, table))
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
@@ -224,7 +224,7 @@ module ActiveRecord
         klass_scope
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         if scope
           [scope_for(build_scope(table, predicate_builder, klass), record)]
         else
@@ -232,7 +232,7 @@ module ActiveRecord
         end
       end
 
-      def klass_join_scope(table, predicate_builder) # :nodoc:
+      def klass_join_scope(table, predicate_builder = nil) # :nodoc:
         relation = build_scope(table, predicate_builder)
         klass.scope_for_association(relation)
       end
@@ -333,12 +333,8 @@ module ActiveRecord
         collect_join_chain
       end
 
-      def build_scope(table, predicate_builder = predicate_builder(table), klass = self.klass)
-        Relation.create(
-          klass,
-          table: table,
-          predicate_builder: predicate_builder
-        )
+      def build_scope(table, predicate_builder = nil, klass = self.klass)
+        Relation.create(klass, table:, predicate_builder:)
       end
 
       def strict_loading?
@@ -357,10 +353,6 @@ module ActiveRecord
         end
 
       private
-        def predicate_builder(table)
-          PredicateBuilder.new(TableMetadata.new(klass, table))
-        end
-
         def primary_key(klass)
           klass.primary_key || raise(UnknownPrimaryKey.new(klass))
         end
@@ -428,15 +420,23 @@ module ActiveRecord
       # a new association object. Use +build_association+ or +create_association+
       # instead. This allows plugins to hook into association object creation.
       def klass
-        @klass ||= compute_class(compute_name(class_name))
+        @klass ||= _klass(class_name)
+      end
+
+      def _klass(class_name) # :nodoc:
+        if active_record.name.demodulize == class_name
+          begin
+            compute_class("::#{class_name}")
+          rescue NameError
+            compute_class(class_name)
+          end
+        else
+          compute_class(class_name)
+        end
       end
 
       def compute_class(name)
         name.constantize
-      end
-
-      def compute_name(name) # :nodoc:
-        active_record.name.demodulize == name ? "::#{name}" : name
       end
 
       # Returns +true+ if +self+ and +other_aggregation+ have the same +name+ attribute, +active_record+ attribute,
@@ -527,9 +527,9 @@ module ActiveRecord
         @association_foreign_key = nil
         @association_primary_key = nil
         if options[:query_constraints]
-          ActiveRecord.deprecator.warn <<~MSG.squish
-            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is deprecated.
-            To maintain current behavior, use the `foreign_key` option instead.
+          raise ConfigurationError, <<~MSG.squish
+            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
+            To get the same behavior, use the `foreign_key` option instead.
           MSG
         end
 
@@ -558,12 +558,12 @@ module ActiveRecord
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
           if options[:foreign_key].is_a?(Array)
-            options[:foreign_key].map { |fk| fk.to_s.freeze }.freeze
+            options[:foreign_key].map { |fk| -fk.to_s.freeze }.freeze
           else
             options[:foreign_key].to_s.freeze
           end
         elsif options[:query_constraints]
-          options[:query_constraints].map { |fk| fk.to_s.freeze }.freeze
+          options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
@@ -571,7 +571,12 @@ module ActiveRecord
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
-          derived_fk
+          if derived_fk.is_a?(Array)
+            derived_fk.map! { |fk| -fk.freeze }
+            derived_fk.freeze
+          else
+            -derived_fk.freeze
+          end
         end
       end
 
@@ -986,7 +991,7 @@ module ActiveRecord
       end
 
       def klass
-        @klass ||= delegate_reflection.compute_class(compute_name(class_name))
+        @klass ||= delegate_reflection._klass(class_name)
       end
 
       # Returns the source of the through reflection. It checks both a singularized
@@ -1061,7 +1066,7 @@ module ActiveRecord
         source_reflection.scopes + super
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
         source_reflection.join_scopes(table, predicate_builder, klass, record) + super
       end
 
@@ -1234,8 +1239,11 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def join_scopes(table, predicate_builder, klass = self.klass, record = nil) # :nodoc:
-        scopes = @previous_reflection.join_scopes(table, predicate_builder, klass, record) + super
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
+        scopes = super
+        unless @previous_reflection.through_reflection?
+          scopes += @previous_reflection.join_scopes(table, predicate_builder, klass, record)
+        end
         scopes << build_scope(table, predicate_builder, klass).instance_exec(record, &source_type_scope)
       end
 

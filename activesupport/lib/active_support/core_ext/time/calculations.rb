@@ -147,6 +147,13 @@ class Time
     elsif zone.respond_to?(:utc_to_local)
       new_time = ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, zone)
 
+      # Some versions of Ruby have a bug where Time.new with a zone object and
+      # fractional seconds will end up with a broken utc_offset.
+      # This is fixed in Ruby 3.3.1 and 3.2.4
+      unless new_time.utc_offset.integer?
+        new_time += 0
+      end
+
       # When there are two occurrences of a nominal time due to DST ending,
       # `Time.new` chooses the first chronological occurrence (the one with a
       # larger UTC offset). However, for `change`, we want to choose the
@@ -217,8 +224,13 @@ class Time
   # Returns a new Time representing the time a number of seconds since the instance time
   def since(seconds)
     self + seconds
-  rescue
-    to_datetime.since(seconds)
+  rescue TypeError
+    result = to_datetime.since(seconds)
+    ActiveSupport.deprecator.warn(
+      "Passing an instance of #{seconds.class} to #{self.class}#since is deprecated. This behavior will raise " \
+      "a `TypeError` in Rails 8.1."
+    )
+    result
   end
   alias :in :since
 
@@ -319,7 +331,12 @@ class Time
     if other.class == Time
       compare_without_coercion(other)
     elsif other.is_a?(Time)
-      compare_without_coercion(other.to_time)
+      # also avoid ActiveSupport::TimeWithZone#to_time before Rails 8.0
+      if other.respond_to?(:comparable_time)
+        compare_without_coercion(other.comparable_time)
+      else
+        compare_without_coercion(other.to_time)
+      end
     else
       to_datetime <=> other
     end

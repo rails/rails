@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "thread"
 require "cases/helper"
 require "models/person"
 require "models/job"
@@ -180,7 +179,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
 
-    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     p1.touch
 
     assert_equal 1, p1.lock_version
@@ -299,13 +297,39 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
 
-    sleep 1.0 unless supports_datetime_with_precision? # Remove once MySQL 5.5 support is dropped.
     t1.touch
 
     assert_equal 1, t1.lock_version
     assert_not_predicate t1, :changed?
     assert_predicate t1, :saved_changes?
     assert_equal ["lock_version", "updated_at"], t1.saved_changes.keys.sort
+  end
+
+  def test_update_lock_version_to_nil_without_validation_or_constraint_raises_error
+    t1 = LockWithoutDefault.create!(title: "title1")
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { t1.update(lock_version: nil) }
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { t1.update!(lock_version: nil) }
+  end
+
+  def test_update_lock_version_to_nil_without_validation_raises
+    person = Person.find(1)
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { person.update(lock_version: nil) }
+    assert_raises(RuntimeError, match: locking_column_nil_error_message) { person.update!(lock_version: nil) }
+  end
+
+  def test_update_lock_version_to_nil_with_validation_does_not_raise_runtime_lock_version_error
+    person = LockVersionValidatedPerson.find(1)
+    assert_nothing_raised { person.update(lock_version: nil) }
+
+    assert_equal ["is not a number"], person.errors[:lock_version]
+  end
+
+  def test_update_bang_lock_version_to_nil_with_validation_does_not_raise_runtime_lock_version_error
+    error = assert_raises(ActiveRecord::RecordInvalid) do
+      LockVersionValidatedPerson.find(1).update!(lock_version: nil)
+    end
+
+    assert_equal ["is not a number"], error.record.errors[:lock_version]
   end
 
   def test_touch_stale_object_with_lock_without_default
@@ -468,7 +492,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "unchangeable name", s.name
   end
 
-  def test_quote_table_name
+  def test_quote_table_name_reserved_word_references
     ref = references(:michael_magician)
     ref.favorite = !ref.favorite
     assert ref.save
@@ -560,6 +584,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_equal t1.attributes, t2.attributes
   end
+
+  private
+    def locking_column_nil_error_message
+      <<-MSG.squish
+        For optimistic locking, locking_column ('lock_version') can't be nil.
+        Are you missing a default value or validation on 'lock_version'?
+      MSG
+    end
 end
 
 class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
@@ -798,7 +830,7 @@ class PessimisticLockingTest < ActiveRecord::TestCase
 
         a = Thread.new do
           t0 = Time.now
-          Person.transaction do
+          Person.transaction(joinable: false) do
             yield
             b_wakeup.set
             a_wakeup.wait

@@ -58,7 +58,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = OpenSSL::Digest::MD5.file(file).base64digest
+      checksum = ActiveStorage.checksum_implementation.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -114,12 +114,6 @@ class ActiveSupport::TestCase
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
     end
-
-    def subscribe_events_from(name)
-      events = []
-      ActiveSupport::Notifications.subscribe(name) { |event| events << event }
-      events
-    end
 end
 
 require "global_id"
@@ -127,6 +121,9 @@ GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.include GlobalID::Identification
 
 class User < ActiveRecord::Base
+  attr_accessor :record_callbacks, :callback_counter
+  attr_reader :notification_sent
+
   validates :name, presence: true
 
   has_one_attached :avatar
@@ -167,10 +164,24 @@ class User < ActiveRecord::Base
     attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
   end
 
+  after_commit :increment_callback_counter
+  after_update_commit :notify
+
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
 
   def should_preprocessed?
     name == "transform via method"
+  end
+
+  def increment_callback_counter
+    if record_callbacks
+      @callback_counter ||= 0
+      @callback_counter += 1
+    end
+  end
+
+  def notify
+    @notification_sent = true if highlights_attachments.any?(&:previously_new_record?)
   end
 end
 

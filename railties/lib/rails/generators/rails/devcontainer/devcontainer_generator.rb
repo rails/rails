@@ -26,6 +26,12 @@ module Rails
       class_option :dev, type: :boolean, default: false,
                     desc: "For applications pointing to a local Rails checkout"
 
+      class_option :kamal, type: :boolean, default: true,
+                    desc: "Include configuration for Kamal"
+
+      class_option :skip_solid, type: :boolean, default: nil,
+                    desc: "Skip Solid Cache, Queue, and Cable setup"
+
       source_paths << File.expand_path(File.join(base_name, "app", "templates"), base_root)
 
       def create_devcontainer
@@ -38,9 +44,11 @@ module Rails
 
       def update_application_system_test_case
         return unless options[:system_test]
-        return unless File.exist?("test/application_system_test_case.rb")
 
-        gsub_file("test/application_system_test_case.rb", /^(\s*driven_by\b.*)/, system_test_configuration)
+        system_test_case_path = File.expand_path "test/application_system_test_case.rb", destination_root
+        return unless File.exist? system_test_case_path
+
+        gsub_file(system_test_case_path, /^\s*driven_by\b.*/, system_test_configuration)
       end
 
       def update_database_yml
@@ -78,6 +86,7 @@ module Rails
           @container_env["CAPYBARA_SERVER_PORT"] = "45678" if options[:system_test]
           @container_env["SELENIUM_HOST"] = "selenium" if options[:system_test]
           @container_env["REDIS_URL"] = "redis://redis:6379/1" if options[:redis]
+          @container_env["KAMAL_REGISTRY_PASSWORD"] = "$KAMAL_REGISTRY_PASSWORD" if options[:kamal]
           @container_env["DB_HOST"] = database.name if database.service
 
           @container_env
@@ -103,6 +112,7 @@ module Rails
 
           @features["ghcr.io/rails/devcontainer/features/activestorage"] = {} if options[:active_storage]
           @features["ghcr.io/devcontainers/features/node:1"] = {} if options[:node]
+          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = {} if options[:kamal]
 
           @features.merge!(database.feature) if database.feature
 
@@ -148,17 +158,17 @@ module Rails
         end
 
         def system_test_configuration
-          <<~RUBY
-              if ENV["CAPYBARA_SERVER_PORT"]
-                served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
+          optimize_indentation(<<-'RUBY', 2).chomp
+            if ENV["CAPYBARA_SERVER_PORT"]
+              served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
-                  browser: :remote,
-                  url: "http://#{ENV["SELENIUM_HOST"]}:4444"
-                }
-              else
-                driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
-              end
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ], options: {
+                browser: :remote,
+                url: "http://#{ENV["SELENIUM_HOST"]}:4444"
+              }
+            else
+              driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 1400 ]
+            end
           RUBY
         end
     end

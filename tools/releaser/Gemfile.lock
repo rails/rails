@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    releaser (1.0.0)
+      minitest
+      rake (~> 13.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    minitest (5.25.1)
+    rake (13.2.1)
+
+PLATFORMS
+  aarch64-linux
+  ruby
+
+DEPENDENCIES
+  releaser!
+
+BUNDLED WITH
+   2.5.17

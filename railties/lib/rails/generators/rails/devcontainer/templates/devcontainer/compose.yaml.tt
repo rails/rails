@@ -26,13 +26,13 @@ services:
 <%- if options[:system_test] -%>
 
   selenium:
-    image: seleniarm/standalone-chromium
+    image: selenium/standalone-chromium
     restart: unless-stopped
 <%- end -%>
 
 <%- if options[:redis] -%>
   redis:
-    image: redis:7.2
+    image: valkey/valkey:8
     restart: unless-stopped
     volumes:
     - redis-data:/data

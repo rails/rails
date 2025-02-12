@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "set"
 require "fileutils"
 require "nokogiri"
 require "securerandom"
+require "digest"
 
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/object/blank"
@@ -19,15 +19,16 @@ module RailsGuides
     GUIDES_RE = /\.(?:erb|md)\z/
 
     def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
-      @edge      = edge
-      @version   = version
-      @all       = all
-      @only      = only
-      @epub      = epub
-      @language  = language
-      @direction = direction || "ltr"
-      @lint = lint
-      @warnings = []
+      @edge         = edge
+      @version      = version
+      @all          = all
+      @only         = only
+      @epub         = epub
+      @language     = language
+      @direction    = direction || "ltr"
+      @digest_paths = {}
+      @lint         = lint
+      @warnings     = []
 
       if @epub
         register_special_mime_types
@@ -39,6 +40,15 @@ module RailsGuides
     end
 
     def generate
+      if !dry_run?
+        # First copy assets and add digests to make sure digest_paths are
+        # present in generate_guides.
+        cleanup_assets
+        process_scss
+        copy_assets
+        add_digests
+      end
+
       generate_guides
 
       if @lint && @warnings.any?
@@ -47,8 +57,6 @@ module RailsGuides
       end
 
       if !dry_run?
-        process_scss
-        copy_assets
         generate_epub if @epub
       end
     end
@@ -120,6 +128,10 @@ module RailsGuides
         end
       end
 
+      def cleanup_assets
+        FileUtils.rm_rf(Dir.glob("#{@output_dir}/{stylesheets,javascripts}"))
+      end
+
       def process_scss
         system "bundle exec dartsass \
           #{@guides_dir}/assets/stylesrc/style.scss:#{@output_dir}/stylesheets/style.css \
@@ -130,6 +142,23 @@ module RailsGuides
       def copy_assets
         source_files = Dir.glob("#{@guides_dir}/assets/*").reject { |name| name.include?("stylesrc") }
         FileUtils.cp_r(source_files, @output_dir)
+      end
+
+      def add_digests
+        assets_files = Dir.glob("{javascripts,stylesheets}/**/*", base: @output_dir)
+        # Add the MD5 digest to the asset names.
+        assets_files.each do |asset|
+          asset_path = File.join(@output_dir, asset)
+          if File.file?(asset_path)
+            digest = Digest::MD5.file(asset_path).hexdigest
+            ext = File.extname(asset)
+            basename = File.basename(asset, ext)
+            dirname = File.dirname(asset)
+            digest_path = "#{dirname}/#{basename}-#{digest}#{ext}"
+            FileUtils.mv(asset_path, "#{@output_dir}/#{digest_path}")
+            @digest_paths[asset] = digest_path
+          end
+        end
       end
 
       def output_file_for(guide)
@@ -157,12 +186,14 @@ module RailsGuides
 
         view = ActionView::Base.with_empty_template_cache.with_view_paths(
           [@source_dir],
-          edge:     @edge,
-          version:  @version,
-          epub:     "epub/#{epub_filename}",
-          language: @language,
-          direction: @direction,
-          uuid:      SecureRandom.uuid
+          edge:          @edge,
+          version:       @version,
+          path:          output_file,
+          epub:          "epub/#{epub_filename}",
+          language:      @language,
+          direction:     @direction,
+          uuid:          SecureRandom.uuid,
+          digest_paths:  @digest_paths
         )
         view.extend(Helpers)
 
@@ -219,7 +250,8 @@ module RailsGuides
         broken_links = []
 
         html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-          next if fragment_identifier == "mainCol" # in layout, jumps to some DIV
+          next if fragment_identifier == "column-main" # in layout
+          next if fragment_identifier == "main-skip-link" # in layout
           unless anchors.member?(CGI.unescape(fragment_identifier))
             guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
             puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."

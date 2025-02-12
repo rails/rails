@@ -181,18 +181,6 @@ class PermissionsPolicyIntegrationTest < ActionDispatch::IntegrationTest
   end
 
   private
-    def env_config
-      Rails.application.env_config
-    end
-
-    def permissions_policy
-      env_config["action_dispatch.permissions_policy"]
-    end
-
-    def permissions_policy=(policy)
-      env_config["action_dispatch.permissions_policy"] = policy
-    end
-
     def assert_policy(expected)
       assert_response :success
       assert_equal expected, response.headers["Feature-Policy"]
@@ -265,18 +253,6 @@ class PermissionsPolicyWithHelpersIntegrationTest < ActionDispatch::IntegrationT
   end
 
   private
-    def env_config
-      Rails.application.env_config
-    end
-
-    def permissions_policy
-      env_config["action_dispatch.permissions_policy"]
-    end
-
-    def permissions_policy=(policy)
-      env_config["action_dispatch.permissions_policy"] = policy
-    end
-
     def assert_policy(expected)
       assert_response :success
       assert_equal expected, response.headers[ActionDispatch::Constants::FEATURE_POLICY]

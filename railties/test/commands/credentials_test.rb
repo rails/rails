@@ -285,6 +285,20 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match(raw_content, run_diff_command("config/credentials.yml.enc"))
   end
 
+  test "diff for custom environment" do
+    run_edit_command(environment: "custom")
+
+    assert_match(/access_key_id: 123/, run_diff_command("config/credentials/custom.yml.enc"))
+  end
+
+  test "diff for custom environment when key is not available" do
+    run_edit_command(environment: "custom")
+    remove_file "config/credentials/custom.key"
+
+    raw_content = File.read(app_path("config", "credentials", "custom.yml.enc"))
+    assert_match(raw_content, run_diff_command("config/credentials/custom.yml.enc"))
+  end
+
   test "diff returns raw encrypted content when errors occur" do
     run_edit_command(environment: "development")
 

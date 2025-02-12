@@ -87,6 +87,8 @@ module ActiveRecord
 
       connections = []
 
+      @shard_keys = shards.keys
+
       if shards.empty?
         shards[:default] = database
       end
@@ -173,6 +175,18 @@ module ActiveRecord
       yield
     ensure
       connected_to_stack.pop
+    end
+
+    # Passes the block to +connected_to+ for every +shard+ the
+    # model is configured to connect to (if any), and returns the
+    # results in an array.
+    #
+    # Optionally, +role+ and/or +prevent_writes+ can be passed which
+    # will be forwarded to each +connected_to+ call.
+    def connected_to_all_shards(role: nil, prevent_writes: false, &blk)
+      shard_keys.map do |shard|
+        connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
+      end
     end
 
     # Use a specified connection.
@@ -357,6 +371,14 @@ module ActiveRecord
 
     def clear_cache! # :nodoc:
       connection_pool.schema_cache.clear!
+    end
+
+    def shard_keys
+      connection_class_for_self.instance_variable_get(:@shard_keys) || []
+    end
+
+    def sharded?
+      shard_keys.any?
     end
 
     private

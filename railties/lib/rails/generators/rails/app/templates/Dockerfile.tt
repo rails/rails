@@ -1,14 +1,15 @@
-# syntax = docker/dockerfile:1
+# syntax=docker/dockerfile:1
+# check=error=true
 
 # This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t my-app .
-# docker run -d -p 80:80 -p 443:443 --name my-app -e RAILS_MASTER_KEY=<value from config/master.key> my-app
+# docker build -t <%= app_name %> .
+# docker run -d -p 80:<%= skip_thruster? ? 3000 : 80 %> -e RAILS_MASTER_KEY=<value from config/master.key> --name <%= app_name %> <%= app_name %>
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=<%= gem_ruby_version %>
-FROM docker.io/library/ruby:$RUBY_VERSION-slim as base
+ARG RUBY_VERSION=<%= Gem.ruby_version %>
+FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
 WORKDIR /rails
@@ -25,9 +26,9 @@ ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development"
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
-# Install packages needed to build gems<%= using_node? ? " and node modules" : "" %>
+# Install packages needed to build gems<%= (using_node? || using_bun?) ? " and node modules" : "" %>
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y <%= dockerfile_build_packages.join(" ") %> && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
@@ -37,10 +38,17 @@ RUN apt-get update -qq && \
 ARG NODE_VERSION=<%= node_version %>
 ARG YARN_VERSION=<%= dockerfile_yarn_version %>
 ENV PATH=/usr/local/node/bin:$PATH
+<% if yarn_through_corepack? -%>
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build-master
+RUN corepack enable && yarn set version $YARN_VERSION
+<% else -%>
 RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
     /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
     npm install -g yarn@$YARN_VERSION && \
     rm -rf /tmp/node-build-master
+<% end -%>
 
 <% end -%>
 <% if using_bun? -%>
@@ -51,7 +59,8 @@ RUN curl -fsSL https://bun.sh/install | bash -s -- "bun-v${BUN_VERSION}"
 
 <% end -%>
 # Install application gems
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock vendor ./
+
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git<% if depend_on_bootsnap? -%> && \
     bundle exec bootsnap precompile --gemfile<% end %>
@@ -59,12 +68,12 @@ RUN bundle install && \
 <% if using_node? -%>
 # Install node modules
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 <% end -%>
 <% if using_bun? -%>
 # Install node modules
-COPY package.json bun.lockb ./
+COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 
 <% end -%>
@@ -87,26 +96,31 @@ RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 <% end -%>
 
-<% if using_node? -%>
+<% if using_node? || using_bun? -%>
 RUN rm -rf node_modules
 <% end %>
 
 # Final stage for app image
 FROM base
 
-# Copy built artifacts: gems, application
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
-COPY --from=build /rails /rails
-
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
-    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash && \
-    chown -R rails:rails <%= dockerfile_chown_directories.join(" ") %>
+    useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash
 USER 1000:1000
+
+# Copy built artifacts: gems, application
+COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+COPY --chown=rails:rails --from=build /rails /rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
+<% if skip_thruster? -%>
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 CMD ["./bin/rails", "server"]
+<% else -%>
+# Start server via Thruster by default, this can be overwritten at runtime
+EXPOSE 80
+CMD ["./bin/thrust", "./bin/rails", "server"]
+<% end -%>

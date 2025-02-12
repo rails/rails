@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "concurrent/atomic/atomic_fixnum"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -35,7 +36,9 @@ module ActiveRecord
         alias_method :enabled?, :enabled
         alias_method :dirties?, :dirties
 
-        def initialize(max_size)
+        def initialize(version, max_size)
+          @version = version
+          @current_version = version.value
           @map = {}
           @max_size = max_size
           @enabled = false
@@ -43,14 +46,17 @@ module ActiveRecord
         end
 
         def size
+          check_version
           @map.size
         end
 
         def empty?
+          check_version
           @map.empty?
         end
 
         def [](key)
+          check_version
           return unless @enabled
 
           if entry = @map.delete(key)
@@ -59,6 +65,8 @@ module ActiveRecord
         end
 
         def compute_if_absent(key)
+          check_version
+
           return yield unless @enabled
 
           if entry = @map.delete(key)
@@ -76,12 +84,40 @@ module ActiveRecord
           @map.clear
           self
         end
+
+        private
+          def check_version
+            if @current_version != @version.value
+              @map.clear
+              @current_version = @version.value
+            end
+          end
+      end
+
+      class QueryCacheRegistry # :nodoc:
+        def initialize
+          @mutex = Mutex.new
+          @map = ConnectionPool::WeakThreadKeyMap.new
+        end
+
+        def compute_if_absent(context)
+          @map[context] || @mutex.synchronize do
+            @map[context] ||= yield
+          end
+        end
+
+        def clear
+          @map.synchronize do
+            @map.clear
+          end
+        end
       end
 
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
-          @thread_query_caches = Concurrent::Map.new(initial_capacity: @size)
+          @query_cache_version = Concurrent::AtomicFixnum.new
+          @thread_query_caches = QueryCacheRegistry.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -121,11 +157,13 @@ module ActiveRecord
         end
 
         def enable_query_cache!
-          query_cache.enabled, query_cache.dirties = true, true
+          query_cache.enabled = true
+          query_cache.dirties = true
         end
 
         def disable_query_cache!
-          query_cache.enabled, query_cache.dirties = false, true
+          query_cache.enabled = false
+          query_cache.dirties = true
         end
 
         def query_cache_enabled
@@ -141,25 +179,16 @@ module ActiveRecord
             # With transactional fixtures, and especially systems test
             # another thread may use the same connection, but with a different
             # query cache. So we must clear them all.
-            @thread_query_caches.each_value(&:clear)
-          else
-            query_cache.clear
+            @query_cache_version.increment
           end
+          query_cache.clear
         end
 
         def query_cache
           @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_max_size)
+            Store.new(@query_cache_version, @query_cache_max_size)
           end
         end
-
-        private
-          def prune_thread_cache
-            dead_threads = @thread_query_caches.keys.reject(&:alive?)
-            dead_threads.each do |dead_thread|
-              @thread_query_caches.delete(dead_thread)
-            end
-          end
       end
 
       attr_accessor :query_cache
@@ -210,7 +239,7 @@ module ActiveRecord
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
         if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
-          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable)
+          sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
@@ -239,7 +268,7 @@ module ActiveRecord
           if result
             ActiveSupport::Notifications.instrument(
               "sql.active_record",
-              cache_notification_info(sql, name, binds)
+              cache_notification_info_result(sql, name, binds, result)
             )
           end
 
@@ -261,11 +290,17 @@ module ActiveRecord
           if hit
             ActiveSupport::Notifications.instrument(
               "sql.active_record",
-              cache_notification_info(sql, name, binds)
+              cache_notification_info_result(sql, name, binds, result)
             )
           end
 
           result.dup
+        end
+
+        def cache_notification_info_result(sql, name, binds, result)
+          payload = cache_notification_info(sql, name, binds)
+          payload[:row_count] = result.length
+          payload
         end
 
         # Database adapters can override this method to
@@ -277,7 +312,7 @@ module ActiveRecord
             type_casted_binds: -> { type_casted_binds(binds) },
             name: name,
             connection: self,
-            transaction: current_transaction.presence,
+            transaction: current_transaction.user_transaction.presence,
             cached: true
           }
         end

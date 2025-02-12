@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Working with JavaScript in Rails
 ================================
@@ -228,7 +228,7 @@ def create
 
   respond_to do |format|
     if @post.save
-      format.turbo_stream { render turbo_stream: turbo_stream.prepend('posts', partial: 'post') }
+      format.turbo_stream { render turbo_stream: turbo_stream.prepend("posts", partial: "post") }
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -244,7 +244,7 @@ To broadcast a Turbo Stream from a model combine a model callback like this:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit { broadcast_append_to('posts') }
+  after_create_commit { broadcast_append_to("posts") }
 end
 ```
 
@@ -329,7 +329,7 @@ NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSR
 of adding the request headers that are required by Rails. Just
 import the `FetchRequest` class from the package and instantiate it
 passing the request method, url, options, then call `await request.perform()`
-and do what do you need with the response.
+and do what you need with the response.
 
 For example:
 

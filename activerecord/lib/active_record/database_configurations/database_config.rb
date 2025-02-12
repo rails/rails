@@ -18,6 +18,10 @@ module ActiveRecord
         @adapter_class ||= ActiveRecord::ConnectionAdapters.resolve(adapter)
       end
 
+      def inspect # :nodoc:
+        "#<#{self.class.name} env_name=#{@env_name} name=#{@name} adapter_class=#{adapter_class}>"
+      end
+
       def new_connection
         adapter_class.new(configuration_hash)
       end
@@ -93,6 +97,10 @@ module ActiveRecord
       end
 
       def use_metadata_table?
+        raise NotImplementedError
+      end
+
+      def seeds?
         raise NotImplementedError
       end
     end

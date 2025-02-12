@@ -386,6 +386,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [[:opened, { price: 2, currency: :usd }], [:paid, { price: 1, currency: :eur }]], values.in_order_of(:first, [:opened, :paid])
   end
 
+  def test_in_order_of_with_filter_false
+    values = [ Payment.new(5), Payment.new(3), Payment.new(1) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5 ], filter: false)
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 
@@ -407,7 +412,5 @@ class EnumerableTests < ActiveSupport::TestCase
   private
     def constant_cache_invalidations
       RubyVM.stat(:constant_cache_invalidations)
-    rescue ArgumentError
-      RubyVM.stat(:global_constant_state) # RUBY_VERSION < "3.2"
     end
 end

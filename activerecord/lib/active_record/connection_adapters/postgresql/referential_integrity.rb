@@ -45,12 +45,10 @@ Rails needs superuser privileges to disable referential integrity.
             BEGIN
             FOR r IN (
               SELECT FORMAT(
-                'UPDATE pg_constraint SET convalidated=false WHERE conname = ''%I'' AND connamespace::regnamespace = ''%I''::regnamespace; ALTER TABLE %I.%I VALIDATE CONSTRAINT %I;',
+                'UPDATE pg_catalog.pg_constraint SET convalidated=false WHERE conname = ''%1$I'' AND connamespace::regnamespace = ''%2$I''::regnamespace; ALTER TABLE %2$I.%3$I VALIDATE CONSTRAINT %1$I;',
                 constraint_name,
                 table_schema,
-                table_schema,
-                table_name,
-                constraint_name
+                table_name
               ) AS constraint_check
               FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY'
             )

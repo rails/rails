@@ -15,7 +15,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
     end
 
     test "creating new direct upload" do
-      checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+      checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -61,7 +61,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "creating new direct upload" do
-      checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+      checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -106,7 +106,7 @@ if SERVICE_CONFIGURATIONS[:azure]
     end
 
     test "creating new direct upload" do
-      checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+      checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
       metadata = {
         "foo" => "bar",
         "my_key_1" => "my_value_1",
@@ -136,7 +136,7 @@ end
 
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
   test "creating new direct upload" do
-    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+    checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
     metadata = {
       "foo" => "bar",
       "my_key_1" => "my_value_1",
@@ -161,7 +161,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
   end
 
   test "creating new direct upload does not include root in json" do
-    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+    checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
     metadata = {
       "foo" => "bar",
       "my_key_1" => "my_value_1",

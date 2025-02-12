@@ -80,6 +80,19 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_equal "simple", @new_test.send(:output_type)
   end
 
+  test "take_screenshot saves image and shows link to it" do
+    display_image_actual = nil
+
+    Rails.stub :root, Pathname.getwd do
+      @new_test.stub :save_image, nil do
+        @new_test.stub :show, -> (img) { display_image_actual = img } do
+          @new_test.take_screenshot
+        end
+      end
+    end
+    assert_match %r|\[Screenshot Image\].+?tmp/screenshots/1_x\.png |, display_image_actual
+  end
+
   test "take_screenshot saves HTML and shows link to it when using RAILS_SYSTEM_TESTING_SCREENSHOT_HTML env" do
     original_html_setting = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"]
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"] = "1"
@@ -97,7 +110,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       end
     end
     assert called_save_html
-    assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html|, display_image_actual
+    assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html |, display_image_actual
   ensure
     ENV["RAILS_SYSTEM_TESTING_SCREENSHOT_HTML"] = original_html_setting
   end
@@ -116,7 +129,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       end
     end
     assert called_save_html
-    assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html|, display_image_actual
+    assert_match %r|\[Screenshot HTML\].+?tmp/screenshots/1_x\.html |, display_image_actual
   end
 
   test "take_screenshot allows changing screenshot display format via RAILS_SYSTEM_TESTING_SCREENSHOT env" do

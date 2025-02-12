@@ -3,13 +3,15 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest", ">= 5.15.0"
+gem "minitest"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
 
+gem "releaser", path: "tools/releaser"
+
 gem "sprockets-rails", ">= 2.0.0", require: false
-gem "propshaft", ">= 0.1.7"
+gem "propshaft", ">= 0.1.7", "!= 1.0.1"
 gem "capybara", ">= 3.39"
 gem "selenium-webdriver", ">= 4.20.0"
 
@@ -21,7 +23,11 @@ gem "cssbundling-rails"
 gem "importmap-rails", ">= 1.2.3"
 gem "tailwindcss-rails"
 gem "dartsass-rails"
-gem "kamal", require: false
+gem "solid_cache"
+gem "solid_queue"
+gem "solid_cable"
+gem "kamal", ">= 2.1.0", require: false
+gem "thruster", require: false
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
 # being dependent on a binary library.
@@ -34,14 +40,10 @@ gem "terser", ">= 1.1.4", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0", "!=2.7.0"
 
-# Workaround until Ruby ships with cgi version 0.3.6 or higher.
-gem "cgi", ">= 0.3.6", require: false
+# Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
+gem "uri", ">= 0.13.1", require: false
 
 gem "prism"
-
-group :lint do
-  gem "syntax_tree", "6.1.1", require: false
-end
 
 group :rubocop do
   gem "rubocop", ">= 1.25.1", require: false
@@ -61,7 +63,7 @@ end
 
 group :doc do
   gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
-  gem "rdoc", "~> 6.7"
+  gem "rdoc", "< 6.10"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -98,11 +100,9 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
-  gem "delayed_job_active_record", require: false
 end
 
 # Action Cable
@@ -113,7 +113,7 @@ group :cable do
 
   gem "redis-namespace"
 
-  gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
+  gem "websocket-client-simple", require: false
 end
 
 # Active Storage
@@ -151,11 +151,8 @@ end
 platforms :ruby, :windows do
   gem "nokogiri", ">= 1.8.1", "!= 1.11.0"
 
-  # Needed for compiling the ActionDispatch::Journey parser.
-  gem "racc", ">=1.4.6", require: false
-
   # Active Record.
-  gem "sqlite3", ">= 1.6.6"
+  gem "sqlite3", ">= 2.1"
 
   group :db do
     gem "pg", "~> 1.3"
@@ -167,10 +164,4 @@ end
 gem "tzinfo-data", platforms: [:windows, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:windows]
 
-# The error_highlight gem only works on CRuby 3.1 or later.
-# Also, Rails depends on a new API available since error_highlight 0.4.0.
-# (Note that Ruby 3.1 bundles error_highlight 0.3.0.)
-if RUBY_VERSION < "3.2"
-  gem "error_highlight", ">= 0.4.0", platforms: [:ruby]
-end
 gem "launchy"

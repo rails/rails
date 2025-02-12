@@ -29,7 +29,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   # :method:
   #
   # Returns the associated ActiveStorage::Attachment instances.
-  has_many :attachments
+  has_many :attachments, autosave: false
 
   ##
   # :singleton-method:
@@ -71,9 +71,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
     end
 
     # Works like +find_signed+, but will raise an +ActiveSupport::MessageVerifier::InvalidSignature+
-    # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
-    # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
-    # the valid signed id can't find a record.
+    # exception if the +signed_id+ has either expired, has a purpose mismatch, or has been tampered with.
+    # It will also raise an +ActiveRecord::RecordNotFound+ exception if the valid signed id can't find a record.
     def find_signed!(id, record: nil, purpose: :blob_id)
       super(id, purpose: purpose)
     end
@@ -150,22 +149,6 @@ class ActiveStorage::Blob < ActiveStorage::Record
       new(key: key, filename: filename, content_type: content_type, metadata: metadata, byte_size: blobs.sum(&:byte_size)).tap do |combined_blob|
         combined_blob.compose(blobs.pluck(:key))
         combined_blob.save!
-      end
-    end
-
-    def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
-      if service_name
-        services.fetch(service_name) do
-          raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
-        end
-      else
-        validate_global_service_configuration
-      end
-    end
-
-    def validate_global_service_configuration # :nodoc:
-      if connected? && table_exists? && Rails.configuration.active_storage.service.nil?
-        raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
       end
     end
   end
@@ -349,7 +332,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     def compute_checksum_in_chunks(io)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
-      OpenSSL::Digest::MD5.new.tap do |checksum|
+      ActiveStorage.checksum_implementation.new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer

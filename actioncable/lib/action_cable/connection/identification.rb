@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "set"
-
 module ActionCable
   module Connection
     module Identification

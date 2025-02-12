@@ -30,6 +30,18 @@ module ActiveSupport
   #     self.current_user = User.find(id)
   #   end
   #
+  # === Signing is not encryption
+  #
+  # The signed messages are not encrypted. The payload is merely encoded (Base64 by default) and can be decoded by
+  # anyone. The signature is just assuring that the message wasn't tampered with. For example:
+  #
+  #     message = Rails.application.message_verifier('my_purpose').generate('never put secrets here')
+  #     # => "BAhJIhtuZXZlciBwdXQgc2VjcmV0cyBoZXJlBjoGRVQ=--a0c1c0827919da5e949e989c971249355735e140"
+  #     Base64.decode64(message.split("--").first) # no key needed
+  #     # => 'never put secrets here'
+  #
+  # If you also need to encrypt the contents, you must use ActiveSupport::MessageEncryptor instead.
+  #
   # === Confine messages to a specific purpose
   #
   # It's not recommended to use the same verifier for different purposes in your application.
@@ -142,6 +154,8 @@ module ActiveSupport
     #   not URL-safe. In other words, they can contain "+" and "/". If you want to
     #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
     #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
+    #   Note that MessageVerifier will always accept both URL-safe and URL-unsafe
+    #   encoded messages, to allow a smooth transition between the two settings.
     #
     # [+:force_legacy_metadata_serializer+]
     #   Whether to use the legacy metadata serializer, which serializes the
@@ -306,6 +320,13 @@ module ActiveSupport
     end
 
     private
+      def decode(encoded, url_safe: @url_safe)
+        catch :invalid_message_format do
+          return super
+        end
+        super(encoded, url_safe: !url_safe)
+      end
+
       def sign_encoded(encoded)
         digest = generate_digest(encoded)
         encoded << SEPARATOR << digest

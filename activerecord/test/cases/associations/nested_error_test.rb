@@ -74,4 +74,43 @@ class AssociationsNestedErrorInNestedAttributesOrderTest < ActiveRecord::TestCas
     assert_equal "is not a number", error.message
     assert_equal guitar, error.base
   end
+
+  class AssociationsNestedErrorWithSingularAssociationTest < ActiveRecord::TestCase
+    def setup
+      pet_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "pets"
+        def self.name; "Pet"; end
+
+        validates :name, presence: true
+      end
+
+      @owner_class = Class.new(ActiveRecord::Base) do
+        self.table_name = "owners"
+        def self.name; "Owner"; end
+
+        has_one :pet, anonymous_class: pet_class
+        accepts_nested_attributes_for :pet
+        validates_associated :pet
+      end
+    end
+
+    test "no index when singular association" do
+      old_attribute_config = ActiveRecord.index_nested_attribute_errors
+      ActiveRecord.index_nested_attribute_errors = true
+
+      owner = @owner_class.new(pet_attributes: { name: nil })
+      owner.valid?
+
+      error = owner.errors.objects.first
+
+      assert_equal ActiveRecord::Associations::NestedError, error.class
+      assert_equal owner.pet.errors.objects.first, error.inner_error
+      assert_equal :"pet.name", error.attribute
+      assert_equal :blank, error.type
+      assert_equal "can't be blank", error.message
+      assert_equal owner, error.base
+    ensure
+      ActiveRecord.index_nested_attribute_errors = old_attribute_config
+    end
+  end
 end

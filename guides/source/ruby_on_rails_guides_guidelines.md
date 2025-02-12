@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails Guides Guidelines
 ===============================
@@ -13,7 +13,7 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 Markdown
--------
+--------
 
 Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](https://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](https://daringfireball.net/projects/markdown/basics).
 
@@ -23,7 +23,7 @@ Prologue
 Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. As an example, see the [Routing Guide](routing.html).
 
 Headings
-------
+--------
 
 The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
 
@@ -51,8 +51,84 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
-Linking to the API
-------------------
+Notes, Tips and Warnings
+------------------------
+
+Sometimes a paragraph deserves a little more attention. For example, to clarify
+a common misunderstanding or warn about something that could break an
+application.
+
+To highlight a paragraph, prefix it with `NOTE:`, `TIP:` or `WARNING:`:
+
+```markdown
+NOTE: Use `NOTE`, `TIP` or `WARNING` to highlight a paragraph.
+```
+
+This will wrap the paragraph in a special container resulting in the following:
+
+NOTE: Use `NOTE`, `TIP` or `WARNING` to highlight a paragraph.
+
+### NOTE
+
+Use `NOTE` to highlight something in relation to the subject and the context.
+Reading it will help your understanding of that subject or context, or
+clarify an important item.
+
+For example, a section describing locale files could have the following `NOTE`:
+
+NOTE: You need to restart the server when you add new locale files.
+
+### TIP
+
+A `TIP` is just an additional bit of information regarding the subject, but not
+necessarily relevant to the understanding. It can point you to another guide or
+website:
+
+TIP: To learn more about routing, see [Rails Routing from the Outside In](
+routing.html).
+
+Or show a helpful command to see more options to dig deeper:
+
+TIP: For further help with generators, run `bin/rails generate --help`.
+
+### WARNING
+
+Use `WARNING` for things to avoid that could break the application:
+
+WARNING: Refrain from using methods like `update`, `save`, or any other methods
+that cause side effects on the object within your callback methods.
+
+Or warn about things that could compromise your application's security.
+
+WARNING: Keep your master key safe. Do not commit your master key.
+
+Links
+-----
+
+Use descriptive links and avoid "here" and "more" links:
+
+```markdown
+# BAD
+See the Rails Internationalization (I18n) API documentation for [more
+details](i18n.html).
+
+# GOOD
+See the [Rails Internationalization (I18n) API documentation](i18n.html) for
+more details.
+```
+
+Use descriptive links for internal links as well:
+
+```markdown
+# BAD
+We will cover this [below](#multiple-callback-conditions).
+
+# GOOD
+We will cover this in the [multiple callback conditions
+section](#multiple-callback-conditions) shown below.
+```
+
+### Linking to the API
 
 Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
 

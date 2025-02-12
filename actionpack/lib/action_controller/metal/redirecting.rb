@@ -106,13 +106,14 @@ module ActionController
 
       allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
 
-      self.status = _extract_redirect_to_status(options, response_options)
+      proposed_status = _extract_redirect_to_status(options, response_options)
 
       redirect_to_location = _compute_redirect_to_location(request, options)
       _ensure_url_is_http_header_safe(redirect_to_location)
 
       self.location      = _enforce_open_redirect_protection(redirect_to_location, allow_other_host: allow_other_host)
       self.response_body = ""
+      self.status        = proposed_status
     end
 
     # Soft deprecated alias for #redirect_back_or_to where the `fallback_location`

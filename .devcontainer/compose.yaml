@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   rails:
     build:
@@ -40,7 +38,7 @@ services:
       MARIADB_ROOT_PASSWORD: root
 
   redis:
-    image: redis:latest
+    image: valkey/valkey:8
     restart: unless-stopped
     volumes:
       - redis-data:/data

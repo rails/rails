@@ -109,7 +109,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -128,7 +128,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
-        template "puma.rb"   unless options[:update]
+        template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
 
         directory "environments"
@@ -142,10 +142,8 @@ module Rails
       active_storage_config_exist     = File.exist?("config/storage.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
-      asset_manifest_exist            = File.exist?("app/assets/config/manifest.js")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
       csp_config_exist                = File.exist?("config/initializers/content_security_policy.rb")
-      permissions_policy_config_exist = File.exist?("config/initializers/permissions_policy.rb")
 
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
@@ -159,15 +157,11 @@ module Rails
         template "config/storage.yml"
       end
 
-      if skip_sprockets? && skip_propshaft? && !assets_config_exist
+      if skip_asset_pipeline? && !assets_config_exist
         remove_file "config/initializers/assets.rb"
       end
 
-      if skip_sprockets? && !asset_manifest_exist
-        remove_file "app/assets/config/manifest.js"
-      end
-
-      if skip_sprockets? && !asset_app_stylesheet_exist
+      if skip_asset_pipeline? && !asset_app_stylesheet_exist
         remove_file "app/assets/stylesheets/application.css"
       end
 
@@ -178,10 +172,6 @@ module Rails
       if options[:api]
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
-        end
-
-        unless permissions_policy_config_exist
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
     end
@@ -211,7 +201,7 @@ module Rails
     end
 
     def database_yml
-      template "config/databases/#{options[:database]}.yml", "config/database.yml"
+      template database.template, "config/database.yml"
     end
 
     def db
@@ -221,7 +211,6 @@ module Rails
     def lib
       empty_directory "lib"
       empty_directory_with_keep_file "lib/tasks"
-      empty_directory_with_keep_file "lib/assets"
     end
 
     def log
@@ -229,7 +218,13 @@ module Rails
     end
 
     def public_directory
+      return if options[:update] && options[:api]
+
       directory "public", "public", recursive: false
+    end
+
+    def script
+      empty_directory_with_keep_file "script"
     end
 
     def storage
@@ -245,7 +240,6 @@ module Rails
       empty_directory_with_keep_file "test/helpers"
       empty_directory_with_keep_file "test/integration"
 
-      template "test/channels/application_cable/connection_test.rb"
       template "test/test_helper.rb"
     end
 
@@ -271,23 +265,21 @@ module Rails
     def devcontainer
       devcontainer_options = {
         database: options[:database],
-        redis: !(options[:skip_action_cable] && options[:skip_active_job]),
+        redis: options[:skip_solid] && !(options[:skip_action_cable] && options[:skip_active_job]),
+        kamal: !options[:skip_kamal],
         system_test: depends_on_system_test?,
         active_storage: !options[:skip_active_storage],
         dev: options[:dev],
         node: using_node?,
-        app_name: app_name
+        app_name: app_name,
+        skip_solid: options[:skip_solid],
+        pretend: options[:pretend]
       }
-
       Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
     end
   end
 
   module Generators
-    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
-    # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
-
     class AppGenerator < AppBase
       # :stopdoc:
 
@@ -313,11 +305,18 @@ module Rails
             :skip_active_job,
             :skip_active_storage,
             :skip_bootsnap,
+            :skip_brakeman,
+            :skip_ci,
             :skip_dev_gems,
+            :skip_docker,
             :skip_hotwire,
             :skip_javascript,
             :skip_jbuilder,
+            :skip_kamal,
+            :skip_rubocop,
+            :skip_solid,
             :skip_system_test,
+            :skip_thruster
           ],
           api: [
             :skip_asset_pipeline,
@@ -445,6 +444,11 @@ module Rails
         build(:public_directory)
       end
 
+      def create_script_folder
+        return if options[:dummy_app]
+        build(:script)
+      end
+
       def create_tmp_files
         build(:tmp)
       end
@@ -473,7 +477,6 @@ module Rails
       def delete_app_assets_if_api_option
         if options[:api]
           remove_dir "app/assets"
-          remove_dir "lib/assets"
         end
       end
 
@@ -490,12 +493,14 @@ module Rails
             remove_dir "app/views"
           else
             remove_file "app/views/layouts/application.html.erb"
+            remove_dir  "app/views/pwa"
           end
         end
       end
 
       def delete_public_files_if_api_option
         if options[:api]
+          remove_file "public/400.html"
           remove_file "public/404.html"
           remove_file "public/406-unsupported-browser.html"
           remove_file "public/422.html"
@@ -505,14 +510,9 @@ module Rails
         end
       end
 
-      def delete_assets_initializer_skipping_sprockets_and_propshaft
-        if skip_sprockets? && skip_propshaft?
+      def delete_assets_initializer_skipping_asset_pipeline
+        if skip_asset_pipeline?
           remove_file "config/initializers/assets.rb"
-        end
-
-        if skip_sprockets?
-          remove_file "app/assets/config/manifest.js"
-          remove_dir  "app/assets/config"
           remove_file "app/assets/stylesheets/application.css"
           create_file "app/assets/stylesheets/application.css", "/* Application styles */\n" unless options[:api]
         end
@@ -542,15 +542,12 @@ module Rails
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
           remove_dir "app/javascript/channels"
-          remove_dir "app/channels"
-          remove_dir "test/channels"
         end
       end
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/content_security_policy.rb"
-          remove_file "config/initializers/permissions_policy.rb"
         end
       end
 
@@ -578,6 +575,7 @@ module Rails
       public_task :run_hotwire
       public_task :run_css
       public_task :run_kamal
+      public_task :run_solid
 
       def run_after_bundle_callbacks
         @after_bundle_callbacks.each(&:call)

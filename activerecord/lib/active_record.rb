@@ -29,6 +29,7 @@ require "active_support/ordered_options"
 require "active_model"
 require "arel"
 require "yaml"
+require "zlib"
 
 require "active_record/version"
 require "active_record/deprecator"
@@ -61,7 +62,6 @@ module ActiveRecord
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
-  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
   autoload :QueryLogs
@@ -207,6 +207,9 @@ module ActiveRecord
     end
   end
 
+  singleton_class.attr_accessor :database_cli
+  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+
   singleton_class.attr_reader :default_timezone
 
   # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
@@ -255,6 +258,9 @@ module ActiveRecord
   ##
   # :singleton-method: db_warnings_ignore
   # Specify allowlist of database warnings.
+  # Can be a string, regular expression, or an error code from the database.
+  #
+  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -263,14 +269,6 @@ module ActiveRecord
 
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
-
-  def self.legacy_connection_handling=(_)
-    raise ArgumentError, <<~MSG.squish
-      The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
-      but is still defined in your configuration. Please remove this call as it no longer
-      has any effect."
-    MSG
-  end
 
   ##
   # :singleton-method: async_query_executor
@@ -290,6 +288,7 @@ module ActiveRecord
   def self.global_thread_pool_async_query_executor # :nodoc:
     concurrency = global_executor_concurrency || 4
     @global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+      name: "ActiveRecord-global-async-query-executor",
       min_threads: 0,
       max_threads: concurrency,
       max_queue: concurrency * 4,
@@ -301,7 +300,7 @@ module ActiveRecord
   # with the global thread pool async query executor.
   def self.global_executor_concurrency=(global_executor_concurrency)
     if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
-      raise ArgumentError, "`global_executor_concurrency` cannot be set when using the executor is nil or set to multi_thead_pool. For multiple thread pools, please set the concurrency in your database configuration."
+      raise ArgumentError, "`global_executor_concurrency` cannot be set when the executor is nil or set to `:multi_thread_pool`. For multiple thread pools, please set the concurrency in your database configuration."
     end
 
     @global_executor_concurrency = global_executor_concurrency
@@ -355,29 +354,6 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  def self.commit_transaction_on_non_local_return
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
-    WARNING
-  end
-
-  def self.commit_transaction_on_non_local_return=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 7.3.
-    WARNING
-  end
-
-  ##
-  # :singleton-method: warn_on_records_fetched_greater_than
-  # Specify a threshold for the size of query result sets. If the number of
-  # records in the set exceeds the threshold, a warning is logged. This can
-  # be used to identify queries which load thousands of records and
-  # potentially cause memory bloat.
-  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
-  self.warn_on_records_fetched_greater_than = false
-
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
@@ -428,6 +404,12 @@ module ActiveRecord
   self.migration_strategy = Migration::DefaultStrategy
 
   ##
+  # :singleton-method: schema_versions_formatter
+  # Specify the formatter used by schema dumper to format versions information.
+  singleton_class.attr_accessor :schema_versions_formatter
+  self.schema_versions_formatter = Migration::DefaultSchemaVersionsFormatter
+
+  ##
   # :singleton-method: dump_schema_after_migration
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the
@@ -454,20 +436,6 @@ module ActiveRecord
   # Supported by PostgreSQL and SQLite.
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
-
-  def self.allow_deprecated_singular_associations_name
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
-    WARNING
-  end
-
-  def self.allow_deprecated_singular_associations_name=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 7.3.
-    WARNING
-  end
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
@@ -589,8 +557,10 @@ module ActiveRecord
     open_transactions = []
     Base.connection_handler.each_connection_pool do |pool|
       if active_connection = pool.active_connection
-        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
-          open_transactions << active_connection.current_transaction
+        current_transaction = active_connection.current_transaction
+
+        if current_transaction.open? && current_transaction.joinable?
+          open_transactions << current_transaction
         end
       end
     end

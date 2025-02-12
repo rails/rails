@@ -1676,6 +1676,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal bird, Bird.find_or_initialize_by(name: "bob", color: "blue")
   end
 
+  def test_find_or_initialize_by_with_cpk_association
+    order1 = Cpk::Order.create!(id: [1, 1])
+    order2 = Cpk::Order.create!(id: [1, 2])
+    Cpk::Book.create!(id: [2, 1], order: order1)
+    book = Cpk::Book.find_or_initialize_by(order: order2)
+    assert_equal order2, book.order
+  end
+
   def test_explicit_create_with
     hens = Bird.where(name: "hen")
     assert_equal "hen", hens.new.name
@@ -1722,7 +1730,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_anonymous_extension
     relation = Post.where(author_id: 1).order("id ASC").extending do
-      def author
+      def author # rubocop:disable Lint/NestedMethodDefinition
         "lifo"
       end
     end
@@ -2057,7 +2065,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.where! "foo"
     end
   end
@@ -2066,7 +2074,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.limit! 5
     end
   end
@@ -2075,7 +2083,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.merge! where: "foo"
     end
   end
@@ -2084,7 +2092,7 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.to_a
 
-    assert_raises(ActiveRecord::ImmutableRelation) do
+    assert_raises(ActiveRecord::UnmodifiableRelation) do
       relation.extending! Module.new
     end
   end
@@ -2093,8 +2101,8 @@ class RelationTest < ActiveRecord::TestCase
     relation = Post.all
     relation.arel
 
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.limit!(5) }
-    assert_raises(ActiveRecord::ImmutableRelation) { relation.where!("1 = 2") }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.limit!(5) }
+    assert_raises(ActiveRecord::UnmodifiableRelation) { relation.where!("1 = 2") }
   end
 
   test "relations show the records in #inspect" do
@@ -2450,14 +2458,8 @@ class RelationTest < ActiveRecord::TestCase
   private
     def custom_post_relation(alias_name = "omg_posts")
       table_alias = Post.arel_table.alias(alias_name)
-      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
-      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      ActiveRecord::Relation.create(
-        Post,
-        table: table_alias,
-        predicate_builder: predicate_builder
-      )
+      ActiveRecord::Relation.create(Post, table: table_alias)
     end
 end
 

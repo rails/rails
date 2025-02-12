@@ -195,7 +195,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
 
@@ -203,11 +203,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
         assert new_columns.find { |c|
-          default = connection.lookup_cast_type_from_column(c).deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == false
         }
         change_column :test_models, :approved, :boolean, default: true
@@ -343,7 +343,21 @@ module ActiveRecord
         e = assert_raise(ArgumentError) do
           connection.change_column_null "test_models", "first_name", from: true, to: false
         end
-        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: {:from=>true, :to=>false}", e.message
+        assert_equal "change_column_null expects a boolean value (true for NULL, false for NOT NULL). Got: #{{ from: true, to: false }}", e.message
+      end
+
+      def test_change_column_null_does_not_change_default_functions
+        skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && supports_default_expression?
+
+        function = connection.mariadb? ? "current_timestamp(6)" : "(now())"
+
+        connection.change_column_default "test_models", "created_at", -> { function }
+        TestModel.reset_column_information
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
+
+        connection.change_column_null "test_models", "created_at", true
+        TestModel.reset_column_information
+        assert_equal function, TestModel.columns_hash["created_at"].default_function
       end
 
       def test_remove_column_no_second_parameter_raises_exception

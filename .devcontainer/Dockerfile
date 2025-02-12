@@ -1,12 +1,11 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
-# [Choice] Ruby version: 3, 3.3, 3.2, 3.1, 3.0, 2, 2.7, 2.6
-ARG VARIANT="3.3.2"
+# [Choice] Ruby version: 3.4, 3.3, 3.2
+ARG VARIANT="3.4.1"
 FROM ghcr.io/rails/devcontainer/images/ruby:${VARIANT}
 
-# [Optional] Uncomment this section to install additional OS packages.
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends \
+RUN sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && sudo apt-get -y install --no-install-recommends \
         mariadb-client libmariadb-dev \
         postgresql-client postgresql-contrib libpq-dev \
         ffmpeg mupdf mupdf-tools libvips-dev poppler-utils \
@@ -29,9 +28,10 @@ COPY activerecord/activerecord.gemspec /tmp/rails/activerecord/
 COPY activestorage/activestorage.gemspec /tmp/rails/activestorage/
 COPY activesupport/activesupport.gemspec /tmp/rails/activesupport/
 COPY railties/railties.gemspec /tmp/rails/railties/
+COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 # Docker does not support COPY as users other than root. So we need to chown this dir so we
 # can bundle as vscode user and then remove the tmp dir
-RUN chown -R vscode:vscode /tmp/rails
+RUN sudo chown -R vscode:vscode /tmp/rails
 USER vscode
 RUN cd /tmp/rails \
     && /home/vscode/.rbenv/shims/bundle install \

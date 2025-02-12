@@ -101,7 +101,7 @@ module ActionDispatch
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             grep_pattern = Regexp.new(filter[:grep])
-            path = URI::DEFAULT_PARSER.escape(filter[:grep])
+            path = URI::RFC2396_PARSER.escape(filter[:grep])
             normalized_path = ("/" + path).squeeze("/")
 
             {

@@ -68,15 +68,15 @@ module ActiveSupport
     end
 
     def initialize(constructor = nil)
-      if constructor.respond_to?(:to_hash)
+      if constructor.nil?
+        super()
+      elsif constructor.respond_to?(:to_hash)
         super()
         update(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
-      elsif constructor.nil?
-        super()
       else
         super(constructor)
       end
@@ -95,11 +95,27 @@ module ActiveSupport
     #   hash[:key] = 'value'
     #
     # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    #
+    # If the value is a Hash or contains one or multiple Hashes, they will be
+    # converted to +HashWithIndifferentAccess+.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, conversion: :assignment))
     end
 
-    alias_method :store, :[]=
+    # Assigns a new value to the hash:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new
+    #   hash[:key] = 'value'
+    #
+    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    #
+    # If the value is a Hash or contains one or multiple Hashes, they will be
+    # converted to +HashWithIndifferentAccess+. unless `convert_value: false`
+    # is set.
+    def store(key, value, convert_value: true)
+      value = convert_value(value, conversion: :assignment) if convert_value
+      regular_writer(convert_key(key), value)
+    end
 
     # Updates the receiver in-place, merging in the hashes passed as arguments:
     #
@@ -313,10 +329,6 @@ module ActiveSupport
     end
     alias_method :without, :except
 
-    def stringify_keys!; self end
-    def deep_stringify_keys!; self end
-    def stringify_keys; dup end
-    def deep_stringify_keys; dup end
     undef :symbolize_keys!
     undef :deep_symbolize_keys!
     def symbolize_keys; to_hash.symbolize_keys! end
@@ -378,13 +390,10 @@ module ActiveSupport
 
     # Convert to a regular hash with string keys.
     def to_hash
-      _new_hash = Hash.new
-      set_defaults(_new_hash)
-
-      each do |key, value|
-        _new_hash[key] = convert_value(value, conversion: :to_hash)
-      end
-      _new_hash
+      copy = Hash[self]
+      copy.transform_values! { |v| convert_value_to_hash(v) }
+      set_defaults(copy)
+      copy
     end
 
     def to_proc
@@ -398,11 +407,7 @@ module ActiveSupport
 
       def convert_value(value, conversion: nil)
         if value.is_a? Hash
-          if conversion == :to_hash
-            value.to_hash
-          else
-            value.nested_under_indifferent_access
-          end
+          value.nested_under_indifferent_access
         elsif value.is_a?(Array)
           if conversion != :assignment || value.frozen?
             value = value.dup
@@ -412,6 +417,17 @@ module ActiveSupport
           value
         end
       end
+
+      def convert_value_to_hash(value)
+        if value.is_a? Hash
+          value.to_hash
+        elsif value.is_a?(Array)
+          value.map { |e| convert_value_to_hash(e) }
+        else
+          value
+        end
+      end
+
 
       def set_defaults(target)
         if default_proc

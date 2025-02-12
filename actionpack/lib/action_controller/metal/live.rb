@@ -58,7 +58,7 @@ module ActionController
 
     module ClassMethods
       def make_response!(request)
-        if request.get_header("HTTP_VERSION") == "HTTP/1.0"
+        if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
           Live::Response.new.tap do |res|
@@ -77,12 +77,15 @@ module ActionController
     # Writing an object will convert it into standard SSE format with whatever
     # options you have configured. You may choose to set the following options:
     #
-    #     1) Event. If specified, an event with this name will be dispatched on
-    #     the browser.
-    #     2) Retry. The reconnection time in milliseconds used when attempting
-    #     to send the event.
-    #     3) Id. If the connection dies while sending an SSE to the browser, then
-    #     the server will receive a +Last-Event-ID+ header with value equal to +id+.
+    # `:event`
+    # :   If specified, an event with this name will be dispatched on the browser.
+    #
+    # `:retry`
+    # :   The reconnection time in milliseconds used when attempting to send the event.
+    #
+    # `:id`
+    # :   If the connection dies while sending an SSE to the browser, then the
+    #     server will receive a `Last-Event-ID` header with value equal to `id`.
     #
     # After setting an option in the constructor of the SSE object, all future SSEs
     # sent across the stream will use those options unless overridden.
@@ -167,12 +170,6 @@ module ActionController
         @aborted = false
         @ignore_disconnect = false
       end
-
-      # ActionDispatch::Response delegates #to_ary to the internal
-      # ActionDispatch::Response::Buffer, defining #to_ary is an indicator that the
-      # response body can be buffered and/or cached by Rack middlewares, this is not
-      # the case for Live responses so we undefine it for this Buffer subclass.
-      undef_method :to_ary
 
       def write(string)
         unless @response.committed?
@@ -304,6 +301,9 @@ module ActionController
               error = e
             end
           ensure
+            ActiveSupport::IsolatedExecutionState.clear
+            clean_up_thread_locals(locals, t2)
+
             @_response.commit!
           end
         end
@@ -325,7 +325,8 @@ module ActionController
     # or other running data where you don't want the entire file buffered in memory
     # first. Similar to send_data, but where the data is generated live.
     #
-    # Options:
+    # #### Options:
+    #
     # *   `:filename` - suggests a filename for the browser to use.
     # *   `:type` - specifies an HTTP content type. You can specify either a string
     #     or a symbol for a registered type with `Mime::Type.register`, for example
@@ -368,11 +369,20 @@ module ActionController
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
       def new_controller_thread # :nodoc:
-        Thread.new {
+        ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
           yield
-        }
+        end
+      end
+
+      # Ensure we clean up any thread locals we copied so that the thread can reused.
+      def clean_up_thread_locals(locals, thread) # :nodoc:
+        locals.each { |k, _| thread[k] = nil }
+      end
+
+      def self.live_thread_pool_executor
+        @live_thread_pool_executor ||= Concurrent::CachedThreadPool.new(name: "action_controller.live")
       end
 
       def log_error(exception)

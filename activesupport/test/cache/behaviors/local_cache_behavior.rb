@@ -3,13 +3,13 @@
 module LocalCacheBehavior
   def test_instrumentation_with_local_cache
     key = SecureRandom.uuid
-    events = with_instrumentation "write" do
+    events = capture_notifications("cache_write.active_support") do
       @cache.write(key, SecureRandom.uuid)
     end
     assert_equal @cache.class.name, events[0].payload[:store]
 
     @cache.with_local_cache do
-      events = with_instrumentation "read" do
+      events = capture_notifications("cache_read.active_support") do
         @cache.read(key)
         @cache.read(key)
       end
@@ -239,6 +239,37 @@ module LocalCacheBehavior
       assert_equal other_value, @cache.read(other_key, raw: true)
       assert_equal value, values[key]
       assert_equal other_value, values[other_key]
+    end
+  end
+
+  def test_local_cache_of_read_multi_with_expiry
+    key = SecureRandom.uuid
+    value = SecureRandom.alphanumeric
+    @cache.with_local_cache do
+      time = Time.now
+      @cache.write(key, value, expires_in: 60)
+      assert_equal value, @cache.read_multi(key)[key]
+      Time.stub(:now, time + 61) do
+        assert_nil @cache.read_multi(key)[key]
+      end
+    end
+  end
+
+  def test_local_cache_of_read_multi_with_versions
+    model = Struct.new(:to_param, :cache_version)
+
+    @cache.with_local_cache do
+      thing = model.new(1, 1)
+      key = ["foo", thing]
+
+      @cache.write(key, "contents")
+
+      assert_equal "contents", @cache.read(key)
+      assert_equal "contents", @cache.read_multi(key)[key]
+
+      thing.cache_version = "002"
+      assert_nil @cache.read(key)
+      assert_nil @cache.read_multi(key)[key]
     end
   end
 

@@ -22,7 +22,7 @@ require "active_support"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport.deprecator.debug = true
+ActiveSupport.deprecator.behavior = :raise
 
 # Default to Ruby 2.4+ to_time behavior but allow running tests with old behavior
 ActiveSupport.deprecator.silence do

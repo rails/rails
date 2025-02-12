@@ -142,6 +142,14 @@ class TaggedLoggingTest < ActiveSupport::TestCase
 
     assert_equal "[BCX] [Jason] Funky time\n[BCX] Junky time!\n", @output.string
   end
+
+  test "implicit logger instance" do
+    @output = StringIO.new
+    @logger = ActiveSupport::TaggedLogging.logger(@output)
+
+    @logger.tagged("BCX") { @logger.info "Funky time" }
+    assert_equal "[BCX] Funky time\n", @output.string
+  end
 end
 
 class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase

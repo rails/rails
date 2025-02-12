@@ -13,7 +13,7 @@ Example:
         script/benchmarks/opt_compare.rb
 
     You can run the generated benchmark file using:
-        `ruby script/benchmarks/opt_compare.rb`
+        `bin/rails runner script/benchmarks/opt_compare.rb`
 
     You can specify different reports:
         `bin/rails generate benchmark opt_compare patch1 patch2 patch3`

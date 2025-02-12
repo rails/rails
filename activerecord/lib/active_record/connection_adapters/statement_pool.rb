@@ -50,8 +50,10 @@ module ActiveRecord
       end
 
       def delete(key)
-        dealloc cache[key]
-        cache.delete(key)
+        if stmt = cache.delete(key)
+          dealloc(stmt)
+        end
+        stmt
       end
 
       private

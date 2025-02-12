@@ -12,6 +12,11 @@ module ActiveStorage
   #   ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick.new(blob).metadata
   #   # => { width: 4104, height: 2736 }
   class Analyzer::ImageAnalyzer < Analyzer
+    extend ActiveSupport::Autoload
+
+    autoload :Vips
+    autoload :ImageMagick
+
     def self.accept?(blob)
       blob.image?
     end

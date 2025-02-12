@@ -178,6 +178,7 @@ module ActiveRecord
         connection.add_index :testings, [:foo, :bar], name: "my_index"
         assert connection.index_exists?(:testings, [:foo, :bar], name: "my_index")
         assert connection.index_exists?(:testings, [], name: "my_index")
+        assert connection.index_exists?(:testings, name: "my_index")
         assert_not connection.index_exists?(:testings, [:foo], name: "my_index")
       end
 

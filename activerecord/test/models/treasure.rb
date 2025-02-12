@@ -6,7 +6,7 @@ class Treasure < ActiveRecord::Base
   # No counter_cache option given
   belongs_to :ship
 
-  has_many :price_estimates, as: :estimate_of
+  has_many :price_estimates, as: :estimate_of, autosave: true
   has_and_belongs_to_many :rich_people, join_table: "peoples_treasures", validate: false
 
   accepts_nested_attributes_for :looter

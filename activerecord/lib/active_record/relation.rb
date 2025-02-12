@@ -60,7 +60,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :with, :with_recursive]
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -74,7 +74,14 @@ module ActiveRecord
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(model, table: model.arel_table, predicate_builder: model.predicate_builder, values: {})
+    def initialize(model, table: nil, predicate_builder: nil, values: {})
+      if table
+        predicate_builder ||= model.predicate_builder.with(TableMetadata.new(model, table))
+      else
+        table = model.arel_table
+        predicate_builder ||= model.predicate_builder
+      end
+
       @model  = model
       @table  = table
       @values = values
@@ -583,6 +590,18 @@ module ActiveRecord
 
       return 0 if @none
 
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
+        value = @values[method]
+        method == :distinct ? value : value&.any?
+      end
+      if invalid_methods.any?
+        ActiveRecord.deprecator.warn <<~MESSAGE
+          `#{invalid_methods.join(', ')}` is not supported by `update_all` and was never included in the generated query.
+
+          Calling `#{invalid_methods.join(', ')}` with `update_all` will raise an error in Rails 8.2.
+        MESSAGE
+      end
+
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
             !updates.key?(model.locking_column) &&
@@ -813,7 +832,7 @@ module ActiveRecord
     #
     # [:returning]
     #   (PostgreSQL, SQLite3, and MariaDB only) An array of attributes to return for all successfully
-    #   inserted records, which by default is the primary key.
+    #   upserted records, which by default is the primary key.
     #   Pass <tt>returning: %w[ id name ]</tt> for both id and name
     #   or <tt>returning: false</tt> to omit the underlying <tt>RETURNING</tt> SQL
     #   clause entirely.
@@ -1004,7 +1023,7 @@ module ActiveRecord
     def delete_all
       return 0 if @none
 
-      invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
+      invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
       end
@@ -1124,9 +1143,6 @@ module ActiveRecord
     # for queries to actually be executed concurrently. Otherwise it defaults to
     # executing them in the foreground.
     #
-    # +load_async+ will also fall back to executing in the foreground in the test environment when transactional
-    # fixtures are enabled.
-    #
     # If the query was actually executed in the background, the Active Record logs will show
     # it by prefixing the log line with <tt>ASYNC</tt>:
     #
@@ -1136,7 +1152,7 @@ module ActiveRecord
         return load if !c.async_enabled?
 
         unless loaded?
-          result = exec_main_query(async: c.current_transaction.closed?)
+          result = exec_main_query(async: !c.current_transaction.joinable?)
 
           if result.is_a?(Array)
             @records = result
@@ -1148,6 +1164,16 @@ module ActiveRecord
       end
 
       self
+    end
+
+    def then(&block) # :nodoc:
+      if @future_result
+        @future_result.then do
+          yield self
+        end
+      else
+        super
+      end
     end
 
     # Returns <tt>true</tt> if the relation was scheduled on the background
@@ -1381,7 +1407,7 @@ module ActiveRecord
 
       def _increment_attribute(attribute, value = 1)
         bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
-        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attribute), 0)
+        expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr
       end
@@ -1426,7 +1452,7 @@ module ActiveRecord
                 else
                   relation = join_dependency.apply_column_aliases(relation)
                   @_join_dependency = join_dependency
-                  c.select_all(relation.arel, "SQL", async: async)
+                  c.select_all(relation.arel, "#{model.name} Eager Load", async: async)
                 end
               end
             end

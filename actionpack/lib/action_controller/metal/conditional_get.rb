@@ -76,8 +76,7 @@ module ActionController
     # `:cache_control`
     # :   When given, will overwrite an existing `Cache-Control` header. For a list
     #     of `Cache-Control` directives, see the [article on
-    #     MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Contr
-    #     ol).
+    #     MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control).
     #
     # `:template`
     # :   By default, the template digest for the current controller/action is
@@ -260,6 +259,9 @@ module ActionController
     # `:stale_if_error`
     # :   Sets the value of the `stale-if-error` directive.
     #
+    # `:immutable`
+    # :   If true, adds the `immutable` directive.
+    #
     #
     # Any additional key-value pairs are concatenated as directives. For a list of
     # supported `Cache-Control` directives, see the [article on
@@ -293,6 +295,7 @@ module ActionController
         must_revalidate: options.delete(:must_revalidate),
         stale_while_revalidate: options.delete(:stale_while_revalidate),
         stale_if_error: options.delete(:stale_if_error),
+        immutable: options.delete(:immutable),
       )
       options.delete(:private)
 
@@ -316,7 +319,7 @@ module ActionController
     #     user's web browser. To allow proxies to cache the response, set `true` to
     #     indicate that they can serve the cached response to all users.
     def http_cache_forever(public: false)
-      expires_in 100.years, public: public
+      expires_in 100.years, public: public, immutable: true
 
       yield if stale?(etag: request.fullpath,
                       last_modified: Time.new(2011, 1, 1).utc,

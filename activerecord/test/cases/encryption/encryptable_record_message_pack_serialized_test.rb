@@ -5,19 +5,22 @@ require "models/author_encrypted"
 require "models/book_encrypted"
 require "active_record/encryption/message_pack_message_serializer"
 
-class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
+class ActiveRecord::Encryption::EncryptableRecordMessagePackSerializedTest < ActiveRecord::EncryptionTestCase
   fixtures :encrypted_books
 
   test "binary data can be serialized with message pack" do
     all_bytes = (0..255).map(&:chr).join
-    assert_equal all_bytes, EncryptedBookWithBinaryMessagePackSerialized.create!(logo: all_bytes).logo
+    book = EncryptedBookWithBinaryMessagePackSerialized.create!(logo: all_bytes)
+    assert_encrypted_attribute(book, :logo, all_bytes)
   end
 
   test "binary data can be encrypted uncompressed and serialized with message pack" do
+    # Strings below 140 bytes are not compressed
     low_bytes = (0..127).map(&:chr).join
     high_bytes = (128..255).map(&:chr).join
-    assert_equal low_bytes, EncryptedBookWithBinaryMessagePackSerialized.create!(logo: low_bytes).logo
-    assert_equal high_bytes, EncryptedBookWithBinaryMessagePackSerialized.create!(logo: high_bytes).logo
+
+    assert_encrypted_attribute(EncryptedBookWithBinaryMessagePackSerialized.create!(logo: low_bytes), :logo, low_bytes)
+    assert_encrypted_attribute(EncryptedBookWithBinaryMessagePackSerialized.create!(logo: high_bytes), :logo, high_bytes)
   end
 
   test "text columns cannot be serialized with message pack" do

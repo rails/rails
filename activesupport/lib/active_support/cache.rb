@@ -186,6 +186,9 @@ module ActiveSupport
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
     class Store
+      # Default +ConnectionPool+ options
+      DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
+
       cattr_accessor :logger, instance_writer: true
       cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
@@ -194,9 +197,6 @@ module ActiveSupport
 
       class << self
         private
-          DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
-          private_constant :DEFAULT_POOL_OPTIONS
-
           def retrieve_pool_options(options)
             if options.key?(:pool)
               pool_options = options.delete(:pool)
@@ -286,7 +286,7 @@ module ActiveSupport
       #   <tt>coder: nil</tt> to avoid the overhead of safeguarding against
       #   mutation.
       #
-      #   The +:coder+ option is mutally exclusive with the +:serializer+ and
+      #   The +:coder+ option is mutually exclusive with the +:serializer+ and
       #   +:compressor+ options. Specifying them together will raise an
       #   +ArgumentError+.
       #
@@ -386,7 +386,7 @@ module ActiveSupport
       #   process can try to generate a new value after the extended time window
       #   has elapsed.
       #
-      #     # Set all values to expire after one minute.
+      #     # Set all values to expire after one second.
       #     cache = ActiveSupport::Cache::MemoryStore.new(expires_in: 1)
       #
       #     cache.write("foo", "original value")
@@ -419,7 +419,7 @@ module ActiveSupport
       #     t1.join
       #
       #     p val_1 # => "new value 1"
-      #     p val_2 # => "oritinal value"
+      #     p val_2 # => "original value"
       #     p cache.fetch("foo") # => "new value 1"
       #
       #     # The entry requires 3 seconds to expire (expires_in + race_condition_ttl)
@@ -538,10 +538,11 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
+        keys    = names.map { |name| normalize_key(name, options) }
 
-        instrument_multi :read_multi, names, options do |payload|
+        instrument_multi :read_multi, keys, options do |payload|
           read_multi_entries(names, **options, event: payload).tap do |results|
-            payload[:hits] = results.keys
+            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
           end
         end
       end
@@ -551,10 +552,11 @@ module ActiveSupport
         return hash if hash.empty?
 
         options = merged_options(options)
+        normalized_hash = hash.transform_keys { |key| normalize_key(key, options) }
 
-        instrument_multi :write_multi, hash, options do |payload|
+        instrument_multi :write_multi, normalized_hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+            memo[normalize_key(name, options)] = Entry.new(value, **options, version: normalize_version(name, options))
           end
 
           write_multi_entries entries, **options
@@ -596,9 +598,9 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-
+        keys    = names.map { |name| normalize_key(name, options) }
         writes  = {}
-        ordered = instrument_multi :read_multi, names, options do |payload|
+        ordered = instrument_multi :read_multi, keys, options do |payload|
           if options[:force]
             reads = {}
           else
@@ -610,7 +612,7 @@ module ActiveSupport
           end
           writes.compact! if options[:skip_nil]
 
-          payload[:hits] = reads.keys
+          payload[:hits] = reads.keys.map { |name| normalize_key(name, options) }
           payload[:super_operation] = :fetch_multi
 
           ordered
@@ -656,13 +658,15 @@ module ActiveSupport
       #   version, the read will be treated as a cache miss. This feature is
       #   used to support recyclable cache keys.
       #
+      # * +:unless_exist+ - Prevents overwriting an existing cache entry.
+      #
       # Other options will be handled by the specific cache store implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
 
         instrument(:write, key, options) do
-          entry = Entry.new(value, **options.merge(version: normalize_version(name, options)))
+          entry = Entry.new(value, **options, version: normalize_version(name, options))
           write_entry(key, entry, **options)
         end
       end
@@ -675,7 +679,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:delete, key) do
+        instrument(:delete, key, options) do
           delete_entry(key, **options)
         end
       end
@@ -690,7 +694,7 @@ module ActiveSupport
         options = merged_options(options)
         names.map! { |key| normalize_key(key, options) }
 
-        instrument_multi :delete_multi, names do
+        instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
         end
       end
@@ -943,9 +947,12 @@ module ActiveSupport
         #
         #   namespace_key 'foo', namespace: -> { 'cache' }
         #   # => 'cache:foo'
-        def namespace_key(key, options = nil)
-          options = merged_options(options)
-          namespace = options[:namespace]
+        def namespace_key(key, call_options = nil)
+          namespace = if call_options&.key?(:namespace)
+            call_options[:namespace]
+          else
+            options[:namespace]
+          end
 
           if namespace.respond_to?(:call)
             namespace = namespace.call
@@ -1030,8 +1037,7 @@ module ActiveSupport
               # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
               # for a brief period while the entry is being recalculated.
               entry.expires_at = Time.now.to_f + race_ttl
-              options[:expires_in] = race_ttl * 2
-              write_entry(key, entry, **options)
+              write_entry(key, entry, **options, expires_in: race_ttl * 2)
             else
               delete_entry(key, **options)
             end

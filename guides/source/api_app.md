@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Using Rails for API-only Applications
 =====================================
@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
+For example, X uses its [public API](https://developer.x.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -221,7 +221,7 @@ class GroupsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def group_params
-      params.require(:group).permit(:name)
+      params.expect(group: [:name])
     end
 end
 ```
@@ -379,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
@@ -412,17 +413,14 @@ format and make them available in your controller inside `params`.
 To use this, your client will need to make a request with JSON-encoded parameters
 and specify the `Content-Type` as `application/json`.
 
-Here's an example in jQuery:
+Here's an example:
 
 ```js
-jQuery.ajax({
-  type: 'POST',
-  url: '/people',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify({ person: { firstName: "Yehuda", lastName: "Katz" } }),
-  success: function(json) { }
-});
+fetch('/people', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ person: { firstName: 'Yehuda', lastName: 'Katz' } })
+}).then(response => response.json())
 ```
 
 `ActionDispatch::Request` will see the `Content-Type` and your parameters
@@ -450,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_your_app_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies

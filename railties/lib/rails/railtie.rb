@@ -4,7 +4,6 @@ require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/delegation"
 
 module Rails
   # +Rails::Railtie+ is the core of the \Rails framework and provides
@@ -50,8 +49,8 @@ module Rails
   # To add an initialization step to the \Rails boot process from your railtie, just
   # define the initialization code with the +initializer+ macro:
   #
-  #   class MyRailtie < Rails::Railtie
-  #     initializer "my_railtie.configure_rails_initialization" do
+  #   class MyGem::Railtie < Rails::Railtie
+  #     initializer "my_gem.configure_rails_initialization" do
   #       # some initialization behavior
   #     end
   #   end
@@ -59,9 +58,9 @@ module Rails
   # If specified, the block can also receive the application object, in case you
   # need to access some application-specific configuration, like middleware:
   #
-  #   class MyRailtie < Rails::Railtie
-  #     initializer "my_railtie.configure_rails_initialization" do |app|
-  #       app.middleware.use MyRailtie::Middleware
+  #   class MyGem::Railtie < Rails::Railtie
+  #     initializer "my_gem.configure_rails_initialization" do |app|
+  #       app.middleware.use MyGem::Middleware
   #     end
   #   end
   #
@@ -74,14 +73,14 @@ module Rails
   # Railties can access a config object which contains configuration shared by all
   # railties and the application:
   #
-  #   class MyRailtie < Rails::Railtie
+  #   class MyGem::Railtie < Rails::Railtie
   #     # Customize the ORM
-  #     config.app_generators.orm :my_railtie_orm
+  #     config.app_generators.orm :my_gem_orm
   #
   #     # Add a to_prepare block which is executed once in production
   #     # and before each request in development.
   #     config.to_prepare do
-  #       MyRailtie.setup!
+  #       MyGem.setup!
   #     end
   #   end
   #
@@ -90,9 +89,9 @@ module Rails
   # If your railtie has Rake tasks, you can tell \Rails to load them through the method
   # +rake_tasks+:
   #
-  #   class MyRailtie < Rails::Railtie
+  #   class MyGem::Railtie < Rails::Railtie
   #     rake_tasks do
-  #       load "path/to/my_railtie.tasks"
+  #       load "path/to/my_gem.tasks"
   #     end
   #   end
   #
@@ -100,9 +99,9 @@ module Rails
   # your generators at a different location, you can specify in your railtie a block which
   # will load them during normal generators lookup:
   #
-  #   class MyRailtie < Rails::Railtie
+  #   class MyGem::Railtie < Rails::Railtie
   #     generators do
-  #       require "path/to/my_railtie_generator"
+  #       require "path/to/my_gem_generator"
   #     end
   #   end
   #
@@ -120,7 +119,7 @@ module Rails
   # this less confusing for everyone.
   # It can be used like this:
   #
-  #   class MyRailtie < Rails::Railtie
+  #   class MyGem::Railtie < Rails::Railtie
   #     server do
   #       WebpackServer.start
   #     end

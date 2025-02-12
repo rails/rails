@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/timezone_dependent_job"
+require "jobs/timezone_raising_job"
 
 class TimezonesTest < ActiveSupport::TestCase
   setup do
@@ -32,6 +33,19 @@ class TimezonesTest < ActiveSupport::TestCase
     end
 
     assert_equal "Happy New Year!", JobBuffer.last_value
+  ensure
+    Time.zone = nil
+  end
+
+  test "it runs the exception handler in the given locale" do
+    Time.zone = "America/New_York"
+
+    Time.use_zone("London") do
+      job = TimezoneRaisingJob.new
+      job.perform_now
+    end
+
+    assert_equal "London", JobBuffer.last_value
   ensure
     Time.zone = nil
   end

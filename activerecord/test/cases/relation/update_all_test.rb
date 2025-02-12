@@ -6,6 +6,7 @@ require "models/category"
 require "models/comment"
 require "models/computer"
 require "models/developer"
+require "models/owner"
 require "models/post"
 require "models/person"
 require "models/pet"
@@ -17,7 +18,7 @@ require "models/warehouse_thing"
 require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
+  fixtures :authors, :author_addresses, :comments, :developers, :owners, :posts, :people, :pets, :toys, :tags,
     :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
@@ -60,8 +61,8 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
-  def test_update_all_with_joins
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
+  def test_update_all_with_joins_and_limit
+    pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 
     assert_equal true, pets.exists?
     sqls = capture_sql do
@@ -69,9 +70,51 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_no_match %r/SELECT DISTINCT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
     else
-      assert_match %r/SELECT #{Regexp.escape(Pet.lease_connection.quote_table_name("pets.pet_id"))}/, sqls.last
+      assert_match %r/SELECT #{Regexp.escape(quote_table_name("pets.pet_id"))}/, sqls.last
+    end
+  end
+
+  def test_update_all_with_unpermitted_relation_raises_error
+    assert_deprecated("`distinct` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.distinct.update_all(name: "Bob")
+    end
+
+    assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
+    end
+  end
+
+  def test_dynamic_update_all_with_one_joined_table
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = pets.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = pets.name"
+    end
+
+    toys = Toy.joins(:pet)
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.name, toy.name
+    end
+  end
+
+  def test_dynamic_update_all_with_two_joined_table
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = owners.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = owners.name"
+    end
+
+    toys = Toy.joins(pet: [:owner])
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.owner.name, toy.name
     end
   end
 
@@ -345,25 +388,25 @@ class UpdateAllTest < ActiveRecord::TestCase
         test_update_with_order_succeeds.call("id DESC")
       end
     end
+  end
 
-    def test_update_all_with_order_and_limit_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:welcome).body
-      assert_not_equal "bulk update!", posts(:thinking).body
-    end
+  def test_update_all_with_order_and_limit_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:welcome).body
+    assert_not_equal "bulk update!", posts(:thinking).body
+  end
 
-    def test_update_all_with_order_and_limit_and_offset_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited.offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:thinking).body
-      assert_not_equal "bulk update!", posts(:welcome).body
-    end
+  def test_update_all_with_order_and_limit_and_offset_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited.offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:thinking).body
+    assert_not_equal "bulk update!", posts(:welcome).body
   end
 end

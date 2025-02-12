@@ -46,9 +46,7 @@ module ActionDispatch
           def create_routes
             app = self.app
             routes = ActionDispatch::Routing::RouteSet.new
-            middleware = app.config.middleware.dup
-            middleware.delete(Rails::Rack::LoadRoutes) if defined?(Rails::Rack::LoadRoutes)
-            rack_app = middleware.build(routes)
+            rack_app = app.config.middleware.build(routes)
             https = integration_session.https?
             host = integration_session.host
 
@@ -120,9 +118,9 @@ module ActionDispatch
       #       assert_equal "/users", users_path
       #     end
       #
-      def with_routing(&block)
+      def with_routing(config = nil, &block)
         old_routes, old_controller = @routes, @controller
-        create_routes(&block)
+        create_routes(config, &block)
       ensure
         reset_routes(old_routes, old_controller)
       end
@@ -269,8 +267,8 @@ module ActionDispatch
       end
 
       private
-        def create_routes
-          @routes = ActionDispatch::Routing::RouteSet.new
+        def create_routes(config = nil)
+          @routes = ActionDispatch::Routing::RouteSet.new(config || ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
           if @controller
             @controller = @controller.clone
             _routes = @routes

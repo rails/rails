@@ -845,4 +845,4 @@ function autostart() {
 
 setTimeout(autostart, 1);
 
-export { DirectUpload, DirectUploadController, DirectUploadsController, start };
+export { DirectUpload, DirectUploadController, DirectUploadsController, dispatchEvent, start };

@@ -33,8 +33,11 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def spawn_console(options, wait_for_prompt: true, env: {})
+    # Test should not depend on user's irbrc file
+    home_tmp_dir = Dir.mktmpdir
+
     pid = Process.spawn(
-      { "TERM" => "dumb" }.merge(env),
+      { "TERM" => "dumb", "HOME" => home_tmp_dir }.merge(env),
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
@@ -44,6 +47,8 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     end
 
     pid
+  ensure
+    FileUtils.remove_entry(home_tmp_dir)
   end
 
   def test_sandbox
@@ -186,6 +191,18 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "app.foo_path", "/foo"
   end
 
+  def test_app_routes_are_loaded
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get 'foo', to: 'foo#index'
+      end
+    RUBY
+
+    spawn_console("-e development")
+
+    write_prompt "app.methods.grep(/foo_path/)", "[:foo_path]"
+  end
+
   def test_reload_command_fires_preparation_and_cleanup_callbacks
     options = "-e development"
     spawn_console(options)
@@ -198,56 +215,6 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "a", "=> 1"
     write_prompt "b", "=> 2"
     write_prompt "c", "=> 3"
-  end
-
-  def test_rails_console_methods_patch_backward_compatibility_with_module_inclusion
-    add_to_config <<-RUBY
-      module MyConsole
-        def foo
-          "this is foo"
-        end
-      end
-
-      console do
-        ::Rails::ConsoleMethods.include(MyConsole)
-      end
-    RUBY
-
-    spawn_console("-e development", wait_for_prompt: false)
-
-    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
-    write_prompt "foo", "=> \"this is foo\""
-  end
-
-  def test_rails_console_app_and_helpers_files_kept_with_deprecation_for_backward_compatibility
-    add_to_config <<-RUBY
-      console do
-        require "rails/console/app"
-        require "rails/console/helpers"
-      end
-    RUBY
-
-    spawn_console("-e development", wait_for_prompt: false)
-
-    assert_output "`rails/console/app` has been deprecated", @primary, 30
-    assert_output "`rails/console/helpers` has been deprecated", @primary, 30
-  end
-
-  def test_rails_console_methods_patch_backward_compatibility_with_module_reopening
-    add_to_config <<-RUBY
-      console do
-        ::Rails::ConsoleMethods.module_eval do
-          def foo
-            "this is foo"
-          end
-        end
-      end
-    RUBY
-
-    spawn_console("-e development", wait_for_prompt: false)
-
-    assert_output "Extending Rails console through `Rails::ConsoleMethods` is deprecated", @primary, 30
-    write_prompt "foo", "=> \"this is foo\""
   end
 
   def test_reload_command_reload_constants

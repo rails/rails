@@ -56,7 +56,7 @@ class ParameterEncodingTest < ActionController::TestCase
   end
 
   test "does not raise an error when passed a param declared as ASCII-8BIT that contains invalid bytes" do
-    get :test_skip_parameter_encoding, params: { "bar" => URI::DEFAULT_PARSER.escape("bar\xE2baz".b) }
+    get :test_skip_parameter_encoding, params: { "bar" => URI::RFC2396_PARSER.escape("bar\xE2baz".b) }
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body

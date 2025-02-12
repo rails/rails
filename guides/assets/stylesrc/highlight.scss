@@ -63,7 +63,7 @@
   &.console,
   &.erb,
   &.html { color: #fff; }
-  .hll { background-color: #272822; }
+  .hll { background-color: #3a3939; border-left: 3px solid #00F0FF; margin-left: -5px; padding-left: 5px; padding-right: 5px;} /* $gray-700, $tip */
   .c   { color: #b4b4b3; } /* Comment */
   .err { color: #ff0088; background-color: #1e0010 } /* Error */
   .k   { color: #9decfc; } /* Keyword */

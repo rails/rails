@@ -127,9 +127,9 @@ module ActiveRecord
     # Returns an +Enumerator+ if no block is given.
     def each(&block)
       if block_given?
-        indexed_rows.each(&block)
+        hash_rows.each(&block)
       else
-        indexed_rows.to_enum { @rows.size }
+        hash_rows.to_enum { @rows.size }
       end
     end
 
@@ -191,6 +191,7 @@ module ActiveRecord
     def initialize_copy(other)
       @rows = rows.dup
       @column_types = column_types.dup
+      @hash_rows    = nil
     end
 
     def freeze # :nodoc:
@@ -212,19 +213,19 @@ module ActiveRecord
       end
     end
 
+    def indexed_rows # :nodoc:
+      @indexed_rows ||= begin
+        columns = column_indexes
+        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+      end
+    end
+
     private
       def column_type(name, index, type_overrides)
         type_overrides.fetch(name) do
           column_types.fetch(index) do
             column_types.fetch(name, Type.default_value)
           end
-        end
-      end
-
-      def indexed_rows
-        @indexed_rows ||= begin
-          columns = column_indexes
-          @rows.map { |row| IndexedRow.new(columns, row) }.freeze
         end
       end
 

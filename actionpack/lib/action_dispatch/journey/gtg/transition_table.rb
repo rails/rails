@@ -59,8 +59,8 @@ module ActionDispatch
             if previous_start.nil?
               # In the simple case of a "default" param regex do this fast-path and add all
               # next states.
-              if token_matches_default_component && states = @stdparam_states[s]
-                states.each { |re, v| next_states << [v, nil].freeze if !v.nil? }
+              if token_matches_default_component && std_state = @stdparam_states[s]
+                next_states << [std_state, nil].freeze
               end
 
               # When we have a literal string, we can just pull the next state
@@ -163,25 +163,27 @@ module ActionDispatch
         end
 
         def []=(from, to, sym)
-          to_mappings = states_hash_for(sym)[from] ||= {}
           case sym
-          when Regexp
-            # we must match the whole string to a token boundary
-            if sym == DEFAULT_EXP
-              sym = DEFAULT_EXP_ANCHORED
-            else
-              sym = /\A#{sym}\Z/
-            end
-          when Symbol
+          when String, Symbol
+            to_mapping = @string_states[from] ||= {}
             # account for symbols in the constraints the same as strings
-            sym = sym.to_s
+            to_mapping[sym.to_s] = to
+          when Regexp
+            if sym == DEFAULT_EXP
+              @stdparam_states[from] = to
+            else
+              to_mapping = @regexp_states[from] ||= {}
+              # we must match the whole string to a token boundary
+              to_mapping[/\A#{sym}\Z/] = to
+            end
+          else
+            raise ArgumentError, "unknown symbol: %s" % sym.class
           end
-          to_mappings[sym] = to
         end
 
         def states
           ss = @string_states.keys + @string_states.values.flat_map(&:values)
-          ps = @stdparam_states.keys + @stdparam_states.values.flat_map(&:values)
+          ps = @stdparam_states.keys + @stdparam_states.values
           rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
           (ss + ps + rs).uniq
         end
@@ -189,28 +191,12 @@ module ActionDispatch
         def transitions
           @string_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
-          } + @stdparam_states.flat_map { |from, hash|
-            hash.map { |s, to| [from, s, to] }
+          } + @stdparam_states.map { |from, to|
+            [from, DEFAULT_EXP_ANCHORED, to]
           } + @regexp_states.flat_map { |from, hash|
             hash.map { |s, to| [from, s, to] }
           }
         end
-
-        private
-          def states_hash_for(sym)
-            case sym
-            when String, Symbol
-              @string_states
-            when Regexp
-              if sym == DEFAULT_EXP
-                @stdparam_states
-              else
-                @regexp_states
-              end
-            else
-              raise ArgumentError, "unknown symbol: %s" % sym.class
-            end
-          end
       end
     end
   end

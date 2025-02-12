@@ -108,7 +108,7 @@ class SanitizeHelperTest < ActionView::TestCase
       self.sanitize("asdf"),
     )
     assert_equal(
-      "safe_list_sanitizer#sanitize / asdf / {:tags=>[\"a\", \"b\"]}",
+      "safe_list_sanitizer#sanitize / asdf / #{{ tags: ["a", "b"] }}",
       self.sanitize("asdf", tags: ["a", "b"]),
     )
     assert_predicate(self.sanitize("asdf"), :html_safe?)

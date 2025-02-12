@@ -1,32 +1,140 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionView
   module Helpers # :nodoc:
-    # = Action View \Rendering \Helpers
+    # # Action View Rendering Helpers
     #
-    # Implements methods that allow rendering from a view context.
-    # In order to use this module, all you need is to implement
-    # view_renderer that returns an ActionView::Renderer object.
+    # Implements methods that allow rendering from a view context. In order to use
+    # this module, all you need is to implement view_renderer that returns an
+    # ActionView::Renderer object.
     module RenderingHelper
-      # Returns the result of a render that's dictated by the options hash. The primary options are:
+      # Renders a template and returns the result.
       #
-      # * <tt>:partial</tt> - See ActionView::PartialRenderer.
-      # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add +:locals+ to pass in those.
-      # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
-      # * <tt>:plain</tt> - Renders the text passed in out. Setting the content
-      #   type as <tt>text/plain</tt>.
-      # * <tt>:html</tt> - Renders the HTML safe string passed in out, otherwise
-      #   performs HTML escape on the string first. Setting the content type as
-      #   <tt>text/html</tt>.
-      # * <tt>:body</tt> - Renders the text passed in, and inherits the content
-      #   type of <tt>text/plain</tt> from ActionDispatch::Response object.
+      # Pass the template to render as the first argument. This is shorthand
+      # syntax for partial rendering, so the template filename should be
+      # prefixed with an underscore. The partial renderer looks for the partial
+      # template in the directory of the calling template first.
       #
-      # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
+      #     <% # app/views/posts/new.html.erb %>
+      #     <%= render "form" %>
+      #     # => renders app/views/posts/_form.html.erb
       #
-      # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
-      # passing in the current view context.
+      # Use the complete view path to render a partial from another directory.
       #
-      # Otherwise, a partial is rendered using the second parameter as the locals hash.
+      #     <% # app/views/posts/show.html.erb %>
+      #     <%= render "comments/form" %>
+      #     # => renders app/views/comments/_form.html.erb
+      #
+      # Without the rendering mode, the second argument can be a Hash of local
+      # variable assignments for the template.
+      #
+      #     <% # app/views/posts/new.html.erb %>
+      #     <%= render "form", post: Post.new %>
+      #     # => renders app/views/posts/_form.html.erb
+      #
+      # If the first argument responds to `render_in`, the template will be rendered
+      # by calling `render_in` with the current view context.
+      #
+      #     class Greeting
+      #       def render_in(view_context)
+      #         view_context.render html: "<h1>Hello, World</h1>"
+      #       end
+      #
+      #       def format
+      #         :html
+      #       end
+      #     end
+      #
+      #     <%= render Greeting.new %>
+      #     # => "<h1>Hello, World</h1>"
+      #
+      # #### Rendering Mode
+      #
+      # Pass the rendering mode as first argument to override it.
+      #
+      # `:partial`
+      # :   See ActionView::PartialRenderer for details.
+      #
+      #         <%= render partial: "form", locals: { post: Post.new } %>
+      #         # => renders app/views/posts/_form.html.erb
+      #
+      # `:file`
+      # :   Renders the contents of a file. This option should **not** be used with
+      #     unsanitized user input.
+      #
+      #         <%= render file: "/path/to/some/file" %>
+      #         # => renders /path/to/some/file
+      #
+      # `:inline`
+      # :   Renders an ERB template string.
+      #
+      #         <% name = "World" %>
+      #         <%= render inline: "<h1>Hello, <%= name %>!</h1>" %>
+      #         # => renders "<h1>Hello, World!</h1>"
+      #
+      # `:body`
+      # :   Renders the provided text, and sets the format as `:text`.
+      #
+      #         <%= render body: "Hello, World!" %>
+      #         # => renders "Hello, World!"
+      #
+      # `:plain`
+      # :   Renders the provided text, and sets the format as `:text`.
+      #
+      #         <%= render plain: "Hello, World!" %>
+      #         # => renders "Hello, World!"
+      #
+      # `:html`
+      # :   Renders the provided HTML string, and sets the format as
+      #     `:html`. If the string is not `html_safe?`, performs HTML escaping on
+      #     the string before rendering.
+      #
+      #         <%= render html: "<h1>Hello, World!</h1>".html_safe %>
+      #         # => renders "<h1>Hello, World!</h1>"
+      #
+      #         <%= render html: "<h1>Hello, World!</h1>" %>
+      #         # => renders "&lt;h1&gt;Hello, World!&lt;/h1&gt;"
+      #
+      # `:renderable`
+      # :   Renders the provided object by calling `render_in` with the current view
+      #     context. The format is determined by calling `format` on the
+      #     renderable if it responds to `format`, falling back to `:html` by
+      #     default.
+      #
+      #         <%= render renderable: Greeting.new %>
+      #         # => renders "<h1>Hello, World</h1>"
+      #
+      #
+      # #### Options
+      #
+      # `:locals`
+      # :   Hash of local variable assignments for the template.
+      #
+      #         <%= render inline: "<h1>Hello, <%= name %>!</h1>", locals: { name: "World" } %>
+      #         # => renders "<h1>Hello, World!</h1>"
+      #
+      # `:formats`
+      # :   Override the current format to render a template for a different format.
+      #
+      #         <% # app/views/posts/show.html.erb %>
+      #         <%= render template: "posts/content", formats: [:text] %>
+      #         # => renders app/views/posts/content.text.erb
+      #
+      # `:variants`
+      # :   Render a template for a different variant.
+      #
+      #         <% # app/views/posts/show.html.erb %>
+      #         <%= render template: "posts/content", variants: [:tablet] %>
+      #         # => renders app/views/posts/content.html+tablet.erb
+      #
+      # `:handlers`
+      # :   Render a template for a different handler.
+      #
+      #         <% # app/views/posts/show.html.erb %>
+      #         <%= render template: "posts/content", handlers: [:builder] %>
+      #         # => renders app/views/posts/content.html.builder
       def render(options = {}, locals = {}, &block)
         case options
         when Hash
@@ -47,52 +155,54 @@ module ActionView
       end
 
       # Overrides _layout_for in the context object so it supports the case a block is
-      # passed to a partial. Returns the contents that are yielded to a layout, given a
-      # name or a block.
+      # passed to a partial. Returns the contents that are yielded to a layout, given
+      # a name or a block.
       #
-      # You can think of a layout as a method that is called with a block. If the user calls
-      # <tt>yield :some_name</tt>, the block, by default, returns <tt>content_for(:some_name)</tt>.
-      # If the user calls simply +yield+, the default block returns <tt>content_for(:layout)</tt>.
+      # You can think of a layout as a method that is called with a block. If the user
+      # calls `yield :some_name`, the block, by default, returns
+      # `content_for(:some_name)`. If the user calls simply `yield`, the default block
+      # returns `content_for(:layout)`.
       #
       # The user can override this default by passing a block to the layout:
       #
-      #   # The template
-      #   <%= render layout: "my_layout" do %>
-      #     Content
-      #   <% end %>
+      #     # The template
+      #     <%= render layout: "my_layout" do %>
+      #       Content
+      #     <% end %>
       #
-      #   # The layout
-      #   <html>
-      #     <%= yield %>
-      #   </html>
+      #     # The layout
+      #     <html>
+      #       <%= yield %>
+      #     </html>
       #
-      # In this case, instead of the default block, which would return <tt>content_for(:layout)</tt>,
-      # this method returns the block that was passed in to <tt>render :layout</tt>, and the response
+      # In this case, instead of the default block, which would return `content_for(:layout)`,
+      # this method returns the block that was passed in to `render :layout`, and the response
       # would be
       #
-      #   <html>
-      #     Content
-      #   </html>
+      #     <html>
+      #       Content
+      #     </html>
       #
-      # Finally, the block can take block arguments, which can be passed in by +yield+:
+      # Finally, the block can take block arguments, which can be passed in by
+      # `yield`:
       #
-      #   # The template
-      #   <%= render layout: "my_layout" do |customer| %>
-      #     Hello <%= customer.name %>
-      #   <% end %>
+      #     # The template
+      #     <%= render layout: "my_layout" do |customer| %>
+      #       Hello <%= customer.name %>
+      #     <% end %>
       #
-      #   # The layout
-      #   <html>
-      #     <%= yield Struct.new(:name).new("David") %>
-      #   </html>
+      #     # The layout
+      #     <html>
+      #       <%= yield Struct.new(:name).new("David") %>
+      #     </html>
       #
-      # In this case, the layout would receive the block passed into <tt>render :layout</tt>,
+      # In this case, the layout would receive the block passed into `render :layout`,
       # and the struct specified would be passed into the block as an argument. The result
       # would be
       #
-      #   <html>
-      #     Hello David
-      #   </html>
+      #     <html>
+      #       Hello David
+      #     </html>
       #
       def _layout_for(*args, &block)
         name = args.first

@@ -77,19 +77,21 @@ module ActiveRecord
         # alias attributes in Active Record are lazily generated
       end
 
-      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
+        attribute_method_patterns.each do |pattern|
+          alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+        end
+        attribute_method_patterns_cache.clear
+      end
+
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
         old_name = old_name.to_s
 
         if !abstract_class? && !has_attribute?(old_name)
           raise ArgumentError, "#{self.name} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
             "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
         else
-          method_name = pattern.method_name(new_name).to_s
-          parameters = pattern.parameters
-
-          define_proxy_call(code_generator, method_name, pattern.proxy_target, parameters, old_name,
-            namespace: :proxy_alias_attribute
-          )
+          define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name, override: true)
         end
       end
 
@@ -114,10 +116,11 @@ module ActiveRecord
             alias_attribute :id_value, :id if _has_attribute?("id")
           end
 
-          @attribute_methods_generated = true
-
           generate_alias_attributes
+
+          @attribute_methods_generated = true
         end
+
         true
       end
 
@@ -470,23 +473,27 @@ module ActiveRecord
       end
 
       def method_missing(name, ...)
-        unless self.class.attribute_methods_generated?
-          if self.class.method_defined?(name)
-            # The method is explicitly defined in the model, but calls a generated
-            # method with super. So we must resume the call chain at the right step.
-            last_method = method(name)
-            last_method = last_method.super_method while last_method.super_method
-            self.class.define_attribute_methods
-            if last_method.super_method
-              return last_method.super_method.call(...)
-            end
-          elsif self.class.define_attribute_methods
-            # Some attribute methods weren't generated yet, we retry the call
-            return public_send(name, ...)
-          end
+        # We can't know whether some method was defined or not because
+        # multiple thread might be concurrently be in this code path.
+        # So the first one would define the methods and the others would
+        # appear to already have them.
+        self.class.define_attribute_methods
+
+        # So in all cases we must behave as if the method was just defined.
+        method = begin
+          self.class.public_instance_method(name)
+        rescue NameError
+          nil
         end
 
-        super
+        # The method might be explicitly defined in the model, but call a generated
+        # method with super. So we must resume the call chain at the right step.
+        method = method.super_method while method && !method.owner.is_a?(GeneratedAttributeMethods)
+        if method
+          method.bind_call(self, ...)
+        else
+          super
+        end
       end
 
       def attribute_method?(attr_name)

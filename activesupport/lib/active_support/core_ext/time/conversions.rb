@@ -22,6 +22,7 @@ class Time
       offset_format = time.formatted_offset(false)
       time.strftime("%a, %d %b %Y %H:%M:%S #{offset_format}")
     },
+    rfc2822: lambda { |time| time.rfc2822 },
     iso8601: lambda { |time| time.iso8601 }
   }
 
@@ -40,6 +41,7 @@ class Time
   #   time.to_fs(:long)         # => "January 18, 2007 06:10"
   #   time.to_fs(:long_ordinal) # => "January 18th, 2007 06:10"
   #   time.to_fs(:rfc822)       # => "Thu, 18 Jan 2007 06:10:17 -0600"
+  #   time.to_fs(:rfc2822)       # => "Thu, 18 Jan 2007 06:10:17 -0600"
   #   time.to_fs(:iso8601)      # => "2007-01-18T06:10:17-06:00"
   #
   # == Adding your own time formats to +to_fs+

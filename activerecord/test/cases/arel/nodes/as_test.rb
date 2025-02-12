@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "As" do
+    class AsTest < Arel::Spec
       describe "#as" do
         it "makes an AS node" do
           attr = Table.new(:users)[:id]
@@ -16,6 +16,12 @@ module Arel
         it "converts right to SqlLiteral if a string" do
           attr = Table.new(:users)[:id]
           as = attr.as("foo")
+          assert_kind_of Arel::Nodes::SqlLiteral, as.right
+        end
+
+        it "converts right to SqlLiteral if a symbol" do
+          attr = Table.new(:users)[:id]
+          as = attr.as(:foo)
           assert_kind_of Arel::Nodes::SqlLiteral, as.right
         end
       end

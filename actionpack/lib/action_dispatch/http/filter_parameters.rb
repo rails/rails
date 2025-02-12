@@ -17,9 +17,11 @@ module ActionDispatch
     # For more information about filter behavior, see
     # ActiveSupport::ParameterFilter.
     module FilterParameters
-      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
-      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
-      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH # :nodoc:
+      # :stopdoc:
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"]
+      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new
+      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH
+      # :startdoc:
 
       def initialize
         super
@@ -68,12 +70,17 @@ module ActionDispatch
         ActiveSupport::ParameterFilter.new(filters)
       end
 
-      KV_RE   = "[^&;=]+"
-      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
-        query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter($1 => $2).first.join("=")
+        parts = query_string.split(/([&;])/)
+        filtered_parts = parts.map do |part|
+          if part.include?("=")
+            key, value = part.split("=", 2)
+            parameter_filter.filter(key => value).first.join("=")
+          else
+            part
+          end
         end
+        filtered_parts.join("")
       end
     end
   end

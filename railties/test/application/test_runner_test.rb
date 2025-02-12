@@ -969,8 +969,32 @@ module ApplicationTests
       create_test_file :models, "account"
       output = run_test_command("test/models/accnt.rb")
 
-      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
-      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
+      expected = <<~MSG
+        bin/rails: Could not load test file: test/models/accnt.rb. (Rails::TestUnit::InvalidTestError)
+
+        Did you mean?  test/models/account_test.rb
+      MSG
+
+      assert_equal(expected, output)
+      assert_not_predicate $?, :success?
+    end
+
+    def test_unrelated_load_error
+      app_file "test/models/account_test.rb", <<-RUBY
+        require "test_helper"
+
+        require "does-not-exist"
+
+        class AccountsTest < ActiveSupport::TestCase
+          def test_truth
+            assert true
+          end
+        end
+      RUBY
+
+      output = run_test_command("test/models/account_test.rb")
+      assert_match("cannot load such file -- does-not-exist", output)
+      assert_not_predicate $?, :success?
     end
 
     def test_pass_TEST_env_on_rake_test

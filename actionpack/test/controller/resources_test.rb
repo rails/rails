@@ -2,7 +2,6 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with_options"
-require "active_support/core_ext/array/extract_options"
 
 class AdminController < ResourcesController; end
 class MessagesController < ResourcesController; end
@@ -77,7 +76,7 @@ class ResourcesTest < ActionController::TestCase
   def test_multiple_resources_with_options
     expected_options = { controller: "threads", action: "index" }
 
-    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
+    with_restful_routing :messages, :comments, controller: "threads" do
       assert_recognizes(expected_options, path: "comments")
       assert_recognizes(expected_options, path: "messages")
     end
@@ -817,6 +816,17 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_resource_has_only_show_action_with_string_value
+    with_routing do |set|
+      set.draw do
+        resources :products, only: "show"
+      end
+
+      assert_resource_allowed_routes("products", {}, { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_resource_allowed_routes("products", { format: "xml" }, { id: "1" }, :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
   def test_singleton_resource_has_only_show_action
     with_routing do |set|
       set.draw do
@@ -825,6 +835,17 @@ class ResourcesTest < ActionController::TestCase
 
       assert_singleton_resource_allowed_routes("accounts", {},                    :show, [:index, :new, :create, :edit, :update, :destroy])
       assert_singleton_resource_allowed_routes("accounts", { format: "xml" },  :show, [:index, :new, :create, :edit, :update, :destroy])
+    end
+  end
+
+  def test_singleton_resource_has_only_show_action_with_string_value
+    with_routing do |set|
+      set.draw do
+        resource :account, only: "show"
+      end
+
+      assert_singleton_resource_allowed_routes("accounts", {}, :show, [:index, :new, :create, :edit, :update, :destroy])
+      assert_singleton_resource_allowed_routes("accounts", { format: "xml" }, :show, [:index, :new, :create, :edit, :update, :destroy])
     end
   end
 
@@ -1109,18 +1130,61 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_invalid_only_option_for_resources
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]"
+    assert_raise(ArgumentError, match: expected_message) do
+      with_routing do |set|
+        set.draw do
+          resources :products, only: [:foo, "bar"]
+        end
+      end
+    end
+  end
+
+  def test_invalid_only_option_for_singleton_resource
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo, :bar]"
+    assert_raise(ArgumentError, match: expected_message) do
+      with_routing do |set|
+        set.draw do
+          resource :products, only: [:foo, "bar"]
+        end
+      end
+    end
+  end
+
+  def test_invalid_except_option_for_resources
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo]"
+
+    assert_raise(ArgumentError, match: expected_message) do
+      with_routing do |set|
+        set.draw do
+          resources :products, except: :foo
+        end
+      end
+    end
+  end
+
+  def test_invalid_except_option_for_singleton_resource
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo]"
+    assert_raise(ArgumentError, match: expected_message) do
+      with_routing do |set|
+        set.draw do
+          resource :products, except: :foo
+        end
+      end
+    end
+  end
+
   private
-    def with_restful_routing(*args)
-      options = args.extract_options!
+    def with_restful_routing(*args, **options)
       collection_methods = options.delete(:collection)
       member_methods = options.delete(:member)
       path_prefix = options.delete(:path_prefix)
-      args.push(options)
 
       with_routing do |set|
         set.draw do
           scope(path_prefix || "") do
-            resources(*args) do
+            resources(*args, **options) do
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|

@@ -7,6 +7,62 @@ class TransactionInstrumentationTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
   fixtures :topics
 
+  def test_start_transaction_is_triggered_when_the_transaction_is_materialized
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |transaction|
+      assert_empty transactions # A transaction call, per se, does not trigger the event.
+      topics(:first).touch
+      assert_equal [transaction], transactions
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_start_transaction_is_not_triggered_for_ordinary_nested_calls
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |t1|
+      topics(:first).touch
+      assert_equal [t1], transactions
+
+      Topic.transaction do |_t2|
+        topics(:first).touch
+        assert_equal [t1], transactions
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
+  def test_start_transaction_is_triggered_for_requires_new
+    transactions = []
+    subscriber = ActiveSupport::Notifications.subscribe("start_transaction.active_record") do |event|
+      assert event.payload[:connection]
+      transactions << event.payload[:transaction]
+    end
+
+    Topic.transaction do |t1|
+      topics(:first).touch
+      assert_equal [t1], transactions
+
+      Topic.transaction(requires_new: true) do |t2|
+        topics(:first).touch
+        assert_equal [t1, t2], transactions
+      end
+    end
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscriber)
+  end
+
   def test_transaction_instrumentation_on_commit
     topic = topics(:fifth)
 

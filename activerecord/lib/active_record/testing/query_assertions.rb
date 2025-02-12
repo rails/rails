@@ -11,12 +11,18 @@ module ActiveRecord
       #   # Check for any number of queries
       #   assert_queries_count { Post.first }
       #
-      # If the +:include_schema+ option is provided, any queries (including schema related) are counted.
+      # Any unmaterialized transactions will be materialized to ensure only
+      # queries attempted intside the block are counted.
+      #
+      # If the +:include_schema+ option is provided, any queries (including
+      # schema related) are counted. Setting this option also skips leasing a
+      # connection to materialize pending transactions since we want to count
+      # queries executed at connection open (e.g., type map).
       #
       #   assert_queries_count(1, include_schema: true) { Post.columns }
       #
       def assert_queries_count(count = nil, include_schema: false, &block)
-        ActiveRecord::Base.lease_connection.materialize_transactions
+        ActiveRecord::Base.lease_connection.materialize_transactions unless include_schema
 
         counter = SQLCounter.new
         ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
@@ -52,7 +58,7 @@ module ActiveRecord
       #   assert_queries_match(/LIMIT \?/) { Post.first }
       #
       # If the +:include_schema+ option is provided, any queries (including schema related)
-      #   that match the matcher are considered.
+      # that match the matcher are considered.
       #
       #   assert_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       #
@@ -80,7 +86,7 @@ module ActiveRecord
       #   assert_no_queries_match(/SELECT/i) { post.comments }
       #
       # If the +:include_schema+ option is provided, any queries (including schema related)
-      #   that match the matcher are counted.
+      # that match the matcher are counted.
       #
       #   assert_no_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       #

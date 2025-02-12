@@ -1,23 +1,52 @@
-*   Defer route drawing to the first request, or when url_helpers are called
+*   Rate limit password resets in authentication generator
 
-    Executes the first routes reload in middleware, or when a route set's
-    url_helpers receives a route call / asked if it responds to a route.
-    Previously, this was executed unconditionally on boot, which can
-    slow down boot time unnecessarily for larger apps with lots of routes.
-
-    Environments like production that have `config.eager_load = true` will
-    continue to eagerly load routes on boot.
-
-    *Gannon McGibbon*
-
-*   Add Rubocop and GitHub Actions to plugin generator.
-    This can be skipped using --skip-rubocop and --skip-ci.
+    This helps mitigate abuse from attackers spamming the password reset form.
 
     *Chris Oliver*
 
-*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
-    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
+*   Update `rails new --minimal` option
 
-    *DHH*
+    Extend the `--minimal` flag to exlcude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md) for previous changes.
+    *eelcoj*
+
+*   Add `application-name` metadata to application layout
+
+    The following metatag will be added to `app/views/layouts/application.html.erb`
+
+    ```html
+    <meta name="application-name" content="Name of Rails Application">
+    ```
+
+    *Steve Polito*
+
+*   Use `secret_key_base` from ENV or credentials when present locally.
+
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
+
+    *Petrik de Heus*
+
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
+*   Colorize the Rails console prompt even on non standard environments.
+
+    *Lorenzo Zabot*
+
+*   Don't enable YJIT in development and test environments
+
+    Development and test environments tend to reload code and redefine methods (e.g. mocking),
+    hence YJIT isn't generally faster in these environments.
+
+    *Ali Ismayilov*, *Jean Boussier*
+
+*   Only include PermissionsPolicy::Middleware if policy is configured.
+
+    *Petrik de Heus*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

@@ -96,6 +96,10 @@ module ActiveSupport
       config.eager_load_namespaces << TZInfo
     end
 
+    initializer "active_support.to_time_preserves_timezone" do |app|
+      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
+    end
+
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|

@@ -219,12 +219,11 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.lease_connection.transaction do                           # BEGIN
-    #     Model.lease_connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.lease_connection.create_table(...)                    # active_record_1 now automatically released
-    #     end                                                     # RELEASE SAVEPOINT active_record_1
-    #                                                             # ^^^^ BOOM! database error!
-    #   end
+    #   Model.transaction do                           # BEGIN
+    #     Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)   # active_record_1 now automatically released
+    #     end                                          # RELEASE SAVEPOINT active_record_1
+    #   end                                            # ^^^^ BOOM! database error!
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
@@ -243,7 +242,7 @@ module ActiveRecord
       #
       # See the ActiveRecord::Transaction documentation for detailed behavior.
       def current_transaction
-        connection_pool.active_connection&.current_transaction || ConnectionAdapters::TransactionManager::NULL_TRANSACTION
+        connection_pool.active_connection&.current_transaction&.user_transaction || Transaction::NULL_TRANSACTION
       end
 
       def before_commit(*args, &block) # :nodoc:

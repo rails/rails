@@ -57,8 +57,13 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.increment("baz") # => 6
       #
-      def increment(name, amount = 1, options = nil)
-        modify_value(name, amount, options)
+      def increment(name, amount = 1, **options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument(:increment, key, amount: amount) do
+          modify_value(name, amount, options)
+        end
       end
 
       # Decrement a cached integer value. Returns the updated value.
@@ -72,8 +77,13 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.decrement("baz") # => 4
       #
-      def decrement(name, amount = 1, options = nil)
-        modify_value(name, -amount, options)
+      def decrement(name, amount = 1, **options)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+
+        instrument(:decrement, key, amount: amount) do
+          modify_value(name, -amount, options)
+        end
       end
 
       def delete_matched(matcher, options = nil)

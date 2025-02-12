@@ -306,7 +306,7 @@ module ActionView
       #   # => <input type="hidden" name="collected_input" id="collected_input"
       #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :hidden, autocomplete: "off"))
+        text_field_tag(name, value, options.merge(type: :hidden).with_defaults!(autocomplete: "off"))
       end
 
       # Creates a file upload field. If you are using file uploads then you will also need
@@ -393,24 +393,24 @@ module ActionView
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
-      #   text_area_tag 'post'
+      #   textarea_tag 'post'
       #   # => <textarea id="post" name="post"></textarea>
       #
-      #   text_area_tag 'bio', @user.bio
+      #   textarea_tag 'bio', @user.bio
       #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   text_area_tag 'body', nil, rows: 10, cols: 25
+      #   textarea_tag 'body', nil, rows: 10, cols: 25
       #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   text_area_tag 'body', nil, size: "25x10"
+      #   textarea_tag 'body', nil, size: "25x10"
       #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
-      #   text_area_tag 'description', "Description goes here.", disabled: true
+      #   textarea_tag 'description', "Description goes here.", disabled: true
       #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
       #
-      #   text_area_tag 'comment', nil, class: 'comment_input'
+      #   textarea_tag 'comment', nil, class: 'comment_input'
       #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
-      def text_area_tag(name, content = nil, options = {})
+      def textarea_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
         if size = options.delete("size")
@@ -422,12 +422,13 @@ module ActionView
 
         content_tag :textarea, content.to_s.html_safe, { "name" => name, "id" => sanitize_to_id(name) }.update(options)
       end
+      alias_method :text_area_tag, :textarea_tag
 
       ##
       # :call-seq:
-      #   check_box_tag(name, options = {})
-      #   check_box_tag(name, value, options = {})
-      #   check_box_tag(name, value, checked, options = {})
+      #   checkbox_tag(name, options = {})
+      #   checkbox_tag(name, value, options = {})
+      #   checkbox_tag(name, value, checked, options = {})
       #
       # Creates a check box form input tag.
       #
@@ -438,21 +439,21 @@ module ActionView
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
-      #   check_box_tag 'accept'
+      #   checkbox_tag 'accept'
       #   # => <input id="accept" name="accept" type="checkbox" value="1" />
       #
-      #   check_box_tag 'rock', 'rock music'
+      #   checkbox_tag 'rock', 'rock music'
       #   # => <input id="rock" name="rock" type="checkbox" value="rock music" />
       #
-      #   check_box_tag 'receive_email', 'yes', true
+      #   checkbox_tag 'receive_email', 'yes', true
       #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'tos', 'yes', false, class: 'accept_tos'
+      #   checkbox_tag 'tos', 'yes', false, class: 'accept_tos'
       #   # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
       #
-      #   check_box_tag 'eula', 'accepted', false, disabled: true
+      #   checkbox_tag 'eula', 'accepted', false, disabled: true
       #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
-      def check_box_tag(name, *args)
+      def checkbox_tag(name, *args)
         if args.length >= 4
           raise ArgumentError, "wrong number of arguments (given #{args.length + 1}, expected 1..4)"
         end
@@ -462,6 +463,7 @@ module ActionView
         html_options["checked"] = "checked" if checked
         tag :input, html_options
       end
+      alias_method :check_box_tag, :checkbox_tag
 
       ##
       # :call-seq:
@@ -725,14 +727,14 @@ module ActionView
       #   date_field_tag 'name'
       #   # => <input id="name" name="name" type="date" />
       #
-      #   date_field_tag 'date', '01/01/2014'
-      #   # => <input id="date" name="date" type="date" value="01/01/2014" />
+      #   date_field_tag 'date', '2014-12-31'
+      #   # => <input id="date" name="date" type="date" value="2014-12-31" />
       #
       #   date_field_tag 'date', nil, class: 'special_input'
       #   # => <input class="special_input" id="date" name="date" type="date" />
       #
-      #   date_field_tag 'date', '01/01/2014', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="01/01/2014" />
+      #   date_field_tag 'date', '2014-12-31', class: 'special_input', disabled: true
+      #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="2014-12-31" />
       def date_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :date))
       end

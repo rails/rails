@@ -130,6 +130,14 @@ module ActiveRecord
         Base.configurations.primary?(name)
       end
 
+      # Determines whether the db:prepare task should seed the database from db/seeds.rb.
+      #
+      # If the `seeds` key is present in the config, `seeds?` will return its value.  Otherwise, it
+      # will return `true` for the primary database and `false` for all other configs.
+      def seeds?
+        configuration_hash.fetch(:seeds, primary?)
+      end
+
       # Determines whether to dump the schema/structure files and the filename that
       # should be used.
       #

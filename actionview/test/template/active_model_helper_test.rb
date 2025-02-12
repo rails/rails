@@ -33,10 +33,10 @@ class ActiveModelHelperTest < ActionView::TestCase
     @post.updated_at  = Date.new(2004, 6, 15)
   end
 
-  def test_text_area_with_errors
+  def test_textarea_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea></div>),
-      text_area("post", "body")
+      textarea("post", "body")
     )
   end
 
@@ -107,17 +107,17 @@ class ActiveModelHelperTest < ActionView::TestCase
     )
   end
 
-  def test_check_box_with_errors
+  def test_checkbox_with_errors
     assert_dom_equal(
       %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
-      check_box("post", "published")
+      checkbox("post", "published")
     )
   end
 
-  def test_check_boxes_with_errors
+  def test_checkboxes_with_errors
     assert_dom_equal(
       %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div><input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
-      check_box("post", "published") + check_box("post", "published")
+      checkbox("post", "published") + checkbox("post", "published")
     )
   end
 
@@ -135,10 +135,10 @@ class ActiveModelHelperTest < ActionView::TestCase
     )
   end
 
-  def test_collection_check_boxes_with_errors
+  def test_collection_checkboxes_with_errors
     assert_dom_equal(
       %(<input type="hidden" name="post[category][]" value="" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="ruby" name="post[category][]" id="post_category_ruby" /></div><label for="post_category_ruby">ruby</label><div class="field_with_errors"><input type="checkbox" value="java" name="post[category][]" id="post_category_java" /></div><label for="post_category_java">java</label>),
-      collection_check_boxes("post", "category", [:ruby, :java], :to_s, :to_s)
+      collection_checkboxes("post", "category", [:ruby, :java], :to_s, :to_s)
     )
   end
 

@@ -1,7 +1,6 @@
 require "fileutils"
 
 APP_ROOT = File.expand_path("..", __dir__)
-APP_NAME = "<%= app_name %>"
 
 def system!(*args)
   system(*args, exception: true)
@@ -13,7 +12,6 @@ FileUtils.chdir APP_ROOT do
   # Add necessary setup steps to this file.
 
   puts "== Installing dependencies =="
-  system! "gem install bundler --conservative"
   system("bundle check") || system!("bundle install")
 <% if using_node? -%>
 
@@ -38,10 +36,9 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Removing old logs and tempfiles =="
   system! "bin/rails log:clear tmp:clear"
 
-  puts "\n== Restarting application server =="
-  system! "bin/rails restart"
-
-  # puts "\n== Configuring puma-dev =="
-  # system "ln -nfs #{APP_ROOT} ~/.puma-dev/#{APP_NAME}"
-  # system "curl -Is https://#{APP_NAME}.test/up | head -n 1"
+  unless ARGV.include?("--skip-server")
+    puts "\n== Starting development server =="
+    STDOUT.flush # flush the output before exec(2) so that it displays
+    exec "bin/dev"
+  end
 end

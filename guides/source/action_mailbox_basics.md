@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Mailbox Basics
 =====================
@@ -134,7 +134,7 @@ config.action_mailbox.ingress = :mailgun
 ```
 
 [Configure
-Mailgun](https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages)
+Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/)
 to forward inbound emails to
 `/rails/action_mailbox/mailgun/inbound_emails/mime`. If your application lived
 at `https://example.com`, you would specify the fully-qualified URL
@@ -478,7 +478,7 @@ class ForwardsMailboxTest < ActionMailbox::TestCase
   test "directly recording a client forward for a forwarder and forwardee corresponding to one project" do
     assert_difference -> { people(:david).buckets.first.recordings.count } do
       receive_inbound_email_from_mail \
-        to: 'save@example.com',
+        to: "save@example.com",
         from: people(:david).email_address,
         subject: "Fwd: Status update?",
         body: <<~BODY

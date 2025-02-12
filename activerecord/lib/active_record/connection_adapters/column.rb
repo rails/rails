@@ -17,14 +17,20 @@ module ActiveRecord
       # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
       # +sql_type_metadata+ is various information about the type of the column
       # +null+ determines if this column allows +NULL+ values.
-      def initialize(name, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
+      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
         @name = name.freeze
+        @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
         @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment
+      end
+
+      def fetch_cast_type(connection) # :nodoc:
+        # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+        @cast_type || connection.lookup_cast_type(sql_type)
       end
 
       def has_default?
@@ -45,6 +51,7 @@ module ActiveRecord
 
       def init_with(coder)
         @name = coder["name"]
+        @cast_type = coder["cast_type"]
         @sql_type_metadata = coder["sql_type_metadata"]
         @null = coder["null"]
         @default = coder["default"]
@@ -55,6 +62,7 @@ module ActiveRecord
 
       def encode_with(coder)
         coder["name"] = @name
+        coder["cast_type"] = @cast_type
         coder["sql_type_metadata"] = @sql_type_metadata
         coder["null"] = @null
         coder["default"] = @default
@@ -75,6 +83,7 @@ module ActiveRecord
       def ==(other)
         other.is_a?(Column) &&
           name == other.name &&
+          cast_type == other.cast_type &&
           default == other.default &&
           sql_type_metadata == other.sql_type_metadata &&
           null == other.null &&
@@ -88,6 +97,7 @@ module ActiveRecord
         Column.hash ^
           name.hash ^
           name.encoding.hash ^
+          cast_type.hash ^
           default.hash ^
           sql_type_metadata.hash ^
           null.hash ^
@@ -99,6 +109,9 @@ module ActiveRecord
       def virtual?
         false
       end
+
+      protected
+        attr_reader :cast_type
 
       private
         def deduplicated
@@ -114,7 +127,7 @@ module ActiveRecord
 
     class NullColumn < Column
       def initialize(name, **)
-        super(name, nil)
+        super(name, nil, nil)
       end
     end
   end

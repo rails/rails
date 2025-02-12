@@ -36,9 +36,30 @@ module ActiveModel
 
     alias attributes= assign_attributes
 
+    # Like `BasicObject#method_missing`, `#attribute_writer_missing` is invoked
+    # when `#assign_attributes` is passed an unknown attribute name.
+    #
+    # By default, `#attribute_writer_missing` raises an UnknownAttributeError.
+    #
+    #   class Rectangle
+    #     include ActiveModel::AttributeAssignment
+    #
+    #     attr_accessor :length, :width
+    #
+    #     def attribute_writer_missing(name, value)
+    #       Rails.logger.warn "Tried to assign to unknown attribute #{name}"
+    #     end
+    #   end
+    #
+    #   rectangle = Rectangle.new
+    #   rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
+    def attribute_writer_missing(name, value)
+      raise UnknownAttributeError.new(self, name)
+    end
+
     private
       def _assign_attributes(attributes)
-        attributes.each do |k, v|
+        attributes.each_pair do |k, v|
           _assign_attribute(k, v)
         end
       end
@@ -50,7 +71,7 @@ module ActiveModel
         if respond_to?(setter)
           raise
         else
-          raise UnknownAttributeError.new(self, k.to_s)
+          attribute_writer_missing(k.to_s, v)
         end
       end
   end

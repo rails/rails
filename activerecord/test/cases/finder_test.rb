@@ -275,8 +275,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_does_not_select_columns_without_alias
-    c = Topic.lease_connection
-    assert_queries_match(/SELECT 1 AS one FROM #{Regexp.escape(c.quote_table_name("topics"))}/i) do
+    assert_queries_match(/SELECT 1 AS one FROM #{Regexp.escape(quote_table_name("topics"))}/i) do
       Topic.exists?
     end
   end
@@ -287,6 +286,46 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_returns_false_with_false_arg
     assert_equal false, Topic.exists?(false)
+  end
+
+  def test_exists_with_loaded_relation
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_empty_loaded_relation
+    Topic.delete_all
+    topics = Topic.all.load
+    assert_queries_match(/SELECT 1 AS one/i, count: 1) do
+      assert_not_predicate topics, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_unsaved_records
+    author = authors(:david)
+    posts = author.posts.load
+    assert_not_empty posts
+    posts.each(&:destroy)
+
+    assert_queries_match(/SELECT 1 AS one/i) do
+      assert_not_predicate posts, :exists?
+    end
+  end
+
+  def test_exists_with_loaded_relation_having_updated_owner_record
+    author = authors(:david)
+    assert_not_empty author.posts
+
+    author.posts.each do |post|
+      post.author = nil
+      post.save!
+    end
+
+    assert_queries_count(1) do
+      assert_not_predicate author.posts, :exists?
+    end
   end
 
   # exists? should handle nil for id's that come from URLs and always return false
@@ -755,6 +794,15 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_sole_on_loaded_relation
+    relation = Topic.where("title = 'The First Topic'").load
+    expected_topic = topics(:first)
+
+    assert_no_queries do
+      assert_equal expected_topic, relation.sole
+    end
+  end
+
   def test_first
     assert_equal topics(:second).title, Topic.where("title = 'The Second Topic of the day'").first.title
   end
@@ -948,12 +996,11 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_nth_to_last_with_order_uses_limit
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) do
       Topic.second_to_last
     end
 
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.updated_at"))} DESC LIMIT/i) do
       Topic.order(:updated_at).second_to_last
     end
   end
@@ -1066,8 +1113,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:fifth), Topic.first
     assert_equal topics(:third), Topic.last
 
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.title"))} DESC, #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
       Topic.last
     }
   ensure
@@ -1078,8 +1124,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "id"
 
-    c = Topic.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("topics.id"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
       Topic.last
     }
   ensure
@@ -1090,8 +1135,7 @@ class FinderTest < ActiveRecord::TestCase
     old_implicit_order_column = NonPrimaryKey.implicit_order_column
     NonPrimaryKey.implicit_order_column = "created_at"
 
-    c = NonPrimaryKey.lease_connection
-    assert_queries_match(/ORDER BY #{Regexp.escape(c.quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("non_primary_keys.created_at"))} DESC LIMIT/i) {
       NonPrimaryKey.last
     }
   ensure
@@ -1099,10 +1143,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_reorders_query_constraints
-    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "color"
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_color} ASC, #{quoted_type} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
@@ -1112,13 +1155,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_implicit_order_column_prepends_query_constraints
-    c = ClothingItem.lease_connection
     ClothingItem.implicit_order_column = "description"
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
-    quoted_descrption = Regexp.escape(c.quote_table_name("clothing_items.description"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
+    quoted_description = Regexp.escape(quote_table_name("clothing_items.description"))
 
-    assert_queries_match(/ORDER BY #{quoted_descrption} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
+    assert_queries_match(/ORDER BY #{quoted_description} ASC, #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first
     end
   ensure
@@ -1824,9 +1866,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#last for a model with composite query constraints" do
-    c = ClothingItem.lease_connection
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_type} DESC, #{quoted_color} DESC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.last
@@ -1834,9 +1875,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   test "#first for a model with composite query constraints" do
-    c = ClothingItem.lease_connection
-    quoted_type = Regexp.escape(c.quote_table_name("clothing_items.clothing_type"))
-    quoted_color = Regexp.escape(c.quote_table_name("clothing_items.color"))
+    quoted_type = Regexp.escape(quote_table_name("clothing_items.clothing_type"))
+    quoted_color = Regexp.escape(quote_table_name("clothing_items.color"))
 
     assert_queries_match(/ORDER BY #{quoted_type} ASC, #{quoted_color} ASC LIMIT/i) do
       assert_kind_of ClothingItem, ClothingItem.first

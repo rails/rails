@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Installing Rails Core Development Dependencies
 ==============================================
@@ -92,7 +92,7 @@ To install all run:
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils libyaml-dev libffi-dev
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
@@ -229,7 +229,8 @@ $ bundle install
 If you don't need to run Active Record tests, you can run:
 
 ```bash
-$ bundle install --without db
+$ bundle config set without db
+$ bundle install
 ```
 
 ### Contribute to Rails

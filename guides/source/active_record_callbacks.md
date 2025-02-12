@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record Callbacks
 =======================
@@ -95,8 +95,8 @@ class User < ApplicationRecord
 end
 ```
 
-Lastly, you can define **a custom callback object**, as shown below. We will
-cover these [later in more detail](#callback-objects).
+Lastly, you can define [**a custom callback object**](#callback-objects), as
+shown below. We will cover these later in more detail.
 
 ```ruby
 class User < ApplicationRecord
@@ -178,8 +178,9 @@ order in which they will get called** during the respective operations:
 * [`after_save`][]
 * [`after_commit`][] / [`after_rollback`][]
 
-`after_commit` / `after_rollback` examples can be found
-[here](active_record_callbacks.html#after-commit-and-after-rollback).
+See the [`after_commit` / `after_rollback`
+section](active_record_callbacks.html#after-commit-and-after-rollback) for
+examples using these two callbacks.
 
 [`after_create`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
@@ -282,7 +283,7 @@ end
 ```irb
 irb> user = User.create(name: "Jane Doe", password: "password", email: "jane.doe@example.com")
 
-Password encrypted for user with email: jane.doe@example.com
+Password hashed for user with email: jane.doe@example.com
 Saving user with email: jane.doe@example.com
 User saved with email: jane.doe@example.com
 Update Cache
@@ -363,8 +364,9 @@ create/update operations. It's important to note that save callbacks will always
 run before/around/after the more specific create/update callbacks.
 
 We've already covered [validation](#validation-callbacks) and
-[save](#save-callbacks) callbacks. `after_commit` / `after_rollback` examples
-can be found [here](#after-commit-and-after-rollback).
+[save](#save-callbacks) callbacks. See the [`after_commit` /
+`after_rollback` section](#after-commit-and-after-rollback) for examples using
+these two callbacks.
 
 #### Update Callbacks
 
@@ -461,8 +463,8 @@ destroyed.
 [`before_destroy`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
-`after_commit` / `after_rollback` examples can be found
-[here](#after-commit-and-after-rollback).
+Find [examples for using `after_commit` /
+`after_rollback`](#after-commit-and-after-rollback).
 
 #### Destroy Callbacks
 
@@ -550,8 +552,8 @@ You have initialized an object!
 ### `after_touch`
 
 The [`after_touch`][] callback will be called whenever an Active Record object
-is touched. You can read more about `touch`
-[here](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
+is touched. You can [read more about `touch` in the API
+docs](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
 
 ```ruby
 class User < ApplicationRecord
@@ -680,7 +682,8 @@ end
 
 Using this form of registration it is also possible to register several
 different predicates that should be called to check if the callback should be
-executed. We will cover this [below](#multiple-callback-conditions).
+executed. We will cover this in the [Multiple Callback Conditions
+section](#multiple-callback-conditions).
 
 ### Using `:if` and `:unless` with a `Proc`
 
@@ -812,13 +815,13 @@ lead to invalid data.
 [`increment_counter`]:
     https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
 [`insert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert
 [`insert!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert-21
 [`insert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all
 [`insert_all!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-insert_all-21
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all-21
 [`touch_all`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
 [`update_column`]:
@@ -830,62 +833,61 @@ lead to invalid data.
 [`update_counters`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
 [`upsert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert
 [`upsert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-upsert_all
+    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
-Suppressing Callbacks
----------------------
+Suppressing Saving
+------------------
 
-In certain scenarios, you may need to temporarily prevent certain callbacks from
-being executed within your Rails application. This can be useful when you want
-to skip specific actions during certain operations without permanently disabling
-the callbacks.
+In certain scenarios, you may need to temporarily prevent records from being
+saved within your callbacks.
+This can be useful if you have a record with complex nested associations and want
+to skip saving specific records during certain operations without permanently disabling
+the callbacks or introducing complex conditional logic.
 
-Rails provides a mechanism for suppressing callbacks using the
-[`ActiveRecord::Suppressor`
-module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html). By
-using this module, you can wrap a block of code where you want to suppress
-callbacks, ensuring that they are not executed during that specific operation.
+Rails provides a mechanism to prevent saving records using the
+[`ActiveRecord::Suppressor` module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html).
+By using this module, you can wrap a block of code where you want to avoid
+saving records of a specific type that otherwise would be saved by the code block.
 
-Let's consider a scenario where we have a `User` model with a callback that
-sends a welcome email to new users after they sign up. However, there might be
-cases where we want to create a user without sending the welcome email, such as
-during seeding the database with test data.
+Let's consider a scenario where a user has many notifications.
+Creating a `User` will automatically create a `Notification` record as well.
 
 ```ruby
 class User < ApplicationRecord
-  after_create :send_welcome_email
+  has_many :notifications
 
-  def send_welcome_email
-    puts "Welcome email sent to #{self.email}"
+  after_create :create_welcome_notification
+
+  def create_welcome_notification
+    notifications.create(event: "sign_up")
   end
+end
+
+class Notification < ApplicationRecord
+  belongs_to :user
 end
 ```
 
-In this example, the `after_create` callback triggers the `send_welcome_email`
-method every time a new user is created.
-
-To create a user without sending the welcome email, we can use the
-`ActiveRecord::Suppressor` module as follows:
+To create a user without creating a notification, we can use the
+ActiveRecord::Suppressor module as follows:
 
 ```ruby
-User.suppress do
+Notification.suppress do
   User.create(name: "Jane", email: "jane@example.com")
 end
 ```
 
-In the above code, the `User.suppress` block ensures that the
-`send_welcome_email` callback is not executed during the creation of the "Jane"
-user, allowing us to create the user without sending the welcome email.
+In the above code, the `Notification.suppress` block ensures that the
+`Notification` is not saved during the creation of the "Jane" user.
 
-WARNING: Using the Active Record Suppressor, while potentially beneficial for
-selectively controlling callback execution, can introduce complexity and
-unexpected behavior. Suppressing callbacks can obscure the intended flow of your
+WARNING: Using the Active Record Suppressor can introduce complexity and
+unexpected behavior. Suppressing saving can obscure the intended flow of your
 application, leading to difficulties in understanding and maintaining the
-codebase over time. Carefully consider the implications of suppressing
-callbacks, ensuring thorough documentation and thoughtful testing to mitigate
-risks of unintended side effects, performance issues, and test failures.
+codebase over time. Carefully consider the implications of using the suppressor,
+ensuring thorough documentation and thoughtful testing to mitigate
+risks of unintended side effects and test failures.
 
 Halting Execution
 -----------------
@@ -980,7 +982,7 @@ class Author < ApplicationRecord
   has_many :books, before_add: :check_limit
 
   private
-    def check_limit
+    def check_limit(_book)
       if books.count >= 5
         errors.add(:base, "Cannot add more than 5 books for this author")
         throw(:abort)
@@ -1001,7 +1003,7 @@ callback for you to use.
 class Author < ApplicationRecord
   has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
 
-  def check_limit
+  def check_limit(_book)
     if books.count >= 5
       errors.add(:base, "Cannot add more than 5 books for this author")
       throw(:abort)
@@ -1035,7 +1037,7 @@ book.update(author_id: 1)
 Cascading Association Callbacks
 -------------------------------
 
-Callbacks can be performed when asssociated objects are changed. They work
+Callbacks can be performed when associated objects are changed. They work
 through the model associations whereby life cycle events can cascade on
 associations and fire callbacks.
 
@@ -1126,8 +1128,8 @@ end
 ```
 
 NOTE: The `:on` option specifies when a callback will be fired. If you don't
-supply the `:on` option the callback will fire for every life cycle event. Read
-more about `:on` [here](#registering-callbacks-to-fire-on-life-cycle-events).
+supply the `:on` option the callback will fire for every life cycle event. [Read
+more about `:on`](#registering-callbacks-to-fire-on-life-cycle-events).
 
 When a transaction completes, the `after_commit` or `after_rollback` callbacks
 are called for all models created, updated, or destroyed within that
@@ -1314,9 +1316,10 @@ However, in prior versions of Rails, when defining multiple transactional
 the callbacks were run was reversed.
 
 If for some reason you'd still like them to run in reverse, you can set the
-[following
-configuration](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
-to `false`. The callbacks will then run in the reverse order.
+following configuration to `false`. The callbacks will then run in the reverse
+order. See the [Active Record configuration
+options](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
+for more details.
 
 ```ruby
 config.active_record.run_after_transaction_callbacks_in_order_defined = false

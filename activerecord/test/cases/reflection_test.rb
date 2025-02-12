@@ -208,6 +208,18 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Nested::User, reflection.klass
   end
 
+  def test_reflection_klass_with_same_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      :nested_users,
+      nil,
+      {},
+      Nested::NestedUser
+    )
+
+    assert_equal Nested::NestedUser, reflection.klass
+  end
+
   def test_aggregation_reflection
     reflection_for_address = AggregateReflection.new(
       :address, nil, { mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
@@ -669,29 +681,29 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_using_query_constraints_warns_about_changing_behavior
     has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_many :clients` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(has_many_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
       ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
 
     has_one_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_one :account` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(has_one_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
       ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
 
     belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.belongs_to :client` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(belongs_to_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
       ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
   end
