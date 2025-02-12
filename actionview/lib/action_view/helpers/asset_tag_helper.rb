@@ -70,6 +70,9 @@ module ActionView
       #   sending the Preload Links header.
       # * <tt>:nopush</tt>  - Specify if the use of server push is not desired
       #   for the script. Defaults to +true+.
+      # * <tt>:type</tt>  - When set to +module+, adds the +rel+ HTML attribute with
+      #   a value of +modulepreload+, which tells the browser to preemptively fetch, parse,
+      #   and compile a module script.
       #
       # Any other specified options will be treated as HTML attributes for the
       # +script+ tag.
@@ -110,6 +113,9 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js", defer: true
       #   # => <script src="http://www.example.com/xmlhr.js" defer="defer"></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", type: "module"
+      #   # => <script src="http://www.example.com/xmlhr.js" rel="modulepreload"></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
