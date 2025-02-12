@@ -228,7 +228,7 @@ namespace :admin do
 end
 ```
 
-This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
+For `Admin::ArticlesController`, Rails will create the following routes:
 
 | HTTP Verb | Path                     | Controller#Action      | Named Route Helper           |
 | --------- | ------------------------ | ---------------------- | ---------------------------- |
