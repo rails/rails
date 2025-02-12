@@ -85,6 +85,7 @@ module ActiveSupport
           # to +object.as_json+, not any of this method's recursive +#as_json+
           # calls.
           def jsonify(value)
+            return value if value.class.name == "JSON::Fragment"
             case value
             when String, Integer, Symbol, nil, true, false
               value
