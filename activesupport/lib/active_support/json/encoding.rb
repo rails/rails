@@ -112,7 +112,7 @@ module ActiveSupport
 
       if defined?(::JSON::Coder)
         class JSONGemCoderEncoder # :nodoc:
-          JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass].freeze
+          JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
           CODER = ::JSON::Coder.new do |value|
             json_value = value.as_json
             # Handle objects returning self from as_json
