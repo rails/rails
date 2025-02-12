@@ -784,7 +784,7 @@ and record id.
 You can use Hashes and Arrays of values as cache keys.
 
 ```ruby
-# This is a legal cache key
+# This is a valid cache key
 Rails.cache.read(site: "mysite", owners: [owner_1, owner_2])
 ```
 
