@@ -1862,14 +1862,14 @@ Rails makes it easy to translate your app into other languages.
 The `translate` or `t` helper in our views looks up a translation by name and
 returns the text for the current locale.
 
-In `app/views/products/index.html.erb`, let's update the header tag to use a
+In `app/views/products/index.html.erb`, let's update the h1 tag to use a
 translation.
 
 ```erb
 <h1><%= t "hello" %></h1>
 ```
 
-Refreshing the page, we see `Hello world` is the header text now. Where did that
+Refreshing the page, we see `Hello world` is the h1 text now. Where did that
 come from?
 
 Since the default language is in English, Rails looks in `config/locales/en.yml`
@@ -1916,7 +1916,7 @@ finished.
 * Visit http://localhost:3000/products without a locale param, it will fallback
   to English.
 
-Let's update the index header to use a real translation instead of
+Let's update the index heading to use a real translation instead of
 `"Hello world"`.
 
 ```erb
