@@ -17,7 +17,14 @@ module ActionDispatch
         #     normalize_path("")      # => "/"
         #     normalize_path("/%ab")  # => "/%AB"
         def self.normalize_path(path)
-          path ||= ""
+          return "/".dup unless path
+
+          # Fast path for the overwhelming majority of paths that don't need to be normalized
+          if path == "/" || (path.start_with?("/") && !path.end_with?("/") && !path.match?(%r{%|//}))
+            return path.dup
+          end
+
+          # Slow path
           encoding = path.encoding
           path = +"/#{path}"
           path.squeeze!("/")
