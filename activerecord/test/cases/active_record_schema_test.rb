@@ -121,7 +121,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
     assert_equal ["multiple_indexes_foo_1", "multiple_indexes_foo_2"], indexes.collect(&:name).sort
   end
 
-  if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+  if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
     def test_schema_load_for_index_visibility
       ActiveRecord::Schema.define do
         create_table :disabled_index do |t|

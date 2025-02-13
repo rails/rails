@@ -180,14 +180,14 @@ module ActiveRecord
 
       # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.
       # See https://mariadb.com/kb/en/ignored-indexes/ for more details on the MariaDB feature.
-      def supports_disabling_use_of_index_for_queries?
+      def supports_disabling_indexes?
         if mariadb?
           database_version >= "10.6.0"
         else
           database_version >= "8.0.0"
         end
       end
-      alias_method :supports_enabling_use_of_index_for_queries?, :supports_disabling_use_of_index_for_queries?
+      alias_method :supports_enabling_indexes?, :supports_disabling_indexes?
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
@@ -468,13 +468,8 @@ module ActiveRecord
         CreateIndexDefinition.new(index, algorithm)
       end
 
-      # Enables an index to be used by query optimizers.
-      #
-      #   enable_index(:users, :email)
-      #
-      # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
-      def enable_index(table_name, index_name)
-        raise NotImplementedError unless supports_enabling_use_of_index_for_queries?
+      def enable_index(table_name, index_name) # :nodoc:
+        raise NotImplementedError unless supports_enabling_indexes?
 
         query = <<~SQL
           ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
@@ -482,14 +477,8 @@ module ActiveRecord
         execute(query)
       end
 
-
-      # Disables an index not to be used by query optimizers.
-      #
-      #   disable_index(:users, :email)
-      #
-      # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
-      def disable_index(table_name, index_name)
-        raise NotImplementedError unless supports_disabling_use_of_index_for_queries?
+      def disable_index(table_name, index_name) # :nodoc:
+        raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
           ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "IGNORED" : "INVISIBLE"}

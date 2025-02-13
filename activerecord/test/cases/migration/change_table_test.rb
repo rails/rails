@@ -214,7 +214,7 @@ module ActiveRecord
         end
       end
 
-      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_column_creates_column_with_disabled_index
           with_change_table do |t|
             expect :add_column, nil, [:delete_me, :bar, :integer]

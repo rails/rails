@@ -33,7 +33,7 @@ module ActiveRecord
                 comment: row["Index_comment"].presence,
               ]
 
-              if supports_disabling_use_of_index_for_queries?
+              if supports_disabling_indexes?
                 index[-1][:enabled] = mariadb? ? row["Ignored"] == "NO" : row["Visible"] == "YES"
               end
 
@@ -251,7 +251,7 @@ module ActiveRecord
 
           def valid_index_options
             index_options = super
-            index_options << :enabled if supports_enabling_use_of_index_for_queries?
+            index_options << :enabled if supports_enabling_indexes?
             index_options
           end
 

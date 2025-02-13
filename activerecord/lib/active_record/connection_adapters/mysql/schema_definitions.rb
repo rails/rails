@@ -55,9 +55,8 @@ module ActiveRecord
         attr_reader :enabled
 
         def initialize(*args, **kwargs)
-          @enabled = kwargs.delete(:enabled)
+          @enabled = kwargs.key?(:enabled) ? kwargs.delete(:enabled) : true
           super
-          @enabled = enabled.nil? ? true : enabled
         end
 
         def enabled=(value)
@@ -130,7 +129,7 @@ module ActiveRecord
         #
         #   t.enable_index(:email)
         #
-        # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
         #
         # See {connection.enable_index}[rdoc-ref:SchemaStatements#enable_index]
         def enable_index(index_name)
@@ -141,7 +140,7 @@ module ActiveRecord
         #
         #   t.disable_index(:email)
         #
-        # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
         #
         # See {connection.disable_index}[rdoc-ref:SchemaStatements#disable_index]
         def disable_index(index_name)

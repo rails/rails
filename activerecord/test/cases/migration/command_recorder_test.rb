@@ -315,7 +315,7 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
       end
 
-      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_invert_add_index_with_disabled_option
           remove = @recorder.inverse_of :add_index, [:table, :one, enabled: false]
           assert_equal [:remove_index, [:table, :one, enabled: false], nil], remove

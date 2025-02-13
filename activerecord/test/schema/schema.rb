@@ -428,7 +428,7 @@ ActiveRecord::Schema.define do
       end
     end
 
-    if supports_disabling_use_of_index_for_queries?
+    if supports_disabling_indexes?
       t.index [:firm_id, :client_of], name: "company_disabled_index", enabled: false
     end
   end

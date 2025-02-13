@@ -25,7 +25,7 @@ module ActiveRecord
         assert connection.index_exists?(table_name, :foo_id, name: :index_testings_on_foo_id)
       end
 
-      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_creates_invisible_index
           connection.create_table table_name do |t|
             t.references :foo, index: { enabled: false }

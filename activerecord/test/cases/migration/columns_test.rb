@@ -388,7 +388,7 @@ module ActiveRecord
         connection.drop_table(:my_table) rescue nil
       end
 
-      if ActiveRecord::Base.lease_connection.supports_disabling_use_of_index_for_queries?
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_column_with_disabled_index
           connection.create_table "my_table", force: true do |t|
             t.column "col_one", :bigint

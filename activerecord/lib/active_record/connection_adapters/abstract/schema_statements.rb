@@ -923,7 +923,7 @@ module ActiveRecord
       #
       #   CREATE INDEX index_developers_on_name ON developers (name) IGNORED -- MariaDB
       #
-      # Note: only supported by MySQL version 8.0.0 >= and MariaDB version 10.6.0 >=.
+      # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
       #
       def add_index(table_name, column_name, **options)
         create_index = build_create_index_definition(table_name, column_name, **options)
@@ -1559,7 +1559,7 @@ module ActiveRecord
         raise NotImplementedError, "#{self.class} does not support enabling indexes"
       end
 
-      # Disables an index not to be used by queries.
+      # Prevents an index from being used by queries.
       #
       #   disable_index(:users, :email)
       def disable_index(table_name, index_name)
