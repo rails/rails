@@ -92,6 +92,9 @@ The version shown should be Rails 8.1.0 or higher.
 
 ### Creating Your First Rails App
 
+Note: When generating a new Rails application we use `rails`.
+But we should run commands  with `bin/rails` when running them within an application.
+
 Rails comes with several commands to make life easier. Run `rails --help` to see
 all of the commands.
 
