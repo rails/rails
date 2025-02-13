@@ -1,3 +1,33 @@
+*   Fix `*_url` helpers generation on mounted engine.
+
+    When mounting an engine with a scoped literal constraint, all `*_url`
+    helpers for the routes engine were missing part of the url.
+
+    ```ruby
+    class WorkersEngine < Rails::Engine
+      routes.draw do
+        get "workers", to: "dashboard/workers"
+      end
+    end
+
+    class MyApplication < Rails::Application
+      routes.draw do
+        constraints(subdomain: "admin") do
+          mount WorkersEngine, at: "/"
+        end
+      end
+    end
+
+    ### Inside the engine
+    # Before the fix
+    puts workers_url(host: "example.com") #=> https://example.com/workers
+
+    # After the fix
+    puts workers_url(host: "example.com") #=> https://admin.example.com/workers
+    ```
+
+    *Edouard Chin*
+
 *   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
     When calling `Rails.application.reload_routes!` inside a middleware of
