@@ -166,7 +166,7 @@ module ActionDispatch
     end
 
     def route=(route) # :nodoc:
-      set_header("action_dispatch.route", route)
+      @env["action_dispatch.route"] = route
     end
 
     def routes # :nodoc:
