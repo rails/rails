@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "cgi"
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
@@ -123,8 +124,13 @@ module ActionDispatch
             path_parameters = {}
             index = 1
             match_data.names.each do |name|
-              val = match_data[index]
-              path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
+              if val = match_data[index]
+                path_parameters[name.to_sym] = if val.include?("%")
+                  CGI.unescapeURIComponent(val)
+                else
+                  val
+                end
+              end
               index += 1
             end
             yield [match_data, path_parameters, r]
