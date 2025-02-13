@@ -192,6 +192,20 @@ class SignedIdTest < ActiveRecord::TestCase
     Account.signed_id_verifier = old_verifier
   end
 
+  test "on_rotation callback using custom verifier" do
+    old_verifier = Account.signed_id_verifier
+
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("old secret")
+    old_account_signed_id = @account.signed_id
+    on_rotation_is_called = false
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("new secret", on_rotation: -> { on_rotation_is_called = true })
+    Account.signed_id_verifier.rotate("old secret")
+    Account.find_signed(old_account_signed_id)
+    assert on_rotation_is_called
+  ensure
+    Account.signed_id_verifier = old_verifier
+  end
+
   test "on_rotation callback using find_signed & find_signed!" do
     old_verifier = Account.signed_id_verifier
 
