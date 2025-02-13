@@ -36,6 +36,7 @@ module ActiveSupport
       @subscribers = subscribers.flatten
       @logger = logger
       @debug_mode = false
+      @context_middlewares = ErrorContextMiddlewareStack.new
     end
 
     # Evaluates the given block, reporting and swallowing any unhandled error.
@@ -202,6 +203,22 @@ module ActiveSupport
       ActiveSupport::ExecutionContext.set(...)
     end
 
+    # Add a middleware to modify the error context before it is sent to subscribers.
+    #
+    # Middleware is added to a stack of callables run on an error's execution context
+    # before passing to subscribers. Allows creation of entries in error context that
+    # are shared by all subscribers.
+    #
+    # A context middleware receives the error and current state of the context hash.
+    # It must return a hash - the middleware stack returns the hash after it has
+    # run through all middlewares. A middleware can mutate or replace the hash.
+    #
+    #   Rails.error.add_middleware(-> (error, context) { context.merge({ foo: :bar }) })
+    #
+    def add_middleware(middleware)
+      @context_middlewares.use(middleware)
+    end
+
     # Report an error directly to subscribers. You can use this method when the
     # block-based #handle and #record methods are not suitable.
     #
@@ -223,7 +240,11 @@ module ActiveSupport
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
 
-      full_context = ActiveSupport::ExecutionContext.to_h.merge(context || {})
+      full_context = @context_middlewares.execute(
+        error,
+        ActiveSupport::ExecutionContext.to_h.merge(context || {})
+      )
+
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
@@ -271,6 +292,26 @@ module ActiveSupport
         end
 
         error.backtrace.shift(count)
+      end
+
+      class ErrorContextMiddlewareStack # :nodoc:
+        def initialize
+          @stack = []
+        end
+
+        # Add a middleware to the error context stack.
+        def use(middleware)
+          unless middleware.respond_to?(:call)
+            raise ArgumentError, "Error context middleware must respond to #call"
+          end
+
+          @stack << middleware
+        end
+
+        # Run all middlewares in the stack on an error and context.
+        def execute(error, context)
+          @stack.inject(context) { |c, middleware| middleware.call(error, c) }
+        end
       end
   end
 end
