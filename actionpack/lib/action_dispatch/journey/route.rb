@@ -167,21 +167,23 @@ module ActionDispatch
       end
 
       def matches?(request)
-        @request_method_match.call(request) &&
-        constraints.all? { |method, value|
-          case value
-          when Regexp, String
-            value === request.send(method).to_s
-          when Array
-            value.include?(request.send(method))
-          when TrueClass
-            request.send(method).present?
-          when FalseClass
-            request.send(method).blank?
-          else
-            value === request.send(method)
-          end
-        }
+        @request_method_match.call(request) && (
+          constraints.empty? ||
+          constraints.all? { |method, value|
+            case value
+            when Regexp, String
+              value === request.send(method).to_s
+            when Array
+              value.include?(request.send(method))
+            when TrueClass
+              request.send(method).present?
+            when FalseClass
+              request.send(method).blank?
+            else
+              value === request.send(method)
+            end
+          }
+        )
       end
 
       def ip
