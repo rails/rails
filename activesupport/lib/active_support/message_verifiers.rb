@@ -59,7 +59,9 @@ module ActiveSupport
 
     ##
     # :method: rotate
-    # :call-seq: rotate(**options)
+    # :call-seq:
+    #   rotate(**options)
+    #   rotate(&block)
     #
     # Adds +options+ to the list of option sets. Messages will be signed using
     # the first set in the list. When verifying, however, each set will be
