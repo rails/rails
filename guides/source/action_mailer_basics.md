@@ -914,6 +914,17 @@ class UserMailer < ApplicationMailer
 end
 ```
 
+### Sequence
+
+When an email is sent, the callbacks are invoked in the following sequence:
+
+* [`before_action`][]
+* [`around_action`][]
+* [`after_action`][]
+* [`before_deliver`][]
+* [`around_deliver`][]
+* [`after_deliver`][]
+
 Mailer callbacks abort further processing if `body` is set to a non-nil value.
 `before_deliver` can abort with `throw :abort`.
 
