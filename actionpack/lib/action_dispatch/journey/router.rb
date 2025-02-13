@@ -107,8 +107,10 @@ module ActionDispatch
 
         def find_routes(req)
           path_info = req.path_info
-          routes = filter_routes(path_info).concat custom_routes.find_all { |r|
-            r.path.match?(path_info)
+          routes = filter_routes(path_info)
+
+          custom_routes.each { |r|
+            routes << r if r.path.match?(path_info)
           }
 
           if req.head?
