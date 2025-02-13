@@ -932,6 +932,7 @@ module ActionDispatch
               params[key] = URI::RFC2396_PARSER.unescape(value)
             end
           end
+          original_path_parameters = req.path_parameters
           req.path_parameters = params
           app = route.app
           if app.matches?(req) && app.dispatcher?
@@ -945,6 +946,8 @@ module ActionDispatch
           elsif app.matches?(req) && app.engine?
             path_parameters = app.rack_app.routes.recognize_path_with_request(req, path, extras, raise_on_missing: false)
             return path_parameters if path_parameters
+          else
+            req.path_parameters = original_path_parameters
           end
         end
 

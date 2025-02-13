@@ -38,9 +38,7 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          tmp_params = set_params.merge route.defaults, parameters
-
-          req.path_parameters = tmp_params
+          req.path_parameters = parameters
           req.route = route
 
           _, headers, _ = response = route.app.serve(req)
@@ -66,7 +64,6 @@ module ActionDispatch
             rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
           end
 
-          parameters = route.defaults.merge parameters
           yield(route, parameters)
         end
       end
@@ -124,7 +121,9 @@ module ActionDispatch
 
           routes.each do |r|
             match_data = r.path.match(path_info)
-            path_parameters = {}
+
+            path_parameters = req.path_parameters.merge r.defaults
+
             index = 1
             match_data.names.each do |name|
               if val = match_data[index]
