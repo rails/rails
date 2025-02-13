@@ -241,7 +241,9 @@ module ActiveRecord
       def _default_attributes # :nodoc:
         @default_attributes ||= begin
           attributes_hash = with_connection do |connection|
+            connection_columns = connection.schema_cache.columns_hash(table_name)
             columns_hash.transform_values do |column|
+              column = connection_columns[column.name] || column
               ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
             end
           end
