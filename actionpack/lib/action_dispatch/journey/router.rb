@@ -43,7 +43,7 @@ module ActionDispatch
 
           _, headers, _ = response = route.app.serve(req)
 
-          if "pass" == headers[Constants::X_CASCADE]
+          if headers[Constants::X_CASCADE] == "pass"
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
