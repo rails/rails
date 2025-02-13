@@ -117,7 +117,11 @@ module ActionDispatch
             routes.select! { |r| r.matches?(req) }
           end
 
-          routes.sort_by!(&:precedence)
+          if routes.size > 1
+            routes.sort! do |a, b|
+              a.precedence <=> b.precedence
+            end
+          end
 
           routes.each do |r|
             match_data = r.path.match(path_info)
