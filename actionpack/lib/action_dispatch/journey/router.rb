@@ -118,15 +118,17 @@ module ActionDispatch
 
           routes.sort_by!(&:precedence)
 
-          routes.each { |r|
+          routes.each do |r|
             match_data = r.path.match(path_info)
             path_parameters = {}
-            match_data.names.each_with_index { |name, i|
-              val = match_data[i + 1]
+            index = 1
+            match_data.names.each do |name|
+              val = match_data[index]
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
-            }
+              index += 1
+            end
             yield [match_data, path_parameters, r]
-          }
+          end
         end
 
         def match_head_routes(routes, req)
