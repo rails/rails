@@ -28,8 +28,8 @@ module ActiveSupport
     # <tt>transitional = false</tt>.
 
     ##
-    # :method: initialize
-    # :call-seq: initialize(&secret_generator)
+    # :singleton-method: new
+    # :call-seq: new(&secret_generator)
     #
     # Initializes a new instance. +secret_generator+ must accept a salt and a
     # +secret_length+ kwarg, and return a suitable secret (string) or secrets
