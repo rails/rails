@@ -1,3 +1,11 @@
+*   Introduce ActiveSupport::ErrorReport#metadata_provider
+
+    When reporting an error, the metadata provider will be called with the reported error
+    and the returned metadata hash will be included in the `context` that is sent to each of
+    the subscribers.
+
+    *Andrew Novoselac*
+
 *   Change execution wrapping to report all exceptions, including `Exception`.
 
     If a more serious error like `SystemStackError` or `NoMemoryError` happens,
