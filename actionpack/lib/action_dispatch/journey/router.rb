@@ -38,10 +38,7 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          tmp_params = set_params.merge route.defaults
-          parameters.each_pair { |key, val|
-            tmp_params[key] = val.force_encoding(::Encoding::UTF_8)
-          }
+          tmp_params = set_params.merge route.defaults, parameters
 
           req.path_parameters = tmp_params
           req.route = route
@@ -131,11 +128,13 @@ module ActionDispatch
             index = 1
             match_data.names.each do |name|
               if val = match_data[index]
-                path_parameters[name.to_sym] = if val.include?("%")
+                val = if val.include?("%")
                   CGI.unescapeURIComponent(val)
                 else
                   val
                 end
+                val.force_encoding(::Encoding::UTF_8)
+                path_parameters[name.to_sym] = val
               end
               index += 1
             end
