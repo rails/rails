@@ -43,7 +43,7 @@ module ActionDispatch
           }
 
           req.path_parameters = tmp_params
-          req.route_uri_pattern = route.path.spec.to_s
+          req.route = route
 
           _, headers, _ = response = route.app.serve(req)
 
