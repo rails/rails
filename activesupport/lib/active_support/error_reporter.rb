@@ -28,11 +28,11 @@ module ActiveSupport
     DEFAULT_SOURCE = "application"
     DEFAULT_RESCUE = [StandardError].freeze
 
-    attr_accessor :logger, :debug_mode
+    attr_accessor :logger, :debug_mode, :metadata_provider
 
     UnexpectedError = Class.new(Exception)
 
-    def initialize(*subscribers, logger: nil)
+    def initialize(*subscribers, logger: nil, metadata_provider: nil)
       @subscribers = subscribers.flatten
       @logger = logger
       @debug_mode = false
@@ -224,6 +224,9 @@ module ActiveSupport
       end
 
       full_context = ActiveSupport::ExecutionContext.to_h.merge(context || {})
+      if metadata_provider
+        full_context[:metadata] ||= metadata_provider.call(error)
+      end
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
