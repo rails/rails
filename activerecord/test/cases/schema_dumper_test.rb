@@ -226,6 +226,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+    def test_schema_dumps_index_visibility
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_disabled_index/).first.strip
+      assert_equal 't.index ["firm_id", "client_of"], name: "company_disabled_index", enabled: false', index_definition
+    end
+  end
+
   if ActiveRecord::Base.lease_connection.supports_check_constraints?
     def test_schema_dumps_check_constraints
       constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip

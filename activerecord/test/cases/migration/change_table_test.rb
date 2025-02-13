@@ -214,6 +214,37 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_column_creates_column_with_disabled_index
+          with_change_table do |t|
+            expect :add_column, nil, [:delete_me, :bar, :integer]
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.column :bar, :integer, index: { enabled: false }
+          end
+        end
+
+        def test_index_creates_disabled_index
+          with_change_table do |t|
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.index :bar, enabled: false
+          end
+        end
+
+        def test_disable_index_disables_index
+          with_change_table do |t|
+            expect :disable_index, nil, [:delete_me, :bar]
+            t.disable_index :bar
+          end
+        end
+
+        def test_enable_index_enables_index
+          with_change_table do |t|
+            expect :enable_index, nil, [:delete_me, :bar]
+            t.enable_index :bar
+          end
+        end
+      end
+
       def test_index_creates_index
         with_change_table do |t|
           expect :add_index, nil, [:delete_me, :bar]
