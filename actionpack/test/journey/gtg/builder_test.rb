@@ -8,13 +8,22 @@ module ActionDispatch
       class TestBuilder < ActiveSupport::TestCase
         def test_following_states_multi
           table = tt ["a|a"]
-          assert_equal 1, table.move([0, nil], "a", "a", 0, true).each_slice(2).count
+
+          state = [0, nil]
+          table.move(state, "a", "a", 0, true)
+          assert_equal 1, state.each_slice(2).count
         end
 
         def test_following_states_multi_regexp
           table = tt [":a|b"]
-          assert_equal 1, table.move([0, nil], "fooo", "fooo", 0, true).each_slice(2).count
-          assert_equal 2, table.move([0, nil], "b", "b", 0, true).each_slice(2).count
+
+          state = [0, nil]
+          table.move(state, "fooo", "fooo", 0, true)
+          assert_equal 1, state.each_slice(2).count
+
+          state = [0, nil]
+          table.move(state, "b", "b", 0, true)
+          assert_equal 2, state.each_slice(2).count
         end
 
         def test_multi_path
@@ -26,9 +35,9 @@ module ActionDispatch
             [2, "/"],
             [1, "c"],
           ].inject([0, nil]) { |state, (exp, sym)|
-            new = table.move(state, sym, sym, 0, sym != "/")
-            assert_equal exp, new.each_slice(2).count
-            new
+            table.move(state, sym, sym, 0, sym != "/")
+            assert_equal exp, state.each_slice(2).count
+            state
           }
         end
 
