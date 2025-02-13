@@ -56,6 +56,16 @@ module JSONTest
     end
   end
 
+  class CustomNumericFixed < Numeric
+    def initialize(str)
+      @str = str
+    end
+
+    def as_json
+      ::JSON::Fragment.new(@str)
+    end
+  end
+
   module EncodingTestCases
     TrueTests     = [[ true,  %(true)  ]]
     FalseTests    = [[ false, %(false) ]]
@@ -68,7 +78,8 @@ module JSONTest
                      [ BigDecimal("0.0") / BigDecimal("0.0"),  %(null) ],
                      [ BigDecimal("2.5"), %("#{BigDecimal('2.5')}") ],
                      [ RomanNumeral.new("MCCCXXXVII"), %("MCCCXXXVII") ],
-                     [ [CustomNumeric.new("123")], %([123]) ]
+                     [ [CustomNumeric.new("123")], %([123]) ],
+                     [ [CustomNumericFixed.new("123")], %([123]) ],
     ]
 
     StringTests   = [[ "this is the <string>",     %("this is the \\u003cstring\\u003e")],
