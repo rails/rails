@@ -38,17 +38,12 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
-          tmp_params = set_params.merge route.defaults
-          parameters.each_pair { |key, val|
-            tmp_params[key] = val.force_encoding(::Encoding::UTF_8)
-          }
-
-          req.path_parameters = tmp_params
+          req.path_parameters = parameters
           req.route = route
 
           _, headers, _ = response = route.app.serve(req)
 
-          if "pass" == headers[Constants::X_CASCADE]
+          if headers[Constants::X_CASCADE] == "pass"
             req.script_name     = script_name
             req.path_info       = path_info
             req.path_parameters = set_params
@@ -69,7 +64,6 @@ module ActionDispatch
             rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
           end
 
-          parameters = route.defaults.merge parameters
           yield(route, parameters)
         end
       end
@@ -107,8 +101,10 @@ module ActionDispatch
 
         def find_routes(req)
           path_info = req.path_info
-          routes = filter_routes(path_info).concat custom_routes.find_all { |r|
-            r.path.match?(path_info)
+          routes = filter_routes(path_info)
+
+          custom_routes.each { |r|
+            routes << r if r.path.match?(path_info)
           }
 
           if req.head?
@@ -125,15 +121,19 @@ module ActionDispatch
 
           routes.each do |r|
             match_data = r.path.match(path_info)
-            path_parameters = {}
+
+            path_parameters = req.path_parameters.merge r.defaults
+
             index = 1
             match_data.names.each do |name|
               if val = match_data[index]
-                path_parameters[name.to_sym] = if val.include?("%")
+                val = if val.include?("%")
                   CGI.unescapeURIComponent(val)
                 else
                   val
                 end
+                val.force_encoding(::Encoding::UTF_8)
+                path_parameters[name.to_sym] = val
               end
               index += 1
             end

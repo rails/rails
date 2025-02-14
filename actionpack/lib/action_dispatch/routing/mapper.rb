@@ -183,7 +183,7 @@ module ActionDispatch
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
                              required_defaults: required_defaults, defaults: defaults,
-                             request_method_match: request_method, precedence: precedence,
+                             via: @via, precedence: precedence,
                              scope_options: scope_options, internal: @internal, source_location: route_source_location)
         end
 
@@ -203,11 +203,6 @@ module ActionDispatch
           end
         end
         private :build_conditions
-
-        def request_method
-          @via.map { |x| Journey::Route.verb_matcher(x) }
-        end
-        private :request_method
 
         private
           def intern(object)
