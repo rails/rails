@@ -1353,7 +1353,7 @@ end
 
 ### `ActiveRecord.after_all_transactions_commit`
 
-`ActiveRecord.after_all_transactions_commit` is a callback that allows you to run code after all the current transactions have been successfully committed to the database.
+[`ActiveRecord.after_all_transactions_commit`][] is a callback that allows you to run code after all the current transactions have been successfully committed to the database.
 
 ```ruby
 def publish_article(article)
@@ -1364,13 +1364,7 @@ def publish_article(article)
 end
 ```
 
-If there is no currently open transaction, the block is called immediately.
-
-If there are multiple nested transactions, the block is called after the outermost one has been committed,
-
-If any of the currently open transactions is rolled back, the block is never called.
-
-If multiple transactions are open across multiple databases, the block will be invoked if and once all of them have been committed. But note that nesting transactions across two distinct databases is a sharding anti-pattern that comes with a world of hurts.
+[`ActiveRecord.after_all_transactions_commit`]: https://rubydoc.info/gems/activerecord/ActiveRecord.after_all_transactions_commit
 
 Callback Objects
 ----------------
