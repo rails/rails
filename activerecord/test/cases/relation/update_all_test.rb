@@ -125,6 +125,13 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.update_all(name: "Bob")
   end
 
+  def test_update_all_with_left_outer_joins
+    pets = Pet.left_outer_joins(:toys)
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: "Boby")
+  end
+
   def test_update_all_with_includes
     pets = Pet.includes(:toys).where(toys: { name: "Bone" })
 
