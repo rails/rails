@@ -346,7 +346,9 @@ module ActiveRecord
 
       def purge(configuration)
         db_config = resolve_configuration(configuration)
-        database_adapter_for(db_config).purge
+        with_temporary_connection(db_config) do
+          database_adapter_for(db_config).purge
+        end
       end
 
       def purge_all
