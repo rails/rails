@@ -25,7 +25,7 @@ if (process.env.CI) {
   config.customLaunchers = {
     sl_chrome: sauce("chrome", 70),
     sl_ff: sauce("firefox", 63),
-    sl_safari: sauce("safari", 12.0, "macOS 10.13"),
+    sl_safari: sauce("safari", "latest"),
     sl_edge: sauce("microsoftedge", 17.17134, "Windows 10"),
   }
 
