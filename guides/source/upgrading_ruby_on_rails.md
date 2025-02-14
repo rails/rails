@@ -54,7 +54,7 @@ You can find a list of all released Rails gems [here](https://rubygems.org/gems/
 
 ### The Update Task
 
-Rails provides the `rails app:update` command. After updating the Rails version
+Rails provides the `bin/rails app:update` command. After updating the Rails version
 in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
@@ -752,7 +752,7 @@ You can invalidate the cache either by touching the product, or changing the cac
 Rails 7.0 changed some default values for some column types. To avoid that application upgrading from 6.1 to 7.0
 load the current schema using the new 7.0 defaults, Rails now includes the version of the framework in the schema dump.
 
-Before loading the schema for the first time in Rails 7.0, make sure to run `rails app:update` to ensure that the
+Before loading the schema for the first time in Rails 7.0, make sure to run `bin/rails app:update` to ensure that the
 version of the schema is included in the schema dump.
 
 The schema file will look like this:

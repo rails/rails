@@ -45,7 +45,7 @@ The authentication generator adds all of the relevant models, controllers,
 views, routes, and migrations needed for basic authentication and password reset
 functionality.
 
-To use this feature in your application, you can run `rails generate
+To use this feature in your application, you can run `bin/rails generate
 authentication`. Here are all of the files the generator modifies and new files
 it adds:
 
