@@ -71,6 +71,10 @@ module RoutingAssertionsSharedTests
       mount root_engine => "/"
 
       get "/shelf/foo", controller: "query_articles", action: "index"
+
+      get "*path", to: "symbols#index", constraints: ->(request) do
+        request.fullpath == "/request_mutated"
+      end
     end
   end
 
@@ -179,6 +183,10 @@ module RoutingAssertionsSharedTests
 
   def test_assert_recognizes_continue_to_recognize_after_it_tried_engines
     assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
+  end
+
+  def test_assert_recognizes_doesnt_mutate_request
+    assert_recognizes({ controller: "symbols", action: "index", path: "request_mutated" }, "/request_mutated")
   end
 
   def test_assert_routing

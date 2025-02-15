@@ -27,45 +27,20 @@ module ActionDispatch
       end
 
       def serve(req)
-        find_routes(req) do |match, parameters, route|
-          set_params  = req.path_parameters
-          path_info   = req.path_info
-          script_name = req.script_name
-
-          unless route.path.anchored
-            req.script_name = (script_name.to_s + match.to_s).chomp("/")
-            req.path_info = match.post_match
-            req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
-          end
-
+        find_routes(req) do |route, parameters|
           req.path_parameters = parameters
           req.route = route
 
           _, headers, _ = response = route.app.serve(req)
 
-          if headers[Constants::X_CASCADE] == "pass"
-            req.script_name     = script_name
-            req.path_info       = path_info
-            req.path_parameters = set_params
-            next
-          end
-
-          return response
+          return response unless headers[Constants::X_CASCADE] == "pass"
         end
 
         [404, { Constants::X_CASCADE => "pass" }, ["Not Found"]]
       end
 
-      def recognize(rails_req)
-        find_routes(rails_req) do |match, parameters, route|
-          unless route.path.anchored
-            rails_req.script_name = match.to_s
-            rails_req.path_info   = match.post_match
-            rails_req.path_info   = "/" + rails_req.path_info unless rails_req.path_info.start_with? "/"
-          end
-
-          yield(route, parameters)
-        end
+      def recognize(rails_req, &block)
+        find_routes(rails_req, &block)
       end
 
       def visualizer
@@ -100,7 +75,10 @@ module ActionDispatch
         end
 
         def find_routes(req)
-          path_info = req.path_info
+          req_params  = req.path_parameters
+          path_info   = req.path_info
+          script_name = req.script_name
+
           routes = filter_routes(path_info)
 
           custom_routes.each { |r|
@@ -122,7 +100,7 @@ module ActionDispatch
           routes.each do |r|
             match_data = r.path.match(path_info)
 
-            path_parameters = req.path_parameters.merge r.defaults
+            path_parameters = req_params.merge r.defaults
 
             index = 1
             match_data.names.each do |name|
@@ -137,7 +115,21 @@ module ActionDispatch
               end
               index += 1
             end
-            yield [match_data, path_parameters, r]
+
+            if r.path.anchored
+              yield(r, path_parameters)
+            else
+              req.script_name = (script_name.to_s + match_data.to_s).chomp("/")
+              req.path_info = match_data.post_match
+              req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
+
+              yield(r, path_parameters)
+
+              req.script_name     = script_name
+              req.path_info       = path_info
+            end
+
+            req.path_parameters = req_params
           end
         end
 
