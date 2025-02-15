@@ -714,6 +714,9 @@ module ActionDispatch
               _url_helpers.public_send("#{name}_path", prefix_options)
             end
 
+            app.routes.set.each do |route|
+              route.defaults.merge!(_route.defaults)
+            end
             app.routes.define_mounted_helper(name, script_namer)
 
             app.routes.extend Module.new {
