@@ -1,3 +1,10 @@
+*   Deprecate the `validate: false` option for `foreign_key` and `check_constraint`.
+
+    PostgreSQL ignores the `NOT VALID` option for foreign keys and check constraints in a `CREATE TABLE` statement.
+    To enable the `NOT VALID` option, use `add_foreign_key` or `add_check_constraint`, which generate `ALTER TABLE` statements.
+
+    *Yasuo Honda*
+
 *   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
 
     *Hartley McGuire*

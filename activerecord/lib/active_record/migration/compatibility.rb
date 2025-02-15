@@ -32,6 +32,29 @@ module ActiveRecord
       V8_1 = Current
 
       class V8_0 < V8_1
+        if connection.adapter_name == "PostgreSQL"
+          module TableDefinition
+            def foreign_key(*args, **options)
+              options.delete(:validate)
+              super
+            end
+
+            def check_constraint(expression, **options)
+              options.delete(:validate)
+              super
+            end
+          end
+        end
+
+        private
+          def compatible_table_definition(t)
+            if connection.adapter_name == "PostgreSQL"
+              class << t
+                prepend TableDefinition
+              end
+            end
+            super
+          end
       end
 
       class V7_2 < V8_0
