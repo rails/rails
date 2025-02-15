@@ -427,6 +427,10 @@ ActiveRecord::Schema.define do
         t.index "(CONCAT_WS(`firm_name`, `name`, _utf8mb4' '))", name: "full_name_index"
       end
     end
+
+    if supports_disabling_indexes?
+      t.index [:firm_id, :client_of], name: "company_disabled_index", enabled: false
+    end
   end
 
   create_table :content, force: true do |t|
