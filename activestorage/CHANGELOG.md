@@ -1,3 +1,7 @@
+*   `ActiveStorage::Record`'s superclass is configurable through `config.active_storage.record_superclass`.
+
+    *Andrea Lorenzetti*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
