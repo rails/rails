@@ -264,6 +264,8 @@ To enable, add in `application.rb` or any environment initializer:
 config.active_record.query_log_tags_enabled = true
 ```
 
+NOTE: Prepared statements will be disabled automatically.
+
 By default the name of the application, the name and action of the controller, or the name of the job are logged. The
 default format is [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/). For example:
 
