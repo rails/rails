@@ -257,71 +257,68 @@ module ActiveRecord
         connection.add_index("testings", %w(last_name first_name administrator), name: "named_admin")
         connection.remove_index("testings", name: "named_admin")
 
-        # Selected adapters support index sort order
-        if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
-          connection.add_index("testings", ["last_name"], order: { last_name: :desc })
-          connection.remove_index("testings", ["last_name"])
-          connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc })
-          connection.remove_index("testings", ["last_name", "first_name"])
-          connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc, first_name: :asc })
-          connection.remove_index("testings", ["last_name", "first_name"])
-          connection.add_index("testings", ["last_name", "first_name"], order: :desc)
-          connection.remove_index("testings", ["last_name", "first_name"])
-        end
+        connection.add_index("testings", ["last_name"], order: { last_name: :desc })
+        connection.remove_index("testings", ["last_name"])
+        connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc })
+        connection.remove_index("testings", ["last_name", "first_name"])
+        connection.add_index("testings", ["last_name", "first_name"], order: { last_name: :desc, first_name: :asc })
+        connection.remove_index("testings", ["last_name", "first_name"])
+        connection.add_index("testings", ["last_name", "first_name"], order: :desc)
+        connection.remove_index("testings", ["last_name", "first_name"])
       end
 
-      if current_adapter?(:PostgreSQLAdapter)
-        def test_add_partial_index
-          connection.add_index("testings", "last_name", where: "first_name = 'john doe'")
-          assert connection.index_exists?("testings", "last_name")
+      def test_add_partial_index
+        skip("current adapter doesn't support partial indexes") unless supports_partial_index?
 
-          connection.remove_index("testings", "last_name")
-          assert_not connection.index_exists?("testings", "last_name")
-        end
+        connection.add_index("testings", "last_name", where: "first_name = 'john doe'")
+        assert connection.index_exists?("testings", "last_name")
 
-        def test_add_index_with_included_column
-          skip("current adapter doesn't support include indexes") unless supports_index_include?
+        connection.remove_index("testings", "last_name")
+        assert_not connection.index_exists?("testings", "last_name")
+      end
 
-          connection.add_index("testings", "last_name", include: :foo)
-          assert connection.index_exists?("testings", "last_name", include: :foo)
+      def test_add_index_with_included_column
+        skip("current adapter doesn't support include indexes") unless supports_index_include?
 
-          connection.remove_index("testings", "last_name")
-          assert_not connection.index_exists?("testings", "last_name")
-        end
+        connection.add_index("testings", "last_name", include: :foo)
+        assert connection.index_exists?("testings", "last_name", include: :foo)
 
-        def test_add_index_with_multiple_included_columns
-          skip("current adapter doesn't support include indexes") unless supports_index_include?
+        connection.remove_index("testings", "last_name")
+        assert_not connection.index_exists?("testings", "last_name")
+      end
 
-          connection.add_index("testings", "last_name", include: [:foo, :bar])
-          assert connection.index_exists?("testings", "last_name", include: [:foo, :bar])
+      def test_add_index_with_multiple_included_columns
+        skip("current adapter doesn't support include indexes") unless supports_index_include?
 
-          connection.remove_index("testings", "last_name")
-          assert_not connection.index_exists?("testings", "last_name")
-        end
+        connection.add_index("testings", "last_name", include: [:foo, :bar])
+        assert connection.index_exists?("testings", "last_name", include: [:foo, :bar])
 
-        def test_add_index_with_included_column_and_where_clause
-          skip("current adapter doesn't support include indexes") unless supports_index_include?
+        connection.remove_index("testings", "last_name")
+        assert_not connection.index_exists?("testings", "last_name")
+      end
 
-          connection.add_index("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
-          assert connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+      def test_add_index_with_included_column_and_where_clause
+        skip("current adapter doesn't support include indexes") unless supports_index_include?
 
-          connection.remove_index("testings", "last_name")
-          assert_not connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
-        end
+        connection.add_index("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+        assert connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
 
-        def test_add_index_with_nulls_not_distinct_assert_exists_with_same_values
-          skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+        connection.remove_index("testings", "last_name")
+        assert_not connection.index_exists?("testings", "last_name", include: :foo, where: "first_name = 'john doe'")
+      end
 
-          connection.add_index("testings", "last_name", nulls_not_distinct: true)
-          assert connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
-        end
+      def test_add_index_with_nulls_not_distinct_assert_exists_with_same_values
+        skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
 
-        def test_add_index_with_nulls_not_distinct_assert_exists_with_different_values
-          skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+        connection.add_index("testings", "last_name", nulls_not_distinct: true)
+        assert connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
+      end
 
-          connection.add_index("testings", "last_name", nulls_not_distinct: false)
-          assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
-        end
+      def test_add_index_with_nulls_not_distinct_assert_exists_with_different_values
+        skip("current adapter doesn't support nulls not distinct") unless supports_nulls_not_distinct?
+
+        connection.add_index("testings", "last_name", nulls_not_distinct: false)
+        assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
       end
 
       private
