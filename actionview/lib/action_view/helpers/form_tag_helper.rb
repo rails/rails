@@ -26,6 +26,24 @@ module ActionView
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = nil
 
+      redefine_method :embed_authenticity_token_in_remote_forms= do |value|
+        ActionView.deprecator.warn(<<~MSG.squish)
+          `ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms=` is deprecated and will be removed in Rails 8.2.
+          Please use `actionview-remote-form-helpers` gem instead.
+        MSG
+        @@embed_authenticity_token_in_remote_forms = value
+      end
+
+      class << self
+        redefine_method :embed_authenticity_token_in_remote_forms= do |value|
+          ActionView.deprecator.warn(<<~MSG.squish)
+            `ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms=` is deprecated and will be removed in Rails 8.2.
+            Please use `actionview-remote-form-helpers` gem instead.
+          MSG
+          @@embed_authenticity_token_in_remote_forms = value
+        end
+      end
+
       mattr_accessor :default_enforce_utf8, default: true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
@@ -995,7 +1013,16 @@ module ActionView
             end
             html_options["accept-charset"] = "UTF-8"
 
-            html_options["data-remote"] = true if html_options.delete("remote")
+            if html_options.delete("remote")
+              ActionView.deprecator.warn(<<-MSG.squish)
+                Passing :local as an option is deprecated and will be removed in Rails 8.2.
+                To control the [data-remote] attribute, pass that option directly.
+                To control the generation of CSRF tokens, pass an :authenticity_token option directly.
+                Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+              MSG
+
+              html_options["data-remote"] = true
+            end
 
             if html_options["data-remote"] &&
                embed_authenticity_token_in_remote_forms == false &&
