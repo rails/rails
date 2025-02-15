@@ -78,4 +78,38 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with
     assert_response :forbidden
   end
+
+  test "cross-controller rate limit" do
+    shared_store = ActiveSupport::Cache::MemoryStore.new
+
+    @globally_limited_controller = Class.new(RateLimitedController) do
+      self.cache_store = shared_store
+
+      rate_limit to: 2, within: 2.seconds, scope: :global, name: "cross-controller", only: :limited_global
+      def limited_global
+        head :ok
+      end
+    end.new
+
+    @another_globally_limited_controller = Class.new(RateLimitedController) do
+      self.cache_store = shared_store
+
+      rate_limit to: 2, within: 2.seconds, scope: :global, name: "cross-controller", only: :another_limited_global
+      def another_limited_global
+        head :ok
+      end
+    end.new
+
+    @controller = @globally_limited_controller
+    get :limited_global
+    assert_response :ok
+
+    @controller = @another_globally_limited_controller
+    get :another_limited_global
+    assert_response :ok
+
+    @controller = @globally_limited_controller
+    get :limited_global
+    assert_response :too_many_requests
+  end
 end
