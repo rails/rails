@@ -762,7 +762,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_quiet_option
-    output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
+    output = run_generator [File.join(destination_root, "myapp"), "--quiet", "--no-skip-bundle"]
     assert_empty output
   end
 
