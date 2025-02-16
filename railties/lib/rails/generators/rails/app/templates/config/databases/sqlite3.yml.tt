@@ -41,6 +41,16 @@ production:
     <<: *default
     # database: path/to/persistent/storage/production_cache.sqlite3
     migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    # database: path/to/persistent/storage/production_queue.sqlite3
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *default
+    # database: path/to/persistent/storage/production_cable.sqlite3
+    migrations_paths: db/cable_migrate
+  <%- end -%>
 <%- end -%>
 <%- else -%>
 # Store production database in the storage/ directory, which by default

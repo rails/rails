@@ -692,6 +692,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file ".kamal/secrets"
   end
 
+  def test_database_yml_skip_kamal
+    run_generator [destination_root, "--skip-kamal"]
+
+    assert_file("config/database.yml") do |content|
+      assert_match("db/queue_migrate", content)
+      assert_match("db/cache_migrate", content)
+      assert_match("db/cable_migrate", content)
+    end
+  end
+
   def test_inclusion_of_kamal_storage_volume
     generator [destination_root]
     run_generator_instance
