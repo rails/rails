@@ -331,7 +331,7 @@ class BaseTest < ActiveSupport::TestCase
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
 
         unless attachments.map(&:filename) == ["invoice.pdf"]
-          raise Minitest::Assertion, "Should allow access to attachments"
+          flunk("Should allow access to attachments")
         end
       end
     end
