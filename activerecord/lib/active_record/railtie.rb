@@ -319,9 +319,28 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.set_signed_id_verifier_secret" do
-      ActiveSupport.on_load(:active_record) do
-        self.signed_id_verifier_secret ||= -> { Rails.application.key_generator.generate_key("active_record/signed_id") }
+    initializer "active_record.set_signed_id_verifier" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          secret = self.signed_id_verifier_secret
+          secret_generator = if secret
+            ActiveRecord.deprecator.warn(<<~MSG)
+              ActiveRecord::Base.signed_id_verifier_secret is deprecated and will be removed in Rails ?.?. The secret will be derived from 'secret_key_base' instead.
+            MSG
+            secret.respond_to?(:call) ? secret : -> (_) { secret }
+          end
+          legacy_options = { secret_generator: secret_generator, digest: "SHA256", serializer: JSON, url_safe: true }.compact
+
+          if self.use_legacy_signed_id_verifier == :generate_and_verify
+            app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+          elsif self.use_legacy_signed_id_verifier == :verify
+            app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+          else
+            raise ArgumentError, "Unknown value for ActiveRecord::Base.use_legacy_signed_id_verifier: #{self.use_legacy_signed_id_verifier}"
+          end
+
+          self.signed_id_verifier ||= app.message_verifier("active_record/signed_id")
+        end
       end
     end
 

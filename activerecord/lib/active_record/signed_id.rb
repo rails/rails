@@ -8,9 +8,20 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
+      # DEPRECATION WARNING: This is deprecated and will be removed in Rails ?.?. The secret will be derived from 'secret_key_base' instead.
+      #
       # Set the secret used for the signed id verifier instance when using Active Record outside of \Rails.
       # Within \Rails, this is automatically set using the \Rails application key generator.
       class_attribute :signed_id_verifier_secret, instance_writer: false
+
+      # :nodoc:
+      class_attribute :signed_id_verifier, instance_writer: false
+
+      # This option allows for a smooth transition during the deprecation of the legacy <tt>signed_id_verifier</tt>. It supports the following modes:
+      # <tt>:generate_and_verify</tt> – Generates signed IDs using the legacy format while verifying both the new and legacy formats.
+      # <tt>:verify</tt> (default) – Generates signed IDs using the new format while verifying both the new and legacy formats.
+      # Note: The new format is not URL-safe unless <tt>Rails.application.message_verifiers</tt> is configured with <tt>url_safe: true</tt>.
+      mattr_accessor :use_legacy_signed_id_verifier, default: :verify
     end
 
     module RelationMethods # :nodoc:
@@ -74,23 +85,6 @@ module ActiveRecord
         options = { on_rotation: on_rotation }.compact
         if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find(id)
-        end
-      end
-
-      # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
-      # with the class-level +signed_id_verifier_secret+, which within Rails comes from
-      # {Rails.application.key_generator}[rdoc-ref:Rails::Application#key_generator].
-      # By default, it's SHA256 for the digest and JSON for the serialization.
-      def signed_id_verifier
-        @signed_id_verifier ||= begin
-          secret = signed_id_verifier_secret
-          secret = secret.call if secret.respond_to?(:call)
-
-          if secret.nil?
-            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
-          else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
-          end
         end
       end
 
