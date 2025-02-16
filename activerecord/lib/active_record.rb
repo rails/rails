@@ -506,6 +506,13 @@ module ActiveRecord
     }
   )
 
+  ##
+  # :singleton-method: message_verifiers
+  #
+  # ActiveSupport::MessageVerifiers instance for Active Record. If you are using
+  # Rails, this will be set to +Rails.application.message_verifiers+.
+  singleton_class.attr_accessor :message_verifiers
+
   def self.eager_load!
     super
     ActiveRecord::Locking.eager_load!
