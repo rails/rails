@@ -231,5 +231,27 @@ module Arel
         }
       end
     end
+
+    describe "with" do
+      it "should support basic WITH" do
+        users          = Table.new(:users)
+        employees      = Table.new(:employees)
+        admins         = Table.new(:admins)
+
+        admins_manager = employees.project(:name).where(employees[:admin].eq(true))
+
+        manager = Arel::InsertManager.new
+        manager.into users
+        manager.columns << users[:name]
+        manager.select admins.project(admins[:name])
+        manager.with Arel::Nodes::TableAlias.new(admins_manager, Arel.sql(admins.name.to_s))
+
+        puts manager.to_sql
+
+        _(manager.to_sql).must_be_like %{
+          WITH admins AS (SELECT name FROM "employees" WHERE "employees"."admin" = 't') INSERT INTO "users" ("name") (SELECT "admins"."name" FROM "admins")
+        }
+      end
+    end
   end
 end
