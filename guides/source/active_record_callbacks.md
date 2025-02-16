@@ -1337,6 +1337,35 @@ NOTE: This applies to all `after_*_commit` variations too, such as
 [`after_update_commit`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
 
+### Per transaction callback
+
+You can register transaction callbacks outside of a record, `ActiveRecord::Base.transaction` yields an `ActiveRecord::Transaction` object, which allows registering callbacks on it.
+
+```ruby
+Article.transaction do |transaction|
+  article.update(published: true)
+
+  transaction.after_commit do
+    PublishNotificationMailer.with(article: article).deliver_later
+  end
+end
+```
+
+### `ActiveRecord.after_all_transactions_commit`
+
+[`ActiveRecord.after_all_transactions_commit`][] is a callback that allows you to run code after all the current transactions have been successfully committed to the database.
+
+```ruby
+def publish_article(article)
+  article.update(published: true)
+  ActiveRecord.after_all_transactions_commit do
+    PublishNotificationMailer.with(article: article).deliver_later
+  end
+end
+```
+
+[`ActiveRecord.after_all_transactions_commit`]: https://rubydoc.info/gems/activerecord/ActiveRecord.after_all_transactions_commit
+
 Callback Objects
 ----------------
 
