@@ -9,7 +9,8 @@ class ActiveStorage::MirrorJob < ActiveStorage::BaseJob
   discard_on ActiveStorage::FileNotFoundError
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
-  def perform(key, checksum:)
-    ActiveStorage::Blob.service.try(:mirror, key, checksum: checksum)
+  def perform(key, checksum: nil)
+    blob = ActiveStorage::Blob.find_by(key: key)
+    blob.service.try(:mirror, blob.key, checksum: blob.checksum)
   end
 end
