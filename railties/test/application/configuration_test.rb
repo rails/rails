@@ -2929,6 +2929,12 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "Rails.application.config.active_record.use_legacy_signed_id_verifier is :generate_and_verify by default for new apps" do
+      app "development"
+
+      assert_equal :generate_and_verify, Rails.application.config.active_record.use_legacy_signed_id_verifier
+    end
+
     test "PostgresqlAdapter.decode_dates is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
