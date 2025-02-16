@@ -1,7 +1,13 @@
 # frozen_string_literal: true
 
-class ActiveStorage::Record < ActiveRecord::Base # :nodoc:
-  self.abstract_class = true
-end
+module ActiveStorage
+  record_superclass = Rails.application.config.active_storage.record_superclass&.constantize || ActiveRecord::Base
 
-ActiveSupport.run_load_hooks :active_storage_record, ActiveStorage::Record
+  klass = Class.new(record_superclass) do
+    self.abstract_class = true
+  end
+
+  ActiveStorage.const_set "Record", klass
+
+  ActiveSupport.run_load_hooks :active_storage_record, ActiveStorage::Record
+end

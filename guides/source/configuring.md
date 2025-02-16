@@ -3204,6 +3204,22 @@ The default value depends on the `config.load_defaults` target version:
 Determines whether the Active Storage assets should be added to the asset pipeline precompilation. It
 has no effect if Sprockets is not used. The default value is `true`.
 
+#### `config.active_storage.record_superclass`
+
+Configure the superclass for `ActiveStorage::Record`. It needs to be a string. The default value is `"ActiveRecord::Base"`.
+
+```ruby
+# record_superclass must be a string
+config.active_storage.record_superclass = "MyModel"
+```
+
+```ruby
+class MyModel < ::ApplicationRecord
+  self.abstract_class = true
+  #....
+end
+```
+
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`
