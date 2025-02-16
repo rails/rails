@@ -10,6 +10,33 @@ require "minitest/mock"
 module Rails
   module Configuration
     class MiddlewareStackProxyTest < ActiveSupport::TestCase
+      class FooMiddleware; end
+      class BarMiddleware; end
+      class BazMiddleware; end
+      class HiyaMiddleware; end
+
+      class TestMiddlewareStack
+        attr_accessor :middlewares
+
+        def initialize
+          @middlewares = []
+        end
+
+        def nested_stack
+          self.class.new
+        end
+
+        def use(middleware)
+          @middlewares << middleware
+        end
+
+        def insert_before(other_middleware, middleware)
+          i = middlewares.index(other_middleware)
+          raise "No such middleware to insert_before: #{other_middleware}" unless i
+          middlewares.insert(i, middleware)
+        end
+      end
+
       def setup
         @stack = MiddlewareStackProxy.new
       end
@@ -64,6 +91,31 @@ module Rails
         @stack.delete :foo
 
         assert_playback([:swap, :delete], :foo)
+      end
+
+      def test_create_nested_stack_proxy
+        root_proxy = MiddlewareStackProxy.new
+        nested_proxy = root_proxy.create_stack
+
+        assert_not_equal root_proxy, nested_proxy
+        assert nested_proxy.is_a?(MiddlewareStackProxy)
+      end
+
+      def test_nested_stack_proxies
+        root_proxy = MiddlewareStackProxy.new
+        root_proxy.use FooMiddleware
+        root_proxy.use BarMiddleware
+        outer_nested_proxy = root_proxy.create_stack
+        inner_nested_proxy = root_proxy.create_stack
+        outer_nested_proxy.use BazMiddleware
+        outer_nested_proxy.use inner_nested_proxy
+        inner_nested_proxy.use HiyaMiddleware
+        root_proxy.insert_before BarMiddleware, outer_nested_proxy
+
+        root_merged = root_proxy.merge_into(TestMiddlewareStack.new)
+        assert_equal [FooMiddleware, outer_nested_proxy, BarMiddleware], root_merged.middlewares
+        outer_merged = outer_nested_proxy.merge_into(TestMiddlewareStack.new)
+        assert_equal [BazMiddleware, inner_nested_proxy], outer_merged.middlewares
       end
 
       private

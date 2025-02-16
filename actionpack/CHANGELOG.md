@@ -1,3 +1,7 @@
+*   Add support for nested middleware stacks
+
+    *Nick Hengeveld*
+
 *   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
     When calling `Rails.application.reload_routes!` inside a middleware of
