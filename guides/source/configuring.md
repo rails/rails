@@ -1684,6 +1684,14 @@ required:
 config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysql ] }
 ```
 
+#### `config.active_record.use_legacy_signed_id_verifier`
+
+This option allows for a smooth transition during the deprecation of the legacy `signed_id_verifier`. It supports the following modes:
+- `:generate_and_verify` (default) – Generates signed IDs using the legacy format while verifying both the new and legacy formats.
+- `:verify` – Generates signed IDs using the new format while verifying both the new and legacy formats.
+
+Note: The new format is not URL-safe unless `Rails.application.message_verifiers` is configured with `url_safe: true`.
+
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
 Controls whether the Active Record MySQL adapter will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
