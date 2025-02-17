@@ -9,6 +9,11 @@
       name: Install Ruby on Rails
       url: install_ruby_on_rails.html
       description: Learn how to install the Ruby programming language and Ruby on Rails.
+
+    -
+      name: Getting Started with Dev Containers
+      url: getting_started_with_devcontainer.html
+      description: Learn how to set up and use development containers for a Rails application.
 -
   name: Models
   documents:
