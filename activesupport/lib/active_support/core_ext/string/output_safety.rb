@@ -139,7 +139,7 @@ module ActiveSupport # :nodoc:
       self
     end
 
-    def as_json
+    def as_json(*)
       to_str
     end
 
