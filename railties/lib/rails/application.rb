@@ -465,9 +465,10 @@ module Rails
     # +credentials.secret_key_base+. For most applications, the correct place
     # to store it is in the encrypted credentials file.
     #
-    # In development and test, if the secret_key_base is still empty, it is
-    # randomly generated and stored in a temporary file in
-    # <tt>tmp/local_secret.txt</tt>.
+    # In development and test, if the secret_key_base doesn't come from an explicit
+    # environment credentials file (e.g. config/credentials/development.yml.enc) as opposed
+    # to config/credentials.yml.enc (that is generally considered for production use), it is
+    # randomly generated and stored in a temporary file in <tt>tmp/local_secret.txt</tt>.
     #
     # Generating a random secret_key_base and storing it in
     # <tt>tmp/local_secret.txt</tt> can also be triggered by setting
