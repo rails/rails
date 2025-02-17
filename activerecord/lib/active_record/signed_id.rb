@@ -52,7 +52,8 @@ module ActiveRecord
       def find_signed(signed_id, purpose: nil, on_rotation: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), on_rotation: on_rotation)
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find_by primary_key => id
         end
       end
@@ -70,7 +71,8 @@ module ActiveRecord
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
       def find_signed!(signed_id, purpose: nil, on_rotation: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), on_rotation: on_rotation)
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find(id)
         end
       end

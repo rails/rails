@@ -54,7 +54,11 @@ module Arel # :nodoc: all
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o)
+          if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) &&
+            # The PostgreSQL dialect isn't flexible enough to allow anything other than a inner join
+            # for the first join:
+            #   UPDATE table SET .. FROM joined_table WHERE ...
+            (o.relation.right.first.is_a?(Arel::Nodes::InnerJoin))
             o
           else
             super

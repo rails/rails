@@ -44,7 +44,7 @@ module ActiveSupport
                   ActiveSupport.error_reporter.subscribe(self)
                   @subscribed = true
                 else
-                  raise Minitest::Assertion, "No error reporter is configured"
+                  flunk("No error reporter is configured")
                 end
               end
             end

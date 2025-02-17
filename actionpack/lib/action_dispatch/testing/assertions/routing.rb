@@ -336,7 +336,7 @@ module ActionDispatch
         def fail_on(exception_class, message)
           yield
         rescue exception_class => e
-          raise Minitest::Assertion, message || e.message
+          flunk(message || e.message)
         end
     end
   end
