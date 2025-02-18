@@ -64,7 +64,7 @@ module Arel # :nodoc: all
             # The PostgreSQL dialect isn't flexible enough to allow anything other than a inner join
             # for the first join:
             #   UPDATE table SET .. FROM joined_table WHERE ...
-            (o.relation.right.first.is_a?(Arel::Nodes::InnerJoin))
+            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.relation != o.relation.left })
             o
           else
             super

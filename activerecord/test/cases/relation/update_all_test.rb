@@ -13,8 +13,11 @@ require "models/owner"
 require "models/post"
 require "models/person"
 require "models/pet"
+require "models/pet_treasure"
+require "models/ship"
 require "models/toy"
 require "models/topic"
+require "models/treasure"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
@@ -22,7 +25,7 @@ require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :comments, :companies, :developers, :owners, :posts, :people, :pets, :toys, :tags,
-    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
+    :taggings, :treasures, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -103,6 +106,16 @@ class UpdateAllTest < ActiveRecord::TestCase
     toys.each do |toy|
       assert_equal toy.pet.name, toy.name
     end
+  end
+
+  def test_dynamic_update_all_with_a_through_join
+    pet = pets(:parrot)
+    treasure = treasures(:diamond)
+
+    PetTreasure.create(pet: pet, treasure: treasure)
+
+    assert_operator pet.treasures.left_joins(:ship).update_all(name: "Gold"), :>, 0
+    assert_equal("Gold", treasure.reload.name)
   end
 
   def test_dynamic_update_all_with_one_join_on_the_target_and_one_indirect_join
