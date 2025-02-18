@@ -29,7 +29,12 @@ module Arel # :nodoc: all
             collect_nodes_for o.values, collector, " SET "
             collector << " FROM "
             first_join, *remaining_joins = o.relation.right
-            visit first_join.left, collector
+            from_items = remaining_joins.extract! do |join|
+              join.right.expr.right.relation == o.relation.left
+            end
+
+            from_where = [first_join.left] + from_items.map(&:left)
+            collect_nodes_for from_where, collector, " ", ", "
 
             if remaining_joins && !remaining_joins.empty?
               collector << " "
@@ -39,7 +44,8 @@ module Arel # :nodoc: all
               end
             end
 
-            collect_nodes_for [first_join.right.expr] + o.wheres, collector, " WHERE ", " AND "
+            from_where = [first_join.right.expr] + from_items.map { |i| i.right.expr }
+            collect_nodes_for from_where + o.wheres, collector, " WHERE ", " AND "
           else
             collector = visit o.relation, collector
             collect_nodes_for o.values, collector, " SET "
