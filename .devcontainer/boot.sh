@@ -1,6 +1,6 @@
 bundle install
 
-if [[ ! -z "${NVM_DIR}" ]]; then
+if [ -n "${NVM_DIR}" ]; then
   . ${NVM_DIR}/nvm.sh && nvm install --lts
   yarn install
 fi
