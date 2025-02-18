@@ -24,6 +24,12 @@ module ActionView
       #
       # Custom sanitization rules can also be provided.
       #
+      # <b>Warning</b>: Adding disallowed tags or attributes to the allowlists may introduce
+      # vulnerabilities into your application. Please rely on the default allowlists whenever
+      # possible, because they are curated to maintain security and safety. If you think that the
+      # default allowlists should be expanded, please {open an issue on the rails-html-sanitizer
+      # project}[https://github.com/rails/rails-html-sanitizer/issues].
+      #
       # Please note that sanitizing user-provided text does not guarantee that the
       # resulting markup is valid or even well-formed.
       #
