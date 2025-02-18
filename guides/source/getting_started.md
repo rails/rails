@@ -2856,6 +2856,7 @@ $ bin/kamal setup
 Congratulations! Your new Rails application is live and in production!
 
 To view your new Rails app in action, add a record to your hosts file
+
 ```bash
 app.example.com     "your server's ip address"
 ```
