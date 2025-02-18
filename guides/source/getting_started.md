@@ -2860,6 +2860,7 @@ To view your new Rails app in action, add a record to your hosts file
 ```bash
 app.example.com     "your server's ip address"
 ```
+
 open your browser and enter app.example.com.
 
 You should see your store up and running.
