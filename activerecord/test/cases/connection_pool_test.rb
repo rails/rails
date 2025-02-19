@@ -644,7 +644,7 @@ module ActiveRecord
       end
 
       def test_idle_through_keepalive
-        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false)
+        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: 30)
         conn = pool.checkout
         conn.connect!
         pool.checkin conn
