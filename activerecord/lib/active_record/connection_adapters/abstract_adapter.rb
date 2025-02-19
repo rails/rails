@@ -173,6 +173,8 @@ module ActiveRecord
         @raw_connection_dirty = false
         @last_activity = nil
         @verified = false
+
+        @pool_jitter = rand * max_jitter
       end
 
       def inspect # :nodoc:
@@ -198,6 +200,11 @@ module ActiveRecord
         if preventing_writes? && write_query?(sql)
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
+      end
+
+      MAX_JITTER = 0.0..1.0 # :nodoc:
+      def max_jitter
+        (@config[:pool_jitter] || 0.2).to_f.clamp(MAX_JITTER)
       end
 
       def replica?
@@ -301,6 +308,10 @@ module ActiveRecord
 
       def schema_cache
         @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
+      end
+
+      def pool_jitter(duration)
+        duration * (1.0 - @pool_jitter)
       end
 
       # this method must only be called while holding connection pool's mutex
