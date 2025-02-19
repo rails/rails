@@ -201,7 +201,7 @@ module ActiveRecord
         def default_reaping_frequency
           # Reap every 60 seconds by default, but run more often as necessary to
           # meet other configured timeouts.
-          [60, idle_timeout, keepalive, max_age].compact.min
+          [20, idle_timeout, keepalive, max_age].compact.min
         end
     end
   end
