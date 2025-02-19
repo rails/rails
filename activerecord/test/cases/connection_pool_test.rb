@@ -455,7 +455,7 @@ module ActiveRecord
       end
 
       def test_max_age
-        pool = new_pool_with_options(max_age: 10, async: false)
+        pool = new_pool_with_options(max_age: 10, pool_jitter: 0, async: false)
 
         conn = pool.checkout
 
@@ -476,6 +476,52 @@ module ActiveRecord
         pool.retire_old_connections
 
         assert_not_predicate conn, :connected?
+      end
+
+      def test_max_age_with_jitter
+        pool = new_pool_with_options(max_age: 20, pool_jitter: 0, async: false)
+
+        conn = pool.checkout
+        conn.instance_variable_set(:@pool_jitter, 0.5)
+
+        assert_not_predicate conn, :connected?
+        assert_nil conn.connection_age
+
+        conn.connect!
+
+        assert_predicate conn, :connected?
+        assert_operator conn.connection_age, :>=, 0
+        assert_operator conn.connection_age, :<, 1
+
+        conn.instance_variable_set(:@connected_since, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 11)
+
+        assert_operator conn.connection_age, :>, 10
+
+        pool.checkin conn
+        pool.retire_old_connections
+
+        assert_not_predicate conn, :connected?
+      end
+
+      def test_jitter_calculated_on_new_connections
+        pool = new_pool_with_options(max_age: 10, pool_jitter: 0.5, async: false)
+
+        conns = 4.times.map { pool.checkout }
+
+        observed_jitters = conns.map { |conn| conn.instance_variable_get(:@pool_jitter) }
+
+        assert_operator observed_jitters.min, :>=, 0.0
+        assert_operator observed_jitters.max, :>, 0.0 # statistically impossible to get all zeros
+        assert_operator observed_jitters.max, :<=, 0.5
+      end
+
+      def test_jitter_evaluation
+        pool = new_pool_with_options(max_age: 10, pool_jitter: 0.5, async: false)
+        conn = pool.checkout
+
+        conn.instance_variable_set(:@pool_jitter, 0.25)
+
+        assert_equal 75, conn.pool_jitter(100)
       end
 
       def test_explicit_retirement
@@ -503,7 +549,7 @@ module ActiveRecord
       end
 
       def test_keepalive
-        pool = new_pool_with_options(keepalive: 100, async: false)
+        pool = new_pool_with_options(keepalive: 100, pool_jitter: 0, async: false)
         conn = pool.checkout
         conn.connect!
         pool.checkin conn
@@ -520,7 +566,34 @@ module ActiveRecord
         # still about the same age
         assert_in_epsilon 50, conn.seconds_since_last_activity, 10
 
-        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 200)
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 150)
+
+        pool.keep_alive
+
+        # keep-alive query occurred, so our activity time has reset
+        assert_operator conn.seconds_since_last_activity, :<, 5
+      end
+
+      def test_keepalive_with_jitter
+        pool = new_pool_with_options(keepalive: 200, pool_jitter: 0, async: false)
+        conn = pool.checkout
+        conn.instance_variable_set(:@pool_jitter, 0.5)
+        conn.connect!
+        pool.checkin conn
+
+        assert_operator conn.seconds_since_last_activity, :<, 5
+
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 50)
+
+        assert_in_epsilon 50, conn.seconds_since_last_activity, 10
+
+        # we're currently below the threshold, so this is a no-op
+        pool.keep_alive
+
+        # still about the same age
+        assert_in_epsilon 50, conn.seconds_since_last_activity, 10
+
+        conn.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 150)
 
         pool.keep_alive
 
@@ -529,7 +602,7 @@ module ActiveRecord
       end
 
       def test_keepalive_notices_problems
-        pool = new_pool_with_options(keepalive: 100, async: false)
+        pool = new_pool_with_options(keepalive: 100, pool_jitter: 0, async: false)
         conn = pool.checkout
         conn.connect!
         pool.checkin conn
@@ -571,7 +644,7 @@ module ActiveRecord
       end
 
       def test_idle_through_keepalive
-        pool = new_pool_with_options(keepalive: 0.1, idle_timeout: 0.5, async: false)
+        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false)
         conn = pool.checkout
         conn.connect!
         pool.checkin conn
