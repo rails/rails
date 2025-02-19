@@ -112,10 +112,8 @@ module ActiveRecord
         (configuration_hash[:checkout_timeout] || 5).to_f
       end
 
-      # `reaping_frequency` is configurable mostly for historical reasons, but it
-      # could also be useful if someone wants a very low `idle_timeout`.
-      def reaping_frequency
-        configuration_hash.fetch(:reaping_frequency, 60)&.to_f
+      def reaping_frequency # :nodoc:
+        configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)&.to_f
       end
 
       def idle_timeout
@@ -198,6 +196,12 @@ module ActiveRecord
           when :sql
             "structure.sql"
           end
+        end
+
+        def default_reaping_frequency
+          # Reap every 20 seconds by default, but run more often as necessary to
+          # meet other configured timeouts.
+          [20, idle_timeout, max_age, keepalive].compact.min
         end
     end
   end
