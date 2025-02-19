@@ -366,7 +366,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
   test "report includes metadata from metadata provider" do
     metadata_provider = -> (_) { { foo: :bar } }
-    @reporter.with(metadata_provider: metadata_provider) do
+    @reporter.with(metadata_providers: [metadata_provider]) do
       error = ArgumentError.new("Oops")
 
       @reporter.report(error)
@@ -377,12 +377,39 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
   test "metadata provider does not overwrite explicitly passed metadata" do
     metadata_provider = -> (_) { { foo: :bar } }
-    @reporter.with(metadata_provider: metadata_provider) do
+    @reporter.with(metadata_providers: [metadata_provider]) do
       error = ArgumentError.new("Oops")
 
       @reporter.report(error, context: { metadata: :baz })
 
       assert_equal [[error, true, :warning, "application", { metadata: :baz }]], @subscriber.events
+    end
+  end
+
+  class MetadataProvider
+    def call(_)
+      { bar: :baz }
+    end
+  end
+
+  test "can have multiple metadata providers" do
+    reporter = ActiveSupport::ErrorReporter.new
+    reporter.subscribe(@subscriber)
+    reporter.add_metadata_provider(-> (_) { { foo: :bar } })
+    reporter.add_metadata_provider(MetadataProvider.new)
+
+    error = ArgumentError.new("Oops")
+    reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { metadata: { foo: :bar, bar: :baz } }]], @subscriber.events
+  end
+
+  test "last provider to write a key wins" do
+    @reporter.with(metadata_providers: [-> (_) { { foo: :bar } }, -> (_) { { foo: :baz } }]) do
+      error = ArgumentError.new("Oops")
+      @reporter.report(error)
+
+      assert_equal [[error, true, :warning, "application", { metadata: { foo: :baz } }]], @subscriber.events
     end
   end
 end

@@ -28,14 +28,15 @@ module ActiveSupport
     DEFAULT_SOURCE = "application"
     DEFAULT_RESCUE = [StandardError].freeze
 
-    attr_accessor :logger, :debug_mode, :metadata_provider
+    attr_accessor :logger, :debug_mode, :metadata_providers
 
     UnexpectedError = Class.new(Exception)
 
-    def initialize(*subscribers, logger: nil, metadata_provider: nil)
+    def initialize(*subscribers, logger: nil, metadata_providers: [])
       @subscribers = subscribers.flatten
       @logger = logger
       @debug_mode = false
+      @metadata_providers = metadata_providers
     end
 
     # Evaluates the given block, reporting and swallowing any unhandled error.
@@ -192,6 +193,22 @@ module ActiveSupport
       end
     end
 
+    # Add a shared error metadata provider. Data calculated by these providers will be
+    # passed to every error subscriber.
+    #
+    # A metadata provider must respond to #call and return a Hash.
+    #
+    # The data these providers create should not be mutated by subscribers. #report will shallow copy
+    # the output of the providers for each subscriber to discourage this.
+    # Providers can overwrite data written by other providers - last write wins.
+    def add_metadata_provider(provider)
+      unless provider.respond_to?(:call)
+        raise ArgumentError, "Error metadata providers must respond to #call"
+      end
+
+      @metadata_providers << provider
+    end
+
     # Update the execution context that is accessible to error subscribers. Any
     # context passed to #handle, #record, or #report will be merged with the
     # context set here.
@@ -224,12 +241,14 @@ module ActiveSupport
       end
 
       full_context = ActiveSupport::ExecutionContext.to_h.merge(context || {})
-      if metadata_provider
-        full_context[:metadata] ||= metadata_provider.call(error)
+      context_has_metadata = full_context.key?(:metadata)
+      metadata = unless @metadata_providers.empty?
+        @metadata_providers.map { |p| p.call(error) }.inject(&:merge!)
       end
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
+          full_context[:metadata] = metadata.dup unless context_has_metadata || metadata.nil?
           subscriber.report(error, handled: handled, severity: severity, context: full_context, source: source)
         end
       rescue => subscriber_error
