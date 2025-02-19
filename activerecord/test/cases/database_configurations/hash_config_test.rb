@@ -145,7 +145,7 @@ module ActiveRecord
 
       def test_reaping_frequency_is_reduced_for_low_idle_timeout
         config = HashConfig.new("default_env", "primary", idle_timeout: "5", adapter: "abstract")
-        assert_equal 60.0, config.reaping_frequency
+        assert_equal 5.0, config.reaping_frequency
       end
 
       def test_idle_timeout_default_when_nil
