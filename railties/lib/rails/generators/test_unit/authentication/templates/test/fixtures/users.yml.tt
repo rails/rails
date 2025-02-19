@@ -1,4 +1,4 @@
-<%% password_digest = BCrypt::Password.create("password") %>
+<%% password_digest = BCrypt::Password.create("password", cost: BCrypt::Engine::MIN_COST) %>
 
 one:
   email_address: one@example.com

@@ -564,7 +564,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/fixtures/users.yml" do |content|
-      assert_match(/password_digest: <%= BCrypt::Password.create\("secret"\) %>/, content)
+      assert_match(/password_digest: <%= BCrypt::Password.create\("secret", cost: BCrypt::Engine::MIN_COST\) %>/, content)
     end
   end
 
