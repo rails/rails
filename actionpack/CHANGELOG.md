@@ -1,3 +1,7 @@
+*   Make filters work on Engine routes when using `rails routes`.
+
+    *Dennis Paagman*
+
 *   Add headers to engine routes inspection command
 
     *Petrik de Heus*

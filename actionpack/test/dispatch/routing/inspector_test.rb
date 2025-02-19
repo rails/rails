@@ -46,6 +46,49 @@ module ActionDispatch
         ], output
       end
 
+      def test_displaying_routes_for_engines_with_filter
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(grep: "cart") do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal [
+          "Routes for Blog::Engine:",
+          "Prefix Verb URI Pattern     Controller#Action",
+          "  cart GET  /cart(.:format) cart#show"
+        ], output
+      end
+
+      def test_displaying_routes_for_engines_with_filter_not_matched
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(grep: "dummy") do
+          get "/custom/assets", to: "custom_assets#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal [
+          "No routes were found for this grep pattern.",
+          "For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
       def test_displaying_routes_for_engines_without_routes
         engine = Class.new(Rails::Engine) do
           def self.inspect

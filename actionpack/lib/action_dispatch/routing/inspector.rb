@@ -72,26 +72,29 @@ module ActionDispatch
     # not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
-        @engines = {}
-        @routes = routes
+        @routes = wrap_routes(routes)
       end
 
       def format(formatter, filter = {})
-        routes_to_display = filter_routes(normalize_filter(filter))
-        routes = collect_routes(routes_to_display)
-        if routes.none?
-          formatter.no_routes(collect_routes(@routes), filter)
+        normalized_filter = normalize_filter(filter)
+        filtered_routes = filter_routes(@routes, normalized_filter)
+
+        if filtered_routes.values.all?(&:empty?)
+          formatter.no_routes(@routes, filter)
+
           return formatter.result
         end
 
-        formatter.header routes
-        formatter.section routes
+        filtered_routes.each do |name, routes|
+          next if normalized_filter && routes.none?
 
-        @engines.each do |name, engine_routes|
-          formatter.section_title "Routes for #{name}"
-          if engine_routes.any?
-            formatter.header engine_routes
-            formatter.section engine_routes
+          if name
+            formatter.section_title "Routes for #{name}"
+          end
+
+          if formatted_routes = format_routes(routes)
+            formatter.header formatted_routes
+            formatter.section formatted_routes
           end
         end
 
@@ -118,23 +121,22 @@ module ActionDispatch
           end
         end
 
-        def filter_routes(filter)
+        def filter_routes(routes, filter)
           if filter
-            @routes.select do |route|
-              route_wrapper = RouteWrapper.new(route)
-              filter.any? { |filter_type, value| route_wrapper.matches_filter?(filter_type, value) }
+            routes.transform_values do |route_set|
+              route_set.select do |route|
+                filter.any? { |type, value| route.matches_filter?(type, value) }
+              end
             end
           else
-            @routes
+            routes
           end
         end
 
-        def collect_routes(routes)
-          routes.collect do |route|
-            RouteWrapper.new(route)
-          end.reject(&:internal?).collect do |route|
-            collect_engine_routes(route)
+        def format_routes(routes)
+          return unless routes.any?
 
+          routes.collect do |route|
             { name: route.name,
               verb: route.verb,
               path: route.path,
@@ -143,15 +145,34 @@ module ActionDispatch
           end
         end
 
-        def collect_engine_routes(route)
+        def wrap_engine_routes(route)
           name = route.endpoint
-          return unless route.engine?
-          return if @engines[name]
-
           routes = route.rack_app.routes
+
           if routes.is_a?(ActionDispatch::Routing::RouteSet)
-            @engines[name] = collect_routes(routes.routes)
+            [name, wrap_routes(routes.routes)[nil]]
+          else
+            []
           end
+        end
+
+        def wrap_routes(routes)
+          wrapped_routes = { nil => [] }
+
+          routes
+            .map { |route| RouteWrapper.new(route) }
+            .reject(&:internal?)
+            .each do |route|
+              wrapped_routes[nil] << route
+
+              if route.engine?
+                engine, routes = wrap_engine_routes(route)
+
+                wrapped_routes[engine] = routes
+              end
+            end
+
+          wrapped_routes
         end
     end
 
@@ -176,7 +197,7 @@ module ActionDispatch
 
         def no_routes(routes, filter)
           @buffer <<
-            if routes.none?
+            if routes.values.all?(&:empty?)
               <<~MESSAGE
                 You don't have any routes defined!
 
@@ -194,7 +215,11 @@ module ActionDispatch
 
       class Sheet < Base
         def section_title(title)
-          @buffer << "\n#{title}:"
+          if @buffer.empty?
+            @buffer << "#{title}:"
+          else
+            @buffer << "\n#{title}:"
+          end
         end
 
         def section(routes)
