@@ -165,6 +165,7 @@ module ActiveRecord
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
+      base.class_attribute(:types_enums, instance_writer: false, default: {})
     end
 
     class EnumType < Type::Value # :nodoc:
@@ -245,7 +246,7 @@ module ActiveRecord
           end
 
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          types_enums[name] = EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
         end
 
         value_method_names = []
@@ -258,7 +259,7 @@ module ActiveRecord
             suffix == true ? "_#{name}" : "_#{suffix}"
           end
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs = values.respond_to?(:each_pair) ? values.each_pair : enum_typed_pairs(name, values)
           pairs.each do |label, value|
             enum_values[label] = value
             label = label.to_s
@@ -318,6 +319,16 @@ module ActiveRecord
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+            end
+          end
+
+          def enum_typed_pairs(name, values)
+            subtype = klass.types_enums[name]&.subtype
+
+            if subtype.nil? || subtype.type.in?([:integer, nil])
+              values.each_with_index
+            else
+              values.index_with { |v| subtype.cast(v) }
             end
           end
       end
