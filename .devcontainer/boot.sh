@@ -1,11 +1,14 @@
+#!/bin/sh
+
 bundle install
 
 if [ -n "${NVM_DIR}" ]; then
-  . ${NVM_DIR}/nvm.sh && nvm install --lts
+  # shellcheck disable=SC1091
+  . "${NVM_DIR}/nvm.sh" && nvm install --lts
   yarn install
 fi
 
-cd activerecord
+cd activerecord || echo "activerecord directory doesn't exist" && exit
 
 # Create PostgreSQL databases
 bundle exec rake db:postgresql:rebuild
