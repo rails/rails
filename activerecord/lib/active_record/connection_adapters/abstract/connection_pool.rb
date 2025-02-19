@@ -117,6 +117,8 @@ module ActiveRecord
     #   exist before retiring it at next checkin. (default Float::INFINITY).
     # * +max_connections+: maximum number of connections the pool may manage (default 5).
     # * +min_connections+: minimum number of connections the pool will open and maintain (default 0).
+    # * +pool_jitter+: maximum reduction factor to apply to +max_age+ and
+    #   +keepalive+ intervals (default 0.2; range 0.0-1.0).
     #
     #--
     # Synchronization policy:
@@ -761,7 +763,7 @@ module ActiveRecord
       def retire_old_connections(max_age = @max_age)
         max_age ||= Float::INFINITY
 
-        sequential_maintenance -> c { c.connection_age&.>= max_age } do |conn|
+        sequential_maintenance -> c { c.connection_age&.>= c.pool_jitter(max_age) } do |conn|
           # Disconnect, then return the adapter to the pool. Preconnect will
           # handle the rest.
           conn.disconnect!
@@ -789,7 +791,7 @@ module ActiveRecord
       def keep_alive(threshold = @keepalive)
         return if threshold.nil?
 
-        sequential_maintenance -> c { (c.seconds_since_last_activity || 0) > threshold } do |conn|
+        sequential_maintenance -> c { (c.seconds_since_last_activity || 0) > c.pool_jitter(threshold) } do |conn|
           # conn.active? will cause some amount of network activity, which is all
           # we need to provide a keepalive signal.
           #
