@@ -261,13 +261,13 @@ module ActiveRecord
       def test_idle_timeout_configuration
         @pool.disconnect!
 
-        @pool = new_pool_with_options(idle_timeout: "0.02")
+        @pool = new_pool_with_options(idle_timeout: "200")
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 199
         )
 
         @pool.flush
@@ -275,11 +275,68 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 201
         )
 
         @pool.flush
         assert_equal 0, @pool.connections.length
+      end
+
+      def test_idle_through_keepalive
+        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: 30)
+        conn = pool.checkout
+        conn.connect!
+        pool.checkin conn
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :<, 0.1
+        assert_operator conn.seconds_idle, :<, 0.1
+
+        # This test is about the interaction between multiple "last use"
+        # timers, so manual fudging is a bit too intimate / relies on
+        # knowledge of the implementation. So instead, we have to live
+        # with a bit of sleeping (and hope we don't lose any races).
+
+        sleep 0.2
+
+        assert_operator conn.seconds_since_last_activity, :>, 0.1
+        assert_operator conn.seconds_idle, :>, 0.1
+        assert_operator conn.seconds_idle, :<, 0.5
+
+        pool.keep_alive # sends a keep-alive query
+        pool.flush # no-op
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :<, 0.1
+        assert_operator conn.seconds_idle, :>, 0.1
+        assert_operator conn.seconds_idle, :<, 0.5
+
+        sleep 0.4
+
+        assert_predicate conn, :connected?
+        assert_operator conn.seconds_since_last_activity, :>, 0.1
+        assert_operator conn.seconds_idle, :>, 0.5
+
+        pool.keep_alive # sends another query, though it doesn't matter
+        pool.flush # drops the idle connection
+
+        assert_not_predicate conn, :connected?
+      end
+
+      def test_disable_flush
+        @pool.disconnect!
+
+        @pool = new_pool_with_options(idle_timeout: -5)
+        idle_conn = @pool.checkout
+        @pool.checkin(idle_conn)
+
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1
+        )
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
       end
 
       def test_min_connections_configuration
@@ -295,14 +352,14 @@ module ActiveRecord
       def test_idle_timeout_configuration_with_min_connections
         @pool.disconnect!
 
-        @pool = new_pool_with_options(idle_timeout: "0.02", min_connections: 1)
+        @pool = new_pool_with_options(idle_timeout: "200", min_connections: 1)
         connections = 2.times.map { @pool.checkout }
         connections.each { |conn| @pool.checkin(conn) }
 
         connections.each do |conn|
           conn.instance_variable_set(
             :@idle_since,
-            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 199
           )
         end
 
@@ -312,25 +369,9 @@ module ActiveRecord
         connections.each do |conn|
           conn.instance_variable_set(
             :@idle_since,
-            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 201
           )
         end
-
-        @pool.flush
-        assert_equal 1, @pool.connections.length
-      end
-
-      def test_disable_flush
-        @pool.disconnect!
-
-        @pool = new_pool_with_options(idle_timeout: -5)
-        idle_conn = @pool.checkout
-        @pool.checkin(idle_conn)
-
-        idle_conn.instance_variable_set(
-          :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 1
-        )
 
         @pool.flush
         assert_equal 1, @pool.connections.length
@@ -641,47 +682,6 @@ module ActiveRecord
         assert_not_same original_broken_connection, conn.instance_variable_get(:@raw_connection)
         assert_predicate conn, :connected?
         assert_predicate conn, :active?
-      end
-
-      def test_idle_through_keepalive
-        pool = new_pool_with_options(keepalive: 0.1, pool_jitter: 0, idle_timeout: 0.5, async: false, reaping_frequency: 30)
-        conn = pool.checkout
-        conn.connect!
-        pool.checkin conn
-
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :<, 0.1
-
-        # This test is about the interaction between multiple "last use"
-        # timers, so manual fudging is a bit too intimate / relies on
-        # knowledge of the implementation. So instead, we have to live
-        # with a bit of sleeping (and hope we don't lose any races).
-
-        sleep 0.2
-
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
-
-        pool.keep_alive # sends a keep-alive query
-        pool.flush # no-op
-
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :<, 0.1
-        assert_operator conn.seconds_idle, :>, 0.1
-        assert_operator conn.seconds_idle, :<, 0.5
-
-        sleep 0.4
-
-        assert_predicate conn, :connected?
-        assert_operator conn.seconds_since_last_activity, :>, 0.1
-        assert_operator conn.seconds_idle, :>, 0.5
-
-        pool.keep_alive # sends another query, though it doesn't matter
-        pool.flush # drops the idle connection
-
-        assert_not_predicate conn, :connected?
       end
 
       def test_remove_connection
