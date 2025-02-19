@@ -61,5 +61,16 @@ module Arel # :nodoc: all
       super
       @ast = @ast.clone
     end
+
+    def with(*subqueries)
+      if subqueries.first.is_a? Symbol
+        node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
+      else
+        node_class = Nodes::With
+      end
+      @ast.with = node_class.new(subqueries.flatten)
+
+      self
+    end
   end
 end
