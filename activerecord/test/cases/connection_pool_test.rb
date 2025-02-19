@@ -299,6 +299,7 @@ module ActiveRecord
 
         sleep 0.2
 
+        # Active more recently than 0.1s in CI sometimes?
         assert_operator conn.seconds_since_last_activity, :>, 0.1
         assert_operator conn.seconds_idle, :>, 0.1
         assert_operator conn.seconds_idle, :<, 0.5
