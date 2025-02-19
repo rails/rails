@@ -261,13 +261,13 @@ module ActiveRecord
       def test_idle_timeout_configuration
         @pool.disconnect!
 
-        @pool = new_pool_with_options(idle_timeout: "0.02")
+        @pool = new_pool_with_options(idle_timeout: "200")
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 199
         )
 
         @pool.flush
@@ -275,7 +275,7 @@ module ActiveRecord
 
         idle_conn.instance_variable_set(
           :@idle_since,
-          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - 201
         )
 
         @pool.flush
@@ -295,14 +295,14 @@ module ActiveRecord
       def test_idle_timeout_configuration_with_min_connections
         @pool.disconnect!
 
-        @pool = new_pool_with_options(idle_timeout: "0.02", min_connections: 1)
+        @pool = new_pool_with_options(idle_timeout: "200", min_connections: 1)
         connections = 2.times.map { @pool.checkout }
         connections.each { |conn| @pool.checkin(conn) }
 
         connections.each do |conn|
           conn.instance_variable_set(
             :@idle_since,
-            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.01
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 199
           )
         end
 
@@ -312,7 +312,7 @@ module ActiveRecord
         connections.each do |conn|
           conn.instance_variable_set(
             :@idle_since,
-            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 0.03
+            Process.clock_gettime(Process::CLOCK_MONOTONIC) - 201
           )
         end
 
