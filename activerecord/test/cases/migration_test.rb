@@ -61,12 +61,14 @@ class MigrationTest < ActiveRecord::TestCase
       Thing.lease_connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
+    clear_statement_cache(Thing)
 
     %w(reminders people_reminders prefix_reminders_suffix).each do |table|
       Reminder.lease_connection.drop_table(table) rescue nil
     end
     Reminder.reset_table_name
     Reminder.reset_column_information
+    clear_statement_cache(Reminder)
 
     %w(last_name key bio age height wealth birthday favorite_day
        moment_of_truth male administrator funny).each do |column|
@@ -76,6 +78,7 @@ class MigrationTest < ActiveRecord::TestCase
     Person.lease_connection.remove_column("people", "middle_name") rescue nil
     Person.lease_connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+    clear_statement_cache(Person)
 
     ActiveRecord::Migration.verbose = @verbose_was
   end
@@ -1129,6 +1132,12 @@ class MigrationTest < ActiveRecord::TestCase
         def self.name; "Reminder"; end
         def self.base_class; self; end
       }
+    end
+
+    def clear_statement_cache(model)
+      model.connection_handler.each_connection_pool do |pool|
+        pool.connections.each(&:clear_cache!)
+      end
     end
 
     def with_another_process_holding_lock(lock_id)
