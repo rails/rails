@@ -43,13 +43,14 @@ module ActiveRecord
       def test_sqlite3_db_with_defined_rails_root
         config = make_db_config(adapter: "sqlite3", database: "config/db.sqlite3")
 
-        Rails.define_singleton_method(:root, &method(:root))
+        root = method(:root)
+        mod = Module.new { define_singleton_method(:root, &root) }
 
-        assert_find_cmd_and_exec_called_with(["sqlite3", Rails.root.join("config/db.sqlite3").to_s]) do
-          SQLite3Adapter.dbconsole(config)
+        stub_const(Object, :Rails, mod, exists: defined?(Rails)) do
+          assert_find_cmd_and_exec_called_with(["sqlite3", Rails.root.join("config/db.sqlite3").to_s]) do
+            SQLite3Adapter.dbconsole(config)
+          end
         end
-      ensure
-        Rails.singleton_class.remove_method(:root)
       end
 
       def test_sqlite3_can_use_alternative_cli
