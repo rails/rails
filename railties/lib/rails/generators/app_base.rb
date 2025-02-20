@@ -643,6 +643,11 @@ module Rails
         end
       end
 
+      def rails_command(command, command_options = {})
+        command_options[:capture] = true if options[:quiet]
+        super
+      end
+
       def bundle_command(command, env = {})
         say_status :run, "bundle #{command}"
 
