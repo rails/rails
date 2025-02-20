@@ -546,6 +546,23 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
 
             assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
           end
+
+          def test_not_valid_forein_key_in_create_table_is_deprecated
+            assert_deprecated(ActiveRecord.deprecator) do
+              @connection.create_table :nonvalid_rockets, force: true do |t|
+                t.string :name
+              end
+              @connection.create_table :nonvalid_astronauts, force: true do |t|
+                t.string :name
+                t.references :rocket
+                t.foreign_key :nonvalid_rockets, column: "rocket_id", validate: false
+              end
+            end
+          ensure
+            @connection.drop_table(:nonvalid_astronauts, if_exists: true)
+            @connection.drop_table(:nonvalid_rockets, if_exists: true)
+            ActiveRecord::Base.clear_cache!
+          end
         else
           # Foreign key should still be created, but should not be invalid
           def test_add_invalid_foreign_key

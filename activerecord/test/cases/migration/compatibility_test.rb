@@ -648,6 +648,49 @@ module ActiveRecord
           connection.drop_table(:sub_testings, if_exists: true)
           ActiveRecord::Base.clear_cache!
         end
+
+        def test_foreign_key_with_validate_false
+          migration = Class.new(ActiveRecord::Migration[8.0]) do
+            def migrate(x)
+              create_table :rockets_testings, force: true do |t|
+                t.string :name
+              end
+              create_table :astronauts_testings, force: true do |t|
+                t.string :name
+                t.references :rocket
+                t.foreign_key :rockets_testings, column: "rocket_id", validate: false
+              end
+            end
+          end.new
+
+          assert_not_deprecated(ActiveRecord.deprecator) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        ensure
+          connection.drop_table(:astronauts_testings, if_exists: true)
+          connection.drop_table(:rockets_testings, if_exists: true)
+          ActiveRecord::Base.clear_cache!
+        end
+
+        def test_check_constraint_with_validate_false
+          migration = Class.new(ActiveRecord::Migration[8.0]) do
+            def migrate(x)
+              create_table :check_constraint_testings, force: true do |t|
+                t.string :name
+
+                t.timestamps
+                t.check_constraint "char_length(name) >= 5", name: "name_const", validate: false
+              end
+            end
+          end.new
+
+          assert_not_deprecated(ActiveRecord.deprecator) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        ensure
+          connection.drop_table(:check_constraint_testings, if_exists: true)
+          ActiveRecord::Base.clear_cache!
+        end
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
