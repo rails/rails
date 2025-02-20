@@ -329,6 +329,38 @@ module ActiveRecord
       self
     end
 
+    # Specify columns to be loaded for associations.
+    #
+    # @param table_columns [Hash] A hash where keys are table names (as symbols) and values are arrays of column names to load.
+    #
+    # Tables that are not specified in the associations are ignored.
+    # The primary_key, foreign keys, inheritance and polymorphic columns are included in loaded columns list by default.
+    #
+    # @example Loading specific columns for an associated table
+    #   Post.preload(:author).select(:title).load_columns(authors: [:name])
+    #   # => SELECT "authors"."name" FROM "authors" WHERE "authors"."id" = 1
+    #   # => SELECT "posts"."title" FROM "posts" WHERE "posts"."id" = 1
+    #
+    # @example Loading specific columns for multiple associated tables
+    #   Post.eager_load(:author, :comments).load_columns(authors: [:name], comments: [:body])
+    #   # => SELECT "posts".*, "authors"."name", "comments"."body" FROM "posts"
+    #   #    LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
+    #   #    LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #
+    # @note This method works with both #includes, #preload, and #eager_load. The behavior may differ slightly:
+    #   - With #includes, and #preload, it will modify the SELECT statement to include the specified columns.
+    #   - With #eager_load, it will load the specified columns in separate queries for each association.
+    #
+    # @return [ActiveRecord::Relation] A new relation with the specified columns to be loaded.
+    def load_columns(table_columns)
+      spawn.load_columns!(table_columns)
+    end
+
+    def load_columns!(table_columns) # :nodoc:
+      self.load_columns_value = table_columns
+      self
+    end
+
     # Extracts a named +association+ from the relation. The named association is first preloaded,
     # then the individual association records are collected from the relation. Like so:
     #
@@ -768,7 +800,7 @@ module ActiveRecord
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
                                      :limit, :offset, :joins, :left_outer_joins, :annotate,
                                      :includes, :eager_load, :preload, :from, :readonly,
-                                     :having, :optimizer_hints, :with])
+                                     :having, :optimizer_hints, :with, :load_columns])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -1597,7 +1629,7 @@ module ActiveRecord
 
     def construct_join_dependency(associations, join_type) # :nodoc:
       ActiveRecord::Associations::JoinDependency.new(
-        model, table, associations, join_type
+        model, table, associations, join_type, load_columns: load_columns_value
       )
     end
 
