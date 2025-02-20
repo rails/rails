@@ -284,6 +284,10 @@ console do
 end
 ```
 
+#### `config.content_security_policy_nonce_auto`
+
+See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
+
 #### `config.content_security_policy_nonce_directives`
 
 See [Adding a Nonce](security.html#adding-a-nonce) in the Security Guide
