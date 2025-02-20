@@ -239,6 +239,7 @@ module Arel
 
         assert_match '[label="<f0>Arel::Nodes::UpdateStatement"]', dot
         assert_edge("relation", dot)
+        assert_edge("from", dot)
         assert_edge("wheres", dot)
         assert_edge("values", dot)
         assert_edge("orders", dot)
