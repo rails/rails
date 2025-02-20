@@ -1,3 +1,9 @@
+*   Add `redirect_if_authenticated` to sessions controller
+
+    Previously, attempting to sign in while already authenticated resulted in an error. This change updates the sessions controller to redirect users to after_authentication_url instead of raising an error when they try to sign in while already logged in.
+
+    *ak15*
+
 *   Rate limit password resets in authentication generator
 
     This helps mitigate abuse from attackers spamming the password reset form.
