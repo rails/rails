@@ -1,3 +1,14 @@
+*   Allow setting `schema_format` in database configuration.
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
 
     *Hartley McGuire*
