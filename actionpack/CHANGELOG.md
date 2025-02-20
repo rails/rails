@@ -1,3 +1,7 @@
+*   Make filters work on Engine routes when using `rails routes`.
+
+    *Dennis Paagman*
+
 *   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
     When calling `Rails.application.reload_routes!` inside a middleware of

@@ -77,19 +77,32 @@ module ActionDispatch
       end
 
       def format(formatter, filter = {})
-        routes_to_display = filter_routes(normalize_filter(filter))
-        routes = collect_routes(routes_to_display)
-        if routes.none?
-          formatter.no_routes(collect_routes(@routes), filter)
+        normalized_filter = normalize_filter(filter)
+        wrapped_routes = wrap_routes(@routes)
+
+        filtered_routes = filter_routes(wrapped_routes, normalized_filter)
+
+        filtered_engine_routes = @engines.transform_values do |engine_routes|
+          filter_routes(engine_routes, normalized_filter)
+        end
+
+        if filtered_routes.none? && filtered_engine_routes.values.all?(&:none?)
+          formatter.no_routes(wrapped_routes, filter)
           return formatter.result
         end
 
-        formatter.header routes
-        formatter.section routes
+        if filtered_routes.any?
+          add_routes(formatter, filtered_routes)
+        end
 
-        @engines.each do |name, engine_routes|
+        filtered_engine_routes.each do |name, engine_routes|
+          next if normalized_filter && engine_routes.none?
+
           formatter.section_title "Routes for #{name}"
-          formatter.section engine_routes
+
+          if engine_routes.any?
+            add_routes(formatter, engine_routes)
+          end
         end
 
         formatter.result
@@ -115,23 +128,18 @@ module ActionDispatch
           end
         end
 
-        def filter_routes(filter)
+        def filter_routes(routes, filter)
           if filter
-            @routes.select do |route|
-              route_wrapper = RouteWrapper.new(route)
-              filter.any? { |filter_type, value| route_wrapper.matches_filter?(filter_type, value) }
+            routes.select do |route|
+              filter.any? { |filter_type, value| route.matches_filter?(filter_type, value) }
             end
           else
-            @routes
+            routes
           end
         end
 
         def collect_routes(routes)
           routes.collect do |route|
-            RouteWrapper.new(route)
-          end.reject(&:internal?).collect do |route|
-            collect_engine_routes(route)
-
             { name: route.name,
               verb: route.verb,
               path: route.path,
@@ -140,15 +148,29 @@ module ActionDispatch
           end
         end
 
-        def collect_engine_routes(route)
+        def wrap_engine_routes(route)
           name = route.endpoint
           return unless route.engine?
           return if @engines[name]
 
           routes = route.rack_app.routes
           if routes.is_a?(ActionDispatch::Routing::RouteSet)
-            @engines[name] = collect_routes(routes.routes)
+            @engines[name] = wrap_routes(routes.routes)
           end
+        end
+
+        def wrap_routes(routes)
+          routes
+            .map { |route| RouteWrapper.new(route) }
+            .reject(&:internal?)
+            .each { |route| wrap_engine_routes(route) }
+        end
+
+        def add_routes(formatter, routes)
+          displayable_routes = collect_routes(routes)
+
+          formatter.header displayable_routes
+          formatter.section displayable_routes
         end
     end
 
@@ -191,7 +213,11 @@ module ActionDispatch
 
       class Sheet < Base
         def section_title(title)
-          @buffer << "\n#{title}:"
+          if @buffer.empty?
+            @buffer << "#{title}:"
+          else
+            @buffer << "\n#{title}:"
+          end
         end
 
         def section(routes)
