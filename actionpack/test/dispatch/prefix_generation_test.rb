@@ -24,6 +24,12 @@ module TestGenerationPrefix
   end
 
   class WithMountedEngine < ActionDispatch::IntegrationTest
+    class WorkerEngine < Rails::Engine
+      routes.draw do
+        get "/workers", to: redirect("/workers"), as: :workers
+      end
+    end
+
     class BlogEngine < Rails::Engine
       routes.draw do
         get "/posts/:id", to: "inside_engine_generating#show", as: :post
@@ -61,6 +67,11 @@ module TestGenerationPrefix
         get "/polymorphic_with_url_for", to: "outside_engine_generating#polymorphic_with_url_for"
         get "/conflicting_url", to: "outside_engine_generating#conflicting"
         get "/ivar_usage", to: "outside_engine_generating#ivar_usage"
+
+        constraints(subdomain: "admin") do
+          mount WorkerEngine => "/", as: "worker_engine"
+        end
+
         root to: "outside_engine_generating#index"
       end
     end
@@ -236,6 +247,22 @@ module TestGenerationPrefix
     test "[ENGINE] absolute custom redirect doesn't use SCRIPT_NAME from request" do
       get "/awesome/blog/absolute_custom_redirect"
       verify_redirect "http://www.example.com/foo"
+    end
+
+    test "[ENGINE] application's constraint gets applied to the mounted engine" do
+      host! "admin.example.com"
+
+      get "/workers"
+      verify_redirect "http://admin.example.com/workers"
+
+      host! "www.example.com"
+      get "/workers"
+
+      assert_response(:not_found)
+    end
+
+    test "[ENGINE] literal constraints gets applied to the mounted engine" do
+      assert_equal "http://admin.example.com/workers", WorkerEngine.routes.url_helpers.workers_url(host: "example.com")
     end
 
     # Inside Application
