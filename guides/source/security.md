@@ -1503,6 +1503,12 @@ The same works with `javascript_include_tag` and the `stylesheet_link_tag`:
 <%= stylesheet_link_tag "style.css", nonce: true %>
 ```
 
+To automatically attach a nonce to `javascript_tag`, `javascript_include_tag` and `stylesheet_link_tag`, `config.content_security_policy_nonce_auto` can be set to `true`:
+
+```ruby
+Rails.application.config.content_security_policy_nonce_auto = true
+```
+
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
