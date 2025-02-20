@@ -388,6 +388,19 @@ module ActiveRecord
         connection.drop_table(:my_table) rescue nil
       end
 
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_column_with_disabled_index
+          connection.create_table "my_table", force: true do |t|
+            t.column "col_one", :bigint
+            t.column "col_two", :bigint, index: { enabled: false }
+          end
+
+          assert connection.index_exists?("my_table", :col_two, enabled: false)
+        ensure
+          connection.drop_table(:my_table) rescue nil
+        end
+      end
+
       def test_add_column_without_column_name
         e = assert_raise ArgumentError do
           connection.create_table "my_table", force: true do |t|
