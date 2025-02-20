@@ -1,3 +1,8 @@
+*   Duplicate the `context` hash passed to `ActiveSupport::ErrorReport#handle` for each subscriber.
+    This prevents mutations done on the `context` by one subscriber from effecting the others.
+
+    *Andrew Novoselac*
+
 *   Change execution wrapping to report all exceptions, including `Exception`.
 
     If a more serious error like `SystemStackError` or `NoMemoryError` happens,
