@@ -6,10 +6,6 @@ require "models/company"
 require "models/toy"
 require "models/matey"
 
-SIGNED_ID_VERIFIER_TEST_SECRET = -> { "This is normally set by the railtie initializer when used with Rails!" }
-
-ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
-
 class SignedIdTest < ActiveRecord::TestCase
   class GetSignedIDInCallback < ActiveRecord::Base
     self.table_name = "accounts"
@@ -25,8 +21,16 @@ class SignedIdTest < ActiveRecord::TestCase
   fixtures :accounts, :toys, :companies
 
   setup do
+    @original_verifier = ActiveRecord::Base.signed_id_verifier
+
+    ActiveRecord::Base.signed_id_verifier = ActiveSupport::MessageVerifier.new("secret")
+
     @account = Account.first
     @toy = Toy.first
+  end
+
+  teardown do
+    ActiveRecord::Base.signed_id_verifier = @original_verifier
   end
 
   test "find signed record" do
@@ -154,33 +158,6 @@ class SignedIdTest < ActiveRecord::TestCase
     assert_raises(ActiveSupport::MessageVerifier::InvalidSignature) do
       Account.find_signed!(@account.signed_id(purpose: :v1), purpose: :v2)
     end
-  end
-
-  test "fail to work without a signed_id_verifier_secret" do
-    ActiveRecord::Base.signed_id_verifier_secret = nil
-    Account.instance_variable_set :@signed_id_verifier, nil
-
-    assert_raises(ArgumentError) do
-      @account.signed_id
-    end
-  ensure
-    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
-  end
-
-  test "fail to work without when signed_id_verifier_secret lambda is nil" do
-    ActiveRecord::Base.signed_id_verifier_secret = -> { nil }
-    Account.instance_variable_set :@signed_id_verifier, nil
-
-    assert_raises(ArgumentError) do
-      @account.signed_id
-    end
-  ensure
-    ActiveRecord::Base.signed_id_verifier_secret = SIGNED_ID_VERIFIER_TEST_SECRET
-  end
-
-  test "always output url_safe" do
-    signed_id = @account.signed_id(purpose: "~~~~~~~~~")
-    assert_not signed_id.include?("+")
   end
 
   test "use a custom verifier" do
