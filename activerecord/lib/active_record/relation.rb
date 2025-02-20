@@ -1413,6 +1413,10 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
+        if lock_value && model.current_preventing_writes
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
+        end
+
         skip_query_cache_if_necessary do
           rows = if scheduled?
             future = @future_result

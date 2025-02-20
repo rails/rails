@@ -856,3 +856,121 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       end
   end
 end
+
+class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
+  CUSTOM_LOCK = if current_adapter?(:SQLite3Adapter)
+    true # no-op
+  else
+    "FOR SHARE"
+  end
+
+  fixtures :people
+
+  def test_lock_when_not_preventing_writes
+    person = Person.last!
+    assert_nothing_raised do
+      person.lock!
+    end
+  end
+
+  def test_lock_when_preventing_writes
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        person.lock!
+      end
+    end
+  end
+
+  def test_lock_when_not_preventing_writes_nested
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes(false) do
+        assert_nothing_raised do
+          person.lock!
+        end
+      end
+    end
+  end
+
+  def test_custom_lock_when_preventing_writes
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        person.lock!(CUSTOM_LOCK)
+      end
+    end
+  end
+
+  def test_with_lock_when_not_preventing_writes
+    person = Person.last!
+    assert_nothing_raised do
+      person.with_lock do
+      end
+    end
+  end
+
+  def test_with_lock_when_preventing_writes
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        person.with_lock do
+        end
+      end
+    end
+  end
+
+  def test_with_lock_when_not_preventing_writes_nested
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes(false) do
+        assert_nothing_raised do
+          person.with_lock do
+          end
+        end
+      end
+    end
+  end
+
+  def test_custom_with_lock_when_preventing_writes
+    person = Person.last!
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        person.with_lock(CUSTOM_LOCK) do
+        end
+      end
+    end
+  end
+
+  def test_relation_lock_when_not_preventing_writes
+    assert_nothing_raised do
+      Person.lock.find_by id: 1
+    end
+  end
+
+  def test_relation_lock_when_preventing_writes
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        Person.lock.find_by id: 1
+      end
+    end
+  end
+
+  def test_relation_lock_when_not_preventing_writes_nested
+    ActiveRecord::Base.while_preventing_writes do
+      ActiveRecord::Base.while_preventing_writes(false) do
+        assert_nothing_raised do
+          Person.lock.find_by id: 1
+        end
+      end
+    end
+  end
+
+  def test_custom_relation_lock_when_preventing_writes
+    ActiveRecord::Base.while_preventing_writes do
+      assert_raises(ActiveRecord::ReadOnlyError) do
+        Person.lock(CUSTOM_LOCK).find_by id: 1
+      end
+    end
+  end
+end

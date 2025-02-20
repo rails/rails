@@ -67,6 +67,10 @@ module ActiveRecord
       # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
       # the locked record.
       def lock!(lock = true)
+        if self.class.current_preventing_writes
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
+        end
+
         if persisted?
           if has_changes_to_save?
             raise(<<-MSG.squish)
@@ -79,6 +83,7 @@ module ActiveRecord
 
           reload(lock: lock)
         end
+
         self
       end
 
