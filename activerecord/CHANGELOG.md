@@ -1,3 +1,11 @@
+*   Introduce new database configuration options `keepalive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
 *   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
 
     *Hartley McGuire*
