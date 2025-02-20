@@ -4,22 +4,28 @@ require "cases/helper"
 require "models/author"
 require "models/category"
 require "models/comment"
+require "models/company"
 require "models/computer"
+require "models/contract"
 require "models/developer"
+require "models/mentor"
 require "models/owner"
 require "models/post"
 require "models/person"
 require "models/pet"
+require "models/pet_treasure"
+require "models/ship"
 require "models/toy"
 require "models/topic"
+require "models/treasure"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
 require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :owners, :posts, :people, :pets, :toys, :tags,
-    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
+  fixtures :authors, :author_addresses, :comments, :companies, :developers, :owners, :posts, :people, :pets, :toys, :tags,
+    :taggings, :treasures, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -102,7 +108,17 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_dynamic_update_all_with_two_joined_table
+  def test_dynamic_update_all_with_a_through_join
+    pet = pets(:parrot)
+    treasure = treasures(:diamond)
+
+    PetTreasure.create(pet: pet, treasure: treasure)
+
+    assert_operator pet.treasures.left_joins(:ship).update_all(name: "Gold"), :>, 0
+    assert_equal("Gold", treasure.reload.name)
+  end
+
+  def test_dynamic_update_all_with_one_join_on_the_target_and_one_indirect_join
     update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
       "toys.name = owners.name"
     else # PostgreSQLAdapter, SQLite3Adapter
@@ -115,6 +131,36 @@ class UpdateAllTest < ActiveRecord::TestCase
 
     toys.each do |toy|
       assert_equal toy.pet.owner.name, toy.name
+    end
+  end
+
+  def test_dynamic_update_all_with_two_joins_on_the_target
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "developers.name = mentors.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = mentors.name"
+    end
+
+    jamis, david, poor_jamis = developers(:jamis, :david, :poor_jamis)
+    jamis.update_columns(
+      firm_id: companies(:first_firm).id,
+      mentor_id: Mentor.create!(name: "John").id,
+    )
+    david.update_columns(
+      firm_id: companies(:another_firm).id,
+      mentor_id: Mentor.create!(name: "Goliath").id,
+    )
+    poor_jamis.update_columns(
+      firm_id: companies(:another_firm).id,
+      mentor_id: Mentor.create!(name: "Doe").id,
+    )
+
+    developers = Developer.joins(:firm, :mentor)
+    assert_equal 3, developers.count
+    assert_equal 3, developers.update_all(update_fragment)
+
+    developers.each do |developer|
+      assert_equal developer.name, developer.mentor.name
     end
   end
 
