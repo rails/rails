@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 SharedTestRoutes.draw do
-  get ":controller(/:action)"
   get "/account/billing", to: "account#billing"
   get "/account/callbacks/twitter", to: "account/callbacks#twitter"
   get "/account/subscription", to: "account#subscription"
