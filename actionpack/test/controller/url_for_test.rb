@@ -9,7 +9,7 @@ module AbstractController
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
             ActionDispatch.deprecator.silence {
-              # get ":controller(/:action(/:id(.:format)))"
+              get ":controller(/:action(/:id(.:format)))"
             }
           }
         }.url_helpers
