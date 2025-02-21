@@ -743,132 +743,132 @@ SharedTestRoutes.draw do
   get "/tasks/index", to: "tasks#index"
   get "/tasks/index(/:id)", to: "tasks#index"
   get "/tasks/show", to: "tasks#show"
-  get "/test/array", to: "test#array"
-  get "/test/bad_request_error", to: "test#bad_request_error"
-  get "/test/basic_send_stream", to: "test#basic_send_stream"
-  get "/test/basic_stream", to: "test#basic_stream"
-  get "/test/blocking_stream", to: "test#blocking_stream"
-  get "/test/cache_control_default_header_with_extras_partially_overridden_by_expires_in", to: "test#cache_control_default_header_with_extras_partially_overridden_by_expires_in"
-  get "/test/cache_control_no_store_overridden_by_expires_in", to: "test#cache_control_no_store_overridden_by_expires_in"
-  get "/test/cache_control_no_store_overridden_by_expires_now", to: "test#cache_control_no_store_overridden_by_expires_now"
-  get "/test/conditional_hello", to: "test#conditional_hello"
-  get "/test/conditional_hello_with_array_of_records", to: "test#conditional_hello_with_array_of_records"
-  get "/test/conditional_hello_with_bangs", to: "test#conditional_hello_with_bangs"
-  get "/test/conditional_hello_with_cache_control_headers", to: "test#conditional_hello_with_cache_control_headers"
-  get "/test/conditional_hello_with_collection_of_records", to: "test#conditional_hello_with_collection_of_records"
-  get "/test/conditional_hello_with_expires_and_confliciting_cache_control_headers", to: "test#conditional_hello_with_expires_and_confliciting_cache_control_headers"
-  get "/test/conditional_hello_with_expires_in", to: "test#conditional_hello_with_expires_in"
-  get "/test/conditional_hello_with_expires_in_with_immutable", to: "test#conditional_hello_with_expires_in_with_immutable"
-  get "/test/conditional_hello_with_expires_in_with_must_revalidate", to: "test#conditional_hello_with_expires_in_with_must_revalidate"
-  get "/test/conditional_hello_with_expires_in_with_public", to: "test#conditional_hello_with_expires_in_with_public"
-  get "/test/conditional_hello_with_expires_in_with_public_and_must_revalidate", to: "test#conditional_hello_with_expires_in_with_public_and_must_revalidate"
-  get "/test/conditional_hello_with_expires_in_with_public_with_more_keys", to: "test#conditional_hello_with_expires_in_with_public_with_more_keys"
-  get "/test/conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax", to: "test#conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax"
-  get "/test/conditional_hello_with_expires_in_with_stale_if_error", to: "test#conditional_hello_with_expires_in_with_stale_if_error"
-  get "/test/conditional_hello_with_expires_in_with_stale_while_revalidate", to: "test#conditional_hello_with_expires_in_with_stale_while_revalidate"
-  get "/test/conditional_hello_with_expires_now", to: "test#conditional_hello_with_expires_now"
-  get "/test/conditional_hello_with_record", to: "test#conditional_hello_with_record"
-  get "/test/conditional_hello_without_expires_and_confliciting_cache_control_headers", to: "test#conditional_hello_without_expires_and_confliciting_cache_control_headers"
-  get "/test/conditional_hello_without_expires_and_public_header", to: "test#conditional_hello_without_expires_and_public_header"
-  get "/test/default_header", to: "test#default_header"
-  get "/test/dynamic_render", to: "test#dynamic_render"
-  get "/test/dynamic_render_permit", to: "test#dynamic_render_permit"
-  get "/test/dynamic_render_with_file", to: "test#dynamic_render_with_file"
-  get "/test/exception_in_controller", to: "test#exception_in_controller"
-  get "/test/exception_in_exception_callback", to: "test#exception_in_exception_callback"
-  get "/test/exception_in_view", to: "test#exception_in_view"
-  get "/test/exception_in_view_after_commit", to: "test#exception_in_view_after_commit"
-  get "/test/exception_with_callback", to: "test#exception_with_callback"
-  get "/test/formatted_xml_erb", to: "test#formatted_xml_erb"
-  get "/test/fresh", to: "test#fresh"
-  get "/test/head_and_return", to: "test#head_and_return"
-  get "/test/head_created", to: "test#head_created"
-  get "/test/head_created_with_application_json_content_type", to: "test#head_created_with_application_json_content_type"
-  get "/test/head_default_content_type", to: "test#head_default_content_type"
-  get "/test/head_ok_with_image_png_content_type", to: "test#head_ok_with_image_png_content_type"
-  get "/test/head_ok_with_string_key_content_type", to: "test#head_ok_with_string_key_content_type"
-  get "/test/head_with_custom_header", to: "test#head_with_custom_header"
-  get "/test/head_with_integer_status", to: "test#head_with_integer_status"
-  get "/test/head_with_location_header", to: "test#head_with_location_header"
-  get "/test/head_with_location_object", to: "test#head_with_location_object"
-  get "/test/head_with_no_content", to: "test#head_with_no_content"
-  get "/test/head_with_status_code_first", to: "test#head_with_status_code_first"
-  get "/test/head_with_string_status", to: "test#head_with_string_status"
-  get "/test/head_with_symbolic_status", to: "test#head_with_symbolic_status"
-  get "/test/head_with_www_authenticate_header", to: "test#head_with_www_authenticate_header"
-  get "/test/ignore_client_disconnect", to: "test#ignore_client_disconnect"
-  get "/test/implicit_content_type", to: "test#implicit_content_type"
-  get "/test/isolated_state", to: "test#isolated_state"
-  get "/test/no_thread_locals", to: "test#no_thread_locals"
-  get "/test/overfill_buffer_and_die", to: "test#overfill_buffer_and_die"
-  get "/test/overfill_default_buffer", to: "test#overfill_default_buffer"
-  get "/test/raw_isolated_state", to: "test#raw_isolated_state"
-  get "/test/render_head_ok_with_inline_template_and_xml_format", to: "test#render_head_ok_with_inline_template_and_xml_format"
-  get "/test/render_json_hello_world", to: "test#render_json_hello_world"
-  get "/test/render_json_hello_world_with_callback", to: "test#render_json_hello_world_with_callback"
-  get "/test/render_json_hello_world_with_status", to: "test#render_json_hello_world_with_status"
-  get "/test/render_json_inspect_options", to: "test#render_json_inspect_options"
-  get "/test/render_json_nil", to: "test#render_json_nil"
-  get "/test/render_json_response_with_partial", to: "test#render_json_response_with_partial"
-  get "/test/render_json_with_custom_content_type", to: "test#render_json_with_custom_content_type"
-  get "/test/render_json_with_extra_options", to: "test#render_json_with_extra_options"
-  get "/test/render_json_with_render_to_string", to: "test#render_json_with_render_to_string"
-  get "/test/render_json_without_options", to: "test#render_json_without_options"
-  get "/test/render_plain_text_response_with_inline_template", to: "test#render_plain_text_response_with_inline_template"
-  get "/test/render_plain_text_response_with_inline_template_and_xml_format", to: "test#render_plain_text_response_with_inline_template_and_xml_format"
-  get "/test/render_symbol_json", to: "test#render_symbol_json"
-  get "/test/render_text", to: "test#render_text"
-  get "/test/render_vanilla_js_hello", to: "test#render_vanilla_js_hello"
-  get "/test/render_with_location", to: "test#render_with_location"
-  get "/test/render_with_object_location", to: "test#render_with_object_location"
-  get "/test/render_with_to_xml", to: "test#render_with_to_xml"
-  get "/test/render_xml_with_custom_content_type", to: "test#render_xml_with_custom_content_type"
-  get "/test/render_xml_with_custom_options", to: "test#render_xml_with_custom_options"
-  get "/test/send_stream_with_explicit_content_type", to: "test#send_stream_with_explicit_content_type"
-  get "/test/send_stream_with_implicit_content_type", to: "test#send_stream_with_implicit_content_type"
-  get "/test/send_stream_with_inferred_content_type", to: "test#send_stream_with_inferred_content_type"
-  get "/test/send_stream_with_options", to: "test#send_stream_with_options"
-  get "/test/set_cookie", to: "test#set_cookie"
-  get "/test/show_partial", to: "test#show_partial"
-  get "/test/strong", to: "test#strong"
-  get "/test/thread_locals", to: "test#thread_locals"
-  get "/test/with_implicit_template", to: "test#with_implicit_template"
-  get "/test/with_stale", to: "test#with_stale"
-  get "/test/with_template", to: "test#with_template"
-  get "/test/write_lines", to: "test#write_lines"
-  get "/test/write_sleep_autoload", to: "test#write_sleep_autoload"
-  get "/test_case_test/default_url_options_caching/test_url_options_reset", to: "test_case_test/default_url_options_caching#test_url_options_reset"
-  get "/test_case_test/default_url_options_caching/test_url_options_reset(/:id)", to: "test_case_test/default_url_options_caching#test_url_options_reset"
-  get "/test_case_test/test/boom(/:id)", to: "test_case_test/test#boom"
-  get "/test_case_test/test/create(/:id)", to: "test_case_test/test#create"
-  get "/test_case_test/test/delete_cookie(/:id)", to: "test_case_test/test#delete_cookie"
-  get "/test_case_test/test/delete_flash(/:id)", to: "test_case_test/test#delete_flash"
-  get "/test_case_test/test/increment_count(/:id)", to: "test_case_test/test#increment_count"
-  get "/test_case_test/test/no_op(/:id)", to: "test_case_test/test#no_op"
-  get "/test_case_test/test/original_fullpath(/:id)", to: "test_case_test/test#original_fullpath"
-  get "/test_case_test/test/render_body(/:id)", to: "test_case_test/test#render_body"
-  get "/test_case_test/test/render_body_encoding(/:id)", to: "test_case_test/test#render_body_encoding"
-  get "/test_case_test/test/render_cookie(/:id)", to: "test_case_test/test#render_cookie"
-  get "/test_case_test/test/render_json(/:id)", to: "test_case_test/test#render_json"
-  get "/test_case_test/test/render_raw_post(/:id)", to: "test_case_test/test#render_raw_post"
-  get "/test_case_test/test/reset_the_session(/:id)", to: "test_case_test/test#reset_the_session"
-  get "/test_case_test/test/set_flash(/:id)", to: "test_case_test/test#set_flash"
-  get "/test_case_test/test/set_flash_now(/:id)", to: "test_case_test/test#set_flash_now"
-  get "/test_case_test/test/set_session(/:id)", to: "test_case_test/test#set_session"
-  get "/test_case_test/test/test_file_upload(/:id)", to: "test_case_test/test#test_file_upload"
-  get "/test_case_test/test/test_format(/:id)", to: "test_case_test/test#test_format"
-  get "/test_case_test/test/test_headers(/:id)", to: "test_case_test/test#test_headers"
-  get "/test_case_test/test/test_only_one_param(/:id)", to: "test_case_test/test#test_only_one_param"
-  get "/test_case_test/test/test_params(/:id)", to: "test_case_test/test#test_params"
-  get "/test_case_test/test/test_protocol(/:id)", to: "test_case_test/test#test_protocol"
-  get "/test_case_test/test/test_query_parameters(/:id)", to: "test_case_test/test#test_query_parameters"
-  get "/test_case_test/test/test_query_string(/:id)", to: "test_case_test/test#test_query_string"
-  get "/test_case_test/test/test_remote_addr(/:id)", to: "test_case_test/test#test_remote_addr"
-  get "/test_case_test/test/test_request_parameters(/:id)", to: "test_case_test/test#test_request_parameters"
-  get "/test_case_test/test/test_uri(/:id)", to: "test_case_test/test#test_uri"
-  get "/test_case_test/test/test_with_body(/:id)", to: "test_case_test/test#test_with_body"
-  get "/test_case_test/test/test_without_body(/:id)", to: "test_case_test/test#test_without_body"
-  get "/test_case_test/test/test_xml_output(/:id)", to: "test_case_test/test#test_xml_output"
+  get "/test/array", to: "test#array", as: nil
+  get "/test/bad_request_error", to: "test#bad_request_error", as: nil
+  get "/test/basic_send_stream", to: "test#basic_send_stream", as: nil
+  get "/test/basic_stream", to: "test#basic_stream", as: nil
+  get "/test/blocking_stream", to: "test#blocking_stream", as: nil
+  get "/test/cache_control_default_header_with_extras_partially_overridden_by_expires_in", to: "test#cache_control_default_header_with_extras_partially_overridden_by_expires_in", as: nil
+  get "/test/cache_control_no_store_overridden_by_expires_in", to: "test#cache_control_no_store_overridden_by_expires_in", as: nil
+  get "/test/cache_control_no_store_overridden_by_expires_now", to: "test#cache_control_no_store_overridden_by_expires_now", as: nil
+  get "/test/conditional_hello", to: "test#conditional_hello", as: nil
+  get "/test/conditional_hello_with_array_of_records", to: "test#conditional_hello_with_array_of_records", as: nil
+  get "/test/conditional_hello_with_bangs", to: "test#conditional_hello_with_bangs", as: nil
+  get "/test/conditional_hello_with_cache_control_headers", to: "test#conditional_hello_with_cache_control_headers", as: nil
+  get "/test/conditional_hello_with_collection_of_records", to: "test#conditional_hello_with_collection_of_records", as: nil
+  get "/test/conditional_hello_with_expires_and_confliciting_cache_control_headers", to: "test#conditional_hello_with_expires_and_confliciting_cache_control_headers", as: nil
+  get "/test/conditional_hello_with_expires_in", to: "test#conditional_hello_with_expires_in", as: nil
+  get "/test/conditional_hello_with_expires_in_with_immutable", to: "test#conditional_hello_with_expires_in_with_immutable", as: nil
+  get "/test/conditional_hello_with_expires_in_with_must_revalidate", to: "test#conditional_hello_with_expires_in_with_must_revalidate", as: nil
+  get "/test/conditional_hello_with_expires_in_with_public", to: "test#conditional_hello_with_expires_in_with_public", as: nil
+  get "/test/conditional_hello_with_expires_in_with_public_and_must_revalidate", to: "test#conditional_hello_with_expires_in_with_public_and_must_revalidate", as: nil
+  get "/test/conditional_hello_with_expires_in_with_public_with_more_keys", to: "test#conditional_hello_with_expires_in_with_public_with_more_keys", as: nil
+  get "/test/conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax", to: "test#conditional_hello_with_expires_in_with_public_with_more_keys_old_syntax", as: nil
+  get "/test/conditional_hello_with_expires_in_with_stale_if_error", to: "test#conditional_hello_with_expires_in_with_stale_if_error", as: nil
+  get "/test/conditional_hello_with_expires_in_with_stale_while_revalidate", to: "test#conditional_hello_with_expires_in_with_stale_while_revalidate", as: nil
+  get "/test/conditional_hello_with_expires_now", to: "test#conditional_hello_with_expires_now", as: nil
+  get "/test/conditional_hello_with_record", to: "test#conditional_hello_with_record", as: nil
+  get "/test/conditional_hello_without_expires_and_confliciting_cache_control_headers", to: "test#conditional_hello_without_expires_and_confliciting_cache_control_headers", as: nil
+  get "/test/conditional_hello_without_expires_and_public_header", to: "test#conditional_hello_without_expires_and_public_header", as: nil
+  get "/test/default_header", to: "test#default_header", as: nil
+  get "/test/dynamic_render", to: "test#dynamic_render", as: nil
+  get "/test/dynamic_render_permit", to: "test#dynamic_render_permit", as: nil
+  get "/test/dynamic_render_with_file", to: "test#dynamic_render_with_file", as: nil
+  get "/test/exception_in_controller", to: "test#exception_in_controller", as: nil
+  get "/test/exception_in_exception_callback", to: "test#exception_in_exception_callback", as: nil
+  get "/test/exception_in_view", to: "test#exception_in_view", as: nil
+  get "/test/exception_in_view_after_commit", to: "test#exception_in_view_after_commit", as: nil
+  get "/test/exception_with_callback", to: "test#exception_with_callback", as: nil
+  get "/test/formatted_xml_erb", to: "test#formatted_xml_erb", as: nil
+  get "/test/fresh", to: "test#fresh", as: nil
+  get "/test/head_and_return", to: "test#head_and_return", as: nil
+  get "/test/head_created", to: "test#head_created", as: nil
+  get "/test/head_created_with_application_json_content_type", to: "test#head_created_with_application_json_content_type", as: nil
+  get "/test/head_default_content_type", to: "test#head_default_content_type", as: nil
+  get "/test/head_ok_with_image_png_content_type", to: "test#head_ok_with_image_png_content_type", as: nil
+  get "/test/head_ok_with_string_key_content_type", to: "test#head_ok_with_string_key_content_type", as: nil
+  get "/test/head_with_custom_header", to: "test#head_with_custom_header", as: nil
+  get "/test/head_with_integer_status", to: "test#head_with_integer_status", as: nil
+  get "/test/head_with_location_header", to: "test#head_with_location_header", as: nil
+  get "/test/head_with_location_object", to: "test#head_with_location_object", as: nil
+  get "/test/head_with_no_content", to: "test#head_with_no_content", as: nil
+  get "/test/head_with_status_code_first", to: "test#head_with_status_code_first", as: nil
+  get "/test/head_with_string_status", to: "test#head_with_string_status", as: nil
+  get "/test/head_with_symbolic_status", to: "test#head_with_symbolic_status", as: nil
+  get "/test/head_with_www_authenticate_header", to: "test#head_with_www_authenticate_header", as: nil
+  get "/test/ignore_client_disconnect", to: "test#ignore_client_disconnect", as: nil
+  get "/test/implicit_content_type", to: "test#implicit_content_type", as: nil
+  get "/test/isolated_state", to: "test#isolated_state", as: nil
+  get "/test/no_thread_locals", to: "test#no_thread_locals", as: nil
+  get "/test/overfill_buffer_and_die", to: "test#overfill_buffer_and_die", as: nil
+  get "/test/overfill_default_buffer", to: "test#overfill_default_buffer", as: nil
+  get "/test/raw_isolated_state", to: "test#raw_isolated_state", as: nil
+  get "/test/render_head_ok_with_inline_template_and_xml_format", to: "test#render_head_ok_with_inline_template_and_xml_format", as: nil
+  get "/test/render_json_hello_world", to: "test#render_json_hello_world", as: nil
+  get "/test/render_json_hello_world_with_callback", to: "test#render_json_hello_world_with_callback", as: nil
+  get "/test/render_json_hello_world_with_status", to: "test#render_json_hello_world_with_status", as: nil
+  get "/test/render_json_inspect_options", to: "test#render_json_inspect_options", as: nil
+  get "/test/render_json_nil", to: "test#render_json_nil", as: nil
+  get "/test/render_json_response_with_partial", to: "test#render_json_response_with_partial", as: nil
+  get "/test/render_json_with_custom_content_type", to: "test#render_json_with_custom_content_type", as: nil
+  get "/test/render_json_with_extra_options", to: "test#render_json_with_extra_options", as: nil
+  get "/test/render_json_with_render_to_string", to: "test#render_json_with_render_to_string", as: nil
+  get "/test/render_json_without_options", to: "test#render_json_without_options", as: nil
+  get "/test/render_plain_text_response_with_inline_template", to: "test#render_plain_text_response_with_inline_template", as: nil
+  get "/test/render_plain_text_response_with_inline_template_and_xml_format", to: "test#render_plain_text_response_with_inline_template_and_xml_format", as: nil
+  get "/test/render_symbol_json", to: "test#render_symbol_json", as: nil
+  get "/test/render_text", to: "test#render_text", as: nil
+  get "/test/render_vanilla_js_hello", to: "test#render_vanilla_js_hello", as: nil
+  get "/test/render_with_location", to: "test#render_with_location", as: nil
+  get "/test/render_with_object_location", to: "test#render_with_object_location", as: nil
+  get "/test/render_with_to_xml", to: "test#render_with_to_xml", as: nil
+  get "/test/render_xml_with_custom_content_type", to: "test#render_xml_with_custom_content_type", as: nil
+  get "/test/render_xml_with_custom_options", to: "test#render_xml_with_custom_options", as: nil
+  get "/test/send_stream_with_explicit_content_type", to: "test#send_stream_with_explicit_content_type", as: nil
+  get "/test/send_stream_with_implicit_content_type", to: "test#send_stream_with_implicit_content_type", as: nil
+  get "/test/send_stream_with_inferred_content_type", to: "test#send_stream_with_inferred_content_type", as: nil
+  get "/test/send_stream_with_options", to: "test#send_stream_with_options", as: nil
+  get "/test/set_cookie", to: "test#set_cookie", as: nil
+  get "/test/show_partial", to: "test#show_partial", as: nil
+  get "/test/strong", to: "test#strong", as: nil
+  get "/test/thread_locals", to: "test#thread_locals", as: nil
+  get "/test/with_implicit_template", to: "test#with_implicit_template", as: nil
+  get "/test/with_stale", to: "test#with_stale", as: nil
+  get "/test/with_template", to: "test#with_template", as: nil
+  get "/test/write_lines", to: "test#write_lines", as: nil
+  get "/test/write_sleep_autoload", to: "test#write_sleep_autoload", as: nil
+  get "/test_case_test/default_url_options_caching/test_url_options_reset", to: "test_case_test/default_url_options_caching#test_url_options_reset", as: nil
+  get "/test_case_test/default_url_options_caching/test_url_options_reset(/:id)", to: "test_case_test/default_url_options_caching#test_url_options_reset", as: nil
+  get "/test_case_test/test/boom(/:id)", to: "test_case_test/test#boom", as: nil
+  get "/test_case_test/test/create(/:id)", to: "test_case_test/test#create", as: nil
+  get "/test_case_test/test/delete_cookie(/:id)", to: "test_case_test/test#delete_cookie", as: nil
+  get "/test_case_test/test/delete_flash(/:id)", to: "test_case_test/test#delete_flash", as: nil
+  get "/test_case_test/test/increment_count(/:id)", to: "test_case_test/test#increment_count", as: nil
+  get "/test_case_test/test/no_op(/:id)", to: "test_case_test/test#no_op", as: nil
+  get "/test_case_test/test/original_fullpath(/:id)", to: "test_case_test/test#original_fullpath", as: nil
+  get "/test_case_test/test/render_body(/:id)", to: "test_case_test/test#render_body", as: nil
+  get "/test_case_test/test/render_body_encoding(/:id)", to: "test_case_test/test#render_body_encoding", as: nil
+  get "/test_case_test/test/render_cookie(/:id)", to: "test_case_test/test#render_cookie", as: nil
+  get "/test_case_test/test/render_json(/:id)", to: "test_case_test/test#render_json", as: nil
+  get "/test_case_test/test/render_raw_post(/:id)", to: "test_case_test/test#render_raw_post", as: nil
+  get "/test_case_test/test/reset_the_session(/:id)", to: "test_case_test/test#reset_the_session", as: nil
+  get "/test_case_test/test/set_flash(/:id)", to: "test_case_test/test#set_flash", as: nil
+  get "/test_case_test/test/set_flash_now(/:id)", to: "test_case_test/test#set_flash_now", as: nil
+  get "/test_case_test/test/set_session(/:id)", to: "test_case_test/test#set_session", as: nil
+  get "/test_case_test/test/test_file_upload(/:id)", to: "test_case_test/test#test_file_upload", as: nil
+  get "/test_case_test/test/test_format(/:id)", to: "test_case_test/test#test_format", as: nil
+  get "/test_case_test/test/test_headers(/:id)", to: "test_case_test/test#test_headers", as: nil
+  get "/test_case_test/test/test_only_one_param(/:id)", to: "test_case_test/test#test_only_one_param", as: nil
+  get "/test_case_test/test/test_params(/:id)", to: "test_case_test/test#test_params", as: nil
+  get "/test_case_test/test/test_protocol(/:id)", to: "test_case_test/test#test_protocol", as: nil
+  get "/test_case_test/test/test_query_parameters(/:id)", to: "test_case_test/test#test_query_parameters", as: nil
+  get "/test_case_test/test/test_query_string(/:id)", to: "test_case_test/test#test_query_string", as: nil
+  get "/test_case_test/test/test_remote_addr(/:id)", to: "test_case_test/test#test_remote_addr", as: nil
+  get "/test_case_test/test/test_request_parameters(/:id)", to: "test_case_test/test#test_request_parameters", as: nil
+  get "/test_case_test/test/test_uri(/:id)", to: "test_case_test/test#test_uri", as: nil
+  get "/test_case_test/test/test_with_body(/:id)", to: "test_case_test/test#test_with_body", as: nil
+  get "/test_case_test/test/test_without_body(/:id)", to: "test_case_test/test#test_without_body", as: nil
+  get "/test_case_test/test/test_xml_output(/:id)", to: "test_case_test/test#test_xml_output", as: nil
   get "/url_for_api/one", to: "url_for_api#one"
   get "/use_flash", to: "flash_integration_test/test#use_flash"
   get "/user/download/:file", to: "user#download"
