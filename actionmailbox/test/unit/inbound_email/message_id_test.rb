@@ -9,7 +9,14 @@ class ActionMailbox::InboundEmail::MessageIdTest < ActiveSupport::TestCase
   end
 
   test "message id is generated if its missing" do
+    old_logger = ActionMailbox.logger
+    output = StringIO.new
+    ActionMailbox.logger = ActiveSupport::Logger.new(output)
+
     inbound_email = create_inbound_email_from_source "Date: Fri, 28 Sep 2018 11:08:55 -0700\r\nTo: a@example.com\r\nMime-Version: 1.0\r\nContent-Type: text/plain\r\nContent-Transfer-Encoding: 7bit\r\n\r\nHello!"
     assert_not_nil inbound_email.message_id
+    assert_match "Message-ID couldn't be parsed or is missing.", output.string
+  ensure
+    ActionMailbox.logger = old_logger
   end
 end
