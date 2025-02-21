@@ -67,20 +67,13 @@ I18n.enforce_available_locales = false
 FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
-
-SharedTestRoutes.draw do
-  ActionDispatch.deprecator.silence do
-    get ":controller(/:action)"
-  end
-end
+require_relative("routing/routes.rb")
 
 module ActionDispatch
   module SharedRoutes
     def before_setup
-      @routes = Routing::RouteSet.new
-      ActionDispatch.deprecator.silence do
-        @routes.draw { get ":controller(/:action)" }
-      end
+      @routes = SharedTestRoutes
+
       super
     end
   end
@@ -130,13 +123,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     end
   end
 
-  self.app = build_app
-
-  app.routes.draw do
-    ActionDispatch.deprecator.silence do
-      get ":controller(/:action)"
-    end
-  end
+  self.app = build_app(SharedTestRoutes)
 
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet
     # Stub Rails dispatcher so it does not get controller references and
