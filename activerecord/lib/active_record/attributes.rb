@@ -244,7 +244,10 @@ module ActiveRecord
           # TODO: Remove the need for a connection after we release 8.1.
           attributes_hash = with_connection do |connection|
             columns_hash.transform_values do |column|
-              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
+              type = type_for_column(connection, column)
+              default = column.default
+              default = type.deserialize(default) unless default.nil?
+              ActiveModel::Attribute.from_database(column.name, default, type)
             end
           end
 
