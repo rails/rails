@@ -1,3 +1,17 @@
+*   The Cookie Serializer can now serialize an Active Support SafeBuffer when using message pack.
+
+    Such code would previously produce an error if an application was using messagepack as its cookie serializer.
+
+    ```ruby
+    class PostController < ApplicationController
+      def index
+        flash.notice = t(:hello_html) # This would try to serialize a SafeBuffer, which was not possible.
+      end
+    end
+    ```
+
+    *Edouard Chin*
+
 *   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
     When calling `Rails.application.reload_routes!` inside a middleware of
