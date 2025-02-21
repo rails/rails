@@ -1,3 +1,7 @@
+*   Raise `ActiveRecord::ReadOnlyError` when pessimistically locking with a readonly role.
+
+    *Joshua Young*
+
 *   Fix using the `SQLite3Adapter`'s `dbconsole` method outside of a Rails application.
 
     *Hartley McGuire*
