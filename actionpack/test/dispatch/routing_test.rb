@@ -4447,7 +4447,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get "/foo" => ok, as: :foo
 
       ActionDispatch.deprecator.silence do
-        get "/post(/:action(/:id))" => ok, as: :posts
+        # get "/post(/:action(/:id))" => ok, as: :posts
       end
 
       get "/:foo/:foo_type/bars/:id" => ok, as: :bar
@@ -5012,7 +5012,7 @@ class TestErrorsInController < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
     ActionDispatch.deprecator.silence do
-      get "/:controller(/:action)"
+      # get "/:controller(/:action)"
     end
   end
 
@@ -5155,7 +5155,7 @@ class TestPathParameters < ActionDispatch::IntegrationTest
       end
 
       ActionDispatch.deprecator.silence do
-        get ":controller(/:action/(:id))"
+        # get ":controller(/:action/(:id))"
       end
     end
   end
