@@ -124,6 +124,17 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_fetch_on_miss
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      assert_equal false, @cache.exist?(key)
+      value = @cache.fetch(key) { "fetch-yielded" }
+      assert_equal "fetch-yielded", value
+
+      assert_equal "fetch-yielded", @peek.read(key)
+    end
+  end
+
   def test_local_cache_of_write_nil
     key = SecureRandom.uuid
     value = SecureRandom.alphanumeric
@@ -215,14 +226,24 @@ module LocalCacheBehavior
   end
 
   def test_local_cache_of_fetch_multi
-    key = SecureRandom.uuid
-    other_key = SecureRandom.uuid
+    existing_key = SecureRandom.uuid
+    known_missing_key = SecureRandom.uuid
+    unknown_key = SecureRandom.uuid
+
     @cache.with_local_cache do
-      @cache.fetch_multi(key, other_key) { |_key| true }
-      @peek.delete(key)
-      @peek.delete(other_key)
-      assert_equal true, @cache.read(key)
-      assert_equal true, @cache.read(other_key)
+      @cache.fetch(existing_key) { "exist" }
+      assert_equal false, @cache.exist?("known-missing")
+
+      results = @cache.fetch_multi(known_missing_key, existing_key, unknown_key) { "fetch-yielded" }
+      expected = {
+        known_missing_key => "fetch-yielded",
+        existing_key => "exist",
+        unknown_key => "fetch-yielded",
+      }
+      assert_equal(expected, results)
+
+      results = @peek.read_multi(known_missing_key, existing_key, unknown_key)
+      assert_equal expected, results
     end
   end
 
