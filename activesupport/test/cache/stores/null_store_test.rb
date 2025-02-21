@@ -85,7 +85,7 @@ class NullStoreTest < ActiveSupport::TestCase
       assert_nil @cache.read("foo")
 
       @cache.read_multi("foo", "bar")
-      assert_equal({ "foo" => nil, "bar" => nil }, @cache.read_multi("foo", "bar"))
+      assert_equal({}, @cache.read_multi("foo", "bar"))
     end
   end
 end

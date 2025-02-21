@@ -1,3 +1,10 @@
+*   Fix Active Support Cache `fetch_multi` when local store is active.
+
+    `fetch_multi` now properly yield to the provided block for missing entries
+    that have been recorded as such in the local store.
+
+    *Jean Boussier*
+
 *   Fix execution wrapping to report all exceptions, including `Exception`.
 
     If a more serious error like `SystemStackError` or `NoMemoryError` happens,
