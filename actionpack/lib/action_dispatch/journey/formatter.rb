@@ -98,24 +98,6 @@ module ActionDispatch
             parameterized_parts.delete(key)
           end
 
-          if route.segment_keys.intersect?([:controller, :action])
-            not_want = [:controller, :action, :format]
-            segments = route.segment_keys.select { |segment| not_want.exclude?(segment) }
-            path = "/#{original_options[:controller].to_s.underscore}/#{original_options[:action]}"
-            code = "#{route.verb.downcase} '#{path}"
-            if segments.any?
-              segments.each do |segment|
-                if route.required_parts.include?(segment)
-                  code << "/:#{segment}"
-                else
-                  code << "(/:#{segment})"
-                end
-              end
-            end
-            code << "', to: '#{original_options[:controller]}##{original_options[:action]}'\n"
-            File.write("routes.txt", code, mode: File::APPEND|File::RDWR) if ENV["RECORD"]
-          end
-
           return RouteWithParams.new(route, parameterized_parts, params)
         end
 

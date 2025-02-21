@@ -41,27 +41,6 @@ module ActionDispatch
           req.path_parameters = parameters
           req.route = route
 
-          if route.segment_keys.intersect?([:controller, :action])
-            controller = route.app.send(:controller, req)
-
-            unless controller.anonymous?
-              not_want = [:controller, :action, :format]
-              segments = route.segment_keys.select { |segment| not_want.exclude?(segment) }
-              code = "#{req.request_method.downcase} '#{path_info}"
-              if segments.any?
-                segments.each do |segment|
-                  if route.required_parts.include?(segment)
-                    code << "/:#{segment}"
-                  else
-                    code << "(/:#{segment})"
-                  end
-                end
-              end
-              code << "', to: '#{controller.to_s.underscore.sub(/_controller\Z/, '')}##{req.params[:action]}'\n"
-              File.write("routes.txt", code, mode: File::APPEND|File::RDWR) if ENV["RECORD"]
-            end
-          end
-
           _, headers, _ = response = route.app.serve(req)
 
           if headers[Constants::X_CASCADE] == "pass"
