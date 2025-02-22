@@ -276,7 +276,8 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.1.2)
-    httpclient (2.8.3)
+    httpclient (2.9.0)
+      mutex_m
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
