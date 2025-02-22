@@ -5,6 +5,7 @@ require "bundler/gem_tasks"
 require "rake/testtask"
 
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
+ENV["RUBYOPT"] = "--enable-frozen-string-literal --debug-frozen-string-literal"
 
 Rake::TestTask.new do |t|
   t.libs << "app/controllers"
