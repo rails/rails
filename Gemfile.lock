@@ -1,13 +1,4 @@
 GIT
-  remote: https://github.com/nahi/httpclient.git
-  revision: d57cc6d5ffee1b566b5c189fe6dc8cc89570b812
-  branch: master
-  specs:
-    httpclient (2.8.3)
-      mutex_m
-      webrick
-
-GIT
   remote: https://github.com/rails/sdoc.git
   revision: cd75e36ce2d1acb66734c1390ffe33aa05479380
   branch: main
@@ -294,6 +285,8 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.1.2)
+    httpclient (2.9.0)
+      mutex_m
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     image_processing (1.13.0)
@@ -686,7 +679,6 @@ DEPENDENCIES
   dartsass-rails
   debug (>= 1.1.0)
   google-cloud-storage (~> 1.11)
-  httpclient!
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
   jbuilder
