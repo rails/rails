@@ -1688,6 +1688,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_column_types_on_queries_on_sqlite
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT id, last_read, created_at FROM topics")
+      assert_equal ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer, result.column_types["id"].class
+      assert_equal ActiveRecord::Type::Date, result.column_types["last_read"].class
+      assert_equal ActiveRecord::Type::DateTime, result.column_types["created_at"].class
+      assert_equal result.column_types[0], result.column_types["id"]
+      assert_equal result.column_types[1], result.column_types["last_read"]
+      assert_equal result.column_types[2], result.column_types["created_at"]
+    end
+  end
+
   def test_typecasting_aliases
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end

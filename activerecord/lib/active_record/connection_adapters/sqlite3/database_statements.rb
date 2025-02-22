@@ -87,7 +87,11 @@ module ActiveRecord
                 stmt.step
                 ActiveRecord::Result.empty
               else
-                ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                types = {}
+                stmt.columns.zip(stmt.types).each_with_index do |(c, t), i|
+                  types[c] = types[i] = type_map.lookup(t)
+                end
+                ActiveRecord::Result.new(stmt.columns, stmt.to_a, types.freeze)
               end
             else
               # Don't cache statements if they are not prepared.
@@ -100,7 +104,11 @@ module ActiveRecord
                   stmt.step
                   ActiveRecord::Result.empty
                 else
-                  ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                  types = {}
+                  stmt.columns.zip(stmt.types).each_with_index do |(c, t), i|
+                    types[c] = types[i] = type_map.lookup(t)
+                  end
+                  ActiveRecord::Result.new(stmt.columns, stmt.to_a, types.freeze)
                 end
               ensure
                 stmt.close
