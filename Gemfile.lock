@@ -7,15 +7,6 @@ GIT
       event_emitter
       websocket
 
-GIT
-  remote: https://github.com/nahi/httpclient.git
-  revision: d57cc6d5ffee1b566b5c189fe6dc8cc89570b812
-  branch: master
-  specs:
-    httpclient (2.8.3)
-      mutex_m
-      webrick
-
 PATH
   remote: .
   specs:
@@ -293,6 +284,8 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.1.2)
+    httpclient (2.9.0)
+      mutex_m
     i18n (1.14.5)
       concurrent-ruby (~> 1.0)
     image_processing (1.12.2)
@@ -369,7 +362,7 @@ GEM
     multipart-post (2.4.1)
     mustermann (3.0.0)
       ruby2_keywords (~> 0.0.1)
-    mutex_m (0.2.0)
+    mutex_m (0.3.0)
     mysql2 (0.5.6)
     net-http-persistent (4.0.2)
       connection_pool (~> 2.2)
@@ -608,7 +601,7 @@ GEM
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
-    webrick (1.8.1)
+    webrick (1.9.1)
     websocket (1.2.10)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
@@ -640,7 +633,6 @@ DEPENDENCIES
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.11)
-  httpclient!
   image_processing (~> 1.2)
   importmap-rails (>= 1.2.3)
   jbuilder
