@@ -158,6 +158,10 @@ module ActiveRecord
             assert_not_predicate ActiveRecord::Base.lease_connection, :preventing_writes?
           end
         ensure
+          ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
+            ActiveRecord::Base.remove_connection
+          end
+
           ActiveRecord::Base.configurations = @prev_configs
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
