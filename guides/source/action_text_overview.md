@@ -137,7 +137,7 @@ for the form field.
 <%= form_with model: article do |form| %>
   <div class="field">
     <%= form.label :content %>
-    <%= form.rich_textarea :content %>
+    <%= form.rich_text_area :content %>
   </div>
 <% end %>
 ```
