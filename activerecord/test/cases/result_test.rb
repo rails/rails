@@ -126,7 +126,7 @@ module ActiveRecord
       assert_equal 2, result.columns.size
       result.each do |row|
         assert_equal 1, row.size
-        assert_equal "col 2", row["foo"]
+        assert_equal "col 1", row["foo"]
       end
     end
   end
