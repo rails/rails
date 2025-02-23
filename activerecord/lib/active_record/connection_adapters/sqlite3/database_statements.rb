@@ -87,7 +87,7 @@ module ActiveRecord
                 stmt.step
                 ActiveRecord::Result.empty
               else
-                ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
               end
             else
               # Don't cache statements if they are not prepared.
@@ -100,7 +100,7 @@ module ActiveRecord
                   stmt.step
                   ActiveRecord::Result.empty
                 else
-                  ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                  ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
                 end
               ensure
                 stmt.close

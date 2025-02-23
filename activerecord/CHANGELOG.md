@@ -1,3 +1,7 @@
+*   Add column types to `ActiveRecord::Result` for SQLite3.
+
+    *Andrew Kane*
+
 *   Raise `ActiveRecord::ReadOnlyError` when pessimistically locking with a readonly role.
 
     *Joshua Young*
