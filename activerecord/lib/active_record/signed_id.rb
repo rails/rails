@@ -15,7 +15,7 @@ module ActiveRecord
       # <tt>signed_id_verifier=</tt> allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
       # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
       # your custom verifier for that in advance. See ActiveSupport::MessageVerifier for details.
-      class_attribute :signed_id_verifier, instance_writer: false
+      mattr_accessor :global_signed_id_verifier
 
       class << self
         alias_method :original_signed_id_verifier_secret=, :signed_id_verifier_secret=
@@ -26,6 +26,30 @@ module ActiveRecord
           MSG
 
           self.original_signed_id_verifier_secret = secret
+        end
+
+        def signed_id_verifier
+          return @custom_signed_id_verifier if @custom_signed_id_verifier
+
+          if signed_id_verifier_secret != ActiveRecord::Base.signed_id_verifier_secret
+            secret = signed_id_verifier_secret
+            secret = secret.call if secret.respond_to?(:call)
+
+            if secret.nil?
+              raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
+            else
+              @custom_signed_id_verifier = ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
+            end
+          else
+            global_signed_id_verifier
+          end
+        end
+
+        # Allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
+        # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
+        # your custom verifier for that in advance. See ActiveSupport::MessageVerifier for details.
+        def signed_id_verifier=(verifier)
+          @custom_signed_id_verifier = verifier
         end
       end
     end
