@@ -90,9 +90,9 @@ module Rails
         IRB.conf[:IRB_NAME] = @app.name
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
-          PROMPT_I: "#{prompt_prefix}> ",
-          PROMPT_S: "#{prompt_prefix}%l ",
-          PROMPT_C: "#{prompt_prefix}* ",
+          PROMPT_I: "#{prompt_prefix}:%03n> ",
+          PROMPT_S: "#{prompt_prefix}:%03n%l ",
+          PROMPT_C: "#{prompt_prefix}:%03n* ",
           RETURN: "=> %s\n"
         }
 
