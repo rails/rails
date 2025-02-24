@@ -1,3 +1,9 @@
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    *Joshua Young*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
