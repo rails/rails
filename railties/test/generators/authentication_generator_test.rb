@@ -14,6 +14,12 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       end
     RUBY
 
+    FileUtils.mkdir_p("#{destination_root}/app/mailers")
+    File.write("#{destination_root}/app/mailers/application_mailer.rb", <<~RUBY)
+      class ApplicationMailer < ActionMailer::Base
+      end
+    RUBY
+
     copy_gemfile
 
     copy_routes
@@ -116,6 +122,18 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/channels/application_cable/connection.rb"
   ensure
     ActionCable.const_set(:Engine, old_value)
+  end
+
+  def test_aborts_when_action_mailer_is_not_defined
+    old_value = ActionMailer.const_get(:Base)
+    ActionMailer.send(:remove_const, :Base)
+    generator([destination_root])
+
+    assert_raises RuntimeError, "Action Mailer is not defined in the application." do
+      run_generator_instance
+    end
+  ensure
+    ActionMailer.const_set(:Base, old_value)
   end
 
   private
