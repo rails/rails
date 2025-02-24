@@ -1467,7 +1467,7 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_only_generates_a_pk_if_necessary
     assert_nothing_raised do
-      m = Matey.first
+      m = Matey.take
       m.pirate = pirates(:blackbeard)
       m.target = pirates(:redbeard)
     end

@@ -26,3 +26,13 @@
 # Applications that want to keep the escaping behavior can set the config to `true`.
 #++
 # Rails.configuration.action_controller.escape_json_responses = false
+
+###
+# Raises an error when order dependent finder methods (e.g. `#first`, `#second`) are called without `order` values
+# on the relation, and the model does not have any order columns (`implicit_order_column`, `query_constraints`, or
+# `primary_key`) to fall back on.
+#
+# The current behavior of not raising an error has been deprecated, and this configuration option will be removed in
+# Rails 8.2.
+#++
+# Rails.configuration.active_record.raise_on_missing_required_finder_order_columns = true
