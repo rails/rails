@@ -552,6 +552,11 @@ module ActiveRecord
   class Deadlocked < TransactionRollbackError
   end
 
+  # OrderError is raised when a relation needs to be ordered but does not have any
+  # order columns to use.
+  class OrderError < ActiveRecordError
+  end
+
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError

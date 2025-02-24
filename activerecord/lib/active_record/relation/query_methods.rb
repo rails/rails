@@ -2013,8 +2013,10 @@ module ActiveRecord
             return _reverse_order_columns.map { |column| table[column].desc }
           end
 
-          raise IrreversibleOrderError,
-            "Relation has no current order and table has no order columns to be used as default order"
+          raise IrreversibleOrderError, <<~MSG.squish
+            Relation has no current order, and #{model} has no order columns to use as a default.
+            At least one of `implicit_order_column` or `primary_key` must be set on the model.
+          MSG
         end
 
         order_query.flat_map do |o|

@@ -26,6 +26,7 @@ require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
 require "models/cpk"
+require "models/edge"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -1055,10 +1056,91 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_last_with_irreversible_order
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+  def test_first_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::OrderError) do
+      Edge.all.first
+    end
+    assert_equal <<~MSG.squish, error.message
+      Relation has no current order, and Edge has no order columns to use as a default.
+      At least one of `implicit_order_column`, `query_constraints`, or `primary_key` must be set on the model.
+    MSG
+  end
+
+  def test_first_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_first_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def first_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_last_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::OrderError) do
+      Edge.all.last
+    end
+    assert_equal <<~MSG.squish, error.message
+      Relation has no current order, and Edge has no order columns to use as a default.
+      At least one of `implicit_order_column`, `query_constraints`, or `primary_key` must be set on the model.
+    MSG
+  end
+
+  def test_last_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def last_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_irreversible_order_value
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order(Arel.sql("coalesce(author_name, title)")).last
     end
+    assert_equal "Order \"coalesce(author_name, title)\" cannot be reversed automatically", error.message
   end
 
   def test_last_on_relation_with_limit_and_offset
