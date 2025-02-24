@@ -1,3 +1,7 @@
+*   Respect `implicit_order_column` in `ActiveRecord::Relation#reverse_order`.
+
+    *Joshua Young*
+
 *   Add column types to `ActiveRecord::Result` for SQLite3.
 
     *Andrew Kane*

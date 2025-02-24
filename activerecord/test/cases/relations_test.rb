@@ -370,6 +370,19 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_default_reverse_order_on_table_without_primary_key_with_implicit_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+
+    ordered_edge.delete_all
+
+    edge_1 = ordered_edge.create!(source_id: 1, sink_id: 2)
+    edge_2 = ordered_edge.create!(source_id: 2, sink_id: 3)
+    assert_equal edge_1.source_id, ordered_edge.all.first.source_id
+    assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
