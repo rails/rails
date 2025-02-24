@@ -323,8 +323,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.configure_message_verifiers" do
       config.before_initialize do |app|
         secret = ActiveRecord::Base.signed_id_verifier_secret
-        secret ||= -> (_) { Rails.application.key_generator.generate_key("active_record/signed_id") }
-        secret_generator = secret.respond_to?(:call) ? secret : -> (_) { secret }
+        secret_generator = if secret
+          secret.respond_to?(:call) ? -> (_) { secret.call } : -> (_) { secret }
+        else
+          -> (_) { Rails.application.key_generator.generate_key("active_record/signed_id") }
+        end
         legacy_options = { secret_generator: secret_generator, digest: "SHA256", serializer: JSON, url_safe: true }.compact
 
         if app.config.active_record.use_legacy_signed_id_verifier == :generate_and_verify
@@ -340,7 +343,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_signed_id_verifier" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
-          self.signed_id_verifier ||= app.message_verifier("active_record/signed_id")
+          self.global_signed_id_verifier = app.message_verifier("active_record/signed_id")
         end
       end
     end
