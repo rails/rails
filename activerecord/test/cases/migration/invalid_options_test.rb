@@ -22,7 +22,13 @@ module ActiveRecord
       end
 
       def invalid_add_index_option_exception_message(key)
-        "Unknown key: :#{key}. Valid keys are: :unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct"
+        default_keys = [":unique", ":length", ":order", ":opclass", ":where", ":type", ":using", ":comment", ":algorithm", ":include", ":nulls_not_distinct"]
+
+        if connection.supports_disabling_indexes?
+          default_keys.concat([":enabled"])
+        end
+
+        "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
       end
 
       def invalid_create_table_option_exception_message(key)
