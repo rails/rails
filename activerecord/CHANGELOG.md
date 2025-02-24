@@ -1,3 +1,9 @@
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    *Joshua Young*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
