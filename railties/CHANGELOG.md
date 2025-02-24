@@ -1,3 +1,7 @@
+*   Prevent authentication generation if the ActionMailer is not part of the application.
+
+    *juanvqz*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 

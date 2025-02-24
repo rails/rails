@@ -136,6 +136,18 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     ActionCable.const_set(:Engine, old_value)
   end
 
+  def test_aborts_when_action_mailer_is_not_defined
+    old_value = ActionMailer.const_get(:Railtie)
+    ActionMailer.send(:remove_const, :Railtie)
+    generator([destination_root])
+
+    assert_raises RuntimeError, match: "Action Mailer is not defined in the application." do
+      run_generator_instance
+    end
+  ensure
+    ActionMailer.const_set(:Railtie, old_value)
+  end
+
   private
     def run_generator_instance
       commands = []
