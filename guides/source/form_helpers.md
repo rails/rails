@@ -288,7 +288,7 @@ It will generate this HTML:
 
 Some important things to notice when using `form_with` with a model object:
 
-* The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
+* The form `action` is automatically filled with an appropriate value, `action="/books/42"`. If you were creating a book, it would be `action="/books"`.
 * The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
 * The submit button is automatically given an appropriate text value, "Update Book" in this case.
 
