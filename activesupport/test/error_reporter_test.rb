@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
 require "active_support/error_reporter/test_helper"
+require "active_support/core_ext/object/with"
 
 class ErrorReporterTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
@@ -361,5 +362,54 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
     expected = "Error subscriber raised an error: Big Oopsie (ErrorReporterTest::FailingErrorSubscriber::Error)"
     assert_equal expected, log.string.lines.first.chomp
+  end
+
+  test "report includes metadata from metadata provider" do
+    metadata_provider = -> (_) { { foo: :bar } }
+    @reporter.with(metadata_providers: [metadata_provider]) do
+      error = ArgumentError.new("Oops")
+
+      @reporter.report(error)
+
+      assert_equal [[error, true, :warning, "application", { metadata: { foo: :bar } }]], @subscriber.events
+    end
+  end
+
+  test "metadata provider does not overwrite explicitly passed metadata" do
+    metadata_provider = -> (_) { { foo: :bar } }
+    @reporter.with(metadata_providers: [metadata_provider]) do
+      error = ArgumentError.new("Oops")
+
+      @reporter.report(error, context: { metadata: :baz })
+
+      assert_equal [[error, true, :warning, "application", { metadata: :baz }]], @subscriber.events
+    end
+  end
+
+  class MetadataProvider
+    def call(_)
+      { bar: :baz }
+    end
+  end
+
+  test "can have multiple metadata providers" do
+    reporter = ActiveSupport::ErrorReporter.new
+    reporter.subscribe(@subscriber)
+    reporter.add_metadata_provider(-> (_) { { foo: :bar } })
+    reporter.add_metadata_provider(MetadataProvider.new)
+
+    error = ArgumentError.new("Oops")
+    reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { metadata: { foo: :bar, bar: :baz } }]], @subscriber.events
+  end
+
+  test "last provider to write a key wins" do
+    @reporter.with(metadata_providers: [-> (_) { { foo: :bar } }, -> (_) { { foo: :baz } }]) do
+      error = ArgumentError.new("Oops")
+      @reporter.report(error)
+
+      assert_equal [[error, true, :warning, "application", { metadata: { foo: :baz } }]], @subscriber.events
+    end
   end
 end
