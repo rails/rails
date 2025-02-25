@@ -857,7 +857,7 @@ Controllers & Actions
 Now that we've defined routes for Products, let's implement the controller and
 actions to handle requests to these URLs.
 
-This command will generate a `ProductsController with an index action. Since
+This command will generate a `ProductsController` with an index action. Since
 we've already set up routes, we can skip that part of the generator using a
 flag.
 
@@ -1080,8 +1080,8 @@ helpers you can use for generating URLs with Ruby code.
 
 These route prefixes give us helpers like the following:
 
-* `products_path` generates `"/products`"`
-* `products_url` generates `"http://localhost:3000/products`"`
+* `products_path` generates `"/products"`
+* `products_url` generates `"http://localhost:3000/products"`
 * `product_path(1)` generates `"/products/1"`
 * `product_url(1)` generates `"http://localhost:3000/products/1"`
 
