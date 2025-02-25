@@ -495,7 +495,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert_predicate request.parameters["leaks"], :nil?
+      assert_nil request.parameters["leaks"]
     end
   end
 
