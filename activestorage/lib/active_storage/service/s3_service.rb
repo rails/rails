@@ -11,10 +11,14 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket
+    attr_reader :bucket, :client, :default_digest_algorithm
     attr_reader :multipart_upload_threshold, :upload_options
+    SUPPORTED_CHECKSUM_ALGORITHMS = [
+          :MD5,
+          :SHA256,
+        ]
 
-    def initialize(bucket:, upload: {}, public: false, **options)
+    def initialize(bucket:, upload: {}, public: false, default_digest_algorithm: :MD5, **options)
       @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
@@ -23,6 +27,8 @@ module ActiveStorage
 
       @upload_options = upload
       @upload_options[:acl] = "public-read" if public?
+      @default_digest_algorithm = default_digest_algorithm.to_sym
+      raise ActiveStorage::UnsupportedChecksumError unless SUPPORTED_CHECKSUM_ALGORITHMS.include?(@default_digest_algorithm)
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)
@@ -94,7 +100,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      { "Content-Type" => content_type, **s3_http_headers_for_direct_upload(checksum), "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
     end
 
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
@@ -131,9 +137,11 @@ module ActiveStorage
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
       def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil, custom_metadata: {})
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
+        object_for(key).put(body: io, **s3_sdk_upload_params(checksum), content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
+  rescue Aws::S3::Errors::InvalidRequest => e
+    raise ActiveStorage::IntegrityError if e.message.match?(/Value for x-amz-checksum-.* header is invalid./)
       end
 
       def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
@@ -166,6 +174,42 @@ module ActiveStorage
 
       def custom_metadata_headers(metadata)
         metadata.transform_keys { |key| "x-amz-meta-#{key}" }
+      end
+
+      def s3_sdk_upload_params(checksum)
+        return {} unless checksum
+
+        split_result = checksum.split(":")
+        algorithm = if split_result.count == 2
+          split_result.unshift
+        else
+          :MD5
+        end
+        return { content_md5: checksum } if algorithm == :MD5
+
+        {
+          checksum_algorithm: algorithm,
+          "checksum_#{algorithm.downcase}": split_result.unshift
+        }
+      end
+
+      def s3_http_headers_for_direct_upload(checksum)
+        return {} unless checksum
+
+        split_result = checksum.split(":")
+        algorithm = if split_result.count == 2
+          split_result.unshift
+        else
+          :MD5
+        end
+
+        return { "Content-MD5" => checksum } if algorithm == :MD5
+
+        { "x-amz-checksum-#{algorithm.downcase}" => split_result.unshift }
+      end
+
+      def sha256
+        OpenSSL::Digest::SHA256
       end
   end
 end
