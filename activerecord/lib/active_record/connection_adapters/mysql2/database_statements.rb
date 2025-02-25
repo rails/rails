@@ -121,7 +121,8 @@ module ActiveRecord
             result = if fields.empty?
               ActiveRecord::Result.empty
             else
-              ActiveRecord::Result.new(fields, raw_result.to_a)
+              types = raw_result.field_types.map { |t| type_map.lookup(t) }
+              ActiveRecord::Result.new(fields, raw_result.to_a, types)
             end
 
             free_raw_result(raw_result)

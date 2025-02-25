@@ -1681,6 +1681,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "t.lo", topic.author_name
   end
 
+  if current_adapter?(:Mysql2Adapter)
+    def test_column_types_on_queries_on_mysql2
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT approved FROM topics")
+      assert_equal ActiveModel::Type::Boolean, result.column_types["approved"].class
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_column_types_on_queries_on_postgresql
       result = ActiveRecord::Base.lease_connection.exec_query("SELECT 1 AS test")

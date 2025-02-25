@@ -1,3 +1,7 @@
+*   Add column types to `ActiveRecord::Result` for the mysql2 adapter.
+
+    *Andrew Kane*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
