@@ -179,6 +179,14 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.update_all("name = toys.name")
   end
 
+
+  def test_update_all_with_multiple_condition_join
+    relation = Toy.left_joins(:sponsors)
+
+    assert_equal(3, relation.count)
+    assert_equal(3, relation.update_all(name: "sponsor-toy"))
+  end
+
   def test_update_all_with_left_outer_joins
     pets = Pet.left_outer_joins(:toys)
 
