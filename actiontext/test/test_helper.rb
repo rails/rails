@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
