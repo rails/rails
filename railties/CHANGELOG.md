@@ -1,3 +1,10 @@
+*   Use `tmp/local_secret.txt` as the source for `secret_key_base` in `development` and
+    `test` unless an environment specific credentials file exists with `secret_key_base` in it
+    such as `config/credentials/development.yml.enc` as opposed to the generic
+    `config/credentials.yml.enc` generally used for production purposes.
+
+    *Brendon Muir*
+
 *   Rate limit password resets in authentication generator
 
     This helps mitigate abuse from attackers spamming the password reset form.

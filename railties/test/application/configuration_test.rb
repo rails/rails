@@ -887,7 +887,10 @@ module ApplicationTests
       ENV.delete "SECRET_KEY_BASE"
     end
 
-    test "application will use secret_key_base from credentials if present in local env" do
+    test "application will use secret_key_base from credentials if present in explicit local env" do
+      FileUtils.mkdir "#{app_path}/config/credentials"
+      FileUtils.mv "#{app_path}/config/credentials.yml.enc", "#{app_path}/config/credentials/development.yml.enc"
+
       credentials_secret = "credentials_secret"
       add_to_config <<-RUBY
         Rails.application.credentials.secret_key_base = "#{credentials_secret}"
@@ -896,6 +899,9 @@ module ApplicationTests
       app "development"
 
       assert_equal credentials_secret, app.secret_key_base
+    ensure
+      FileUtils.mv "#{app_path}/config/credentials/development.yml.enc", "#{app_path}/config/credentials.yml.enc"
+      FileUtils.rmdir "#{app_path}/config/credentials"
     end
 
     test "application will not generate secret_key_base in tmp file if blank in production" do
