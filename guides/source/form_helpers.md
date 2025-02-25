@@ -282,7 +282,7 @@ It will generate this HTML:
     <label for="book_author">Author</label>
     <input type="text" name="book[author]" id="book_author">
   </div>
-  <input type="submit" name="commit" value="Create Book" data-disable-with="Create Book">
+  <input type="submit" name="commit" value="Update Book" data-disable-with="Update Book">
 </form>
 ```
 
@@ -290,7 +290,7 @@ Some important things to notice when using `form_with` with a model object:
 
 * The form `action` is automatically filled with an appropriate value, `action="/books"`. If you were updating a book, it would be `action="/books/42"`.
 * The form field names are scoped with `book[...]`. This means that `params[:book]` will be a hash containing all these field's values. You can read more about the significance of input names in chapter [Form Input Naming Conventions and Params Hash](#form-input-naming-conventions-and-params-hash) of this guide.
-* The submit button is automatically given an appropriate text value, "Create Book" in this case.
+* The submit button is automatically given an appropriate text value, "Update Book" in this case.
 
 TIP: Typically your form inputs will mirror model attributes. However, they don't have to. If there is other information you need you can include a field in your form and access it via `params[:book][:my_non_attribute_input]`.
 
