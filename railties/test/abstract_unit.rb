@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../../tools/strict_warnings"
-
 ENV["RAILS_ENV"] ||= "test"
 
 require "stringio"
