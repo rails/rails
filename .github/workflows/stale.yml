@@ -1,0 +1,33 @@
+name: "rails-bot: Stale Issues"
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 90
+          days-before-close: 7
+          operations-per-run: 100
+          exempt-milestones: true
+          exempt-issue-labels: 'pinned,security,With reproduction steps,attached PR,regression,release blocker,more-information-needed'
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-all-milestones: true
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not been commented on for at least three months.
+
+            The resources of the Rails team are limited, and so we are asking for your help.
+
+            If you can still reproduce this error on the `7-2-stable` branch or on `main`,
+            please reply with all of the information you have about it in order to keep the issue open.
+
+            Thank you for all your contributions.
+          only-pr-labels: false
