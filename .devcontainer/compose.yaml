@@ -30,7 +30,7 @@ services:
       POSTGRES_PASSWORD: postgres
 
   mariadb:
-    image: mariadb:latest
+    image: mariadb:lts
     restart: unless-stopped
     volumes:
       - mariadb-data:/var/lib/mysql
