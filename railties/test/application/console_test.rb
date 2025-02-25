@@ -119,7 +119,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e test -- --verbose"
     spawn_console(options)
 
-    write_prompt "a = 1", "a = 1", prompt: "app-template(test)>"
+    write_prompt "a = 1", "a = 1", prompt: "app-template(test):"
   end
 
   def test_prompt_allows_changing_irb_name
@@ -127,7 +127,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     spawn_console(options)
 
     write_prompt "conf.irb_name = 'foo'"
-    write_prompt "a = 1", "a = 1", prompt: "foo(test)>"
+    write_prompt "a = 1", "a = 1", prompt: "foo(test):"
     @primary.puts "quit"
   end
 
@@ -144,21 +144,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e production"
     spawn_console(options)
 
-    write_prompt "123", prompt: "app-template(prod)>"
+    write_prompt "123", prompt: "app-template(prod):"
   end
 
   def test_development_console_prompt
     options = "-e development"
     spawn_console(options)
 
-    write_prompt "123", prompt: "app-template(dev)> "
+    write_prompt "123", prompt: "app-template(dev):"
   end
 
   def test_test_console_prompt
     options = "-e test"
     spawn_console(options)
 
-    write_prompt "123", prompt: "app-template(test)> "
+    write_prompt "123", prompt: "app-template(test):"
   end
 
   def test_helper_helper_method
