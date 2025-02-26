@@ -1354,7 +1354,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../..:/workspaces:cached"],
+        "volumes" => ["../../#{app_name}:/workspaces/#{app_name}:cached"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
