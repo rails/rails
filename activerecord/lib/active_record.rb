@@ -354,6 +354,9 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
+  singleton_class.attr_accessor :run_transaction_callbacks_in_same_sequence
+  self.run_transaction_callbacks_in_same_sequence = false
+
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 

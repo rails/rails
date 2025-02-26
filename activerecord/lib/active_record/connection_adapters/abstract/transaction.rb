@@ -338,13 +338,15 @@ module ActiveRecord
         end
 
         def run_action_on_records(records, instances_to_run_callbacks_on)
-          records = records.sort do |a, b|
-            if a._stmt_timestamp && b._stmt_timestamp
-              a._stmt_timestamp <=> b._stmt_timestamp
-            elsif a._stmt_timestamp
-              -1
-            else
-              1
+          if ActiveRecord.run_transaction_callbacks_in_same_sequence
+            records = records.sort do |a, b|
+              if a._stmt_timestamp && b._stmt_timestamp
+                a._stmt_timestamp <=> b._stmt_timestamp
+              elsif a._stmt_timestamp
+                -1
+              else
+                1
+              end
             end
           end
 

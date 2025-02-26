@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/with"
 require "cases/helper"
 require "models/owner"
 require "models/pet"
@@ -711,8 +712,18 @@ class CallbackOrderTest < ActiveRecord::TestCase
     end
 
     old, ActiveRecord.before_committed_on_all_records = ActiveRecord.before_committed_on_all_records, true
-    model.new.save
-    assert_equal([1, 2], history)
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([2, 1], history)
+    end
   ensure
     ActiveRecord.before_committed_on_all_records = old
   end
@@ -729,8 +740,17 @@ class CallbackOrderTest < ActiveRecord::TestCase
       after_commit -> { history << 2 }
     end
 
-    model.new.save
-    assert_equal([1, 2], history)
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([2, 1], history)
+    end
   end
 
   def test_before_commit_callbacks_called_in_the_same_order_as_the_executed_statements_when_a_record_gets_created_after_a_transaction_opens
@@ -747,8 +767,17 @@ class CallbackOrderTest < ActiveRecord::TestCase
       end
     end
 
-    model.new.save
-    assert_equal([1, 2], history)
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
   end
 
   def test_after_rollback_when_the_transaction_is_aborted_and_a_record_was_added_to_the_transaction
@@ -766,8 +795,19 @@ class CallbackOrderTest < ActiveRecord::TestCase
       before_save -> { another_model.create }
     end
 
-    model.new.save
-    assert_equal([1], history)
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+
+      assert_equal([1], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+
+      assert_equal([1], history)
+    end
   end
 
   def test_callbacks_run_in_order_defined_in_model_if_using_run_after_transaction_callbacks_in_order_defined

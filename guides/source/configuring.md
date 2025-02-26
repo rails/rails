@@ -1496,6 +1496,39 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+#### `config.active_record.run_transaction_callbacks_in_same_sequence`
+
+When `true`, all transactional callbacks such as `before_commit`, `after_commit` and their rollbacks counterpart will
+be executed in the same sequence as the executed SQL statements.
+
+When `false`, the transactional callbacks will be run in the same order that persistence methods, (such as `save`)
+gets called.
+
+```ruby
+class Post < ApplicationRecord
+  before_commit -> { puts "Hello" }
+end
+
+class Comment < ApplicationRecord
+  before_save -> { Post.create }
+  before_commit -> { puts "World" }
+end
+
+Comment.create!
+
+# The resulting SQL query will be: (This doesn't change)
+# BEGIN TRANSACTION
+#   INSERT INTO posts ...
+#   INSERT INTO comments ...
+# COMMIT
+
+# When `run_transaction_callbacks_in_same_sequence` is `true` the callback order will match
+# the sequence of the transaction. "Hello World" is output.
+
+# When `run_transaction_callbacks_in_same_sequence` is `false` the callback order will match
+# the order of `save`. "World Hello" is output.
+```
+
 #### `config.active_record.query_log_tags_enabled`
 
 Specifies whether or not to enable adapter-level query comments. Defaults to
