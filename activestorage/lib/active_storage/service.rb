@@ -170,10 +170,20 @@ module ActiveStorage
     end
 
     def checksum_implementation(**)
-      ActiveStorage.checksum_implementation
+      md5
     end
 
     private
+      def md5
+        return @md5_class if @md5_class
+        @md5_class = OpenSSL::Digest::MD5
+        @md5_class.hexdigest("test")
+        OpenSSL::Digest::MD5
+      rescue # OpenSSL may have MD5 disabled
+        require "digest/md5"
+        @md5_class = Digest::MD5
+      end
+
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
       end
