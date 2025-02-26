@@ -319,7 +319,7 @@ module Rails
 
         def run_after_generate_callback
           if defined?(@@generated_files) && !@@generated_files.empty?
-            @after_generate_callbacks.each do |callback|
+            after_generate_callbacks.each do |callback|
               callback.call(@@generated_files)
             end
             @@generated_files = []
