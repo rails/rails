@@ -136,7 +136,7 @@ module ActiveRecord
     #
     # #transaction calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
-    # transaction. For example, the following behavior may be surprising:
+    # transaction. This can lead to suprising behavior with ActiveRecord::Rollback.
     #
     #   User.transaction do
     #     User.create(username: 'Kotori')
@@ -165,6 +165,10 @@ module ActiveRecord
     #   end
     #
     # only "Kotori" is created.
+    #
+    # The above only applies to ActiveRecord::Rollback, as it is a special case that
+    # is explicitly prevented from being passed on. Any other exception will rollback the
+    # transaction and pass on the exception.
     #
     # Most databases don't support true nested transactions. At the time of
     # writing, the only database that we're aware of that supports true nested
