@@ -11,9 +11,7 @@
 
     *Sean Doyle*
 
-*   Add support for alternative MD5 implementation through `config.active_storage.checksum_implementation`.
-
-    Also automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
+*   Automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
     is found to be disabled because of OpenSSL FIPS mode.
 
     *Matt Pasquini*, *Jean Boussier*
