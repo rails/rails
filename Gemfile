@@ -65,7 +65,7 @@ end
 
 group :doc do
   gem "sdoc"
-  gem "redcarpet", "~> 3.2.3", platforms: :ruby
+  gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
   # Workaround until https://github.com/rouge-ruby/rouge/pull/2131 is merged and released
