@@ -33,6 +33,28 @@ class ParamBuilderTest < ActiveSupport::TestCase
         assert_equal({ "foo" => { "bar" => "baz" } }, result)
       end
     end
+
+    test "(rack 2) when nested brackets are used in parameters" do
+      assert_deprecated(ActionDispatch.deprecator) do
+        query_string = "subscription[included_prices_attributes[0][price_id[1][name]]]=3"
+
+        result = ActionDispatch::ParamBuilder.from_query_string(query_string)
+        expected = {
+          "subscription" => {
+            "included_prices_attributes" => {
+              "0" => {
+                "price_id" => {
+                  "1" => {
+                    "name" => "3"
+                  }
+                }
+              }
+            }
+          }
+        }
+        assert_equal(expected, result)
+      end
+    end
   else
     test "(rack 3) defaults to retaining leading bracket" do
       result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
@@ -40,6 +62,24 @@ class ParamBuilderTest < ActiveSupport::TestCase
 
       result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
       assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
+    end
+
+    test "(rack 3) when nested brackets are used in parameters" do
+      query_string = "subscription[included_prices_attributes[0][price_id[1][name]]]=3"
+
+      result = ActionDispatch::ParamBuilder.from_query_string(query_string)
+      expected = {
+        "subscription" => {
+          "included_prices_attributes[0" => {
+            "price_id[1" => {
+              "name" => {
+                "]]" => "3"
+              }
+            }
+          }
+        }
+      }
+      assert_equal(expected, result)
     end
   end
 
