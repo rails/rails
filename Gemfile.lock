@@ -714,7 +714,7 @@ DEPENDENCIES
   resque-scheduler
   rexml
   rouge
-  rubocop (>= 1.25.1)
+  rubocop (< 1.73)
   rubocop-md
   rubocop-minitest
   rubocop-packaging
