@@ -209,7 +209,7 @@ module ActiveSupport
     # before passing to subscribers. Allows creation of entries in error context that
     # are shared by all subscribers.
     #
-    # A context middleware receives the error and current state of the context hash.
+    # A context middleware receives the same parameters as #report.
     # It must return a hash - the middleware stack returns the hash after it has
     # run through all middlewares. A middleware can mutate or replace the hash.
     #
@@ -242,7 +242,10 @@ module ActiveSupport
 
       full_context = @context_middlewares.execute(
         error,
-        ActiveSupport::ExecutionContext.to_h.merge(context || {})
+        context: ActiveSupport::ExecutionContext.to_h.merge(context || {}),
+        handled:,
+        severity:,
+        source:
       )
 
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
@@ -308,9 +311,9 @@ module ActiveSupport
           @stack << middleware
         end
 
-        # Run all middlewares in the stack on an error and context.
-        def execute(error, context)
-          @stack.inject(context) { |c, middleware| middleware.call(error, c) }
+        # Run all middlewares in the stack
+        def execute(error, handled:, severity:, context:, source:)
+          @stack.inject(context) { |c, middleware| middleware.call(error, context: c, handled:, severity:, source:) }
         end
       end
   end

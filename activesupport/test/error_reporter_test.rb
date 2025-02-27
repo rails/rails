@@ -364,7 +364,7 @@ class ErrorReporterTest < ActiveSupport::TestCase
   end
 
   test "error context middleware can mutate context hash" do
-    middleware = -> (_, context) { context.merge({ foo: :bar }) }
+    middleware = -> (_, context:, **kwargs) { context.merge({ foo: :bar }) }
 
     error = ArgumentError.new("Oops")
 
@@ -375,13 +375,13 @@ class ErrorReporterTest < ActiveSupport::TestCase
   end
 
   class MyErrorContextMiddleware
-    def call(_, context)
+    def call(_, context:, **kwargs)
       context.merge({ bar: :baz })
     end
   end
 
   test "can have multiple error context middlewares" do
-    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :bar }) })
+    @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :bar }) })
     @reporter.add_middleware(MyErrorContextMiddleware.new)
 
     error = ArgumentError.new("Oops")
@@ -391,11 +391,28 @@ class ErrorReporterTest < ActiveSupport::TestCase
   end
 
   test "last error context middleware to update a key wins" do
-    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :bar }) })
-    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :baz }) })
+    @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :bar }) })
+    @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :baz }) })
     error = ArgumentError.new("Oops")
     @reporter.report(error)
 
     assert_equal [[error, true, :warning, "application", { foo: :baz }]], @subscriber.events
+  end
+
+  test "error context middleware receives same parameters as #report" do
+    reported_error = ArgumentError.new("Oops")
+    @reporter.add_middleware(-> (error, context:, handled:, severity:, source:) {
+        assert_equal reported_error, error
+        assert_equal Hash.new, context
+        assert_equal true, handled
+        assert_equal :warning, severity
+        assert_equal ActiveSupport::ErrorReporter::DEFAULT_SOURCE, source
+
+        context.merge({ foo: :bar })
+      })
+
+    @reporter.report(reported_error)
+
+    assert_equal [[reported_error, true, :warning, "application", { foo: :bar }]], @subscriber.events
   end
 end
