@@ -1659,7 +1659,7 @@ You can also update the Edit and Delete links on the
 <%= link_to "Back", products_path %>
 <% if authenticated? %>
   <%= link_to "Edit", edit_product_path(@product) %>
-  <%= button_to "Delete", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+  <%= button_to "Delete", @product, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
 <% end %>
 ```
 
@@ -2505,7 +2505,7 @@ Then we'll update `app/views/products/show.html.erb` to use these new styles.
 
     <% if authenticated? %>
       <%= link_to "Edit", edit_product_path(@product) %>
-      <%= button_to "Delete", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+      <%= button_to "Delete", @product, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
     <% end %>
   </section>
 </section>
