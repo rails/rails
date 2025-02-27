@@ -38,7 +38,7 @@ module ActiveSupport
       #   ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
       #   # => "{\"key\":\"<>&\"}"
       def encode(value, options = nil)
-        if options.nil?
+        if options.nil? || options.empty?
           Encoding.encode_without_options(value)
         else
           Encoding.json_encoder.new(options).encode(value)
