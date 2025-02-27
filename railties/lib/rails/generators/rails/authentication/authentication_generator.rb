@@ -54,11 +54,8 @@ module Rails
       end
 
       def configure_test_helper
-        inject_into_file "test/test_helper.rb",
-                 "require_relative \"helpers/session_test_helper\"\n",
-                 after: "require \"rails/test_help\"\n"
-        inject_into_class "test/test_helper.rb", "TestCase",
-                  "    include SessionTestHelper\n"
+        inject_into_file "test/test_helper.rb", "require_relative \"helpers/session_test_helper\"\n", after: "require \"rails/test_help\"\n"
+        inject_into_class "test/test_helper.rb", "TestCase", "    include SessionTestHelper\n"
       end
 
       hook_for :test_framework
