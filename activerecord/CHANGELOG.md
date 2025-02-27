@@ -1,3 +1,11 @@
+*   Allow bypassing primary key/constraint addition in `implicit_order_column`
+
+    When specifying multiple columns in an array for `implicit_order_column`, adding
+    `nil` as the last element will prevent appending the primary key to order
+    conditions, thus improving performance for certain database queries.
+
+    *Issy Long*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
