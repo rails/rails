@@ -13,12 +13,30 @@ module ActiveSupport
   end
 
   module JSON
-    # Dumps objects in JSON (JavaScript Object Notation).
-    # See http://www.json.org for more info.
-    #
-    #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
-    #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
     class << self
+      # Dumps objects in JSON (JavaScript Object Notation).
+      # See http://www.json.org for more info.
+      #
+      #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
+      #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
+      #
+      # Generates JSON that is safe to include in JavaScript as it escapes
+      # U+2028 (Line Separator) and U+2029 (Paragraph Separator):
+      #
+      #   ActiveSupport::JSON.encode({ key: "\u2028" })
+      #   # => "{\"key\":\"\\u2028\"}"
+      #
+      # By default, it also generates JSON that is safe to include in HTML, as
+      # it escapes <tt><</tt>, <tt>></tt>, and <tt>&</tt>:
+      #
+      #   ActiveSupport::JSON.encode({ key: "<>&" })
+      #   # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
+      #
+      # This can be changed with the +escape_html_entities+ option, or the
+      # global escape_html_entities_in_json configuration option.
+      #
+      #   ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
+      #   # => "{\"key\":\"<>&\"}"
       def encode(value, options = nil)
         Encoding.json_encoder.new(options).encode(value)
       end
