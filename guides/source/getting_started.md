@@ -1519,7 +1519,7 @@ To make this work, we need to add a Delete button to
 
 <%= link_to "Back", products_path %>
 <%= link_to "Edit", edit_product_path(@product) %>
-<%= button_to "Delete", @product, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+<%= button_to "Delete", @product, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" } %>
 ```
 
 `button_to` generates a form with a single button in it with the "Delete" text.
