@@ -343,7 +343,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.set_signed_id_verifier" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:active_record) do
-          self.global_signed_id_verifier = app.message_verifier("active_record/signed_id")
+          self.message_verifiers = app.message_verifiers
         end
       end
     end

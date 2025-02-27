@@ -21,16 +21,14 @@ class SignedIdTest < ActiveRecord::TestCase
   fixtures :accounts, :toys, :companies
 
   setup do
-    @original_verifier = ActiveRecord::Base.global_signed_id_verifier
-
-    ActiveRecord::Base.global_signed_id_verifier = ActiveSupport::MessageVerifier.new("secret")
+    ActiveRecord::Base.signed_id_verifier = ActiveSupport::MessageVerifier.new("secret")
 
     @account = Account.first
     @toy = Toy.first
   end
 
   teardown do
-    ActiveRecord::Base.global_signed_id_verifier = @original_verifier
+    ActiveRecord::Base.signed_id_verifier = nil
   end
 
   test "find signed record" do
