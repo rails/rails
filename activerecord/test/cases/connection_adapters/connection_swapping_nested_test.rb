@@ -460,6 +460,34 @@ module ActiveRecord
           Object.send(:remove_const, :ApplicationRecord)
           ActiveRecord::Base.establish_connection :arunit
         end
+
+        def test_prevent_writes_handles_class_reloading
+          # Regression test for https://github.com/rails/rails/issues/54343
+          Object.const_set(:ReloadedRecord, Class.new(ActiveRecord::Base) { self.abstract_class = true })
+          ReloadedRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+            ReloadedRecord.connected_to(role: :writing, prevent_writes: false) do
+              assert_not_predicate ReloadedRecord.lease_connection, :preventing_writes?
+            end
+          end
+
+          # emulate a reload in development mode
+          Object.send(:remove_const, :ReloadedRecord)
+          Object.const_set(:ReloadedRecord, Class.new(ActiveRecord::Base) { self.abstract_class = true })
+          ReloadedRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          ActiveRecord::Base.connected_to(role: :reading, prevent_writes: true) do
+            ReloadedRecord.connected_to(role: :writing, prevent_writes: false) do
+              assert_not_predicate ReloadedRecord.lease_connection, :preventing_writes?
+            end
+          end
+        ensure
+          ReloadedRecord.remove_connection
+          ActiveRecord.application_record_class = nil
+          Object.send(:remove_const, :ReloadedRecord)
+          ActiveRecord::Base.establish_connection :arunit
+        end
       end
     end
   end

@@ -31,6 +31,7 @@ module Rails
 
       def execute(*)
         app = Rails.application
+        app.reload_routes_unless_loaded
         session = ActionDispatch::Integration::Session.new(app)
 
         # This makes app.url_for and app.foo_path available in the console
@@ -89,9 +90,9 @@ module Rails
         IRB.conf[:IRB_NAME] = @app.name
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
-          PROMPT_I: "#{prompt_prefix}> ",
-          PROMPT_S: "#{prompt_prefix}%l ",
-          PROMPT_C: "#{prompt_prefix}* ",
+          PROMPT_I: "#{prompt_prefix}:%03n> ",
+          PROMPT_S: "#{prompt_prefix}:%03n%l ",
+          PROMPT_C: "#{prompt_prefix}:%03n* ",
           RETURN: "=> %s\n"
         }
 

@@ -183,7 +183,7 @@ module ActionDispatch
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
                              required_defaults: required_defaults, defaults: defaults,
-                             request_method_match: request_method, precedence: precedence,
+                             via: @via, precedence: precedence,
                              scope_options: scope_options, internal: @internal, source_location: route_source_location)
         end
 
@@ -203,11 +203,6 @@ module ActionDispatch
           end
         end
         private :build_conditions
-
-        def request_method
-          @via.map { |x| Journey::Route.verb_matcher(x) }
-        end
-        private :request_method
 
         private
           def intern(object)
@@ -977,7 +972,7 @@ module ActionDispatch
         #
         # Takes same options as `Base#match` and `Resources#resources`.
         #
-        #     # route /posts (without the prefix /admin) to +Admin::PostsController+
+        #     # route /posts (without the prefix /admin) to Admin::PostsController
         #     scope module: "admin" do
         #       resources :posts
         #     end
@@ -987,7 +982,7 @@ module ActionDispatch
         #       resources :posts
         #     end
         #
-        #     # prefix the routing helper name: +sekret_posts_path+ instead of +posts_path+
+        #     # prefix the routing helper name: sekret_posts_path instead of posts_path
         #     scope as: "sekret" do
         #       resources :posts
         #     end
@@ -1090,12 +1085,12 @@ module ActionDispatch
         #       resources :posts
         #     end
         #
-        #     # maps to +Sekret::PostsController+ rather than +Admin::PostsController+
+        #     # maps to Sekret::PostsController rather than Admin::PostsController
         #     namespace :admin, module: "sekret" do
         #       resources :posts
         #     end
         #
-        #     # generates +sekret_posts_path+ rather than +admin_posts_path+
+        #     # generates sekret_posts_path rather than admin_posts_path
         #     namespace :admin, as: "sekret" do
         #       resources :posts
         #     end
@@ -1660,7 +1655,7 @@ module ActionDispatch
         #
         # ### Examples
         #
-        #     # routes call +Admin::PostsController+
+        #     # routes call Admin::PostsController
         #     resources :posts, module: "admin"
         #
         #     # resource actions are at /admin/posts.

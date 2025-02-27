@@ -226,9 +226,9 @@ module ActiveRecord
       # the value of +current_preventing_writes+.
       def preventing_writes?
         return true if replica?
-        return false if connection_class.nil?
+        return false if connection_descriptor.nil?
 
-        connection_class.current_preventing_writes
+        connection_descriptor.current_preventing_writes
       end
 
       def prepared_statements?
@@ -279,8 +279,8 @@ module ActiveRecord
         @owner = ActiveSupport::IsolatedExecutionState.context
       end
 
-      def connection_class # :nodoc:
-        @pool.connection_class
+      def connection_descriptor # :nodoc:
+        @pool.connection_descriptor
       end
 
       # The role (e.g. +:writing+) for the current connection. In a
@@ -552,6 +552,10 @@ module ActiveRecord
       end
 
       def supports_nulls_not_distinct?
+        false
+      end
+
+      def supports_disabling_indexes?
         false
       end
 
@@ -1131,7 +1135,7 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, &block) # :doc:
+        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block) # :doc:
           instrumenter.instrument(
             "sql.active_record",
             sql:               sql,
@@ -1139,6 +1143,7 @@ module ActiveRecord
             binds:             binds,
             type_casted_binds: type_casted_binds,
             async:             async,
+            allow_retry:       allow_retry,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
             affected_rows:     0,

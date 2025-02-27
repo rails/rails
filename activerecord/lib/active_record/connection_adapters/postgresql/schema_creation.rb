@@ -99,7 +99,7 @@ module ActiveRecord
               if options[:default].nil?
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} DROP DEFAULT"
               else
-                quoted_default = quote_default_expression(options[:default], column)
+                quoted_default = quote_default_expression_for_column_definition(options[:default], column)
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} SET DEFAULT #{quoted_default}"
               end
             end

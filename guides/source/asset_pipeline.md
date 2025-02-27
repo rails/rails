@@ -30,8 +30,8 @@ capabilities.
 
 Propshaft focuses on essential asset management tasks and leaves more complex
 tasks, such as JavaScript and CSS bundling and minification, to specialized
-tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails) and
-[`css-bundling-rails`](https://github.com/rails/cssbundling-rails), which can be
+tools like [`jsbundling-rails`](https://github.com/rails/jsbundling-rails) and
+[`cssbundling-rails`](https://github.com/rails/cssbundling-rails), which can be
 added separately to your application. Propshaft focuses on
 [fingerprinting](#fingerprinting-versioning-with-digest-based-urls) and
 emphasizes generating digest-based URLs for assets, allowing browsers to cache
@@ -135,11 +135,11 @@ dependencies:
     pre-processing, you may want to consider [advanced asset
     management](#advanced-asset-management) alongside Propshaft.
 
-    Tools like [`js-bundling-rails`](https://github.com/rails/jsbundling-rails)
+    Tools like [`jsbundling-rails`](https://github.com/rails/jsbundling-rails)
     integrates [Bun](https://bun.sh/), [esbuild](https://esbuild.github.io/),
     [rollup.js](https://rollupjs.org/), or [Webpack](https://webpack.js.org/)
     into your Rails application, while
-    [`css-bundling-rails`](https://github.com/rails/cssbundling-rails) can be
+    [`cssbundling-rails`](https://github.com/rails/cssbundling-rails) can be
     used to process stylesheets that use [Tailwind
     CSS](https://tailwindcss.com/), [Bootstrap](https://getbootstrap.com/),
     [Bulma](https://bulma.io/), [PostCSS](https://postcss.org/), or [Dart

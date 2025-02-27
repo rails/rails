@@ -1,0 +1,25 @@
+name: Devcontainer Shellcheck
+
+on:
+  pull_request:
+    paths:
+      - ".devcontainer/**/*.sh"
+  push:
+    paths:
+      - ".devcontainer/**/*.sh"
+
+permissions:
+  contents: read
+
+jobs:
+  devcontainer_shellcheck:
+    name: Devcontainer Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (GitHub)
+        uses: actions/checkout@v4
+
+      - name: Lint Devcontainer Scripts
+        run: |
+          sudo apt install -y shellcheck
+          find .devcontainer/ -name '*.sh' -print0 | xargs -0 shellcheck

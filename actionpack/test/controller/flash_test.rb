@@ -263,6 +263,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def set_html_flash
+      flash["that"] = ActiveSupport::SafeBuffer.new("<p>Hello world</p>")
+      head :ok
+    end
+
     def set_flash_now
       flash.now["that"] = "hello"
       head :ok
@@ -294,6 +299,18 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       get "/use_flash"
       assert_response :success
       assert_equal "flash: hello", @response.body
+    end
+  end
+
+  def test_flash_safebuffer
+    with_test_route_set do
+      get "/set_html_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "<p>Hello world</p>", @request.flash["that"]
+
+      get "/use_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "flash: <p>Hello world</p>", @response.body
     end
   end
 

@@ -3,6 +3,12 @@
 
     *Bijan Rahnema*
 
+*   Rate limit password resets in authentication generator
+
+    This helps mitigate abuse from attackers spamming the password reset form.
+
+    *Chris Oliver*
+
 *   Update `rails new --minimal` option
 
     Extend the `--minimal` flag to exlcude recently added features:
@@ -28,13 +34,6 @@
     instead of generating a `tmp/local_secret.txt` file.
 
     *Petrik de Heus*
-
-*   The authentication generator's `SessionsController` sets the `Clear-Site-Data` header on logout.
-
-    By default the header will be set to `"cache","storage"` to help prevent data leakage after
-    logout via the browser's "back/forward cache".
-
-    *Mike Dalessio*
 
 *   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 

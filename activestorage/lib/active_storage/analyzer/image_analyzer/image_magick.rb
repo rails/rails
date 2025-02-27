@@ -2,6 +2,7 @@
 
 begin
   gem "mini_magick"
+  require "mini_magick"
 rescue LoadError => error
   raise error unless error.message.include?("mini_magick")
 end

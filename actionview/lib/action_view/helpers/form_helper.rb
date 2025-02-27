@@ -31,7 +31,7 @@ module ActionView
     # of the resource should show the current values of those attributes.
     #
     # In \Rails, this is usually achieved by creating the form using either
-    # +form_with+ or +form_for+ and a number of related helper methods. These
+    # #form_with or #form_for and a number of related helper methods. These
     # methods generate an appropriate <tt>form</tt> tag and yield a form
     # builder object that knows the model the form is about. Input fields are
     # created by calling methods defined on the form builder, which means they
@@ -42,7 +42,7 @@ module ActionView
     #
     # For example, to create a new person you typically set up a new instance of
     # +Person+ in the <tt>PeopleController#new</tt> action, <tt>@person</tt>, and
-    # in the view template pass that object to +form_with+ or +form_for+:
+    # in the view template pass that object to #form_with or #form_for:
     #
     #   <%= form_with model: @person do |f| %>
     #     <%= f.label :first_name %>:
@@ -209,7 +209,7 @@ module ActionView
       # are designed to work with an object as base, like
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       #
-      # === #form_for with a model object
+      # === +form_for+ with a model object
       #
       # In the examples above, the object to be created or edited was
       # represented by a symbol passed to +form_for+, and we noted that
@@ -364,7 +364,7 @@ module ActionView
       #
       # === Removing hidden model id's
       #
-      # The form_for method automatically includes the model id as a hidden field in the form.
+      # The +form_for+ method automatically includes the model id as a hidden field in the form.
       # This is used to maintain the correlation between the form data and its associated model.
       # Some ORM systems do not use IDs on nested models so in this case you want to be able
       # to disable the hidden id.
@@ -784,12 +784,12 @@ module ActionView
         end
       end
 
-      # Creates a scope around a specific model object like +form_with+, but
+      # Creates a scope around a specific model object like #form_with, but
       # doesn't create the form tags themselves. This makes +fields_for+
       # suitable for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
-      # its method signature is slightly different. Like +form_with+, it yields
+      # Although the usage and purpose of +fields_for+ is similar to #form_with's,
+      # its method signature is slightly different. Like #form_with, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to
       # generate fields associated with the model object. Fields may reflect
@@ -848,7 +848,7 @@ module ActionView
       # === Nested Attributes Examples
       #
       # When the object belonging to the current scope has a nested attribute
-      # writer for a certain attribute, fields_for will yield a new scope
+      # writer for a certain attribute, +fields_for+ will yield a new scope
       # for that attribute. This allows you to create forms that set or change
       # the attributes of a parent object and its associations in one go.
       #
@@ -937,7 +937,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for +fields_for+ to correctly identify <tt>:projects</tt> as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -949,7 +949,7 @@ module ActionView
       #   end
       #
       # This model can now be used with a nested fields_for. The block given to
-      # the nested fields_for call will be repeated for each instance in the
+      # the nested +fields_for+ call will be repeated for each instance in the
       # collection:
       #
       #   <%= form_with model: @person do |person_form| %>
@@ -1021,10 +1021,10 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # Note that fields_for will automatically generate a hidden field
+      # Note that +fields_for+ will automatically generate a hidden field
       # to store the ID of the record if it responds to <tt>persisted?</tt>.
       # There are circumstances where this hidden field is not needed and you
-      # can pass <tt>include_id: false</tt> to prevent fields_for from
+      # can pass <tt>include_id: false</tt> to prevent +fields_for+ from
       # rendering it automatically.
       def fields_for(record_name, record_object = nil, options = {}, &block)
         options = { model: record_object, allow_method_names_outside_object: false, skip_default_ids: false }.merge!(options)
@@ -1033,7 +1033,7 @@ module ActionView
       end
 
       # Scopes input fields with either an explicit scope or model.
-      # Like +form_with+ does with <tt>:scope</tt> or <tt>:model</tt>,
+      # Like #form_with does with <tt>:scope</tt> or <tt>:model</tt>,
       # except it doesn't output the form tags.
       #
       #   # Using a scope prefixes the input field names:
@@ -1048,7 +1048,7 @@ module ActionView
       #   <% end %>
       #   # => <input type="text" name="comment[body]" value="full bodied">
       #
-      #   # Using +fields+ with +form_with+:
+      #   # Using `fields` with `form_with`:
       #   <%= form_with model: @article do |form| %>
       #     <%= form.text_field :title %>
       #
@@ -1057,13 +1057,13 @@ module ActionView
       #     <% end %>
       #   <% end %>
       #
-      # Much like +form_with+ a FormBuilder instance associated with the scope
+      # Much like #form_with a FormBuilder instance associated with the scope
       # or model is yielded, so any generated field names are prefixed with
       # either the passed scope or the scope inferred from the <tt>:model</tt>.
       #
       # === Mixing with other form helpers
       #
-      # While +form_with+ uses a FormBuilder object it's possible to mix and
+      # While #form_with uses a FormBuilder object it's possible to mix and
       # match the stand-alone FormHelper methods and methods
       # from FormTagHelper:
       #
@@ -1221,7 +1221,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a #form_with block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.
@@ -1326,7 +1326,7 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +checkbox_tag+ or to use
+      # In that case it is preferable to either use FormTagHelper#checkbox_tag or to use
       # hashes instead of arrays.
       #
       # ==== Examples
@@ -1632,7 +1632,7 @@ module ActionView
     #
     # A +FormBuilder+ object is associated with a particular model object and
     # allows you to generate fields associated with the model object. The
-    # +FormBuilder+ object is yielded when using +form_with+ or +fields_for+.
+    # +FormBuilder+ object is yielded when using #form_with or #fields_for.
     # For example:
     #
     #   <%= form_with model: @person do |person_form| %>
@@ -1770,7 +1770,7 @@ module ActionView
       #   <% end %>
       #
       # In the example above, the <tt><input type="text"></tt> element built by
-      # the call to <tt>FormBuilder#text_field</tt> declares an
+      # the call to #text_field declares an
       # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
       # element, sharing a common <tt>id</tt> root (<tt>article_title</tt>, in this
       # case).
@@ -2033,12 +2033,12 @@ module ActionView
       end
       alias_method :text_area, :textarea
 
-      # Creates a scope around a specific model object like +form_with+, but
+      # Creates a scope around a specific model object like #form_with, but
       # doesn't create the form tags themselves. This makes +fields_for+
       # suitable for specifying additional model objects in the same form.
       #
-      # Although the usage and purpose of +fields_for+ is similar to +form_with+'s,
-      # its method signature is slightly different. Like +form_with+, it yields
+      # Although the usage and purpose of +fields_for+ is similar to #form_with's,
+      # its method signature is slightly different. Like #form_with, it yields
       # a FormBuilder object associated with a particular model object to a block,
       # and within the block allows methods to be called on the builder to
       # generate fields associated with the model object. Fields may reflect
@@ -2109,7 +2109,7 @@ module ActionView
       # === Nested Attributes Examples
       #
       # When the object belonging to the current scope has a nested attribute
-      # writer for a certain attribute, fields_for will yield a new scope
+      # writer for a certain attribute, +fields_for+ will yield a new scope
       # for that attribute. This allows you to create forms that set or change
       # the attributes of a parent object and its associations in one go.
       #
@@ -2140,7 +2140,7 @@ module ActionView
       #     end
       #   end
       #
-      # This model can now be used with a nested fields_for, like so:
+      # This model can now be used with a nested +fields_for+, like so:
       #
       #   <%= form_with model: @person do |person_form| %>
       #     ...
@@ -2198,7 +2198,7 @@ module ActionView
       #   end
       #
       # Note that the <tt>projects_attributes=</tt> writer method is in fact
-      # required for fields_for to correctly identify <tt>:projects</tt> as a
+      # required for +fields_for+ to correctly identify <tt>:projects</tt> as a
       # collection, and the correct indices to be set in the form markup.
       #
       # When projects is already an association on Person you can use
@@ -2209,8 +2209,8 @@ module ActionView
       #     accepts_nested_attributes_for :projects
       #   end
       #
-      # This model can now be used with a nested fields_for. The block given to
-      # the nested fields_for call will be repeated for each instance in the
+      # This model can now be used with a nested +fields_for+. The block given to
+      # the nested +fields_for+ call will be repeated for each instance in the
       # collection:
       #
       #   <%= form_with model: @person do |person_form| %>
@@ -2282,10 +2282,10 @@ module ActionView
       #     ...
       #   <% end %>
       #
-      # Note that fields_for will automatically generate a hidden field
+      # Note that +fields_for+ will automatically generate a hidden field
       # to store the ID of the record. There are circumstances where this
       # hidden field is not needed and you can pass <tt>include_id: false</tt>
-      # to prevent fields_for from rendering it automatically.
+      # to prevent +fields_for+ from rendering it automatically.
       def fields_for(record_name, record_object = nil, fields_options = nil, &block)
         fields_options, record_object = record_object, nil if fields_options.nil? && record_object.is_a?(Hash) && record_object.extractable_options?
         fields_options ||= {}
@@ -2451,7 +2451,7 @@ module ActionView
       # the elements of the array. For each item with a checked check box you
       # get an extra ghost item with only that attribute, assigned to "0".
       #
-      # In that case it is preferable to either use +checkbox_tag+ or to use
+      # In that case it is preferable to either use FormTagHelper#checkbox_tag or to use
       # hashes instead of arrays.
       #
       # ==== Examples
@@ -2525,7 +2525,7 @@ module ActionView
       # hash with +options+. These options will be tagged onto the HTML as an HTML element attribute as in the example
       # shown.
       #
-      # Using this method inside a +form_with+ block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
+      # Using this method inside a #form_with block will set the enclosing form's encoding to <tt>multipart/form-data</tt>.
       #
       # ==== Options
       # * Creates standard HTML attributes for the tag.

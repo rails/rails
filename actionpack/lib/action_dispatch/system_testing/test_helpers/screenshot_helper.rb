@@ -132,8 +132,8 @@ module ActionDispatch
           end
 
           def display_image(html:, screenshot_output:)
-            message = +"[Screenshot Image]: #{image_path}\n"
-            message << +"[Screenshot HTML]: #{html_path}\n" if html
+            message = +"[Screenshot Image]: #{image_path} \n"
+            message << +"[Screenshot HTML]: #{html_path} \n" if html
 
             case screenshot_output || output_type
             when "artifact"

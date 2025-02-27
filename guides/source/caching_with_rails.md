@@ -43,7 +43,7 @@ Types of Caching
 This is an introduction to some of the common types of caching.
 
 By default, Action Controller caching is only enabled in your production environment. You can play
-around with caching locally by running `rails dev:cache`, or by setting
+around with caching locally by running `bin/rails dev:cache`, or by setting
 [`config.action_controller.perform_caching`][] to `true` in `config/environments/development.rb`.
 
 NOTE: Changing the value of `config.action_controller.perform_caching` will
@@ -398,7 +398,7 @@ rails new app_name --skip-solid
 
 WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid`
 flag. If you still want to use Solid Queue but not Solid Cache, you can enable
-Solid Queue by running `rails app:enable-solid-queue`.
+Solid Queue by running `bin/rails app:enable-solid-queue`.
 
 ### Configuring the Database
 
@@ -784,7 +784,7 @@ and record id.
 You can use Hashes and Arrays of values as cache keys.
 
 ```ruby
-# This is a legal cache key
+# This is a valid cache key
 Rails.cache.read(site: "mysite", owners: [owner_1, owner_2])
 ```
 

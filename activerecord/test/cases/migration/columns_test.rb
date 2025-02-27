@@ -195,7 +195,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = c.cast_type.deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
 
@@ -203,11 +203,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = c.cast_type.deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
         assert new_columns.find { |c|
-          default = c.cast_type.deserialize(c.default)
+          default = c.fetch_cast_type(connection).deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == false
         }
         change_column :test_models, :approved, :boolean, default: true
@@ -386,6 +386,19 @@ module ActiveRecord
         assert connection.index_exists?("my_table", :item_number, name: :index_my_table_on_item_number)
       ensure
         connection.drop_table(:my_table) rescue nil
+      end
+
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_column_with_disabled_index
+          connection.create_table "my_table", force: true do |t|
+            t.column "col_one", :bigint
+            t.column "col_two", :bigint, index: { enabled: false }
+          end
+
+          assert connection.index_exists?("my_table", :col_two, enabled: false)
+        ensure
+          connection.drop_table(:my_table) rescue nil
+        end
       end
 
       def test_add_column_without_column_name

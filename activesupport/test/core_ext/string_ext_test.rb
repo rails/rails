@@ -8,6 +8,7 @@ require_relative "../constantize_test_cases"
 
 require "active_support/inflector"
 require "active_support/core_ext/string"
+require "active_support/core_ext/object/json"
 require "active_support/time"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
@@ -1083,6 +1084,16 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
     assert_predicate string, :html_safe?
     assert_not_predicate string.to_param, :html_safe?
+  end
+
+  test "as_json returns a normal string" do
+    string = @string.html_safe
+    assert_not_predicate string.as_json, :html_safe?
+  end
+
+  test "as_json accepts options" do
+    hash = { string: @string.html_safe }
+    assert_not_predicate hash.as_json(only: :string).fetch("string"), :html_safe?
   end
 
   test "ERB::Util.html_escape should escape unsafe characters" do

@@ -34,7 +34,7 @@ GET /users/17
 If the first matching route is:
 
 ```ruby
-get "/users/:id", to: "user#show"
+get "/users/:id", to: "users#show"
 ```
 
 The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
@@ -166,7 +166,7 @@ Parameters to the path helpers, such as `:id` above, are passed to the generated
 
 Each of these `_path` helpers also have a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
-TIP: The prefix used before "_path" and "_url" is the route name and can be identified by looking at the "prefix" column of the `rails routes` command output. To learn more see [Listing Existing Routes](#listing-existing-routes) below.
+TIP: The prefix used before "_path" and "_url" is the route name and can be identified by looking at the "prefix" column of the `bin/rails routes` command output. To learn more see [Listing Existing Routes](#listing-existing-routes) below.
 
 ### Defining Multiple Resources at the Same Time
 
@@ -228,7 +228,7 @@ namespace :admin do
 end
 ```
 
-This will create a number of routes for each of the `articles` and `comments` controller. For `Admin::ArticlesController`, Rails will create:
+For `Admin::ArticlesController`, Rails will create the following routes:
 
 | HTTP Verb | Path                     | Controller#Action      | Named Route Helper           |
 | --------- | ------------------------ | ---------------------- | ---------------------------- |

@@ -68,15 +68,15 @@ module ActiveSupport
     end
 
     def initialize(constructor = nil)
-      if constructor.respond_to?(:to_hash)
+      if constructor.nil?
+        super()
+      elsif constructor.respond_to?(:to_hash)
         super()
         update(constructor)
 
         hash = constructor.is_a?(Hash) ? constructor : constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
-      elsif constructor.nil?
-        super()
       else
         super(constructor)
       end
@@ -95,11 +95,27 @@ module ActiveSupport
     #   hash[:key] = 'value'
     #
     # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    #
+    # If the value is a Hash or contains one or multiple Hashes, they will be
+    # converted to +HashWithIndifferentAccess+.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, conversion: :assignment))
     end
 
-    alias_method :store, :[]=
+    # Assigns a new value to the hash:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new
+    #   hash[:key] = 'value'
+    #
+    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    #
+    # If the value is a Hash or contains one or multiple Hashes, they will be
+    # converted to +HashWithIndifferentAccess+. unless `convert_value: false`
+    # is set.
+    def store(key, value, convert_value: true)
+      value = convert_value(value, conversion: :assignment) if convert_value
+      regular_writer(convert_key(key), value)
+    end
 
     # Updates the receiver in-place, merging in the hashes passed as arguments:
     #

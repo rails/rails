@@ -864,6 +864,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_with_unpersisted_records_triggers_deprecation
+    skip unless supports_insert_on_duplicate_skip?
+
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
@@ -876,6 +878,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_all_without_unpersisted_records_has_no_deprecation
+    skip unless supports_insert_on_duplicate_skip?
+
     author = Author.create!(name: "Rafael")
 
     assert_not_deprecated(ActiveRecord.deprecator) do
@@ -884,6 +888,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_with_unpersisted_records_triggers_deprecation
+    skip unless supports_insert_on_duplicate_skip?
+
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
@@ -896,6 +902,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_insert_without_unpersisted_records_has_no_deprecation
+    skip unless supports_insert_on_duplicate_skip?
+
     author = Author.create!(name: "Rafael")
 
     assert_not_deprecated(ActiveRecord.deprecator) do
@@ -924,6 +932,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_with_unpersisted_record_triggers_deprecation
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
@@ -936,6 +946,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_all_without_unpersisted_records_has_no_deprecation
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Rafael")
 
     assert_not_deprecated(ActiveRecord.deprecator) do
@@ -944,6 +956,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_with_unpersisted_record_triggers_deprecation
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
@@ -956,6 +970,8 @@ class InsertAllTest < ActiveRecord::TestCase
   end
 
   def test_upsert_without_unpersisted_records_has_no_deprecation
+    skip unless supports_insert_on_duplicate_update?
+
     author = Author.create!(name: "Rafael")
 
     assert_not_deprecated(ActiveRecord.deprecator) do

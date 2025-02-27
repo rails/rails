@@ -94,7 +94,7 @@ module ActionView
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render partial: @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on #to_partial_path,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
@@ -114,7 +114,7 @@ module ActionView
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on #to_partial_path,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>

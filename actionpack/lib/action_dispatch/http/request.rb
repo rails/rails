@@ -138,7 +138,7 @@ module ActionDispatch
 
     # Populate the HTTP method lookup cache.
     HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.downcase.underscore.to_sym
+      HTTP_METHOD_LOOKUP[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
     }
 
     alias raw_request_method request_method # :nodoc:
@@ -157,11 +157,16 @@ module ActionDispatch
     #
     #     request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
     def route_uri_pattern
-      get_header("action_dispatch.route_uri_pattern")
+      unless pattern = get_header("action_dispatch.route_uri_pattern")
+        route = get_header("action_dispatch.route")
+        pattern = route.path.spec.to_s
+        set_header("action_dispatch.route_uri_pattern", pattern)
+      end
+      pattern
     end
 
-    def route_uri_pattern=(pattern) # :nodoc:
-      set_header("action_dispatch.route_uri_pattern", pattern)
+    def route=(route) # :nodoc:
+      @env["action_dispatch.route"] = route
     end
 
     def routes # :nodoc:

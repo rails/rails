@@ -362,4 +362,40 @@ class ErrorReporterTest < ActiveSupport::TestCase
     expected = "Error subscriber raised an error: Big Oopsie (ErrorReporterTest::FailingErrorSubscriber::Error)"
     assert_equal expected, log.string.lines.first.chomp
   end
+
+  test "error context middleware can mutate context hash" do
+    middleware = -> (_, context) { context.merge({ foo: :bar }) }
+
+    error = ArgumentError.new("Oops")
+
+    @reporter.add_middleware(middleware)
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { foo: :bar }]], @subscriber.events
+  end
+
+  class MyErrorContextMiddleware
+    def call(_, context)
+      context.merge({ bar: :baz })
+    end
+  end
+
+  test "can have multiple error context middlewares" do
+    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :bar }) })
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { foo: :bar, bar: :baz }]], @subscriber.events
+  end
+
+  test "last error context middleware to update a key wins" do
+    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :bar }) })
+    @reporter.add_middleware(-> (_, context) { context.merge({ foo: :baz }) })
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { foo: :baz }]], @subscriber.events
+  end
 end

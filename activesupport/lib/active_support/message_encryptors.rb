@@ -26,10 +26,13 @@ module ActiveSupport
     # as the first rotation and <tt>transitional = true</tt>. Then, after all
     # servers have been updated, perform a second rolling deploy with
     # <tt>transitional = false</tt>.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#transitional
 
     ##
-    # :method: initialize
-    # :call-seq: initialize(&secret_generator)
+    # :singleton-method: new
+    # :call-seq: new(&secret_generator)
     #
     # Initializes a new instance. +secret_generator+ must accept a salt and a
     # +secret_length+ kwarg, and return a suitable secret (string) or secrets
@@ -43,6 +46,9 @@ module ActiveSupport
     #   end
     #
     #   encryptors.rotate(base: "...")
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#initialize
 
     ##
     # :method: []
@@ -51,12 +57,18 @@ module ActiveSupport
     # Returns a MessageEncryptor configured with a secret derived from the
     # given +salt+, and options from #rotate. MessageEncryptor instances will
     # be memoized, so the same +salt+ will return the same instance.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#[]
 
     ##
     # :method: []=
     # :call-seq: []=(salt, encryptor)
     #
     # Overrides a MessageEncryptor instance associated with a given +salt+.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#[]=
 
     ##
     # :method: rotate
@@ -106,18 +118,55 @@ module ActiveSupport
     #
     #   # Uses `serializer: Marshal, url_safe: false`.
     #   encryptors[:baz]
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#rotate
+
+    ##
+    # :method: prepend
+    # :call-seq:
+    #   prepend(**options)
+    #   prepend(&block)
+    #
+    # Just like #rotate, but prepends the given options or block to the list of
+    # option sets.
+    #
+    # This can be useful when you have an already-configured +MessageEncryptors+
+    # instance, but you want to override the way messages are encrypted.
+    #
+    #   module ThirdParty
+    #     ENCRYPTORS = ActiveSupport::MessageEncryptors.new { ... }.
+    #       rotate(serializer: Marshal, url_safe: true).
+    #       rotate(serializer: Marshal, url_safe: false)
+    #   end
+    #
+    #   ThirdParty.ENCRYPTORS.prepend(serializer: JSON, url_safe: true)
+    #
+    #   # Uses `serializer: JSON, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: true` or
+    #   # `serializer: Marshal, url_safe: false`.
+    #   ThirdParty.ENCRYPTORS[:foo]
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#prepend
 
     ##
     # :method: rotate_defaults
     # :call-seq: rotate_defaults
     #
     # Invokes #rotate with the default options.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#rotate_defaults
 
     ##
     # :method: clear_rotations
     # :call-seq: clear_rotations
     #
     # Clears the list of option sets.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#clear_rotations
 
     ##
     # :method: on_rotation
@@ -129,6 +178,9 @@ module ActiveSupport
     # For example, this callback could log each time it is called, and thus
     # indicate whether old option sets are still in use or can be removed from
     # rotation.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#on_rotation
 
     ##
     private

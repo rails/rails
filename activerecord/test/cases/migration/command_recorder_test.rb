@@ -315,6 +315,28 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, :one, algorithm: :concurrently], nil], remove
       end
 
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_invert_add_index_with_disabled_option
+          remove = @recorder.inverse_of :add_index, [:table, :one, enabled: false]
+          assert_equal [:remove_index, [:table, :one, enabled: false], nil], remove
+        end
+
+        def test_invert_remove_index_with_disabled_option
+          add = @recorder.inverse_of :remove_index, [:table, :one, enabled: false]
+          assert_equal [:add_index, [:table, :one, enabled: false]], add
+        end
+
+        def test_invert_disable_index
+          enable = @recorder.inverse_of :disable_index, [:table, :disabled_index]
+          assert_equal [:enable_index, [:table, :disabled_index]], enable
+        end
+
+        def test_invert_enable_index
+          disable = @recorder.inverse_of :enable_index, [:table, :enabled_index]
+          assert_equal [:disable_index, [:table, :enabled_index]], disable
+        end
+      end
+
       def test_invert_remove_index
         add = @recorder.inverse_of :remove_index, [:table, :one]
         assert_equal [:add_index, [:table, :one]], add

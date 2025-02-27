@@ -12,6 +12,9 @@
 		},
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "latest"
+		},
+		"ghcr.io/rails/devcontainer/features/postgres-client:1.1.1": {
+			"version": "17"
 		}
 	},
 

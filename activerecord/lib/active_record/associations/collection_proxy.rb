@@ -110,7 +110,7 @@ module ActiveRecord
       #   #    ]
 
       # Finds an object in the collection responding to the +id+. Uses the same
-      # rules as ActiveRecord::FinderMethods.find. Returns ActiveRecord::RecordNotFound
+      # rules as ActiveRecord::FinderMethods.find. Raises ActiveRecord::RecordNotFound
       # error if the object cannot be found.
       #
       #   class Person < ActiveRecord::Base

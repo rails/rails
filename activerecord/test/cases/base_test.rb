@@ -116,6 +116,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
   end
 
+  def test_no_anonymous_modules
+    assert_empty Photo.ancestors.select { |m| m.name.nil? }
+  end
+
   def test_arel_attribute_normalization
     assert_equal Post.arel_table["body"], Post.arel_table[:body]
     assert_equal Post.arel_table["body"], Post.arel_table[:text]
@@ -1684,6 +1688,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_column_types_on_queries_on_sqlite
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT id, last_read, created_at FROM topics")
+      assert_equal ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer, result.column_types["id"].class
+      assert_equal ActiveRecord::Type::Date, result.column_types["last_read"].class
+      assert_equal ActiveRecord::Type::DateTime, result.column_types["created_at"].class
+      assert_equal result.column_types[0], result.column_types["id"]
+      assert_equal result.column_types[1], result.column_types["last_read"]
+      assert_equal result.column_types[2], result.column_types["created_at"]
+    end
+  end
+
   def test_typecasting_aliases
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end
@@ -1982,4 +1998,12 @@ class BasicsTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
+
+  private
+    def with_timezone_config(cfg, &block)
+      super(cfg) do
+        Default.reset_column_information
+        block.call
+      end
+    end
 end

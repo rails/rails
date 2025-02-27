@@ -181,10 +181,22 @@ module ActiveSupport
       #
       # The keyword arguments +:from+ and +:to+ can be given to specify the
       # expected initial value and the expected value after the block was
-      # executed.
+      # executed. The comparison is done using case equality (===), which means
+      # you can specify patterns or classes:
       #
+      #   # Exact value match
       #   assert_changes :@object, from: nil, to: :foo do
       #     @object = :foo
+      #   end
+      #
+      #   # Case equality
+      #   assert_changes -> { user.token }, to: /\w{32}/ do
+      #     user.generate_token
+      #   end
+      #
+      #   # Type check
+      #   assert_changes -> { current_error }, from: nil, to: RuntimeError do
+      #     raise "Oops"
       #   end
       #
       # An error message can be specified.
@@ -238,10 +250,22 @@ module ActiveSupport
       #   end
       #
       # Provide the optional keyword argument +:from+ to specify the expected
-      # initial value.
+      # initial value. The comparison is done using case equality (===), which means
+      # you can specify patterns or classes:
       #
+      #   # Exact value match
       #   assert_no_changes -> { Status.all_good? }, from: true do
       #     post :create, params: { status: { ok: true } }
+      #   end
+      #
+      #   # Case equality
+      #   assert_no_changes -> { user.token }, from: /\w{32}/ do
+      #     user.touch
+      #   end
+      #
+      #   # Type check
+      #   assert_no_changes -> { current_error }, from: RuntimeError do
+      #     retry_operation
       #   end
       #
       # An error message can be specified.

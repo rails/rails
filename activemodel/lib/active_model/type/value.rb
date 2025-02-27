@@ -25,7 +25,7 @@ module ActiveModel
       # by the database.  For example a boolean type can return +true+ if the
       # value parameter is a Ruby boolean, but may return +false+ if the value
       # parameter is some other object.
-      def serializable?(value, &_)
+      def serializable?(value, &)
         true
       end
 
@@ -138,7 +138,7 @@ module ActiveModel
       end
 
       def mutable? # :nodoc:
-        false
+        true
       end
 
       def as_json(*)

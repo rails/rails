@@ -46,7 +46,9 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  gem "rubocop", ">= 1.25.1", require: false
+  # Rubocop has to be locked in the Gemfile because CI ignores Gemfile.lock
+  # We don't want rubocop to start failing whenever rubocop makes a new release.
+  gem "rubocop", "< 1.73", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -64,7 +66,7 @@ end
 group :doc do
   gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
   gem "rdoc", "< 6.10"
-  gem "redcarpet", "~> 3.2.3", platforms: :ruby
+  gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
   gem "rubyzip", "~> 2.0"
@@ -128,7 +130,6 @@ end
 # Action Mailbox
 gem "aws-sdk-sns", require: false
 gem "webmock"
-gem "httpclient", github: "nahi/httpclient", branch: "master", require: false
 
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)

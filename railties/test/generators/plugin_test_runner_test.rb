@@ -93,7 +93,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
 
   def test_raise_error_when_specified_file_does_not_exist
     error = capture(:stderr) { run_test_command("test/not_exists.rb") }
-    assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
+    assert_match(%r{Could not load test file.+test/not_exists\.rb}, error)
   end
 
   def test_executed_only_once

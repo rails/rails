@@ -66,11 +66,13 @@ namespace :test do
 
     # Only generate the template app once.
     require_relative "test/isolation/abstract_unit"
+    require "minitest/rails_plugin"
 
     failing_files = []
 
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
     test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+    test_options << "--profile" if ENV["BUILDKITE"]
 
     test_patterns = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     test_files = Dir[*test_patterns].select do |file|
@@ -94,6 +96,8 @@ namespace :test do
       test_files = buckets[n]
     end
 
+    output_file = Tempfile.new("railties_test_reporter")
+
     test_files.each do |file|
       puts "--- #{file}"
       fake_command = Shellwords.join([
@@ -108,6 +112,7 @@ namespace :test do
         # We could run these in parallel, but pretty much all of the
         # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
         Process.waitpid fork {
+          ENV["RAILTIES_OUTPUT_FILE"] = output_file.path
           ARGV.clear.concat test_options
           Rake.application = nil
 
@@ -123,9 +128,22 @@ namespace :test do
       end
     end
 
-    puts "--- All tests completed"
+    puts "+++ All tests completed"
+
+    if ENV["BUILDKITE"]
+      TestResult = Struct.new(:NAME, :failures, :assertions, :klass, :time, :source_location, :location)
+      profile = Minitest::ProfileReporter.new($stdout, profile: 10)
+      output_file.rewind
+      output_file.each_line do |result|
+        data = JSON.parse(result)
+        profile.results << TestResult.new(*data.values)
+      end
+
+      profile.summary
+    end
+
     unless failing_files.empty?
-      puts "^^^ +++"
+      puts "+++"
       puts
       puts "Failed in:"
       failing_files.each do |file|
@@ -135,6 +153,9 @@ namespace :test do
 
       exit 1
     end
+  ensure
+    output_file&.close
+    output_file&.unlink
   end
 end
 
@@ -143,5 +164,6 @@ Rake::TestTask.new("test:regular") do |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["BUILDKITE"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end

@@ -4,6 +4,73 @@ module Arel # :nodoc: all
   module Visitors
     class SQLite < Arel::Visitors::ToSql
       private
+        def visit_Arel_Nodes_UpdateStatement(o, collector)
+          collector.retryable = false
+          o = prepare_update_statement(o)
+
+          collector << "UPDATE "
+
+          # UPDATE with JOIN is in the form of:
+          #
+          #   UPDATE t1
+          #   SET ..
+          #   FROM t2
+          #   WHERE t1.join_id = t2.join_id
+          #
+          # Or if more than one join is present:
+          #
+          #   UPDATE t1
+          #   SET ..
+          #   FROM t2
+          #   JOIN t3 ON t2.join_id = t3.join_id
+          #   WHERE t1.join_id = t2.join_id
+          if has_join_sources?(o)
+            visit o.relation.left, collector
+            collect_nodes_for o.values, collector, " SET "
+
+            collector << " FROM "
+            first_join, *remaining_joins = o.relation.right
+            from_items = remaining_joins.extract! do |join|
+              join.right.expr.right.relation == o.relation.left
+            end
+
+            from_where = [first_join.left] + from_items.map(&:left)
+            collect_nodes_for from_where, collector, " ", ", "
+
+            if remaining_joins && !remaining_joins.empty?
+              collector << " "
+              remaining_joins.each do |join|
+                visit join, collector
+                collector << " "
+              end
+            end
+
+            from_where = [first_join.right.expr] + from_items.map { |i| i.right.expr }
+            collect_nodes_for from_where + o.wheres, collector, " WHERE ", " AND "
+          else
+            collector = visit o.relation, collector
+            collect_nodes_for o.values, collector, " SET "
+            collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+          end
+
+          collect_nodes_for o.orders, collector, " ORDER BY "
+          maybe_visit o.limit, collector
+        end
+
+        def prepare_update_statement(o)
+          # Sqlite need to be built with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option
+          # to support LIMIT/OFFSET/ORDER in UPDATE and DELETE statements.
+          if has_join_sources?(o) && !has_limit_or_offset_or_orders?(o) && !has_group_by_and_having?(o) &&
+            # The SQLite3 dialect isn't flexible enough to allow anything other than a inner join
+            # for the first join:
+            #   UPDATE table SET .. FROM joined_table WHERE ...
+            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.relation != o.relation.left })
+            o
+          else
+            super
+          end
+        end
+
         # Locks are not supported in SQLite
         def visit_Arel_Nodes_Lock(o, collector)
           collector

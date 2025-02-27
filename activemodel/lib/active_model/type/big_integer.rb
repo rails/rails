@@ -44,7 +44,7 @@ module ActiveModel
         value
       end
 
-      def serializable?(value, &_)
+      def serializable?(value, &)
         true
       end
 

@@ -147,10 +147,16 @@ module ActionDispatch
 
         env = rails_env "PATH_INFO" => "/foo/bar"
 
-        router.recognize(env) { |*_| }
+        recognized = false
 
-        assert_equal "/foo", env.env["SCRIPT_NAME"]
-        assert_equal "/bar", env.env["PATH_INFO"]
+        router.recognize(env) do |*_|
+          assert_equal "/foo", env.env["SCRIPT_NAME"]
+          assert_equal "/bar", env.env["PATH_INFO"]
+
+          recognized = true
+        end
+
+        assert recognized
       end
 
       def test_bound_regexp_keeps_path_info

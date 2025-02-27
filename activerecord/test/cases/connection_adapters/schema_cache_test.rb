@@ -101,7 +101,7 @@ module ActiveRecord
 
         assert_no_queries(include_schema: true) do
           assert_equal 3, cache.columns("courses").size
-          assert_equal 3, cache.columns("courses").map(&:cast_type).compact.size
+          assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@connection) }.compact.size
           assert_equal 3, cache.columns_hash("courses").size
           assert cache.data_source_exists?("courses")
           assert_equal "id", cache.primary_keys("courses")
@@ -140,7 +140,7 @@ module ActiveRecord
 
         assert_no_queries(include_schema: true) do
           assert_equal 3, cache.columns(@connection, "courses").size
-          assert_equal 3, cache.columns(@connection, "courses").map(&:cast_type).compact.size
+          assert_equal 3, cache.columns(@connection, "courses").map { |column| column.fetch_cast_type(@connection) }.compact.size
           assert_equal 3, cache.columns_hash(@connection, "courses").size
           assert cache.data_source_exists?(@connection, "courses")
           assert_equal "id", cache.primary_keys(@connection, "courses")
@@ -162,7 +162,7 @@ module ActiveRecord
       end
 
       def test_yaml_loads_5_1_dump
-        cache = load_bound_reflection(schema_dump_path)
+        cache = load_bound_reflection(schema_dump_5_1_path)
 
         assert_no_queries do
           assert_equal 11, cache.columns("posts").size
@@ -173,10 +173,32 @@ module ActiveRecord
       end
 
       def test_yaml_loads_5_1_dump_without_indexes_still_queries_for_indexes
-        cache = load_bound_reflection(schema_dump_path)
+        cache = load_bound_reflection(schema_dump_5_1_path)
 
         assert_queries_count(include_schema: true) do
           assert_equal 1, cache.indexes("courses").size
+        end
+      end
+
+      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
+        cache = load_bound_reflection(schema_dump_8_0_path)
+
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_queries_count(include_schema: true) do
+            columns = cache.columns_hash("courses")
+            assert_equal 3, columns.size
+            cast_type = columns["name"].fetch_cast_type(@connection)
+            assert_not_nil cast_type, "expected cast_type to be present"
+            assert_equal :string, cast_type.type
+          end
+        else
+          assert_no_queries do
+            columns = cache.columns_hash("courses")
+            assert_equal 3, columns.size
+            cast_type = columns["name"].fetch_cast_type(@connection)
+            assert_not_nil cast_type, "expected cast_type to be present"
+            assert_equal :string, cast_type.type
+          end
         end
       end
 
@@ -465,8 +487,12 @@ module ActiveRecord
       end
 
       private
-        def schema_dump_path
+        def schema_dump_5_1_path
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
+        end
+
+        def schema_dump_8_0_path
+          "#{ASSETS_ROOT}/schema_dump_8_0.yml"
         end
     end
   end

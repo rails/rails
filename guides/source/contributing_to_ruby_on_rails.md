@@ -192,13 +192,30 @@ If you have [Visual Studio Code](https://code.visualstudio.com) and [Docker](htt
 
 #### Using Dev Container CLI
 
-Alternatively, with [Docker](https://www.docker.com) and [npm](https://github.com/npm/cli) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
+With [npm](https://github.com/npm/cli) and [Docker](https://www.docker.com) installed, you can run [Dev Container CLI](https://github.com/devcontainers/cli) to utilize the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration from the command line.
 
 ```bash
 $ npm install -g @devcontainers/cli
 $ cd rails
 $ devcontainer up --workspace-folder .
 $ devcontainer exec --workspace-folder . bash
+```
+
+#### Using Dev Container with Podman
+
+You can use the [`.devcontainer`](https://github.com/rails/rails/tree/main/.devcontainer) configuration with [Podman](https://podman.io/). This method does not require any other tools besides Podman.
+
+```bash
+$ podman machine init
+$ podman machine start
+$ tools/devcontainer up
+```
+
+Then in a separate terminal:
+
+```bash
+$ tools/devcontainer run-user-commands
+$ tools/devcontainer sh
 ```
 
 #### Using rails-dev-box

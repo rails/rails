@@ -192,6 +192,37 @@ class SignedIdTest < ActiveRecord::TestCase
     Account.signed_id_verifier = old_verifier
   end
 
+  test "on_rotation callback using custom verifier" do
+    old_verifier = Account.signed_id_verifier
+
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("old secret")
+    old_account_signed_id = @account.signed_id
+    on_rotation_is_called = false
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("new secret", on_rotation: -> { on_rotation_is_called = true })
+    Account.signed_id_verifier.rotate("old secret")
+    Account.find_signed(old_account_signed_id)
+    assert on_rotation_is_called
+  ensure
+    Account.signed_id_verifier = old_verifier
+  end
+
+  test "on_rotation callback using find_signed & find_signed!" do
+    old_verifier = Account.signed_id_verifier
+
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("old secret")
+    old_account_signed_id = @account.signed_id
+    Account.signed_id_verifier = ActiveSupport::MessageVerifier.new("new secret")
+    Account.signed_id_verifier.rotate("old secret")
+    on_rotation_is_called = false
+    assert Account.find_signed(old_account_signed_id, on_rotation: -> { on_rotation_is_called = true })
+    assert on_rotation_is_called
+    on_rotation_is_called = false
+    assert Account.find_signed!(old_account_signed_id, on_rotation: -> { on_rotation_is_called = true })
+    assert on_rotation_is_called
+  ensure
+    Account.signed_id_verifier = old_verifier
+  end
+
   test "cannot get a signed ID for a new record" do
     assert_raises ArgumentError, match: /Cannot get a signed_id for a new record/ do
       Account.new.signed_id

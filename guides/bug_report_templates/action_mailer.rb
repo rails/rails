@@ -8,6 +8,7 @@ gemfile(true) do
   gem "rails"
   # If you want to test against edge Rails replace the previous line with this:
   # gem "rails", github: "rails/rails", branch: "main"
+  gem "net-smtp", github: "ruby/net-smtp", ref: "d496a829f9b99adb44ecc1768c4d005e5f7b779e", require: false
 end
 
 require "action_mailer/railtie"

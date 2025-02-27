@@ -9,12 +9,16 @@ require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
-    class InvalidTestError < StandardError
+    class InvalidTestError < ArgumentError
       def initialize(path, suggestion)
-        super(<<~MESSAGE.squish)
+        super(<<~MESSAGE.rstrip)
           Could not load test file: #{path}.
           #{suggestion}
         MESSAGE
+      end
+
+      def backtrace(*args)
+        []
       end
     end
 
@@ -68,7 +72,7 @@ module Rails
               if corrections.empty?
                 raise exception
               end
-              raise InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections))
+              raise(InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections)), cause: nil)
             else
               raise
             end

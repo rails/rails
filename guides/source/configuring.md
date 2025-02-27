@@ -1673,7 +1673,7 @@ warning, or neither.
 
 #### `config.active_record.database_cli`
 
-Controls which CLI tool will be used for accessing the database when running `rails dbconsole`. By default
+Controls which CLI tool will be used for accessing the database when running `bin/rails dbconsole`. By default
 the standard tool for the database will be used (e.g. `psql` for PostgreSQL and `mysql` for MySQL). The option
 takes a hash which specifies the tool per-database system, and an array can be used where fallback options are
 required:
@@ -2954,7 +2954,7 @@ only the configured origins.
 
 #### `config.action_cable.allowed_request_origins`
 
-Determines the request origins which will be accepted but the cable server.
+Determines the request origins which will be accepted by the cable server.
 The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
 
 ### Configuring Active Storage

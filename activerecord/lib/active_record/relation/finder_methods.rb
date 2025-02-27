@@ -638,7 +638,7 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && (model.implicit_order_column || !model.query_constraints_list.nil? || primary_key)
+        if order_values.empty? && !_order_columns.empty?
           order(_order_columns.map { |column| table[column].asc })
         else
           self

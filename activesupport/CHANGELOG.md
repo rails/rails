@@ -1,3 +1,23 @@
+*   Introduce ActiveSupport::ErrorReporter#add_middleware
+
+    When reporting an error, the error context middleware will be called with the reported error
+    and base execution context. The stack may mutate the context hash. The mutated context will
+    then be passed to error subscribers.
+
+    *Andrew Novoselac*, *Sam Schmidt*
+
+*   Change execution wrapping to report all exceptions, including `Exception`.
+
+    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
+    the error reporter should be able to report these kinds of exceptions.
+
+    *Gannon McGibbon*
+
+*   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
+    are invoked immediately before forking test workers.
+
+    *Mike Dalessio*
+
 *   Allow the `#freeze_time` testing helper to accept a date or time argument.
 
     ```ruby

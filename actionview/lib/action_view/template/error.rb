@@ -260,9 +260,13 @@ module ActionView
     end
 
     def message
-      <<~MESSAGE
-        Encountered a syntax error while rendering template: check #{@offending_code_string}
-      MESSAGE
+      if template.is_a?(Template::Inline)
+        <<~MESSAGE
+          Encountered a syntax error while rendering template: check #{@offending_code_string}
+        MESSAGE
+      else
+        "Encountered a syntax error while rendering template located at: #{template.short_identifier}"
+      end
     end
 
     def annotated_source_code

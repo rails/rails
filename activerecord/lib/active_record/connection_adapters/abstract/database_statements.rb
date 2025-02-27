@@ -55,12 +55,15 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
+          collector = collector()
+          collector.retryable = true
           sql, binds = visitor.compile(arel.ast, collector)
-          query = klass.query(sql)
+          query = klass.query(sql, retryable: collector.retryable)
         else
           collector = klass.partial_query_collector
+          collector.retryable = true
           parts, binds = visitor.compile(arel.ast, collector)
-          query = klass.partial_query(parts)
+          query = klass.partial_query(parts, retryable: collector.retryable)
         end
         [query, binds]
       end
@@ -551,7 +554,7 @@ module ActiveRecord
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
+          log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
                 perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
@@ -624,7 +627,8 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                with_yaml_fallback(column.cast_type.serialize(fixture[name]))
+                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
               else
                 default_insert_value(column)
               end

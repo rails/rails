@@ -75,7 +75,7 @@ module ActiveRecord
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
+    ColumnDefinition = Struct.new(:name, :type, :options, :sql_type, :cast_type) do # :nodoc:
       self::OPTION_NAMES = [
         :limit,
         :precision,
@@ -107,6 +107,10 @@ module ActiveRecord
 
       def aliased_types(name, fallback)
         "timestamp" == name ? :datetime : fallback
+      end
+
+      def fetch_cast_type(connection)
+        cast_type
       end
     end
 
@@ -433,7 +437,7 @@ module ActiveRecord
       #
       # == Examples
       #
-      #  # Assuming +td+ is an instance of TableDefinition
+      #  # Assuming `td` is an instance of TableDefinition
       #  td.column(:granted, :boolean, index: true)
       #
       # == Short-hand examples
