@@ -187,7 +187,7 @@ module ActiveSupport
           super
           return if name == :initialize
           return unless public_method_defined?(name)
-          return if respond_to?(name, true)
+          return if singleton_class.method_defined?(name) || singleton_class.private_method_defined?(name)
           Delegation.generate(singleton_class, [name], to: :instance, as: self, nilable: false)
         end
     end
