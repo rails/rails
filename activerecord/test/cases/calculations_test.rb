@@ -755,6 +755,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 4, Account.count { |account| account.credit_limit.modulo(10).zero? }
   end
 
+  def test_count_with_empty_in
+    assert_queries_count(0) do
+      assert_equal 0, Topic.where(id: []).count
+      assert_async_equal 0, Topic.where(id: []).async_count
+    end
+  end
+
   def test_should_sum_expression
     assert_equal 636, Account.sum("2 * credit_limit")
   end
