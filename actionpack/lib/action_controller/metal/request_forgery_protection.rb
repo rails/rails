@@ -468,7 +468,7 @@ module ActionController # :nodoc:
       # *   Does the `X-CSRF-Token` header match the form_authenticity_token?
       #
       def verified_request? # :doc:
-        !protect_against_forgery? || request.get? || request.head? ||
+        request.get? || request.head? || !protect_against_forgery? ||
           (valid_request_origin? && any_authenticity_token_valid?)
       end
 

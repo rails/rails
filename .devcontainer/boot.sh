@@ -8,7 +8,7 @@ if [ -n "${NVM_DIR}" ]; then
   yarn install
 fi
 
-cd activerecord || echo "activerecord directory doesn't exist" && exit
+cd activerecord || { echo "activerecord directory doesn't exist"; exit; }
 
 # Create PostgreSQL databases
 bundle exec rake db:postgresql:rebuild

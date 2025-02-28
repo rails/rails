@@ -1,3 +1,8 @@
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
+
+    *Bijan Rahnema*
+
 *   Rate limit password resets in authentication generator
 
     This helps mitigate abuse from attackers spamming the password reset form.
