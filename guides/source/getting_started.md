@@ -1527,7 +1527,17 @@ When this button is clicked, it submits the form which makes a `DELETE` request
 to `/products/:id` which triggers the `destroy` action in our controller.
 
 The `turbo_confirm` data attribute tells the Turbo JavaScript library to ask the
-user to confirm before submitting the form. We'll dig more into that shortly.
+user to confirm before submitting the form. To use this functionality, we first need to set up Turbo.
+
+Run these commands to set up importmap and import Turbo:
+
+```bash
+$ bin/rails importmap:install
+$ bin/rails turbo:install
+```
+
+NOTE: Check out the [Working with JavaScript in Rails](working_with_javascript_in_rails.html)
+for more details.
 
 Adding Authentication
 ---------------------
