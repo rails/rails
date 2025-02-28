@@ -176,6 +176,9 @@ In your terminal, run the following command in the `store` directory:
 $ bin/rails server
 ```
 
+NOTE: When we run commands inside an application directory, we should use
+`bin/rails`. This makes sure the application's version of Rails is used.
+
 This will start up a web server called Puma that will serve static files and
 your Rails application:
 
