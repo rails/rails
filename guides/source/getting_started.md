@@ -92,11 +92,6 @@ The version shown should be Rails 8.1.0 or higher.
 
 ### Creating Your First Rails App
 
-Note: When generating a new Rails application we run the `rails` command, which
-uses the latest installed version of Rails. When we run commands inside an
-application directory, we should use `bin/rails`. This makes sure the application's
-version of Rails is used.
-
 Rails comes with several commands to make life easier. Run `rails --help` to see
 all of the commands.
 
@@ -180,6 +175,9 @@ In your terminal, run the following command in the `store` directory:
 ```bash
 $ bin/rails server
 ```
+
+NOTE: When we run commands inside an application directory, we should use
+`bin/rails`. This makes sure the application's version of Rails is used.
 
 This will start up a web server called Puma that will serve static files and
 your Rails application:
