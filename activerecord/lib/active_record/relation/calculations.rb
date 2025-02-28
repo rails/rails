@@ -480,7 +480,11 @@ module ActiveRecord
         end
 
         query_result = if relation.where_clause.contradiction?
-          ActiveRecord::Result.empty
+          if @async
+            FutureResult.wrap(ActiveRecord::Result.empty)
+          else
+            ActiveRecord::Result.empty
+          end
         else
           skip_query_cache_if_necessary do
             @klass.with_connection do |c|
