@@ -91,12 +91,22 @@ module Rails
 
         private
           def extract_filters(argv)
+            previous_arg_was_a_flag = false
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.filter_map do |path|
-              next unless path_argument?(path)
+              current_arg_is_a_flag = /^-{1,2}[a-zA-Z0-9\-_.]+=?.*\Z/.match?(path)
+
+              if previous_arg_was_a_flag && !current_arg_is_a_flag
+                # Handle the case where a flag is followed by another flag (e.g. --fail-fast --seed ...)
+                previous_arg_was_a_flag = false
+                next
+              end
 
               path = path.tr("\\", "/")
               case
+              when current_arg_is_a_flag
+                previous_arg_was_a_flag = true unless path.include?("=") # Handle the case when "--foo=bar" is used.
+                next
               when /(:\d+(-\d+)?)+$/.match?(path)
                 file, *lines = path.split(":")
                 filters << [ file, lines ]
@@ -120,10 +130,6 @@ module Rails
 
           def regexp_filter?(arg)
             arg.start_with?("/") && arg.end_with?("/")
-          end
-
-          def path_argument?(arg)
-            PATH_ARGUMENT_PATTERN.match?(arg)
           end
 
           def list_tests(patterns)
