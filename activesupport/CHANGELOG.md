@@ -2,7 +2,7 @@
 
     When reporting an error, the error context middleware will be called with the reported error
     and base execution context. The stack may mutate the context hash. The mutated context will
-    then be passed to error subscribers.
+    then be passed to error subscribers. Middleware receives the same parameters as `ErrorReporter#report`.
 
     *Andrew Novoselac*, *Sam Schmidt*
 
