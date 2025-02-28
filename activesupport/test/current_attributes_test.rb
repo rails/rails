@@ -262,4 +262,18 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "method_added hook doesn't reach the instance. Fix for #54646" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def foo; end # Sets the cache because of a `method_added` hook
+
+      attribute :bar, default: {}
+    end
+
+    assert_instance_of(Hash, current.bar)
+  end
 end
