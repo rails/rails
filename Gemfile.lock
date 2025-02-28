@@ -528,7 +528,7 @@ GEM
     sass-embedded (1.83.4-x86_64-linux-gnu)
       google-protobuf (~> 4.29)
     securerandom (0.4.1)
-    selenium-webdriver (4.27.0)
+    selenium-webdriver (4.29.1)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
