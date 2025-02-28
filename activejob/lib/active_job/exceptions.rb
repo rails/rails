@@ -85,7 +85,7 @@ module ActiveJob
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
-      # Passing the <tt>:report</tt> option reporter the error through the error reporter before discarding the job.
+      # Passing the <tt>:report</tt> option reports the error through the error reporter before discarding the job.
       #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
@@ -106,7 +106,7 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(*exceptions, report: true)
+      def discard_on(*exceptions, report: false)
         rescue_from(*exceptions) do |error|
           instrument :discard, error: error do
             ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
