@@ -469,16 +469,6 @@ module ActiveRecord
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
 
-  ##
-  # :singleton-method: use_legacy_signed_id_verifier
-  # This option allows for a smooth transition during the deprecation of the legacy +signed_id_verifier+. It supports the following modes:
-  # - +:generate_and_verify+ (default) – Generates signed IDs using the legacy format while verifying both the new and legacy formats.
-  # - +:verify+ – Generates signed IDs using the new format while verifying both the new and legacy formats.
-
-  # Note: The new format is not URL-safe unless +Rails.application.message_verifiers+ is configured with +url_safe: true+.
-  singleton_class.attr_accessor :use_legacy_signed_id_verifier
-  self.use_legacy_signed_id_verifier = :generate_and_verify
-
   def self.marshalling_format_version
     Marshalling.format_version
   end
@@ -514,6 +504,13 @@ module ActiveRecord
       postgres: "postgresql",
     }
   )
+
+  ##
+  # :singleton-method: message_verifiers
+  #
+  # ActiveSupport::MessageVerifiers instance for Active Record. If you are using
+  # Rails, this will be set to +Rails.application.message_verifiers+.
+  singleton_class.attr_accessor :message_verifiers
 
   def self.eager_load!
     super

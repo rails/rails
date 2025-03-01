@@ -1686,11 +1686,25 @@ config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysq
 
 #### `config.active_record.use_legacy_signed_id_verifier`
 
-This option allows for a smooth transition during the deprecation of the legacy `signed_id_verifier`. It supports the following modes:
-- `:generate_and_verify` (default) – Generates signed IDs using the legacy format while verifying both the new and legacy formats.
-- `:verify` – Generates signed IDs using the new format while verifying both the new and legacy formats.
+Controls whether signed IDs are generated and verified using legacy options. Can be set to:
 
-Note: The new format is not URL-safe unless `Rails.application.message_verifiers` is configured with `url_safe: true`.
+* `:generate_and_verify` (default) - Generate and verify signed IDs using the following legacy options:
+
+    ```ruby
+    { digest: "SHA256", serializer: JSON, url_safe: true }
+    ```
+
+* `:verify` - Generate and verify signed IDs using options from [`Rails.application.message_verifiers`][], but fall back to verifying with the same options as `:generate_and_verify`.
+
+* false - Generate and verify signed IDs using options from [`Rails.application.message_verifiers`][] only.
+
+The purpose of this setting is to provide a smooth transition to a unified configuration for all message verifiers. Having a unified configuration makes it more straightforward to rotate secrets and upgrade signing algorithms.
+
+WARNING: Setting this to false may cause old signed IDs to become unreadable if `Rails.application.message_verifiers` is not properly configured. Use [`MessageVerifiers#rotate`][ActiveSupport::MessageVerifiers#rotate] or [`MessageVerifiers#prepend`][ActiveSupport::MessageVerifiers#prepend] to configure `Rails.application.message_verifiers` with the appropriate options, such as `:digest` and `:url_safe`.
+
+[`Rails.application.message_verifiers`]: https://api.rubyonrails.org/classes/Rails/Application.html#method-i-message_verifiers
+[ActiveSupport::MessageVerifiers#rotate]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifiers.html#method-i-rotate
+[ActiveSupport::MessageVerifiers#prepend]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifiers.html#method-i-prepend
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 

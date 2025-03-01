@@ -234,6 +234,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
           :postgresql_adapter_decode_dates,
+          :use_legacy_signed_id_verifier,
         )
 
         configs_used_in_other_initializers.each do |k, v|
@@ -320,31 +321,18 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.configure_message_verifiers" do
-      config.before_initialize do |app|
-        secret = ActiveRecord::Base.signed_id_verifier_secret
-        secret_generator = if secret
-          secret.respond_to?(:call) ? -> (_) { secret.call } : -> (_) { secret }
-        else
-          -> (_) { Rails.application.key_generator.generate_key("active_record/signed_id") }
-        end
-        legacy_options = { secret_generator: secret_generator, digest: "SHA256", serializer: JSON, url_safe: true }.compact
+    initializer "active_record.configure_message_verifiers" do |app|
+      ActiveRecord.message_verifiers = app.message_verifiers
 
-        if app.config.active_record.use_legacy_signed_id_verifier == :generate_and_verify
-          app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
-        elsif app.config.active_record.use_legacy_signed_id_verifier == :verify
-          app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
-        else
-          raise ArgumentError, "Unknown value for ActiveRecord::Base.use_legacy_signed_id_verifier: #{app.config.active_record.use_legacy_signed_id_verifier}"
-        end
-      end
-    end
+      use_legacy_signed_id_verifier = app.config.active_record.use_legacy_signed_id_verifier
+      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }
 
-    initializer "active_record.set_signed_id_verifier" do
-      config.after_initialize do |app|
-        ActiveSupport.on_load(:active_record) do
-          self.message_verifiers = app.message_verifiers
-        end
+      if use_legacy_signed_id_verifier == :generate_and_verify
+        app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+      elsif use_legacy_signed_id_verifier == :verify
+        app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+      elsif use_legacy_signed_id_verifier
+        raise "Unrecognized value for config.active_record.use_legacy_signed_id_verifier: #{use_legacy_signed_id_verifier.inspect}"
       end
     end
 

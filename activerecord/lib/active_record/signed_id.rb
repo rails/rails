@@ -6,26 +6,27 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
+      class_attribute :_signed_id_verifier, instance_accessor: false, instance_predicate: false
+
       ##
       # :singleton-method:
       # Set the secret used for the signed id verifier instance when using Active Record outside of \Rails.
       # Within \Rails, this is automatically set using the \Rails application key generator.
       class_attribute :signed_id_verifier_secret, instance_writer: false
-
-      # :nodoc:
-      class_attribute :_signed_id_verifier, instance_accessor: false, instance_predicate: false
-
-      class << self
-        alias_method :original_signed_id_verifier_secret=, :signed_id_verifier_secret=
-        # :nodoc:
+      module DeprecateSignedIdVerifierSecret
         def signed_id_verifier_secret=(secret)
           ActiveRecord.deprecator.warn(<<~MSG)
-            ActiveRecord::Base.signed_id_verifier_secret is deprecated and will be removed in the future. The secret will be derived from 'secret_key_base' instead.
+            ActiveRecord::Base.signed_id_verifier_secret is deprecated and will be removed in the future.
+
+            If the secret is model-specific, set Model.signed_id_verifier instead.
+
+            Otherwise, configure Rails.application.message_verifiers (or ActiveRecord.message_verifiers) with the secret.
           MSG
 
-          self.original_signed_id_verifier_secret = secret
+          super
         end
       end
+      singleton_class.prepend DeprecateSignedIdVerifierSecret
     end
 
     module RelationMethods # :nodoc:
@@ -93,21 +94,25 @@ module ActiveRecord
       end
 
       def signed_id_verifier
-        return self._signed_id_verifier if self._signed_id_verifier
+        if signed_id_verifier_secret
+          @signed_id_verifier ||= begin
+            secret = signed_id_verifier_secret
+            secret = secret.call if secret.respond_to?(:call)
 
-        if signed_id_verifier_secret != ActiveRecord::Base.signed_id_verifier_secret
-          secret = signed_id_verifier_secret
-          secret = secret.call if secret.respond_to?(:call)
+            if secret.nil?
+              raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
+            end
 
-          if secret.nil?
-            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
-          else
-            self._signed_id_verifier = ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
+            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
           end
-        elsif ActiveRecord::Base.message_verifiers
-          ActiveRecord::Base.message_verifiers["active_record/signed_id"]
         else
-          nil
+          return _signed_id_verifier if _signed_id_verifier
+
+          if ActiveRecord.message_verifiers.nil?
+            raise "You must set ActiveRecord.message_verifiers to use signed ids"
+          end
+
+          ActiveRecord.message_verifiers["active_record/signed_id"]
         end
       end
 
@@ -115,7 +120,11 @@ module ActiveRecord
       # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
       # your custom verifier for that in advance. See ActiveSupport::MessageVerifier for details.
       def signed_id_verifier=(verifier)
-        self._signed_id_verifier = verifier
+        if signed_id_verifier_secret
+          @signed_id_verifier = verifier
+        else
+          self._signed_id_verifier = verifier
+        end
       end
 
       # :nodoc:
