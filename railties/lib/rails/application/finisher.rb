@@ -229,7 +229,8 @@ module Rails
 
       initializer :enable_yjit do
         if config.yjit && defined?(RubyVM::YJIT.enable)
-          RubyVM::YJIT.enable
+          options = config.yjit.is_a?(Hash) ? config.yjit : {}
+          RubyVM::YJIT.enable(**options)
         end
       end
     end
