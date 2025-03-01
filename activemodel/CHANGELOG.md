@@ -1,3 +1,7 @@
+*   Add `except_on:` option for validation callbacks.
+
+    *Ben Sheldon*
+
 *   Backport `ActiveRecord::Normalization` to `ActiveModel::Attributes::Normalization`
 
     ```ruby
