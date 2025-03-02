@@ -205,6 +205,56 @@ module ActiveRecord
           assert_equal true, config.seeds?
         end
       end
+
+      def test_schema_migrations_path_configuration_hash
+        config = HashConfig.new("default_env", "primary", { schema_migrations_path: "db/custom_schema_migrations", adapter: "abstract" })
+        assert_equal "db/custom_schema_migrations", config.schema_migrations_path
+      end
+
+      def test_schema_migrations_path_default
+        config = HashConfig.new("default_env", "primary", { adapter: "abstract" })
+        assert_equal "db/schema_migrations", config.schema_migrations_path
+      end
+
+      def test_schema_migrations_path_for_different_db_dir
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        assert_equal "my_db/schema_migrations", config.schema_migrations_path("my_db")
+      end
+
+      def test_schema_migrations_path_for_primary
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        config.stub(:primary?, true) do
+          assert_equal "db/schema_migrations", config.schema_migrations_path
+        end
+      end
+
+      def test_schema_migrations_path_for_non_primary
+        config = HashConfig.new("default_env", "secondary", adapter: "abstract")
+        config.stub(:primary?, false) do
+          assert_equal "db/secondary/schema_migrations", config.schema_migrations_path
+        end
+      end
+
+      def test_schema_migrations_path_for_different_db_dir_and_non_primary
+        config = HashConfig.new("default_env", "secondary", adapter: "abstract")
+        config.stub(:primary?, false) do
+          assert_equal "my_db/secondary/schema_migrations", config.schema_migrations_path("my_db")
+        end
+      end
+
+      def test_schema_dump_with_sql_filesystem_versions_format
+        config = HashConfig.new("default_env", "primary", adapter: "abstract")
+        config.stub(:primary?, true) do
+          assert_equal "structure.sql", config.schema_dump(:sql_filesystem_versions)
+        end
+      end
+
+      def test_schema_dump_for_non_primary_with_sql_filesystem_versions_format
+        config = HashConfig.new("default_env", "secondary", adapter: "abstract")
+        config.stub(:primary?, false) do
+          assert_equal "secondary_structure.sql", config.schema_dump(:sql_filesystem_versions)
+        end
+      end
     end
   end
 end

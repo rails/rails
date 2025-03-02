@@ -1,3 +1,17 @@
+*   Add `sql_filesystem_versions` schema format to reduce merge conflicts.
+
+    This new schema format option stores the SQL structure like the `:sql` format
+    but keeps migration versions in separate files (one per version) in the
+    `db/schema_migrations` directory. This significantly reduces merge conflicts
+    that occur when multiple branches add migrations simultaneously.
+
+    ```ruby
+    # In config/application.rb
+    config.active_record.schema_format = :sql_filesystem_versions
+    ```
+
+    *Rafal Wojsznis*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query

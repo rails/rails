@@ -461,6 +461,178 @@ module ApplicationTests
         ENV["SCHEMA_FORMAT"] = old_env
       end
 
+      test "db:schema:dump loads schema_migrations and dumps them to individual files with sql_filesystem_versions" do
+        add_to_config "config.active_record.schema_format = :sql_filesystem_versions"
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb")
+          assert File.exist?("db/structure.sql")
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 1, schema_migrations.size
+          assert_match(/\A\d{14}\z/, schema_migrations.first)
+
+          structure = File.read("db/structure.sql")
+          assert_match(/CREATE TABLE .*books/, structure)
+
+          assert_no_match(/INSERT INTO.*schema_migrations/, structure)
+
+          output = rails("db:migrate:status")
+          assert_match(/up\s+\d{14}\s+Create books/, output)
+        ensure
+          FileUtils.rm_rf("db/schema_migrations")
+        end
+      end
+
+      test "db:schema:load with sql_filesystem_versions format properly loads schema and migrations" do
+        add_to_config "config.active_record.schema_format = :sql_filesystem_versions"
+        require "#{app_path}/config/environment"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+          rails "db:schema:dump"
+          rails "db:drop"
+          rails "db:create"
+          rails "db:schema:load"
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 1, schema_migrations.size
+          assert_match(/\A\d{14}\z/, schema_migrations.first)
+
+          output = rails("db:migrate:status")
+          assert_match(/up\s+\d{14}\s+Create books/, output)
+        ensure
+          FileUtils.rm_rf("db/schema_migrations")
+        end
+      end
+
+      test "db:prepare with sql_filesystem_versions format loads schema and runs migrations" do
+        add_to_config "config.active_record.schema_format = :sql_filesystem_versions"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+          rails "db:schema:dump"
+          rails "db:drop"
+
+          rails "generate", "model", "author", "name:string"
+
+          output = rails("db:prepare")
+          assert_match(/CreateAuthors: migrated/, output)
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 2, schema_migrations.size
+
+          tables = rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip
+          assert_match(/books/, tables)
+          assert_match(/authors/, tables)
+
+          output = rails("db:migrate:status")
+          assert_match(/up\s+\d{14}\s+Create books/, output)
+          assert_match(/up\s+\d{14}\s+Create authors/, output)
+        ensure
+          FileUtils.rm_rf("db/schema_migrations")
+        end
+      end
+
+      test "db:migrate:reset with sql_filesystem_versions regenerates structure.sql" do
+        add_to_config "config.active_record.schema_format = :sql_filesystem_versions"
+
+        app_file "db/migrate/01_create_books.rb", <<-MIGRATION
+          class CreateBooks < ActiveRecord::Migration::Current
+            def change
+              create_table :books do |t|
+                t.string :title
+              end
+            end
+          end
+        MIGRATION
+
+        Dir.chdir(app_path) do
+          rails("db:migrate")
+
+          structure_sql = File.read("#{app_path}/db/structure.sql")
+          assert_match(/CREATE TABLE .*books/, structure_sql)
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 1, schema_migrations.size
+
+          app_file "db/migrate/02_add_author_to_books.rb", <<-MIGRATION
+            class AddAuthorToBooks < ActiveRecord::Migration::Current
+              def change
+                add_column :books, :author, :string
+              end
+            end
+          MIGRATION
+
+          rails("db:migrate:reset")
+
+          new_structure_sql = File.read("#{app_path}/db/structure.sql")
+          assert_match(/CREATE TABLE .*books/, new_structure_sql)
+          assert_match(/author/, new_structure_sql)
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal(["1", "2"], schema_migrations.sort)
+
+          output = rails("db:migrate:status")
+          assert_match(/up\s+001\s+Create books/, output)
+          assert_match(/up\s+002\s+Add author to books/, output)
+        ensure
+          FileUtils.rm_rf("#{app_path}/db/schema_migrations")
+        end
+      end
+
+      test "db:rollback with sql_filesystem_versions updates migration files" do
+        add_to_config "config.active_record.schema_format = :sql_filesystem_versions"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 1, schema_migrations.size
+          first_migration = schema_migrations.first
+
+          rails "generate", "migration", "add_author_to_books", "author:string"
+          rails "db:migrate"
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 2, schema_migrations.size
+
+          rails "db:rollback"
+
+          schema_migrations = Dir["db/schema_migrations/*"].map { |f| File.basename(f) }
+          assert_equal 1, schema_migrations.size
+          assert_equal first_migration, schema_migrations.first
+        ensure
+          FileUtils.rm_rf("db/schema_migrations")
+        end
+      end
+
+      test "SQL schema format can be overridden with ENV['SCHEMA_FORMAT'] to sql_filesystem_versions" do
+        add_to_config "config.active_record.schema_format = :ruby"
+
+        old_env = ENV["SCHEMA_FORMAT"]
+        ENV["SCHEMA_FORMAT"] = "sql_filesystem_versions"
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate", "db:schema:dump"
+
+          assert_not File.exist?("db/schema.rb")
+          assert File.exist?("db/structure.sql")
+          assert Dir.exist?("db/schema_migrations")
+        end
+      ensure
+        ENV["SCHEMA_FORMAT"] = old_env
+        FileUtils.rm_rf("#{app_path}/db/schema_migrations")
+      end
+
       def db_schema_cache_dump
         Dir.chdir(app_path) do
           rails "db:schema:cache:dump"

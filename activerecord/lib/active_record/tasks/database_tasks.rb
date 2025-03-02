@@ -385,6 +385,9 @@ module ActiveRecord
           load(file)
         when :sql
           structure_load(db_config, file)
+        when :sql_filesystem_versions
+          migration_operation = ActiveRecord::Migration::SqlFilesystemVersions.new(db_config, migration_connection_pool, self)
+          migration_operation.load(file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
@@ -457,6 +460,9 @@ module ActiveRecord
               f.print "\n"
             end
           end
+        when :sql_filesystem_versions
+          migration_operation = ActiveRecord::Migration::SqlFilesystemVersions.new(db_config, migration_connection_pool, self)
+          migration_operation.dump(filename)
         end
       end
 

@@ -126,6 +126,10 @@ module ActiveRecord
         schema_cache_path || default_schema_cache_path
       end
 
+      def schema_migrations_path(db_dir = "db")
+        configuration_hash[:schema_migrations_path] || default_schema_migrations_path(db_dir)
+      end
+
       def primary? # :nodoc:
         Base.configurations.primary?(name)
       end
@@ -171,8 +175,16 @@ module ActiveRecord
           case format
           when :ruby
             "schema.rb"
-          when :sql
+          when :sql, :sql_filesystem_versions
             "structure.sql"
+          end
+        end
+
+        def default_schema_migrations_path(db_dir)
+          if primary?
+            File.join(db_dir, "schema_migrations")
+          else
+            File.join(db_dir, name, "schema_migrations")
           end
         end
     end

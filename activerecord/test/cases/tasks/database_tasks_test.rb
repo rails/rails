@@ -1800,4 +1800,43 @@ module ActiveRecord
         ActiveRecord::Base.configurations = old_configurations
       end
   end
+
+  class DatabaseTasksSqlNoConflictsTest < ActiveRecord::TestCase
+    def test_dump_schema_initializes_operation_and_calls_dump
+      Dir.mktmpdir do |dir|
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", {})
+        file_path = File.join(dir, "structure.sql")
+
+        operation = Minitest::Mock.new
+        operation.expect(:dump, nil, [file_path])
+
+        ActiveRecord::Migration::SqlFilesystemVersions.stub(:new, operation) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, :sql_filesystem_versions)
+          end
+        end
+
+        assert_mock operation
+      end
+    end
+
+    def test_load_schema_initializes_operation_and_calls_load
+      Dir.mktmpdir do |dir|
+        db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", {})
+        file_path = File.join(dir, "structure.sql")
+        FileUtils.touch(file_path)
+
+        operation = Minitest::Mock.new
+        operation.expect(:load, nil, [file_path])
+
+        ActiveRecord::Migration::SqlFilesystemVersions.stub(:new, operation) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, :sql_filesystem_versions)
+          end
+        end
+
+        assert_mock operation
+      end
+    end
+  end
 end

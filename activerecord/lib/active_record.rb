@@ -370,8 +370,13 @@ module ActiveRecord
   # Rakefile. If :sql, the schema is dumped as (potentially database-
   # specific) SQL statements. If :ruby, the schema is dumped as an
   # ActiveRecord::Schema file which can be loaded into any database that
-  # supports migrations. Use :ruby if you want to have different database
-  # adapters for, e.g., your development and test environments.
+  # supports migrations. If :sql_filesystem_versions, the schema is dumped
+  # as SQL (like :sql), but migration versions are stored in separate files
+  # in the db/schema_migrations directory, which reduces merge conflicts when
+  # multiple branches add migrations simultaneously.
+  #
+  # Use :ruby if you want to have different database adapters for, e.g.,
+  # your development and test environments.
   singleton_class.attr_accessor :schema_format
   self.schema_format = :ruby
 
