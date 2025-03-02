@@ -1,3 +1,19 @@
+*   Auto-detect the column type for enums defined with the array syntax.
+
+    Previously enums defined using an array were always mapped to integers
+    and indexed by position, now it is converted based on the column type,
+    it works for strings and database enums as well.
+
+    ```ruby
+    # Before
+    enum :status, { proposed: "proposed", written: "written", published: "published" }
+
+    # After
+    enum :status, [:proposed, :written, :published]
+    ```
+
+    *Felipe Felix*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
