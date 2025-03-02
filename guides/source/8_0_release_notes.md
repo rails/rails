@@ -133,6 +133,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   Running `db:migrate` on a fresh database now loads the schema before running
+    migrations. (The previous behavior is available as `db:migrate:reset`)
+
 Active Storage
 --------------
 
