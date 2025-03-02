@@ -21,5 +21,4 @@ jobs:
 
       - name: Lint Devcontainer Scripts
         run: |
-          sudo apt install -y shellcheck
           find .devcontainer/ -name '*.sh' -print0 | xargs -0 shellcheck
