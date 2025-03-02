@@ -749,6 +749,8 @@ Below is a list of the subscription adapters available for end-users.
 
 The async adapter is intended for development/testing and should not be used in production.
 
+NOTE: The async adapter only works within the same process, so for manually triggering cable updates from a console and seeing results in the browser, you must do so from the web console (running inside the dev process), not a terminal started via `bin/rails console`! Add `console` to any action or any ERB template view to make the web console appear.
+
 ##### Redis Adapter
 
 The Redis adapter requires users to provide a URL pointing to the Redis server.
