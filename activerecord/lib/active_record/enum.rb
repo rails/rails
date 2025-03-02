@@ -213,7 +213,10 @@ module ActiveRecord
       end
 
       def subtype
-        @subtype ||= klass.type_for_attribute(name).subtype
+        @subtype ||= begin
+          klass.load_schema
+          @subtype
+        end
       end
 
       attr_accessor :klass
@@ -251,6 +254,25 @@ module ActiveRecord
       _enum(name, values, **options)
     end
 
+    protected
+      def define_pending_decorate_attribute(name)
+        decorate_attributes([name]) do |_name, subtype|
+          if subtype == ActiveModel::Type.default_value
+            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
+              " backed by a database column or declared with an explicit type" \
+              " via `attribute`."
+          end
+
+          subtype = subtype.subtype if EnumType === subtype
+
+          enum_type = defined_enums_type[name]
+
+          enum_type.subtype = subtype
+
+          enum_type
+        end
+      end
+
     private
       def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
         values = assert_valid_enum_definition_values(values)
@@ -269,21 +291,7 @@ module ActiveRecord
 
         attribute(name, **options)
 
-        decorate_attributes([name]) do |_name, subtype|
-          if subtype == ActiveModel::Type.default_value
-            raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
-              " backed by a database column or declared with an explicit type" \
-              " via `attribute`."
-          end
-
-          subtype = subtype.subtype if EnumType === subtype
-
-          enum_type = defined_enums_type[name]
-
-          enum_type.subtype = subtype
-
-          enum_type
-        end
+        define_pending_decorate_attribute(name)
 
         labels = values.respond_to?(:each_pair) ? values.keys : values
 
@@ -324,6 +332,10 @@ module ActiveRecord
         base.defined_enums_type.values.each do |enum_type|
           enum_type.klass = base
         end
+        base.defined_enums_type.keys.each do |name|
+          base.define_pending_decorate_attribute(name)
+        end
+
         super
       end
 
