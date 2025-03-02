@@ -641,6 +641,7 @@ See [Custom Configuration](#custom-configuration)
 
 Enables YJIT as of Ruby 3.3, to bring sizeable performance improvements. If you are
 deploying to a memory constrained environment you may want to set this to `false`.
+Additionally, you can pass a hash to configure YJIT options such as `{ stats: true }`.
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
