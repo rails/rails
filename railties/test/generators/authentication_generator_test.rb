@@ -60,6 +60,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/controllers/passwords_controller_test.rb"
 
     assert_file "test/test_helper.rb" do |content|
       assert_match(/session_test_helper/, content)
