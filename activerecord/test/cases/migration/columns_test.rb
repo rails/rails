@@ -55,13 +55,13 @@ module ActiveRecord
         add_column "test_models", "salary", :integer, default: 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal "70000", default_before
+        assert_equal 70000, default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert_includes TestModel.column_names, "annual_salary"
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal "70000", default_after
+        assert_equal 70000, default_after
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

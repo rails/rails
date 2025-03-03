@@ -72,7 +72,7 @@ module ActiveRecord
         assert_equal "hello", one.default
         assert_equal true, two.fetch_cast_type(connection).deserialize(two.default)
         assert_equal false, three.fetch_cast_type(connection).deserialize(three.default)
-        assert_equal "1", four.default
+        assert_equal 1, four.default
         assert_equal "hello", five.default unless mysql
       end
 
