@@ -38,7 +38,7 @@ You can create a table with a composite primary key by passing the
 ```ruby
 class CreateProducts < ActiveRecord::Migration[8.1]
   def change
-    create_table :products, primary_key: [:store_id, :sku] do |t|
+    create_table :products, primary_key: [ :store_id, :sku ] do |t|
       t.integer :store_id
       t.string :sku
       t.text :description
@@ -105,7 +105,7 @@ Hash conditions for `#where` may be specified in a tuple-like syntax.
 This can be useful for querying composite primary key relations:
 
 ```ruby
-Product.where(Product.primary_key => [[1, "ABC98765"], [7, "ZZZ11111"]])
+Product.where(Product.primary_key => [ [ 1, "ABC98765" ], [ 7, "ZZZ11111" ] ])
 ```
 
 #### Conditions with `:id`
@@ -134,7 +134,7 @@ Consider the following example:
 
 ```ruby
 class Order < ApplicationRecord
-  self.primary_key = [:shop_id, :id]
+  self.primary_key = [ :shop_id, :id ]
   has_many :books
 end
 
@@ -152,7 +152,7 @@ books. It will infer that the foreign key column on the books table is
 Below we create an `Order` and a `Book` associated with it:
 
 ```ruby
-order = Order.create!(id: [1, 2], status: "pending")
+order = Order.create!(id: [ 1, 2 ], status: "pending")
 book = order.books.create!(title: "A Cool Book")
 ```
 
@@ -181,12 +181,12 @@ associated record(s). For example:
 
 ```ruby
 class Author < ApplicationRecord
-  self.primary_key = [:first_name, :last_name]
-  has_many :books, foreign_key: [:first_name, :last_name]
+  self.primary_key = [ :first_name, :last_name ]
+  has_many :books, foreign_key: [ :first_name, :last_name ]
 end
 
 class Book < ApplicationRecord
-  belongs_to :author, foreign_key: [:author_first_name, :author_last_name]
+  belongs_to :author, foreign_key: [ :author_first_name, :author_last_name ]
 end
 ```
 
@@ -225,7 +225,7 @@ See the [Form Helpers][] guide for more information on the form builder syntax.
 Given a `@book` model object with a composite key `[:author_id, :id]`:
 
 ```ruby
-@book = Book.find([2, 25])
+@book = Book.find([ 2, 25 ])
 # => #<Book id: 25, title: "Some book", author_id: 2>
 ```
 
@@ -292,7 +292,7 @@ When using an id column, the column may be omitted as usual:
 
 ```ruby
 class Book < ApplicationRecord
-  self.primary_key = [:author_id, :id]
+  self.primary_key = [ :author_id, :id ]
   belongs_to :author
 end
 ```
@@ -309,9 +309,9 @@ you must use the `composite_identify` method:
 
 ```ruby
 class BookOrder < ApplicationRecord
-  self.primary_key = [:shop_id, :id]
-  belongs_to :order, foreign_key: [:shop_id, :order_id]
-  belongs_to :book, foreign_key: [:author_id, :book_id]
+  self.primary_key = [ :shop_id, :id ]
+  belongs_to :order, foreign_key: [ :shop_id, :order_id ]
+  belongs_to :book, foreign_key: [ :author_id, :book_id ]
 end
 ```
 

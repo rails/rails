@@ -459,7 +459,7 @@ Since `false.present?` is false, if you want to validate the absence of a
 boolean field you should use:
 
 ```ruby
-validates :field_name, exclusion: { in: [true, false] }
+validates :field_name, exclusion: { in: [ true, false ] }
 ```
 
 The default error message is _"must be blank"_.
@@ -497,7 +497,7 @@ easily changed.
 ```ruby
 class Person < ApplicationRecord
   validates :terms_of_service, acceptance: { accept: "yes" }
-  validates :eula, acceptance: { accept: ["TRUE", "accepted"] }
+  validates :eula, acceptance: { accept: [ "TRUE", "accepted" ] }
 end
 ```
 
@@ -643,7 +643,7 @@ For `inclusion`:
 
 ```ruby
 class Coffee < ApplicationRecord
-  validates :size, inclusion: { in: %w(small medium large),
+  validates :size, inclusion: { in: %w[small medium large],
     message: "%{value} is not a valid size" }
 end
 ```
@@ -652,7 +652,7 @@ For `exclusion`:
 
 ```ruby
 class Account < ApplicationRecord
-  validates :subdomain, exclusion: { in: %w(www us ca jp),
+  validates :subdomain, exclusion: { in: %w[www us ca jp],
     message: "%{value} is reserved." }
 end
 ```
@@ -665,7 +665,7 @@ class Coffee < ApplicationRecord
   validates :size, inclusion: { in: ->(coffee) { coffee.available_sizes } }
 
   def available_sizes
-    %w(small medium large extra_large)
+    %w[small medium large extra_large]
   end
 end
 ```
@@ -677,7 +677,7 @@ class Account < ApplicationRecord
   validates :subdomain, exclusion: { in: ->(account) { account.reserved_subdomains } }
 
   def reserved_subdomains
-    %w(www us ca jp admin)
+    %w[www us ca jp admin]
   end
 end
 ```
@@ -846,9 +846,9 @@ field you should use one of the following validations:
 
 ```ruby
 # Value _must_ be true or false
-validates :boolean_field_name, inclusion: [true, false]
+validates :boolean_field_name, inclusion: [ true, false ]
 # Value _must not_ be nil, aka true or false
-validates :boolean_field_name, exclusion: [nil]
+validates :boolean_field_name, exclusion: [ nil ]
 ```
 
 By using one of these validations, you will ensure the value will NOT be `nil`
@@ -1063,7 +1063,7 @@ class AddressValidator < ActiveModel::Validator
 end
 
 class Invoice < ApplicationRecord
-  validates_with AddressValidator, fields: [:house_number, :street, :postcode, :country]
+  validates_with AddressValidator, fields: [ :house_number, :street, :postcode, :country ]
 end
 ```
 
@@ -1133,7 +1133,7 @@ The `:allow_nil` option skips the validation when the value being validated is
 
 ```ruby
 class Coffee < ApplicationRecord
-  validates :size, inclusion: { in: %w(small medium large),
+  validates :size, inclusion: { in: %w[small medium large],
     message: "%{value} is not a valid size" }, allow_nil: true
 end
 ```
@@ -1267,7 +1267,7 @@ Passing an array of symbols is also acceptable.
 class Book
   include ActiveModel::Validations
 
-  validates :title, presence: true, on: [:update, :ensure_title]
+  validates :title, presence: true, on: [ :update, :ensure_title ]
 end
 ```
 
@@ -1379,7 +1379,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: [Proc.new { |c| c.market.retail? }, :desktop?],
+                    if: [ Proc.new { |c| c.market.retail? }, :desktop? ],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```

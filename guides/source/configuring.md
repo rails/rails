@@ -231,7 +231,7 @@ This method adds `lib` to `config.autoload_paths` and `config.eager_load_paths`.
 Normally, the `lib` directory has subdirectories that should not be autoloaded or eager loaded. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example,
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks generators))
+config.autoload_lib(ignore: %w[assets tasks generators])
 ```
 
 Please, see more details in the [autoloading guide](autoloading_and_reloading_constants.html).
@@ -438,7 +438,7 @@ Parameters filter works by partial matching regular expression.
 Used for filtering out redirect urls from application logs.
 
 ```ruby
-Rails.application.config.filter_redirect += ["s3.amazonaws.com", /private-match/]
+Rails.application.config.filter_redirect += [ "s3.amazonaws.com", /private-match/ ]
 ```
 
 The redirect filter works by testing that urls include strings or match regular
@@ -535,7 +535,7 @@ Allows manually specifying the order that Railties/Engines are loaded. The
 default value is `[:all]`.
 
 ```ruby
-config.railties_order = [Blog::Engine, :main_app, :all]
+config.railties_order = [ Blog::Engine, :main_app, :all ]
 ```
 
 #### `config.rake_eager_load`
@@ -805,8 +805,8 @@ will run and respond with `403 Forbidden`. This can be customized by setting
 
 ```ruby
 Rails.application.config.host_authorization = {
-  response_app: -> env do
-    [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+  response_app: ->(env) do
+    [ 400, { "Content-Type" => "text/plain" }, [ "Bad Request" ] ]
   end
 }
 ```
@@ -972,15 +972,15 @@ Sets fallback behavior for missing translations. Here are 3 usage examples for t
   * Or you can set an array of locales as fallback, like so:
 
     ```ruby
-    config.i18n.fallbacks = [:tr, :en]
+    config.i18n.fallbacks = [ :tr, :en ]
     ```
 
   * Or you can set different fallbacks for locales individually. For example, if you want to use `:tr` for `:az` and `:de`, `:en` for `:da` as fallbacks, you can do it, like so:
 
     ```ruby
-    config.i18n.fallbacks = { az: :tr, da: [:de, :en] }
+    config.i18n.fallbacks = { az: :tr, da: [ :de, :en ] }
     #or
-    config.i18n.fallbacks.map = { az: :tr, da: [:de, :en] }
+    config.i18n.fallbacks.map = { az: :tr, da: [ :de, :en ] }
     ```
 
 ### Configuring Active Model
@@ -1186,7 +1186,7 @@ The default behavior is to report all warnings. Warnings to ignore can be specif
   config.active_record.db_warnings_ignore = [
     /Invalid utf8mb4 character string/,
     "An exact warning message",
-    "1062", # MySQL Error 1062: Duplicate entry
+    "1062" # MySQL Error 1062: Duplicate entry
   ]
   ```
 
@@ -2502,7 +2502,7 @@ Configures Action Mailer defaults. Use to set options like `from` or `reply_to` 
   mime_version:  "1.0",
   charset:       "UTF-8",
   content_type: "text/plain",
-  parts_order:  ["text/plain", "text/enriched", "text/html"]
+  parts_order:  [ "text/plain", "text/enriched", "text/html" ]
 }
 ```
 
@@ -2519,7 +2519,7 @@ config.action_mailer.default_options = {
 Registers observers which will be notified when mail is delivered.
 
 ```ruby
-config.action_mailer.observers = ["MailObserver"]
+config.action_mailer.observers = [ "MailObserver" ]
 ```
 
 #### `config.action_mailer.interceptors`
@@ -2527,7 +2527,7 @@ config.action_mailer.observers = ["MailObserver"]
 Registers interceptors which will be called before mail is sent.
 
 ```ruby
-config.action_mailer.interceptors = ["MailInterceptor"]
+config.action_mailer.interceptors = [ "MailInterceptor" ]
 ```
 
 #### `config.action_mailer.preview_interceptors`
@@ -2535,7 +2535,7 @@ config.action_mailer.interceptors = ["MailInterceptor"]
 Registers interceptors which will be called before mail is previewed.
 
 ```ruby
-config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
+config.action_mailer.preview_interceptors = [ "MyPreviewMailInterceptor" ]
 ```
 
 #### `config.action_mailer.preview_paths`
@@ -2988,7 +2988,7 @@ Accepts an array of classes indicating the analyzers available for Active Storag
 By default, this is defined as:
 
 ```ruby
-config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
+config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
 ```
 
 The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
@@ -2999,7 +2999,7 @@ Accepts an array of classes indicating the image previewers available in Active 
 By default, this is defined as:
 
 ```ruby
-config.active_storage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]
+config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
 ```
 
 `PopplerPDFPreviewer` and `MuPDFPreviewer` can generate a thumbnail from the first page of a PDF blob; `VideoPreviewer` from the relevant frame of a video blob.
@@ -3023,7 +3023,7 @@ can transform through the variant processor.
 By default, this is defined as:
 
 ```ruby
-config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif)
+config.active_storage.variable_content_types = %w[image/png image/gif image/jpeg image/tiff image/bmp image/vnd.adobe.photoshop image/vnd.microsoft.icon image/webp image/avif image/heic image/heif]
 ```
 
 #### `config.active_storage.web_image_content_types`
@@ -3046,7 +3046,7 @@ Accepts an array of strings indicating the content types that Active Storage wil
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_to_serve_as_binary = %w(text/html image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest)
+config.active_storage.content_types_to_serve_as_binary = %w[text/html image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml application/mathml+xml text/cache-manifest]
 ```
 
 #### `config.active_storage.content_types_allowed_inline`
@@ -3055,7 +3055,7 @@ Accepts an array of strings indicating the content types that Active Storage all
 By default, this is defined as:
 
 ```ruby
-config.active_storage.content_types_allowed_inline = %w(image/webp image/avif image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf)
+config.active_storage.content_types_allowed_inline = %w[image/webp image/avif image/png image/gif image/jpeg image/tiff image/vnd.adobe.photoshop image/vnd.microsoft.icon application/pdf]
 ```
 
 #### `config.active_storage.queues.analysis`

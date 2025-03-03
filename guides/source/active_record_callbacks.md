@@ -274,7 +274,7 @@ class User < ApplicationRecord
     end
 
     def update_cache
-      Rails.cache.write(["user_data", self], attributes)
+      Rails.cache.write([ "user_data", self ], attributes)
       Rails.logger.info("Update Cache")
     end
 end
@@ -714,7 +714,7 @@ symbols:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: [:subject_to_parental_control?, :untrusted_author?]
+    if: [ :subject_to_parental_control?, :untrusted_author? ]
 end
 ```
 
@@ -723,7 +723,7 @@ You can easily include a proc in the list of conditions:
 ```ruby
 class Comment < ApplicationRecord
   before_save :filter_content,
-    if: [:subject_to_parental_control?, -> { untrusted_author? }]
+    if: [ :subject_to_parental_control?, -> { untrusted_author? } ]
 end
 ```
 
@@ -1001,7 +1001,7 @@ callback for you to use.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, before_add: [:check_limit, :calculate_shipping_charges]
+  has_many :books, before_add: [ :check_limit, :calculate_shipping_charges ]
 
   def check_limit(_book)
     if books.count >= 5
@@ -1028,7 +1028,7 @@ removed through the association collection.
 ```ruby
 # Triggers `before_add` callback
 author.books << book
-author.books = [book, book2]
+author.books = [ book, book2 ]
 
 # Does not trigger the `before_add` callback
 book.update(author_id: 1)
