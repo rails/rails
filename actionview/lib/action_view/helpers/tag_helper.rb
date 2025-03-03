@@ -227,7 +227,11 @@ module ActionView
         end
 
         def tag_string(name, content = nil, options, escape: true, &block)
-          content = @view_context.capture(self, &block) if block
+          if block
+            buffer = []
+            content = @view_context.capture(buffer, &block)
+            content = safe_join(buffer.compact_blank) if buffer.present?
+          end
 
           content_tag_string(name, content, options, escape)
         end
@@ -347,6 +351,16 @@ module ActionView
       #   tag.h1 'All titles fit to print' # => <h1>All titles fit to print</h1>
       #
       #   tag.div tag.p('Hello world!')  # => <div><p>Hello world!</p></div>
+      #
+      # To embed multiple children, push them into the buffer provided as a block argument:
+      #
+      #   tag.div { |b|
+      #     b << tag.p('Hello world!')
+      #     b << false && tag.p('This will be ignored')
+      #     b << tag.p('This will be ignored too') if false
+      #     b << tag.p('Konnichiwa Sekai!')
+      #   }
+      #   # => <div><p>Hello world!</p><p>Konnichiwa Sekai!</p></div>
       #
       # Content can also be captured with a block, which is useful in templates:
       #
