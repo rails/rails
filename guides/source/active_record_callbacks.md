@@ -85,7 +85,7 @@ class User < ApplicationRecord
 end
 ```
 
-Alternatively, you can **pass a proc to the callback** to be triggered.
+Alternatively, you can **pass a lambda to the callback** to be triggered.
 
 ```ruby
 class User < ApplicationRecord
