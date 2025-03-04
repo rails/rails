@@ -37,7 +37,7 @@ When using import maps, no separate build process is required, just start your s
 Importmap for Rails is automatically included in Rails 7+ for new applications, but you can also install it manually in existing applications:
 
 ```bash
-$ bin/bundle add importmap-rails
+$ bundle add importmap-rails
 ```
 
 Run the install task:
