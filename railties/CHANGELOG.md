@@ -1,3 +1,12 @@
+*   Introduce `bin/ci`, a low-rent local CI.
+
+    `bin/ci` runs your tests, style checks, and security audits locally.
+
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
+
+    *Jeremy Daer*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 

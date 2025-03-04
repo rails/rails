@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+def step(title, command)
+  echo :title, "\n\n#{title}"
+  echo :subtitle, "#{command}\n"
+
+  report(title) { system command }
+end
+
+def report(title)
+  Signal.trap("INT") { abort message(:error, "\n\n❌ #{title} interrupted") }
+
+  result = nil
+  elapsed = timing { result = yield }
+
+  if result
+    echo :success, "\n\n✅ #{title} passed in #{elapsed}"
+    true
+  else
+    echo :error, "\n\n❌ #{title} failed in #{elapsed}"
+    false
+  end
+ensure
+  Signal.trap("INT", "-")
+end
+
+def timing
+  started_at = Time.now.to_f
+  yield
+  min, sec = (Time.now.to_f - started_at).divmod(60)
+  "#{"#{min}m" if min > 0}%.2fs" % sec
+end
+
+def echo(type, text)
+  puts message(type, text)
+end
+
+def message(type, text)
+  "#{COLORS[type]}#{text}\033[0m"
+end
+
+COLORS = {
+  banner: "\033[1;32m",   # Green
+  title: "\033[1;35m",    # Purple
+  subtitle: "\033[1;90m", # Medium Gray
+  error: "\033[1;31m",    # Red
+  success: "\033[1;32m"   # Green
+}
+
+
+echo :banner, "🚀 Local CI"
+echo :subtitle, "Running tests, style checks, and security audits"
+
+report "Local CI" do
+  step "Setup", "bin/setup --skip-server"
+
+<% unless options.skip_rubocop? -%>
+  step "Style: Ruby", "bin/rubocop"
+<% end -%>
+
+<% unless options.skip_brakeman? -%>
+  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
+<% end -%>
+<% if using_node? -%>
+  step "Security: Yarn vulnerability audit", "yarn audit"
+<% end -%>
+<% if options[:javascript] == "importmap" && !options[:api] && !options[:skip_javascript] -%>
+  step "Security: Importmap vulnerability audit", "bin/importmap audit"
+<% end -%>
+
+<% if options[:api] || options[:skip_system_test] -%>
+  step "Tests: Rails", "bin/rails test"
+<% else %>
+  step "Tests: Rails", "bin/rails test test:system"
+<% end %>
+  step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+
+  # Optional: set a green GitHub commit status to unblock PR merge.
+  # Requires the `gh` CLI and and `gh extension install basecamp/gh-signoff`.
+  # step "Signoff: All systems go. Ready for merge and deploy.", "gh signoff"
+end
