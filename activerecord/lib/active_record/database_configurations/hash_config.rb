@@ -127,7 +127,7 @@ module ActiveRecord
       end
 
       def primary? # :nodoc:
-        Base.configurations.primary?(name)
+        Base.configurations.primary?(name, env: env_name)
       end
 
       # Determines whether the db:prepare task should seed the database from db/seeds.rb.
