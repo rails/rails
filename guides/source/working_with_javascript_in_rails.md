@@ -240,7 +240,7 @@ Finally, Turbo Streams can be initiated from a model or a background job using b
 These broadcasts can be used to update content via a WebSocket connection to all users, keeping
 page content fresh and bringing your application to life.
 
-To broadcast a Turbo Stream from a model combine a model callback like this:
+To broadcast a Turbo Stream from a model, combine a model callback like this:
 
 ```ruby
 class Post < ApplicationRecord
