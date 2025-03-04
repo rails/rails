@@ -131,11 +131,11 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_legacy_default
-    assert_equal ActiveRecord::Point.new(12.2, 13.3), PostgresqlPoint.column_defaults["legacy_y"]
-    assert_equal ActiveRecord::Point.new(12.2, 13.3), PostgresqlPoint.new.legacy_y
+    assert_equal [12.2, 13.3], PostgresqlPoint.column_defaults["legacy_y"]
+    assert_equal [12.2, 13.3], PostgresqlPoint.new.legacy_y
 
-    assert_equal ActiveRecord::Point.new(14.4, 15.5), PostgresqlPoint.column_defaults["legacy_z"]
-    assert_equal ActiveRecord::Point.new(14.4, 15.5), PostgresqlPoint.new.legacy_z
+    assert_equal [14.4, 15.5], PostgresqlPoint.column_defaults["legacy_z"]
+    assert_equal [14.4, 15.5], PostgresqlPoint.new.legacy_z
   end
 
   def test_legacy_schema_dumping

@@ -1254,7 +1254,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
-      assert_equal "0", column(:age).default
+      assert_equal 0, column(:age).default
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
