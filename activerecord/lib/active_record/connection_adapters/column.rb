@@ -22,7 +22,7 @@ module ActiveRecord
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default
+        @default = default.nil? || cast_type.mutable? ? default : cast_type.deserialize(default)
         @default_function = default_function
         @collation = collation
         @comment = comment
@@ -117,7 +117,7 @@ module ActiveRecord
         def deduplicated
           @name = -name
           @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
-          @default = -default if default
+          @default = -default if String === default
           @default_function = -default_function if default_function
           @collation = -collation if collation
           @comment = -comment if comment

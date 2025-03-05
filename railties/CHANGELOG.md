@@ -2,6 +2,13 @@
 
     *DHH*
 
+*   Rails no longer generates a `bin/bundle` binstub when creating new applications.
+
+    The `bin/bundle` binstub used to help activate the right version of bundler.
+    This is no longer necessary as this mechanism is now part of Rubygem itself.
+
+    *Edouard Chin*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 

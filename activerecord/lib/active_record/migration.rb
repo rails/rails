@@ -747,7 +747,7 @@ module ActiveRecord
       private
         def any_schema_needs_update?
           !db_configs_in_current_env.all? do |db_config|
-            Tasks::DatabaseTasks.schema_up_to_date?(db_config, ActiveRecord.schema_format)
+            Tasks::DatabaseTasks.schema_up_to_date?(db_config)
           end
         end
 
