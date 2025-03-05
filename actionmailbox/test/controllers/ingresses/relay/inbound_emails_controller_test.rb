@@ -37,7 +37,7 @@ class ActionMailbox::Ingresses::Relay::InboundEmailsControllerTest < ActionDispa
         env: { "rack.input" => nil }
     end
 
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
   test "rejecting an unauthorized inbound email" do
