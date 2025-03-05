@@ -1,6 +1,9 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+AllCops:
+  TargetRubyVersion: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || RUBY_ENGINE_VERSION %>
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

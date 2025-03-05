@@ -1,3 +1,7 @@
+*   RuboCop targets the Ruby version you're using rather than the 2.7 default.
+
+    *Jeremy Daer*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 
