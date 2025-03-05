@@ -141,6 +141,7 @@ module Rails
     def config_when_updating
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
+      bundle_audit_config_exist       = File.exist?("config/bundle-audit.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
@@ -168,6 +169,10 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if !bundle_audit_config_exist
+        template "config/bundle-audit.yml"
       end
 
       if options[:api]
