@@ -505,7 +505,7 @@ config.filter_redirect << "s3.amazonaws.com"
 You can set it to a String, a Regexp, or an Array of both.
 
 ```ruby
-config.filter_redirect.concat ["s3.amazonaws.com", /private_path/]
+config.filter_redirect.concat [ "s3.amazonaws.com", /private_path/ ]
 ```
 
 Matching URLs will be replaced with `[FILTERED]`. However, if you only wish to
