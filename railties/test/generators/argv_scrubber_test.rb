@@ -46,8 +46,13 @@ module Rails
       end
 
       def test_no_mutations
-        scrubber = ARGVScrubber.new ["hi mom"].freeze
+        scrubber = ARGVScrubber.new ["hi mom"]
+        output   = nil
+        scrubber.extend(Module.new {
+          define_method(:puts) { |string| output = string }
+        })
         args = scrubber.prepare!
+        assert_equal "command not found: hi mom", output
         assert_equal "--help", args.first
       end
 
