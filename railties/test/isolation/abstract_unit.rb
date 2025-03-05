@@ -539,6 +539,9 @@ module TestHelpers
             adapter: mysql2
             pool: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>
@@ -562,6 +565,9 @@ module TestHelpers
             adapter: mysql2
             pool: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>

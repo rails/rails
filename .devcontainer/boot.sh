@@ -14,4 +14,4 @@ cd activerecord || { echo "activerecord directory doesn't exist"; exit; }
 bundle exec rake db:postgresql:rebuild
 
 # Create MySQL databases
-MYSQL_CODESPACES=1 bundle exec rake db:mysql:rebuild
+bundle exec rake db:mysql:rebuild
