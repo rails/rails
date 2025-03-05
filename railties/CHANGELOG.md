@@ -1,4 +1,4 @@
-*   Add bin/bundle-audit and config/bundle-audit.yml for discovering and managing known security problems with app gems.
+*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
 
     *DHH*
 

@@ -42,7 +42,7 @@ DEFAULT_APP_FILES = %w(
   config.ru
   config/application.rb
   config/boot.rb
-  config/bundle-audit.yml
+  config/bundler-audit.yml
   config/cable.yml
   config/credentials.yml.enc
   config/database.yml
