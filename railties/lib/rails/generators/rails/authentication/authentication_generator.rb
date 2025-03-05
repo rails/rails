@@ -21,12 +21,13 @@ module Rails
 
         template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
 
-        template "app/mailers/passwords_mailer.rb"
+        if action_mailer?
+          template "app/mailers/passwords_mailer.rb"
+          template "app/views/passwords_mailer/reset.html.erb"
+          template "app/views/passwords_mailer/reset.text.erb"
+          template "test/mailers/previews/passwords_mailer_preview.rb"
+        end
 
-        template "app/views/passwords_mailer/reset.html.erb"
-        template "app/views/passwords_mailer/reset.text.erb"
-
-        template "test/mailers/previews/passwords_mailer_preview.rb"
         template "test/helpers/session_test_helper.rb"
       end
 
@@ -59,6 +60,11 @@ module Rails
       end
 
       hook_for :test_framework
+
+      private
+        def action_mailer?
+          defined?(ActionMailer::Railtie) || raise("Action Mailer is not defined in the application.")
+        end
     end
   end
 end
