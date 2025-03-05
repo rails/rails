@@ -163,7 +163,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
         development:
           <<: *default
@@ -181,7 +181,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000
@@ -501,7 +501,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             primary:
               <<: *default
@@ -517,7 +517,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             <<: *default
             database: #{database_name}_development
@@ -537,7 +537,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
@@ -560,7 +560,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
