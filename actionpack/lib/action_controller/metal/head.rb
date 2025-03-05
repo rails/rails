@@ -25,6 +25,8 @@ module ActionController
         raise ArgumentError, "#{status.inspect} is not a valid value for `status`."
       end
 
+      raise ::AbstractController::DoubleRenderError if response_body
+
       status ||= :ok
 
       if options
