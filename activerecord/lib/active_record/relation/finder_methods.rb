@@ -649,6 +649,9 @@ module ActiveRecord
         oc = []
 
         oc << model.implicit_order_column if model.implicit_order_column
+
+        return oc.flatten.uniq.compact if oc.flatten.include?(nil)
+
         oc << model.query_constraints_list if model.query_constraints_list
 
         if model.primary_key && model.query_constraints_list.nil?
