@@ -4,7 +4,7 @@ module AdapterHelper
   def current_adapter?(*types)
     types.any? do |type|
       ActiveRecord::ConnectionAdapters.const_defined?(type) &&
-        ActiveRecord::Base.lease_connection.is_a?(ActiveRecord::ConnectionAdapters.const_get(type))
+        ActiveRecord::Base.connection_pool.db_config.adapter_class <= ActiveRecord::ConnectionAdapters.const_get(type)
     end
   end
 
