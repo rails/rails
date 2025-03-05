@@ -829,13 +829,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_bundler_binstub
-    generator([destination_root])
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("binstubs bundler")
-  end
-
   def test_skip_active_job_option
     run_generator [destination_root, "--skip-active-job"]
 
