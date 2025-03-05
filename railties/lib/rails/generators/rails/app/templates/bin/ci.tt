@@ -1,0 +1,4 @@
+require_relative "../config/boot"
+require "active_support/continuous_integration"
+
+ActiveSupport::ContinuousIntegration.run(Rails.root.join("config/ci.rb"))

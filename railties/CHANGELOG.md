@@ -1,3 +1,12 @@
+*   Introduce `bin/ci`, a low-rent local CI.
+
+    `bin/ci` runs your tests, style checks, and security audits locally.
+
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
+
+    *Jeremy Daer*
+
 *   Rails no longer generates a `bin/bundle` binstub when creating new applications.
 
     The `bin/bundle` binstub used to help activate the right version of bundler.
