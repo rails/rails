@@ -280,6 +280,7 @@ module ActiveRecord
         #
         # This should be not be called manually but set in database.yml.
         def schema_search_path=(schema_csv)
+          return if schema_csv == @schema_search_path
           if schema_csv
             internal_execute("SET search_path TO #{schema_csv}")
             @schema_search_path = schema_csv
