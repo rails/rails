@@ -1,3 +1,13 @@
+*   Add `redirect_if_authenticated` to sessions controller when running `rails g authentication`
+
+    When using rails default `rails g authentication`, attempting to sign in while
+    already authenticated resulted in an error. This change updates the
+    sessions controller to redirect users to `after_authentication_url`
+    instead of raising an error when they try to sign in while already
+    logged in.
+
+    *ak15*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 
