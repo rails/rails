@@ -162,6 +162,11 @@ GEM
     brakeman (7.0.0)
       racc
     builder (3.3.0)
+    bundle-audit (0.1.0)
+      bundler-audit
+    bundler-audit (0.9.2)
+      bundler (>= 1.2.0, < 3)
+      thor (~> 1.0)
     bunny (2.23.0)
       amq-protocol (~> 2.3, >= 2.3.1)
       sorted_set (~> 1, >= 1.0.2)
@@ -678,6 +683,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.11)
   bootsnap (>= 1.4.4)
   brakeman
+  bundle-audit
   capybara (>= 3.39)
   connection_pool
   cssbundling-rails
