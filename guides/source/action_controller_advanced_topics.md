@@ -101,7 +101,7 @@ in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 Controlling Allowed Browser Versions
 ------------------------------------
 
-Starting with version 8.0, Rails controllers use [`allow_browser`](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser) method in `ApplicationController` to allow only modern browsers by default.
+Starting with version 7.2, Rails controllers use [`allow_browser`](https://api.rubyonrails.org/classes/ActionController/AllowBrowser/ClassMethods.html#method-i-allow_browser) method in `ApplicationController` to allow only modern browsers by default.
 
 ```ruby
 class ApplicationController < ActionController::Base
