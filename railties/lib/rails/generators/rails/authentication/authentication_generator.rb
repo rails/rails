@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require "rails/generators/bundle_helper"
+
 module Rails
   module Generators
     class AuthenticationGenerator < Base # :nodoc:
+      include BundleHelper
+
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
 
@@ -41,9 +45,9 @@ module Rails
       def enable_bcrypt
         if File.read("Gemfile").include?('gem "bcrypt"')
           uncomment_lines "Gemfile", /gem "bcrypt"/
-          Bundler.with_original_env { execute_command :bundle, "install --quiet" }
+          bundle_command("install --quiet")
         else
-          Bundler.with_original_env { execute_command :bundle, "add bcrypt", capture: true }
+          bundle_command("add bcrypt", {}, quiet: true)
         end
       end
 

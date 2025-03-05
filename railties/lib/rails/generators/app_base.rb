@@ -7,12 +7,14 @@ require "open-uri"
 require "tsort"
 require "uri"
 require "rails/generators"
+require "rails/generators/bundle_helper"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
       include AppName
+      include BundleHelper
 
       NODE_LTS_VERSION = "20.11.1"
       BUN_VERSION = "1.0.1"
@@ -639,32 +641,6 @@ module Rails
         if !options[:skip_action_cable] && options[:skip_solid]
           comment = "Use Redis adapter to run Action Cable in production"
           GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
-        end
-      end
-
-      def bundle_command(command, env = {})
-        say_status :run, "bundle #{command}"
-
-        # We are going to shell out rather than invoking Bundler::CLI.new(command)
-        # because `rails new` loads the Thor gem and on the other hand bundler uses
-        # its own vendored Thor, which could be a different version. Running both
-        # things in the same process is a recipe for a night with paracetamol.
-        #
-        # Thanks to James Tucker for the Gem tricks involved in this call.
-        _bundle_command = Gem.bin_path("bundler", "bundle")
-
-        require "bundler"
-        Bundler.with_original_env do
-          exec_bundle_command(_bundle_command, command, env)
-        end
-      end
-
-      def exec_bundle_command(bundle_command, command, env)
-        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
-        if options[:quiet]
-          system(env, full_command, out: File::NULL)
-        else
-          system(env, full_command)
         end
       end
 
