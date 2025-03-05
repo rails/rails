@@ -13,7 +13,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_stmt_timestamp # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -369,6 +369,26 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
+    def _delete_row(*, **) # :nodoc:
+      @_stmt_timestamp = Time.now
+      super
+    end
+
+    def _touch_row(*, **) # :nodoc:
+      @_stmt_timestamp = Time.now
+      super
+    end
+
+    def _update_row(*, **) # :nodoc:
+      @_stmt_timestamp = Time.now
+      super
+    end
+
+    def _create_record(*, **) # :nodoc:
+      @_stmt_timestamp = Time.now
+      super
+    end
+
     def before_committed! # :nodoc:
       _run_before_commit_callbacks
     end
@@ -384,6 +404,7 @@ module ActiveRecord
         _run_commit_callbacks
       end
     ensure
+      @_stmt_timestamp = nil
       @_committed_already_called = @_trigger_update_callback = @_trigger_destroy_callback = false
     end
 
@@ -396,7 +417,10 @@ module ActiveRecord
     ensure
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
-      @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
+      if force_restore_state
+        @_trigger_update_callback = @_trigger_destroy_callback = false
+        @_stmt_timestamp = nil
+      end
     end
 
     # Executes a block within a transaction and captures its return value as a
@@ -434,6 +458,7 @@ module ActiveRecord
         @_start_transaction_state = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
+        @_stmt_timestamp = nil
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.

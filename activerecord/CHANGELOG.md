@@ -1,3 +1,41 @@
+*   Modify the transactional callbacks calling order to match the same execution sequence as the SQL statements.
+
+    Previously, transactional callbacks such as `before_commit`, `after_commit` and their `rollbacks`
+    counterpart, were running in the same order as persistence methods such as `save` gets called.
+
+    Once opted-in to the new behaviour, transaction callbacks will run in the same order as the SQL
+    statements execution sequence.
+
+    ```ruby
+    class Post < ApplicationRecord
+      after_commit -> { puts "Hello" }
+    end
+
+    class Comment < ApplicationRecord
+      belongs_to :post, autosave: true
+
+      after_commit -> { puts "World" }
+    end
+
+    Comment.create
+
+    # The resulting SQL would look like: (Note that this doesn't change)
+    # BEGIN TRANSACTION
+    #   INSERT_INTO posts ...
+    #   INSERT_INTO comments ...
+    # COMMIT
+
+    # Previously, the callback order was [Comment, Post]. The output would be "World Hello".
+    # The new behaviour matches the SQL execution statements, and the callback order is [Post, Comment],
+    # the output is "Hello World".
+    ```
+
+    This new behaviour is disabled by default. To opt-in, set the
+    `config.active_record.run_transaction_callbacks_in_same_sequence = true` in your application's
+    configuration.
+
+    *Edouard Chin*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query

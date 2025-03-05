@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/with"
 require "cases/helper"
 require "models/owner"
 require "models/pet"
@@ -689,6 +690,125 @@ class CallbackOrderTest < ActiveRecord::TestCase
     include Behaviour
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
+
+  def define_model(&block)
+    Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      instance_eval(&block)
+    end
+  end
+
+  def test_before_commit_callbacks_called_in_the_same_order_as_the_executed_statements
+    history = []
+
+    another_model = define_model do
+      before_commit -> { history << 1 }
+    end
+
+    model = define_model do
+      before_save -> { another_model.create! }
+      before_commit -> { history << 2 }
+    end
+
+    old, ActiveRecord.before_committed_on_all_records = ActiveRecord.before_committed_on_all_records, true
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([2, 1], history)
+    end
+  ensure
+    ActiveRecord.before_committed_on_all_records = old
+  end
+
+  def test_after_commit_callbacks_called_in_the_same_order_as_the_executed_statements
+    history = []
+
+    another_model = define_model do
+      after_commit -> { history << 1 }
+    end
+
+    model = define_model do
+      before_save -> { another_model.create! }
+      after_commit -> { history << 2 }
+    end
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([2, 1], history)
+    end
+  end
+
+  def test_before_commit_callbacks_called_in_the_same_order_as_the_executed_statements_when_a_record_gets_created_after_a_transaction_opens
+    history = []
+
+    another_model = define_model do
+      after_commit -> { history << 2 }
+    end
+
+    model = define_model do
+      before_commit do
+        history << 1
+        another_model.create!
+      end
+    end
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+      assert_equal([1, 2], history)
+    end
+  end
+
+  def test_after_rollback_when_the_transaction_is_aborted_and_a_record_was_added_to_the_transaction
+    history = []
+
+    another_model = define_model do
+      after_save -> { throw(:abort) }
+      after_rollback -> { history << 1 }
+    end
+
+    # This record wouldn't have a chance to set its `committed_timestamp` as the
+    # transaction will be aborted before. This test checks whether the `sort` comparison works
+    # on records that have their `committed_timestamp` set to nil.
+    model = define_model do
+      before_save -> { another_model.create }
+    end
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: true) do
+      model.new.save
+
+      assert_equal([1], history)
+    end
+
+    history.clear
+
+    ActiveRecord.with(run_transaction_callbacks_in_same_sequence: false) do
+      model.new.save
+
+      assert_equal([1], history)
+    end
+  end
 
   def test_callbacks_run_in_order_defined_in_model_if_using_run_after_transaction_callbacks_in_order_defined
     topic = TopicWithCallbacksWithSpecificOrderWithSettingTrue.new
