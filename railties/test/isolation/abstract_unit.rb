@@ -105,14 +105,7 @@ module TestHelpers
   module Generation
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
-      @prev_rails_app_class = Rails.app_class
-      @prev_rails_application = Rails.application
-      Rails.app_class = Rails.application = nil
-
-      @prev_rails_env = ENV["RAILS_ENV"]
-      ENV["RAILS_ENV"] = "development"
-
-      FileUtils.rm_rf(app_path)
+      setup_app
       FileUtils.cp_r(app_template_path, app_path)
 
       # Delete the initializers unless requested
@@ -152,6 +145,18 @@ module TestHelpers
       add_to_env_config :production, "config.log_level = :error"
     end
 
+    # Store and reset Rails application globals
+    def setup_app
+      @prev_rails_app_class = Rails.app_class
+      @prev_rails_application = Rails.application
+      Rails.app_class = Rails.application = nil
+
+      @prev_rails_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+      FileUtils.rm_rf(app_path)
+    end
+
+    # Restore Rails application globals
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
