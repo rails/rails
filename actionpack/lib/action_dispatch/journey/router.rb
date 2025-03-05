@@ -98,24 +98,7 @@ module ActionDispatch
         end
       end
 
-      def visualizer
-        tt     = GTG::Builder.new(ast).transition_table
-        groups = partitioned_routes.first.map(&:ast).group_by(&:to_s)
-        asts   = groups.values.map(&:first)
-        tt.visualizer(asts)
-      end
-
       private
-        def partitioned_routes
-          routes.partition { |r|
-            r.path.anchored && r.path.requirements_anchored?
-          }
-        end
-
-        def ast
-          routes.ast
-        end
-
         def simulator
           routes.simulator
         end
@@ -125,7 +108,6 @@ module ActionDispatch
         end
 
         def filter_routes(path)
-          return [] unless ast
           simulator.memos(path) { [] }
         end
 
