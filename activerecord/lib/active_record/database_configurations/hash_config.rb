@@ -159,8 +159,8 @@ module ActiveRecord
       end
 
       def schema_format # :nodoc:
-        format = configuration_hash[:schema_format]&.to_sym || ActiveRecord.schema_format
-        raise "Invalid schema format" unless [ :ruby, :sql ].include? format
+        format = configuration_hash.fetch(:schema_format, ActiveRecord.schema_format).to_sym
+        raise "Invalid schema format" unless [:ruby, :sql].include?(format)
         format
       end
 

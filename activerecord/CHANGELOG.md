@@ -1,11 +1,11 @@
-*   Allow setting `schema_format` in database configuration.
+*   Allow setting the `schema_format` via database configuration.
 
     ```
     primary:
       schema_format: ruby
     ```
 
-    Useful in multi-database setups to have different formats per-database.
+    Useful for multi-database setups when apps require different formats per-database.
 
     *T S Vallender*
 
