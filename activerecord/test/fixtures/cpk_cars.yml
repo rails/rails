@@ -1,0 +1,17 @@
+_fixture:
+  model_class: Cpk::Car
+
+toyota:
+  make: Toyota
+  model: Camry
+  year: 1982
+
+honda:
+  make: Honda
+  model: Civic
+  year: 1972
+
+ford:
+  make: Ford
+  model: Mustang
+  year: 1964

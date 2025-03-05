@@ -5,6 +5,7 @@ require "date"
 
 module FakeRecord
   class Column < Struct.new(:name, :type)
+    alias :sql_type :type
   end
 
   class Connection
@@ -89,6 +90,10 @@ module FakeRecord
 
     def cast_bound_value(thing)
       thing
+    end
+
+    def mariadb?
+      false
     end
   end
 

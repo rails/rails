@@ -93,22 +93,11 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_ValuesList(o, collector)
           collector << "VALUES "
+          values_rows_list o.rows, collector
+        end
 
-          o.rows.each_with_index do |row, i|
-            collector << ", " unless i == 0
-            collector << "("
-            row.each_with_index do |value, k|
-              collector << ", " unless k == 0
-              case value
-              when Nodes::SqlLiteral, Nodes::BindParam, ActiveModel::Attribute
-                collector = visit(value, collector)
-              else
-                collector << quote(value).to_s
-              end
-            end
-            collector << ")"
-          end
-          collector
+        def visit_Arel_ValuesTable(o, collector)
+          raise NotImplementedError, "VALUES ... AS table not implemented for this db"
         end
 
         def visit_Arel_Nodes_SelectStatement(o, collector)
@@ -1008,6 +997,24 @@ module Arel # :nodoc: all
             visit child.to_cte, collector
           end
 
+          collector
+        end
+
+        def values_rows_list(rows, collector, row_prefix = "")
+          rows.each_with_index do |row, i|
+            collector << ", " unless i == 0
+            collector << row_prefix << "("
+            row.each_with_index do |value, i|
+              collector << ", " unless i == 0
+              case value
+              when Nodes::SqlLiteral, Nodes::BindParam, ActiveModel::Attribute
+                collector = visit(value, collector)
+              else
+                collector << quote(value).to_s
+              end
+            end
+            collector << ")"
+          end
           collector
         end
     end

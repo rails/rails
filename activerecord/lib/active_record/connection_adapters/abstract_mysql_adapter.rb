@@ -188,6 +188,14 @@ module ActiveRecord
         end
       end
 
+      def supports_derived_values_table?
+        mariadb? || database_version >= "8.0.0"
+      end
+
+      def supports_derived_table_column_aliases?
+        !mariadb? || database_version >= "11.7.0"
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end

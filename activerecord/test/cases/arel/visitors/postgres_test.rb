@@ -331,6 +331,37 @@ module Arel
           _(sql).must_be_like %{ "products"."tags" && '{foo,bar,baz}' }
         end
       end
+
+      describe "ValuesTable" do
+        before do
+          @rows = [[1, "one"], [2, "two"]]
+          @column_types = [FakeRecord::Column.new("id", :integer), FakeRecord::Column.new("name", :string)]
+        end
+
+        it "outputs no column aliases" do
+          values_table = Arel::ValuesTable.new(:data, @rows)
+
+          _(compile(values_table)).must_be_like %{
+            (VALUES (1, 'one'), (2, 'two')) "data"
+          }
+        end
+
+        it "outputs column aliases if given" do
+          values_table = Arel::ValuesTable.new(:data, @rows, column_aliases: %i[id name])
+
+          _(compile(values_table)).must_be_like %{
+            (VALUES (1, 'one'), (2, 'two')) "data" ("id", "name")
+          }
+        end
+
+        it "builds a nested SELECT and uses column_types for casting" do
+          values_table = Arel::ValuesTable.new(:data, @rows, column_types: @column_types)
+
+          _(compile(values_table)).must_be_like %{
+            (SELECT CAST("column1" AS integer), CAST("column2" AS string) FROM (VALUES (1, 'one'), (2, 'two'))) "data"
+          }
+        end
+      end
     end
   end
 end
