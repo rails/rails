@@ -7,12 +7,14 @@ require "open-uri"
 require "tsort"
 require "uri"
 require "rails/generators"
+require "rails/generators/bundle_helper"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
   module Generators
     class AppBase < Base # :nodoc:
       include AppName
+      include BundleHelper
 
       NODE_LTS_VERSION = "20.11.1"
       BUN_VERSION = "1.0.1"
@@ -643,32 +645,6 @@ module Rails
         end
       end
 
-      def bundle_command(command, env = {})
-        say_status :run, "bundle #{command}"
-
-        # We are going to shell out rather than invoking Bundler::CLI.new(command)
-        # because `rails new` loads the Thor gem and on the other hand bundler uses
-        # its own vendored Thor, which could be a different version. Running both
-        # things in the same process is a recipe for a night with paracetamol.
-        #
-        # Thanks to James Tucker for the Gem tricks involved in this call.
-        _bundle_command = Gem.bin_path("bundler", "bundle")
-
-        require "bundler"
-        Bundler.with_original_env do
-          exec_bundle_command(_bundle_command, command, env)
-        end
-      end
-
-      def exec_bundle_command(bundle_command, command, env)
-        full_command = %Q["#{Gem.ruby}" "#{bundle_command}" #{command}]
-        if options[:quiet]
-          system(env, full_command, out: File::NULL)
-        else
-          system(env, full_command)
-        end
-      end
-
       def bundle_install?
         !(options[:skip_bundle] || options[:pretend])
       end
@@ -760,12 +736,6 @@ module Rails
 
           # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
           bundle_command("lock --add-platform=aarch64-linux") if RUBY_PLATFORM.start_with?("arm64")
-        end
-      end
-
-      def generate_bundler_binstub
-        if bundle_install?
-          bundle_command("binstubs bundler")
         end
       end
 

@@ -454,17 +454,16 @@ db_namespace = namespace :db do
 
     desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord.schema_format, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(nil, ENV["SCHEMA"])
     end
 
     namespace :dump do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
+        desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) for #{name} database"
         task name => :load_config do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
 
           db_namespace["schema:dump:#{name}"].reenable
@@ -474,12 +473,11 @@ db_namespace = namespace :db do
 
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
+        desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) into the #{name} database"
         task name => "db:test:purge:#{name}" do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
         end
       end
@@ -523,13 +521,12 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
+    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on configuration)"
     task load_schema: %w(db:test:purge) do
       ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test") do |pool|
         db_config = pool.db_config
         ActiveRecord::Schema.verbose = false
-        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
       end
     end
 
@@ -554,8 +551,7 @@ db_namespace = namespace :db do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test", name: name) do |pool|
             db_config = pool.db_config
             ActiveRecord::Schema.verbose = false
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
         end
       end

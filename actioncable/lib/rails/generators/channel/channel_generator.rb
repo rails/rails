@@ -59,17 +59,17 @@ module Rails
         def create_channel_javascript_file
           channel_js_path = File.join("app/javascript/channels", class_path, "#{file_name}_channel")
           js_template "javascript/channel", channel_js_path
-          gsub_file "#{channel_js_path}.js", /\.\/consumer/, "channels/consumer" unless using_js_runtime?
+          gsub_file "#{channel_js_path}.js", /\.\/consumer/, "channels/consumer" if using_importmap?
         end
 
         def import_channels_in_javascript_entrypoint
           append_to_file "app/javascript/application.js",
-            using_js_runtime? ? %(import "./channels"\n) : %(import "channels"\n)
+            using_importmap? ? %(import "channels"\n) : %(import "./channels"\n)
         end
 
         def import_channel_in_javascript_entrypoint
           append_to_file "app/javascript/channels/index.js",
-            using_js_runtime? ? %(import "./#{file_name}_channel"\n) : %(import "channels/#{file_name}_channel"\n)
+            using_importmap? ? %(import "channels/#{file_name}_channel"\n) : %(import "./#{file_name}_channel"\n)
         end
 
         def install_javascript_dependencies

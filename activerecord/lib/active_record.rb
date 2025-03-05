@@ -371,7 +371,8 @@ module ActiveRecord
   # specific) SQL statements. If :ruby, the schema is dumped as an
   # ActiveRecord::Schema file which can be loaded into any database that
   # supports migrations. Use :ruby if you want to have different database
-  # adapters for, e.g., your development and test environments.
+  # adapters for, e.g., your development and test environments. This can be
+  # overridden per-database in the database configuration.
   singleton_class.attr_accessor :schema_format
   self.schema_format = :ruby
 
