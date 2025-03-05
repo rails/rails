@@ -1,3 +1,14 @@
+*   Allow setting `schema_format` in database configuration.
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Support disabling indexes for MySQL v8.0.0+ and MariaDB v10.6.0+
 
     MySQL 8.0.0 added an option to disable indexes from being used by the query
