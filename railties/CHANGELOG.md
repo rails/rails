@@ -1,3 +1,7 @@
+*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
+
+    *DHH*
+
 *   Rails no longer generates a `bin/bundle` binstub when creating new applications.
 
     The `bin/bundle` binstub used to help activate the right version of bundler.
