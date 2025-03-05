@@ -1348,6 +1348,8 @@ module ActiveRecord
         assert_equal :shard_one, pool_config.shard
         assert_equal :shard_one, pool.shard
         assert_equal :shard_one, pool.lease_connection.shard
+      ensure
+        pool&.disconnect!
       end
 
       def test_pin_connection_always_returns_the_same_connection
@@ -1471,6 +1473,8 @@ module ActiveRecord
         pool = ConnectionPool.new(pool_config)
 
         assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:reading shard=:shard_one>/, pool.inspect)
+      ensure
+        pool&.disconnect!
       end
 
       private
