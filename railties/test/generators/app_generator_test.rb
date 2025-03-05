@@ -44,6 +44,7 @@ DEFAULT_APP_FILES = %w(
   config/application.rb
   config/boot.rb
   config/cable.yml
+  config/ci.rb
   config/credentials.yml.enc
   config/database.yml
   config/environment.rb

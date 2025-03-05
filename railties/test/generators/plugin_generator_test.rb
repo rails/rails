@@ -48,6 +48,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/application.rb
   test/dummy/config/boot.rb
   test/dummy/config/cable.yml
+  test/dummy/config/ci.rb
   test/dummy/config/database.yml
   test/dummy/config/environment.rb
   test/dummy/config/environments/development.rb
