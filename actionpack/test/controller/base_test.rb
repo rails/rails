@@ -358,3 +358,13 @@ class BaseTest < ActiveSupport::TestCase
     )
   end
 end
+
+class BaseInstrumentationTest < ActionController::TestCase
+  tests SimpleController
+
+  def test_clears_controller_execution_context
+    get :hello
+
+    assert_nil ActiveSupport::ExecutionContext.to_h[:controller]
+  end
+end
