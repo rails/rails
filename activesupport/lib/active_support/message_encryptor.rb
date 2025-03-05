@@ -3,6 +3,8 @@ require 'base64'
 require 'active_support/core_ext/array/extract_options'
 
 module ActiveSupport
+  DEFAULT_CIPHER = "aes-256-cbc"
+
   # MessageEncryptor is a simple way to encrypt values which get stored
   # somewhere you don't trust.
   #
@@ -61,6 +63,11 @@ module ActiveSupport
     # avoid padding attacks. Reference: http://www.limited-entropy.com/padding-oracle-attacks.
     def decrypt_and_verify(value)
       _decrypt(verifier.verify(value))
+    end
+
+    # Given a cipher, returns the key length of the cipher to help generate the key of desired size
+    def self.key_len(cipher = DEFAULT_CIPHER)
+      OpenSSL::Cipher.new(cipher).key_len
     end
 
     private

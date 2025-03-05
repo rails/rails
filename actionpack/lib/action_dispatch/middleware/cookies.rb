@@ -75,7 +75,7 @@ module ActionDispatch
   #     domain: nil  # Does not sets cookie domain. (default)
   #     domain: :all # Allow the cookie for the top most level
   #                       domain and subdomains.
-  #     domain: %w(.example.com .example.org) # Allow the cookie 
+  #     domain: %w(.example.com .example.org) # Allow the cookie
   #                       for concrete domain names.
   #
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time object.
@@ -304,7 +304,7 @@ module ActionDispatch
 
         handle_options(options)
 
-        if @cookies[name.to_s] != value or options[:expires]
+        if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
           @delete_cookies.delete(name.to_s)
@@ -508,7 +508,7 @@ module ActionDispatch
 
         @parent_jar = parent_jar
         @options = options
-        secret = key_generator.generate_key(@options[:encrypted_cookie_salt])
+        secret = key_generator.generate_key(@options[:encrypted_cookie_salt])[0, ActiveSupport::MessageEncryptor.key_len]
         sign_secret = key_generator.generate_key(@options[:encrypted_signed_cookie_salt])
         @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, serializer: NullSerializer)
       end
