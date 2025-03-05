@@ -1,3 +1,7 @@
+*   Add bin/bundle-audit and config/bundle-audit.yml for discovering and managing known security problems with app gems.
+
+    *DHH*
+
 *   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
     running `rails g authentication`. Simplifies authentication in integration tests.
 
