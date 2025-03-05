@@ -1,3 +1,11 @@
+*   Support additional file checksum algorithms in S3 Adapter
+
+    Add support for SHA256 to S3 service for file integrity checking.
+    Add default_digest_algorithm configuration allowing selection of default
+    checksum algorithm for service. Keep default value as MD5
+
+    *Matt Pasquini*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
@@ -11,9 +19,7 @@
 
     *Sean Doyle*
 
-*   Add support for alternative MD5 implementation through `config.active_storage.checksum_implementation`.
-
-    Also automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
+*   Automatically degrade to using the slower `Digest::MD5` implementation if `OpenSSL::Digest::MD5`
     is found to be disabled because of OpenSSL FIPS mode.
 
     *Matt Pasquini*, *Jean Boussier*
