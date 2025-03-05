@@ -127,6 +127,7 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
+        template "bundle-audit.yml"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
