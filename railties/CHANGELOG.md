@@ -1,11 +1,11 @@
-*   Introduce `bin/ci`, a low-rent local CI.
+*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
 
-    `bin/ci` runs your tests, style checks, and security audits locally.
+    The specific steps are defined by a new DSL in `config/ci.rb`.
 
     Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
     set a green PR status - ready for merge.
 
-    *Jeremy Daer*
+    *Jeremy Daer*, *DHH*
 
 *   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
 
