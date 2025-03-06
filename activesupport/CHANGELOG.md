@@ -1,3 +1,8 @@
+*   Duplicate the `context` hash passed to `ActiveSupport::ErrorReport#handle` for each subscriber.
+    This prevents mutations done on the `context` by one subscriber from effecting the others.
+
+    *Andrew Novoselac*
+
 *   Introduce ActiveSupport::ErrorReporter#add_middleware
 
     When reporting an error, the error context middleware will be called with the reported error
