@@ -16,6 +16,9 @@ services:
       - redis
       - memcached
 
+    environment:
+      MYSQL_CODESPACES: "1"
+
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
