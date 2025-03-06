@@ -129,5 +129,23 @@ module ActiveRecord
         assert_equal "col 2", row["foo"]
       end
     end
+
+    test "dup preserve all attributes" do
+      a = result
+      b = a.dup
+
+      assert_equal a.column_types, b.column_types
+      assert_equal a.columns, b.columns
+      assert_equal a.rows, b.rows
+      assert_equal a.column_indexes, b.column_indexes
+
+      # Second round in case of mutation
+      b = b.dup
+
+      assert_equal a.column_types, b.column_types
+      assert_equal a.columns, b.columns
+      assert_equal a.rows, b.rows
+      assert_equal a.column_indexes, b.column_indexes
+    end
   end
 end
