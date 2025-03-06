@@ -252,7 +252,7 @@ class ValidationsTest < ActiveModel::TestCase
 
     # If block should not fire
     assert_predicate t, :valid?
-    assert_predicate t.author_name, :nil?
+    assert_nil t.author_name
 
     # If block should fire
     assert t.invalid?(:update)
