@@ -65,7 +65,7 @@ module ActiveRecord
   #
   # Tag comments can be prepended to the query:
   #
-  #    ActiveRecord::QueryLogs.prepend_comment = true
+  #     config.active_record.query_log_tags_prepend_comment = true
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
