@@ -15,11 +15,11 @@ module ActiveSupport
       instance_eval(&block) if block_given?
     end
 
-    def step(title, command)
+    def step(title, *command)
       echo :title, "\n\n#{title}"
-      echo :subtitle, "#{command}\n"
+      echo :subtitle, "#{command.join(" ")}\n"
 
-      report(title) { results << system(command) }
+      report(title) { results << system(*command) }
     end
 
     def report(title, &block)
