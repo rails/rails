@@ -618,11 +618,16 @@ module Rails
       end
 
       def ci_packages
-        if depends_on_system_test?
-          dockerfile_build_packages << "google-chrome-stable"
-        else
-          dockerfile_build_packages
-        end
+        dockerfile_build_packages - [
+          # GitHub Actions doesn't have build-essential,
+          # but it's a meta-packages and all its dependencies are already installed.
+          "build-essential",
+          "git",
+          "pkg-config",
+          "libyaml-dev",
+          "unzip",
+          "python-is-python3",
+        ]
       end
 
       def css_gemfile_entry
