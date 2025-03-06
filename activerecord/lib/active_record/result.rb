@@ -208,7 +208,6 @@ module ActiveRecord
 
     def initialize_copy(other)
       @rows = rows.dup
-      @column_types = column_types.dup
       @hash_rows    = nil
     end
 
@@ -238,6 +237,11 @@ module ActiveRecord
         @rows.map { |row| IndexedRow.new(columns, row) }.freeze
       end
     end
+
+    protected
+      def raw_column_types
+        @column_types
+      end
 
     private
       def column_type(name, index, type_overrides)
