@@ -23,6 +23,9 @@ jobs:
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
+      - name: Scan for known security vulnerabilities in gems used
+        run: bin/bundler-audit
+
 <% end -%>
 <%- if options[:javascript] == "importmap" && !options[:api] && !options[:skip_javascript] -%>
   scan_js:

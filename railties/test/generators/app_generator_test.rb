@@ -32,6 +32,7 @@ DEFAULT_APP_FILES = %w(
   app/views/pwa/manifest.json.erb
   app/views/pwa/service-worker.js
   bin/brakeman
+  bin/bundler-audit
   bin/ci
   bin/dev
   bin/docker-entrypoint
@@ -43,6 +44,7 @@ DEFAULT_APP_FILES = %w(
   config.ru
   config/application.rb
   config/boot.rb
+  config/bundler-audit.yml
   config/cable.yml
   config/ci.rb
   config/credentials.yml.enc

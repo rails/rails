@@ -127,6 +127,7 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
+        template "bundler-audit.yml"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
         template "ci.rb"
         template "puma.rb"
@@ -142,6 +143,7 @@ module Rails
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
       ci_config_exist                 = File.exist?("config/ci.rb")
+      bundle_audit_config_exist       = File.exist?("config/bundler-audit.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
@@ -173,6 +175,10 @@ module Rails
 
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
+      end
+
+      if !bundle_audit_config_exist
+        template "config/bundler-audit.yml"
       end
 
       if options[:api]
