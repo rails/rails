@@ -238,11 +238,6 @@ module ActiveRecord
       end
     end
 
-    protected
-      def raw_column_types
-        @column_types
-      end
-
     private
       def column_type(name, index, type_overrides)
         if type_overrides
