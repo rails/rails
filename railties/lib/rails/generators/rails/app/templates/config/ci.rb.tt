@@ -12,6 +12,7 @@ CI.new do
     step "Style: Ruby", "bin/rubocop"
   <% end -%>
 
+    step "Security: Gem audit", "bin/bundler-audit"
   <% unless options.skip_brakeman? -%>
     step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
   <% end -%>
