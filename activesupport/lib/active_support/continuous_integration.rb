@@ -1,6 +1,25 @@
 # frozen_string_literal: true
 
 module ActiveSupport
+  # Provides a DSL for declaring a continuous integration workflow that can be run either locally or in the cloud.
+  # Each step is timed, reports success/error, and is aggregated into a collective report that reports total runtime,
+  # as well as whether the run was successful or not.
+  #
+  # Example:
+  #
+  #   ActiveSupport::ContinuousIntegration.new do
+  #     echo :banner, "🚀 Local CI"
+  #     echo :subtitle, "Running tests, style checks, and security audits"
+  #
+  #     report "Local CI" do
+  #       step "Setup", "bin/setup --skip-server"
+  #       step "Style: Ruby", "bin/rubocop"
+  #       step "Security: Gem audit", "bin/bundler-audit"
+  #       step "Tests: Rails", "bin/rails test test:system"
+  #     end
+  #   end
+  #
+  # Starting with Rails 8.1, a default `bin/ci` and `config/ci.rb` file are created to provide out-of-the-box CI.
   class ContinuousIntegration
     COLORS = {
       banner: "\033[1;32m",   # Green
@@ -17,6 +36,13 @@ module ActiveSupport
       instance_eval(&block) if block_given?
     end
 
+    # Declare a step with a title and a command. The command can either be given as a single string or as multiple
+    # strings that will be passed to `system` as individual arguments (and therefore correctly escaped for paths etc).
+    #
+    # Examples:
+    #
+    #   step "Setup", "bin/setup"
+    #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
       echo :title, "\n\n#{title}"
       echo :subtitle, "#{command.join(" ")}\n"
@@ -24,6 +50,14 @@ module ActiveSupport
       report(title) { results << system(*command) }
     end
 
+    # Aggregate a number of steps under a single heading, with a combined runtime, and an aggregate success/failure state.
+    #
+    # Example:
+    #
+    #   report "Local CI" do
+    #     step "Setup", "bin/setup --skip-server"
+    #     step "Style: Ruby", "bin/rubocop"
+    #   end
     def report(title, &block)
       Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
 
@@ -41,6 +75,14 @@ module ActiveSupport
       Signal.trap("INT", "-")
     end
 
+    # Echo text to the terminal in the color corresponding to the type of the text.
+    #
+    # Examples:
+    #
+    #   echo :success, "This is going to be green!"
+    #   echo :error, "This is going to be red!"
+    #
+    # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
     def echo(type, text)
       puts colorize(type, text)
     end
