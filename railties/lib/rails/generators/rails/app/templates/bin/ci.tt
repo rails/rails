@@ -2,4 +2,4 @@ require_relative "../config/boot"
 require "active_support/continuous_integration"
 
 CI = ActiveSupport::ContinuousIntegration
-instance_eval(Pathname.new(__dir__).join("../config/ci.rb").read)
+require_relative "../config/ci.rb"
