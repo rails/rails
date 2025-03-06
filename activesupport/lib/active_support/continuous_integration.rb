@@ -8,33 +8,33 @@ module ActiveSupport
       success: "\033[1;32m"   # Green
     }
 
-    def self.run(ci_declaration_path)
-      new.instance_eval(ci_declaration_path.read)
-    end
+    attr_reader :results
 
-    def initialize
+    def initialize(&block)
+      @results = []
+      instance_eval(&block) if block_given?
     end
 
     def step(title, command)
       echo :title, "\n\n#{title}"
       echo :subtitle, "#{command}\n"
 
-      report(title) { system command }
+      report(title) { results << system(command) }
     end
 
-    def report(title)
+    def report(title, &block)
       Signal.trap("INT") { abort message(:error, "\n\n❌ #{title} interrupted") }
 
-      result = nil
-      elapsed = timing { result = yield }
+      ci = self.class.new
+      elapsed = timing { ci.instance_eval(&block) }
 
-      if result
+      if ci.results.all?(&:itself)
         echo :success, "\n\n✅ #{title} passed in #{elapsed}"
-        true
       else
         echo :error, "\n\n❌ #{title} failed in #{elapsed}"
-        false
       end
+
+      results.concat ci.results
     ensure
       Signal.trap("INT", "-")
     end
