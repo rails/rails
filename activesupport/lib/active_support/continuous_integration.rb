@@ -23,7 +23,7 @@ module ActiveSupport
     end
 
     def report(title, &block)
-      Signal.trap("INT") { abort message(:error, "\n\n❌ #{title} interrupted") }
+      Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
 
       ci = self.class.new
       elapsed = timing { ci.instance_eval(&block) }
@@ -40,7 +40,7 @@ module ActiveSupport
     end
 
     def echo(type, text)
-      puts message(type, text)
+      puts colorize(type, text)
     end
 
     private
@@ -51,7 +51,7 @@ module ActiveSupport
         "#{"#{min}m" if min > 0}%.2fs" % sec
       end
 
-      def message(type, text)
+      def colorize(type, text)
         "#{COLORS[type]}#{text}\033[0m"
       end
   end
