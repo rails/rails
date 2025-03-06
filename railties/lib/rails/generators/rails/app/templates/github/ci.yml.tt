@@ -102,9 +102,11 @@ jobs:
 
     <%- end -%>
     steps:
+      <%- unless ci_packages.empty? -%>
       - name: Install packages
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
 
+      <%- end -%>
       - name: Checkout code
         uses: actions/checkout@v4
 
