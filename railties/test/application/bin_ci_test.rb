@@ -14,7 +14,7 @@ module ApplicationTests
         assert File.exist?("bin/ci"), "bin/ci does not exist"
         assert File.executable?("bin/ci"), "bin/ci is not executable"
 
-        content = File.read("bin/ci")
+        content = File.read("config/ci.rb")
 
         # Default steps
         assert_match(/bin\/rubocop/, content)
