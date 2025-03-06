@@ -29,9 +29,9 @@ module ActiveSupport
       elapsed = timing { ci.instance_eval(&block) }
 
       if ci.results.all?(&:itself)
-        echo :success, "\n\n✅ #{title} passed in #{elapsed}"
+        echo :success, "\n✅ #{title} passed in #{elapsed}"
       else
-        echo :error, "\n\n❌ #{title} failed in #{elapsed}"
+        echo :error, "\n❌ #{title} failed in #{elapsed}"
       end
 
       results.concat ci.results
