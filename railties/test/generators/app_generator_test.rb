@@ -655,8 +655,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_inclusion_of_ci_files
     run_generator
-    assert_file ".github/workflows/ci.yml"
-    assert_file ".github/dependabot.yml"
+    assert_file ".github/workflows/ci.yml" do |yaml|
+      assert_nothing_raised do
+        YAML.load(yaml)
+      end
+    end
+    assert_file ".github/dependabot.yml" do |yaml|
+      assert_nothing_raised do
+        YAML.load(yaml)
+      end
+    end
   end
 
   def test_ci_files_are_skipped_if_required
