@@ -1243,7 +1243,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
-    assert_predicate post[:author_count], :nil?
+    assert_nil post[:author_count]
   end
 
   def test_primary_key_option_on_source
