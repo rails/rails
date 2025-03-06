@@ -102,6 +102,8 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
+      class_attribute :message_verifiers, instance_accessor: false, instance_predicate: false, default: nil
+
       ##
       # :singleton-method:
       #
