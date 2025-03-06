@@ -1,3 +1,12 @@
+*   Fix race condition in column-based type lookups when defining attribute methods with
+    multiple databases in a multi-threaded environment.
+
+    When using PostgreSQL with the hstore extension, this would result in hstore column
+    attribute type lookups to fail and fallback to the default string type due to differing
+    OID values for the same type across different connections.
+
+    *Joshua Young*
+
 *   Fix a case where a non-retryable query could be marked retryable.
 
     *Hartley McGuire*
