@@ -1,3 +1,9 @@
+*   Improve `with_routing` test helper to not rebuild the middleware stack.
+
+    Otherwise some middleware configuration could be lost.
+
+    *Édouard Chin*
+
 *   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
 
     This makes it easier to locate the source of the problem, especially for routes drawn by gems.
