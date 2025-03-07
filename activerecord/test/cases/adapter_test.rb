@@ -840,6 +840,27 @@ module ActiveRecord
         @connection.execute("SELECT 1", allow_retry: true)
       end
 
+      test "disconnect and recover on #configure_connection failure" do
+        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+
+        failures = [ActiveRecord::ConnectionFailed.new("Oops"), ActiveRecord::ConnectionFailed.new("Oops 2")]
+        connection.singleton_class.define_method(:configure_connection) do
+          if error = failures.pop
+            raise error
+          else
+            super()
+          end
+        end
+        assert_raises ActiveRecord::ConnectionFailed do
+          connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [[1]], connection.exec_query("SELECT 1").rows
+        assert_empty failures
+      ensure
+        connection&.disconnect!
+      end
+
       private
         def raw_transaction_open?(connection)
           case connection.adapter_name

@@ -1,3 +1,12 @@
+*   Fix error handling during connection configuration.
+
+    Active Record wasn't properly handling errors during the connection configuration phase.
+    This could lead to a partially configured connection being used, resulting in various exceptions,
+    the most common being with the PostgreSQLAdapter raising `undefined method `key?' for nil`
+    or `TypeError: wrong argument type nil (expected PG::TypeMap)`.
+
+    *Jean Boussier*
+
 *   Fix a case where a non-retryable query could be marked retryable.
 
     *Hartley McGuire*
