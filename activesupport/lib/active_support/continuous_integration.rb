@@ -7,15 +7,19 @@ module ActiveSupport
   #
   # Example:
   #
-  #   ActiveSupport::ContinuousIntegration.new do
+  #   ActiveSupport::ContinuousIntegration.run do
   #     echo :banner, "🚀 Continuous Integration"
   #     echo :subtitle, "Running tests, style checks, and security audits"
   #
-  #     report "CI" do
-  #       step "Setup", "bin/setup --skip-server"
-  #       step "Style: Ruby", "bin/rubocop"
-  #       step "Security: Gem audit", "bin/bundler-audit"
-  #       step "Tests: Rails", "bin/rails test test:system"
+  #     step "Setup", "bin/setup --skip-server"
+  #     step "Style: Ruby", "bin/rubocop"
+  #     step "Security: Gem audit", "bin/bundler-audit"
+  #     step "Tests: Rails", "bin/rails test test:system"
+  #
+  #     if success?
+  #       step "Signoff: Ready for merge and deploy", "gh signoff"
+  #     else
+  #       heading :error, "Skipping signoff; CI failed.", "Fix the issues and try again."
   #     end
   #   end
   #
@@ -31,9 +35,44 @@ module ActiveSupport
 
     attr_reader :results
 
+    # Perform a CI run. Execute each step, show their results and runtime, and exit with a non-zero status if there are any failures.
+    #
+    # Pass an optional title (defaults to "CI") and a block that declares the steps to be executed.
+    #
+    # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
+    #
+    # Example:
+    #
+    #   ActiveSupport::ContinuousIntegration.run "MyApp CI" do
+    #     echo :banner, "🚀 Continuous Integration"
+    #     echo :subtitle, "Running tests, style checks, and security audits"
+    #
+    #     step "Setup", "bin/setup --skip-server"
+    #     step "Style: Ruby", "bin/rubocop"
+    #     step "Security: Gem audit", "bin/bundler-audit"
+    #     step "Tests: Rails", "bin/rails test test:system"
+    #
+    #     if success?
+    #       step "Signoff: Ready for merge and deploy", "gh signoff"
+    #     else
+    #       heading :error, "Skipping signoff; CI failed.", "Fix the issues and try again."
+    #     end
+    #   end
+    def self.run(title = "CI", &block)
+      new.tap do |ci|
+        ENV["CI"] = "true"
+        ci.report(title, &block)
+        abort unless ci.success?
+      end
+    end
+
     def initialize(&block)
       @results = []
-      instance_eval(&block) if block_given?
+    end
+
+    # Returns true if all steps were successful.
+    def success?
+      results.all?(&:itself)
     end
 
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
@@ -44,9 +83,7 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
-      echo :title, "\n\n#{title}"
-      echo :subtitle, "#{command.join(" ")}\n"
-
+      heading :title, title, command.join(" ")
       report(title) { results << system(*command) }
     end
 
@@ -54,7 +91,7 @@ module ActiveSupport
     #
     # Example:
     #
-    #   report "Local CI" do
+    #   report "CI" do
     #     step "Setup", "bin/setup --skip-server"
     #     step "Style: Ruby", "bin/rubocop"
     #   end
@@ -64,7 +101,7 @@ module ActiveSupport
       ci = self.class.new
       elapsed = timing { ci.instance_eval(&block) }
 
-      if ci.results.all?(&:itself)
+      if ci.success?
         echo :success, "\n✅ #{title} passed in #{elapsed}"
       else
         echo :error, "\n❌ #{title} failed in #{elapsed}"
@@ -73,6 +110,19 @@ module ActiveSupport
       results.concat ci.results
     ensure
       Signal.trap("INT", "-")
+    end
+
+    # Display a colorized heading followed by an optional subtitle.
+    #
+    # Examples:
+    #
+    #   heading :banner, "Smoke Testing", "End-to-end tests verifying key functionality"
+    #   heading :error, "Skipping video encoding tests", "Install FFmpeg to run these tests"
+    #
+    # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
+    def heading(type, heading, subtitle = nil)
+      echo type, "\n\n#{heading}"
+      echo :subtitle, "#{subtitle}\n" if subtitle
     end
 
     # Echo text to the terminal in the color corresponding to the type of the text.
@@ -96,7 +146,7 @@ module ActiveSupport
       end
 
       def colorize(type, text)
-        "#{COLORS[type]}#{text}\033[0m"
+        "#{COLORS.fetch(type)}#{text}\033[0m"
       end
   end
 end
