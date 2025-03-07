@@ -22,7 +22,7 @@
 		"PGHOST": "postgres",
 		"PGUSER": "postgres",
 		"PGPASSWORD": "postgres",
-		"MYSQL_HOST": "mariadb",
+		"MYSQL_HOST": "mysql",
 		"REDIS_URL": "redis://redis/0",
 		"MEMCACHE_SERVERS": "memcached:11211"
 	},
