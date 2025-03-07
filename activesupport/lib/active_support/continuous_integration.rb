@@ -8,10 +8,10 @@ module ActiveSupport
   # Example:
   #
   #   ActiveSupport::ContinuousIntegration.new do
-  #     echo :banner, "🚀 Local CI"
+  #     echo :banner, "🚀 Continuous Integration"
   #     echo :subtitle, "Running tests, style checks, and security audits"
   #
-  #     report "Local CI" do
+  #     report "CI" do
   #       step "Setup", "bin/setup --skip-server"
   #       step "Style: Ruby", "bin/rubocop"
   #       step "Security: Gem audit", "bin/bundler-audit"

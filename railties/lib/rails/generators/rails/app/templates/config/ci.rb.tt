@@ -2,10 +2,10 @@
 ENV["CI"] = "1"
 
 CI.new do
-  echo :banner, "🚀 Local CI"
+  echo :banner, "🚀 Continuous Integration"
   echo :subtitle, "Running tests, style checks, and security audits"
 
-  report "Local CI" do
+  report "CI" do
     step "Setup", "bin/setup --skip-server"
 <% unless options.skip_rubocop? %>
     step "Style: Ruby", "bin/rubocop"
