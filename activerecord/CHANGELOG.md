@@ -1,3 +1,14 @@
+*   Handle libpq returning a database version of 0 on no/bad connection in `PostgreSQLAdapter`.
+
+    Before, this version would be cached and an error would be raised during connection configuration when
+    comparing it with the minimum required version for the adapter. This meant that the connection could
+    never be successfully configured on subsequent reconnection attempts.
+
+    Now, this is treated as a connection failure consistent with libpq, raising a `ActiveRecord::ConnectionFailed`
+    and ensuring the version isn't cached, which allows the version to be retrieved on the next connection attempt.
+
+    *Joshua Young*, *Rian McGuire*
+
 *   Fix error handling during connection configuration.
 
     Active Record wasn't properly handling errors during the connection configuration phase.
