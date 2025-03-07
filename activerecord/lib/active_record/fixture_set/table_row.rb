@@ -138,9 +138,9 @@ module ActiveRecord
         end
 
         def resolve_enums
-          reflection_class.defined_enums.each do |name, values|
+          reflection_class.defined_enums_type.each do |name, enum_type|
             if @row.include?(name)
-              @row[name] = values.fetch(@row[name], @row[name])
+              @row[name] = enum_type.mapping.fetch(@row[name], @row[name])
             end
           end
         end
