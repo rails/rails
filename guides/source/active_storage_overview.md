@@ -1051,6 +1051,21 @@ directly from the client to the cloud.
 
 1. Include `activestorage.js` in your application's JavaScript bundle.
 
+
+    Using application HTML:
+
+    ```ruby
+    # views/layouts/application.html.erb
+    <%= javascript_include_tag "activestorage" %>
+    ```
+    
+     Using importmaps:
+
+    ```ruby
+    # config/importmap.rb
+    pin "@rails/activestorage", to: "activestorage.esm.js"
+    ```
+
     Using the asset pipeline:
 
     ```js
@@ -1064,7 +1079,7 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
+1. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
@@ -1076,9 +1091,9 @@ directly from the client to the cloud.
     <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
-3. Configure CORS on third-party storage services to allow direct upload requests.
+2. Configure CORS on third-party storage services to allow direct upload requests.
 
-4. That's it! Uploads begin upon form submission.
+3. That's it! Uploads begin upon form submission.
 
 ### Cross-Origin Resource Sharing (CORS) Configuration
 
