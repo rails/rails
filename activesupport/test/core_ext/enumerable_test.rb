@@ -398,6 +398,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 1, GenericEnumerable.new([1]).sole
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
   end
 
   def test_doesnt_bust_constant_cache
