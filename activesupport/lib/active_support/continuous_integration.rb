@@ -61,7 +61,7 @@ module ActiveSupport
       end
     end
 
-    def initialize(&block)
+    def initialize
       @results = []
     end
 
