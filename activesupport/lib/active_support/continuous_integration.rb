@@ -78,7 +78,7 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
-      heading :title, title, command.join(" ")
+      heading title, command.join(" "), type: :title
       report(title) { results << system(*command) }
     end
 
