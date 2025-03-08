@@ -8,13 +8,13 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
 
   test "successful step" do
     output = capture_io { @CI.step "Success!", "which ruby > /dev/null" }.to_s
-    assert_match /Success! passed/, output
+    assert_match(/Success! passed/, output)
     assert @CI.success?
   end
 
   test "failed step" do
     output = capture_io { @CI.step "Failed!", "which rubyxx > /dev/null" }.to_s
-    assert_match /Failed! failed/, output
+    assert_match(/Failed! failed/, output)
     assert_not @CI.success?
   end
 
@@ -26,7 +26,7 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
       end
     end.to_s
 
-    assert_match /CI passed/, output
+    assert_match(/CI passed/, output)
     assert @CI.success?
   end
 
@@ -38,7 +38,7 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
       end
     end.to_s
 
-    assert_match /CI failed/, output
+    assert_match(/CI failed/, output)
     assert_not @CI.success?
   end
 
@@ -49,7 +49,7 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
 
   test "heading" do
     output = capture_io { @CI.heading "Hello", "To all of you" }.first.to_s
-    assert_match /Hello[\s\S]*To all of you/, output
+    assert_match(/Hello[\s\S]*To all of you/, output)
   end
 
   test "failure output" do
