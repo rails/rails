@@ -1,4 +1,4 @@
-# Run this continuous integration flow using bin/ci
+# Run using bin/ci
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
