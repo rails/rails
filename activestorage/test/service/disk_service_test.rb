@@ -18,7 +18,7 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
 
     key      = SecureRandom.base58(24)
     data     = "Something else entirely!"
-    checksum = Digest::MD5.base64digest(data)
+    checksum = @service.base64digest(data)
 
     begin
       assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*$/,

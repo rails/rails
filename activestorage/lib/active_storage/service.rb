@@ -148,7 +148,42 @@ module ActiveStorage
       @public
     end
 
+    def base64digest(io, **)
+      checksum_implementation.base64digest(io)
+    end
+
+    def base64file(file, **)
+      checksum_implementation.file(file).base64digest
+    end
+
+    def compute_checksum_in_chunks(io, **)
+      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
+
+      checksum_implementation.new.tap do |checksum|
+        read_buffer = "".b
+        while io.read(5.megabytes, read_buffer)
+          checksum << read_buffer
+        end
+
+        io.rewind
+      end.base64digest
+    end
+
+    def checksum_implementation(**)
+      md5
+    end
+
     private
+      def md5
+        return @md5_class if @md5_class
+        @md5_class = OpenSSL::Digest::MD5
+        @md5_class.hexdigest("test")
+        OpenSSL::Digest::MD5
+      rescue # OpenSSL may have MD5 disabled
+        require "digest/md5"
+        @md5_class = Digest::MD5
+      end
+
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
       end
