@@ -16,7 +16,7 @@ module ActiveSupport
   #     if success?
   #       step "Signoff: Ready for merge and deploy", "gh signoff"
   #     else
-  #       heading :error, "Skipping signoff; CI failed.", "Fix the issues and try again."
+  #       failure "Skipping signoff; CI failed.", "Fix the issues and try again."
   #     end
   #   end
   #
@@ -34,7 +34,7 @@ module ActiveSupport
 
     # Perform a CI run. Execute each step, show their results and runtime, and exit with a non-zero status if there are any failures.
     #
-    # Pass an optional title (defaults to "CI") and a block that declares the steps to be executed.
+    # Pass an optional title, subtitle, and a block that declares the steps to be executed.
     #
     # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
     #
@@ -49,7 +49,7 @@ module ActiveSupport
     #     if success?
     #       step "Signoff: Ready for merge and deploy", "gh signoff"
     #     else
-    #       heading :error, "Skipping signoff; CI failed.", "Fix the issues and try again."
+    #       failure "Skipping signoff; CI failed.", "Fix the issues and try again."
     #     end
     #   end
     def self.run(title = "Continuous Integration", subtitle = "Running tests, style checks, and security audits", &block)
@@ -65,11 +65,6 @@ module ActiveSupport
       @results = []
     end
 
-    # Returns true if all steps were successful.
-    def success?
-      results.all?(&:itself)
-    end
-
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
     # strings that will be passed to `system` as individual arguments (and therefore correctly escaped for paths etc).
     #
@@ -82,29 +77,14 @@ module ActiveSupport
       report(title) { results << system(*command) }
     end
 
-    # Aggregate a number of steps under a single heading, with a combined runtime, and an aggregate success/failure state.
-    #
-    # Example:
-    #
-    #   report "CI" do
-    #     step "Setup", "bin/setup --skip-server"
-    #     step "Style: Ruby", "bin/rubocop"
-    #   end
-    def report(title, &block)
-      Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
+    # Returns true if all steps were successful.
+    def success?
+      results.all?(&:itself)
+    end
 
-      ci = self.class.new
-      elapsed = timing { ci.instance_eval(&block) }
-
-      if ci.success?
-        echo :success, "\n✅ #{title} passed in #{elapsed}"
-      else
-        echo :error, "\n❌ #{title} failed in #{elapsed}"
-      end
-
-      results.concat ci.results
-    ensure
-      Signal.trap("INT", "-")
+    # Display an error heading with the title and optional subtitle to reflect that the run failed.
+    def failure(title, subtitle = nil)
+      heading title, subtitle, type: :error
     end
 
     # Display a colorized heading followed by an optional subtitle.
@@ -124,12 +104,30 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   echo :success, "This is going to be green!"
-    #   echo :error, "This is going to be red!"
+    #   echo "This is going to be green!", type: :success
+    #   echo "This is going to be red!", type: :error
     #
     # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
-    def echo(type, text)
-      puts colorize(type, text)
+    def echo(text, type:)
+      puts colorize(text, type)
+    end
+
+    # :nodoc:
+    def report(title, &block)
+      Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
+
+      ci = self.class.new
+      elapsed = timing { ci.instance_eval(&block) }
+
+      if ci.success?
+        echo "\n✅ #{title} passed in #{elapsed}", type: :success
+      else
+        echo "\n❌ #{title} failed in #{elapsed}", type: :error
+      end
+
+      results.concat ci.results
+    ensure
+      Signal.trap("INT", "-")
     end
 
     private
@@ -140,7 +138,7 @@ module ActiveSupport
         "#{"#{min}m" if min > 0}%.2fs" % sec
       end
 
-      def colorize(type, text)
+      def colorize(text, type)
         "#{COLORS.fetch(type)}#{text}\033[0m"
       end
   end
