@@ -14,6 +14,14 @@ module TestUnit # :nodoc:
         template "test/controllers/sessions_controller_test.rb"
         template "test/controllers/passwords_controller_test.rb"
       end
+
+      def ensure_root_route
+        in_root do
+          if !File.read("config/routes.rb").match?(/^ *root /)
+            route 'root "fill-me"'
+          end
+        end
+      end
     end
   end
 end
