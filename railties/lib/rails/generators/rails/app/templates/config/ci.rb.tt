@@ -1,3 +1,5 @@
+# Run this continuous integration flow using bin/ci
+
 CI.run do
   step "Setup", "bin/setup --skip-server"
 <% unless options.skip_rubocop? %>
