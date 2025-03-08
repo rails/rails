@@ -119,7 +119,7 @@ module ActiveRecord
 
       # Opens a database console session.
       def self.dbconsole(config, options = {})
-        raise NotImplementedError
+        raise NotImplementedError.new("#{self.class} should define `dbconsole` that accepts a db config and options to implement connecting to the db console")
       end
 
       def initialize(config_or_deprecated_connection, deprecated_logger = nil, deprecated_connection_options = nil, deprecated_config = nil) # :nodoc:
@@ -1084,7 +1084,7 @@ module ActiveRecord
         end
 
         def reconnect
-          raise NotImplementedError
+          raise NotImplementedError.new("#{self.class} should define `reconnect` to implement adapter-specific logic for reconnecting to the database")
         end
 
         # Returns a raw connection for internal use with methods that are known
