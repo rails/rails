@@ -79,7 +79,7 @@ module ActiveSupport
 
     # Returns true if all steps were successful.
     def success?
-      results.all?(&:itself)
+      results.all?
     end
 
     # Display an error heading with the title and optional subtitle to reflect that the run failed.
