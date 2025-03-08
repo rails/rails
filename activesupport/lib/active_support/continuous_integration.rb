@@ -3,7 +3,7 @@
 module ActiveSupport
   # Provides a DSL for declaring a continuous integration workflow that can be run either locally or in the cloud.
   # Each step is timed, reports success/error, and is aggregated into a collective report that reports total runtime,
-  # as well as whether the run was successful or not.
+  # as well as whether the entire run was successful or not.
   #
   # Example:
   #
