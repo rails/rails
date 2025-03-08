@@ -1,3 +1,23 @@
+*   Allow `ActiveStorage.analyzers` to be fully configurable
+
+    `ActiveStorage.analyzers` can be set to an empty array:
+
+    ```ruby
+    config.active_storage.analyzers = []
+    # => ActiveStorage.analyzers = []
+    ```
+
+    `ActiveStorage.analyzers` can be set to a custom analyzer:
+
+    ```ruby
+    config.active_storage.analyzers = [ CustomAnalyzer ]
+    # => ActiveStorage.analyzers = [ CustomAnalyzer ]
+    ```
+
+    If no configuration is provided, it will use the default analyzers.
+
+    *Alexandre Ruban*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:

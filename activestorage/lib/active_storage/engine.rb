@@ -25,7 +25,6 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers = [ ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
@@ -102,7 +101,8 @@ module ActiveStorage
               ]
             end
 
-          ActiveStorage.analyzers = [analyzer].compact.concat(app.config.active_storage.analyzers || [])
+          ActiveStorage.analyzers = app.config.active_storage.analyzers ||
+            [ analyzer, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer ].compact
           ActiveStorage.variant_transformer = transformer
         rescue LoadError => error
           case error.message
