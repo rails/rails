@@ -8,9 +8,6 @@ module ActiveSupport
   # Example:
   #
   #   ActiveSupport::ContinuousIntegration.run do
-  #     echo :banner, "🚀 Continuous Integration"
-  #     echo :subtitle, "Running tests, style checks, and security audits"
-  #
   #     step "Setup", "bin/setup --skip-server"
   #     step "Style: Ruby", "bin/rubocop"
   #     step "Security: Gem audit", "bin/bundler-audit"
@@ -43,10 +40,7 @@ module ActiveSupport
     #
     # Example:
     #
-    #   ActiveSupport::ContinuousIntegration.run "MyApp CI" do
-    #     echo :banner, "🚀 Continuous Integration"
-    #     echo :subtitle, "Running tests, style checks, and security audits"
-    #
+    #   ActiveSupport::ContinuousIntegration.run do
     #     step "Setup", "bin/setup --skip-server"
     #     step "Style: Ruby", "bin/rubocop"
     #     step "Security: Gem audit", "bin/bundler-audit"
@@ -58,9 +52,10 @@ module ActiveSupport
     #       heading :error, "Skipping signoff; CI failed.", "Fix the issues and try again."
     #     end
     #   end
-    def self.run(title = "CI", &block)
+    def self.run(title = "Continuous Integration", subtitle = "Running tests, style checks, and security audits", &block)
       new.tap do |ci|
         ENV["CI"] = "true"
+        ci.heading title, subtitle, padding: false
         ci.report(title, &block)
         abort unless ci.success?
       end
@@ -116,13 +111,13 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   heading :banner, "Smoke Testing", "End-to-end tests verifying key functionality"
-    #   heading :error, "Skipping video encoding tests", "Install FFmpeg to run these tests"
+    #   heading "Smoke Testing", "End-to-end tests verifying key functionality", padding: false
+    #   heading "Skipping video encoding tests", "Install FFmpeg to run these tests", type: :error
     #
     # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
-    def heading(type, heading, subtitle = nil)
-      echo type, "\n\n#{heading}"
-      echo :subtitle, "#{subtitle}\n" if subtitle
+    def heading(heading, subtitle = nil, type: :banner, padding: true)
+      echo "#{padding ? "\n\n" : ""}#{heading}", type: type
+      echo "#{subtitle}#{padding ? "\n" : ""}", type: :subtitle if subtitle
     end
 
     # Echo text to the terminal in the color corresponding to the type of the text.
