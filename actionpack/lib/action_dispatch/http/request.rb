@@ -159,6 +159,7 @@ module ActionDispatch
     def route_uri_pattern
       unless pattern = get_header("action_dispatch.route_uri_pattern")
         route = get_header("action_dispatch.route")
+        return if route.nil?
         pattern = route.path.spec.to_s
         set_header("action_dispatch.route_uri_pattern", pattern)
       end

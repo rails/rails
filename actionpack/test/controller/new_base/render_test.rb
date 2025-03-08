@@ -49,6 +49,13 @@ module Render
     end
   end
 
+  class DoubleRenderWithHeadController < ActionController::Base
+    def index
+      render plain: "hello"
+      head :bad_request
+    end
+  end
+
   class ChildRenderController < BlankRenderController
     append_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_appended.html.erb" => "child content")
     prepend_view_path ActionView::FixtureResolver.new("render/child_render/overridden_with_own_view_paths_prepended.html.erb" => "child content")
@@ -80,6 +87,20 @@ module Render
 
         assert_raises(AbstractController::DoubleRenderError) do
           get "/render/double_render", headers: { "action_dispatch.show_exceptions" => :none }
+        end
+      end
+    end
+
+    test "using head after rendering raises an exception" do
+      with_routing do |set|
+        set.draw do
+          ActionDispatch.deprecator.silence do
+            get ":controller", action: "index"
+          end
+        end
+
+        assert_raises(AbstractController::DoubleRenderError) do
+          get "/render/double_render_with_head", headers: { "action_dispatch.show_exceptions" => :none }
         end
       end
     end
