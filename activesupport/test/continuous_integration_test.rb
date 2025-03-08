@@ -7,13 +7,13 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
   setup { @CI = ActiveSupport::ContinuousIntegration.new }
 
   test "successful step" do
-    output = capture_io { @CI.step "Success!", "which ruby > /dev/null" }.to_s
+    output = capture_io { @CI.step "Success!", "true" }.to_s
     assert_match(/Success! passed/, output)
     assert @CI.success?
   end
 
   test "failed step" do
-    output = capture_io { @CI.step "Failed!", "which rubyxx > /dev/null" }.to_s
+    output = capture_io { @CI.step "Failed!", "false" }.to_s
     assert_match(/Failed! failed/, output)
     assert_not @CI.success?
   end
@@ -21,8 +21,8 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
   test "report with only successful steps combined gives success" do
     output = capture_io do
       @CI.report("CI") do
-        step "Success!", "which ruby > /dev/null"
-        step "Success again!", "which ruby > /dev/null"
+        step "Success!", "true"
+        step "Success again!", "true"
       end
     end.to_s
 
@@ -33,8 +33,8 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
   test "report with successful and failed steps combined gives failure" do
     output = capture_io do
       @CI.report("CI") do
-        step "Success!", "which ruby > /dev/null"
-        step "Failed!", "which rubyxx > /dev/null"
+        step "Success!", "true"
+        step "Failed!", "false"
       end
     end.to_s
 
