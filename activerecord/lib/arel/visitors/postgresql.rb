@@ -30,7 +30,7 @@ module Arel # :nodoc: all
             collector << " FROM "
             first_join, *remaining_joins = o.relation.right
             from_items = remaining_joins.extract! do |join|
-              join.right.expr.right.relation == o.relation.left
+              join.right.expr.right.try(:relation) == o.relation.left
             end
 
             from_where = [first_join.left] + from_items.map(&:left)
@@ -64,7 +64,7 @@ module Arel # :nodoc: all
             # The PostgreSQL dialect isn't flexible enough to allow anything other than a inner join
             # for the first join:
             #   UPDATE table SET .. FROM joined_table WHERE ...
-            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.relation != o.relation.left })
+            (o.relation.right.all? { |join| join.is_a?(Arel::Nodes::InnerJoin) || join.right.expr.right.try(:relation) != o.relation.left })
             o
           else
             super
