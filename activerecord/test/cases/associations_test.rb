@@ -1452,6 +1452,16 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_includes(blog_post.comments.to_a, sharded_comments(:great_comment_blog_post_one))
   end
 
+  def test_inverse_of_has_many_association_with_composite_foreign_key
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    comment = blog_post.comments.first
+
+    assert_no_queries do
+      comment.blog_post
+    end
+  end
+
   def test_preload_belongs_to_association_with_composite_foreign_key
     comment = sharded_comments(:great_comment_blog_post_one)
     comments = [comment, sharded_comments(:great_comment_blog_post_two)]
