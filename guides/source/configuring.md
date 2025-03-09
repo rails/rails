@@ -1532,6 +1532,17 @@ that have a large number of queries, caching query log tags can provide a
 performance benefit when the context does not change during the lifetime of the
 request or job execution. Defaults to `false`.
 
+#### `config.active_record.query_log_tags_prepend_comment`
+
+Specifies whether or not to prepend query log tags comment to the query.
+
+By default comments are appended at the end of the query. Certain databases, such as MySQL will
+truncate the query text. This is the case for slow query logs and the results of querying
+some InnoDB internal tables where the length of the query is more than 1024 bytes.
+In order to not lose the log tags comments from the queries, you can prepend the comments using this option.
+
+Defaults to `false`.
+
 #### `config.active_record.schema_cache_ignored_tables`
 
 Define the list of table that should be ignored when generating the schema
