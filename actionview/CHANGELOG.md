@@ -51,4 +51,8 @@
 
     *francktrouillez*
 
+*   Make `nonce: false` remove the nonce attribute from `javascript_tag`, `javascript_include_tag`, and `stylesheet_link_tag`.
+
+    *francktrouillez*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionview/CHANGELOG.md) for previous changes.

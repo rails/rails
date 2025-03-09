@@ -85,6 +85,8 @@ module ActionView
 
         if html_options[:nonce] == true || (!html_options.key?(:nonce) && auto_include_nonce)
           html_options[:nonce] = content_security_policy_nonce
+        elsif html_options[:nonce] == false
+          html_options.delete(:nonce)
         end
 
         content_tag("script", javascript_cdata_section(content), html_options)
