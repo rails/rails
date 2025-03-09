@@ -1050,8 +1050,14 @@ directly from the client to the cloud.
 ### Usage
 
 1. Include `activestorage.js` in your application's JavaScript bundle.
+    
+    Using importmaps:
 
-
+    ```ruby
+    # config/importmap.rb
+    pin "@rails/activestorage", to: "activestorage.esm.js"
+    ```
+    
     Using application HTML:
 
     ```ruby
@@ -1059,13 +1065,6 @@ directly from the client to the cloud.
     <%= javascript_include_tag "activestorage" %>
     ```
     
-     Using importmaps:
-
-    ```ruby
-    # config/importmap.rb
-    pin "@rails/activestorage", to: "activestorage.esm.js"
-    ```
-
     Using the asset pipeline:
 
     ```js
