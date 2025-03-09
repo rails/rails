@@ -1078,7 +1078,7 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-1. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
+2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
@@ -1090,9 +1090,9 @@ directly from the client to the cloud.
     <input type="file" data-direct-upload-url="<%= rails_direct_uploads_url %>" />
     ```
 
-2. Configure CORS on third-party storage services to allow direct upload requests.
+3. Configure CORS on third-party storage services to allow direct upload requests.
 
-3. That's it! Uploads begin upon form submission.
+4. That's it! Uploads begin upon form submission.
 
 ### Cross-Origin Resource Sharing (CORS) Configuration
 
