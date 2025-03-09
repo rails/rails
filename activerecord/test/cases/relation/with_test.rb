@@ -149,6 +149,37 @@ module ActiveRecord
         assert_nil relation.values[:with]
         assert_equal Post.count, relation.count
       end
+
+      def test_update_all_after_with_call
+        # CTE support for UPDATE and DELETE statements is work in progress in
+        # MariaDB: https://jira.mariadb.org/browse/MDEV-18511
+        skip if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
+
+        count = Post
+          .with(commented_posts:
+            Comment.select(:post_id).distinct.group(:post_id).having("COUNT(post_id) > 1")
+               )
+          .joins(:commented_posts)
+          .update_all("title = CONCAT('[discussion] ', title)")
+
+        assert_equal POSTS_WITH_MULTIPLE_COMMENTS.size, count
+        assert_equal POSTS_WITH_MULTIPLE_COMMENTS,
+          Post.where("title LIKE '%[discussion]%'").order(:id).pluck(:id)
+      end
+
+      def test_delete_all_after_with_call
+        # CTE support for UPDATE and DELETE statements is work in progress in
+        # MariaDB: https://jira.mariadb.org/browse/MDEV-18511
+        skip if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
+
+        count = Post
+          .with(commented_posts: Comment.select(:post_id).distinct)
+          .joins(:commented_posts)
+          .delete_all
+
+        assert_equal POSTS_WITH_COMMENTS.size, count
+        assert_empty Post.where.not(legacy_comments_count: 0)
+      end
     else
       def test_common_table_expressions_are_unsupported
         assert_raises ActiveRecord::StatementInvalid do

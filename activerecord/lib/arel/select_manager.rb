@@ -231,6 +231,10 @@ module Arel # :nodoc: all
       self
     end
 
+    def subqueries
+      @ast.with
+    end
+
     def take(limit)
       if limit
         @ast.limit = Nodes::Limit.new(limit)
