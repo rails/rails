@@ -24,8 +24,8 @@ class RequestIdTest < ActiveSupport::TestCase
     assert_equal "X" * 255, stub_request({ "HTTP_X_REQUEST_ID" => "X" * 500 }).request_id
   end
 
-  test "generating a request id when none is supplied" do
-    assert_match(/\w+-\w+-\w+-\w+-\w+/, stub_request.request_id)
+  test "generating a UUIDv7 request id when none is supplied" do
+    assert_match(/[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}/, stub_request.request_id)
   end
 
   test "uuid alias" do
