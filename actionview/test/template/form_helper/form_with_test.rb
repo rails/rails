@@ -124,10 +124,36 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_local_true
-    actual = form_with(local: true)
+    actual = ActionView.deprecator.silence do
+      form_with(local: true)
+    end
 
     expected = whole_form("http://www.example.com", local: true)
     assert_dom_equal expected, actual
+  end
+
+  def test_form_with_local_is_deprecated
+    msg = <<~MSG.squish
+      Passing :local as an option is deprecated and will be removed in Rails 8.2.
+      To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+      To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+      Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+    MSG
+    assert_deprecated(msg, ActionView.deprecator) do
+      form_with(local: true)
+    end
+  end
+
+  def test_form_with_remote_is_deprecated
+    msg = <<~MSG.squish
+      Passing :remote as an option is deprecated and will be removed in Rails 8.2.
+      To control the [data-remote] attribute, pass that option directly as `data: { remote: true }`.
+      To control the generation of CSRF tokens, pass `authenticity_token:` directly.
+      Otherwise you can use the `actionview-remote-form-helpers` gem which provides the same behavior.
+    MSG
+    assert_deprecated(msg, ActionView.deprecator) do
+      form_with(remote: true)
+    end
   end
 
   def test_form_with_skip_enforcing_utf8_true
@@ -173,7 +199,9 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_block_in_erb_and_local_true
-    @rendered = render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
+    @rendered = ActionView.deprecator.silence do
+      render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
+    end
 
     expected = whole_form("http://www.example.com", local: true) do
       "Hello world!"
@@ -878,7 +906,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_is_not_remote_by_default_if_form_with_generates_remote_forms_is_false
     old_value = ActionView::Helpers::FormHelper.form_with_generates_remote_forms
-    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = false
+    ActionView.deprecator.silence do
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = false
+    end
 
     form_with(model: @post, url: "/", id: "create-post", method: :patch) do |f|
       concat f.text_field(:title)
@@ -895,7 +925,25 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, @rendered
   ensure
-    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    ActionView.deprecator.silence do
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    end
+  end
+
+  def test_form_with_generates_remote_forms_is_deprecated
+    old_value = ActionView::Helpers::FormHelper.form_with_generates_remote_forms
+
+    msg = <<~MSG.squish
+      `ActionView::Helpers::FormHelper.form_with_generates_remote_forms=` is deprecated and will be removed in Rails 8.2.
+      Please use `actionview-remote-form-helpers` gem instead.
+    MSG
+    assert_deprecated(msg, ActionView.deprecator) do
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = nil
+    end
+  ensure
+    ActionView.deprecator.silence do
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    end
   end
 
   def test_form_with_skip_enforcing_utf8_true
