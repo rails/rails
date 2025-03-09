@@ -1,3 +1,25 @@
+*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
+
+    The specific steps are defined by a new DSL in `config/ci.rb`.
+
+    ```ruby
+    ActiveSupport::ContinuousIntegration.run do
+      step "Setup", "bin/setup --skip-server"
+      step "Style: Ruby", "bin/rubocop"
+      step "Security: Gem audit", "bin/bundler-audit"
+      step "Tests: Rails", "bin/rails test test:system"
+    end
+    ```
+
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
+
+    *Jeremy Daer*, *DHH*
+
+*   Generate session controller tests when running the authentication generator.
+
+    *Jerome Dalbert*
+
 *   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
 
     *DHH*

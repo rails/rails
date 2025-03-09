@@ -129,6 +129,7 @@ module Rails
         template "environment.rb"
         template "bundler-audit.yml"
         template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "ci.rb"
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
 
@@ -141,6 +142,7 @@ module Rails
     def config_when_updating
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
+      ci_config_exist                 = File.exist?("config/ci.rb")
       bundle_audit_config_exist       = File.exist?("config/bundler-audit.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
@@ -157,6 +159,10 @@ module Rails
 
       if !skip_active_storage? && !active_storage_config_exist
         template "config/storage.yml"
+      end
+
+      if !ci_config_exist
+        template "config/ci.rb"
       end
 
       if skip_asset_pipeline? && !assets_config_exist
