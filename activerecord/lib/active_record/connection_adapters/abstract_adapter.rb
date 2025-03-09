@@ -559,6 +559,14 @@ module ActiveRecord
         false
       end
 
+      def supports_derived_values_table?
+        true
+      end
+
+      def supports_derived_table_column_aliases?
+        false
+      end
+
       def return_value_after_insert?(column) # :nodoc:
         column.auto_populated?
       end
