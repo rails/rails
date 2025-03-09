@@ -2,6 +2,27 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/resource/resource_generator"
+require "isolation/abstract_unit"
+
+class ResourceGeneratorIntegrationTest < ActiveSupport::TestCase
+  include Rails::Generators::Testing::Assertions
+  include Rails::Generators::Testing::Behavior
+  include ActiveSupport::Testing::Isolation
+  setup :build_app
+  setup { self.class.destination rails_root }
+  teardown :teardown_app
+
+  def test_route_is_removed_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate resource account` }
+      quietly { `bin/rails destroy resource account` }
+
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/resources :accounts$/, route)
+      end
+    end
+  end
+end
 
 class ResourceGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -86,14 +107,5 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
   def test_mass_nouns_do_not_throw_warnings
     content = run_generator ["sheep"]
     assert_no_match(/\[WARNING\]/, content)
-  end
-
-  def test_route_is_removed_on_revoke
-    run_generator
-    run_generator ["account"], behavior: :revoke
-
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/resources :accounts$/, route)
-    end
   end
 end
