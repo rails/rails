@@ -43,8 +43,6 @@ services:
 
 volumes:
   rbenv-data:
-<%- if !volumes.empty? -%>
 <%- volumes.each do |volume| -%>
   <%= volume %>:
-<%- end -%>
 <%- end -%>
