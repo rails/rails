@@ -1,3 +1,10 @@
+*   Use `UUIDv7` for request_id instead of `UUIDv4`.
+
+    `UUIDv7` has temporal locality which is useful for debugging and log analysis. It allows extracting the timestamp 
+    directly from the `request_id`, making it easier to trace, order, and correlate events.
+
+    *Iuri Gagnidze*
+
 *   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
 
     After this change, invoking `head` will lead to an error if response body is already set:
