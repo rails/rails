@@ -153,6 +153,7 @@ module ActionController
 
     add :json do |json, options|
       json_options = options.except(:callback, :content_type, :status)
+      json_options[:html_safe] ||= false unless options[:callback].present?
       json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?
