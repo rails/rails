@@ -44,7 +44,7 @@ module ActionDispatch
       end
 
       def internal_request_id
-        SecureRandom.uuid
+        SecureRandom.uuid_v7
       end
   end
 end
