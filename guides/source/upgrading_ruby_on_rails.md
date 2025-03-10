@@ -182,7 +182,7 @@ That still works, but it is recommended to replace those lines with the more
 concise
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks))
+config.autoload_lib(ignore: %w[assets tasks])
 ```
 
 Please, add to the `ignore` list any other `lib` subdirectories that do not
@@ -191,7 +191,7 @@ example, if your application has `lib/templates`, `lib/generators`, or
 `lib/middleware`, you'd add their name relative to `lib`:
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks templates generators middleware))
+config.autoload_lib(ignore: %w[assets tasks templates generators middleware])
 ```
 
 With that one-liner, the (non-ignored) code in `lib` will be also eager loaded
@@ -902,9 +902,9 @@ video.preview(resize: "100x100^")
 you can respectively do:
 
 ```ruby
-video.preview(resize_to_fit: [100, 100])
-video.preview(resize_to_limit: [100, 100])
-video.preview(resize_to_fill: [100, 100])
+video.preview(resize_to_fit: [ 100, 100 ])
+video.preview(resize_to_limit: [ 100, 100 ])
+video.preview(resize_to_fill: [ 100, 100 ])
 ```
 
 ### New `ActiveModel::Error` class
@@ -1578,7 +1578,7 @@ and other methods that depend on being able to read the hash regardless of `perm
 need to upgrade your application to first permit and then convert to a hash.
 
 ```ruby
-params.permit([:proceed_to, :return_to]).to_h
+params.permit([ :proceed_to, :return_to ]).to_h
 ```
 
 ### `protect_from_forgery` Now Defaults to `prepend: false`
@@ -1894,7 +1894,7 @@ rake("db:migrate")
 
 git :init
 git add: "."
-git commit: %Q{ -m 'Initial commit' }
+git commit: %Q( -m 'Initial commit' )
 ```
 
 You can now wrap the `git` calls in an `after_bundle` block. It will be run
@@ -1909,7 +1909,7 @@ rake("db:migrate")
 after_bundle do
   git :init
   git add: "."
-  git commit: %Q{ -m 'Initial commit' }
+  git commit: %Q( -m 'Initial commit' )
 end
 ```
 
@@ -2924,7 +2924,7 @@ Add this file with the following contents, if you wish to wrap parameters into a
 
 # Enable parameter wrapping for JSON. You can disable this by setting :format to an empty array.
 ActiveSupport.on_load(:action_controller) do
-  wrap_parameters format: [:json]
+  wrap_parameters format: [ :json ]
 end
 
 # Disable root element in JSON by default.
