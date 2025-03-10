@@ -564,6 +564,10 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_javascript_include_tag_nonce_false
+    assert_dom_equal %(<script src="/javascripts/bank.js"></script>), javascript_include_tag("bank", nonce: false)
+  end
+
   def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -592,6 +596,10 @@ class AssetTagHelperTest < ActionView::TestCase
     with_auto_include_nonce_for_styles do
       assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css")
     end
+  end
+
+  def test_stylesheet_link_tag_nonce_false
+    assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css"></link>), stylesheet_link_tag("foo.css", nonce: false)
   end
 
   def test_stylesheet_link_tag_with_missing_source
