@@ -782,6 +782,11 @@ module ActiveRecord
             system("bin/rails db:test:prepare")
           end
         end
+
+        def respond_to_missing?(method, include_private = false)
+          return false if nearest_delegate == delegate
+          nearest_delegate.respond_to?(method, include_private)
+        end
     end
 
     def disable_ddl_transaction # :nodoc:
@@ -1169,6 +1174,10 @@ module ActiveRecord
 
       def command_recorder
         CommandRecorder.new(connection)
+      end
+
+      def respond_to_missing?(method, include_private = false)
+        execution_strategy.respond_to?(method, include_private) || super
       end
   end
 
