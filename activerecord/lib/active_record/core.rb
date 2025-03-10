@@ -276,7 +276,7 @@ module ActiveRecord
         return super if StatementCache.unsupported_value?(id)
 
         cached_find_by([primary_key], [id]) ||
-          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}", name, primary_key, id))
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id.inspect}", name, primary_key, id))
       end
 
       def find_by(*args) # :nodoc:
