@@ -636,7 +636,7 @@ module ActiveRecord
         with_raw_connection do |conn|
           version = conn.server_version
           if version == 0
-            raise ActiveRecord::ConnectionFailed, "Could not determine PostgreSQL version"
+            raise ActiveRecord::ConnectionNotEstablished, "Could not determine PostgreSQL version"
           end
           version
         end
