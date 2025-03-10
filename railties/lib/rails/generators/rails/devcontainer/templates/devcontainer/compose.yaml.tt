@@ -8,6 +8,7 @@ services:
 
     volumes:
     - ../..:/workspaces:cached
+    - rbenv-data:/home/vscode/.rbenv
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
@@ -39,9 +40,9 @@ services:
 
 <%- end -%>
   <%= devcontainer_db_service_yaml(indentation: 4) %>
-<%- if !volumes.empty? -%>
+
 volumes:
+  rbenv-data:
 <%- volumes.each do |volume| -%>
   <%= volume %>:
-<%- end -%>
 <%- end -%>
