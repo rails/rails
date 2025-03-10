@@ -6,6 +6,104 @@ require "rails/generators/rails/model/model_generator"
 require "rails/generators/mailer/mailer_generator"
 require "rails/generators/rails/scaffold/scaffold_generator"
 require "rails/generators/rails/application_record/application_record_generator"
+require "isolation/abstract_unit"
+
+class NamespacedGeneratorIntegrationTest < ActiveSupport::TestCase
+  include Rails::Generators::Testing::Assertions
+  include Rails::Generators::Testing::Behavior
+  include ActiveSupport::Testing::Isolation
+  setup :build_app
+  setup { self.class.destination rails_root }
+  teardown :teardown_app
+
+  def test_scaffold_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold test_app/product_line` }
+      quietly { `bin/rails destroy scaffold test_app/product_line` }
+
+      # Model
+      assert_no_file "app/models/test_app/product_line.rb"
+      assert_no_file "test/models/test_app/product_line_test.rb"
+      assert_no_file "test/fixtures/test_app/product_lines.yml"
+      assert_no_migration "db/migrate/create_test_app_product_lines.rb"
+
+      # Route
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/resources :product_lines$/, route)
+      end
+
+      # Controller
+      assert_no_file "app/controllers/test_app/product_lines_controller.rb"
+      assert_no_file "test/controllers/test_app/product_lines_controller_test.rb"
+
+      # Views
+      assert_no_file "app/views/test_app/product_lines"
+      assert_no_file "app/views/test_app/layouts/product_lines.html.erb"
+
+      # Helpers
+      assert_no_file "app/helpers/test_app/product_lines_helper.rb"
+    end
+  end
+
+  def test_scaffold_with_namespace_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold test_app/admin/role name:string description:string` }
+      quietly { `bin/rails destroy scaffold test_app/admin/role` }
+
+      # Model
+      assert_file "app/models/test_app/admin.rb"  # ( should not be remove )
+      assert_no_file "app/models/test_app/admin/role.rb"
+      assert_no_file "test/models/test_app/admin/role_test.rb"
+      assert_no_file "test/fixtures/test_app/admin/roles.yml"
+      assert_no_migration "db/migrate/create_test_app_admin_roles.rb"
+
+      # Route
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/^  namespace :test_app do\n    namespace :admin do\n      resources :roles\n    end\n  end$$/, route)
+      end
+
+      # Controller
+      assert_no_file "app/controllers/test_app/admin/roles_controller.rb"
+      assert_no_file "test/controllers/test_app/admin/roles_controller_test.rb"
+
+      # Views
+      assert_no_file "app/views/test_app/admin/roles"
+      assert_no_file "app/views/layouts/test_app/admin/roles.html.erb"
+
+      # Helpers
+      assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
+    end
+  end
+
+  def test_scaffold_with_nested_namespace_on_revoke
+    Dir.chdir(app_path) do
+      quietly { `bin/rails generate scaffold test_app/admin/user/special/role name:string description:string` }
+      quietly { `bin/rails destroy scaffold test_app/admin/user/special/role` }
+
+      # Model
+      assert_file "app/models/test_app/admin/user/special.rb"  # ( should not be remove )
+      assert_no_file "app/models/test_app/admin/user/special/role.rb"
+      assert_no_file "test/models/test_app/admin/user/special/role_test.rb"
+      assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"
+      assert_no_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
+
+      # Route
+      assert_file "config/routes.rb" do |route|
+        assert_no_match(/^  namespace :test_app do\n    namespace :admin do\n      namespace :user do\n        namespace :special do\n          resources :roles\n        end\n      end\n    end\n  end$/, route)
+      end
+
+      # Controller
+      assert_no_file "app/controllers/test_app/admin/user/special/roles_controller.rb"
+      assert_no_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb"
+
+      # Views
+      assert_no_file "app/views/test_app/admin/user/special/roles"
+
+      # Helpers
+      assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
+    end
+  end
+end
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -235,33 +333,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/helpers/test_app/product_lines_helper.rb"
   end
 
-  def test_scaffold_on_revoke
-    run_generator
-    run_generator ["product_line"], behavior: :revoke
-
-    # Model
-    assert_no_file "app/models/test_app/product_line.rb"
-    assert_no_file "test/models/test_app/product_line_test.rb"
-    assert_no_file "test/fixtures/test_app/product_lines.yml"
-    assert_no_migration "db/migrate/create_test_app_product_lines.rb"
-
-    # Route
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/resources :product_lines$/, route)
-    end
-
-    # Controller
-    assert_no_file "app/controllers/test_app/product_lines_controller.rb"
-    assert_no_file "test/controllers/test_app/product_lines_controller_test.rb"
-
-    # Views
-    assert_no_file "app/views/test_app/product_lines"
-    assert_no_file "app/views/test_app/layouts/product_lines.html.erb"
-
-    # Helpers
-    assert_no_file "app/helpers/test_app/product_lines_helper.rb"
-  end
-
   def test_scaffold_with_namespace_on_invoke
     run_generator [ "admin/role", "name:string", "description:string" ]
 
@@ -295,34 +366,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/helpers/test_app/admin/roles_helper.rb"
   end
 
-  def test_scaffold_with_namespace_on_revoke
-    run_generator [ "admin/role", "name:string", "description:string" ]
-    run_generator [ "admin/role" ], behavior: :revoke
-
-    # Model
-    assert_file "app/models/test_app/admin.rb"  # ( should not be remove )
-    assert_no_file "app/models/test_app/admin/role.rb"
-    assert_no_file "test/models/test_app/admin/role_test.rb"
-    assert_no_file "test/fixtures/test_app/admin/roles.yml"
-    assert_no_migration "db/migrate/create_test_app_admin_roles.rb"
-
-    # Route
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/^  namespace :admin do\n    resources :roles\n  end$$/, route)
-    end
-
-    # Controller
-    assert_no_file "app/controllers/test_app/admin/roles_controller.rb"
-    assert_no_file "test/controllers/test_app/admin/roles_controller_test.rb"
-
-    # Views
-    assert_no_file "app/views/test_app/admin/roles"
-    assert_no_file "app/views/layouts/test_app/admin/roles.html.erb"
-
-    # Helpers
-    assert_no_file "app/helpers/test_app/admin/roles_helper.rb"
-  end
-
   def test_scaffold_with_nested_namespace_on_invoke
     run_generator [ "admin/user/special/role", "name:string", "description:string" ]
 
@@ -354,33 +397,6 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
 
     # Helpers
     assert_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
-  end
-
-  def test_scaffold_with_nested_namespace_on_revoke
-    run_generator [ "admin/user/special/role", "name:string", "description:string" ]
-    run_generator [ "admin/user/special/role" ], behavior: :revoke
-
-    # Model
-    assert_file "app/models/test_app/admin/user/special.rb"  # ( should not be remove )
-    assert_no_file "app/models/test_app/admin/user/special/role.rb"
-    assert_no_file "test/models/test_app/admin/user/special/role_test.rb"
-    assert_no_file "test/fixtures/test_app/admin/user/special/roles.yml"
-    assert_no_migration "db/migrate/create_test_app_admin_user_special_roles.rb"
-
-    # Route
-    assert_file "config/routes.rb" do |route|
-      assert_no_match(/^  namespace :admin do\n    namespace :user do\n      namespace :special do\n        resources :roles\n      end\n    end\n  end$/, route)
-    end
-
-    # Controller
-    assert_no_file "app/controllers/test_app/admin/user/special/roles_controller.rb"
-    assert_no_file "test/controllers/test_app/admin/user/special/roles_controller_test.rb"
-
-    # Views
-    assert_no_file "app/views/test_app/admin/user/special/roles"
-
-    # Helpers
-    assert_no_file "app/helpers/test_app/admin/user/special/roles_helper.rb"
   end
 
   def test_api_scaffold_with_namespace_on_invoke
