@@ -53,6 +53,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session/, content)
+      assert_match(/root "fill-me"/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
