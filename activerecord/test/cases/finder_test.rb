@@ -1698,7 +1698,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello World!"
       end
-      assert_equal "Couldn't find MercedesCar with 'name'=Hello World!", e.message
+      assert_equal %{Couldn't find MercedesCar with 'name'="Hello World!"}, e.message
     end
   end
 
@@ -1708,7 +1708,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
+      assert_equal %{Couldn't find all MercedesCars with 'name': ("Hello", "World!") (found 0 results, but was looking for 2).}, e.message
     end
   end
 
