@@ -2929,6 +2929,47 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "Rails.application.config.active_record.use_legacy_signed_id_verifier is :generate_and_verify by default for new apps" do
+      app "development"
+
+      assert_equal :generate_and_verify, Rails.application.config.active_record.use_legacy_signed_id_verifier
+    end
+
+    test "generate signed Id with legacy options when Rails.application.config.active_record.use_legacy_signed_id_verifier is :generate_and_verify" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
+      RUBY
+
+      app "development"
+
+      first_rotate_option = ActiveRecord.message_verifiers.instance_variable_get(:@rotate_options).first.call("active_record/signed_id")
+      assert_equal ({ digest: "SHA256", serializer: JSON, url_safe: true }), first_rotate_option
+    end
+
+    test "generate signed Id with default options when Rails.application.config.active_record.use_legacy_signed_id_verifier is :verify" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = :verify
+      RUBY
+
+      app "development"
+
+      assert_equal ({}), ActiveRecord.message_verifiers.instance_variable_get(:@rotate_options).first
+
+      legacy_rotate_option = ActiveRecord.message_verifiers.instance_variable_get(:@rotate_options).second.call("active_record/signed_id")
+      assert_equal ({ digest: "SHA256", serializer: JSON, url_safe: true }), legacy_rotate_option
+    end
+
+    test "no legacy rotation when Rails.application.config.active_record.use_legacy_signed_id_verifier is false" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = false
+      RUBY
+
+      app "development"
+
+      rotate_options = ActiveRecord.message_verifiers.instance_variable_get(:@rotate_options)
+      assert_equal [{}], rotate_options
+    end
+
     test "PostgresqlAdapter.decode_dates is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
