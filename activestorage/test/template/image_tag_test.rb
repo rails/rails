@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::ImageTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
@@ -15,14 +14,18 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   end
 
   test "variant" do
-    variant = @blob.variant(resize_to_limit: [100, 100])
-    assert_dom_equal %(<img src="#{polymorphic_url variant}" />), image_tag(variant)
+    with_variable_content_types(%w(image/jpeg)) do
+      variant = @blob.variant(resize_to_limit: [100, 100])
+      assert_dom_equal %(<img src="#{polymorphic_url variant}" />), image_tag(variant)
+    end
   end
 
   test "preview" do
-    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
-    preview = blob.preview(resize_to_limit: [100, 100])
-    assert_dom_equal %(<img src="#{polymorphic_url preview}" />), image_tag(preview)
+    preview_with("PopplerPDFPreviewer") do
+      blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+      preview = blob.preview(resize_to_limit: [100, 100])
+      assert_dom_equal %(<img src="#{polymorphic_url preview}" />), image_tag(preview)
+    end
   end
 
   test "attachment" do
