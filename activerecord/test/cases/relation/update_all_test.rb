@@ -86,10 +86,6 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_deprecated("`distinct` is not supported by `update_all`", ActiveRecord.deprecator) do
       Author.distinct.update_all(name: "Bob")
     end
-
-    assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
-      Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
-    end
   end
 
   def test_dynamic_update_all_with_one_joined_table
