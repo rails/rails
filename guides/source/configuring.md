@@ -1067,6 +1067,13 @@ Lets you set an array of names of environments where destructive actions should 
 
 Specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to `false`, then the Customer class will use the `customer` table.
 
+WARNING: Some Rails generators and installers (notably `active_storage:install`
+and `action_text:install`) create tables with plural names regardless of this
+setting. If you set `pluralize_table_names` to `false`, you will need to
+manually rename those tables after installation to maintain consistency.
+This limitation exists because these installers use fixed table names
+in their migrations for compatibility reasons.
+
 #### `config.active_record.default_timezone`
 
 Determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if set to `:utc`) when pulling dates and times from the database. The default is `:utc`.
