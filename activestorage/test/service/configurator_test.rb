@@ -21,6 +21,19 @@ class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
     end
   end
 
+  test "inspect attributes" do
+    config = {
+      local: { service: "Disk", root: "/tmp/active_storage_configurator_test" },
+      tmp: { service: "Disk", root: "/tmp/active_storage_configurator_test_tmp" },
+    }
+
+    configurator = ActiveStorage::Service::Configurator.new(config)
+    assert_match(/#<ActiveStorage::Service::Configurator configurations=\[:local, :tmp\]>/, configurator.inspect)
+
+    configurator = ActiveStorage::Service::Configurator.new({})
+    assert_match(/#<ActiveStorage::Service::Configurator>/, configurator.inspect)
+  end
+
   test "azure service is deprecated" do
     msg = <<~MSG.squish
       `ActiveStorage::Service::AzureStorageService` is deprecated and will be
