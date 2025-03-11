@@ -1,3 +1,8 @@
+*   Skip generating mailer-related files in authentication generator if the application does
+    not use ActionMailer
+
+    *Rami Massoud*
+
 *   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
 
     The specific steps are defined by a new DSL in `config/ci.rb`.
