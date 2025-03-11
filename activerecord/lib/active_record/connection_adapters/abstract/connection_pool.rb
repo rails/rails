@@ -547,6 +547,12 @@ module ActiveRecord
         @connections.nil?
       end
 
+      def maintainable? # :nodoc:
+        synchronize do
+          @connections&.size&.> 0 || (activated? && @min_connections > 0)
+        end
+      end
+
       # Clears reloadable connections from the pool and re-connects connections that
       # require reloading.
       #

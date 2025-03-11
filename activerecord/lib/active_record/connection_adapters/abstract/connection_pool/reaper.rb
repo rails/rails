@@ -70,6 +70,7 @@ module ActiveRecord
 
                     @pools[frequency].each do |ref|
                       p = ref.__getobj__
+                      next unless p.maintainable?
 
                       p.reap
                       p.flush

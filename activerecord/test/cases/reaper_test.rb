@@ -41,6 +41,10 @@ module ActiveRecord
 
         def retire_old_connections
         end
+
+        def maintainable?
+          !discarded? && !flushed && !reaped
+        end
       end
 
       # A reaper with nil time should never reap connections
