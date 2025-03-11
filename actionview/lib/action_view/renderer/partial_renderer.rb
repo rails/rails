@@ -54,7 +54,7 @@ module ActionView
   #
   #   <%= render partial: "account", variants: :mobile %>
   #
-  # This will render <tt>_account.html+mobile.erb</tt>. This option can also intake multiple variants
+  # This will render <tt>_account.html+mobile.erb</tt>. This option also accepts multiple variants
   # like so:
   #
   #   <%= render partial: "account", variants: [:desktop, :mobile] %>
