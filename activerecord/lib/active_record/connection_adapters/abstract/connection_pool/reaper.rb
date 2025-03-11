@@ -72,12 +72,14 @@ module ActiveRecord
                       p = ref.__getobj__
                       next unless p.maintainable?
 
-                      p.reap
-                      p.flush
-                      p.prepopulate
-                      p.retire_old_connections
-                      p.keep_alive
-                      p.preconnect
+                      pool.reaper_lock do
+                        p.reap
+                        p.flush
+                        p.prepopulate
+                        p.retire_old_connections
+                        p.keep_alive
+                        p.preconnect
+                      end
                     rescue WeakRef::RefError
                     end
 

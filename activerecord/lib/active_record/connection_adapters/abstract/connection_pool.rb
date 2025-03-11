@@ -297,6 +297,7 @@ module ActiveRecord
         @activated = false
         @original_context = ActiveSupport::IsolatedExecutionState.context
 
+        @reaper_lock = Monitor.new
         @reaper = Reaper.new(self, db_config.reaping_frequency)
         @reaper.run
       end
@@ -502,18 +503,20 @@ module ActiveRecord
       #   connections in the pool within a timeout interval (default duration is
       #   <tt>spec.db_config.checkout_timeout * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
-        with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
-          synchronize do
-            @connections.each do |conn|
-              if conn.in_use?
-                conn.steal!
-                checkin conn
+        @reaper_lock.synchronize do
+          with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
+            synchronize do
+              @connections.each do |conn|
+                if conn.in_use?
+                  conn.steal!
+                  checkin conn
+                end
+                conn.disconnect!
               end
-              conn.disconnect!
+              @connections = []
+              @leases.clear
+              @available.clear
             end
-            @connections = []
-            @leases.clear
-            @available.clear
           end
         end
       end
@@ -534,12 +537,14 @@ module ActiveRecord
       #
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
-        synchronize do
-          return if self.discarded?
-          @connections.each do |conn|
-            conn.discard!
+        @reaper_lock.synchronize do
+          synchronize do
+            return if self.discarded?
+            @connections.each do |conn|
+              conn.discard!
+            end
+            @connections = @available = @leases = nil
           end
-          @connections = @available = @leases = nil
         end
       end
 
@@ -551,6 +556,10 @@ module ActiveRecord
         synchronize do
           @connections&.size&.> 0 || (activated? && @min_connections > 0)
         end
+      end
+
+      def reaper_lock(&block) # :nodoc:
+        @reaper_lock.synchronize(&block)
       end
 
       # Clears reloadable connections from the pool and re-connects connections that
@@ -753,13 +762,19 @@ module ActiveRecord
       # Ensure that the pool contains at least the configured minimum number of
       # connections.
       def prepopulate
-        return if self.discarded?
+        need_new_connections = nil
 
-        # We don't want to start prepopulating until we know the pool is wanted,
-        # so we can avoid maintaining full pools in one-off scripts etc.
-        return unless @activated
+        synchronize do
+          return if self.discarded?
 
-        if @connections.size < @min_connections
+          # We don't want to start prepopulating until we know the pool is wanted,
+          # so we can avoid maintaining full pools in one-off scripts etc.
+          return unless @activated
+
+          need_new_connections = @connections.size < @min_connections
+        end
+
+        if need_new_connections
           while new_conn = try_to_checkout_new_connection { @connections.size < @min_connections }
             checkin(new_conn)
           end
@@ -1008,9 +1023,11 @@ module ActiveRecord
         # wrap it in +synchronize+ because some pool's actions are allowed
         # to be performed outside of the main +synchronize+ block.
         def with_exclusively_acquired_all_connections(raise_on_acquisition_timeout = true)
-          with_new_connections_blocked do
-            attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout)
-            yield
+          @reaper_lock.synchronize do
+            with_new_connections_blocked do
+              attempt_to_checkout_all_existing_connections(raise_on_acquisition_timeout)
+              yield
+            end
           end
         end
 

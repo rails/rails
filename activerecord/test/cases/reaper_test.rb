@@ -45,6 +45,10 @@ module ActiveRecord
         def maintainable?
           !discarded? && !flushed && !reaped
         end
+
+        def reaper_lock
+          yield
+        end
       end
 
       # A reaper with nil time should never reap connections
