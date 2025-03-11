@@ -1,3 +1,7 @@
+*   The SQLite3 adapter quotes non-finite Numeric values like "Infinity" and "NaN".
+
+    *Mike Dalessio*
+
 *   Handle libpq returning a database version of 0 on no/bad connection in `PostgreSQLAdapter`.
 
     Before, this version would be cached and an error would be raised during connection configuration when
