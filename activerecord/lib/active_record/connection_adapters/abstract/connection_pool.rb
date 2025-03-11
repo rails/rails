@@ -521,6 +521,9 @@ module ActiveRecord
               @connections = []
               @leases.clear
               @available.clear
+
+              # Stop maintaining the minimum size until reactivated
+              @activated = false
             end
           end
         end
