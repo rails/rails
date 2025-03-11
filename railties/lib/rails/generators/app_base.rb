@@ -513,9 +513,12 @@ module Rails
         [ turbo_rails_entry, stimulus_rails_entry ]
       end
 
+      def using_importmap?
+        options[:javascript] == "importmap"
+      end
+
       def using_js_runtime?
-        (options[:javascript] && !%w[importmap].include?(options[:javascript])) ||
-          (options[:css] && !%w[tailwind sass].include?(options[:css]))
+        (options[:javascript] && !using_importmap?) || (options[:css] && !%w[tailwind sass].include?(options[:css]))
       end
 
       def using_node?
