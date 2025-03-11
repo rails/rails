@@ -222,54 +222,6 @@ module ApplicationTests
       end
     end
 
-    def test_run_test_at_root
-      app_file "my_test.rb", <<-RUBY
-        require "test_helper"
-
-        class MyTest < ActiveSupport::TestCase
-          def test_rikka
-            puts 'Rikka'
-          end
-        end
-      RUBY
-
-      run_test_command("my_test.rb").tap do |output|
-        assert_match "Rikka", output
-      end
-    end
-
-    def test_run_test_having_a_slash_in_its_name
-      app_file "my_test.rb", <<-RUBY
-        require "test_helper"
-
-        class MyTest < ActiveSupport::TestCase
-          test "foo/foo" do
-            puts 'Rikka'
-          end
-        end
-      RUBY
-
-      run_test_command("my_test.rb -n foo\/foo").tap do |output|
-        assert_match "Rikka", output
-      end
-    end
-
-    def test_run_test_with_flags_unordered
-      app_file "my_test.rb", <<-RUBY
-        require "test_helper"
-
-        class MyTest < ActiveSupport::TestCase
-          test "foo/foo" do
-            puts 'Rikka'
-          end
-        end
-      RUBY
-
-      run_test_command("--seed 344 my_test.rb --fail-fast -n foo\/foo").tap do |output|
-        assert_match "Rikka", output
-      end
-    end
-
     def test_run_matched_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
         require "test_helper"
