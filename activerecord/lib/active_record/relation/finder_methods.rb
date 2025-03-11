@@ -638,8 +638,16 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && !_order_columns.empty?
-          order(_order_columns.map { |column| table[column].asc })
+        if order_values.empty?
+          if !_order_columns.empty?
+            return order(_order_columns.map { |column| table[column].asc })
+          end
+
+          raise MissingRequiredOrderError, <<~MSG.squish
+            Relation has no current order, and #{model} has no order columns to use as a default.
+            Set at least one of `implicit_order_column`, `query_constraints` or `primary_key` on
+            the model when no `order `is specified on the relation.
+          MSG
         else
           self
         end
