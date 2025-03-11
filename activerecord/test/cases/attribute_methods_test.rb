@@ -1157,8 +1157,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       assert_no_queries(include_schema: true) do
         @target.define_attribute_methods
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -1630,12 +1628,5 @@ class AttributeMethodsTest < ActiveRecord::TestCase
           "I'm private"
         end
       private_method
-    end
-
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
     end
 end
