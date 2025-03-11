@@ -155,7 +155,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/rate_limit/, content)
     end
   ensure
-    ActionCable.const_set(:Railtie, old_value)
+    ActionMailer.const_set(:Railtie, old_value)
   end
 
   private
