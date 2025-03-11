@@ -25,12 +25,15 @@ module Rails
 
         template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
 
-        template "app/mailers/passwords_mailer.rb"
+        if defined?(ActionMailer::Railtie)
+          template "app/mailers/passwords_mailer.rb"
 
-        template "app/views/passwords_mailer/reset.html.erb"
-        template "app/views/passwords_mailer/reset.text.erb"
+          template "app/views/passwords_mailer/reset.html.erb"
+          template "app/views/passwords_mailer/reset.text.erb"
 
-        template "test/mailers/previews/passwords_mailer_preview.rb"
+          template "test/mailers/previews/passwords_mailer_preview.rb"
+        end
+
         template "test/test_helpers/session_test_helper.rb"
       end
 
