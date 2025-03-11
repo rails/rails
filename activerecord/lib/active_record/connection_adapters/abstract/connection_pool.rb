@@ -421,6 +421,8 @@ module ActiveRecord
       # #lease_connection or #with_connection methods, connections obtained through
       # #checkout will not be automatically released.
       def release_connection(existing_lease = nil)
+        return if self.discarded?
+
         if conn = connection_lease.release
           checkin conn
           return true
@@ -504,8 +506,11 @@ module ActiveRecord
       #   <tt>spec.db_config.checkout_timeout * 2</tt> seconds).
       def disconnect(raise_on_acquisition_timeout = true)
         @reaper_lock.synchronize do
+          return if self.discarded?
+
           with_exclusively_acquired_all_connections(raise_on_acquisition_timeout) do
             synchronize do
+              return if self.discarded?
               @connections.each do |conn|
                 if conn.in_use?
                   conn.steal!
@@ -1210,6 +1215,8 @@ module ActiveRecord
           # and increment @now_connecting, to prevent overstepping this pool's @max_connections
           # constraint
           do_checkout = synchronize do
+            return if self.discarded?
+
             if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_connections && (!block_given? || yield)
               if @connections.size > 0 || @original_context != ActiveSupport::IsolatedExecutionState.context
                 @activated = true
@@ -1225,12 +1232,16 @@ module ActiveRecord
               conn = checkout_new_connection
             ensure
               synchronize do
-                if conn
-                  adopt_connection(conn)
-                  # returned conn needs to be already leased
-                  conn.lease
-                end
                 @now_connecting -= 1
+                if conn
+                  if self.discarded?
+                    conn.discard!
+                  else
+                    adopt_connection(conn)
+                    # returned conn needs to be already leased
+                    conn.lease
+                  end
+                end
               end
             end
           end
