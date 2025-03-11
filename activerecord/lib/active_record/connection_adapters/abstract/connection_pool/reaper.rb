@@ -53,6 +53,15 @@ module ActiveRecord
             end
           end
 
+          def pools(refs = nil) # :nodoc:
+            refs ||= @mutex.synchronize { @pools.values.flatten(1) }
+
+            refs.filter_map do |ref|
+              ref.__getobj__ if ref.weakref_alive?
+            rescue WeakRef::RefError
+            end.select(&:maintainable?)
+          end
+
           private
             def spawn_thread(frequency)
               Thread.new(frequency) do |t|
@@ -63,30 +72,34 @@ module ActiveRecord
                 running = true
                 while running
                   sleep t
+
+                  refs = nil
+
                   @mutex.synchronize do
-                    @pools[frequency].select! do |pool|
+                    refs = @pools[frequency]
+
+                    refs.select! do |pool|
                       pool.weakref_alive? && !pool.discarded?
-                    end
-
-                    @pools[frequency].each do |ref|
-                      p = ref.__getobj__
-                      next unless p.maintainable?
-
-                      pool.reaper_lock do
-                        p.reap
-                        p.flush
-                        p.prepopulate
-                        p.retire_old_connections
-                        p.keep_alive
-                        p.preconnect
-                      end
                     rescue WeakRef::RefError
                     end
 
-                    if @pools[frequency].empty?
+                    if refs.empty?
                       @pools.delete(frequency)
                       @threads.delete(frequency)
                       running = false
+                    end
+                  end
+
+                  if running
+                    pools(refs).each do |pool|
+                      pool.reaper_lock do
+                        pool.reap
+                        pool.flush
+                        pool.prepopulate
+                        pool.retire_old_connections
+                        pool.keep_alive
+                        pool.preconnect
+                      end
                     end
                   end
                 end
