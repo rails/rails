@@ -1106,7 +1106,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal expected, clients.order(nil).first(2)
   end
 
-  def test_implicit_order_column_is_configurable
+  def test_implicit_order_column_is_configurable_with_a_single_value
     old_implicit_order_column = Topic.implicit_order_column
     Topic.implicit_order_column = "title"
 
@@ -1114,6 +1114,28 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal topics(:third), Topic.last
 
     assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_implicit_order_column_is_configurable_with_multiple_values
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = ["title", "author_name"]
+
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.title"))} DESC, #{Regexp.escape(quote_table_name("topics.author_name"))} DESC, #{Regexp.escape(quote_table_name("topics.id"))} DESC LIMIT/i) {
+      Topic.last
+    }
+  ensure
+    Topic.implicit_order_column = old_implicit_order_column
+  end
+
+  def test_ordering_does_not_append_primary_keys_or_query_constraints_if_passed_an_implicit_order_column_array_ending_in_nil
+    old_implicit_order_column = Topic.implicit_order_column
+    Topic.implicit_order_column = ["author_name", nil]
+
+    assert_queries_match(/ORDER BY #{Regexp.escape(quote_table_name("topics.author_name"))} DESC LIMIT/i) {
       Topic.last
     }
   ensure

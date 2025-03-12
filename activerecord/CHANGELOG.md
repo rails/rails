@@ -1,3 +1,13 @@
+*   Allow bypassing primary key/constraint addition in `implicit_order_column`
+
+    When specifying multiple columns in an array for `implicit_order_column`, adding
+    `nil` as the last element will prevent appending the primary key to order
+    conditions. This allows more precise control of indexes used by
+    generated queries. It should be noted that this feature does introduce the risk
+    of API misbehavior if the specified columns are not fully unique.
+
+    *Issy Long*
+
 *   Allow setting the `schema_format` via database configuration.
 
     ```
