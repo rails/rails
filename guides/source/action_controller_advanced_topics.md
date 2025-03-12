@@ -105,7 +105,7 @@ Starting with version 7.2, Rails controllers use [`allow_browser`](https://api.r
 
 ```ruby
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import # maps, CSS nesting, and CSS :has.
+  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 end
 ```
