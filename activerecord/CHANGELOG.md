@@ -1,10 +1,5 @@
 ## Rails 8.0.2 (March 12, 2025) ##
 
-*   No changes.
-
-
-## Rails 8.0.2 (March 12, 2025) ##
-
 *   Fix inverting `rename_enum_value` when `:from`/`:to` are provided.
 
     *fatkodima*

@@ -1,10 +1,5 @@
 ## Rails 8.0.2 (March 12, 2025) ##
 
-*   No changes.
-
-
-## Rails 8.0.2 (March 12, 2025) ##
-
 *   A Blob will no longer autosave associated Attachment.
 
     This fixes an issue where a record with an attachment would have
