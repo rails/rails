@@ -1,3 +1,13 @@
+*   Gracefully handle `Timeout.timeout` firing during connection configuration.
+
+    Use of `Timeout.timeout` could result in improperly initialized database connection.
+
+    This could lead to a partially configured connection being used, resulting in various exceptions,
+    the most common being with the PostgreSQLAdapter raising `undefined method `key?' for nil`
+    or `TypeError: wrong argument type nil (expected PG::TypeMap)`.
+
+    *Jean Boussier*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   Fix inverting `rename_enum_value` when `:from`/`:to` are provided.

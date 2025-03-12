@@ -870,6 +870,29 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      test "disconnect and recover on #configure_connection timeout" do
+        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+
+        slow = [5]
+        connection.singleton_class.define_method(:configure_connection) do
+          if duration = slow.pop
+            sleep duration
+          end
+          super()
+        end
+
+        assert_raises Timeout::Error do
+          Timeout.timeout(0.2) do
+            connection.exec_query("SELECT 1")
+          end
+        end
+
+        assert_equal [[1]], connection.exec_query("SELECT 1").rows
+        assert_empty failures
+      ensure
+        connection&.disconnect!
+      end
+
       private
         def raw_transaction_open?(connection)
           case connection.adapter_name
