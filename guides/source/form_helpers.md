@@ -249,8 +249,8 @@ The `form_with` helper has a `:model` option that allows you to bind the form bu
 For example, if we have a `@book` model object:
 
 ```ruby
-@book = Book.find(42)
-# => #<Book id: 42, title: "Walden", author: "Henry David Thoreau">
+@book = Book.new
+# => #<Book id: nil, title: nil, author: nil>
 ```
 
 And the following form to create a new book:

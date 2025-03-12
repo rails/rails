@@ -1,3 +1,18 @@
+*   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
+
+    After this change, invoking `head` will lead to an error if response body is already set:
+
+    ```ruby
+    class PostController < ApplicationController
+      def index
+        render locals: {}
+        head :ok
+      end
+    end
+    ```
+
+    *Iaroslav Kurbatov*
+
 *   The Cookie Serializer can now serialize an Active Support SafeBuffer when using message pack.
 
     Such code would previously produce an error if an application was using messagepack as its cookie serializer.

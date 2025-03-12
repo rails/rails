@@ -351,3 +351,54 @@ class RoutingAssertionsIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 end
+
+class WithRoutingResetTest < ActionDispatch::IntegrationTest
+  test "with_routing doesn't rebuild the middleware stack" do
+    middleware = Class.new do
+      def initialize(app)
+        @app = app
+        @config = {}
+
+        yield(@config)
+      end
+
+      def call(env)
+        [200, { Rack::CONTENT_TYPE => "text/plain; charset=UTF-8" }, [@config[:foo]]]
+      end
+    end
+
+    middleware_config = nil
+
+    @app = self.class.build_app do |middleware_stack|
+      middleware_stack.use middleware do |config|
+        middleware_config = config
+      end
+    end
+    @app.routes.draw do
+      get("/purchase", to: "store#purchase")
+    end
+
+    middleware_config[:foo] = "bar"
+
+    # Ensure the middleware is properly configured before calling `with_routing`
+    get "/purchase"
+    assert_response(:ok)
+    assert_equal("bar", response.body)
+
+    with_routing do |route_set|
+      route_set.draw do
+        get "/purchase", to: "store#purchase"
+      end
+
+      # Ensure the middleware is properly configured inside `with_routing`
+      get "/purchase"
+      assert_response(:ok)
+      assert_equal("bar", response.body)
+    end
+
+    # Ensure the middleware is properly configured after `with_routing`
+    get "/purchase"
+    assert_response(:ok)
+    assert_equal("bar", response.body)
+  end
+end

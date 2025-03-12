@@ -1,5 +1,5 @@
 # Audit all gems listed in the Gemfile for known security problems by running bin/bundler-audit.
 # CVEs that are not relevant to the application can be enumerated on the ignore list below.
-#
-# ignore:
-#   - CVE-2018-25032
+
+ignore:
+  - CVE-THAT-DOES-NOT-APPLY

@@ -19,6 +19,12 @@ module ActiveStorage
       )
     end
 
+    def inspect # :nodoc:
+      attrs = configurations.any? ?
+        " configurations=[#{configurations.keys.map(&:inspect).join(", ")}]" : ""
+      "#<#{self.class}#{attrs}>"
+    end
+
     private
       def config_for(name)
         configurations.fetch name do

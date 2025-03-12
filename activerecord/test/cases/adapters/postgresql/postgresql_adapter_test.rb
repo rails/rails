@@ -95,6 +95,47 @@ module ActiveRecord
         end
       end
 
+      def test_reconnect_after_bad_connection_on_check_version_with_0_return
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
+        connection.connect!
+
+        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+        connection.pool.instance_variable_set(:@server_version, nil)
+        connection.raw_connection.stub(:server_version, 0) do
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+            connection.reconnect!
+          end
+          assert_equal "Could not determine PostgreSQL version", error.message
+        end
+
+        # can reconnect after a bad connection
+        assert_nothing_raised do
+          connection.reconnect!
+        end
+      end
+
+      def test_reconnect_after_bad_connection_on_check_version_with_native_exception
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash.merge(connection_retries: 0))
+        connection.connect!
+
+        # mimic a connection that hasn't checked and cached the server version yet i.e. without a raw_connection
+        connection.pool.instance_variable_set(:@server_version, nil)
+        # https://github.com/ged/ruby-pg/commit/a565e153d4d05955342ad24d4845378eee956935
+        connection.raw_connection.stub(:server_version, -> { raise PG::ConnectionBad, "PQserverVersion() can't get server version" }) do
+          error = assert_raises ActiveRecord::ConnectionNotEstablished do
+            connection.reconnect!
+          end
+          assert_equal "PQserverVersion() can't get server version", error.message
+        end
+
+        # can reconnect after a bad connection
+        assert_nothing_raised do
+          connection.reconnect!
+        end
+      end
+
       def test_database_exists_returns_false_when_the_database_does_not_exist
         config = { database: "non_extant_database", adapter: "postgresql" }
         assert_not ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.database_exists?(config),

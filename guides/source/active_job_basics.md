@@ -145,7 +145,7 @@ outstanding jobs are lost with the default async backend. This can be fine for
 smaller apps or non-critical jobs in development.
 
 However, if you use Solid Queue instead, you can configure it in the same way as
-in the development environment:
+in the production environment:
 
 ```ruby
 # config/environments/development.rb

@@ -461,6 +461,21 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "hi mom!", migration.method_missing(:create_table)
   end
 
+  def test_respond_to_for_migration_method
+    migration_class = Class.new(ActiveRecord::Migration::Current) {
+      def connection
+        Class.new {
+          def create_table; end
+        }.new
+      end
+    }
+
+    migration_class.class_eval { undef_method :create_table }
+    # create_table is handled by method_missing, so respond_to? returns true.
+    assert migration_class.new.respond_to?(:create_table)
+    assert migration_class.respond_to?(:create_table)
+  end
+
   def test_add_table_with_decimals
     Person.lease_connection.drop_table :big_numbers rescue nil
 

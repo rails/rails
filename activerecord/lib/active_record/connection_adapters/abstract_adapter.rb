@@ -677,7 +677,7 @@ module ActiveRecord
 
           reset_transaction(restore: restore_transactions) do
             clear_cache!(new_connection: true)
-            configure_connection
+            attempt_configure_connection
           end
         rescue => original_exception
           translated_exception = translate_exception_class(original_exception, nil, nil)
@@ -730,7 +730,7 @@ module ActiveRecord
       def reset!
         clear_cache!(new_connection: true)
         reset_transaction
-        configure_connection
+        attempt_configure_connection
       end
 
       # Removes the connection from the pool and disconnect it.
@@ -766,7 +766,7 @@ module ActiveRecord
             if @unconfigured_connection
               @raw_connection = @unconfigured_connection
               @unconfigured_connection = nil
-              configure_connection
+              attempt_configure_connection
               @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               @verified = true
               return
@@ -1217,6 +1217,13 @@ module ActiveRecord
         # holding @lock (or from #initialize).
         def configure_connection
           check_version
+        end
+
+        def attempt_configure_connection
+          configure_connection
+        rescue
+          disconnect!
+          raise
         end
 
         def default_prepared_statements

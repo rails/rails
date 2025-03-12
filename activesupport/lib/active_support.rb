@@ -40,6 +40,7 @@ module ActiveSupport
   autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
+  autoload :ContinuousIntegration
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker

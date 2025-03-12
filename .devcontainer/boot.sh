@@ -1,5 +1,6 @@
 #!/bin/sh
 
+bundle update --bundler
 bundle install
 
 if [ -n "${NVM_DIR}" ]; then
