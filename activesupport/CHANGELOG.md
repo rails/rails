@@ -1,3 +1,7 @@
+*   Fix setting `to_time_preserves_timezone` from `new_framework_defaults_8_0.rb`.
+
+    *fatkodima*
+
 *   Fix Active Support Cache `fetch_multi` when local store is active.
 
     `fetch_multi` now properly yield to the provided block for missing entries

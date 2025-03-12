@@ -1,3 +1,23 @@
+*   Fix inverting `rename_enum_value` when `:from`/`:to` are provided.
+
+    *fatkodima*
+
+*   Prevent persisting invalid record.
+
+    *Edouard Chin*
+
+*   Fix inverting `drop_table` without options.
+
+    *fatkodima*
+
+*   Fix count with group by qualified name on loaded relation.
+
+    *Ryuta Kamizono*
+
+*   Fix `sum` with qualified name on loaded relation.
+
+    *Chris Gunther*
+
 *   The SQLite3 adapter quotes non-finite Numeric values like "Infinity" and "NaN".
 
     *Mike Dalessio*
