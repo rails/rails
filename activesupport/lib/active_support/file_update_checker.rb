@@ -52,6 +52,7 @@ module ActiveSupport
 
       @watched    = nil
       @updated_at = nil
+      @mtime_cache = {}
 
       @last_watched   = watched
       @last_update_at = updated_at(@last_watched)
@@ -86,6 +87,7 @@ module ActiveSupport
     ensure
       @watched = nil
       @updated_at = nil
+      @mtime_cache.clear
     end
 
     # Execute the block given if updated.
@@ -102,9 +104,15 @@ module ActiveSupport
     private
       def watched
         @watched || begin
-          all = @files.select { |f| File.exist?(f) }
-          all.concat(Dir[*@globs]) if @globs
-          all.tap(&:uniq!)
+          new_mtime_cache = {}
+
+          @files.each do |file|
+            new_mtime_cache[file] = File.mtime(file)
+          rescue Errno::ENOENT
+          end
+
+          @mtime_cache = new_mtime_cache
+          @globs ? @mtime_cache.keys.concat(Dir[*@globs]) : @mtime_cache.keys
         end
       end
 
@@ -129,7 +137,7 @@ module ActiveSupport
         #
         # Read t1.compare_without_coercion(t2) < 0 as t1 < t2.
         paths.each do |path|
-          mtime = File.mtime(path)
+          mtime = @mtime_cache[path] || File.mtime(path)
 
           next if time_now.compare_without_coercion(mtime) < 0
 
