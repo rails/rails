@@ -1,3 +1,10 @@
+## Rails 8.0.2 (March 12, 2025) ##
+
+*   No changes.
+
+
+## Rails 8.0.2 (March 12, 2025) ##
+
 *   Fix Rails console to load routes.
 
     Otherwise `*_path` and `*url` methods are missing on the `app` object.

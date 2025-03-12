@@ -1,3 +1,13 @@
+## Rails 8.0.2 (March 12, 2025) ##
+
+*   No changes.
+
+
+## Rails 8.0.2 (March 12, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.0.1 (December 13, 2024) ##
 
 *   Avoid crashing in Active Job logger when logging enqueueing errors
