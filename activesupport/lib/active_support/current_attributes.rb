@@ -182,14 +182,6 @@ module ActiveSupport
         def respond_to_missing?(name, _)
           instance.respond_to?(name) || super
         end
-
-        def method_added(name)
-          super
-          return if name == :initialize
-          return unless public_method_defined?(name)
-          return if singleton_class.method_defined?(name) || singleton_class.private_method_defined?(name)
-          Delegation.generate(singleton_class, [name], to: :instance, as: self, nilable: false)
-        end
     end
 
     class_attribute :defaults, instance_writer: false, default: {}.freeze
