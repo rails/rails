@@ -62,11 +62,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
   def test_authentication_generator_without_bcrypt_in_gemfile
     File.write("Gemfile", File.read("Gemfile").sub(/# gem "bcrypt".*\n/, ""))
 
-    run_generator
+    run_generator_instance
 
-    assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
-    end
+    assert_includes @bundle_commands, ["add bcrypt", {}, { quiet: true }]
   end
 
   def test_authentication_generator_with_api_flag
@@ -125,20 +123,18 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
   private
     def run_generator_instance
-      commands = []
-      command_stub ||= -> (command, *args) { commands << [command, *args] }
+      @bundle_commands = []
+      command_stub ||= -> (command, *args) { @bundle_commands << [command, *args] }
 
       @rails_commands = []
       @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
 
       content = nil
-      generator.stub(:execute_command, command_stub) do
+      generator.stub(:bundle_command, command_stub) do
         generator.stub(:rails_command, @rails_command_stub) do
           content = super
         end
       end
-
-      @bundle_commands = commands.filter { |command, _| command == :bundle }
 
       content
     end
