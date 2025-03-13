@@ -131,7 +131,9 @@ jobs:
         <%- if options[:api] || options[:skip_system_test] -%>
         run: bin/rails db:test:prepare test
         <%- else -%>
-        run: bin/rails db:test:prepare test test:system
+        run: |
+          bin/rails db:test:prepare test
+          bin/rails test:system
         <%- end -%>
       <%- unless options[:api] || options[:skip_system_test] -%>
 
