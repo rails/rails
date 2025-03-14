@@ -415,4 +415,22 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
     assert_equal [[reported_error, true, :warning, "application", { foo: :bar }]], @subscriber.events
   end
+
+  class ContextMutatingSubscriber
+    def report(_error, handled:, severity:, context:, source:)
+      context.delete(:foo)
+    end
+  end
+
+  test "each subscriber gets its own context instance" do
+    reporter = ActiveSupport::ErrorReporter.new
+    reporter.subscribe(ContextMutatingSubscriber.new)
+    subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+    reporter.subscribe(subscriber)
+    error = StandardError.new
+
+    reporter.report(error, context: { foo: { bar: "baz" } })
+
+    assert_equal [[error, true, :warning, "application", { foo: { bar: "baz" } }]], subscriber.events
+  end
 end
