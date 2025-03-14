@@ -1627,4 +1627,6 @@ module ActiveRecord
         MIGRATOR_SALT * db_name_hash
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_record_migration, Migration)
 end
