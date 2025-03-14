@@ -9,7 +9,8 @@
     Escaping will still occur when the `:callback` option is set, since the JSON is used as JavaScript code in this
     situation (JSONP).
 
-    You can use the `:escape` option to restore the escaping behavior.
+    You can use the `:escape` option or set `config.action_controller.json_renderer_escapes` to `true` to restore the
+    escaping behavior.
 
     ```ruby
     class PostsController < ApplicationController
