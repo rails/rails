@@ -633,15 +633,15 @@ class ModuleTest < ActiveSupport::TestCase
     c = Class.new do
       delegate :zero, :one, :two, to: ArityTester
     end
-    assert_equal 0, c.instance_method(:zero).arity
-    assert_equal 1, c.instance_method(:one).arity
-    assert_equal 2, c.instance_method(:two).arity
+    assert_equal expected_arity(0), c.instance_method(:zero).arity
+    assert_equal expected_arity(1), c.instance_method(:one).arity
+    assert_equal expected_arity(2), c.instance_method(:two).arity
 
     e = Class.new do
       delegate :zero, to: ArityTesterModule
     end
 
-    assert_equal 0, e.instance_method(:zero).arity
+    assert_equal expected_arity(0), e.instance_method(:zero).arity
     assert_nothing_raised do
       e.new.zero
     end
@@ -653,12 +653,12 @@ class ModuleTest < ActiveSupport::TestCase
         :kwargs, :kwargs_with_block, :opt_kwargs, :opt_kwargs_with_block, to: :class
     end
 
-    assert_equal 0, d.instance_method(:zero).arity
-    assert_equal 0, d.instance_method(:zero_with_block).arity
-    assert_equal 0, d.instance_method(:zero_with_implicit_block).arity
-    assert_equal 1, d.instance_method(:one).arity
-    assert_equal 1, d.instance_method(:one_with_block).arity
-    assert_equal 2, d.instance_method(:two).arity
+    assert_equal expected_arity(0), d.instance_method(:zero).arity
+    assert_equal expected_arity(0), d.instance_method(:zero_with_block).arity
+    assert_equal expected_arity(0), d.instance_method(:zero_with_implicit_block).arity
+    assert_equal expected_arity(1), d.instance_method(:one).arity
+    assert_equal expected_arity(1), d.instance_method(:one_with_block).arity
+    assert_equal expected_arity(2), d.instance_method(:two).arity
     assert_equal(-1, d.instance_method(:opt).arity)
     assert_equal(-1, d.instance_method(:kwargs).arity)
     assert_equal(-1, d.instance_method(:kwargs_with_block).arity)
@@ -678,4 +678,9 @@ class ModuleTest < ActiveSupport::TestCase
       d.new.opt_kwargs_with_block(a: 1, b: 2, c: 3)
     end
   end
+
+  private
+    def expected_arity(on_prior_ruby, on_ruby_34 = -1)
+      RUBY_VERSION >= "3.4" ? on_ruby_34 : on_prior_ruby
+    end
 end

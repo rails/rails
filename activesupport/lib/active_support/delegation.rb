@@ -79,7 +79,9 @@ module ActiveSupport
               signature
             elsif /[^\]]=\z/.match?(method)
               "arg"
-            else
+            elsif RUBY_VERSION >= "3.4"
+              "..."
+            else # Speed optimization for prior Ruby versions.
               method_object = if receiver_class
                 begin
                   receiver_class.public_instance_method(method)
