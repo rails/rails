@@ -243,6 +243,42 @@ module ApplicationTests
       end
     end
 
+    def test_run_absolute_dir_path
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      create_test_file :controllers, "foobar_controller"
+      path = File.expand_path(app_path("test/models"))
+      assert path.start_with?(app_path)
+      run_test_command("#{path}/").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarTest", output
+        assert_match "2 runs, 2 assertions, 0 failures", output
+      end
+    end
+
+    def test_run_test_name_with_slash
+      app_file "test/models/foo_test.rb", <<-RUBY
+        require "test_helper"
+
+        class FooTest < ActiveSupport::TestCase
+          test "dummy test with a / slash" do
+            puts "will run"
+            assert true, 'wups!'
+          end
+
+          test "should not run" do
+            puts "should not run"
+            assert true, 'wups!'
+          end
+        end
+      RUBY
+      run_test_command("test/models/foo_test.rb -n test_dummy_test_with_a_/_slash").tap do |output|
+        assert_match "will run", output
+        assert_no_match "should not run", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+    end
+
     def test_load_fixtures_when_running_test_suites
       create_model_with_fixture
       suites = [:models, :helpers, :controllers, :mailers, :integration]
