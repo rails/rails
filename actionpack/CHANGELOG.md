@@ -1,7 +1,7 @@
 *   The JSON renderer doesn't escape HTML entities or Unicode line separators anymore.
 
-    Using `render json:` will no longer escape a few characters that can cause errors when the resulting JSON is
-    embedded in JavaScript, or vulnerabilities when the resulting JSON is embedded in HTML.
+    Using `render json:` will no longer escape `<`, `>`, `&`, `U+2028` and `U+2029` characters that can cause errors
+    when the resulting JSON is embedded in JavaScript, or vulnerabilities when the resulting JSON is embedded in HTML.
 
     Since the renderer is used to return a JSON document as `application/json`, it's typically not necessary to escape
     those characters, and it improves performance.
@@ -9,7 +9,8 @@
     Escaping will still occur when the `:callback` option is set, since the JSON is used as JavaScript code in this
     situation (JSONP).
 
-    You can use the `:escape` option to restore the escaping behavior.
+    You can use the `:escape` option or set `config.action_controller.escape_json_responses` to `true` to restore the
+    escaping behavior.
 
     ```ruby
     class PostsController < ApplicationController

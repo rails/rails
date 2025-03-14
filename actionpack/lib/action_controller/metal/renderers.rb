@@ -29,6 +29,7 @@ module ActionController
 
     included do
       class_attribute :_renderers, default: Set.new.freeze
+      class_attribute :escape_json_responses, instance_accessor: false, default: true
     end
 
     # Used in ActionController::Base and ActionController::API to include all
@@ -153,7 +154,7 @@ module ActionController
 
     add :json do |json, options|
       json_options = options.except(:callback, :content_type, :status)
-      json_options[:escape] ||= false unless options[:callback].present?
+      json_options[:escape] ||= false if !self.class.escape_json_responses? && options[:callback].blank?
       json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?

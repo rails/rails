@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "active_support/logger"
+require "active_support/core_ext/object/with"
 
 class RenderJsonTest < ActionController::TestCase
   class JsonRenderable
@@ -120,10 +121,12 @@ class RenderJsonTest < ActionController::TestCase
     assert_equal "text/javascript", @response.media_type
   end
 
-  def test_render_json_without_callback_does_not_escape_js_chars
-    get :render_json_unsafe_chars_without_callback
-    assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
-    assert_equal "application/json", @response.media_type
+  def test_render_json_with_new_default_and_without_callback_does_not_escape_js_chars
+    TestController.with(escape_json_responses: false) do
+      get :render_json_unsafe_chars_without_callback
+      assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
+      assert_equal "application/json", @response.media_type
+    end
   end
 
   def test_render_json_with_custom_content_type
@@ -157,6 +160,6 @@ class RenderJsonTest < ActionController::TestCase
 
   def test_render_json_avoids_view_options
     get :render_json_inspect_options
-    assert_equal '{"options":{"escape":false}}', @response.body
+    assert_equal '{"options":{}}', @response.body
   end
 end
