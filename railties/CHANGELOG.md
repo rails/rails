@@ -1,3 +1,7 @@
+*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
+
+    *Lovro Bikić*
+
 *   Skip generating mailer-related files in authentication generator if the application does
     not use ActionMailer
 
