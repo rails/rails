@@ -71,6 +71,16 @@ module Arel # :nodoc: all
           end
         end
 
+        # REGEXP operator uses regexp() user function. This function is not defined by default.
+        # See: https://www.sqlite.org/lang_expr.html#the_like_glob_regexp_match_and_extract_operators
+        def visit_Arel_Nodes_Regexp(o, collector)
+          infix_value o, collector, " REGEXP "
+        end
+
+        def visit_Arel_Nodes_NotRegexp(o, collector)
+          infix_value o, collector, " NOT REGEXP "
+        end
+
         # Locks are not supported in SQLite
         def visit_Arel_Nodes_Lock(o, collector)
           collector

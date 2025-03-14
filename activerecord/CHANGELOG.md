@@ -1,3 +1,15 @@
+*   Support Regexp values in query hash conditions.
+
+    Active Record now supports accepting a Regexp without modifiers in a
+    hash condition. This will generate SQL using per-database adapter
+    regular expression operators.
+
+    ```ruby
+      Book.where(title: /The/)
+    ```
+
+    *Jenny Shen*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
