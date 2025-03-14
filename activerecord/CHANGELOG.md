@@ -1,3 +1,18 @@
+*   Aggregate saved changes for all updates inside of a transaction.
+
+    When multiple updates are made to a record inside of a transaction, each update resets
+    the dirty fields on the record so that the `saved_changes` hash only contains
+    the most recent change after a record is saved.
+
+    When a transaction is committed, all of the changes are aggregated into a single
+    change set. This fixes issues where checking `saved_changes` in an `after_commit`
+    callback could return inconsistent results depending on the order of updates in
+    the transaction.
+
+    Fixes #49898, #48077
+
+    *Brian Durand*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
