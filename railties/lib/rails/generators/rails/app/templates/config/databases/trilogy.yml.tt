@@ -51,6 +51,12 @@ test:
 #   production:
 #     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
+# The connection URL for non-primary databases can also be configured using a
+# similar environment variable prefixed with the configuration key in uppercase.
+# For example:
+#
+#   CACHE_DATABASE_URL="trilogy://cacheuser:cachepass@localhost/cachedatabase"
+#
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
