@@ -1,3 +1,12 @@
+*   Add `http_token_authenticate_with` to do simple HTTP token authentication with a single class
+    method call, similar to `http_basic_authenticate_with`.
+
+   ```ruby
+    class PostController < ApplicationController
+      http_token_authenticate_with token: "secret_token"
+    end
+   ```
+
 *   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
 
     After this change, invoking `head` will lead to an error if response body is already set:

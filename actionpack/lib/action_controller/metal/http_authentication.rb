@@ -355,9 +355,7 @@ module ActionController
     # ### Simple Token example
     #
     #     class PostsController < ApplicationController
-    #       TOKEN = "secret"
-    #
-    #       before_action :authenticate, except: [ :index ]
+    #       http_token_authenticate_with token: "secret_token", except: :index
     #
     #       def index
     #         render plain: "Everyone can see me!"
@@ -366,15 +364,6 @@ module ActionController
     #       def edit
     #         render plain: "I'm only accessible if you know the password"
     #       end
-    #
-    #       private
-    #         def authenticate
-    #           authenticate_or_request_with_http_token do |token, options|
-    #             # Compare the tokens in a time-constant manner, to mitigate
-    #             # timing attacks.
-    #             ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
-    #           end
-    #         end
     #     end
     #
     # Here is a more advanced Token example where only Atom feeds and the XML API
@@ -429,14 +418,32 @@ module ActionController
       extend self
 
       module ControllerMethods
+        extend ActiveSupport::Concern
+
+        module ClassMethods
+          # Enables HTTP Token authentication.
+          #
+          # See ActionController::HttpAuthentication::Token for example usage.
+          def http_token_authenticate_with(token:, realm: nil, **options)
+            raise ArgumentError, "Expected token: to be a String, got #{name.class}" unless name.is_a?(String)
+            before_action(options) { http_token_authenticate_or_request_with token: token, realm: realm }
+          end
+        end
+
+        def http_token_authenticate_or_request_with(token:, realm: nil, message: nil)
+          authenticate_or_request_with_http_token(realm, message) do |given_token|
+            ActiveSupport::SecurityUtils.secure_compare(given_token.to_s, token)
+          end
+        end
+
         # Authenticate using an HTTP Bearer token, or otherwise render an HTTP header
         # requesting the client to send a Bearer token. For the authentication to be
         # considered successful, `login_procedure` must not return a false value.
         # Typically, the authenticated user is returned.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
-        def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
-          authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
+        def authenticate_or_request_with_http_token(realm = nil, message = nil, &login_procedure)
+          authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm || "Application", message)
         end
 
         # Authenticate using an HTTP Bearer token. Returns the return value of
