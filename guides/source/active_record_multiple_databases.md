@@ -86,6 +86,13 @@ production:
     replica: true
 ```
 
+NOTE: In the same way that it's possible to [configure](configuring.html#configuring-a-database)
+the primary database by setting the connection string in the `DATABASE_URL` environment variable,
+it's possible to configure other databases using an environment variable prefixed with the
+configuration key in uppercase. For example, setting:
+`ANIMALS_DATABASE_URL="mysql2://username:password@host/database"` overrides the `animals`
+configuration in the "production" environment.
+
 When using multiple databases, there are a few important settings.
 
 First, the database name for `primary` and `primary_replica` should be the same because they contain
