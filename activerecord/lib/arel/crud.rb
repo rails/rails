@@ -27,6 +27,7 @@ module Arel # :nodoc: all
       um.order(*orders)
       um.wheres = constraints
       um.key = key
+      um.with = subqueries
 
       um.group(group_values_columns) unless group_values_columns.empty?
       um.having(having_clause) unless having_clause.nil?
@@ -40,6 +41,7 @@ module Arel # :nodoc: all
       dm.order(*orders)
       dm.wheres = constraints
       dm.key = key
+      dm.with = subqueries
       dm.group(group_values_columns) unless group_values_columns.empty?
       dm.having(having_clause) unless having_clause.nil?
       dm
