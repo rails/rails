@@ -84,6 +84,7 @@ module Rails
             middleware.use ::ActionDispatch::Flash
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
             middleware.use ::ActionDispatch::PermissionsPolicy::Middleware if config.permissions_policy
+            middleware.use ::ActionDispatch::ReportingEndpoints::Middleware
           end
 
           middleware.use ::Rack::Head

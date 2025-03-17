@@ -85,6 +85,7 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @reporting_endpoints                     = nil
       end
 
       # Loads default configuration values for a target version. This includes
@@ -588,6 +589,14 @@ module Rails
           @permissions_policy = ActionDispatch::PermissionsPolicy.new(&block)
         else
           @permissions_policy
+        end
+      end
+
+      def reporting_endpoints(&block)
+        if block_given?
+          @reporting_endpoints = ActionDispatch::ReportingEndpoints.new(&block)
+        else
+          @reporting_endpoints
         end
       end
 

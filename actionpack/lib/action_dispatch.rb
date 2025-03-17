@@ -62,6 +62,7 @@ module ActionDispatch
       autoload :QueryParser
       autoload :Request
       autoload :Response
+      autoload :ReportingEndpoints
     end
   end
 

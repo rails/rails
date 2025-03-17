@@ -1,3 +1,30 @@
+*   Add new DSL for Reporting-Endpoints HTTP response header.
+
+    Allows application owners to configure endpoints for the header
+    on an application wide or per-request basis.
+
+    ```ruby
+    Rails.application.config.reporting_endpoints do |reporting_endpoints|
+      reporting_endpoints.endpoints = {
+        "csp-reports": "/csp-reports",
+        "other-reports": "https://reporting.endpoint.com"
+      }
+    end
+    ```
+
+    ```ruby
+    class MyController < ApplicationController
+      reporting_endpoints(only: :index) do |config|
+        config.endpoints = {
+          "csp-reports": "/csp-reports",
+          "other": "https://reporting.endpoint.com"
+        }
+      end
+    end
+    ```
+
+    *Zack Deveau*
+
 *   Load lazy route sets before inserting test routes
 
     Without loading lazy route sets early, we miss `after_routes_loaded` callbacks, or risk
