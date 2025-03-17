@@ -161,7 +161,7 @@ module ActiveRecord
   #
   #   conversation = Conversation.new
   #
-  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  #   conversation.status = :unknown # 'unknown' is not a valid Status (ArgumentError)
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -170,10 +170,11 @@ module ActiveRecord
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
-      def initialize(name, mapping, subtype, raise_on_invalid_values: true)
+      def initialize(name, mapping, subtype, klass, raise_on_invalid_values: true)
         @name = name
         @mapping = mapping
         @subtype = subtype
+        @klass = klass
         @_raise_on_invalid_values = raise_on_invalid_values
       end
 
@@ -203,14 +204,15 @@ module ActiveRecord
         return unless @_raise_on_invalid_values
 
         unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          field_name = klass.human_attribute_name(name)
+          raise ArgumentError, I18n.t("errors.messages.invalid_enum", value: value, name: field_name)
         end
       end
 
       attr_reader :subtype
 
       private
-        attr_reader :name, :mapping
+        attr_reader :name, :mapping, :klass
     end
 
     def enum(name, values = nil, **options)
@@ -245,7 +247,7 @@ module ActiveRecord
           end
 
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+          EnumType.new(name, enum_values, subtype, self, raise_on_invalid_values: !validate)
         end
 
         value_method_names = []
