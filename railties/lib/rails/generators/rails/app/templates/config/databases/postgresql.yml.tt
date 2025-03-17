@@ -81,6 +81,14 @@ test:
 #   production:
 #     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
+<%- unless options.skip_solid? -%>
+# The connection URL for non-primary databases can also be configured using a
+# similar environment variable prefixed with the configuration key in uppercase.
+# For example:
+#
+#   CACHE_DATABASE_URL="postgres://cacheuser:cachepass@localhost/cachedatabase"
+#
+<%- end -%>
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
