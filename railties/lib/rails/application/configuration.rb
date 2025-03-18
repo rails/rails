@@ -355,6 +355,10 @@ module Rails
           # redefine methods (e.g. mocking), hence YJIT isn't generally
           # faster in these environments.
           self.yjit = !Rails.env.local?
+
+          if respond_to?(:action_controller)
+            action_controller.json_renderer_escapes = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
