@@ -1,3 +1,10 @@
+*   Load lazy route sets before inserting test routes
+
+    Without loading lazy route sets early, we miss `after_routes_loaded` callbacks, or risk
+    invoking them with the test routes instead of the real ones if another load is triggered by an engine.
+
+    *Gannon McGibbon*
+
 *   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
 
     After this change, invoking `head` will lead to an error if response body is already set:
