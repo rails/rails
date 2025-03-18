@@ -8,6 +8,8 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     before_action :authenticate_with_request, only: :display
     before_action :authenticate_long_credentials, only: :show
 
+    http_token_authenticate_with token: "secret_token", only: :search
+
     def index
       render plain: "Hello Secret"
     end
@@ -18,6 +20,10 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     def show
       render plain: "Only for loooooong credentials"
+    end
+
+    def search
+      render plain: "All inline"
     end
 
     private
@@ -220,6 +226,16 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     expected = token
     assert_equal(expected, actual)
+  end
+
+  test "authenticate with class method" do
+    @request.env["HTTP_AUTHORIZATION"] = "Token secret_token"
+    get :search
+    assert_response :success
+
+    @request.env["HTTP_AUTHORIZATION"] = "Token wrong_token"
+    get :search
+    assert_response :unauthorized
   end
 
   private
