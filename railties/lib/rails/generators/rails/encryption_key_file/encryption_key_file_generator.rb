@@ -21,12 +21,14 @@ module Rails
 
           log ""
           add_key_file_silently(key_path, key)
+          ensure_key_files_are_ignored(key_path)
           log ""
         end
       end
 
       def add_key_file_silently(key_path, key = nil)
         create_file key_path, key || ActiveSupport::EncryptedFile.generate_key, perm: 0600
+        ensure_key_files_are_ignored_silently(key_path)
       end
 
       def ignore_key_file(key_path, ignore: key_ignore(key_path))
@@ -46,6 +48,31 @@ module Rails
 
       def ignore_key_file_silently(key_path, ignore: key_ignore(key_path))
         append_to_file ".gitignore", ignore if File.exist?(".gitignore")
+      end
+
+      def ensure_key_files_are_ignored(key_path)
+        if File.exist?(".gitignore")
+          ignore = key_ignore(key_path.join("*.key"))
+          unless File.read(".gitignore").include?(ignore)
+            log "Ignoring #{ignore} so it won't end up in Git history:"
+            log ""
+            append_to_file ".gitignore", ignore
+            log ""
+          end
+        else
+          log "IMPORTANT: Don't commit #{key_path}. Add this to your ignore file:"
+          log ignore, :on_green
+          log ""
+        end
+      end
+
+      def ensure_key_files_are_ignored_silently(key_path)
+        if File.exist?(".gitignore")
+          ignore = key_ignore(key_path.join("*.key"))
+          unless File.read(".gitignore").include?(ignore)
+            append_to_file ".gitignore", ignore if File.exist?(".gitignore")
+          end
+        end
       end
 
       private
