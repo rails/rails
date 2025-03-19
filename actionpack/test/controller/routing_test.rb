@@ -2125,6 +2125,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
 
     assert_equal({ controller: "posts", action: "ping" }, @routes.recognize_path("/posts/ping", method: :get))
     assert_equal({ controller: "posts", action: "index" }, @routes.recognize_path("/posts", method: :get))
+    assert_equal({ controller: "posts", action: "index" }, @routes.recognize_path(:posts, method: :get))
     assert_equal({ controller: "posts", action: "index" }, @routes.recognize_path("/posts/index", method: :get))
     assert_equal({ controller: "posts", action: "show" }, @routes.recognize_path("/posts/show", method: :get))
     assert_equal({ controller: "posts", action: "show", id: "1" }, @routes.recognize_path("/posts/show/1", method: :get))
@@ -2140,6 +2141,7 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
     assert_equal({ controller: "news", action: "index", format: "rss" }, @routes.recognize_path("/news.rss", method: :get))
 
     assert_raise(ActionController::RoutingError) { @routes.recognize_path("/none", method: :get) }
+    assert_raise(TypeError) { @routes.recognize_path({ controller: "news", action: "index" }) }
   end
 
   def test_generate_extras
