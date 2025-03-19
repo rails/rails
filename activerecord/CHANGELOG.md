@@ -1,3 +1,8 @@
+*   Fix incorrect callback execution order when `config.active_record.run_after_transaction_callbacks_in_order_defined = true`
+    and using `after_commit` and `after_rollback` callbacks with `prepend: true`.
+
+    *Joshua Young*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
