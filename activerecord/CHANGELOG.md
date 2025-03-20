@@ -1,3 +1,8 @@
+*   Make `belongs_to` association with `optional: true` necessary when using
+    inverse associations with `dependent: :nullify`.
+
+    *francktrouillez*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
