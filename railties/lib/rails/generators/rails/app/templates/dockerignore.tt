@@ -55,6 +55,9 @@
 <% end -%>
 # Ignore development files
 /.devcontainer
+<% unless options.skip_rubocop? -%>
+/.rubocop.yml
+<% end -%>
 
 # Ignore Docker-related files
 /.dockerignore
