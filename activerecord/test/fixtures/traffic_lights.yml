@@ -8,3 +8,16 @@ uk:
     - "Green, go ahead"
     - "Red, wait"
     - "Orange, caution light is about to switch"
+
+de:
+  location: DE
+  state: "[\"Grün\",\"Rot\",\"Gelb\"]"
+  long_state:
+    - "Grün, los!"
+    - "Rot, warte"
+    - "Gelb, Achtung."
+
+none:
+  location: NN
+  state:
+  long_state: ""

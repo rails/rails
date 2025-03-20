@@ -1878,4 +1878,12 @@ class FixturesWithSerializedAttributesTest < ActiveRecord::TestCase
   def test_supports_json_attributes
     assert_equal ["Green", "Red", "Orange"], traffic_lights(:uk).state
   end
+
+  def test_raw_payload
+    assert_equal ["Grün", "Rot", "Gelb"], traffic_lights(:de).state
+  end
+
+  def test_nil
+    assert_nil traffic_lights(:none).state
+  end
 end
