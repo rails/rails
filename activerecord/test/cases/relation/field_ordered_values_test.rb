@@ -117,4 +117,12 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_equal(order, posts.limit(3).map(&:id))
     assert_equal(11, posts.count)
   end
+
+  def test_in_order_of_with_out_of_bound_integer
+    max_integer = Post.type_for_attribute(:id).send(:max_value)
+    order = [max_integer, 1]
+    posts = Post.where(type: "Post").order(:type).in_order_of(:id, order)
+
+    assert_equal([1], posts.map(&:id))
+  end
 end

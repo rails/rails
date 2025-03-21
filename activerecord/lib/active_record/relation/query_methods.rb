@@ -721,8 +721,13 @@ module ActiveRecord
       references = column_references([column])
       self.references_values |= references unless references.empty?
 
-      values = values.map { |value| model.type_caster.type_cast_for_database(column, value) }
       arel_column = column.is_a?(Arel::Nodes::SqlLiteral) ? column : order_column(column.to_s)
+
+      if caster = arel_column.respond_to?(:type_caster) && arel_column.type_caster
+        values = values.map do |value|
+          caster.serialize(value) if caster.serializable?(value)
+        end
+      end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
