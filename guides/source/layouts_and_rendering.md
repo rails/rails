@@ -433,7 +433,7 @@ change this passing the `:formats` option with a symbol or an array:
 
 ```ruby
 render formats: :xml
-render formats: [:json, :xml]
+render formats: [ :json, :xml ]
 ```
 
 If a template with the specified format does not exist an `ActionView::MissingTemplate` error is raised.
@@ -447,7 +447,7 @@ An example of use would be this.
 
 ```ruby
 # called in HomeController#index
-render variants: [:mobile, :desktop]
+render variants: [ :mobile, :desktop ]
 ```
 
 With this set of variants Rails will look for the following set of templates and use the first that exists.
@@ -540,7 +540,7 @@ Layouts specified at the controller level support the `:only` and `:except` opti
 
 ```ruby
 class ProductsController < ApplicationController
-  layout "product", except: [:index, :rss]
+  layout "product", except: [ :index, :rss ]
 end
 ```
 

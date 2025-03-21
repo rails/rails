@@ -386,7 +386,7 @@ If either the `:attributes` or `:tags` options are passed, only the mentioned
 attributes and tags are allowed and nothing else.
 
 ```ruby
-sanitize @article.body, tags: %w(table tr td), attributes: %w(id class style)
+sanitize @article.body, tags: %w[table tr td], attributes: %w[id class style]
 ```
 
 To change defaults for multiple uses, for example, adding table tags to the
@@ -395,7 +395,7 @@ default:
 ```ruby
 # config/application.rb
 class Application < Rails::Application
-  config.action_view.sanitized_allowed_tags = %w(table tr td)
+  config.action_view.sanitized_allowed_tags = %w[table tr td]
 end
 ```
 
@@ -658,7 +658,7 @@ attachments.
 video_tag("trailer")
 # => <video src="/videos/trailer"></video>
 
-video_tag(["trailer.ogg", "trailer.flv"])
+video_tag([ "trailer.ogg", "trailer.flv" ])
 # => <video><source src="/videos/trailer.ogg" /><source src="/videos/trailer.flv" /></video>
 
 video_tag("trailer", controls: true)
@@ -764,7 +764,7 @@ tag.div "Hello, world!"
 Additionally, you can pass options to add attributes to the generated tag.
 
 ```ruby
-tag.section class: %w( kitties puppies )
+tag.section class: %w[ kitties puppies ]
 # => <section class="kitties puppies"></section>
 ```
 
@@ -1034,7 +1034,7 @@ Returns a YAML representation of an object wrapped with a `pre` tag. This
 creates a very readable way to inspect an object.
 
 ```ruby
-my_hash = { "first" => 1, "second" => "two", "third" => [1, 2, 3] }
+my_hash = { "first" => 1, "second" => "two", "third" => [ 1, 2, 3 ] }
 debug(my_hash)
 ```
 

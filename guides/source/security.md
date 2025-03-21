@@ -175,7 +175,7 @@ class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
 
-  normalizes :email_address, with: -> e { e.strip.downcase }
+  normalizes :email_address, with: ->(e) { e.strip.downcase }
 end
 ```
 
@@ -996,8 +996,8 @@ strip_tags("some<<b>script>alert('hello')<</b>/script>")
 This returned `"some<script>alert('hello')</script>"`, which makes an attack work. That's why a permitted list approach is better, using the updated Rails 2 method `sanitize()`:
 
 ```ruby
-tags = %w(a acronym b strong i em li ul ol h1 h2 h3 h4 h5 h6 blockquote br cite sub sup ins p)
-s = sanitize(user_input, tags: tags, attributes: %w(href title))
+tags = %w[a acronym b strong i em li ul ol h1 h2 h3 h4 h5 h6 blockquote br cite sub sup ins p]
+s = sanitize(user_input, tags: tags, attributes: %w[href title])
 ```
 
 This allows only the given tags and does a good job, even against all kinds of tricks and malformed tags.
@@ -1090,14 +1090,14 @@ RedCloth.new("<script>alert(1)</script>").to_html
 Use the `:filter_html` option to remove HTML which was not created by the Textile processor.
 
 ```ruby
-RedCloth.new("<script>alert(1)</script>", [:filter_html]).to_html
+RedCloth.new("<script>alert(1)</script>", [ :filter_html ]).to_html
 # => "alert(1)"
 ```
 
 However, this does not filter all HTML, a few tags will be left (by design), for example `<a>`:
 
 ```ruby
-RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
+RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [ :filter_html ]).to_html
 # => "<p><a href="javascript:alert(1)">hello</a></p>"
 ```
 
@@ -1201,8 +1201,8 @@ Rails.application.config.host_authorization = {
   # Exclude requests for the /healthcheck/ path from host checking
   exclude: ->(request) { request.path.include?("healthcheck") },
   # Add custom Rack application for the response
-  response_app: -> env do
-    [400, { "Content-Type" => "text/plain" }, ["Bad Request"]]
+  response_app: ->(env) do
+    [ 400, { "Content-Type" => "text/plain" }, [ "Bad Request" ] ]
   end
 }
 ```
@@ -1461,7 +1461,7 @@ Rails.application.config.content_security_policy do |policy|
   policy.script_src :self, :https
 end
 
-Rails.application.config.content_security_policy_nonce_generator = -> request { SecureRandom.base64(16) }
+Rails.application.config.content_security_policy_nonce_generator = ->(request) { SecureRandom.base64(16) }
 ```
 
 There are a few tradeoffs to consider when configuring the nonce generator.
@@ -1472,7 +1472,7 @@ because new nonces will result in new ETag values for every request. An
 alternative to per-request random nonces would be to use the session id:
 
 ```ruby
-Rails.application.config.content_security_policy_nonce_generator = -> request { request.session.id.to_s }
+Rails.application.config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
 ```
 
 This generation method is compatible with ETags, however its security depends on
@@ -1484,7 +1484,7 @@ generator is defined. `config.content_security_policy_nonce_directives` can be
 used to change which directives will use nonces:
 
 ```ruby
-Rails.application.config.content_security_policy_nonce_directives = %w(script-src)
+Rails.application.config.content_security_policy_nonce_directives = %w[script-src]
 ```
 
 Once nonce generation is configured in an initializer, automatic nonce values
@@ -1597,7 +1597,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
 
     resource "*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ]
   end
 end
 ```
