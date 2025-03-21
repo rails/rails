@@ -86,12 +86,12 @@ production:
     replica: true
 ```
 
-NOTE: In the same way that it's possible to [configure](configuring.html#configuring-a-database)
-the primary database by setting the connection string in the `DATABASE_URL` environment variable,
-it's possible to configure other databases using an environment variable prefixed with the
-configuration key in uppercase. For example, setting:
-`ANIMALS_DATABASE_URL="mysql2://username:password@host/database"` overrides the `animals`
-configuration in the "production" environment.
+Connection URLs for databases can also be configured using environment variables. The variable
+name is formed by concatenating the connection name with `_DATABASE_URL`. For example, setting
+`ANIMALS_DATABASE_URL="mysql2://username:password@host/database"` is merged into the `animals`
+configuration in `database.yml` in the `production` environment. See
+[Configuring a Database](configuring.html#configuring-a-database) for details about how the
+merging works.
 
 When using multiple databases, there are a few important settings.
 
