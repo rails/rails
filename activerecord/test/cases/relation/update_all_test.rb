@@ -5,6 +5,8 @@ require "models/author"
 require "models/category"
 require "models/comment"
 require "models/company"
+require "models/sponsor"
+require "models/club"
 require "models/computer"
 require "models/contract"
 require "models/developer"
@@ -169,6 +171,20 @@ class UpdateAllTest < ActiveRecord::TestCase
 
     assert_equal true, pets.exists?
     assert_equal pets.count, pets.update_all(name: "Bob")
+  end
+
+  def test_update_all_with_scoped_has_many
+    pets = Pet.joins(:custom_toys)
+
+    assert_equal pets.count, pets.update_all("name = toys.name")
+  end
+
+
+  def test_update_all_with_multiple_condition_join
+    relation = Toy.left_joins(:sponsors)
+
+    assert_equal(3, relation.count)
+    assert_equal(3, relation.update_all(name: "sponsor-toy"))
   end
 
   def test_update_all_with_left_outer_joins
