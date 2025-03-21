@@ -88,6 +88,26 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        def visit_Arel_ValuesTable(o, collector)
+          # No support for direct column aliases in sqlite, so we must
+          # use a subquery and put the aliases in the SELECT clause.
+          # column_types not used as sqlite is loosely typed
+          if o.column_aliases
+            collector << "(SELECT "
+            o.column_aliases.each_with_index do |name, i|
+              collector << ", " unless i == 0
+              collector << quote_column_name("column#{i + 1}")
+              collector << " AS " << quote_column_name(name)
+            end
+            collector << " FROM "
+          end
+
+          collector << "(VALUES "
+          collector = values_rows_list o.rows, collector
+          collector << ")" if o.column_aliases
+          collector << ") #{quote_table_name(o.name)}"
+        end
+
         # Queries used in UNION should not be wrapped by parentheses,
         # because it is an invalid syntax in SQLite.
         def infix_value_with_paren(o, collector, value, suppress_parens = false)
