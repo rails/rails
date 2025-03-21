@@ -92,6 +92,23 @@ module ActiveRecord
       assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
     end
 
+    # SQLite does not support regexp() user function by default.
+    unless current_adapter?(:SQLite3Adapter)
+      def test_where_with_regexp
+        expected_comments = [comments(:greetings), comments(:more_greetings)]
+
+        assert_equal expected_comments, Comment.where(body: /Thank you( again)? for the welcome/).to_a
+      end
+
+      def test_where_with_regexp_with_options
+        error = assert_raise ArgumentError do
+          Comment.where(body: /Thank you( again)? for the welcome/i)
+        end
+
+        assert_equal "Regexp for body must not have modifiers", error.message
+      end
+    end
+
     def test_where_with_tuple_syntax
       first_topic = topics(:first)
       third_topic = topics(:third)

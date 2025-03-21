@@ -70,6 +70,44 @@ module Arel
           _(sql).must_be_like %{ "users"."name" IS NOT NULL }
         end
       end
+
+      describe "Nodes::Regexp" do
+        it "should know how to visit" do
+          node = Table.new(:users)[:name].matches_regexp("foo.*")
+          _(node).must_be_kind_of Nodes::Regexp
+          _(compile(node)).must_be_like %{
+            "users"."name" REGEXP 'foo.*'
+          }
+        end
+
+        it "can handle subqueries" do
+          table = Table.new(:users)
+          subquery = table.project(:id).where(table[:name].matches_regexp("foo.*"))
+          node = table[:id].in subquery
+          _(compile(node)).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" REGEXP 'foo.*')
+          }
+        end
+      end
+
+      describe "Nodes::NotRegexp" do
+        it "should know how to visit" do
+          node = Table.new(:users)[:name].does_not_match_regexp("foo.*")
+          _(node).must_be_kind_of Nodes::NotRegexp
+          _(compile(node)).must_be_like %{
+            "users"."name" NOT REGEXP 'foo.*'
+          }
+        end
+
+        it "can handle subqueries" do
+          table = Table.new(:users)
+          subquery = table.project(:id).where(table[:name].does_not_match_regexp("foo.*"))
+          node = table[:id].in subquery
+          _(compile(node)).must_be_like %{
+            "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" NOT REGEXP 'foo.*')
+          }
+        end
+      end
     end
   end
 end
