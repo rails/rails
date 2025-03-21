@@ -60,6 +60,7 @@ module ActionController
     autoload :ParameterEncoding
     autoload :Testing
     autoload :UrlFor
+    autoload :ReportingEndpoints
   end
 
   autoload_under "api" do

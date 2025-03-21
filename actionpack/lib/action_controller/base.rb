@@ -251,6 +251,7 @@ module ActionController
       RequestForgeryProtection,
       ContentSecurityPolicy,
       PermissionsPolicy,
+      ReportingEndpoints,
       RateLimiting,
       AllowBrowser,
       Streaming,
@@ -291,6 +292,7 @@ module ActionController
     include RequestForgeryProtection
     include ContentSecurityPolicy
     include PermissionsPolicy
+    include ReportingEndpoints
     include RateLimiting
     include AllowBrowser
     include Streaming
