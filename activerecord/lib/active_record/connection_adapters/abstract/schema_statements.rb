@@ -1509,6 +1509,7 @@ module ActiveRecord
           using: options[:using],
           include: options[:include],
           nulls_not_distinct: options[:nulls_not_distinct],
+          with: options[:with],
           comment: options[:comment]
         )
 
@@ -1655,7 +1656,7 @@ module ActiveRecord
         end
 
         def valid_index_options
-          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
+          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with]
         end
 
         def options_for_index_columns(options)

@@ -205,6 +205,10 @@ module ActiveRecord
         database_version >= 11_00_00 # >= 11.0
       end
 
+      def supports_index_with?
+        true
+      end
+
       def supports_expression_index?
         true
       end

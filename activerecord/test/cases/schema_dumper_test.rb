@@ -208,6 +208,15 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  def test_schema_dumps_storage_parameters
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_fillfactor/).first.strip
+    if ActiveRecord::Base.lease_connection.supports_index_with?
+      assert_equal 't.index ["firm_id"], name: "company_fillfactor", with: { fillfactor: "50" }', index_definition
+    else
+      assert_equal 't.index ["firm_id"], name: "company_fillfactor"', index_definition
+    end
+  end
+
   def test_schema_dumps_index_sort_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
     if ActiveRecord::Base.lease_connection.supports_index_sort_order?

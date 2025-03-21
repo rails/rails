@@ -426,6 +426,14 @@ module ActiveRecord
         end
       end
 
+      def test_index_with_storage_parameters
+        with_example_table do
+          @connection.add_index "ex", "id", with: { fillfactor: 50 }
+          index = @connection.indexes("ex").first
+          assert_equal({ "fillfactor" => "50" }, index.with)
+        end
+      end
+
       def test_invalid_index
         with_example_table do
           @connection.exec_query("INSERT INTO ex (number) VALUES (1), (1)")
