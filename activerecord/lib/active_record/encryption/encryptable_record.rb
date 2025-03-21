@@ -30,10 +30,10 @@ module ActiveRecord
         #   will use the oldest encryption scheme to encrypt new data by default. You can change this by setting
         #   <tt>deterministic: { fixed: false }</tt>. That will make it use the newest encryption scheme for encrypting new
         #   data.
-        # * <tt>:support_unencrypted_data</tt> - If `config.active_record.encryption.support_unencrypted_data` is +true+,
-        #   you can set this to +false+ to opt out of unencrypted data support for this attribute. This is useful for
-        #   scenarios where you encrypt one column, and want to disable support for unencrypted data without having to tweak
-        #   the global setting.
+        # * <tt>:support_unencrypted_data</tt> - If `config.active_record.encryption.support_unencrypted_data` is +false+,
+        #   this setting is ignored. Otherwise: You can set this to +true+ or +false+ to to opt in or out of unencrypted data
+        #   support for this attribute. This can be useful when migrating previously unencrypted data. If this is not explicitly
+        #   set, the value of`config.active_record.encryption.support_unencrypted_data_default_value` is used.
         # * <tt>:downcase</tt> - When true, it converts the encrypted content to downcase automatically. This allows to
         #   effectively ignore case when querying data. Notice that the case is lost. Use +:ignore_case+ if you are interested
         #   in preserving it.

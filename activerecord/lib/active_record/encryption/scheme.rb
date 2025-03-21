@@ -46,7 +46,7 @@ module ActiveRecord
       end
 
       def support_unencrypted_data?
-        @support_unencrypted_data.nil? ? ActiveRecord::Encryption.config.support_unencrypted_data : @support_unencrypted_data
+        @support_unencrypted_data.nil? ? ActiveRecord::Encryption.config.support_unencrypted_data_default_value : @support_unencrypted_data
       end
 
       def fixed?
