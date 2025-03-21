@@ -1,3 +1,7 @@
+*   Make filters work on Engine routes when using `rails routes`.
+
+    *Dennis Paagman*
+
 *   Load lazy route sets before inserting test routes
 
     Without loading lazy route sets early, we miss `after_routes_loaded` callbacks, or risk
