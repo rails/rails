@@ -17,14 +17,17 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = @service.base64digest(data)
+      algorithm, digest = algorithm_and_digest_from(checksum)
+
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
       request = Net::HTTP::Put.new uri.request_uri
       request.body = data
       request.add_field "Content-Type", "text/plain"
-      request.add_field "Content-MD5", checksum
+      add_direct_s3_headers(request, algorithm, digest)
+
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         http.request request
       end
@@ -34,10 +37,36 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.delete key
     end
 
+    test "direct upload with SHA256 checksum" do
+      algorithm = :SHA256
+      service = build_service(default_digest_algorithm: algorithm)
+
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      checksum = service.base64digest(data)
+      digest = checksum[7..]
+
+      url      = service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
+
+      uri = URI.parse url
+      request = Net::HTTP::Put.new uri.request_uri
+      request.body = data
+      request.add_field "Content-Type", "text/plain"
+      add_direct_s3_headers(request, algorithm, digest)
+
+      Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+        http.request request
+      end
+
+      assert_equal checksum, service.base64digest(service.download(key))
+    ensure
+      service.delete key
+    end
+
     test "direct upload with content disposition" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = @service.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url
@@ -58,7 +87,7 @@ if SERVICE_CONFIGURATIONS[:s3]
     test "directly uploading file larger than the provided content-length does not work" do
       key      = SecureRandom.base58(24)
       data     = "Some text that is longer than the specified content length"
-      checksum = ActiveStorage.checksum_implementation.base64digest(data)
+      checksum = @service.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size - 1, checksum: checksum)
 
       uri = URI.parse url
@@ -99,7 +128,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       begin
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: service.base64digest(data)
 
         assert_equal "AES256", service.bucket.object(key).server_side_encryption
       ensure
@@ -115,7 +144,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage.checksum_implementation.base64digest(data),
+        checksum: @service.base64digest(data),
         filename: "cool_data.txt",
         content_type: content_type
       )
@@ -131,7 +160,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: Digest::MD5.base64digest(data),
+        checksum: @service.base64digest(data),
         content_type: "text/plain",
         custom_metadata: { "foo" => "baz" },
         filename: "custom_metadata.txt"
@@ -152,7 +181,7 @@ if SERVICE_CONFIGURATIONS[:s3]
       @service.upload(
         key,
         StringIO.new(data),
-        checksum: ActiveStorage.checksum_implementation.base64digest(data),
+        checksum: @service.base64digest(data),
         filename: ActiveStorage::Filename.new("cool_data.txt"),
         disposition: :attachment
       )
@@ -169,7 +198,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(8.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: service.base64digest(data)
         assert data == service.download(key)
       ensure
         service.delete key
@@ -183,7 +212,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         key  = SecureRandom.base58(24)
         data = SecureRandom.bytes(3.megabytes)
 
-        service.upload key, StringIO.new(data), checksum: ActiveStorage.checksum_implementation.base64digest(data)
+        service.upload key, StringIO.new(data), checksum: service.base64digest(data)
         assert data == service.download(key)
       ensure
         service.delete key
@@ -193,6 +222,24 @@ if SERVICE_CONFIGURATIONS[:s3]
     private
       def build_service(configuration)
         ActiveStorage::Service.configure :s3, SERVICE_CONFIGURATIONS.deep_merge(s3: configuration)
+      end
+
+      def algorithm_and_digest_from(checksum)
+        split_result = checksum.split(":")
+        algorithm = if split_result.count == 2
+          split_result.shift
+        else
+          :MD5
+        end.to_sym
+        [algorithm, split_result.shift]
+      end
+
+      def add_direct_s3_headers(request, algorithm, digest)
+        if algorithm == :MD5
+          request.add_field "Content-MD5", digest
+        else
+          request.add_field "Content_#{algorithm}", digest
+        end
       end
   end
 else
