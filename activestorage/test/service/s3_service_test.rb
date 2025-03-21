@@ -238,7 +238,7 @@ if SERVICE_CONFIGURATIONS[:s3]
         if algorithm == :MD5
           request.add_field "Content-MD5", digest
         else
-          request.add_field "x-amz-checksum-#{algorithm.downcase}", digest
+          request.add_field "Content_#{algorithm}", digest
         end
       end
   end

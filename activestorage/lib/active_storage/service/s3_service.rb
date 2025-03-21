@@ -88,7 +88,7 @@ module ActiveStorage
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
-          content_type: content_type, content_length: content_length, content_md5: checksum,
+          content_type: content_type, content_length: content_length, **s3_sdk_upload_params(checksum),
           metadata: custom_metadata, whitelist_headers: ["content-length"], **upload_options
 
         payload[:url] = generated_url
