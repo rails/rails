@@ -159,11 +159,12 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_field_error_proc
     old_proc = ActionView::Base.field_error_proc
     ActionView::Base.field_error_proc = Proc.new do |html_tag, instance|
-      raw(%(<div class=\"field_with_errors\">#{html_tag} <span class="error">#{[instance.error_message].join(', ')}</span></div>))
+      messages = instance.error_message.map { |msg| "#{instance.method_name} #{msg}" }
+      raw(%(<div class=\"field_with_errors\">#{html_tag} <span class="error">#{messages.join(', ')}</span></div>))
     end
 
     assert_dom_equal(
-      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can't be empty</span></div>),
+      %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">author_name can't be empty</span></div>),
       text_field("post", "author_name")
     )
   ensure
