@@ -1,3 +1,19 @@
+*   Add `json_key` option for attributes to customize serialization key names.
+
+    ```ruby
+    class Person
+      include ActiveModel::Serializers::JSON
+      include ActiveModel::Attributes
+
+      attribute :first_name, json_key: "firstName"
+    end
+
+    person = Person.new(first_name: "John")
+    person.as_json # => {"firstName"=>"John"}
+    ```
+
+    *heka1024*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*

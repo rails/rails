@@ -9,13 +9,15 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     module ClassMethods # :nodoc:
-      def attribute(name, type = nil, default: (no_default = true), **options)
+      def attribute(name, type = nil, default: (no_default = true), json_key: nil, **options)
         name = resolve_attribute_name(name)
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)
         type = hook_attribute_type(name, type) if type
 
         pending_attribute_modifications << PendingType.new(name, type) if type || no_default
         pending_attribute_modifications << PendingDefault.new(name, default) unless no_default
+
+        self.json_key_mapping[name] = json_key if json_key
 
         reset_default_attributes
       end
@@ -48,6 +50,17 @@ module ActiveModel
         else
           attribute_types[attribute_name]
         end
+      end
+
+      # :nodoc:
+      def json_key_for(attribute_name)
+        attribute_name = resolve_attribute_name(attribute_name)
+        json_key_mapping[attribute_name]
+      end
+
+      # :nodoc:
+      def json_key_mapping
+        @json_key_mapping ||= {}
       end
 
       private

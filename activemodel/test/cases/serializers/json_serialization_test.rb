@@ -6,6 +6,22 @@ require "models/address"
 require "active_support/core_ext/object/instance_variables"
 
 class JsonSerializationTest < ActiveModel::TestCase
+  class ContactWithJsonKey
+    include ActiveModel::Serializers::JSON
+    include ActiveModel::Attributes
+
+    attribute :snake_case_field, :string, json_key: "snakeCaseField"
+    attribute :normal_field, :string
+    attribute :child
+  end
+
+  class NestedContactWithJsonKey
+    include ActiveModel::Serializers::JSON
+    include ActiveModel::Attributes
+
+    attribute :nested_field, :string, json_key: "nestedField"
+  end
+
   def setup
     @contact = Contact.new
     @contact.name = "Konata Izumi"
@@ -278,5 +294,46 @@ class JsonSerializationTest < ActiveModel::TestCase
 
   test "Class.model_name should be JSON encodable" do
     assert_match %r{"Contact"}, Contact.model_name.to_json
+  end
+
+  test "as_json should work with JSON key in attribute" do
+    object = ContactWithJsonKey.new
+    object.snake_case_field = "foo"
+    object.normal_field = "bar"
+
+    actual_json = object.as_json
+    assert_equal "foo", actual_json["snakeCaseField"]
+    assert_equal "bar", actual_json["normal_field"]
+    assert_nil actual_json["snake_case_field"]
+  end
+
+  test "nested json serialization with json_key in attribute" do
+    parent = ContactWithJsonKey.new
+    child = NestedContactWithJsonKey.new
+
+    parent.snake_case_field = "parent_value"
+    parent.normal_field = "normal_value"
+    child.nested_field = "child_value"
+    parent.child = child
+
+    json = parent.as_json(include: :child)
+
+    assert_equal "parent_value", json["snakeCaseField"]
+    assert_equal "normal_value", json["normal_field"]
+    assert_equal "child_value", json["child"]["nestedField"]
+    assert_nil json["snake_case_field"]
+    assert_nil json["child"]["nested_field"]
+  end
+
+  test "serializable_hash should use json_key in attribute" do
+    obj = ContactWithJsonKey.new
+    obj.snake_case_field = "camel case value"
+    obj.normal_field = "normal value"
+
+    hash = obj.serializable_hash
+
+    assert_equal "camel case value", hash["snakeCaseField"]
+    assert_equal "normal value", hash["normal_field"]
+    assert_nil hash["snake_case_field"]
   end
 end

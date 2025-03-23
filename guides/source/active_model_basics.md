@@ -1203,6 +1203,28 @@ irb> person.serializable_hash(except: :name)
 => {"age" => 22}
 ```
 
+When using `ActiveModel::Attributes` with `ActiveModel::Serialization`, you can customize the JSON key names for attributes using the `json_key` option. This is particularly useful when you want to follow different naming conventions in your Ruby code and JSON output (like using snake_case in Ruby and camelCase in JSON).
+
+```ruby
+class Person
+  include ActiveModel::Serializers::JSON
+  include ActiveModel::Attributes
+
+  attribute :first_name, :string, json_key: "firstName"
+  attribute :last_name, :string, json_key: "lastName"
+end
+```
+
+```irb
+irb> person = Person.new
+irb> person.first_name = "John"
+irb> person.last_name = "Doe"
+irb> person.as_json
+=> {"firstName" => "John", "lastName" => "Doe"}
+```
+
+As you can see, even though the attribute names in the Ruby code are `first_name` and `last_name`, they are serialized as `firstName` and `lastName` in the JSON output.
+
 The example to utilize the `includes` option requires a slightly more complex
 scenario as defined below:
 

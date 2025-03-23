@@ -172,7 +172,15 @@ module ActiveModel
       end
 
       def serializable_attributes(attribute_names)
-        attribute_names.index_with { |n| read_attribute_for_serialization(n) }
+        attribute_names.each_with_object({}) do |name, result|
+          result_key = json_key_for_attribute(name) || name
+          result[result_key] = read_attribute_for_serialization(name)
+        end
+      end
+
+      def json_key_for_attribute(name)
+        return nil unless self.class.respond_to?(:json_key_for)
+        self.class.json_key_for(name)
       end
 
       # Add associations specified via the <tt>:include</tt> option.
