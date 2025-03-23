@@ -1,11 +1,9 @@
 plugins:
   - rubocop-minitest
+  - rubocop-packaging
   - rubocop-performance
   - rubocop-rails
   - rubocop-md
-
-require:
-  - rubocop-packaging
 
 AllCops:
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
