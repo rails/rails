@@ -13,15 +13,23 @@ module ActiveStorage
     end
 
     def attachments
-      ActiveStorage::Attachment.none
+      attachment_class.none
     end
 
     def blobs
-      ActiveStorage::Blob.none
+      blob_class.none
     end
 
     def save
       record.public_send("#{name}_attachments=", [])
+    end
+
+    def attachment_class
+      @attachment_class ||= ClassResolver.resolve(record.class, :attachment)
+    end
+
+    def blob_class
+      ClassResolver.resolve(record.class, :blob)
     end
   end
 end
