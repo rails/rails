@@ -1,3 +1,11 @@
+*   Prepend `extra_flags` in postgres' `structure_load`
+
+    When specifying `structure_load_flags` with a postgres adapter, the flags
+    were appended to the default flags, instead of prepended.
+    This caused issues with flags not being taken into account by postgres.
+
+    *Alice Loeser*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
