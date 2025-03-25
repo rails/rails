@@ -10,7 +10,7 @@ CI.run do
 <% if using_node? -%>
   step "Security: Yarn vulnerability audit", "yarn audit"
 <% end -%>
-<% if options[:javascript] == "importmap" && !options[:api] && !options[:skip_javascript] -%>
+<% if using_importmap? -%>
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
 <% end -%>
 <% unless options.skip_brakeman? -%>
