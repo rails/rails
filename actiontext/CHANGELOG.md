@@ -1,3 +1,7 @@
+*   Add rollup-plugin-terser as a dev dependency.
+
+    *Édouard Chin*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   No changes.
