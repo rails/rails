@@ -28,6 +28,8 @@ module ActiveRecord
     # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
     # a +Product+ object with the attributes you specified in the SQL query.
     #
+    # Before using `find_by_sql` you should consider if `select_all` might be better for your use case
+    #
     # If you call a complicated SQL query which spans multiple tables, the columns specified by the
     # SELECT will be attributes of the model, whether or not they are columns of the corresponding
     # table.
