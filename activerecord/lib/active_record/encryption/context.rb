@@ -13,6 +13,7 @@ module ActiveRecord
       PROPERTIES = %i[ key_provider key_generator cipher message_serializer encryptor frozen_encryption ]
 
       attr_accessor(*PROPERTIES)
+      attr_accessor :non_defaults # :nodoc:
 
       def initialize
         set_defaults
@@ -23,6 +24,22 @@ module ActiveRecord
       silence_redefinition_of_method :key_provider
       def key_provider
         @key_provider ||= build_default_key_provider
+      end
+
+      def to_h # :nodoc:
+        PROPERTIES.index_with { |property| instance_variable_get("@#{property}") }.freeze
+      end
+
+      def merge(other) # :nodoc:
+        assign_properties(other.to_h.except(*non_defaults.keys))
+      end
+
+      def assign_properties(properties) # :nodoc:
+        properties.each do |property, value|
+          public_send("#{property}=", value)
+
+          non_defaults[property] = value
+        end
       end
 
       private
