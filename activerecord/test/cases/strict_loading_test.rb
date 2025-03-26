@@ -307,6 +307,26 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_with_nested_association_reload
+    with_strict_loading_by_default(Project) do
+      with_strict_loading_by_default(Developer) do
+        with_strict_loading_by_default(AuditLog) do
+          project = Project.preload(developers: :audit_logs).first
+
+          assert_nothing_raised do
+            project.developers.first.audit_logs.to_a
+          end
+
+          project.reload
+
+          assert_nothing_raised do
+            project.developers.first.audit_logs.to_a
+          end
+        end
+      end
+    end
+  end
+
   def test_strict_loading_with_has_many_through_cascade_down_to_middle_records
     dev = Developer.first
     firm = Firm.create!(name: "NASA")
