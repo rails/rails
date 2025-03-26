@@ -87,6 +87,30 @@ class TagHelperTest < ActionView::TestCase
     assert_equal("<input value=\"hello\" />", str)
   end
 
+  def test_tag_options_with_ipaddr_v4
+    str = tag(:input, value: IPAddr.new("192.0.2.0"))
+
+    assert_equal("<input value=\"192.0.2.0\" />", str)
+  end
+
+  def test_tag_options_with_ipaddr_v4_cidr
+    str = tag(:input, value: IPAddr.new("192.0.2.0/24"))
+
+    assert_equal("<input value=\"192.0.2.0/24\" />", str)
+  end
+
+  def test_tag_options_with_ipaddr_v6
+    str = tag(:input, value: IPAddr.new("2001:db8::"))
+
+    assert_equal("<input value=\"2001:db8::\" />", str)
+  end
+
+  def test_tag_options_with_ipaddr_v6_cidr
+    str = tag(:input, value: IPAddr.new("2001:db8::/32"))
+
+    assert_equal("<input value=\"2001:db8::/32\" />", str)
+  end
+
   def test_tag_options_rejects_nil_option
     assert_equal "<p />", tag("p", ignored: nil)
   end
