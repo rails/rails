@@ -1,3 +1,11 @@
+*   Add support for index storage parameters for PostgreSQL.
+
+    ```ruby
+    add_index :users, :email, with: { fillfactor: 50 }
+    ```
+
+    *Andrew Kane*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding

@@ -422,6 +422,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support index storage parameters?
+      def supports_index_with?
+        false
+      end
+
       # Does this adapter support expression indices?
       def supports_expression_index?
         false
