@@ -43,6 +43,33 @@ class DirtyTest < ActiveRecord::TestCase
     assert_nil pirate.catchphrase_change
   end
 
+  def test_aggregate_changes_on_commit
+    topic = Topic.create!(
+      title: "Original Title",
+      author_name: "Original Author Name",
+      author_email_address: "author@example.com",
+      content: "Original Content"
+    )
+    original_updated_at = topic.updated_at
+
+    topic.transaction do
+      topic.update!(title: "New Title")
+      topic.update!(author_name: "New Author Name", content: "New Content")
+      topic.author_email_address_will_change!
+      topic.update!(title: "Another Title")
+    end
+
+    assert_equal(topic.saved_changes, {
+      "title" => ["Original Title", "Another Title"],
+      "author_name" => ["Original Author Name", "New Author Name"],
+      "author_email_address" => ["author@example.com", "author@example.com"],
+      "content" => ["Original Content", "New Content"],
+      "updated_at" => [original_updated_at, topic.updated_at]
+    })
+
+    assert_predicate(topic, :saved_change_to_author_name?)
+  end
+
   def test_time_attributes_changes_with_time_zone
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)

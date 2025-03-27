@@ -199,6 +199,7 @@ module ActiveRecord
           @mutations_from_database = nil
           @_touch_attr_names = nil
           @_skip_dirty_tracking = nil
+          @_transaction_saved_changes = nil
         end
 
         def _touch_row(attribute_names, time)
@@ -223,6 +224,7 @@ module ActiveRecord
           end
 
           changes_applied
+          add_saved_changes_to_transaction
           changes.each { |attr_name, value| _write_attribute(attr_name, value) }
 
           affected_rows
@@ -233,12 +235,14 @@ module ActiveRecord
         def _update_record(attribute_names = attribute_names_for_partial_updates)
           affected_rows = super
           changes_applied
+          add_saved_changes_to_transaction
           affected_rows
         end
 
         def _create_record(attribute_names = attribute_names_for_partial_inserts)
           id = super
           changes_applied
+          add_saved_changes_to_transaction
           id
         end
 
@@ -256,6 +260,33 @@ module ActiveRecord
               end
             end
           end
+        end
+
+        def add_saved_changes_to_transaction
+          @_transaction_saved_changes ||= []
+          @_transaction_saved_changes << saved_changes
+        end
+
+        # Rollup all saved changes within the currenttransaction so that commit and rollback callbacks
+        # have the full set of dirty attributes and not just the ones from the last save.
+        def rollup_mutations_for_transaction!
+          return unless @_transaction_saved_changes && @_transaction_saved_changes.size > 1
+
+          attributes = @_start_transaction_state[:attributes].deep_dup
+          mutations = ActiveModel::AttributeMutationTracker.new(attributes)
+
+          @_transaction_saved_changes[1, @_transaction_saved_changes.length].each do |changes|
+            changes.each do |attr_name, value_change|
+              attribute = attributes[attr_name]
+              last_value = value_change.last
+              last_value = last_value.to_h if last_value.is_a?(ActiveSupport::HashWithIndifferentAccess)
+              attributes[attr_name] = ActiveModel::Attribute.from_user(attr_name, last_value, attribute.type, attribute)
+              mutations.force_change(attr_name) unless mutations.changed?(attr_name)
+            end
+          end
+
+          @_transaction_saved_changes = nil
+          @mutations_before_last_save = mutations
         end
     end
   end
