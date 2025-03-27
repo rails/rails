@@ -369,8 +369,8 @@ module ActiveRecord
           ShardConnectionTestModelB.lease_connection.execute("CREATE TABLE `shard_connection_test_model_bs` (shard_key VARCHAR (255))")
           ShardConnectionTestModelB.create!(shard_key: "test_model_b_default")
 
-          assert_equal "test_model_default", ShardConnectionTestModel.where(shard_key: "test_model_default").first.shard_key
-          assert_equal "test_model_b_default", ShardConnectionTestModelB.where(shard_key: "test_model_b_default").first.shard_key
+          assert_equal "test_model_default", ShardConnectionTestModel.where(shard_key: "test_model_default").take.shard_key
+          assert_equal "test_model_b_default", ShardConnectionTestModelB.where(shard_key: "test_model_b_default").take.shard_key
         end
       end
 
