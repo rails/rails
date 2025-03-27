@@ -1,3 +1,7 @@
+*   Add a load hook for `ActiveRecord::Migration`
+
+    *Simon Booth*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
