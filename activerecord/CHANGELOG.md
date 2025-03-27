@@ -1,3 +1,16 @@
+*   Add `support_unencrypted_data_default_value` configuration option for ActiveRecord::Encryption
+
+    Adds a new configuration option that allows changing the default behavior for model-level
+    `support_unencrypted_data` configuration when `ActiveRecord::Encryption.config.support_unencrypted_data`
+    is true. When global `support_unencrypted_data` is false, unencrypted data is still never
+    supported, regardless of default value or model-level settings.
+
+    Previously, if you had `ActiveRecord::Encryption.config.support_unencrypted_data` enabled
+    at all, you had to have a default of `support_unencrypted_data=true` for all encrypted
+    attributes in the app.
+
+    *Jordan Brough*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
