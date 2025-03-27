@@ -1,3 +1,22 @@
+*   Refactor ActiveRecord Signed ID to use global `Rails.application.message_verifiers`
+
+    This change ensures a unified configuration for all message verifiers, making it easier to rotate secrets and upgrade signing algorithms. See [message_verifiers](https://api.rubyonrails.org/classes/Rails/Application.html#method-i-message_verifiers) for more details.
+
+    `config.active_record.use_legacy_signed_id_verifier` provides a smooth transition to this goal. It can be set to:
+      * `:generate_and_verify` (default) - Generate and verify signed IDs using the following legacy options:
+
+      ```ruby
+      { digest: "SHA256", serializer: JSON, url_safe: true }
+      ```
+
+      * `:verify` - Generate and verify signed IDs using options from `Rails.application.message_verifiers`, but fall back to verifying with the same options as `:generate_and_verify`.
+
+      * `false` - Generate and verify signed IDs using options from `Rails.application.message_verifiers` only.
+
+    *WARNING:* If `ActiveRecord::Base.signed_id_verifier_secret` is set in your application, Signed ID will not use global `message_verifiers`.
+
+    *Ali Sepehri*, *Jonathan Hefner*
+
 *   Allow bypassing primary key/constraint addition in `implicit_order_column`
 
     When specifying multiple columns in an array for `implicit_order_column`, adding
