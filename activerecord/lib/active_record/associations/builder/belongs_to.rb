@@ -144,10 +144,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_change_tracking_methods(model, reflection)
       model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}_changed?
+          #{guard_deprecated_access(reflection)}
           association(:#{reflection.name}).target_changed?
         end
 
         def #{reflection.name}_previously_changed?
+          #{guard_deprecated_access(reflection)}
           association(:#{reflection.name}).target_previously_changed?
         end
       CODE

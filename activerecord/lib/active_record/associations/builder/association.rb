@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
+      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints, :deprecated
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -66,8 +66,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
+    def self.internal_options(_options)
+      []
+    end
+
     def self.validate_options(options)
-      options.assert_valid_keys(valid_options(options))
+      internal_options = internal_options(options)
+      user_options = options.except(*internal_options)
+      public_valid_options = valid_options(options) - internal_options
+      user_options.assert_valid_keys(public_valid_options)
     end
 
     def self.define_extensions(model, name)
@@ -94,23 +101,24 @@ module ActiveRecord::Associations::Builder # :nodoc:
     # Post.first.comments and Post.first.comments= methods are defined by this method...
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
-      name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
+      define_readers(mixin, reflection)
+      define_writers(mixin, reflection)
     end
 
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}
-          association(:#{name}).reader
+        def #{reflection.name}
+          #{guard_deprecated_access(reflection)}
+          association(:#{reflection.name}).reader
         end
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}=(value)
-          association(:#{name}).writer(value)
+        def #{reflection.name}=(value)
+          #{guard_deprecated_access(reflection)}
+          association(:#{reflection.name}).writer(value)
         end
       CODE
     end
@@ -162,9 +170,27 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
+    def self.guard_deprecated_access(reflection)
+      source_code = []
+
+      if parent_reflection = reflection.options[:_parent_reflection]
+        reflection = parent_reflection
+      end
+
+      if reflection.deprecated?
+        source_code << '_ = :notify_deprecated_access'
+      end
+
+      if reflection.through_reflection?
+        source_code << '_ = :guard_polymorphic_access'
+      end
+
+      source_code.join("\n")
+    end
+
+    private_class_method :build_scope, :macro, :valid_options, :internal_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
-      :add_destroy_callbacks, :add_after_commit_jobs_callback
+      :add_destroy_callbacks, :add_after_commit_jobs_callback, :guard_deprecated_access
   end
 end
