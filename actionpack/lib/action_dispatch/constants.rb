@@ -18,6 +18,7 @@ module ActionDispatch
       X_CASCADE = "X-Cascade"
       SERVER_TIMING = "Server-Timing"
       STRICT_TRANSPORT_SECURITY = "Strict-Transport-Security"
+      REPORTING_ENDPOINTS = "Reporting-Endpoints"
     else
       VARY = "vary"
       CONTENT_ENCODING = "content-encoding"
@@ -29,6 +30,7 @@ module ActionDispatch
       X_CASCADE = "x-cascade"
       SERVER_TIMING = "server-timing"
       STRICT_TRANSPORT_SECURITY = "strict-transport-security"
+      REPORTING_ENDPOINTS = "reporting-endpoints"
     end
   end
 end
