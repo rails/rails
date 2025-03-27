@@ -133,5 +133,18 @@ module ActionController
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
       end
     end
+
+    initializer "action_controller.escape_json_responses_deprecated_warning" do
+      config.after_initialize do
+        ActiveSupport.on_load(:action_controller) do
+          if ActionController::Base.escape_json_responses
+            ActionController.deprecator.warn(<<~MSG.squish)
+              Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+              Set it to `false` or use `config.load_defaults(8.1)`.
+            MSG
+          end
+        end
+      end
+    end
   end
 end

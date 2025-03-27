@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -1963,6 +1964,21 @@ The default value depends on the `config.load_defaults` target version:
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
+
+#### `config.action_controller.escape_json_responses`
+
+Configures the JSON renderer to escape HTML entities and Unicode characters that are invalid in JavaScript.
+
+This is useful if you relied on the JSON response having those characters escaped to embed the JSON document in
+\<script> tags in HTML.
+
+This is mainly for compatibility when upgrading Rails applications, otherwise you can use the `:escape` option for
+`render json:` in specific controller actions.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.1                   | `false`              |
 
 ### Configuring Action Dispatch
 
