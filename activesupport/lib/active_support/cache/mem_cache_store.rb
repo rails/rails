@@ -126,6 +126,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read passing <tt>raw: true</tt>:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read("baz", raw: true) # 7
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -152,6 +157,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read passing <tt>raw: true</tt>:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read("baz", raw: true) # 3
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
