@@ -708,12 +708,13 @@ module ActiveRecord
           assert Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
           a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 6, notifications.length
+        assert_equal 7, notifications.length
 
         notifications.each do |n|
-          assert n.payload[:allow_retry]
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
         end
       end
 
@@ -727,9 +728,10 @@ module ActiveRecord
           assert_not_nil Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
           a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 6, notifications.length
+        assert_equal 7, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
