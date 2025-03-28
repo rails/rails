@@ -55,7 +55,7 @@ application to add a new client, Rails will create an instance of
 `ClientsController` and call its `new` method. If the `new` method is empty, Rails
 will automatically render the `new.html.erb` view by default.
 
-NOTE: The `new` method is an instance method here, called on an instance of `ClientsController`. This should not be confused with the `new` class method (ie`ClientsController.new`).
+NOTE: The `new` method is an instance method here, called on an instance of `ClientsController`. This should not be confused with the `new` class method (i.e., `ClientsController.new`).
 
 In the `new` method, the controller would typically create an instance of the
 `Client` model, and make it available as an instance variable called `@client`
