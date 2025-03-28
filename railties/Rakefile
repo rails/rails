@@ -116,6 +116,7 @@ namespace :test do
           ARGV.clear.concat test_options
           Rake.application = nil
 
+          require "../tools/strict_warnings"
           load file
         }
       else
