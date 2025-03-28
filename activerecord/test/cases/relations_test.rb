@@ -256,6 +256,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
+  unless current_adapter?(:SQLite3Adapter)
+    def test_select_with_union_in_from
+      arel1 = Comment.where(id: 1).arel
+      arel2 = Comment.where(id: 2).arel
+      union = Arel::Nodes::Union.new(arel1, arel2)
+      expected = [comments(:greetings), comments(:more_greetings)]
+
+      assert_equal expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal expected, Comment.select("a.*").from(union, :a).to_a
+    end
+  end
+
   def test_finding_with_subquery_with_eager_loading_in_where
     relation = Comment.includes(:post).where("posts.type": "Post")
     assert_equal relation.sort_by(&:id), Comment.where(id: relation).sort_by(&:id)
