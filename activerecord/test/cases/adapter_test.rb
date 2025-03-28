@@ -709,9 +709,10 @@ module ActiveRecord
           assert_predicate Post, :exists?
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 7, notifications.length
+        assert_equal 8, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -729,9 +730,10 @@ module ActiveRecord
           assert_predicate Post, :exists?
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 7, notifications.length
+        assert_equal 8, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
