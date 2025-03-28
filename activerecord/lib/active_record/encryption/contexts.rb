@@ -30,12 +30,19 @@ module ActiveRecord
         #     end
         #
         # Encryption contexts can be nested.
-        def with_encryption_context(properties)
+        def with_encryption_context(properties, context_class = nil)
           self.custom_contexts ||= []
-          self.custom_contexts << default_context.dup
+          properties = properties.symbolize_keys
+          context_to_be_added = (context_class || Context).new
+          context_to_be_added.non_defaults = properties.dup
+
+          properties = default_context.to_h.merge(properties)
           properties.each do |key, value|
-            self.current_custom_context.send("#{key}=", value)
+            context_to_be_added.send("#{key}=", value)
           end
+
+          context_to_be_added.merge(current_custom_context) if current_custom_context
+          self.custom_contexts << context_to_be_added
 
           yield
         ensure

@@ -13,3 +13,9 @@ class EncryptedPost < Post
   encrypts :title
   encrypts :body, key_provider: MutableDerivedSecretKeyProvider.new("my post body secret!")
 end
+
+class EncryptedPostNoCompression < Post
+  self.table_name = "posts"
+
+  encrypts :body, compress: false
+end
