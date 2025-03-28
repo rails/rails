@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require ActionMailbox::Engine.root.join("db/migrate/20180917164000_create_action_mailbox_tables.rb").to_s
 
 class ActionMailbox::MigrationsTest < ActiveSupport::TestCase
   setup do
