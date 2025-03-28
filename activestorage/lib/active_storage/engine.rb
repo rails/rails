@@ -124,7 +124,6 @@ module ActiveStorage
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
-        ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
@@ -168,25 +167,6 @@ module ActiveStorage
     initializer "active_storage.verifier" do
       config.after_initialize do |app|
         ActiveStorage.verifier = app.message_verifier("ActiveStorage")
-      end
-    end
-
-    initializer "active_storage.services" do
-      ActiveSupport.on_load(:active_storage_blob) do
-        configs = Rails.configuration.active_storage.service_configurations ||=
-          begin
-            config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
-            config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
-
-            ActiveSupport::ConfigurationFile.parse(config_file)
-          end
-
-        ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
-
-        if config_choice = Rails.configuration.active_storage.service
-          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
-        end
       end
     end
 
@@ -234,6 +214,44 @@ module ActiveStorage
 
       ActiveSupport.on_load(:active_support_test_case) do
         ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+      end
+    end
+
+    initializer "active_storage.creators" do
+      config.after_initialize do |app|
+        ActiveStorage.database_configs = app.config.active_storage.database_configs || [
+          {
+            name: :default,
+            connection_class: "ActiveRecord::Base",
+          }
+        ]
+
+        ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route \
+          || ActiveStorage.database_configs.reduce({}) do |acc, db_config|
+            value = db_config[:name] == :default ? :rails_storage_redirect : "rails_#{db_config[:name]}_storage_redirect"
+            acc.merge(db_config[:name] => value)
+          end
+
+        ActiveStorage::Creators::Root.call!
+      end
+    end
+
+    initializer "active_storage.services" do
+      ActiveSupport.on_load(:active_storage_blob) do |klass|
+        configs = Rails.configuration.active_storage.service_configurations ||=
+          begin
+            config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
+            config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
+            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
+
+            ActiveSupport::ConfigurationFile.parse(config_file)
+          end
+
+        klass.services = ActiveStorage::Service::Registry.new(configs)
+
+        if config_choice = Rails.configuration.active_storage.service
+          klass.service = klass.services.fetch(config_choice)
+        end
       end
     end
   end

@@ -63,9 +63,6 @@ module ActiveStorage
     #     service_name: "public"
     #   ) %>
     #
-    def self.blob(filename:, **attributes)
-      new.prepare Blob.new(filename: filename, key: generate_unique_secure_token), **attributes
-    end
 
     def prepare(instance, **attributes)
       io = file_fixture(instance.filename.to_s).open

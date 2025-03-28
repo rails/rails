@@ -1,0 +1,4 @@
+first_avatar_blob: <%= ActiveStorage::FixtureSet.blob(
+  filename: "racecar.jpg",
+  content_type: "image/jpeg+override"
+) %>

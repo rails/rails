@@ -44,6 +44,93 @@ module ActiveStorage
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
+  autoload :DisableSession, "active_storage/controllers/disable_session"
+  autoload :FileServer, "active_storage/controllers/file_server"
+  autoload :SetBlob, "active_storage/controllers/set_blob"
+  autoload :SetCurrent, "active_storage/controllers/set_current"
+  autoload :Streaming, "active_storage/controllers/streaming"
+  autoload :BaseController, "active_storage/controllers/base_controller"
+  autoload :ClassResolver
+  autoload :Reflection
+  autoload :BaseJob, "active_storage/jobs/base_job"
+  autoload :AnalyzeJob, "active_storage/jobs/analyze_job"
+  autoload :PreviewImageJob, "active_storage/jobs/preview_image_job"
+  autoload :PurgeJob, "active_storage/jobs/purge_job"
+  autoload :TransformJob, "active_storage/jobs/transform_job"
+  autoload :Filename, "active_storage/models/filename"
+  autoload :Current, "active_storage/models/current"
+  autoload :NamedVariant, "active_storage/models/named_variant"
+  autoload :Preview, "active_storage/models/preview"
+  autoload :Record, "active_storage/models/record"
+  autoload :Variant, "active_storage/models/variant"
+  autoload :VariantRecord, "active_storage/models/variant_record"
+  autoload :VariantWithRecord, "active_storage/models/variant_with_record"
+  autoload :Variation, "active_storage/models/variation"
+
+  module Jobs
+    extend ActiveSupport::Autoload
+
+    autoload :Mirror
+  end
+  
+  module Creators
+    extend ActiveSupport::Autoload
+
+    autoload :Root
+    autoload :Models
+    autoload :Controllers
+    autoload :Routes
+    autoload :Jobs
+  end
+
+  module Models
+    extend ActiveSupport::Autoload
+
+    autoload :Blob
+    autoload :Attachment
+    autoload :VariantRecord
+  end
+
+  module Controllers
+    module Blobs
+      extend ActiveSupport::Autoload
+
+      autoload :DirectUploads
+      autoload :Disk
+      autoload :Proxy
+      autoload :Redirect
+    end
+
+    module Representations
+      extend ActiveSupport::Autoload
+
+      autoload :Base
+      autoload :Proxy
+      autoload :Redirect
+    end
+  end
+
+  # You can use this as follows:
+  #
+  # ActiveStorage.database_configs = [
+  #   {
+  #     name: :animals,
+  #     connection_class: "AnimalsRecord",
+  #   }
+  # ]
+  # This will the following classes, inheriting from AnimalsRecord:
+  # - ActiveStorage::Animals::Blob
+  # - ActiveStorage::Animals::Attachment
+  mattr_accessor :database_configs, default: [
+    {
+      name: :default,
+      connection_class: "ActiveRecord::Base",
+    }
+  ]
+
+  mattr_accessor :blob_classes, default: []
+  mattr_accessor :attachment_classes, default: []
+  mattr_accessor :variant_record_classes, default: []
 
   mattr_accessor :logger
   mattr_accessor :verifier

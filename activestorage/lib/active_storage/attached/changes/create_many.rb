@@ -38,7 +38,7 @@ module ActiveStorage
       end
 
       def subchanges_without_blobs
-        subchanges.reject { |subchange| subchange.attachable.is_a?(ActiveStorage::Blob) }
+        subchanges.reject { |subchange| subchange.attachable.is_a?(blob_class) }
       end
 
       def assign_associated_attachments
@@ -51,6 +51,10 @@ module ActiveStorage
 
       def persisted_or_new_attachments
         attachments.select { |attachment| attachment.persisted? || attachment.new_record? }
+      end
+
+      def blob_class
+        ClassResolver.resolve(record.class, :blob)
       end
   end
 end

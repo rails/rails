@@ -74,7 +74,7 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {}, prefix: :default)
       instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
           {
@@ -88,7 +88,9 @@ module ActiveStorage
           purpose: :blob_token
         )
 
-        url_helpers.update_rails_disk_service_url(verified_token_with_expiration, url_options).tap do |generated_url|
+        url_method = prefix.to_sym == :default ? :update_rails_disk_service_url : "update_rails_#{prefix}_disk_service_url".to_sym
+
+        url_helpers.send(url_method, verified_token_with_expiration, url_options).tap do |generated_url|
           payload[:url] = generated_url
         end
       end
@@ -113,15 +115,15 @@ module ActiveStorage
     end
 
     private
-      def private_url(key, expires_in:, filename:, content_type:, disposition:, **)
-        generate_url(key, expires_in: expires_in, filename: filename, content_type: content_type, disposition: disposition)
+      def private_url(key, expires_in:, filename:, content_type:, disposition:, prefix: :default, **)
+        generate_url(key, expires_in: expires_in, filename: filename, content_type: content_type, disposition: disposition, prefix: prefix)
       end
 
-      def public_url(key, filename:, content_type: nil, disposition: :attachment, **)
-        generate_url(key, expires_in: nil, filename: filename, content_type: content_type, disposition: disposition)
+      def public_url(key, filename:, content_type: nil, disposition: :attachment, prefix: :default, **)
+        generate_url(key, expires_in: nil, filename: filename, content_type: content_type, disposition: disposition, prefix: prefix)
       end
 
-      def generate_url(key, expires_in:, filename:, content_type:, disposition:)
+      def generate_url(key, expires_in:, filename:, content_type:, disposition:, prefix: :default)
         content_disposition = content_disposition_with(type: disposition, filename: filename)
         verified_key_with_expiration = ActiveStorage.verifier.generate(
           {
@@ -138,7 +140,9 @@ module ActiveStorage
           raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
         end
 
-        url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
+        url_method = prefix.to_sym == :default ? :rails_disk_service_url : "rails_#{prefix}_disk_service_url".to_sym
+
+        url_helpers.send(url_method, verified_key_with_expiration, filename: filename, **url_options)
       end
 
 

@@ -125,8 +125,8 @@ module ActiveStorage
           end
         CODE
 
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
+        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: attachment_class.to_s, as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
+        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: blob_class.to_s, source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
@@ -229,8 +229,8 @@ module ActiveStorage
           end
         CODE
 
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
+        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: attachment_class.to_s.to_s, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
+        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: blob_class.to_s, source: :blob, strict_loading: strict_loading
 
         scope :"with_attached_#{name}", -> {
           if ActiveStorage.track_variants
@@ -257,22 +257,32 @@ module ActiveStorage
         yield reflection if block_given?
         ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
       end
+
+      def blob_class
+        @blob_class ||= ClassResolver.resolve(self, :blob)
+      end
+
+      def attachment_class
+        @attachment_class ||= ClassResolver.resolve(self, :attachment)
+      end
     end
 
     class << self
       def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
+        blob_class = ClassResolver.resolve(model_class, :blob)
+
         if service_name
-          ActiveStorage::Blob.services.fetch(service_name) do
+          blob_class.services.fetch(service_name) do
             raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
           end
         else
-          validate_global_service_configuration(model_class)
+          validate_global_service_configuration(model_class, blob_class)
         end
       end
 
       private
-        def validate_global_service_configuration(model_class)
-          if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+        def validate_global_service_configuration(model_class, blob_class)
+          if model_class.connected? && blob_class.table_exists? && Rails.configuration.active_storage.service.nil?
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
           end
         end

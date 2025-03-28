@@ -9,13 +9,36 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
+<% if ENV["MULTI_DB"] %>
+development:
+  main:
+    <<: *default
+    database: storage/main.sqlite3
+    migrations_paths: db/main_migrate
+  animals:
+    <<: *default
+    database: storage/animals.sqlite3
+    migrations_paths: db/animals_migrate
+<% else %>
 development:
   <<: *default
   database: storage/development.sqlite3
+<% end %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
+<% if ENV["MULTI_DB"] %>
+test:
+  main:
+    <<: *default
+    database: storage/main_test.sqlite3
+    migrations_paths: db/main_migrate
+  animals:
+    <<: *default
+    database: storage/animals_test.sqlite3
+    migrations_paths: db/animals_migrate
+<% else %>
 test:
   primary:
     <<: *default
@@ -23,7 +46,21 @@ test:
   replica:
     <<: *default
     database: ":memory:"
+<% end %>
 
+<% if ENV["MULTI_DB"] %>
+production:
+  main:
+    <<: *default
+    database: storage/production.sqlite3
+    migrations_paths: db/main_migrate
+  animals:
+    <<: *default
+    database: storage/production.sqlite3
+    migrations_paths: db/animals_migrate
+<% else %>
 production:
   <<: *default
   database: storage/production.sqlite3
+<% end %>
+

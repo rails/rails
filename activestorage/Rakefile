@@ -6,10 +6,19 @@ require "rake/testtask"
 
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
-Rake::TestTask.new do |t|
+Rake::TestTask.new :test_multi_db do |t|
   t.libs << "app/controllers"
-  t.libs << "test"
-  t.test_files = FileList["test/**/*_test.rb"]
+  t.libs << "test/multi_db"
+  t.test_files = FileList["test/multi_db/**/*_test.rb"]
+  t.verbose = true
+  t.options = "--profile" if ENV["CI"]
+  t.warning = true
+end
+
+Rake::TestTask.new :test_single_db do |t|
+  t.libs << "app/controllers"
+  t.libs << "test/single_db"
+  t.test_files = FileList["test/single_db/**/*_test.rb"]
   t.verbose = true
   t.options = "--profile" if ENV["CI"]
   t.warning = true
