@@ -1,3 +1,11 @@
+*   Prepend `extra_flags` in postgres' `structure_load`
+
+    When specifying `structure_load_flags` with a postgres adapter, the flags
+    were appended to the default flags, instead of prepended.
+    This caused issues with flags not being taken into account by postgres.
+
+    *Alice Loeser*
+
 *   Fix checking whether an unpersisted record is `include?`d in a strictly
     loaded `has_and_belongs_to_many` association.
 

@@ -78,8 +78,9 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL]
         args.concat(Array(extra_flags)) if extra_flags
+        args.concat(["--file", filename])
         args << db_config.database
         run_cmd("psql", args, "loading")
       end
