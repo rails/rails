@@ -23,6 +23,11 @@ module Arel # :nodoc: all
           collector.retryable = false
           o = prepare_delete_statement(o)
 
+          if o.with
+            collector = visit o.with, collector
+            collector << " "
+          end
+
           if has_join_sources?(o)
             collector << "DELETE "
             visit o.relation.left, collector
@@ -40,6 +45,11 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_UpdateStatement(o, collector)
           collector.retryable = false
           o = prepare_update_statement(o)
+
+          if o.with
+            collector = visit o.with, collector
+            collector << " "
+          end
 
           collector << "UPDATE "
           collector = visit o.relation, collector
