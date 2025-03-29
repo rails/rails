@@ -142,7 +142,7 @@ module ActionDispatch
       private
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
-        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate must-understand])
 
         def generate_weak_etag(validators)
           "W/#{generate_strong_etag(validators)}"
@@ -187,6 +187,7 @@ module ActionDispatch
         PRIVATE               = "private"
         MUST_REVALIDATE       = "must-revalidate"
         IMMUTABLE             = "immutable"
+        MUST_UNDERSTAND       = "must-understand"
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag middleware. But, if
@@ -221,6 +222,7 @@ module ActionDispatch
 
           if control[:no_store]
             options << PRIVATE if control[:private]
+            options << MUST_UNDERSTAND if control[:must_understand]
             options << NO_STORE
           elsif control[:no_cache]
             options << PUBLIC if control[:public]
