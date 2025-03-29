@@ -1,3 +1,24 @@
+*   Implement `must-understand` directive according to RFC 9111.
+
+    The `must-understand` directive indicates that a cache must understand the semantics of the response status code, or discard the response. This directive is enforced to be used only with `no-store` to ensure proper cache behavior.
+
+    ```ruby
+    class ArticlesController < ApplicationController
+      def show
+        @article = Article.find(params[:id])
+
+        if @article.special_format?
+          must_understand
+          render status: 203 # Non-Authoritative Information
+        else
+          fresh_when @article
+        end
+      end
+    end
+    ```
+
+    *heka1024*
+
 *   The JSON renderer doesn't escape HTML entities or Unicode line separators anymore.
 
     Using `render json:` will no longer escape `<`, `>`, `&`, `U+2028` and `U+2029` characters that can cause errors
