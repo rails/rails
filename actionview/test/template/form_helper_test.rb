@@ -1392,6 +1392,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
+  def test_week_field_when_first_week_starts_in_previous_year
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2025-W01" />}
+    @post.written_on = DateTime.new(2024, 12, 30, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
