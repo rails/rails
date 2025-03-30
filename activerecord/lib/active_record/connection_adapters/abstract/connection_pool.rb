@@ -706,6 +706,16 @@ module ActiveRecord
         raise ex.set_pool(self)
       end
 
+      def default_isolation_level
+        isolation_level_key = "activerecord_default_isolation_level_#{db_config.name}"
+        ActiveSupport::IsolatedExecutionState[isolation_level_key]
+      end
+
+      def default_isolation_level=(isolation_level)
+        isolation_level_key = "activerecord_default_isolation_level_#{db_config.name}"
+        ActiveSupport::IsolatedExecutionState[isolation_level_key] = isolation_level
+      end
+
       private
         def connection_lease
           @leases[ActiveSupport::IsolatedExecutionState.context]
