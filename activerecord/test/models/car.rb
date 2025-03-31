@@ -35,3 +35,9 @@ end
 class FastCar < Car
   default_scope { order("name desc") }
 end
+
+class BrokenCar < Car
+  after_save do
+    raise ActiveRecord::Rollback
+  end
+end
