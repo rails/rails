@@ -1,3 +1,7 @@
+*   Include cookie name when calculating maximum allowed size.
+
+    *Hartley McGuire*
+
 *   Implement `must-understand` directive according to RFC 9111.
 
     The `must-understand` directive indicates that a cache must understand the semantics of the response status code, or discard the response. This directive is enforced to be used only with `no-store` to ensure proper cache behavior.
