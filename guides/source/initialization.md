@@ -142,7 +142,7 @@ With the `server` command, Rails will further run the following code:
 module Rails
   module Command
     class ServerCommand < Base # :nodoc:
-      def perform
+     def perform
         set_application_directory!
         prepare_restart
 
@@ -197,7 +197,8 @@ Firstly, `super` is called which calls the `initialize` method on `Rackup::Serve
 
 ### Rackup: `lib/rackup/server.rb`
 
-`Rackup::Server` is responsible for providing a common server interface for all Rack-based applications, which Rails is now a part of.
+`Rackup::Server` is responsible for providing a common server interface for all
+Rack-based applications, which Rails is now a part of.
 
 The `initialize` method in `Rackup::Server` simply sets several variables:
 
