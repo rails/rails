@@ -3,8 +3,9 @@
 The Rails Initialization Process
 ================================
 
-This guide explains the internals of the initialization process in Rails.
-It is an extremely in-depth guide and recommended for advanced Rails developers.
+This guide explains the Rails server initialization process. It is an extremely
+in-depth guide and walks through internal method calls. It is recommended for
+developers interested in exploring Rails source code.
 
 After reading this guide, you will know:
 
@@ -15,13 +16,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-This guide goes through every method call that is
-required to boot up the Ruby on Rails stack for a default Rails
-application, explaining each part in detail along the way. For this
-guide, we will be focusing on what happens when you execute `bin/rails server`
-to boot your app.
+For this guide, we will be focusing on what happens when you execute `bin/rails
+server` to boot your app. This guide goes through every method call that is
+required to boot up the Ruby on Rails stack for a default Rails application,
+explaining each part in detail along the way.
 
-NOTE: Paths in this guide are relative to Rails or a Rails application unless otherwise specified.
+NOTE: Paths in this guide are relative to the root of a Rails application unless otherwise specified.
 
 TIP: If you want to follow along while browsing the Rails [source
 code](https://github.com/rails/rails), we recommend that you use the `t`
@@ -32,7 +32,7 @@ Launch!
 -------
 
 Let's start to boot and initialize the app. A Rails application is usually
-started by running `bin/rails console` or `bin/rails server`.
+started by running `bin/rails server` or `bin/rails console`.
 
 ### `bin/rails`
 
@@ -45,7 +45,9 @@ require_relative "../config/boot"
 require "rails/commands"
 ```
 
-The `APP_PATH` constant will be used later in `rails/commands`. The `config/boot` file referenced here is the `config/boot.rb` file in our application which is responsible for loading Bundler and setting it up.
+The `APP_PATH` constant will be used later in `rails/commands`. The
+`config/boot` file referenced here is the `config/boot.rb` file in our
+application which is responsible for loading Bundler and setting it up.
 
 ### `config/boot.rb`
 
@@ -59,8 +61,8 @@ require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
-dependencies of the application. `config/boot.rb` sets
-`ENV['BUNDLE_GEMFILE']` to the location of this file. If the `Gemfile`
+dependencies of the application. The `config/boot.rb` file sets
+`ENV['BUNDLE_GEMFILE']` to the location of this `Gemfile`. If the `Gemfile`
 exists, then `bundler/setup` is required. The require is used by Bundler to
 configure the load path for your Gemfile's dependencies.
 
