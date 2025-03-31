@@ -94,14 +94,6 @@ module ActiveRecord
 
       class_attribute :run_commit_callbacks_on_first_saved_instances_in_transaction, instance_accessor: false, default: true
 
-      class_attribute :default_connection_handler, instance_writer: false
-
-      class_attribute :default_role, instance_writer: false
-
-      class_attribute :default_shard, instance_writer: false
-
-      class_attribute :shard_selector, instance_accessor: false, default: nil
-
       ##
       # :singleton-method:
       #
@@ -129,14 +121,6 @@ module ActiveRecord
 
       self.filter_attributes = []
 
-      def self.connection_handler
-        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] || default_connection_handler
-      end
-
-      def self.connection_handler=(handler)
-        ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] = handler
-      end
-
       def self.asynchronous_queries_session # :nodoc:
         asynchronous_queries_tracker.current_session
       end
@@ -145,109 +129,6 @@ module ActiveRecord
         ActiveSupport::IsolatedExecutionState[:active_record_asynchronous_queries_tracker] ||= \
           AsynchronousQueriesTracker.new
       end
-
-      # Returns the symbol representing the current connected role.
-      #
-      #   ActiveRecord::Base.connected_to(role: :writing) do
-      #     ActiveRecord::Base.current_role #=> :writing
-      #   end
-      #
-      #   ActiveRecord::Base.connected_to(role: :reading) do
-      #     ActiveRecord::Base.current_role #=> :reading
-      #   end
-      def self.current_role
-        connected_to_stack.reverse_each do |hash|
-          return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
-          return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
-        end
-
-        default_role
-      end
-
-      # Returns the symbol representing the current connected shard.
-      #
-      #   ActiveRecord::Base.connected_to(role: :reading) do
-      #     ActiveRecord::Base.current_shard #=> :default
-      #   end
-      #
-      #   ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
-      #     ActiveRecord::Base.current_shard #=> :one
-      #   end
-      def self.current_shard
-        connected_to_stack.reverse_each do |hash|
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
-          return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_class_for_self)
-        end
-
-        default_shard
-      end
-
-      # Returns the symbol representing the current setting for
-      # preventing writes.
-      #
-      #   ActiveRecord::Base.connected_to(role: :reading) do
-      #     ActiveRecord::Base.current_preventing_writes #=> true
-      #   end
-      #
-      #   ActiveRecord::Base.connected_to(role: :writing) do
-      #     ActiveRecord::Base.current_preventing_writes #=> false
-      #   end
-      def self.current_preventing_writes
-        connected_to_stack.reverse_each do |hash|
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
-        end
-
-        false
-      end
-
-      # Intended to behave like `.current_preventing_writes` given the class name as input.
-      # See PoolConfig and ConnectionHandler::ConnectionDescriptor.
-      def self.preventing_writes?(class_name) # :nodoc:
-        connected_to_stack.reverse_each do |hash|
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
-          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].any? { |klass| klass.name == class_name }
-        end
-
-        false
-      end
-
-      def self.connected_to_stack # :nodoc:
-        if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
-          connected_to_stack
-        else
-          connected_to_stack = Concurrent::Array.new
-          ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = connected_to_stack
-          connected_to_stack
-        end
-      end
-
-      def self.connection_class=(b) # :nodoc:
-        @connection_class = b
-      end
-
-      def self.connection_class # :nodoc:
-        @connection_class ||= false
-      end
-
-      def self.connection_class? # :nodoc:
-        self.connection_class
-      end
-
-      def self.connection_class_for_self # :nodoc:
-        klass = self
-
-        until klass == Base
-          break if klass.connection_class?
-          klass = klass.superclass
-        end
-
-        klass
-      end
-
-      self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
-      self.default_role = ActiveRecord.writing_role
-      self.default_shard = :default
 
       def self.strict_loading_violation!(owner:, reflection:) # :nodoc:
         case ActiveRecord.action_on_strict_loading_violation
@@ -762,10 +643,6 @@ module ActiveRecord
     # but you won't be able to persist the changes.
     def readonly!
       @readonly = true
-    end
-
-    def connection_handler
-      self.class.connection_handler
     end
 
     # Returns the attributes of the record as a nicely formatted string.
