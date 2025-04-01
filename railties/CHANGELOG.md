@@ -53,7 +53,7 @@
 
 *   Update `rails new --minimal` option
 
-    Extend the `--minimal` flag to exlcude recently added features:
+    Extend the `--minimal` flag to exclude recently added features:
     `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
     *eelcoj*

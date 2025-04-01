@@ -362,7 +362,7 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal expected, new_template(source).translate_location(nil, spot)
   end
 
-  def test_template_translate_location_with_multibye_string_before_highlight
+  def test_template_translate_location_with_multibyte_string_before_highlight
     highlight = "nope"
     # ensure the byte offset is enough to make us miss the highlight if wrong
     multibyte = String.new("\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}\u{a5}", encoding: Encoding::UTF_8) # yen symbol
