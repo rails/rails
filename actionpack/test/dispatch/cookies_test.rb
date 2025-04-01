@@ -49,17 +49,17 @@ class CookieJarTest < ActiveSupport::TestCase
   end
 
   def test_each
-    request.cookie_jar["foo"] = :bar
+    request.cookie_jar["foo"] = "bar"
     list = []
     request.cookie_jar.each do |k, v|
       list << [k, v]
     end
 
-    assert_equal [["foo", :bar]], list
+    assert_equal [["foo", "bar"]], list
   end
 
   def test_enumerable
-    request.cookie_jar["foo"] = :bar
+    request.cookie_jar["foo"] = "bar"
     actual = request.cookie_jar.map { |k, v| [k.to_s, v.to_s] }
     assert_equal [["foo", "bar"]], actual
   end
@@ -68,7 +68,7 @@ class CookieJarTest < ActiveSupport::TestCase
     assert_not request.cookie_jar.key?(:foo)
     assert_not request.cookie_jar.has_key?("foo")
 
-    request.cookie_jar[:foo] = :bar
+    request.cookie_jar[:foo] = "bar"
     assert request.cookie_jar.key?(:foo)
     assert request.cookie_jar.has_key?("foo")
   end
@@ -214,7 +214,7 @@ class CookiesTest < ActionController::TestCase
     end
 
     def raise_data_overflow
-      cookies.signed[:foo] = "bye!" * 1024
+      cookies[:foo] = "!" * 4094
       head :ok
     end
 
@@ -972,7 +972,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
     end
-    assert_equal "foo cookie overflowed with size 5525 bytes", error.message
+    assert_equal "foo cookie overflowed with size 4097 bytes", error.message
   end
 
   def test_tampered_cookies

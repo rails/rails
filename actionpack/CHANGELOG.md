@@ -1,3 +1,7 @@
+*   Validate maximum cookie size even when not signed or encrypted.
+
+    *Hartley McGuire*
+
 *   Include cookie name when calculating maximum allowed size.
 
     *Hartley McGuire*

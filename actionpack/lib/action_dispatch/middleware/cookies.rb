@@ -387,6 +387,8 @@ module ActionDispatch
 
         handle_options(options)
 
+        check_for_overflow!(name, options)
+
         if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
@@ -447,6 +449,14 @@ module ActionDispatch
 
         def write_cookie?(cookie)
           request.ssl? || !cookie[:secure] || always_write_cookie || request.host.end_with?(".onion")
+        end
+
+        def check_for_overflow!(name, options)
+          total_size = name.to_s.bytesize + options[:value].bytesize
+
+          if total_size > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
+          end
         end
 
         def handle_options(options)
@@ -608,14 +618,6 @@ module ActionDispatch
         def commit(name, options)
           options[:value] = serializer.dump(options[:value])
         end
-
-        def check_for_overflow!(name, options)
-          total_size = name.to_s.bytesize + options[:value].bytesize
-
-          if total_size > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
-          end
-        end
     end
 
     class SignedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
@@ -643,7 +645,6 @@ module ActionDispatch
         def commit(name, options)
           super
           options[:value] = @verifier.generate(options[:value], **cookie_metadata(name, options))
-          check_for_overflow!(name, options)
         end
     end
 
@@ -695,7 +696,6 @@ module ActionDispatch
         def commit(name, options)
           super
           options[:value] = @encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
-          check_for_overflow!(name, options)
         end
     end
 
