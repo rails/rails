@@ -474,7 +474,7 @@ db_namespace = namespace :db do
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) into the #{name} database"
-        task name => "db:test:purge:#{name}" do
+        task name => [:load_config, :check_protected_environments] do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
             ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
