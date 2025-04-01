@@ -387,12 +387,14 @@ module ActionDispatch
 
         handle_options(options)
 
-        check_for_overflow!(name, options)
+        cookie_name_string = name.to_s
 
-        if @cookies[name.to_s] != value || options[:expires]
-          @cookies[name.to_s] = value
-          @set_cookies[name.to_s] = options
-          @delete_cookies.delete(name.to_s)
+        check_for_overflow!(cookie_name_string, options)
+
+        if @cookies[cookie_name_string] != value || options[:expires]
+          @cookies[cookie_name_string] = value
+          @set_cookies[cookie_name_string] = options
+          @delete_cookies.delete(cookie_name_string)
         end
 
         value
@@ -452,7 +454,7 @@ module ActionDispatch
         end
 
         def check_for_overflow!(name, options)
-          total_size = name.to_s.bytesize + options[:value].bytesize
+          total_size = name.bytesize + options[:value].bytesize
 
           if total_size > MAX_COOKIE_SIZE
             raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
