@@ -43,6 +43,9 @@ module ActiveStorage
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
+    autoload :Registry
+    autoload :MirrorService
+
     attr_accessor :name
 
     class << self
@@ -135,7 +138,7 @@ module ActiveStorage
     # The URL will be valid for the amount of seconds specified in +expires_in+.
     # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
     # that will be uploaded. All these attributes will be validated by the service upon upload.
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
+    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {}, prefix: :default)
       raise NotImplementedError
     end
 

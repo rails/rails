@@ -36,6 +36,20 @@ Rails.application.configure do
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :local
 
+  if ENV["MULTI_DB"]
+    config.active_storage.database_configs = [
+      {
+        name: :main,
+        connection_class: "MainRecord",
+      },
+      {
+        name: :animals,
+        connection_class: "AnimalsRecord",
+      },
+    ]
+  end
+
+
   SERVICE_CONFIGURATIONS = begin
     config_file = Rails.root.join("../service/configurations.yml")
     ActiveSupport::ConfigurationFile.parse(config_file, symbolize_names: true)
