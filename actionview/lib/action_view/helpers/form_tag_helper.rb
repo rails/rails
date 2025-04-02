@@ -104,8 +104,15 @@ module ActionView
           object_name = object_name.model_name.singular
         end
 
-        sanitized_object_name = object_name.to_s.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").delete_suffix("_")
+        base_name = object_name.to_s
+        if base_name.end_with?("[]")
+          base_name = base_name[0..-3]
+          if index.nil? && (object = @object)
+            index = object.to_param
+          end
+        end
 
+        sanitized_object_name = base_name.gsub(/\]\[|[^-a-zA-Z0-9:.]/, "_").delete_suffix("_")
         sanitized_method_name = method_name.to_s.delete_suffix("?")
 
         [
