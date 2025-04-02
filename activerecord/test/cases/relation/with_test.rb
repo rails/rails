@@ -51,7 +51,7 @@ module ActiveRecord
         assert_equal POSTS_WITH_TAGS_AND_COMMENTS, relation.order(:id).pluck(:id)
       end
 
-      def test_multiple_dupicate_with_calls
+      def test_multiple_duplicate_with_calls
         posts_with_tags = Post.where("tags_count > 0")
         relation = Post
           .with(posts_with_tags: posts_with_tags, one_more_posts_with_tags: posts_with_tags)

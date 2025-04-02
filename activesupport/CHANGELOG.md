@@ -116,7 +116,7 @@
 
     *Martin Emde*
 
-*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
 
     *Martin Emde*
 
