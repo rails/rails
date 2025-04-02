@@ -1,3 +1,14 @@
+*   Add `Cache#read_counter` and `Cache#write_counter`
+
+    ```ruby
+    Rails.cache.write_counter("foo", 1)
+    Rails.cache.read_counter("foo") # => 1
+    Rails.cache.increment("foo")
+    Rails.cache.read_counter("foo") # => 2
+    ```
+
+    *Alex Ghiculescu*
+
 *   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
 
     Captures all reported errors from within the block that match the given
