@@ -743,6 +743,32 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
+      # Reads a counter that was set by #increment / #decrement.
+      #
+      #   cache.write_counter("foo", 1)
+      #   cache.read_counter("foo") # => 1
+      #   cache.increment("foo")
+      #   cache.read_counter("foo") # => 2
+      #
+      # Options are passed to the underlying cache implementation.
+      def read_counter(name, **options)
+        options = merged_options(options).merge(raw: true)
+        read(name, **options)&.to_i
+      end
+
+      # Writes a counter that can then be modified by #increment / #decrement.
+      #
+      #   cache.write_counter("foo", 1)
+      #   cache.read_counter("foo") # => 1
+      #   cache.increment("foo")
+      #   cache.read_counter("foo") # => 2
+      #
+      # Options are passed to the underlying cache implementation.
+      def write_counter(name, value, **options)
+        options = merged_options(options).merge(raw: true)
+        write(name, value.to_i, **options)
+      end
+
       # Cleans up the cache by removing expired entries.
       #
       # Options are passed to the underlying cache implementation.
