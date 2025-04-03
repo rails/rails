@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "support/system_helper"
 require "action_dispatch/system_testing/driver"
 require "selenium/webdriver"
 
@@ -82,7 +83,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },
@@ -101,7 +102,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["--headless", "start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "--headless", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },

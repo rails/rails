@@ -26,10 +26,13 @@ module ActiveSupport
     # as the first rotation and <tt>transitional = true</tt>. Then, after all
     # servers have been updated, perform a second rolling deploy with
     # <tt>transitional = false</tt>.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#transitional
 
     ##
-    # :method: initialize
-    # :call-seq: initialize(&secret_generator)
+    # :singleton-method: new
+    # :call-seq: new(&secret_generator)
     #
     # Initializes a new instance. +secret_generator+ must accept a salt, and
     # return a suitable secret (string). +secret_generator+ may also accept
@@ -42,6 +45,9 @@ module ActiveSupport
     #   end
     #
     #   verifiers.rotate(base: "...")
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#initialize
 
     ##
     # :method: []
@@ -50,16 +56,24 @@ module ActiveSupport
     # Returns a MessageVerifier configured with a secret derived from the
     # given +salt+, and options from #rotate. MessageVerifier instances will
     # be memoized, so the same +salt+ will return the same instance.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#[]
 
     ##
     # :method: []=
     # :call-seq: []=(salt, verifier)
     #
     # Overrides a MessageVerifier instance associated with a given +salt+.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#[]=
 
     ##
     # :method: rotate
-    # :call-seq: rotate(**options)
+    # :call-seq:
+    #   rotate(**options)
+    #   rotate(&block)
     #
     # Adds +options+ to the list of option sets. Messages will be signed using
     # the first set in the list. When verifying, however, each set will be
@@ -102,18 +116,55 @@ module ActiveSupport
     #
     #   # Uses `serializer: Marshal, url_safe: false`.
     #   verifiers[:baz]
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#rotate
+
+    ##
+    # :method: prepend
+    # :call-seq:
+    #   prepend(**options)
+    #   prepend(&block)
+    #
+    # Just like #rotate, but prepends the given options or block to the list of
+    # option sets.
+    #
+    # This can be useful when you have an already-configured +MessageVerifiers+
+    # instance, but you want to override the way messages are signed.
+    #
+    #   module ThirdParty
+    #     VERIFIERS = ActiveSupport::MessageVerifiers.new { ... }.
+    #       rotate(serializer: Marshal, url_safe: true).
+    #       rotate(serializer: Marshal, url_safe: false)
+    #   end
+    #
+    #   ThirdParty.VERIFIERS.prepend(serializer: JSON, url_safe: true)
+    #
+    #   # Uses `serializer: JSON, url_safe: true`.
+    #   # Falls back to `serializer: Marshal, url_safe: true` or
+    #   # `serializer: Marshal, url_safe: false`.
+    #   ThirdParty.VERIFIERS[:foo]
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#prepend
 
     ##
     # :method: rotate_defaults
     # :call-seq: rotate_defaults
     #
     # Invokes #rotate with the default options.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#rotate_defaults
 
     ##
     # :method: clear_rotations
     # :call-seq: clear_rotations
     #
     # Clears the list of option sets.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#clear_rotations
 
     ##
     # :method: on_rotation
@@ -125,6 +176,9 @@ module ActiveSupport
     # For example, this callback could log each time it is called, and thus
     # indicate whether old option sets are still in use or can be removed from
     # rotation.
+    #
+    #--
+    # Implemented by ActiveSupport::Messages::RotationCoordinator#on_rotation
 
     ##
     private

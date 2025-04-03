@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -103,7 +102,7 @@ module ActiveRecord
              :to_sentence, :to_fs, :to_formatted_s, :as_json,
              :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :primary_key, :with_connection, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, to: :model
+    delegate :primary_key, :with_connection, :connection, :table_name, :transaction, :sanitize_sql_like, :unscoped, :name, to: :model
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern

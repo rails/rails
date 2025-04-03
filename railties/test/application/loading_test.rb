@@ -89,7 +89,9 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    User
+    assert_nothing_raised do
+      User
+    end
   end
 
   test "load config/environments/environment before Bootstrap initializers" do

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -141,15 +140,15 @@ module Rails
       initializer :add_internal_routes do |app|
         if Rails.env.development?
           app.routes.prepend do
-            get "/rails/info/properties", to: "rails/info#properties", internal: true
-            get "/rails/info/routes",     to: "rails/info#routes",     internal: true
-            get "/rails/info/notes",      to: "rails/info#notes",      internal: true
-            get "/rails/info",            to: "rails/info#index",      internal: true
+            get "/rails/info/properties" => "rails/info#properties", internal: true
+            get "/rails/info/routes"     => "rails/info#routes",     internal: true
+            get "/rails/info/notes"      => "rails/info#notes",      internal: true
+            get "/rails/info"            => "rails/info#index",      internal: true
           end
 
           routes_reloader.run_after_load_paths = -> do
             app.routes.append do
-              get "/", to: "rails/welcome#index", internal: true
+              get "/" => "rails/welcome#index", internal: true
             end
           end
         end
@@ -160,7 +159,6 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.eager_load = app.config.eager_load
-        reloader.execute
         reloaders << reloader
 
         app.reloader.to_run do
@@ -178,7 +176,7 @@ module Rails
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
 
-        ActiveSupport.run_load_hooks(:after_routes_loaded, self)
+        reloader.execute_unless_loaded if !app.routes.is_a?(Engine::LazyRouteSet) || app.config.eager_load
       end
 
       # Set clearing dependencies after the finisher hook to ensure paths
@@ -231,7 +229,8 @@ module Rails
 
       initializer :enable_yjit do
         if config.yjit && defined?(RubyVM::YJIT.enable)
-          RubyVM::YJIT.enable
+          options = config.yjit.is_a?(Hash) ? config.yjit : {}
+          RubyVM::YJIT.enable(**options)
         end
       end
     end

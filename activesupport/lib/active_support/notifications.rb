@@ -36,8 +36,8 @@ module ActiveSupport
   #     event.allocations   # => 1826 (objects)
   #   end
   #
-  #  +Event+ objects record CPU time and allocations. If you don't need this
-  #  it's also possible to pass a block that accepts five arguments:
+  # +Event+ objects record CPU time and allocations. If you don't need this
+  # it's also possible to pass a block that accepts five arguments:
   #
   #   ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
   #     name    # => String, name of the event (such as 'render' from above)

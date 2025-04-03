@@ -3,7 +3,6 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
-require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -160,7 +159,7 @@ module ApplicationTests
       assert_match(/You're using a cache/, error.message)
     end
 
-    test "a renders exception on pending migration" do
+    test "renders an exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
         config.consider_all_requests_local      = true
@@ -190,6 +189,67 @@ module ApplicationTests
           end
 
           assert_match(/\d{14}\s+CreateUser/, output)
+        end
+
+        assert_equal 302, last_response.status
+
+        get "/foo"
+        assert_equal 404, last_response.status
+      ensure
+        ActiveRecord::Migrator.migrations_paths = nil
+      end
+    end
+
+    test "renders an exception on pending migration for multiple DBs" do
+      add_to_config <<-RUBY
+        config.active_record.migration_error    = :page_load
+        config.consider_all_requests_local      = true
+        config.action_dispatch.show_exceptions  = :all
+      RUBY
+
+      app_file "config/database.yml", <<-YAML
+        <%= Rails.env %>:
+          primary:
+            adapter: sqlite3
+            database: 'dev_db'
+          other:
+            adapter: sqlite3
+            database: 'other_dev_db'
+            migrations_paths: db/other_migrate
+      YAML
+
+      app_file "db/migrate/20140708012246_create_users.rb", <<-RUBY
+        class CreateUsers < ActiveRecord::Migration::Current
+          def change
+            create_table :users
+          end
+        end
+      RUBY
+
+      app_file "db/other_migrate/20140708012247_create_blogs.rb", <<-RUBY
+        class CreateBlogs < ActiveRecord::Migration::Current
+          def change
+            create_table :blogs
+          end
+        end
+      RUBY
+
+      app "development"
+
+      begin
+        ActiveRecord::Migrator.migrations_paths = ["#{app_path}/db/migrate", "#{app_path}/db/other_migrate"]
+
+        get "/foo"
+        assert_equal 500, last_response.status
+        assert_match "ActiveRecord::PendingMigrationError", last_response.body
+
+        assert_changes -> { File.exist?(File.join(app_path, "db", "schema.rb")) }, from: false, to: true do
+          output = capture(:stdout) do
+            post "/rails/actions", { error: "ActiveRecord::PendingMigrationError", action: "Run pending migrations", location: "/foo" }
+          end
+
+          assert_match(/\d{14}\s+CreateUsers/, output)
+          assert_match(/\d{14}\s+CreateBlogs/, output)
         end
 
         assert_equal 302, last_response.status
@@ -816,6 +876,28 @@ module ApplicationTests
       assert File.exist?(app_path("tmp/local_secret.txt"))
     end
 
+    test "application will use ENV['SECRET_KEY_BASE'] if present in local env" do
+      env_var_secret = "env_var_secret"
+      ENV["SECRET_KEY_BASE"] = env_var_secret
+
+      app "development"
+
+      assert_equal env_var_secret, app.secret_key_base
+    ensure
+      ENV.delete "SECRET_KEY_BASE"
+    end
+
+    test "application will use secret_key_base from credentials if present in local env" do
+      credentials_secret = "credentials_secret"
+      add_to_config <<-RUBY
+        Rails.application.credentials.secret_key_base = "#{credentials_secret}"
+      RUBY
+
+      app "development"
+
+      assert_equal credentials_secret, app.secret_key_base
+    end
+
     test "application will not generate secret_key_base in tmp file if blank in production" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil
@@ -847,8 +929,31 @@ module ApplicationTests
       assert_nothing_raised do
         app "production"
       end
+
+      assert_not_nil app.secret_key_base
+      assert File.exist?(app_path("tmp/local_secret.txt"))
     ensure
-      ENV["SECRET_KEY_BASE_DUMMY"] = nil
+      ENV.delete "SECRET_KEY_BASE_DUMMY"
+    end
+
+    test "always use tmp file secret when dummy secret_key_base is used in production" do
+      secret = "tmp_file_secret"
+      ENV["SECRET_KEY_BASE_DUMMY"] = "1"
+      ENV["SECRET_KEY_BASE"] = "env_secret"
+
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = "credentials_secret"
+      RUBY
+
+      app_dir("tmp")
+      File.binwrite(app_path("tmp/local_secret.txt"), secret)
+
+      app "production"
+
+      assert_equal secret, app.secret_key_base
+    ensure
+      ENV.delete "SECRET_KEY_BASE_DUMMY"
+      ENV.delete "SECRET_KEY_BASE"
     end
 
     test "raise when secret_key_base is not a type of string" do
@@ -1552,7 +1657,7 @@ module ApplicationTests
       app "development"
 
       post "/posts.json", '{ "title": "foo", "name": "bar" }', "CONTENT_TYPE" => "application/json"
-      assert_equal '#<ActionController::Parameters {"title"=>"foo"} permitted: false>', last_response.body
+      assert_equal "#<ActionController::Parameters #{{ "title" => "foo" }} permitted: false>", last_response.body
     end
 
     test "config.action_controller.permit_all_parameters = true" do
@@ -1581,7 +1686,7 @@ module ApplicationTests
       app_file "app/controllers/posts_controller.rb", <<-RUBY
       class PostsController < ActionController::Base
         def create
-          render plain: params.require(:post).permit(:name)
+          render plain: params.permit(post: [:name])
         end
       end
       RUBY
@@ -1602,6 +1707,33 @@ module ApplicationTests
 
       post "/posts", post: { "title" => "zomg" }
       assert_match "We're sorry, but something went wrong", last_response.body
+    end
+
+    test "config.action_controller.action_on_unpermitted_parameters = :raise is ignored with expect" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ActionController::Base
+        def create
+          render plain: params.expect(post: [:name])
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+        config.action_controller.action_on_unpermitted_parameters = :raise
+      RUBY
+
+      app "development"
+
+      require "action_controller/base"
+      require "action_controller/api"
+
+      assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
+
+      post "/posts", post: { "title" => "zomg" }
+      assert_match "The server cannot process the request due to a client error", last_response.body
     end
 
     test "config.action_controller.always_permitted_parameters are: controller, action by default" do
@@ -3019,6 +3151,20 @@ module ApplicationTests
       assert_not ActiveJob.verbose_enqueue_logs
     end
 
+    test "config.active_job.enqueue_after_transaction_commit is deprecated" do
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      RUBY
+
+      app "production"
+
+      assert_nothing_raised do
+        ActiveRecord::Base
+      end
+
+      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+    end
+
     test "active record job queue is set" do
       app "development"
 
@@ -3731,6 +3877,29 @@ module ApplicationTests
       assert_not_includes ActiveRecord::Base.filter_attributes, :content
     end
 
+    test "ActiveRecord::Encryption.config is ready when accessed before loading ActiveRecord::Base" do
+      add_to_config <<-RUBY
+        config.enable_reloading = false
+        config.eager_load = false
+
+        config.active_record.encryption.primary_key = "dummy_key"
+        config.active_record.encryption.extend_queries = true
+      RUBY
+
+      app "development"
+
+      # Encryption config is ready to be accessed
+      assert_equal "dummy_key", ActiveRecord::Encryption.config.primary_key
+      assert ActiveRecord::Encryption.config.extend_queries
+
+      # ActiveRecord::Base is not loaded yet (lazy loading preserved)
+      active_record_loaded = ActiveRecord.autoload?(:Base).nil?
+      assert_not active_record_loaded
+
+      # When ActiveRecord::Base loaded, extended queries should be installed
+      assert ActiveRecord::Base.include?(ActiveRecord::Encryption::ExtendedDeterministicQueries::CoreQueries)
+    end
+
     test "ActiveRecord::Encryption.config is ready for encrypted attributes when app is lazy loaded" do
       add_to_config <<-RUBY
         config.enable_reloading = false
@@ -3859,13 +4028,21 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal :mini_magick, ActiveStorage.variant_processor
+      assert_nil ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do
       app "development"
 
       assert_equal :vips, ActiveStorage.variant_processor
+    end
+
+    test "ActiveStorage.analyzers doesn't contain nil when variant_processor = nil" do
+      add_to_config "config.active_storage.variant_processor = nil"
+
+      app "development"
+
+      assert_not_includes ActiveStorage.analyzers, nil
     end
 
     test "ActiveStorage.supported_image_processing_methods can be configured via config.active_storage.supported_image_processing_methods" do
@@ -4373,17 +4550,6 @@ module ApplicationTests
       ActiveRecord::Base.configurations = original_configurations
     end
 
-    test "raises an error if legacy_connection_handling is set" do
-      build_app(initializers: true)
-      add_to_env_config "production", "config.active_record.legacy_connection_handling = true"
-
-      error = assert_raise(ArgumentError) do
-        app "production"
-      end
-
-      assert_match(/The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1, but is still defined in your configuration. Please remove this call as it no longer has any effect./, error.message)
-    end
-
     test "raise_on_missing_translations = true" do
       add_to_config "config.i18n.raise_on_missing_translations = true"
       app "development"
@@ -4633,8 +4799,8 @@ module ApplicationTests
       assert_includes last_response.body, "rescued missing translation error from view"
     end
 
-    test "raise_on_missing_translations affects human_attribute_name in model" do
-      add_to_config "config.i18n.raise_on_missing_translations = true"
+    test "raise_on_missing_translations = :strict affects human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = :strict"
 
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
@@ -4644,6 +4810,21 @@ module ApplicationTests
       app "development"
 
       assert_raises I18n::MissingTranslationData do
+        Post.human_attribute_name("title")
+      end
+    end
+
+    test "raise_on_missing_translations = true does not affect human_attribute_name in model" do
+      add_to_config "config.i18n.raise_on_missing_translations = true"
+
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app "development"
+
+      assert_nothing_raised do
         Post.human_attribute_name("title")
       end
     end
@@ -4663,24 +4844,7 @@ module ApplicationTests
       assert_equal(:html4, Rails.application.config.dom_testing_default_html_version)
     end
 
-    test "sets ActiveRecord::Base.attributes_for_inspect to [:id] when config.consider_all_requests_local = false" do
-      add_to_config "config.consider_all_requests_local = false"
-
-      app "production"
-
-      assert_equal [:id], ActiveRecord::Base.attributes_for_inspect
-    end
-
-    test "sets ActiveRecord::Base.attributes_for_inspect to :all when config.consider_all_requests_local = true" do
-      add_to_config "config.consider_all_requests_local = true"
-
-      app "development"
-
-      assert_equal :all, ActiveRecord::Base.attributes_for_inspect
-    end
-
-    test "app configuration takes precedence over default" do
-      add_to_config "config.consider_all_requests_local = true"
+    test "app attributes_for_inspect configuration takes precedence over default" do
       add_to_config "config.active_record.attributes_for_inspect = [:foo]"
 
       app "development"
@@ -4688,8 +4852,7 @@ module ApplicationTests
       assert_equal [:foo], ActiveRecord::Base.attributes_for_inspect
     end
 
-    test "model's configuration takes precedence over default" do
-      add_to_config "config.consider_all_requests_local = true"
+    test "model's attributes_for_inspect configuration takes precedence over default" do
       app_file "app/models/foo.rb", <<-RUBY
         class Foo < ApplicationRecord
           self.attributes_for_inspect = [:foo]
@@ -4720,6 +4883,14 @@ module ApplicationTests
 
       assert_equal "potato", ActiveRecord::Base.lease_connection.pool.db_config.adapter
       assert_equal "SQLite", ActiveRecord::Base.lease_connection.adapter_name
+    end
+
+    test "In development mode, config.active_record.query_log_tags_enabled is true by default" do
+      restore_default_config
+
+      app "development"
+
+      assert Rails.application.config.active_record.query_log_tags_enabled
     end
 
     ["development", "production"].each do |env|
@@ -4756,6 +4927,17 @@ module ApplicationTests
       assert_equal :test, Rails.application.config.active_job.queue_adapter
       adapter = ActiveJob::Base.queue_adapter
       assert_instance_of ActiveJob::QueueAdapters::TestAdapter, adapter
+    end
+
+    test "Regexp.timeout is set to 1s by default" do
+      app "development"
+      assert_equal 1, Regexp.timeout
+    end
+
+    test "Regexp.timeout can be configured" do
+      add_to_config "Regexp.timeout = 5"
+      app "development"
+      assert_equal 5, Regexp.timeout
     end
 
     private

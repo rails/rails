@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/auto_id"
 require "models/aircraft"
 require "models/dashboard"
 require "models/clothing_item"
@@ -38,6 +39,22 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil topic.attributes["id"]
   end
 
+  def test_populates_autoincremented_id_pk_regardless_of_its_position_in_columns_list
+    auto_populated_column_names = AutoId.columns.select(&:auto_populated?).map(&:name)
+
+    # It's important we test a scenario where tables has more than one auto populated column
+    # and the first column is not the primary key. Otherwise it will be a regular test not asserting this special case.
+    assert auto_populated_column_names.size > 1
+    assert_not_equal AutoId.primary_key, auto_populated_column_names.first
+
+    record = AutoId.create!
+    last_id = AutoId.last.id
+
+    assert_not_nil last_id
+    assert last_id > 0
+    assert_equal last_id, record.id
+  end
+
   def test_populates_non_primary_key_autoincremented_column_for_a_cpk_model
     order = Cpk::Order.create(shop_id: 111_222)
 
@@ -62,6 +79,8 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_not_nil record.modified_time
       assert_not_nil record.modified_time_without_precision
       assert_not_nil record.modified_time_function
+
+      assert_equal "A", record.binary_default_function
 
       if supports_identity_columns?
         klass = Class.new(ActiveRecord::Base) do
@@ -342,6 +361,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { topic.increment! }
   end
 
+  def test_increment_new_record
+    topic = Topic.new
+
+    assert_no_queries do
+      assert_raises ActiveRecord::ActiveRecordError do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
+  def test_increment_destroyed_record
+    topic = topics(:first)
+    topic.destroy
+
+    assert_no_queries do
+      assert_raises ActiveRecord::ActiveRecordError do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
   def test_destroy_many
     clients = Client.find([2, 3])
 
@@ -456,6 +496,17 @@ class PersistenceTest < ActiveRecord::TestCase
     client = company.becomes(Client)
     assert_equal "37signals", client.name
     assert_equal %w{name}, client.changed
+  end
+
+  def test_becomes_preserve_record_status
+    company = Company.new(name: "37signals")
+    client = company.becomes(Client)
+    assert_predicate client, :new_record?
+
+    company.save
+    client = company.becomes(Client)
+    assert_predicate client, :persisted?
+    assert_predicate client, :previously_new_record?
   end
 
   def test_becomes_initializes_missing_attributes
@@ -1629,7 +1680,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
   end
 
-  def test_child_keeps_parents_query_contraints_derived_from_composite_pk
+  def test_child_keeps_parents_query_constraints_derived_from_composite_pk
     assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 

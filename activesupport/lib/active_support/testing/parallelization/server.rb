@@ -6,6 +6,8 @@ require "drb/unix" unless Gem.win_platform?
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
+      PrerecordResultClass = Struct.new(:name)
+
       class Server
         include DRb::DRbUndumped
 
@@ -21,6 +23,7 @@ module ActiveSupport
           @in_flight.delete([result.klass, result.name])
 
           reporter.synchronize do
+            reporter.prerecord(PrerecordResultClass.new(result.klass), result.name)
             reporter.record(result)
           end
         end

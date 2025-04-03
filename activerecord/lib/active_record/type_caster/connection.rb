@@ -19,7 +19,8 @@ module ActiveRecord
         if schema_cache.data_source_exists?(table_name)
           column = schema_cache.columns_hash(table_name)[attr_name.to_s]
           if column
-            type = @klass.with_connection { |connection| connection.lookup_cast_type_from_column(column) }
+            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+            type = column.fetch_cast_type(@klass.lease_connection)
           end
         end
 

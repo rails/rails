@@ -822,6 +822,7 @@
   exports.DirectUpload = DirectUpload;
   exports.DirectUploadController = DirectUploadController;
   exports.DirectUploadsController = DirectUploadsController;
+  exports.dispatchEvent = dispatchEvent;
   exports.start = start;
   Object.defineProperty(exports, "__esModule", {
     value: true

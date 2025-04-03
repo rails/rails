@@ -61,12 +61,14 @@ class MigrationTest < ActiveRecord::TestCase
       Thing.lease_connection.drop_table(table) rescue nil
     end
     Thing.reset_column_information
+    clear_statement_cache(Thing)
 
     %w(reminders people_reminders prefix_reminders_suffix).each do |table|
       Reminder.lease_connection.drop_table(table) rescue nil
     end
     Reminder.reset_table_name
     Reminder.reset_column_information
+    clear_statement_cache(Reminder)
 
     %w(last_name key bio age height wealth birthday favorite_day
        moment_of_truth male administrator funny).each do |column|
@@ -76,6 +78,7 @@ class MigrationTest < ActiveRecord::TestCase
     Person.lease_connection.remove_column("people", "middle_name") rescue nil
     Person.lease_connection.add_column("people", "first_name", :string)
     Person.reset_column_information
+    clear_statement_cache(Person)
 
     ActiveRecord::Migration.verbose = @verbose_was
   end
@@ -456,6 +459,21 @@ class MigrationTest < ActiveRecord::TestCase
     }.new
 
     assert_equal "hi mom!", migration.method_missing(:create_table)
+  end
+
+  def test_respond_to_for_migration_method
+    migration_class = Class.new(ActiveRecord::Migration::Current) {
+      def connection
+        Class.new {
+          def create_table; end
+        }.new
+      end
+    }
+
+    migration_class.class_eval { undef_method :create_table }
+    # create_table is handled by method_missing, so respond_to? returns true.
+    assert migration_class.new.respond_to?(:create_table)
+    assert migration_class.respond_to?(:create_table)
   end
 
   def test_add_table_with_decimals
@@ -1131,6 +1149,12 @@ class MigrationTest < ActiveRecord::TestCase
       }
     end
 
+    def clear_statement_cache(model)
+      model.connection_handler.each_connection_pool do |pool|
+        pool.connections.each(&:clear_cache!)
+      end
+    end
+
     def with_another_process_holding_lock(lock_id)
       thread_lock = Concurrent::CountDownLatch.new
       test_terminated = Concurrent::CountDownLatch.new
@@ -1245,7 +1269,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
-      assert_equal "0", column(:age).default
+      assert_equal 0, column(:age).default
       assert_equal "This is a comment", column(:birthdate).comment
     end
 

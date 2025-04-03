@@ -1,19 +1,17 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-  if connection.supports_datetime_with_precision?
-    create_table :datetime_defaults, force: true do |t|
-      t.datetime :modified_datetime, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
-      t.datetime :precise_datetime, default: -> { "CURRENT_TIMESTAMP(6)" }
-      t.datetime :updated_datetime, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
-    end
+  create_table :datetime_defaults, force: true do |t|
+    t.datetime :modified_datetime, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime :precise_datetime, default: -> { "CURRENT_TIMESTAMP(6)" }
+    t.datetime :updated_datetime, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
+  end
 
-    create_table :timestamp_defaults, force: true do |t|
-      t.timestamp :nullable_timestamp
-      t.timestamp :modified_timestamp, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
-      t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
-      t.timestamp :updated_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
-    end
+  create_table :timestamp_defaults, force: true do |t|
+    t.timestamp :nullable_timestamp
+    t.timestamp :modified_timestamp, precision: nil, default: -> { "CURRENT_TIMESTAMP" }
+    t.timestamp :precise_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6)" }
+    t.timestamp :updated_timestamp, precision: 6, default: -> { "CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)" }
   end
 
   create_table :defaults, force: true do |t|
@@ -82,4 +80,17 @@ ActiveRecord::Schema.define do
       SELECT * FROM topics LIMIT num;
     END
   SQL
+
+  if supports_insert_returning?
+    create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|
+      t.integer :id, null: false
+    end
+
+    execute <<~SQL
+      CREATE TRIGGER before_insert_trigger
+      BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
+      FOR EACH ROW
+      SET NEW.id = (SELECT COALESCE(MAX(id), 0) + 1 FROM pk_autopopulated_by_a_trigger_records);
+    SQL
+  end
 end

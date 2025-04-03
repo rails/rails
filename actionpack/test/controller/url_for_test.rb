@@ -325,10 +325,10 @@ module AbstractController
         with_routing do |set|
           set.draw do
             scope ":account_id" do
-              get "dashboard", to: "pages#dashboard", as: :dashboard
-              get "search(/:term)", to: "search#search", as: :search
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
             end
-            delete "signout", to: "sessions#destroy", as: :signout
+            delete "signout" => "sessions#destroy", as: :signout
           end
 
           kls = Class.new do
@@ -353,10 +353,10 @@ module AbstractController
         with_routing do |set|
           set.draw do
             scope ":account_id" do
-              get "dashboard", to: "pages#dashboard", as: :dashboard
-              get "search(/:term)", to: "search#search", as: :search
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
             end
-            delete "signout", to: "sessions#destroy", as: :signout
+            delete "signout" => "sessions#destroy", as: :signout
           end
 
           kls = Class.new { include set.url_helpers }
@@ -577,7 +577,7 @@ module AbstractController
       def test_default_params_first_empty
         with_routing do |set|
           set.draw do
-            get "(:param1)/test(/:param2)", to: "index#index",
+            get "(:param1)/test(/:param2)" => "index#index",
               defaults: {
                 param1: 1,
                 param2: 2

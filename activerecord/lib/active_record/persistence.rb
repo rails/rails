@@ -492,6 +492,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@attributes, @attributes)
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
+        becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
         becoming.errors.copy!(errors)
       end
@@ -640,8 +641,15 @@ module ActiveRecord
     # This means that any other modified attributes will still be dirty.
     # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
+    #
+    # This method raises an ActiveRecord::ActiveRecordError when called on new
+    # objects, or when at least one of the attributes is marked as readonly.
+    #
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
+      raise ActiveRecordError, "cannot update a new record" if new_record?
+      raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
+
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
@@ -810,159 +818,159 @@ module ActiveRecord
       end
     end
 
-  private
-    def init_internals
-      super
-      @_trigger_destroy_callback = @_trigger_update_callback = nil
-      @previously_new_record = false
-    end
-
-    def strict_loaded_associations
-      @association_cache.find_all do |_, assoc|
-        assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
-      end.map(&:first)
-    end
-
-    def _find_record(options)
-      all_queries = options ? options[:all_queries] : nil
-      base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
-
-      if options && options[:lock]
-        base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
-      else
-        base.find_by!(_in_memory_query_constraints_hash)
+    private
+      def init_internals
+        super
+        @_trigger_destroy_callback = @_trigger_update_callback = nil
+        @previously_new_record = false
       end
-    end
 
-    def _in_memory_query_constraints_hash
-      if self.class.query_constraints_list.nil?
-        { @primary_key => id }
-      else
-        self.class.query_constraints_list.index_with do |column_name|
-          attribute(column_name)
+      def strict_loaded_associations
+        @association_cache.find_all do |_, assoc|
+          assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
+        end.map(&:first)
+      end
+
+      def _find_record(options)
+        all_queries = options ? options[:all_queries] : nil
+        base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+
+        if options && options[:lock]
+          base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
+        else
+          base.find_by!(_in_memory_query_constraints_hash)
         end
       end
-    end
 
-    def apply_scoping?(options)
-      !(options && options[:unscoped]) &&
-        (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
-    end
-
-    def _query_constraints_hash
-      if self.class.query_constraints_list.nil?
-        { @primary_key => id_in_database }
-      else
-        self.class.query_constraints_list.index_with do |column_name|
-          attribute_in_database(column_name)
+      def _in_memory_query_constraints_hash
+        if self.class.query_constraints_list.nil?
+          { @primary_key => id }
+        else
+          self.class.query_constraints_list.index_with do |column_name|
+            attribute(column_name)
+          end
         end
       end
-    end
 
-    # A hook to be overridden by association modules.
-    def destroy_associations
-    end
-
-    def destroy_row
-      _delete_row
-    end
-
-    def _delete_row
-      self.class._delete_record(_query_constraints_hash)
-    end
-
-    def _touch_row(attribute_names, time)
-      time ||= current_time_from_proper_timezone
-
-      attribute_names.each do |attr_name|
-        _write_attribute(attr_name, time)
+      def apply_scoping?(options)
+        !(options && options[:unscoped]) &&
+          (self.class.default_scopes?(all_queries: true) || self.class.global_current_scope)
       end
 
-      _update_row(attribute_names, "touch")
-    end
-
-    def _update_row(attribute_names, attempted_action = "update")
-      self.class._update_record(
-        attributes_with_values(attribute_names),
-        _query_constraints_hash
-      )
-    end
-
-    def create_or_update(**, &block)
-      _raise_readonly_record_error if readonly?
-      return false if destroyed?
-      result = new_record? ? _create_record(&block) : _update_record(&block)
-      result != false
-    end
-
-    # Updates the associated record with values matching those of the instance attributes.
-    # Returns the number of affected rows.
-    def _update_record(attribute_names = self.attribute_names)
-      attribute_names = attributes_for_update(attribute_names)
-
-      if attribute_names.empty?
-        affected_rows = 0
-        @_trigger_update_callback = true
-      else
-        affected_rows = _update_row(attribute_names)
-        @_trigger_update_callback = affected_rows == 1
+      def _query_constraints_hash
+        if self.class.query_constraints_list.nil?
+          { @primary_key => id_in_database }
+        else
+          self.class.query_constraints_list.index_with do |column_name|
+            attribute_in_database(column_name)
+          end
+        end
       end
 
-      @previously_new_record = false
+      # A hook to be overridden by association modules.
+      def destroy_associations
+      end
 
-      yield(self) if block_given?
+      def destroy_row
+        _delete_row
+      end
 
-      affected_rows
-    end
+      def _delete_row
+        self.class._delete_record(_query_constraints_hash)
+      end
 
-    # Creates a record with values matching those of the instance attributes
-    # and returns its id.
-    def _create_record(attribute_names = self.attribute_names)
-      attribute_names = attributes_for_create(attribute_names)
+      def _touch_row(attribute_names, time)
+        time ||= current_time_from_proper_timezone
 
-      self.class.with_connection do |connection|
-        returning_columns = self.class._returning_columns_for_insert(connection)
+        attribute_names.each do |attr_name|
+          _write_attribute(attr_name, time)
+        end
 
-        returning_values = self.class._insert_record(
-          connection,
+        _update_row(attribute_names, "touch")
+      end
+
+      def _update_row(attribute_names, attempted_action = "update")
+        self.class._update_record(
           attributes_with_values(attribute_names),
-          returning_columns
+          _query_constraints_hash
         )
-
-        returning_columns.zip(returning_values).each do |column, value|
-          _write_attribute(column, value) if !_read_attribute(column)
-        end if returning_values
       end
 
-      @new_record = false
-      @previously_new_record = true
+      def create_or_update(**, &block)
+        _raise_readonly_record_error if readonly?
+        return false if destroyed?
+        result = new_record? ? _create_record(&block) : _update_record(&block)
+        result != false
+      end
 
-      yield(self) if block_given?
+      # Updates the associated record with values matching those of the instance attributes.
+      # Returns the number of affected rows.
+      def _update_record(attribute_names = self.attribute_names)
+        attribute_names = attributes_for_update(attribute_names)
 
-      id
-    end
+        if attribute_names.empty?
+          affected_rows = 0
+          @_trigger_update_callback = true
+        else
+          affected_rows = _update_row(attribute_names)
+          @_trigger_update_callback = affected_rows == 1
+        end
 
-    def verify_readonly_attribute(name)
-      raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attribute?(name)
-    end
+        @previously_new_record = false
 
-    def _raise_record_not_destroyed
-      @_association_destroy_exception ||= nil
-      key = self.class.primary_key
-      raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{id}", self)
-    ensure
-      @_association_destroy_exception = nil
-    end
+        yield(self) if block_given?
 
-    def _raise_readonly_record_error
-      raise ReadOnlyRecord, "#{self.class} is marked as readonly"
-    end
+        affected_rows
+      end
 
-    def _raise_record_not_touched_error
-      raise ActiveRecordError, <<~MSG.squish
-        Cannot touch on a new or destroyed record object. Consider using
-        persisted?, new_record?, or destroyed? before touching.
-      MSG
-    end
+      # Creates a record with values matching those of the instance attributes
+      # and returns its id.
+      def _create_record(attribute_names = self.attribute_names)
+        attribute_names = attributes_for_create(attribute_names)
+
+        self.class.with_connection do |connection|
+          returning_columns = self.class._returning_columns_for_insert(connection)
+
+          returning_values = self.class._insert_record(
+            connection,
+            attributes_with_values(attribute_names),
+            returning_columns
+          )
+
+          returning_columns.zip(returning_values).each do |column, value|
+            _write_attribute(column, type_for_attribute(column).deserialize(value)) if !_read_attribute(column)
+          end if returning_values
+        end
+
+        @new_record = false
+        @previously_new_record = true
+
+        yield(self) if block_given?
+
+        id
+      end
+
+      def verify_readonly_attribute(name)
+        raise ActiveRecordError, "#{name} is marked as readonly" if self.class.readonly_attribute?(name)
+      end
+
+      def _raise_record_not_destroyed
+        @_association_destroy_exception ||= nil
+        key = self.class.primary_key
+        raise @_association_destroy_exception || RecordNotDestroyed.new("Failed to destroy #{self.class} with #{key}=#{id}", self)
+      ensure
+        @_association_destroy_exception = nil
+      end
+
+      def _raise_readonly_record_error
+        raise ReadOnlyRecord, "#{self.class} is marked as readonly"
+      end
+
+      def _raise_record_not_touched_error
+        raise ActiveRecordError, <<~MSG.squish
+          Cannot touch on a new or destroyed record object. Consider using
+          persisted?, new_record?, or destroyed? before touching.
+        MSG
+      end
   end
 end

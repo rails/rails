@@ -24,6 +24,31 @@ class EncryptedBookWithDowncaseName < ActiveRecord::Base
   encrypts :name, deterministic: true, downcase: true
 end
 
+class EncryptedBookNormalizedFirst < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  normalizes :name, with: ->(value) { value.to_s.downcase }
+  encrypts :name
+  normalizes :logo, with: ->(value) { value.to_s.downcase }
+  encrypts :logo
+end
+
+class EncryptedBookNormalizedSecond < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :name
+  normalizes :name, with: ->(value) { value.to_s.downcase }
+  encrypts :logo
+  normalizes :logo, with: ->(value) { value.to_s.downcase }
+end
+
+class EncryptedBookAttribute < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  attribute :name, :date
+  encrypts :name
+end
+
 class EncryptedBookThatIgnoresCase < ActiveRecord::Base
   self.table_name = "encrypted_books"
 
@@ -50,11 +75,18 @@ class EncryptedBookWithBinary < ActiveRecord::Base
   encrypts :logo
 end
 
-class EncryptedBookWithSerializedBinary < ActiveRecord::Base
+class EncryptedBookWithSerializedFirstBinary < ActiveRecord::Base
   self.table_name = "encrypted_books"
 
   serialize :logo, coder: JSON
   encrypts :logo
+end
+
+class EncryptedBookWithSerializedSecondBinary < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :logo
+  serialize :logo, coder: JSON
 end
 
 class EncryptedBookWithCustomCompressor < ActiveRecord::Base

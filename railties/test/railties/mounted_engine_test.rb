@@ -19,21 +19,21 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          mount Weblog::Engine, at: '/', as: 'weblog'
+          mount Weblog::Engine, :at => '/', :as => 'weblog'
           resources :posts
-          get "/engine_route", to: "application_generating#engine_route"
-          get "/engine_route_in_view", to: "application_generating#engine_route_in_view"
-          get "/weblog_engine_route", to: "application_generating#weblog_engine_route"
-          get "/weblog_through_metric_engine_route", to: "application_generating#weblog_through_metric_engine_route"
-          get "/weblog_engine_route_in_view", to: "application_generating#weblog_engine_route_in_view"
-          get "/url_for_engine_route", to: "application_generating#url_for_engine_route"
-          get "/polymorphic_route", to: "application_generating#polymorphic_route"
-          get "/application_polymorphic_path", to: "application_generating#application_polymorphic_path"
-          scope "/:user", user: "anonymous" do
-            mount Blog::Engine, at: "/blog"
+          get "/engine_route" => "application_generating#engine_route"
+          get "/engine_route_in_view" => "application_generating#engine_route_in_view"
+          get "/weblog_engine_route" => "application_generating#weblog_engine_route"
+          get "/weblog_through_metric_engine_route" => "application_generating#weblog_through_metric_engine_route"
+          get "/weblog_engine_route_in_view" => "application_generating#weblog_engine_route_in_view"
+          get "/url_for_engine_route" => "application_generating#url_for_engine_route"
+          get "/polymorphic_route" => "application_generating#polymorphic_route"
+          get "/application_polymorphic_path" => "application_generating#application_polymorphic_path"
+          scope "/:user", :user => "anonymous" do
+            mount Blog::Engine => "/blog"
           end
-          mount Metrics::Engine, at: "/metrics"
-          root to: 'main#index'
+          mount Metrics::Engine => "/metrics"
+          root :to => 'main#index'
         end
       RUBY
 

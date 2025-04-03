@@ -53,6 +53,11 @@ class TestCaseTest < ActionController::TestCase
       render plain: request.body.read
     end
 
+    def render_body_encoding
+      request.body.rewind
+      render plain: request.body.read.encoding.name
+    end
+
     def test_params
       render plain: ::JSON.dump(params.to_unsafe_h)
     end
@@ -270,6 +275,14 @@ class TestCaseTest < ActionController::TestCase
     assert_equal params.to_query, @response.body
   end
 
+  def test_body_stream_is_binary
+    params = Hash[:page, { name: "page name" }, "some key", 123]
+
+    post :render_body_encoding, params: params.dup
+
+    assert_equal Encoding::BINARY.name, @response.body
+  end
+
   def test_document_body_and_params_with_post
     post :test_params, params: { id: 1 }
     assert_equal({ "id" => "1", "controller" => "test_case_test/test", "action" => "test_params" }, ::JSON.parse(@response.body))
@@ -458,7 +471,7 @@ class TestCaseTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         namespace :admin do
-          get "user", to: "user#index"
+          get "user" => "user#index"
         end
       end
 
@@ -468,7 +481,7 @@ class TestCaseTest < ActionController::TestCase
 
   def test_assert_routing_with_glob
     with_routing do |set|
-      set.draw { get("*path", to: "pages#show") }
+      set.draw { get("*path" => "pages#show") }
       assert_routing("/company/about", controller: "pages", action: "show", path: "company/about")
     end
   end
@@ -611,6 +624,13 @@ class TestCaseTest < ActionController::TestCase
     @request.headers["Content-Type"] = ""
     assert_raises(ActionDispatch::Http::MimeNegotiation::InvalidType) do
       get :test_headers
+    end
+  end
+
+  test "nil Content-Type header with post request" do
+    @request.headers["Content-Type"] = nil
+    assert_raises(match: /Unknown Content-Type/) do
+      post :render_body
     end
   end
 
@@ -1131,7 +1151,7 @@ module EngineControllerTests
     isolate_namespace EngineControllerTests
 
     routes.draw do
-      get "/", to: "bar#index"
+      get "/" => "bar#index"
     end
   end
 

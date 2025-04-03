@@ -88,7 +88,7 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message = Message.create! params.require(:message).permit(:title, :content, images: [])
+    message = Message.create! params.expect(message: [ :title, :content, images: [] ])
     redirect_to message
   end
 

@@ -7,6 +7,7 @@ module ActionText
     # Locates a Trix editor and fills it in with the given HTML.
     #
     # The editor can be found by:
+    #
     # *   its `id`
     # *   its `placeholder`
     # *   the text from its `label` element

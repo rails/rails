@@ -48,6 +48,22 @@ module ActionView
   #
   #   <%= render partial: "account", locals: { user: @buyer } %>
   #
+  # == \Rendering variants of a partial
+  #
+  # The <tt>:variants</tt> option can be used to render a different template variant of a partial. For instance:
+  #
+  #   <%= render partial: "account", variants: :mobile %>
+  #
+  # This will render <tt>_account.html+mobile.erb</tt>. This option also accepts multiple variants
+  # like so:
+  #
+  #   <%= render partial: "account", variants: [:desktop, :mobile] %>
+  #
+  # This will look for the following templates and render the first one that exists:
+  # * <tt>_account.html+desktop.erb</tt>
+  # * <tt>_account.html+mobile.erb</tt>
+  # * <tt>_account.html.erb</tt>
+  #
   # == \Rendering a collection of partials
   #
   # The example of partial use describes a familiar pattern where a template needs to iterate over an array and
@@ -94,7 +110,7 @@ module ActionView
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render partial: @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on #to_partial_path,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
@@ -114,7 +130,7 @@ module ActionView
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on #to_partial_path,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>

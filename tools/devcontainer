@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "json"
+require "open3"
+
+# To use podman on macOS:
+#
+#   $ brew install podman
+#   $ brew install podman-compose
+#   $ podman machine init
+#   $ podman machine start
+#   $ tools/devcontainer up
+#
+# Then in another terminal
+#
+#   $ tools/devcontainer run-user-commands
+#   $ tools/devcontainer sh
+def exe?(program)
+  ENV["PATH"].split(File::PATH_SEPARATOR).each do |path|
+    File.join(path, program).tap { |p|
+      return p if File.executable? p
+      next
+    }
+  end
+  nil
+end
+
+DOCKER = ENV["DOCKER"] || exe?("podman") || exe?("docker")
+
+VARS = {
+  "localWorkspaceFolderBasename" => Dir.pwd.split(File::SEPARATOR).last
+}
+
+data = File.binread ".devcontainer/devcontainer.json"
+data.gsub!(/^\s*\/\/.*$/, "") # strip comments
+info = JSON.load data
+
+working_dir = info["workspaceFolder"].gsub(/\${([^}]*)}/) { |x|
+  VARS.fetch($1)
+}
+
+env = info["containerEnv"].map { |k, v| "-e #{k}=#{v}" }.join " "
+
+case ARGV[0]
+when "up"
+  compose_file = File.expand_path(".devcontainer/#{info["dockerComposeFile"]}")
+  system DOCKER, "compose", "-f", compose_file, "up"
+when "run-user-commands"
+  service_id, _, _ = Open3.capture3("#{DOCKER} ps -q -f name=#{info["service"]}")
+  system "#{DOCKER} exec #{env} -w #{working_dir} -it #{service_id.chomp} /bin/bash -i #{info["postCreateCommand"]}"
+when "sh"
+  service_id, _, _ = Open3.capture3("#{DOCKER} ps -q -f name=#{info["service"]}")
+  system "#{DOCKER} exec #{env} -w #{working_dir} -it #{service_id.chomp} /bin/bash"
+end

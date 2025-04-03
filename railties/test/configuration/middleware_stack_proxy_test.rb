@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../../tools/strict_warnings"
 require "active_support"
 require "active_support/testing/autorun"
 require "rails/configuration"
@@ -63,18 +63,16 @@ module Rails
         @stack.swap :foo
         @stack.delete :foo
 
-        mock = Minitest::Mock.new
-        mock.expect :swap, nil, [:foo]
-        mock.expect :delete, nil, [:foo]
-
-        @stack.merge_into mock
-        mock.verify
+        assert_playback([:swap, :delete], :foo)
       end
 
       private
-        def assert_playback(msg_name, args)
+        def assert_playback(msg_names, args)
+          self.assertions += 1
           mock = Minitest::Mock.new
-          mock.expect msg_name, nil, [args]
+          Array(msg_names).each do |msg_name|
+            mock.expect msg_name, nil, [args]
+          end
           @stack.merge_into(mock)
           mock.verify
         end

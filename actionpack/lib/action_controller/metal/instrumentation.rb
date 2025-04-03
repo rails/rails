@@ -2,7 +2,6 @@
 
 # :markup: markdown
 
-require "benchmark"
 require "abstract_controller/logger"
 
 module ActionController
@@ -29,7 +28,7 @@ module ActionController
     def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
-        Benchmark.ms { render_output = super }
+        ActiveSupport::Benchmark.realtime(:float_millisecond) { render_output = super }
       end
       render_output
     end

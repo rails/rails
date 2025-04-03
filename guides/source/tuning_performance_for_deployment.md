@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Tuning Performance for Deployment
 =================================
@@ -121,8 +121,8 @@ If you use more than one thread per process, then it should be set to how many 
 or if the server is running multiple applications, to how many cores you want the application to use.
 If you only use one thread per worker, then you can increase it to above one per process to account for when workers are
 idle waiting for I/O operations.
-In the default generated configuration, it is set to use all the available processor cores on the server via the
-`Concurrent.available_processor_count` helper. You can also modify it by setting the `WEB_CONCURRENCY` environment variable.
+
+You can configure the number of Puma workers by setting the `WEB_CONCURRENCY` environment variable. Setting `WEB_CONCURRENCY=auto` will automatically adjust the Puma worker count to match the number of available CPUs. However, this setting might be inaccurate on cloud hosts with shared CPUs or platforms that report CPU counts incorrectly.
 
 ### YJIT
 

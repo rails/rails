@@ -175,11 +175,11 @@ module ActiveRecord
       end
 
       def open?
-        true
+        !closed?
       end
 
       def closed?
-        false
+        @state.finalized?
       end
 
       def add_record(record, ensure_finalize = true)

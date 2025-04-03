@@ -1,100 +1,99 @@
-*   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
+*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
-    *Sean Doyle*
+    *Lovro Bikić*
 
-*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions and password reset.
+*   Skip generating mailer-related files in authentication generator if the application does
+    not use ActionMailer
 
-    Generate with...
+    *Rami Massoud*
 
-    ```
-    bin/rails generate authentication
-    ```
+*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
 
-    Generated files:
-
-    ```
-    app/models/current.rb
-    app/models/user.rb
-    app/models/session.rb
-    app/controllers/sessions_controller.rb
-    app/controllers/passwords_controller.rb
-    app/mailers/passwords_mailer.rb
-    app/views/sessions/new.html.erb
-    app/views/passwords/new.html.erb
-    app/views/passwords/edit.html.erb
-    app/views/passwords_mailer/reset.html.erb
-    app/views/passwords_mailer/reset.text.erb
-    db/migrate/xxxxxxx_create_users.rb
-    db/migrate/xxxxxxx_create_sessions.rb
-    test/mailers/previews/passwords_mailer_preview.rb
-    ```
-
-    *DHH*
-
-
-*   Add not-null type modifier to migration attributes.
-
-    Generating with...
-
-    ```
-    bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
-    ```
-
-    Produces:
+    The specific steps are defined by a new DSL in `config/ci.rb`.
 
     ```ruby
-    class CreateUsers < ActiveRecord::Migration[8.0]
-      def change
-        create_table :users do |t|
-          t.string :email_address, null: false
-          t.string :password_digest, null: false
-
-          t.timestamps
-        end
-        add_index :users, :email_address, unique: true
-      end
+    ActiveSupport::ContinuousIntegration.run do
+      step "Setup", "bin/setup --skip-server"
+      step "Style: Ruby", "bin/rubocop"
+      step "Security: Gem audit", "bin/bundler-audit"
+      step "Tests: Rails", "bin/rails test test:system"
     end
     ```
 
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
+
+    *Jeremy Daer*, *DHH*
+
+*   Generate session controller tests when running the authentication generator.
+
+    *Jerome Dalbert*
+
+*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
+
     *DHH*
 
-*   Add a `script` folder to applications, and a scripts generator.
+*   Rails no longer generates a `bin/bundle` binstub when creating new applications.
 
-    The new `script` folder is meant to hold one-off or general purpose scripts,
-    such as data migration scripts, cleanup scripts, etc.
+    The `bin/bundle` binstub used to help activate the right version of bundler.
+    This is no longer necessary as this mechanism is now part of Rubygem itself.
 
-    A new script generator allows you to create such scripts:
+    *Edouard Chin*
 
-    ```
-    bin/rails generate script my_script
-    bin/rails generate script data/backfill
-    ```
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
 
-    You can run the generated script using:
+    *Bijan Rahnema*
 
-    ```
-    bundle exec ruby script/my_script.rb
-    bundle exec ruby script/data/backfill.rb
-    ```
+*   Rate limit password resets in authentication generator
 
-    *Jerome Dalbert*, *Haroon Ahmed*
-
-*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
-
-    *Juan Vásquez*
-
-*   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
-
-    *Deepak Mahakale*
-
-*   Add Rubocop and GitHub Actions to plugin generator.
-    This can be skipped using --skip-rubocop and --skip-ci.
+    This helps mitigate abuse from attackers spamming the password reset form.
 
     *Chris Oliver*
 
-*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
-    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
+*   Update `rails new --minimal` option
 
-    *DHH*
+    Extend the `--minimal` flag to exclude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md) for previous changes.
+    *eelcoj*
+
+*   Add `application-name` metadata to application layout
+
+    The following metatag will be added to `app/views/layouts/application.html.erb`
+
+    ```html
+    <meta name="application-name" content="Name of Rails Application">
+    ```
+
+    *Steve Polito*
+
+*   Use `secret_key_base` from ENV or credentials when present locally.
+
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
+
+    *Petrik de Heus*
+
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
+*   Colorize the Rails console prompt even on non standard environments.
+
+    *Lorenzo Zabot*
+
+*   Don't enable YJIT in development and test environments
+
+    Development and test environments tend to reload code and redefine methods (e.g. mocking),
+    hence YJIT isn't generally faster in these environments.
+
+    *Ali Ismayilov*, *Jean Boussier*
+
+*   Only include PermissionsPolicy::Middleware if policy is configured.
+
+    *Petrik de Heus*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

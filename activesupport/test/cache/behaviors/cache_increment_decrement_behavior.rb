@@ -31,14 +31,26 @@ module CacheIncrementDecrementBehavior
     assert_equal @cache.is_a?(ActiveSupport::Cache::MemCacheStore) ? 0 : -100, missing
   end
 
+  def test_read_counter_and_write_counter
+    key = SecureRandom.uuid
+    @cache.write_counter(key, 1)
+    assert_equal 1, @cache.read(key, raw: true).to_i
+
+    assert_equal 1, @cache.read_counter(key)
+    assert_equal 2, @cache.increment(key)
+    assert_equal 2, @cache.read_counter(key)
+
+    assert_nil @cache.read_counter(SecureRandom.alphanumeric)
+  end
+
   def test_ttl_isnt_updated
     key = SecureRandom.uuid
 
-    assert_equal 1, @cache.increment(key, 1, expires_in: 1)
-    assert_equal 2, @cache.increment(key, 1, expires_in: 5000)
+    assert_equal 1, @cache.increment(key, expires_in: 1)
+    assert_equal 2, @cache.increment(key, expires_in: 5000)
 
     # having to sleep two seconds in a test is bad, but we're testing
-    # a wide range of backends with different TTL mecanisms, most without
+    # a wide range of backends with different TTL mechanisms, most without
     # subsecond granularity, so this is the only reliable way.
     sleep 2
 

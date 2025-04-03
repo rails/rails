@@ -52,11 +52,28 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(a: :b, c: :d))
   end
 
+  def test_unicode_escape
+    assert_equal %{{"\\u2028":"\\u2029"}}, ActiveSupport::JSON.encode("\u2028" => "\u2029")
+    assert_equal %{{"\u2028":"\u2029"}}, ActiveSupport::JSON.encode({ "\u2028" => "\u2029" }, escape: false)
+  end
+
   def test_hash_keys_encoding
     ActiveSupport.escape_html_entities_in_json = true
     assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode("<>" => "<>")
   ensure
     ActiveSupport.escape_html_entities_in_json = false
+  end
+
+  def test_hash_keys_encoding_option
+    global_config = ActiveSupport.escape_html_entities_in_json
+
+    ActiveSupport.escape_html_entities_in_json = true
+    assert_equal "{\"<>\":\"<>\"}", ActiveSupport::JSON.encode({ "<>" => "<>" }, escape_html_entities: false)
+
+    ActiveSupport.escape_html_entities_in_json = false
+    assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode({ "<>" => "<>" }, escape_html_entities: true)
+  ensure
+    ActiveSupport.escape_html_entities_in_json = global_config
   end
 
   def test_utf8_string_encoded_properly
@@ -304,13 +321,14 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal([:default], json)
   end
 
+  UserNameAndEmail = Struct.new(:name, :email)
+  UserNameAndDate = Struct.new(:name, :date)
+  Custom = Struct.new(:name, :sub)
+
   def test_struct_encoding
-    Struct.new("UserNameAndEmail", :name, :email)
-    Struct.new("UserNameAndDate", :name, :date)
-    Struct.new("Custom", :name, :sub)
-    user_email = Struct::UserNameAndEmail.new "David", "sample@example.com"
-    user_birthday = Struct::UserNameAndDate.new "David", Date.new(2010, 01, 01)
-    custom = Struct::Custom.new "David", user_birthday
+    user_email = UserNameAndEmail.new "David", "sample@example.com"
+    user_birthday = UserNameAndDate.new "David", Date.new(2010, 01, 01)
+    custom = Custom.new "David", user_birthday
 
     json_strings = ""
     json_string_and_date = ""
@@ -334,15 +352,13 @@ class TestJSONEncoding < ActiveSupport::TestCase
                  ActiveSupport::JSON.decode(json_string_and_date))
   end
 
-  if RUBY_VERSION >= "3.2"
-    def test_data_encoding
-      data = Data.define(:name, :email).new("test", "test@example.com")
+  def test_data_encoding
+    data = Data.define(:name, :email).new("test", "test@example.com")
 
-      assert_nothing_raised { data.to_json }
+    assert_nothing_raised { data.to_json }
 
-      assert_equal({ "name" => "test", "email" => "test@example.com" },
-        ActiveSupport::JSON.decode(data.to_json))
-    end
+    assert_equal({ "name" => "test", "email" => "test@example.com" },
+      ActiveSupport::JSON.decode(data.to_json))
   end
 
   def test_nil_true_and_false_represented_as_themselves
@@ -473,6 +489,33 @@ EXPECTED
     assert_equal STDOUT.to_s.to_json, STDOUT.to_json
   end
 
+  class AsJSONLoop
+    def initialize(count)
+      @count = count
+    end
+
+    def as_json
+      if @count > 0
+        @count -= 1
+        dup
+      else
+        self
+      end
+    end
+  end
+
+  def test_as_json_infinite_loop
+    assert_raise SystemStackError do
+      AsJSONLoop.new(Float::INFINITY).to_json
+    end
+  end
+
+  def test_as_json_too_recursive
+    assert_raise SystemStackError do
+      AsJSONLoop.new(20).to_json
+    end
+  end
+
   private
     def object_keys(json_object)
       json_object[1..-2].scan(/([^{}:,\s]+):/).flatten.sort
@@ -492,4 +535,17 @@ EXPECTED
     ensure
       ActiveSupport::JSON::Encoding.time_precision = old_value
     end
+end
+
+if defined?(::JSON::Coder)
+  class OldJSONEncodingTest < TestJSONEncoding
+    setup do
+      @json_encoder = ActiveSupport::JSON::Encoding.json_encoder
+      ActiveSupport::JSON::Encoding.json_encoder = ActiveSupport::JSON::Encoding::JSONGemEncoder
+    end
+
+    teardown do
+      ActiveSupport::JSON::Encoding.json_encoder = @json_encoder
+    end
+  end
 end

@@ -203,11 +203,50 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_doesnt_generate_same_sid_with_check_collisions
+    cache_store_options({ check_collisions: true })
+
+    expected_values = [
+      +"eed45f3da20b5c4da3bc3b160f996315",
+      +"eed45f3da20b5c4da3bc3b160f996315",
+      +"eed45f3da20b5c4da3bc3b160f996316",
+    ]
+    counter = -1
+    hex_generator = proc do
+      counter += 1
+      expected_values[counter]
+    end
+
+    SecureRandom.stub(:hex, hex_generator) do
+      with_test_route_set do
+        get "/set_session_value"
+        assert_response :success
+        assert cookies["_session_id"]
+
+        first_sid = Rack::Session::SessionId.new(cookies["_session_id"])
+        assert_equal expected_values[0], first_sid.public_id
+
+        cookies.delete("_session_id")
+
+        get "/set_session_value"
+        assert_response :success
+        assert cookies["_session_id"]
+
+        second_sid = Rack::Session::SessionId.new(cookies["_session_id"])
+        assert_equal expected_values[2], second_sid.public_id
+      end
+    end
+  end
+
   private
+    def cache_store_options(options = {})
+      @cache_store_options ||= options
+    end
+
     def app
       @app ||= self.class.build_app do |middleware|
         @cache = ActiveSupport::Cache::MemoryStore.new
-        middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache
+        middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache, **cache_store_options
         middleware.delete ActionDispatch::ShowExceptions
       end
     end

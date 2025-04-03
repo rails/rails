@@ -340,7 +340,7 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_when_given_nil_model_argument
-    assert_deprecated(ActionView.deprecator) do
+    assert_raises(ArgumentError) do
       form_with(model: nil) do
       end
     end

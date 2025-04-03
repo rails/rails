@@ -6,6 +6,8 @@ require "jobs/hello_job"
 require "jobs/provider_jid_job"
 require "active_support/core_ext/numeric/time"
 
+return unless ENV["AJ_INTEGRATION_TESTS"] == "1"
+
 class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
     TestJob.perform_later @id

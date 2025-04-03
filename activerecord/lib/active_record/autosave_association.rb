@@ -372,19 +372,29 @@ module ActiveRecord
         return true if record.destroyed? || (association.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
+        return true if record.valid?(context)
 
-        unless valid = record.valid?(context)
-          if association.options[:autosave]
-            record.errors.each { |error|
-              self.errors.objects.append(
-                Associations::NestedError.new(association, error)
-              )
-            }
-          else
-            errors.add(association.reflection.name)
-          end
+        if record.changed? || record.new_record? || context
+          associated_errors = record.errors.objects
+        else
+          # If there are existing invalid records in the DB, we should still be able to reference them.
+          # Unless a record (no matter where in the association chain) is invalid and is being changed.
+          associated_errors = record.errors.objects.select { |error| error.is_a?(Associations::NestedError) }
         end
-        valid
+
+        if association.options[:autosave]
+          return if equal?(record)
+
+          associated_errors.each { |error|
+            errors.objects.append(
+              Associations::NestedError.new(association, error)
+            )
+          }
+        elsif associated_errors.any?
+          errors.add(association.reflection.name)
+        end
+
+        errors.any?
       end
 
       # Is used as an around_save callback to check while saving a collection
@@ -462,7 +472,9 @@ module ActiveRecord
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
       def save_has_one_association(reflection)
         association = association_instance_get(reflection.name)
-        record      = association && association.load_target
+        return unless association && association.loaded?
+
+        record = association.load_target
         return unless record && !record.destroyed?
 
         autosave = reflection.options[:autosave]

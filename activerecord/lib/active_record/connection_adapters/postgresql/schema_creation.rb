@@ -11,14 +11,11 @@ module ActiveRecord
             sql = super
             sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
             sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
-            sql << o.exclusion_constraint_drops.map { |con| visit_DropExclusionConstraint con }.join(" ")
             sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
-            sql << o.unique_constraint_drops.map { |con| visit_DropUniqueConstraint con }.join(" ")
           end
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              sql << " DEFERRABLE INITIALLY #{o.options[:deferrable].to_s.upcase}" if o.deferrable
               sql << " NOT VALID" unless o.validate?
             end
           end
@@ -55,6 +52,7 @@ module ActiveRecord
             sql = ["CONSTRAINT"]
             sql << quote_column_name(o.name)
             sql << "UNIQUE"
+            sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && o.nulls_not_distinct
 
             if o.using_index
               sql << "USING INDEX #{quote_column_name(o.using_index)}"
@@ -73,16 +71,8 @@ module ActiveRecord
             "ADD #{accept(o)}"
           end
 
-          def visit_DropExclusionConstraint(name)
-            "DROP CONSTRAINT #{quote_column_name(name)}"
-          end
-
           def visit_AddUniqueConstraint(o)
             "ADD #{accept(o)}"
-          end
-
-          def visit_DropUniqueConstraint(name)
-            "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
           def visit_ChangeColumnDefinition(o)
@@ -109,7 +99,7 @@ module ActiveRecord
               if options[:default].nil?
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} DROP DEFAULT"
               else
-                quoted_default = quote_default_expression(options[:default], column)
+                quoted_default = quote_default_expression_for_column_definition(options[:default], column)
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} SET DEFAULT #{quoted_default}"
               end
             end

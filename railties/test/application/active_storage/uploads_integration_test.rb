@@ -51,7 +51,7 @@ module ApplicationTests
 
           private
             def user_params
-              params.require(:user).permit(:name, :avatar)
+              params.expect(user: [:name, :avatar])
             end
         end
       RUBY

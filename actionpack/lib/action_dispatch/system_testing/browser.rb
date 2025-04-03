@@ -9,7 +9,6 @@ module ActionDispatch
 
       def initialize(name)
         @name = name
-        set_default_options
       end
 
       def type
@@ -27,9 +26,9 @@ module ActionDispatch
         @options ||=
           case type
           when :chrome
-            ::Selenium::WebDriver::Chrome::Options.new
+            default_chrome_options
           when :firefox
-            ::Selenium::WebDriver::Firefox::Options.new
+            default_firefox_options
           end
       end
 
@@ -49,26 +48,18 @@ module ActionDispatch
       end
 
       private
-        def set_default_options
-          case name
-          when :headless_chrome
-            set_headless_chrome_browser_options
-          when :headless_firefox
-            set_headless_firefox_browser_options
-          end
+        def default_chrome_options
+          options = ::Selenium::WebDriver::Chrome::Options.new
+          options.add_argument("--disable-search-engine-choice-screen")
+          options.add_argument("--headless") if name == :headless_chrome
+          options.add_argument("--disable-gpu") if Gem.win_platform?
+          options
         end
 
-        def set_headless_chrome_browser_options
-          configure do |capabilities|
-            capabilities.add_argument("--headless")
-            capabilities.add_argument("--disable-gpu") if Gem.win_platform?
-          end
-        end
-
-        def set_headless_firefox_browser_options
-          configure do |capabilities|
-            capabilities.add_argument("-headless")
-          end
+        def default_firefox_options
+          options = ::Selenium::WebDriver::Firefox::Options.new
+          options.add_argument("-headless") if name == :headless_firefox
+          options
         end
 
         def resolve_driver_path(namespace)

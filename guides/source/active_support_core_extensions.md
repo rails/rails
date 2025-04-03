@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Support Core Extensions
 ==============================
@@ -1540,7 +1540,7 @@ INFO: As a rule of thumb you can think of `camelize` as the inverse of `undersco
 
 ```ruby
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.acronym 'SSL'
+  inflect.acronym "SSL"
 end
 
 "SSLError".underscore.camelize # => "SSLError"

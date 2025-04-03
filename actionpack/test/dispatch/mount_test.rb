@@ -28,6 +28,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
 
     mount SprocketsApp, at: "/sprockets"
     mount SprocketsApp, at: "/star*"
+    mount SprocketsApp => "/shorthand"
 
     mount SinatraLikeApp, at: "/fakeengine", as: :fake
     mount SinatraLikeApp, at: "/getfake", via: :get
@@ -83,10 +84,15 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
     assert_equal "/its_a/sprocket -- /omg", response.body
   end
 
+  def test_mounting_with_shorthand
+    get "/shorthand/omg"
+    assert_equal "/shorthand -- /omg", response.body
+  end
+
   def test_mounting_does_not_match_similar_paths
-    get "/sprocketsomg"
-    assert_not_equal "/sprockets -- /omg", response.body
-    assert_equal " -- /sprocketsomg", response.body
+    get "/shorthandomg"
+    assert_not_equal "/shorthand -- /omg", response.body
+    assert_equal " -- /shorthandomg", response.body
   end
 
   def test_mounting_works_with_via

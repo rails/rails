@@ -40,7 +40,7 @@ module ActiveRecord
       # +nil+ if the token is invalid or the record was not found.
       def find_by_token_for(purpose, token)
         raise UnknownPrimaryKey.new(self) unless model.primary_key
-        model.token_definitions.fetch(purpose).resolve_token(token) { |id| find_by(model.primary_key => id) }
+        model.token_definitions.fetch(purpose).resolve_token(token) { |id| find_by(model.primary_key => [id]) }
       end
 
       # Finds a record using a given +token+ for a predefined +purpose+. Raises

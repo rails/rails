@@ -135,7 +135,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "up", to: "rails/health#show", as: :rails_health_check
+          get "up" => "rails/health#show", as: :rails_health_check
         end
       RUBY
 
@@ -309,6 +309,31 @@ module ApplicationTests
           get 'lol' => 'hello#index'
         end
       R
+
+      get "/win"
+      assert_equal "WIN", last_response.body
+    end
+
+    test "routes appending blocks after reload" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get ':controller/:action'
+        end
+      RUBY
+
+      add_to_config <<-R
+        config.before_eager_load do |app|
+          app.reload_routes!
+        end
+
+        config.after_initialize do |app|
+          app.routes.append do
+            get '/win' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['WIN']] }
+          end
+        end
+      R
+
+      app "production"
 
       get "/win"
       assert_equal "WIN", last_response.body

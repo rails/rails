@@ -87,13 +87,23 @@ module ActionDispatch
         end
 
         def generate_response_message(expected, actual = @response.response_code)
-          (+"Expected response to be a <#{code_with_name(expected)}>,"\
-          " but was a <#{code_with_name(actual)}>").concat(location_if_redirected).concat(response_body_if_short)
+          lambda do
+            (+"Expected response to be a <#{code_with_name(expected)}>,"\
+             " but was a <#{code_with_name(actual)}>").
+              concat(location_if_redirected).
+              concat(exception_if_present).
+              concat(response_body_if_short)
+          end
         end
 
         def response_body_if_short
           return "" if @response.body.size > 500
           "\nResponse body: #{@response.body}"
+        end
+
+        def exception_if_present
+          return "" unless ex = @request&.env&.[]("action_dispatch.exception")
+          "\n\nException while processing request: #{Minitest::UnexpectedError.new(ex).message}\n"
         end
 
         def location_if_redirected

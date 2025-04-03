@@ -73,20 +73,14 @@ module ActionMailer
       app.config.paths["test/mailers/previews"].concat(options.preview_paths)
     end
 
-    initializer "action_mailer.compile_config_methods" do
-      ActiveSupport.on_load(:action_mailer) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
-      end
-    end
-
     config.after_initialize do |app|
       options = app.config.action_mailer
 
       if options.show_previews
         app.routes.prepend do
-          get "/rails/mailers", to: "rails/mailers#index", internal: true
-          get "/rails/mailers/download/*path", to: "rails/mailers#download", internal: true
-          get "/rails/mailers/*path", to: "rails/mailers#preview", internal: true
+          get "/rails/mailers" => "rails/mailers#index", internal: true
+          get "/rails/mailers/download/*path" => "rails/mailers#download", internal: true
+          get "/rails/mailers/*path" => "rails/mailers#preview", internal: true
         end
       end
     end

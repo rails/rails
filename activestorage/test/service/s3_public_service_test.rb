@@ -35,7 +35,7 @@ if SERVICE_CONFIGURATIONS[:s3_public]
     test "direct upload" do
       key      = SecureRandom.base58(24)
       data     = "Something else entirely!"
-      checksum = OpenSSL::Digest::MD5.base64digest(data)
+      checksum = ActiveStorage.checksum_implementation.base64digest(data)
       url      = @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum)
 
       uri = URI.parse url

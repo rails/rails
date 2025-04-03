@@ -242,8 +242,6 @@ module ActionView # :nodoc:
     # :startdoc:
 
     def initialize(lookup_context, assigns, controller) # :nodoc:
-      @_config = ActiveSupport::InheritableOptions.new
-
       @lookup_context = lookup_context
 
       @view_renderer = ActionView::Renderer.new @lookup_context
@@ -267,15 +265,12 @@ module ActionView # :nodoc:
         begin
           public_send(method, locals, buffer, **locals, &block)
         rescue ArgumentError => argument_error
-          raise(
-            ArgumentError,
-            argument_error.
-              message.
-                gsub("unknown keyword:", "unknown local:").
-                gsub("missing keyword:", "missing local:").
-                gsub("no keywords accepted", "no locals accepted").
-                concat(" for #{@current_template.short_identifier}")
-          )
+          public_send_line = __LINE__ - 2
+          frame = argument_error.backtrace_locations[1]
+          if frame.path == __FILE__ && frame.lineno == public_send_line
+            raise StrictLocalsError.new(argument_error, @current_template)
+          end
+          raise
         end
       else
         public_send(method, locals, buffer, &block)

@@ -171,18 +171,15 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
   def test_fragment_cache_instrumentation
     @mailer.enable_fragment_cache_logging = true
-    payload = nil
 
-    subscriber = proc do |_, _, _, _, event_payload|
-      payload = event_payload
-    end
+    expected_payload = {
+      mailer: "caching_mailer",
+      key: [:views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}", :caching]
+    }
 
-    ActiveSupport::Notifications.subscribed(subscriber, "read_fragment.action_mailer") do
+    assert_notification("read_fragment.action_mailer", expected_payload) do
       @mailer.fragment_cache
     end
-
-    assert_equal "caching_mailer", payload[:mailer]
-    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache", "html")}", :caching ], payload[:key]
   ensure
     @mailer.enable_fragment_cache_logging = true
   end

@@ -4,9 +4,10 @@ require "abstract_unit"
 
 class RateLimitedController < ActionController::Base
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
-  rate_limit to: 2, within: 2.seconds, only: :limited_to_two
+  rate_limit to: 2, within: 2.seconds, only: :limited
+  rate_limit to: 5, within: 1.minute, name: "long-term", only: :limited
 
-  def limited_to_two
+  def limited
     head :ok
   end
 
@@ -24,21 +25,39 @@ class RateLimitingTest < ActionController::TestCase
   end
 
   test "exceeding basic limit" do
-    get :limited_to_two
-    get :limited_to_two
+    get :limited
+    get :limited
     assert_response :ok
 
-    get :limited_to_two
+    get :limited
     assert_response :too_many_requests
   end
 
+  test "multiple rate limits" do
+    get :limited
+    get :limited
+    assert_response :ok
+
+    travel_to 3.seconds.from_now do
+      get :limited
+      get :limited
+      assert_response :ok
+    end
+
+    travel_to 3.seconds.from_now do
+      get :limited
+      get :limited
+      assert_response :too_many_requests
+    end
+  end
+
   test "limit resets after time" do
-    get :limited_to_two
-    get :limited_to_two
+    get :limited
+    get :limited
     assert_response :ok
 
     travel_to Time.now + 3.seconds do
-      get :limited_to_two
+      get :limited
       assert_response :ok
     end
   end

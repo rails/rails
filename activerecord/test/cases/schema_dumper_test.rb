@@ -18,21 +18,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     @@standard_dump ||= dump_all_table_schema
   end
 
-  def test_dump_schema_information_with_empty_versions
+  def test_dump_schema_versions_with_empty_versions
     @schema_migration.delete_all_versions
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     assert_no_match(/INSERT INTO/, schema_info)
   end
 
-  def test_dump_schema_information_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
+  def test_dump_schema_versions_outputs_lexically_reverse_ordered_versions_regardless_of_database_order
     versions = %w{ 20100101010101 20100201010101 20100301010101 }
     versions.shuffle.each do |v|
       @schema_migration.create_version(v)
     end
 
-    schema_info = ActiveRecord::Base.lease_connection.dump_schema_information
+    schema_info = ActiveRecord::Base.lease_connection.dump_schema_versions
     expected = <<~STR
-    INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("schema_migrations")} (version) VALUES
+    INSERT INTO #{quote_table_name("schema_migrations")} (version) VALUES
     ('20100301010101'),
     ('20100201010101'),
     ('20100101010101');
@@ -167,6 +167,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
+  def test_table_columns_sorted
+    column_names = column_definition_lines(dump_table_schema("companies")).flatten.filter_map do |line|
+      $1 if line !~ /t\.index/ && line.match(/t\..*"(\w+)"/)
+    end
+
+    assert_equal %w[account_id client_of description firm_id firm_name name rating status type], column_names
+  end
+
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -218,6 +226,13 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+    def test_schema_dumps_index_visibility
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_disabled_index/).first.strip
+      assert_equal 't.index ["firm_id", "client_of"], name: "company_disabled_index", enabled: false', index_definition
+    end
+  end
+
   if ActiveRecord::Base.lease_connection.supports_check_constraints?
     def test_schema_dumps_check_constraints
       constraint_definition = dump_table_schema("products").split(/\n/).grep(/t.check_constraint.*products_price_check/).first.strip
@@ -246,10 +261,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
       output = dump_table_schema("test_unique_constraints")
       constraint_definitions = output.split(/\n/).grep(/t\.unique_constraint/)
 
-      assert_equal 3, constraint_definitions.size
+      assert_equal 4, constraint_definitions.size
       assert_match 't.unique_constraint ["position_1"], name: "test_unique_constraints_position_deferrable_false"', output
       assert_match 't.unique_constraint ["position_2"], deferrable: :immediate, name: "test_unique_constraints_position_deferrable_immediate"', output
       assert_match 't.unique_constraint ["position_3"], deferrable: :deferred, name: "test_unique_constraints_position_deferrable_deferred"', output
+      assert_match 't.unique_constraint ["position_4"], nulls_not_distinct: true, name: "test_unique_constraints_position_nulls_not_distinct"', output
     end
 
     def test_schema_does_not_dump_unique_constraints_as_indexes
@@ -418,6 +434,33 @@ class SchemaDumperTest < ActiveRecord::TestCase
         enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
+    end
+
+    def test_schema_dump_include_limit_for_float4_field
+      output = dump_table_schema "numeric_data"
+      assert_match %r{t\.float\s+"temperature_with_limit",\s+limit: 24$}, output
+    end
+
+    def test_schema_dump_keeps_enum_intact_if_it_contains_comma
+      original, $stdout = $stdout, StringIO.new
+
+      migration = Class.new(ActiveRecord::Migration::Current) do
+        def up
+          create_enum "enum_with_comma", ["value1", "value,2", "value3"]
+        end
+
+        def down
+          drop_enum "enum_with_comma"
+        end
+      end
+
+      migration.migrate(:up)
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_enum "enum_with_comma", ["value1", "value,2", "value3"]', output
+    ensure
+      migration.migrate(:down)
+      $stdout = original
     end
   end
 
@@ -934,13 +977,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
     assert_match %r{t\.string\s+"string_with_default",.*?default: "Hello!"}, output
     assert_match %r{t\.date\s+"date_with_default",\s+default: "2014-06-05"}, output
-
-    if supports_datetime_with_precision?
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
-    else
-      assert_match %r{t\.datetime\s+"datetime_with_default",\s+precision: nil,\s+default: "2014-06-05 07:17:04"}, output
-    end
-
+    assert_match %r{t\.datetime\s+"datetime_with_default",\s+default: "2014-06-05 07:17:04"}, output
     assert_match %r{t\.time\s+"time_with_default",\s+default: "2000-01-01 07:17:04"}, output
     assert_match %r{t\.decimal\s+"decimal_with_default",\s+precision: 20,\s+scale: 10,\s+default: "1234567890.0123456789"}, output
   end

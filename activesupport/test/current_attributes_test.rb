@@ -247,11 +247,64 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 
+  test "CurrentAttributes doesn't populate #attributes when not using defaults" do
+    assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
+  end
+
+  test "#attributes returns different objects each time" do
+    assert_not_same Current.attributes, Current.attributes
+  end
+
   test "CurrentAttributes restricted attribute names" do
     assert_raises ArgumentError, match: /Restricted attribute names: reset, set/ do
       class InvalidAttributeNames < ActiveSupport::CurrentAttributes
         attribute :reset, :foo, :set
       end
     end
+  end
+
+  test "method_added hook doesn't reach the instance. Fix for #54646" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def foo; end # Sets the cache because of a `method_added` hook
+
+      attribute :bar, default: {}
+    end
+
+    assert_instance_of(Hash, current.bar)
+  end
+
+  test "instance delegators are eagerly defined" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def regular
+        :regular
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert current.singleton_class.method_defined?(:attr)
+    assert current.singleton_class.method_defined?(:attr=)
+    assert current.singleton_class.method_defined?(:regular)
+  end
+
+  test "attribute delegators have precise signature" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert_equal [], current.method(:attr).parameters
+    assert_equal [[:req, :value]], current.method(:attr=).parameters
   end
 end

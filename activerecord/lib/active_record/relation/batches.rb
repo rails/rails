@@ -260,12 +260,12 @@ module ActiveRecord
       cursor = Array(cursor).map(&:to_s)
       ensure_valid_options_for_batching!(cursor, start, finish, order)
 
-      unless block
-        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, cursor: cursor, order: order, use_ranges: use_ranges)
-      end
-
       if arel.orders.present?
         act_on_ignored_order(error_on_ignore)
+      end
+
+      unless block
+        return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, cursor: cursor, order: order, use_ranges: use_ranges)
       end
 
       batch_limit = of
@@ -435,7 +435,7 @@ module ActiveRecord
           if load
             records = batch_relation.records
             values = records.pluck(*cursor)
-            yielded_relation = where(cursor => values)
+            yielded_relation = where(cursor => values).order(batch_orders.to_h)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
             values = batch_relation.pluck(*cursor)
@@ -443,12 +443,12 @@ module ActiveRecord
             finish = values.last
             if finish
               yielded_relation = apply_finish_limit(batch_relation, cursor, finish, batch_orders)
-              yielded_relation = yielded_relation.except(:limit, :order)
+              yielded_relation = yielded_relation.except(:limit).reorder(batch_orders.to_h)
               yielded_relation.skip_query_cache!(false)
             end
           else
             values = batch_relation.pluck(*cursor)
-            yielded_relation = where(cursor => values)
+            yielded_relation = where(cursor => values).order(batch_orders.to_h)
           end
 
           break if values.empty?

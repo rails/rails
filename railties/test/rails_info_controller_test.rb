@@ -13,11 +13,11 @@ class InfoControllerTest < ActionController::TestCase
       namespace :test do
         get :nested_route, to: "test#show"
       end
-      get "/rails/info/properties", to: "rails/info#properties"
-      get "/rails/info/routes", to: "rails/info#routes"
-      get "/rails/info/notes", to: "rails/info#notes"
-      post "/rails/:test/properties", to: "rails/info#properties"
-      put "/rails/:test/named_properties", to: "rails/info#properties", as: "named_rails_info_properties"
+      get "/rails/info/properties" => "rails/info#properties"
+      get "/rails/info/routes" => "rails/info#routes"
+      get "/rails/info/notes" => "rails/info#notes"
+      post "/rails/:test/properties" => "rails/info#properties"
+      put "/rails/:test/named_properties" => "rails/info#properties", as: "named_rails_info_properties"
     end
     @routes = Rails.application.routes
 
@@ -47,8 +47,12 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller allows requests when all requests are considered local" do
+    @request.env["REMOTE_ADDR"] = "example.org"
+    Rails.application.config.consider_all_requests_local = true
     get :properties
     assert_response :success
+  ensure
+    Rails.application.config.consider_all_requests_local = false
   end
 
   test "info controller allows local requests" do
@@ -82,7 +86,7 @@ class InfoControllerTest < ActionController::TestCase
     assert_select("table tr") do
       assert_select("td", text: "test_nested_route_path")
       assert_select("td", text: "test/test#show")
-      assert_select("td", text: "#{__FILE__}:75")
+      assert_select("td", text: "#{__FILE__}:79")
     end
   end
 

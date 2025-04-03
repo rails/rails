@@ -22,10 +22,12 @@ module ActiveRecord
     # * change_table_comment (must supply a +:from+ and +:to+ option)
     # * create_enum
     # * create_join_table
+    # * create_virtual_table
     # * create_table
     # * disable_extension
     # * drop_enum (must supply a list of values)
     # * drop_join_table
+    # * drop_virtual_table (must supply options)
     # * drop_table (must supply a block)
     # * enable_extension
     # * remove_column (must supply a type)
@@ -38,10 +40,12 @@ module ActiveRecord
     # * remove_reference
     # * remove_timestamps
     # * rename_column
-    # * rename_enum (must supply a +:to+ option)
+    # * rename_enum
     # * rename_enum_value (must supply a +:from+ and +:to+ option)
     # * rename_index
     # * rename_table
+    # * enable_index
+    # * disable_index
     class CommandRecorder
       ReversibleAndIrreversibleMethods = [
         :create_table, :create_join_table, :rename_table, :add_column, :remove_column,
@@ -56,6 +60,8 @@ module ActiveRecord
         :add_unique_constraint, :remove_unique_constraint,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
         :create_schema, :drop_schema,
+        :create_virtual_table, :drop_virtual_table,
+        :enable_index, :disable_index
       ]
       include JoinTable
 
@@ -166,6 +172,7 @@ module ActiveRecord
               enable_extension:  :disable_extension,
               create_enum:       :drop_enum,
               create_schema:     :drop_schema,
+              create_virtual_table: :drop_virtual_table
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
                 class_eval <<-EOV, __FILE__, __LINE__ + 1
@@ -178,6 +185,16 @@ module ActiveRecord
         end
 
         include StraightReversions
+
+        def invert_enable_index(args)
+          table_name, index_name = args
+          [:disable_index, [table_name, index_name]]
+        end
+
+        def invert_disable_index(args)
+          table_name, index_name = args
+          [:enable_index, [table_name, index_name]]
+        end
 
         def invert_transaction(args, &block)
           sub_recorder = CommandRecorder.new(delegate)
@@ -198,13 +215,20 @@ module ActiveRecord
         end
 
         def invert_drop_table(args, &block)
-          if args.last.is_a?(Hash)
-            args.last.delete(:if_exists)
+          options = args.extract_options!
+          options.delete(:if_exists)
+
+          if args.size > 1
+            raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given a single table name."
           end
-          if args.size == 1 && block == nil
+
+          if args.size == 1 && options == {} && block == nil
             raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_table is only reversible if given options or a block (can be empty)."
           end
-          super
+
+          args << options unless options.empty?
+
+          super(args, &block)
         end
 
         def invert_rename_table(args)
@@ -355,13 +379,13 @@ module ActiveRecord
         end
 
         def invert_rename_enum(args)
-          name, options = args
+          name, new_name, = args
 
-          unless options.is_a?(Hash) && options.has_key?(:to)
-            raise ActiveRecord::IrreversibleMigration, "rename_enum is only reversible if given a :to option."
+          if new_name.is_a?(Hash) && new_name.key?(:to)
+            new_name = new_name[:to]
           end
 
-          [:rename_enum, [options[:to], to: name]]
+          [:rename_enum, [new_name, name]]
         end
 
         def invert_rename_enum_value(args)
@@ -371,7 +395,14 @@ module ActiveRecord
             raise ActiveRecord::IrreversibleMigration, "rename_enum_value is only reversible if given a :from and :to option."
           end
 
-          [:rename_enum_value, [type_name, from: options[:to], to: options[:from]]]
+          options[:to], options[:from] = options[:from], options[:to]
+          [:rename_enum_value, [type_name, options]]
+        end
+
+        def invert_drop_virtual_table(args)
+          _enum, values = args.dup.tap(&:extract_options!)
+          raise ActiveRecord::IrreversibleMigration, "drop_virtual_table is only reversible if given options." unless values
+          super
         end
 
         def respond_to_missing?(method, _)

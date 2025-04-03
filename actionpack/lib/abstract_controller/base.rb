@@ -3,7 +3,6 @@
 # :markup: markdown
 
 require "abstract_controller/error"
-require "active_support/configurable"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
@@ -47,7 +46,7 @@ module AbstractController
     # Returns the formats that can be processed by the controller.
     attr_internal :formats
 
-    include ActiveSupport::Configurable
+    class_attribute :config, instance_predicate: false, default: ActiveSupport::OrderedOptions.new
     extend ActiveSupport::DescendantsTracker
 
     class << self
@@ -65,6 +64,7 @@ module AbstractController
         unless klass.instance_variable_defined?(:@abstract)
           klass.instance_variable_set(:@abstract, false)
         end
+        klass.config = ActiveSupport::InheritableOptions.new(config)
         super
       end
 
@@ -126,6 +126,10 @@ module AbstractController
       #
       def controller_path
         @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
+      end
+
+      def configure # :nodoc:
+        yield config
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -199,6 +203,10 @@ module AbstractController
     # for example does not support paths, only full URLs.
     def self.supports_path?
       true
+    end
+
+    def config # :nodoc:
+      @_config ||= self.class.config.inheritable_copy
     end
 
     def inspect # :nodoc:

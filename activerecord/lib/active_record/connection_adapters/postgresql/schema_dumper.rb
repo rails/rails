@@ -22,7 +22,7 @@ module ActiveRecord
               stream.puts "  # Custom types defined in this database."
               stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
               types.sort.each do |name, values|
-                stream.puts "  create_enum #{name.inspect}, #{values.split(",").inspect}"
+                stream.puts "  create_enum #{name.inspect}, #{values.inspect}"
               end
               stream.puts
             end
@@ -41,43 +41,32 @@ module ActiveRecord
 
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
-              add_exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
-                parts = [
-                  "t.exclusion_constraint #{exclusion_constraint.expression.inspect}"
-                ]
-
+              exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
+                parts = [ exclusion_constraint.expression.inspect ]
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
                 parts << "using: #{exclusion_constraint.using.inspect}" if exclusion_constraint.using
                 parts << "deferrable: #{exclusion_constraint.deferrable.inspect}" if exclusion_constraint.deferrable
+                parts << "name: #{exclusion_constraint.name.inspect}" if exclusion_constraint.export_name_on_schema_dump?
 
-                if exclusion_constraint.export_name_on_schema_dump?
-                  parts << "name: #{exclusion_constraint.name.inspect}"
-                end
-
-                "    #{parts.join(', ')}"
+                "    t.exclusion_constraint #{parts.join(', ')}"
               end
 
-              stream.puts add_exclusion_constraint_statements.sort.join("\n")
+              stream.puts exclusion_constraint_statements.sort.join("\n")
             end
           end
 
           def unique_constraints_in_create(table, stream)
             if (unique_constraints = @connection.unique_constraints(table)).any?
-              add_unique_constraint_statements = unique_constraints.map do |unique_constraint|
-                parts = [
-                  "t.unique_constraint #{unique_constraint.column.inspect}"
-                ]
-
+              unique_constraint_statements = unique_constraints.map do |unique_constraint|
+                parts = [ unique_constraint.column.inspect ]
+                parts << "nulls_not_distinct: #{unique_constraint.nulls_not_distinct.inspect}" if unique_constraint.nulls_not_distinct
                 parts << "deferrable: #{unique_constraint.deferrable.inspect}" if unique_constraint.deferrable
+                parts << "name: #{unique_constraint.name.inspect}" if unique_constraint.export_name_on_schema_dump?
 
-                if unique_constraint.export_name_on_schema_dump?
-                  parts << "name: #{unique_constraint.name.inspect}"
-                end
-
-                "    #{parts.join(', ')}"
+                "    t.unique_constraint #{parts.join(', ')}"
               end
 
-              stream.puts add_unique_constraint_statements.sort.join("\n")
+              stream.puts unique_constraint_statements.sort.join("\n")
             end
           end
 
@@ -91,7 +80,7 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
-            spec[:enum_type] = "\"#{column.sql_type}\"" if column.enum?
+            spec[:enum_type] = column.sql_type.inspect if column.enum?
 
             spec
           end

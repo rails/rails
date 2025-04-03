@@ -49,10 +49,11 @@ module ActiveRecord
       #
       #   travel_back
       #   User.find_signed signed_id, purpose: :password_reset # => User.first
-      def find_signed(signed_id, purpose: nil)
+      def find_signed(signed_id, purpose: nil, on_rotation: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find_by primary_key => id
         end
       end
@@ -69,15 +70,17 @@ module ActiveRecord
       #   signed_id = User.first.signed_id
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
-      def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+      def find_signed!(signed_id, purpose: nil, on_rotation: nil)
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find(id)
         end
       end
 
       # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
-      # with the class-level +signed_id_verifier_secret+, which within \Rails comes from the
-      # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
+      # with the class-level +signed_id_verifier_secret+, which within Rails comes from
+      # {Rails.application.key_generator}[rdoc-ref:Rails::Application#key_generator].
+      # By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
         @signed_id_verifier ||= begin
           secret = signed_id_verifier_secret
@@ -93,7 +96,7 @@ module ActiveRecord
 
       # Allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
       # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
-      # your custom verifier for that in advance. See +ActiveSupport::MessageVerifier+ for details.
+      # your custom verifier for that in advance. See ActiveSupport::MessageVerifier for details.
       def signed_id_verifier=(verifier)
         @signed_id_verifier = verifier
       end

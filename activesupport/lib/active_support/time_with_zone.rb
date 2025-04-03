@@ -85,7 +85,7 @@ module ActiveSupport
     end
     alias_method :getlocal, :localtime
 
-    # Returns true if the current time is within Daylight Savings Time for the
+    # Returns true if the current time is within Daylight Savings \Time for the
     # specified time zone.
     #
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
@@ -136,9 +136,9 @@ module ActiveSupport
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
     #
-    #   Time.zone.now.inspect # => "Thu, 04 Dec 2014 11:00:25.624541392 EST -05:00"
+    #   Time.zone.now.inspect # => "2024-11-13 07:00:10.528054960 UTC +00:00"
     def inspect
-      "#{time.strftime('%a, %d %b %Y %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
+      "#{time.strftime('%F %H:%M:%S.%9N')} #{zone} #{formatted_offset}"
     end
 
     # Returns a string of the object's date and time in the ISO 8601 standard
@@ -215,8 +215,7 @@ module ActiveSupport
       elsif formatter = ::Time::DATE_FORMATS[format]
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
-        # Change to to_s when deprecation is gone.
-        "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}"
+        to_s
       end
     end
     alias_method :to_formatted_s, :to_fs

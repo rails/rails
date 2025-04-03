@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 ENV["RAILS_ENV"] ||= "test"
 
@@ -16,7 +16,7 @@ require "rails/all"
 
 module TestApp
   class Application < Rails::Application
-    config.root = __dir__
+    config.root = File.expand_path("../../", __FILE__)
   end
 end
 

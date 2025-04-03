@@ -26,7 +26,7 @@ module DateAndTime
         # Only warn once, the first time the value is used (which should
         # be the first time #to_time is called).
         ActiveSupport.deprecator.warn(
-          "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.0." \
+          "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1." \
           "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
         )
 

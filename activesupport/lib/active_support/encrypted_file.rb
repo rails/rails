@@ -69,7 +69,7 @@ module ActiveSupport
     #   decrypted or verified.
     def read
       if !key.nil? && content_path.exist?
-        decrypt content_path.binread
+        decrypt content_path.binread.strip
       else
         raise MissingContentError, content_path
       end

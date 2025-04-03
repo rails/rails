@@ -23,7 +23,6 @@ module Rails
     autoload :NamedBase,       "rails/generators/named_base"
     autoload :ResourceHelpers, "rails/generators/resource_helpers"
     autoload :TestCase,        "rails/generators/test_case"
-    autoload :Devcontainer,    "rails/generators/devcontainer"
 
     mattr_accessor :namespace
 
@@ -61,6 +60,10 @@ module Rails
       }
     }
 
+    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+    # can change when we FileUtils.cd.
+    RAILS_DEV_PATH = File.expand_path("../../..", __dir__) # :nodoc:
+
     class << self
       def configure!(config) # :nodoc:
         api_only! if config.api_only
@@ -94,11 +97,11 @@ module Rails
       # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
-      # For example, shoulda is considered a test_framework and is an extension
-      # of test_unit. However, most part of shoulda generators are similar to
-      # test_unit ones.
+      # For example, shoulda is considered a +test_framework+ and is an extension
+      # of +test_unit+. However, most part of shoulda generators are similar to
+      # +test_unit+ ones.
       #
-      # Shoulda then can tell generators to search for test_unit generators when
+      # Shoulda then can tell generators to search for +test_unit+ generators when
       # some of them are not available by adding a fallback:
       #
       #   Rails::Generators.fallbacks[:shoulda] = :test_unit
@@ -152,8 +155,11 @@ module Rails
             "#{template}:scaffold",
             "#{template}:mailer",
             "action_text:install",
-            "action_mailbox:install"
-          ]
+            "action_mailbox:install",
+            "devcontainer"
+          ].tap do |h|
+            h << "test_unit" if test.to_s != "test_unit"
+          end
         end
       end
 
@@ -268,6 +274,7 @@ module Rails
             #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
+          exit 1
         end
       end
 
@@ -312,7 +319,7 @@ module Rails
 
         def run_after_generate_callback
           if defined?(@@generated_files) && !@@generated_files.empty?
-            @after_generate_callbacks.each do |callback|
+            after_generate_callbacks.each do |callback|
               callback.call(@@generated_files)
             end
             @@generated_files = []

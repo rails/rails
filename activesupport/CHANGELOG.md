@@ -1,31 +1,153 @@
-*   Deprecate addition and since between two `Time` and `ActiveSupport::TimeWithZone`.
+*   Add `Cache#read_counter` and `Cache#write_counter`
 
-    Previously adding time instances together such as `10.days.ago + 10.days.ago` or `10.days.ago.since(10.days.ago)` produced a nonsensical future date. This behavior is deprecated and will be removed in Rails 8.1.
+    ```ruby
+    Rails.cache.write_counter("foo", 1)
+    Rails.cache.read_counter("foo") # => 1
+    Rails.cache.increment("foo")
+    Rails.cache.read_counter("foo") # => 2
+    ```
 
-    *Nick Schwaderer*
+    *Alex Ghiculescu*
 
-*   Support rfc2822 format for Time#to_fs & Date#to_fs.
+*   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
 
-    *Akshay Birajdar*
+    Captures all reported errors from within the block that match the given
+    error class.
 
-*   Optimize load time for `Railtie#initialize_i18n`. Filter `I18n.load_path`s passed to the file watcher to only those
-    under `Rails.root`. Previously the watcher would grab all available locales, including those in gems
-    which do not require a watcher because they won't change.
+    ```ruby
+    reports = capture_error_reports(IOError) do
+      Rails.error.report(IOError.new("Oops"))
+      Rails.error.report(IOError.new("Oh no"))
+      Rails.error.report(StandardError.new)
+    end
 
-    *Nick Schwaderer*
+    assert_equal 2, reports.size
+    assert_equal "Oops", reports.first.error.message
+    assert_equal "Oh no", reports.last.error.message
+    ```
 
-*   Add a `filter` option to `in_order_of` to prioritize certain values in the sorting without filtering the results
-    by these values.
+    *Andrew Novoselac*
 
-    *Igor Depolli*
+*   Introduce ActiveSupport::ErrorReporter#add_middleware
 
-*   Improve error message when using `assert_difference` or `assert_changes` with a
-    proc by printing the proc's source code (MRI only).
+    When reporting an error, the error context middleware will be called with the reported error
+    and base execution context. The stack may mutate the context hash. The mutated context will
+    then be passed to error subscribers. Middleware receives the same parameters as `ErrorReporter#report`.
 
-    *Richard Böhme*, *Jean Boussier*
+    *Andrew Novoselac*, *Sam Schmidt*
 
-*   Add a new configuration value `:zone` for `ActiveSupport.to_time_preserves_timezone` and rename the previous `true` value to `:offset`. The new default value is `:zone`.
+*   Change execution wrapping to report all exceptions, including `Exception`.
 
-    *Jason Kim*, *John Hawthorn*
+    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
+    the error reporter should be able to report these kinds of exceptions.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/activesupport/CHANGELOG.md) for previous changes.
+    *Gannon McGibbon*
+
+*   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
+    are invoked immediately before forking test workers.
+
+    *Mike Dalessio*
+
+*   Allow the `#freeze_time` testing helper to accept a date or time argument.
+
+    ```ruby
+    Time.current # => Sun, 09 Jul 2024 15:34:49 EST -05:00
+    freeze_time Time.current + 1.day
+    sleep 1
+    Time.current # => Mon, 10 Jul 2024 15:34:49 EST -05:00
+    ```
+
+    *Joshua Young*
+
+*   `ActiveSupport::JSON` now accepts options
+
+    It is now possible to pass options to `ActiveSupport::JSON`:
+    ```ruby
+    ActiveSupport::JSON.decode('{"key": "value"}', symbolize_names: true) # => { key: "value" }
+    ```
+
+    *matthaigh27*
+
+*   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
+
+    Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.
+
+    ```ruby
+    assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+    end
+    ```
+
+    Additionally, you can now persist a matched notification for more customized assertions.
+
+    ```ruby
+    notification = assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: Body.new("Cool Body"))
+    end
+
+    assert_instance_of(Body, notification.payload[:body])
+    ```
+
+    *Nicholas La Roux*
+
+*   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
+
+    These APIs are a relic of the Ruby 1.8 days when Ruby strings weren't encoding
+    aware. There is no legitimate reasons to need these APIs today.
+
+    *Jean Boussier*
+
+*   Deprecate `ActiveSupport::Configurable`
+
+    *Sean Doyle*
+
+*   `nil.to_query("key")` now returns `key`.
+
+    Previously it would return `key=`, preventing round tripping with `Rack::Utils.parse_nested_query`.
+
+    *Erol Fornoles*
+
+*   Avoid wrapping redis in a `ConnectionPool` when using `ActiveSupport::Cache::RedisCacheStore` if the `:redis`
+    option is already a `ConnectionPool`.
+
+    *Joshua Young*
+
+*   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
+
+    *Martin Emde*
+
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
+
+    *Martin Emde*
+
+*   Add `ActiveSupport::Testing::NotificationAssertions` module to help with testing `ActiveSupport::Notifications`.
+
+    *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
+
+*   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
+
+    Previously, the same hash object was returned each time that method was called.
+
+    *fatkodima*
+
+*   `ActiveSupport::JSON.encode` supports CIDR notation.
+
+    Previously:
+
+    ```ruby
+    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0\""
+    ```
+
+    After this change:
+
+    ```ruby
+    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0/24\""
+    ```
+
+    *Taketo Takashima*
+
+*   Make `ActiveSupport::FileUpdateChecker` faster when checking many file-extensions.
+
+    *Jonathan del Strother*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activesupport/CHANGELOG.md) for previous changes.

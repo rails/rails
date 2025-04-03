@@ -48,11 +48,6 @@ module ActionController
         end
 
         ActionController::Parameters.action_on_unpermitted_parameters = action_on_unpermitted_parameters
-
-        unless options.allow_deprecated_parameters_hash_equality.nil?
-          ActionController::Parameters.allow_deprecated_parameters_hash_equality =
-            options.allow_deprecated_parameters_hash_equality
-        end
       end
     end
 
@@ -85,7 +80,6 @@ module ActionController
           :action_on_unpermitted_parameters,
           :always_permitted_parameters,
           :wrap_parameters_by_default,
-          :allow_deprecated_parameters_hash_equality
         )
 
         filtered_options.each do |k, v|
@@ -96,12 +90,6 @@ module ActionController
             raise "Invalid option key: #{k}"
           end
         end
-      end
-    end
-
-    initializer "action_controller.compile_config_methods" do
-      ActiveSupport.on_load(:action_controller) do
-        config.compile_methods! if config.respond_to?(:compile_methods!)
       end
     end
 
@@ -143,6 +131,19 @@ module ActionController
     initializer "action_controller.test_case" do |app|
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+      end
+    end
+
+    initializer "action_controller.escape_json_responses_deprecated_warning" do
+      config.after_initialize do
+        ActiveSupport.on_load(:action_controller) do
+          if ActionController::Base.escape_json_responses
+            ActionController.deprecator.warn(<<~MSG.squish)
+              Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+              Set it to `false` or use `config.load_defaults(8.1)`.
+            MSG
+          end
+        end
       end
     end
   end

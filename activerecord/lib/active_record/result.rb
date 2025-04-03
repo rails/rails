@@ -89,7 +89,7 @@ module ActiveRecord
       alias_method :to_hash, :to_h
     end
 
-    attr_reader :columns, :rows, :column_types
+    attr_reader :columns, :rows
 
     def self.empty(async: false) # :nodoc:
       if async
@@ -105,7 +105,8 @@ module ActiveRecord
       @columns      = columns.each(&:-@).freeze
       @rows         = rows
       @hash_rows    = nil
-      @column_types = column_types || EMPTY_HASH
+      @column_types = column_types.freeze
+      @types_hash   = nil
       @column_indexes = nil
     end
 
@@ -127,9 +128,9 @@ module ActiveRecord
     # Returns an +Enumerator+ if no block is given.
     def each(&block)
       if block_given?
-        indexed_rows.each(&block)
+        hash_rows.each(&block)
       else
-        indexed_rows.to_enum { @rows.size }
+        hash_rows.to_enum { @rows.size }
       end
     end
 
@@ -154,6 +155,24 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
+    # Returns the +ActiveRecord::Type+ type of all columns.
+    # Note that not all database adapters return the result types,
+    # so the hash may be empty.
+    def column_types
+      if @column_types
+        @types_hash ||= begin
+          types = {}
+          @columns.each_with_index do |name, index|
+            type = @column_types[index] || Type.default_value
+            types[name] = types[index] = type
+          end
+          types.freeze
+        end
+      else
+        EMPTY_HASH
+      end
+    end
+
     def result # :nodoc:
       self
     end
@@ -162,7 +181,7 @@ module ActiveRecord
       self
     end
 
-    def cast_values(type_overrides = {}) # :nodoc:
+    def cast_values(type_overrides = nil) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
 
@@ -190,12 +209,13 @@ module ActiveRecord
 
     def initialize_copy(other)
       @rows = rows.dup
-      @column_types = column_types.dup
+      @hash_rows    = nil
     end
 
     def freeze # :nodoc:
       hash_rows.freeze
-      indexed_rows.freeze
+      indexed_rows
+      column_types
       super
     end
 
@@ -203,7 +223,7 @@ module ActiveRecord
       @column_indexes ||= begin
         index = 0
         hash = {}
-        length  = columns.length
+        length = columns.length
         while index < length
           hash[columns[index]] = index
           index += 1
@@ -212,19 +232,23 @@ module ActiveRecord
       end
     end
 
+    def indexed_rows # :nodoc:
+      @indexed_rows ||= begin
+        columns = column_indexes
+        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+      end
+    end
+
     private
       def column_type(name, index, type_overrides)
-        type_overrides.fetch(name) do
-          column_types.fetch(index) do
-            column_types.fetch(name, Type.default_value)
+        if type_overrides
+          type_overrides.fetch(name) do
+            column_type(name, index, nil)
           end
-        end
-      end
-
-      def indexed_rows
-        @indexed_rows ||= begin
-          columns = column_indexes
-          @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+        elsif @column_types
+          @column_types[index] || Type.default_value
+        else
+          Type.default_value
         end
       end
 

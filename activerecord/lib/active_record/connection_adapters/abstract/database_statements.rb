@@ -55,12 +55,15 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
+          collector = collector()
+          collector.retryable = true
           sql, binds = visitor.compile(arel.ast, collector)
-          query = klass.query(sql)
+          query = klass.query(sql, retryable: collector.retryable)
         else
           collector = klass.partial_query_collector
+          collector.retryable = true
           parts, binds = visitor.compile(arel.ast, collector)
-          query = klass.partial_query(parts)
+          query = klass.partial_query(parts, retryable: collector.retryable)
         end
         [query, binds]
       end
@@ -102,16 +105,16 @@ module ActiveRecord
         select_all(arel, name, binds, async: async).then(&:rows)
       end
 
-      def query_value(sql, name = nil) # :nodoc:
-        single_value_from_rows(query(sql, name))
+      def query_value(...) # :nodoc:
+        single_value_from_rows(query(...))
       end
 
-      def query_values(sql, name = nil) # :nodoc:
-        query(sql, name).map(&:first)
+      def query_values(...) # :nodoc:
+        query(...).map(&:first)
       end
 
-      def query(sql, name = nil) # :nodoc:
-        internal_exec_query(sql, name).rows
+      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
       end
 
       # Determines whether the SQL statement is a write query.
@@ -551,15 +554,22 @@ module ActiveRecord
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async) do |notification_payload|
+          log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              result = ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
+              end
+              handle_warnings(result, sql)
+              result
             end
           end
         end
 
-        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:)
+        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
           raise NotImplementedError
+        end
+
+        def handle_warnings(raw_result, sql)
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.
@@ -591,9 +601,9 @@ module ActiveRecord
           raw_execute(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions, &block)
         end
 
-        def execute_batch(statements, name = nil)
+        def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
-            raw_execute(statement, name)
+            raw_execute(statement, name, **kwargs)
           end
         end
 
@@ -617,8 +627,8 @@ module ActiveRecord
 
             columns.map do |name, column|
               if fixture.key?(name)
-                type = lookup_cast_type_from_column(column)
-                with_yaml_fallback(type.serialize(fixture[name]))
+                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+                with_yaml_fallback(column.fetch_cast_type(self).serialize(fixture[name]))
               else
                 default_insert_value(column)
               end
@@ -674,7 +684,7 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the orignal thread
+            # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
             future_result = async.new(
               pool,
@@ -683,7 +693,7 @@ module ActiveRecord
               binds,
               prepare: prepare,
             )
-            if supports_concurrent_connections? && current_transaction.closed?
+            if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
             else
               future_result.execute!(self)

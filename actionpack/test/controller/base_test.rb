@@ -72,6 +72,29 @@ class ActionMissingController < ActionController::Base
   end
 end
 
+class WithoutRouterController < ActionController::Base
+  after_action :log_request_details
+
+  def index
+    head :ok
+  end
+
+  private
+    def log_request_details
+      request.route_uri_pattern
+    end
+end
+
+class WithoutRouterTest < ActionController::TestCase
+  tests WithoutRouterController
+
+  def test_request_route_uri_pattern_in_after_action_callback
+    assert_nothing_raised do
+      get :index
+    end
+  end
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_path
     assert_equal "empty", EmptyController.controller_path
@@ -190,11 +213,7 @@ class PerformActionTest < ActionController::TestCase
     exception = assert_raise AbstractController::ActionNotFound do
       get :ello
     end
-    if exception.respond_to?(:detailed_message)
-      assert_match "Did you mean?", exception.detailed_message
-    else
-      assert_match "Did you mean?", exception.message
-    end
+    assert_match "Did you mean?", exception.detailed_message
   end
 
   def test_action_missing_should_work
@@ -215,7 +234,7 @@ class UrlOptionsTest < ActionController::TestCase
   def test_url_for_query_params_included
     rs = ActionDispatch::Routing::RouteSet.new
     rs.draw do
-      get "home", to: "pages#home"
+      get "home" => "pages#home"
     end
 
     options = {
@@ -316,7 +335,7 @@ class OptionalDefaultUrlOptionsControllerTest < ActionController::TestCase
   def test_default_url_options_override_missing_positional_arguments
     with_routing do |set|
       set.draw do
-        get "/things/:id(.:format)", to: "things#show", as: :thing
+        get "/things/:id(.:format)" => "things#show", :as => :thing
       end
       assert_equal "/things/1.atom", thing_path("1")
       assert_equal "/things/default-id.atom", thing_path

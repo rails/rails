@@ -11,7 +11,7 @@ module ActionView
   #
   # Consider for example the following code that form of post:
   #
-  #   <%= form_for(post) do |f| %>
+  #   <%= form_with(model: post) do |f| %>
   #     <%= f.text_field :body %>
   #   <% end %>
   #

@@ -65,7 +65,7 @@ module ActiveStorage::Streaming
         expires_now
         head :not_found
       rescue
-        # Status and caching headers are already set, but not commited.
+        # Status and caching headers are already set, but not committed.
         # Change the status to 500 manually.
         expires_now
         head :internal_server_error

@@ -99,6 +99,10 @@ module ActiveRecord
       def use_metadata_table?
         raise NotImplementedError
       end
+
+      def seeds?
+        raise NotImplementedError
+      end
     end
   end
 end

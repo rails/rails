@@ -110,9 +110,6 @@ module ActiveSupport
       # * <tt>raw: true</tt> - Sends the value directly to the server as raw
       #   bytes. The value must be a string or number. You can use memcached
       #   direct operations like +increment+ and +decrement+ only on raw values.
-      #
-      # * <tt>unless_exist: true</tt> - Prevents overwriting an existing cache
-      #   entry.
 
       # Increment a cached integer value using the memcached incr atomic operator.
       # Returns the updated value.
@@ -129,6 +126,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -155,6 +157,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -276,7 +283,7 @@ module ActiveSupport
 
         def rescue_error_with(fallback)
           yield
-        rescue Dalli::DalliError => error
+        rescue Dalli::DalliError, ConnectionPool::Error, ConnectionPool::TimeoutError => error
           logger.error("DalliError (#{error}): #{error.message}") if logger
           ActiveSupport.error_reporter&.report(
             error,

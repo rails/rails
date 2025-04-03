@@ -94,26 +94,52 @@ module ActiveSupport
           super
         end
 
-        def increment(name, amount = 1, options = nil) # :nodoc:
+        def increment(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          if options
-            write_cache_value(name, value, raw: true, **options)
-          else
-            write_cache_value(name, value, raw: true)
-          end
+          write_cache_value(name, value, raw: true, **options)
           value
         end
 
-        def decrement(name, amount = 1, options = nil) # :nodoc:
+        def decrement(name, amount = 1, **options) # :nodoc:
           return super unless local_cache
           value = bypass_local_cache { super }
-          if options
-            write_cache_value(name, value, raw: true, **options)
-          else
-            write_cache_value(name, value, raw: true)
-          end
+          write_cache_value(name, value, raw: true, **options)
           value
+        end
+
+        def fetch_multi(*names, &block) # :nodoc:
+          return super if local_cache.nil? || names.empty?
+
+          options = names.extract_options!
+          options = merged_options(options)
+
+          keys_to_names = names.index_by { |name| normalize_key(name, options) }
+
+          local_entries = local_cache.read_multi_entries(keys_to_names.keys)
+          results = local_entries.each_with_object({}) do |(key, value), result|
+            # If we recorded a miss in the local cache, `#fetch_multi` will forward
+            # that key to the real store, and the entry will be replaced
+            # local_cache.delete_entry(key)
+            next if value.nil?
+
+            entry = deserialize_entry(value, **options)
+
+            normalized_key = keys_to_names[key]
+            if entry.nil?
+              result[normalized_key] = nil
+            elsif entry.expired? || entry.mismatched?(normalize_version(normalized_key, options))
+              local_cache.delete_entry(key)
+            else
+              result[normalized_key] = entry.value
+            end
+          end
+
+          if results.size < names.size
+            results.merge!(super(*(names - results.keys), options, &block))
+          end
+
+          results
         end
 
         private
@@ -137,17 +163,27 @@ module ActiveSupport
             keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
             local_entries = local_cache.read_multi_entries(keys_to_names.keys)
-            local_entries.transform_keys! { |key| keys_to_names[key] }
-            local_entries.transform_values! do |payload|
-              deserialize_entry(payload, **options)&.value
-            end
-            missed_names = names - local_entries.keys
 
-            if missed_names.any?
-              local_entries.merge!(super(missed_names, **options))
-            else
-              local_entries
+            results = local_entries.each_with_object({}) do |(key, value), result|
+              next if value.nil? # recorded cache miss
+
+              entry = deserialize_entry(value, **options)
+
+              normalized_key = keys_to_names[key]
+              if entry.nil?
+                result[normalized_key] = nil
+              elsif entry.expired? || entry.mismatched?(normalize_version(normalized_key, options))
+                local_cache.delete_entry(key)
+              else
+                result[normalized_key] = entry.value
+              end
             end
+
+            if results.size < names.size
+              results.merge!(super(names - results.keys, **options))
+            end
+
+            results
           end
 
           def write_serialized_entry(key, payload, **)

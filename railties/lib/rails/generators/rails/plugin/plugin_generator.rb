@@ -122,10 +122,12 @@ module Rails
     def generate_test_dummy(force = false)
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
+      opts[:skip_thruster] = true
       opts[:skip_brakeman] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
       opts[:skip_kamal] = true
+      opts[:skip_solid] = true
       opts[:skip_git] = true
       opts[:skip_hotwire] = true
       opts[:skip_rubocop] = true
@@ -150,9 +152,8 @@ module Rails
       end
     end
 
-    def test_dummy_sprocket_assets
-      template "rails/stylesheets.css",   "#{dummy_path}/app/assets/stylesheets/application.css", force: true
-      template "rails/dummy_manifest.js", "#{dummy_path}/app/assets/config/manifest.js", force: true
+    def test_dummy_assets
+      template "rails/stylesheets.css", "#{dummy_path}/app/assets/stylesheets/application.css", force: true
     end
 
     def test_dummy_clean
@@ -166,10 +167,6 @@ module Rails
         remove_file "test"
         remove_file "vendor"
       end
-    end
-
-    def assets_manifest
-      template "rails/engine_manifest.js", "app/assets/config/#{underscored_name}_manifest.js"
     end
 
     def stylesheets
@@ -362,7 +359,7 @@ module Rails
         mute do
           build(:generate_test_dummy)
           build(:test_dummy_config)
-          build(:test_dummy_sprocket_assets) unless skip_sprockets?
+          build(:test_dummy_assets) unless skip_asset_pipeline?
           build(:test_dummy_clean)
           # ensure that bin/rails has proper dummy_path
           build(:bin)
@@ -492,9 +489,11 @@ module Rails
 
       def test_command
         if engine? && !options[:skip_active_record] && with_dummy_app?
-          "db:test:prepare test"
+          "bin/rails db:test:prepare test"
+        elsif engine?
+          "bin/rails test"
         else
-          "test"
+          "bin/test"
         end
       end
     end

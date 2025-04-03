@@ -574,18 +574,13 @@ module ActionMailer
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
-      # Sets the defaults through app configuration:
+      # Allows to set defaults through app configuration:
       #
-      #     config.action_mailer.default(from: "no-reply@example.org")
-      #
-      # Aliased by ::default_options=
+      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       def default(value = nil)
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
-      # Allows to set defaults through app configuration:
-      #
-      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       alias :default_options= :default
 
       # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
@@ -935,7 +930,7 @@ module ActionMailer
       # If the subject has interpolations, you can pass them through the +interpolations+ parameter.
       def default_i18n_subject(interpolations = {}) # :doc:
         mailer_scope = self.class.mailer_name.tr("/", ".")
-        I18n.t(:subject, **interpolations.merge(scope: [mailer_scope, action_name], default: action_name.humanize))
+        I18n.t(:subject, **interpolations, scope: [mailer_scope, action_name], default: action_name.humanize)
       end
 
       # Emails do not support relative path links.

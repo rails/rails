@@ -153,14 +153,15 @@ module ActiveRecord
           "'#{escape_bytea(value.to_s)}'"
         end
 
+        # `column` may be either an instance of Column or ColumnDefinition.
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            type = lookup_cast_type_from_column(column)
-            quote(type.serialize(value))
+            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+            quote(column.fetch_cast_type(self).serialize(value))
           else
             super
           end
@@ -186,16 +187,12 @@ module ActiveRecord
           end
         end
 
-        def lookup_cast_type_from_column(column) # :nodoc:
-          verify! if type_map.nil?
-          type_map.lookup(column.oid, column.fmod, column.sql_type)
+        # TODO: Make this method private after we release 8.1.
+        def lookup_cast_type(sql_type) # :nodoc:
+          super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
         end
 
         private
-          def lookup_cast_type(sql_type)
-            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
-          end
-
           def encode_array(array_data)
             encoder = array_data.encoder
             values = type_cast_array(array_data.values)

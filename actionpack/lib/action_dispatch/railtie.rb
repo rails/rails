@@ -31,6 +31,9 @@ module ActionDispatch
     config.action_dispatch.debug_exception_log_level = :fatal
     config.action_dispatch.strict_freshness = false
 
+    config.action_dispatch.ignore_leading_brackets = nil
+    config.action_dispatch.strict_query_string_separator = nil
+
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
       "X-XSS-Protection" => "1; mode=block",
@@ -51,6 +54,9 @@ module ActionDispatch
     initializer "action_dispatch.configure" do |app|
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
+
+      ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
+      ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header

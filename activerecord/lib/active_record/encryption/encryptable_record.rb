@@ -123,7 +123,7 @@ module ActiveRecord
             end)
           end
 
-          def load_schema!
+          def load_schema! # :nodoc:
             super
 
             add_length_validation_for_encrypted_columns if ActiveRecord::Encryption.config.validate_column_size

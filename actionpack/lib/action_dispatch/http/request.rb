@@ -25,7 +25,6 @@ module ActionDispatch
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
-    include ActionDispatch::PermissionsPolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"
@@ -55,12 +54,17 @@ module ActionDispatch
       METHOD
     end
 
+    TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
+
     def self.empty
       new({})
     end
 
     def initialize(env)
       super
+
+      @rack_request = Rack::Request.new(env)
+
       @method            = nil
       @request_method    = nil
       @remote_ip         = nil
@@ -68,6 +72,8 @@ module ActionDispatch
       @fullpath          = nil
       @ip                = nil
     end
+
+    attr_reader :rack_request
 
     def commit_cookie_jar! # :nodoc:
     end
@@ -132,7 +138,7 @@ module ActionDispatch
 
     # Populate the HTTP method lookup cache.
     HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.underscore.to_sym
+      HTTP_METHOD_LOOKUP[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
     }
 
     alias raw_request_method request_method # :nodoc:
@@ -151,11 +157,17 @@ module ActionDispatch
     #
     #     request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
     def route_uri_pattern
-      get_header("action_dispatch.route_uri_pattern")
+      unless pattern = get_header("action_dispatch.route_uri_pattern")
+        route = get_header("action_dispatch.route")
+        return if route.nil?
+        pattern = route.path.spec.to_s
+        set_header("action_dispatch.route_uri_pattern", pattern)
+      end
+      pattern
     end
 
-    def route_uri_pattern=(pattern) # :nodoc:
-      set_header("action_dispatch.route_uri_pattern", pattern)
+    def route=(route) # :nodoc:
+      @env["action_dispatch.route"] = route
     end
 
     def routes # :nodoc:
@@ -236,8 +248,9 @@ module ActionDispatch
     #
     #     send_early_hints("link" => "</style.css>; rel=preload; as=style,</script.js>; rel=preload")
     #
-    # If you are using `javascript_include_tag` or `stylesheet_link_tag` the Early
-    # Hints headers are included by default if supported.
+    # If you are using {javascript_include_tag}[rdoc-ref:ActionView::Helpers::AssetTagHelper#javascript_include_tag]
+    # or {stylesheet_link_tag}[rdoc-ref:ActionView::Helpers::AssetTagHelper#stylesheet_link_tag]
+    # the Early Hints headers are included by default if supported.
     def send_early_hints(links)
       env["rack.early_hints"]&.call(links)
     end
@@ -282,7 +295,7 @@ module ActionDispatch
 
     # Returns the content length of the request as an integer.
     def content_length
-      return raw_post.bytesize if headers.key?("Transfer-Encoding")
+      return raw_post.bytesize if has_header?(TRANSFER_ENCODING)
       super.to_i
     end
 
@@ -386,15 +399,12 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        rack_query_params = super || {}
-        controller = path_parameters[:controller]
-        action = path_parameters[:action]
-        rack_query_params = Request::Utils.set_binary_encoding(self, rack_query_params, controller, action)
-        # Check for non UTF-8 parameter values, which would cause errors later
-        Request::Utils.check_param_encoding(rack_query_params)
-        set_header k, Request::Utils.normalize_encode_params(rack_query_params)
+        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
+
+        set_header k, rack_query_params
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError, Rack::QueryParser::ParamsTooDeepError => e
+    rescue ActionDispatch::ParamError => e
       raise ActionController::BadRequest.new("Invalid query parameters: #{e.message}")
     end
     alias :query_parameters :GET
@@ -402,17 +412,53 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        pr = parse_formatted_parameters(params_parsers) do |params|
-          super || {}
+        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+
+        param_list = nil
+        pr = parse_formatted_parameters(params_parsers) do
+          if param_list = request_parameters_list
+            ActionDispatch::ParamBuilder.from_pairs(param_list, encoding_template: encoding_template)
+          else
+            # We're not using a version of Rack that provides raw form
+            # pairs; we must use its hash (and thus post-process it below).
+            fallback_request_parameters
+          end
         end
-        pr = Request::Utils.set_binary_encoding(self, pr, path_parameters[:controller], path_parameters[:action])
-        Request::Utils.check_param_encoding(pr)
-        self.request_parameters = Request::Utils.normalize_encode_params(pr)
+
+        # If the request body was parsed by a custom parser like JSON
+        # (and thus the above block was not run), we need to
+        # post-process the result hash.
+        if param_list.nil?
+          pr = ActionDispatch::ParamBuilder.from_hash(pr, encoding_template: encoding_template)
+        end
+
+        self.request_parameters = pr
       end
-    rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError, Rack::QueryParser::ParamsTooDeepError, EOFError => e
+    rescue ActionDispatch::ParamError, EOFError => e
       raise ActionController::BadRequest.new("Invalid request parameters: #{e.message}")
     end
     alias :request_parameters :POST
+
+    def request_parameters_list
+      # We don't use Rack's parse result, but we must call it so Rack
+      # can populate the rack.request.* keys we need.
+      rack_post = rack_request.POST
+
+      if form_pairs = get_header("rack.request.form_pairs")
+        # Multipart
+        form_pairs
+      elsif form_vars = get_header("rack.request.form_vars")
+        # URL-encoded
+        ActionDispatch::QueryParser.each_pair(form_vars)
+      elsif rack_post && !rack_post.empty?
+        # It was multipart, but Rack did not preserve a pair list
+        # (probably too old). Flat parameter list is not available.
+        nil
+      else
+        # No request body, or not a format Rack knows
+        []
+      end
+    end
 
     # Returns the authorization header regardless of whether it was specified
     # directly or through one of the proxy alternatives.
@@ -466,11 +512,13 @@ module ActionDispatch
       end
 
       def read_body_stream
-        reset_stream(body_stream) do
-          if headers.key?("Transfer-Encoding")
-            body_stream.read # Read body stream until EOF if "Transfer-Encoding" is present
-          else
-            body_stream.read(content_length)
+        if body_stream
+          reset_stream(body_stream) do
+            if has_header?(TRANSFER_ENCODING)
+              body_stream.read # Read body stream until EOF if "Transfer-Encoding" is present
+            else
+              body_stream.read(content_length)
+            end
           end
         end
       end
@@ -487,6 +535,10 @@ module ActionDispatch
         else
           yield
         end
+      end
+
+      def fallback_request_parameters
+        rack_request.POST
       end
   end
 end

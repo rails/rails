@@ -10,7 +10,7 @@ class FormHelperTest < ActionView::TestCase
 
   class WithActiveStorageRoutesControllers < ActionController::Base
     test_routes do
-      post "/rails/active_storage/direct_uploads", to: "active_storage/direct_uploads#create", as: :rails_direct_uploads
+      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
     end
 
     def url_options
@@ -641,6 +641,20 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_hidden_field_with_autocomplete
+    assert_dom_equal(
+      '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
+      hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+    )
+  end
+
+  def test_hidden_field_with_autocomplete_false
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
+      hidden_field("post", "title", value: "Something Else", autocomplete: nil)
+    )
+  end
+
   def test_text_field_with_custom_type
     assert_dom_equal(
       '<input id="user_email" name="user[email]" type="email" />',
@@ -1104,6 +1118,11 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = Date.new(2013, 6, 29)
     assert_dom_equal(expected, date_field("post", "written_on", value: value))
+  end
+
+  def test_date_field_with_nil_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date"/>}
+    assert_dom_equal(expected, date_field("post", "written_on", value: nil))
   end
 
   def test_date_field_with_datetime_value_attr

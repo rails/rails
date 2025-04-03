@@ -113,17 +113,19 @@ module ActiveRecord
     # :singleton-method: implicit_order_column
     # :call-seq: implicit_order_column
     #
-    # The name of the column records are ordered by if no explicit order clause
+    # The name of the column(s) records are ordered by if no explicit order clause
     # is used during an ordered finder call. If not set the primary key is used.
 
     ##
     # :singleton-method: implicit_order_column=
     # :call-seq: implicit_order_column=(column_name)
     #
-    # Sets the column to sort records by when no explicit order clause is used
-    # during an ordered finder call. Useful when the primary key is not an
-    # auto-incrementing integer, for example when it's a UUID. Records are subsorted
-    # by the primary key if it exists to ensure deterministic results.
+    # Sets the column(s) to sort records by when no explicit order clause is used
+    # during an ordered finder call. Useful for models where the primary key isn't an
+    # auto-incrementing integer (such as UUID).
+    #
+    # By default, records are subsorted by primary key to ensure deterministic results.
+    # To disable this subsort behavior, set `implicit_order_column` to `["column_name", nil]`.
 
     ##
     # :singleton-method: immutable_strings_by_default=
@@ -276,15 +278,14 @@ module ActiveRecord
         end
 
         @table_name        = value
-        @quoted_table_name = nil
         @arel_table        = nil
         @sequence_name     = nil unless @explicit_sequence_name
         @predicate_builder = nil
       end
 
-      # Returns a quoted version of the table name, used to construct SQL statements.
+      # Returns a quoted version of the table name.
       def quoted_table_name
-        @quoted_table_name ||= adapter_class.quote_table_name(table_name)
+        adapter_class.quote_table_name(table_name)
       end
 
       # Computes the table name, (re)sets it internally, and returns it.
@@ -431,7 +432,6 @@ module ActiveRecord
       end
 
       def columns
-        load_schema unless @columns
         @columns ||= columns_hash.values.freeze
       end
 
@@ -503,7 +503,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[8.0]
+      #  class CreateJobLevels < ActiveRecord::Migration[8.1]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -531,7 +531,9 @@ module ActiveRecord
         initialize_find_by_cache
       end
 
-      def load_schema # :nodoc:
+      # Load the model's schema information either from the schema cache
+      # or directly from the database.
+      def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
           return if schema_loaded?
@@ -592,6 +594,8 @@ module ActiveRecord
           columns_hash = schema_cache.columns_hash(table_name)
           columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
           @columns_hash = columns_hash.freeze
+
+          _default_attributes # Precompute to cache DB-dependent attribute types
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -618,7 +622,8 @@ module ActiveRecord
         end
 
         def type_for_column(connection, column)
-          type = connection.lookup_cast_type_from_column(column)
+          # TODO: Remove the need for a connection after we release 8.1.
+          type = column.fetch_cast_type(connection)
 
           if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
             type = type.to_immutable_string

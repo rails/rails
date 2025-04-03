@@ -9,7 +9,7 @@ module ActiveRecord
     # it was opened, an ActiveRecord::StaleObjectError exception is thrown if that has occurred
     # and the update is ignored.
     #
-    # Check out +ActiveRecord::Locking::Pessimistic+ for an alternative.
+    # Check out ActiveRecord::Locking::Pessimistic for an alternative.
     #
     # == Usage
     #
@@ -100,6 +100,13 @@ module ActiveRecord
 
             attribute_names = attribute_names.dup if attribute_names.frozen?
             attribute_names << locking_column
+
+            if self[locking_column].nil?
+              raise(<<-MSG.squish)
+                For optimistic locking, locking_column ('#{locking_column}') can't be nil.
+                Are you missing a default value or validation on '#{locking_column}'?
+              MSG
+            end
 
             self[locking_column] += 1
 

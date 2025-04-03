@@ -6,6 +6,7 @@ require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
 require "models/admin/user"
+require "models/aircraft"
 require "models/author"
 require "models/binary"
 require "models/book"
@@ -101,9 +102,9 @@ class FixturesTest < ActiveRecord::TestCase
       create_fixtures("bulbs", "movies", "computers")
 
       expected_sql = <<~EOS.chop
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("bulbs")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("movies")} .*
-        INSERT INTO #{ActiveRecord::Base.lease_connection.quote_table_name("computers")} .*
+        INSERT INTO #{quote_table_name("bulbs")} .*
+        INSERT INTO #{quote_table_name("movies")} .*
+        INSERT INTO #{quote_table_name("computers")} .*
       EOS
       assert_equal 1, subscriber.events.size
       assert_match(/#{expected_sql}/, subscriber.events.first)
@@ -112,8 +113,6 @@ class FixturesTest < ActiveRecord::TestCase
     end
 
     def test_bulk_insert_with_a_multi_statement_query_raises_an_exception_when_any_insert_fails
-      require "models/aircraft"
-
       assert_equal false, Aircraft.columns_hash["wheels_count"].null
       fixtures = {
         "aircraft" => [
@@ -476,6 +475,20 @@ class FixturesTest < ActiveRecord::TestCase
     create_fixtures("tasks")
     first = Task.find(1)
     assert first
+  end
+
+  def test_insert_with_default_function
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-manufactured-at")
+    assert_in_delta Time.now, aircraft.manufactured_at, 1.1
+  end
+
+  def test_insert_with_default_value
+    create_fixtures("aircrafts")
+
+    aircraft = Aircraft.find_by(name: "boeing-with-no-wheels")
+    assert_equal 0, aircraft.wheels_count
   end
 
   def test_logger_level_invariant
@@ -1080,12 +1093,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     pool = connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
@@ -1107,12 +1127,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     fire_connection_notification(connection.pool)
     teardown_fixtures
@@ -1131,12 +1158,19 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
+      attr_accessor :db_config
+
       def initialize(connection); @connection = connection; end
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
       def unpin_connection!; @connection.rollback_transaction; true; end
     end.new(connection)
+
+    connection.pool.db_config = Class.new do
+      attr_accessor :name
+      def initialize(name); @name = name; end
+    end.new("database_name")
 
     assert_called_with(connection.pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool, shard: :shard_two)

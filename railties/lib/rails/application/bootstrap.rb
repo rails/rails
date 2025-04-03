@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "set"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"

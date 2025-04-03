@@ -10,6 +10,9 @@ class Module
     if defined?(@parent_name)
       @parent_name
     else
+      name = self.name
+      return if name.nil?
+
       parent_name = name =~ /::[^:]+\z/ ? -$` : nil
       @parent_name = parent_name unless frozen?
       parent_name

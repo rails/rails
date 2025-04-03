@@ -29,7 +29,8 @@ module ActiveRecord
               raw_connection.next_result
             end
             verified!
-            handle_warnings(sql)
+
+            notification_payload[:affected_rows] = result.affected_rows
             notification_payload[:row_count] = result.count
             result
           ensure
@@ -58,9 +59,9 @@ module ActiveRecord
             end
           end
 
-          def execute_batch(statements, name = nil)
+          def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true)
+              raw_execute(statement, name, batch: true, **kwargs)
             end
           end
       end

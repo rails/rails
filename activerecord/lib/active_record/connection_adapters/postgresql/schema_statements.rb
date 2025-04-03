@@ -54,9 +54,9 @@ module ActiveRecord
           execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
         end
 
-        def drop_table(table_name, **options) # :nodoc:
-          schema_cache.clear_data_source_cache!(table_name.to_s)
-          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+        def drop_table(*table_names, **options) # :nodoc:
+          table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+          execute "DROP TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
         end
 
         # Returns true if schema exists.
@@ -87,8 +87,13 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           result = query(<<~SQL, "SCHEMA")
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid
+            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
+                            ARRAY(
+                              SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
+                              FROM generate_subscripts(d.indkey, 1) AS k
+                              ORDER BY k
+                            ) AS columns
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -105,9 +110,10 @@ module ActiveRecord
             unique = row[1]
             indkey = row[2].split(" ").map(&:to_i)
             inddef = row[3]
-            oid = row[4]
-            comment = row[5]
-            valid = row[6]
+            comment = row[4]
+            valid = row[5]
+            columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
+
             using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
@@ -117,8 +123,6 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = column_names_from_column_numbers(oid, indkey)
-
               # prevent INCLUDE columns from being matched
               columns.reject! { |c| include_columns.include?(c) }
 
@@ -152,9 +156,23 @@ module ActiveRecord
         end
 
         def table_options(table_name) # :nodoc:
-          if comment = table_comment(table_name)
-            { comment: comment }
+          options = {}
+
+          comment = table_comment(table_name)
+
+          options[:comment] = comment if comment
+
+          inherited_table_names = inherited_table_names(table_name).presence
+
+          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
+
+          if !options[:options] && supports_native_partitioning?
+            partition_definition = table_partition_definition(table_name)
+
+            options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
           end
+
+          options
         end
 
         # Returns a comment stored in database for given table
@@ -170,6 +188,36 @@ module ActiveRecord
                 AND n.nspname = #{scope[:schema]}
             SQL
           end
+        end
+
+        # Returns the partition definition of a given table
+        def table_partition_definition(table_name) # :nodoc:
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+
+          query_value(<<~SQL, "SCHEMA")
+            SELECT pg_catalog.pg_get_partkeydef(c.oid)
+            FROM pg_catalog.pg_class c
+              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = #{scope[:name]}
+              AND c.relkind IN (#{scope[:type]})
+              AND n.nspname = #{scope[:schema]}
+          SQL
+        end
+
+        # Returns the inherited table name of a given table
+        def inherited_table_names(table_name) # :nodoc:
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+
+          query_values(<<~SQL, "SCHEMA")
+            SELECT parent.relname
+            FROM pg_catalog.pg_inherits i
+              JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
+              JOIN pg_catalog.pg_class parent ON i.inhparent = parent.oid
+              LEFT JOIN pg_namespace n ON n.oid = child.relnamespace
+            WHERE child.relname = #{scope[:name]}
+              AND child.relkind IN (#{scope[:type]})
+              AND n.nspname = #{scope[:schema]}
+          SQL
         end
 
         # Returns the current database name.
@@ -232,6 +280,7 @@ module ActiveRecord
         #
         # This should be not be called manually but set in database.yml.
         def schema_search_path=(schema_csv)
+          return if schema_csv == @schema_search_path
           if schema_csv
             internal_execute("SET search_path TO #{schema_csv}")
             @schema_search_path = schema_csv
@@ -255,6 +304,8 @@ module ActiveRecord
 
         # Returns the sequence name for a table's primary key or some other specified key.
         def default_sequence_name(table_name, pk = "id") # :nodoc:
+          return nil if pk.is_a?(Array)
+
           result = serial_sequence(table_name, pk)
           return nil unless result
           Utils.extract_schema_qualified_name(result).to_s
@@ -274,7 +325,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              query_value("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -305,7 +356,7 @@ module ActiveRecord
               end
             end
 
-            query_value("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 
@@ -538,36 +589,45 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conkey, c.confkey, c.conrelid, c.confrelid
+            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
+              (
+                SELECT array_agg(a.attname ORDER BY idx)
+                FROM (
+                  SELECT idx, c.conkey[idx] AS conkey_elem
+                  FROM generate_subscripts(c.conkey, 1) AS idx
+                ) indexed_conkeys
+                JOIN pg_attribute a ON a.attrelid = t1.oid
+                AND a.attnum = indexed_conkeys.conkey_elem
+              ) AS conkey_names,
+              (
+                SELECT array_agg(a.attname ORDER BY idx)
+                FROM (
+                  SELECT idx, c.confkey[idx] AS confkey_elem
+                  FROM generate_subscripts(c.confkey, 1) AS idx
+                ) indexed_confkeys
+                JOIN pg_attribute a ON a.attrelid = t2.oid
+                AND a.attnum = indexed_confkeys.confkey_elem
+              ) AS confkey_names
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
-            JOIN pg_attribute a1 ON a1.attnum = c.conkey[1] AND a1.attrelid = t1.oid
-            JOIN pg_attribute a2 ON a2.attnum = c.confkey[1] AND a2.attrelid = t2.oid
-            JOIN pg_namespace t3 ON c.connamespace = t3.oid
+            JOIN pg_namespace n ON c.connamespace = n.oid
             WHERE c.contype = 'f'
               AND t1.relname = #{scope[:name]}
-              AND t3.nspname = #{scope[:schema]}
+              AND n.nspname = #{scope[:schema]}
             ORDER BY c.conname
           SQL
 
           fk_info.map do |row|
             to_table = Utils.unquote_identifier(row["to_table"])
-            conkey = row["conkey"].scan(/\d+/).map(&:to_i)
-            confkey = row["confkey"].scan(/\d+/).map(&:to_i)
 
-            if conkey.size > 1
-              column = column_names_from_column_numbers(row["conrelid"], conkey)
-              primary_key = column_names_from_column_numbers(row["confrelid"], confkey)
-            else
-              column = Utils.unquote_identifier(row["column"])
-              primary_key = row["primary_key"]
-            end
+            column = decode_string_array(row["conkey_names"])
+            primary_key = decode_string_array(row["confkey_names"])
 
             options = {
-              column: column,
+              column: column.size == 1 ? column.first : column,
               name: row["name"],
-              primary_key: primary_key
+              primary_key: primary_key.size == 1 ? primary_key.first : primary_key
             }
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
@@ -652,7 +712,16 @@ module ActiveRecord
           scope = quoted_scope(table_name)
 
           unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
-            SELECT c.conname, c.conrelid, c.conkey, c.condeferrable, c.condeferred
+            SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
+            (
+              SELECT array_agg(a.attname ORDER BY idx)
+              FROM (
+                SELECT idx, c.conkey[idx] AS conkey_elem
+                FROM generate_subscripts(c.conkey, 1) AS idx
+              ) indexed_conkeys
+              JOIN pg_attribute a ON a.attrelid = t.oid
+              AND a.attnum = indexed_conkeys.conkey_elem
+            ) AS conkey_names
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
             JOIN pg_namespace n ON n.oid = c.connamespace
@@ -662,13 +731,14 @@ module ActiveRecord
           SQL
 
           unique_info.map do |row|
-            conkey = row["conkey"].delete("{}").split(",").map(&:to_i)
-            columns = column_names_from_column_numbers(row["conrelid"], conkey)
+            columns = decode_string_array(row["conkey_names"])
 
+            nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
             deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
 
             options = {
               name: row["conname"],
+              nulls_not_distinct: nulls_not_distinct,
               deferrable: deferrable
             }
 
@@ -720,15 +790,12 @@ module ActiveRecord
         def remove_exclusion_constraint(table_name, expression = nil, **options)
           excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_exclusion_constraint(excl_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, excl_name_to_delete)
         end
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position"
+        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
         #
         # generates:
         #
@@ -745,6 +812,9 @@ module ActiveRecord
         #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
         # [<tt>:using_index</tt>]
         #   To specify an existing unique index name. Defaults to +nil+.
+        # [<tt>:nulls_not_distinct</tt>]
+        #   Create a unique constraint where NULLs are treated equally.
+        #   Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = create_alter_table(table_name)
@@ -775,10 +845,7 @@ module ActiveRecord
         def remove_unique_constraint(table_name, column_name = nil, **options)
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
-          at = create_alter_table(table_name)
-          at.drop_unique_constraint(unique_name_to_delete)
-
-          execute schema_creation.accept(at)
+          remove_constraint(table_name, unique_name_to_delete)
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -877,7 +944,7 @@ module ActiveRecord
         #
         #   validate_check_constraint :products, name: "price_check"
         #
-        # The +options+ hash accepts the same keys as add_check_constraint[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        # The +options+ hash accepts the same keys as {add_check_constraint}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
         def validate_check_constraint(table_name, **options)
           chk_name_to_validate = check_constraint_for!(table_name, **options).name
 
@@ -935,6 +1002,7 @@ module ActiveRecord
 
             PostgreSQL::Column.new(
               column_name,
+              get_oid_type(oid.to_i, fmod.to_i, column_name, type),
               default_value,
               type_metadata,
               !notnull,
@@ -1104,13 +1172,8 @@ module ActiveRecord
             [name.schema, name.identifier]
           end
 
-          def column_names_from_column_numbers(table_oid, column_numbers)
-            Hash[query(<<~SQL, "SCHEMA")].values_at(*column_numbers).compact
-              SELECT a.attnum, a.attname
-              FROM pg_attribute a
-              WHERE a.attrelid = #{table_oid}
-              AND a.attnum IN (#{column_numbers.join(", ")})
-            SQL
+          def decode_string_array(value)
+            PG::TextDecoder::Array.new.decode(value)
           end
       end
     end

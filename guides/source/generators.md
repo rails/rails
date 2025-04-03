@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Creating and Customizing Rails Generators & Templates
 =====================================================
@@ -479,7 +479,7 @@ First, the template asks the user whether they would like to install Devise.
 If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`,
 and asks the user for the name of the Devise user model (defaulting to `User`).
 Later, after `bundle install` has been run, the template will run the Devise
-generators and `rails db:migrate` if a Devise model was specified. Finally, the
+generators and `bin/rails db:migrate` if a Devise model was specified. Finally, the
 template will `git add` and `git commit` the entire app directory.
 
 We can run our template when generating a new Rails application by passing the

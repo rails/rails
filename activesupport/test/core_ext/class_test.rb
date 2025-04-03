@@ -3,7 +3,6 @@
 require_relative "../abstract_unit"
 require "active_support/core_ext/class"
 require "active_support/descendants_tracker"
-require "set"
 
 class ClassTest < ActiveSupport::TestCase
   class Parent; end

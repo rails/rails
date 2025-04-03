@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "test_helper"
 require "rail_inspector/visitor/framework_default"
 
 class FrameworkDefaultTest < Minitest::Test
@@ -81,6 +82,37 @@ class FrameworkDefaultTest < Minitest::Test
     ENV["STRICT"] = original_env
   end
 
+  def test_multiline_strings
+    config = config_for_defaults <<~RUBY
+      case target_version.to_s
+      when "7.0"
+        if respond_to?(:active_storage)
+          active_storage.video_preview_arguments =
+            "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1'" \
+            " -frames:v 1 -f image2"
+        end
+      end
+    RUBY
+
+    assert_includes config, "7.0"
+    assert_equal(
+      "\"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2\"",
+      config["7.0"]["active_storage.video_preview_arguments"],
+    )
+  end
+
+  def test_inline_condition
+    config = config_for_defaults <<~RUBY
+      case target_version.to_s
+      when "8.0"
+        Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
+      end
+    RUBY
+
+    assert_includes config, "8.0"
+    assert_equal("1", config["8.0"]["Regexp.timeout"])
+  end
+
   private
     def wrapped_defaults(defaults)
       <<~RUBY
@@ -94,7 +126,7 @@ class FrameworkDefaultTest < Minitest::Test
 
     def config_for_defaults(defaults)
       full_class = wrapped_defaults(defaults)
-      parsed = SyntaxTree.parse(full_class)
+      parsed = Prism.parse(full_class).value
       visitor.visit(parsed)
       visitor.config_map
     end

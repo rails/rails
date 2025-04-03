@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Working with JavaScript in Rails
 ================================
@@ -37,7 +37,7 @@ When using import maps, no separate build process is required, just start your s
 Importmap for Rails is automatically included in Rails 7+ for new applications, but you can also install it manually in existing applications:
 
 ```bash
-$ bin/bundle add importmap-rails
+$ bundle add importmap-rails
 ```
 
 Run the install task:
@@ -228,7 +228,7 @@ def create
 
   respond_to do |format|
     if @post.save
-      format.turbo_stream { render turbo_stream: turbo_stream.prepend('posts', partial: 'post') }
+      format.turbo_stream { render turbo_stream: turbo_stream.prepend("posts", partial: "post") }
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -240,11 +240,11 @@ Finally, Turbo Streams can be initiated from a model or a background job using b
 These broadcasts can be used to update content via a WebSocket connection to all users, keeping
 page content fresh and bringing your application to life.
 
-To broadcast a Turbo Stream from a model combine a model callback like this:
+To broadcast a Turbo Stream from a model, combine a model callback like this:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit { broadcast_append_to('posts') }
+  after_create_commit { broadcast_append_to("posts") }
 end
 ```
 
@@ -320,8 +320,8 @@ added to the form that the `button_to` helper renders internally:
 
 ### Ajax Requests
 
-When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
-Without this header requests won't be accepted by Rails.
+When making non-GET requests from JavaScript, the `X-CSRF-Token` header is required.
+Without this header, requests won't be accepted by Rails.
 
 NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSRF) attacks. Read more in the [security guide](security.html#cross-site-request-forgery-csrf).
 
@@ -329,7 +329,7 @@ NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSR
 of adding the request headers that are required by Rails. Just
 import the `FetchRequest` class from the package and instantiate it
 passing the request method, url, options, then call `await request.perform()`
-and do what do you need with the response.
+and do what you need with the response.
 
 For example:
 

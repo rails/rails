@@ -15,12 +15,13 @@ module Rails
                     :cache_classes, :cache_store, :consider_all_requests_local, :console,
                     :eager_load, :exceptions_app, :file_watcher, :filter_parameters, :precompile_filter_parameters,
                     :force_ssl, :helpers_paths, :hosts, :host_authorization, :logger, :log_formatter,
-                    :log_tags, :railties_order, :relative_url_root,
+                    :log_tags, :silence_healthcheck_path, :railties_order, :relative_url_root,
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
                     :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version, :yjit
@@ -62,6 +63,7 @@ module Rails
         @exceptions_app                          = nil
         @autoflush_log                           = true
         @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
+        @silence_healthcheck_path                = nil
         @eager_load                              = nil
         @secret_key_base                         = nil
         @api_only                                = false
@@ -71,6 +73,7 @@ module Rails
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
+        @content_security_policy_nonce_auto      = false
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
@@ -325,10 +328,6 @@ module Rails
 
           self.yjit = true
 
-          if respond_to?(:active_job)
-            active_job.enqueue_after_transaction_commit = :default
-          end
-
           if respond_to?(:active_storage)
             active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
           end
@@ -347,6 +346,19 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
+
+          Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
+        when "8.1"
+          load_defaults "8.0"
+
+          # Development and test environments tend to reload code and
+          # redefine methods (e.g. mocking), hence YJIT isn't generally
+          # faster in these environments.
+          self.yjit = !Rails.env.local?
+
+          if respond_to?(:action_controller)
+            action_controller.escape_json_responses = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -364,14 +376,6 @@ module Rails
 
       def enable_reloading=(value)
         self.cache_classes = !value
-      end
-
-      def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
-      end
-
-      def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
       end
 
       def encoding=(value)
@@ -512,16 +516,18 @@ module Rails
 
       def secret_key_base
         @secret_key_base || begin
-          self.secret_key_base = if generate_local_secret?
+          self.secret_key_base = if ENV["SECRET_KEY_BASE_DUMMY"]
             generate_local_secret
           else
-            ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
+            ENV["SECRET_KEY_BASE"] ||
+              Rails.application.credentials.secret_key_base ||
+              (Rails.env.local? && generate_local_secret)
           end
         end
       end
 
       def secret_key_base=(new_secret_key_base)
-        if new_secret_key_base.nil? && generate_local_secret?
+        if new_secret_key_base.nil? && Rails.env.local?
           @secret_key_base = generate_local_secret
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
@@ -648,10 +654,6 @@ module Rails
           end
 
           File.binread(key_file)
-        end
-
-        def generate_local_secret?
-          Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         end
     end
   end

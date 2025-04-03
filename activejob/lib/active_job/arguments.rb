@@ -170,7 +170,7 @@ module ActiveJob
 
       def serialize_indifferent_hash(indifferent_hash)
         result = serialize_hash(indifferent_hash)
-        result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
+        result[WITH_INDIFFERENT_ACCESS_KEY] = true
         result
       end
 

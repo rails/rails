@@ -14,9 +14,24 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     FileUtils.rm_rf(@tmp_path)
   end
 
+  test "register directories" do
+    Rails::CodeStatistics.register_directory("My Directory", "path/to/dir")
+    assert Rails::CodeStatistics.directories.include?(["My Directory", "path/to/dir"])
+    assert_not Rails::CodeStatistics.test_types.include?("My Directory")
+  ensure
+    Rails::CodeStatistics.directories.delete(["My Directory", "path/to/dir"])
+  end
+
+  test "register test directories" do
+    Rails::CodeStatistics.register_directory("Model specs", "spec/models", test_directory: true)
+    assert Rails::CodeStatistics.test_types.include?("Model specs")
+  ensure
+    Rails::CodeStatistics.test_types.delete("Model specs")
+  end
+
   test "ignores directories that happen to have source files extensions" do
     assert_nothing_raised do
-      @code_statistics = CodeStatistics.new(["tmp dir", @tmp_path])
+      @code_statistics = Rails::CodeStatistics.new(["tmp dir", @tmp_path])
     end
   end
 
@@ -28,7 +43,7 @@ class CodeStatisticsTest < ActiveSupport::TestCase
     CODE
 
     assert_nothing_raised do
-      CodeStatistics.new(["hidden file", @tmp_path])
+      Rails::CodeStatistics.new(["hidden file", @tmp_path])
     end
   end
 end

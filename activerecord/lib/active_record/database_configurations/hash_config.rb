@@ -130,6 +130,14 @@ module ActiveRecord
         Base.configurations.primary?(name)
       end
 
+      # Determines whether the db:prepare task should seed the database from db/seeds.rb.
+      #
+      # If the `seeds` key is present in the config, `seeds?` will return its value.  Otherwise, it
+      # will return `true` for the primary database and `false` for all other configs.
+      def seeds?
+        configuration_hash.fetch(:seeds, primary?)
+      end
+
       # Determines whether to dump the schema/structure files and the filename that
       # should be used.
       #
@@ -138,7 +146,7 @@ module ActiveRecord
       #
       # If the config option is set that will be used. Otherwise Rails will generate
       # the filename from the database config name.
-      def schema_dump(format = ActiveRecord.schema_format)
+      def schema_dump(format = schema_format)
         if configuration_hash.key?(:schema_dump)
           if config = configuration_hash[:schema_dump]
             config
@@ -148,6 +156,12 @@ module ActiveRecord
         else
           "#{name}_#{schema_file_type(format)}"
         end
+      end
+
+      def schema_format # :nodoc:
+        format = configuration_hash.fetch(:schema_format, ActiveRecord.schema_format).to_sym
+        raise "Invalid schema format" unless [:ruby, :sql].include?(format)
+        format
       end
 
       def database_tasks? # :nodoc:
@@ -160,7 +174,7 @@ module ActiveRecord
 
       private
         def schema_file_type(format)
-          case format
+          case format.to_sym
           when :ruby
             "schema.rb"
           when :sql

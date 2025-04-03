@@ -10,6 +10,7 @@ module PostgresqlJSONSharedTestCases
     super
     @connection.create_table("json_data_type") do |t|
       t.public_send column_type, "payload", default: {} # t.json 'payload', default: {}
+      t.public_send column_type, "with_defaults", default: { list: [] }
       t.public_send column_type, "settings"             # t.json 'settings'
       t.public_send column_type, "objects", array: true # t.json 'objects', array: true
     end
@@ -23,6 +24,10 @@ module PostgresqlJSONSharedTestCases
 
     assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.column_defaults["permissions"])
     assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.new.permissions)
+  end
+
+  def test_default_before_type_cast
+    assert_equal '{"list":[]}', klass.new.with_defaults_before_type_cast.gsub(" ", "")
   end
 
   def test_deserialize_with_array

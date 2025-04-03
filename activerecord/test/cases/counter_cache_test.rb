@@ -103,6 +103,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counters for multiple records" do
+    t1, t2 = topics(:first, :second)
+    Topic.increment_counter(:replies_count, [t1.id, t2.id])
+
+    assert_difference ["t1.reload.replies_count", "t2.reload.replies_count"], -1 do
+      Topic.reset_counters([t1.id, t2.id], :replies_count)
+    end
+  end
+
   test "reset multiple counters" do
     Topic.update_counters @topic.id, replies_count: 1, unique_replies_count: 1
     assert_difference ["@topic.reload.replies_count", "@topic.reload.unique_replies_count"], -1 do
@@ -164,10 +173,9 @@ class CounterCacheTest < ActiveRecord::TestCase
   test "reset counter performs query for correct counter with touch: true" do
     Topic.reset_counters(@topic.id, :replies_count)
 
-    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
     # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
     # UPDATE "topics" SET "updated_at" = ? WHERE "topics"."id" = ?
-    assert_queries_count(3) do
+    assert_queries_count(2) do
       Topic.reset_counters(@topic.id, :replies_count, touch: true)
     end
   end

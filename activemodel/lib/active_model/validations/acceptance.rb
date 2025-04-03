@@ -24,7 +24,7 @@ module ActiveModel
           Array(options[:accept]).include?(value)
         end
 
-        class LazilyDefineAttributes < Module
+        class LazilyDefineAttributes < Module # :nodoc:
           def initialize(attributes)
             @attributes = attributes.map(&:to_s)
           end

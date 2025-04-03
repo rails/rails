@@ -16,21 +16,25 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   end
 
   test "without content" do
-    message = Message.create!(subject: "Greetings")
-    assert_predicate message.content, :nil?
-    assert_predicate message.content, :blank?
-    assert_predicate message.content, :empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = Message.create!(subject: "Greetings")
+      assert_nil message.content
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "with blank content" do
-    message = Message.create!(subject: "Greetings", content: "")
-    assert_not message.content.nil?
-    assert_predicate message.content, :blank?
-    assert_predicate message.content, :empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 1) do
+      message = Message.create!(subject: "Greetings", content: "")
+      assert_not message.content.nil?
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "embed extraction" do
@@ -55,6 +59,21 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_nothing_raised do
       Message.create!(subject: "Greetings", content: content)
     end
+  end
+
+  test "embed extraction occurs before validation" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new.append_attachables(blob)
+    message = Message.build(subject: "Greetings", content: content)
+
+    assert_changes -> { message.content.embeds.empty? }, from: true, to: false do
+      message.content.validate
+    end
+
+    embeds = message.content.embeds
+    assert_kind_of ActiveStorage::Attached::Many, embeds
+    assert_kind_of ActiveStorage::Attachment, embeds.first
+    assert_equal blob, embeds.first.blob
   end
 
   test "saving content" do
@@ -122,5 +141,42 @@ class ActionText::ModelTest < ActiveSupport::TestCase
       assert_equal "Content", message.content.to_plain_text
       assert_equal "Body", message.body.to_plain_text
     end
+  end
+
+  test "with blank content and store_if_blank: false" do
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = MessageWithoutBlanks.create!(subject: "Greetings", content: "")
+      assert_nil message.content
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
+  end
+
+  test "if allowing blanks, updates rich text record on edit" do
+    message = Message.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => 0) do
+      message.update(content: "")
+    end
+  end
+
+  test "if disallowing blanks, deletes rich text record on edit" do
+    message = MessageWithoutBlanks.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => -1) do
+      message.update(content: "")
+    end
+  end
+
+  test "if disallowing blanks, can still validate presence" do
+    message1 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "")
+    assert_not_predicate message1, :valid?
+    message1.content = "content"
+    assert_predicate message1, :valid?
+
+    message2 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "content")
+    assert_predicate message2, :valid?
+    message2.content = ""
+    assert_not_predicate message2, :valid?
   end
 end

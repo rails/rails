@@ -27,6 +27,19 @@ module ActiveSupport
     end
 
     module ClassMethods
+      # Reads and writes attributes from a configuration OrderedOptions.
+      #
+      #   require "active_support/configurable"
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #   end
+      #
+      #   User.config.allowed_access = true
+      #   User.config.level = 1
+      #
+      #   User.config.allowed_access # => true
+      #   User.config.level          # => 1
       def config
         @_config ||= if respond_to?(:superclass) && superclass.respond_to?(:config)
           superclass.config.inheritable_copy
@@ -36,6 +49,21 @@ module ActiveSupport
         end
       end
 
+      # Configure values from within the passed block.
+      #
+      #   require "active_support/configurable"
+      #
+      #   class User
+      #     include ActiveSupport::Configurable
+      #   end
+      #
+      #   User.allowed_access # => nil
+      #
+      #   User.configure do |config|
+      #     config.allowed_access = true
+      #   end
+      #
+      #   User.allowed_access # => true
       def configure
         yield config
       end

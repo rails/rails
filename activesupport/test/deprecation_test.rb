@@ -39,14 +39,6 @@ class DeprecationTest < ActiveSupport::TestCase
     end
   end
 
-  test "passing callstack as `caller` is deprecated" do
-    assert_deprecated(/Passing the result of `caller` to ActiveSupport::Deprecation#warn/, ActiveSupport.deprecator) do
-      assert_deprecated(@deprecator) do
-        @deprecator.warn("Yo dawg!", caller)
-      end
-    end
-  end
-
   test "assert_deprecated requires a deprecator" do
     assert_raises(ArgumentError) do
       assert_deprecated do
@@ -196,11 +188,22 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_match "call stack!", output
   end
 
+  class CallerLocation
+    attr_reader :path, :lineno, :label
+    alias_method :absolute_path, :path
+
+    def initialize(label, lineno)
+      @path = __FILE__
+      @lineno = lineno
+      @label = label
+    end
+  end
+
   test ":stderr behavior with #warn" do
     @deprecator.behavior = :stderr
 
     output = capture(:stderr) do
-      @deprecator.warn("Instance error!", ["instance call stack!"])
+      @deprecator.warn("Instance error!", [CallerLocation.new("instance call stack!", __LINE__)])
     end
 
     assert_match(/Instance error!/, output)
@@ -260,20 +263,17 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :notify
     behavior = @deprecator.behavior.first
 
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |*args|
-        events << args.extract_options!
-      }
+    expected_payload = {
+      message: "Some error!",
+      callstack: ["call stack!"],
+      deprecation_horizon: "horizon",
+      gem_name: "MyGem::Custom"
+    }
 
-      behavior.call("Some error!", ["call stack!"], @deprecator)
-      assert_equal 1, events.size
-      assert_equal "Some error!", events.first[:message]
-      assert_equal ["call stack!"], events.first[:callstack]
-      assert_equal "horizon", events.first[:deprecation_horizon]
-      assert_equal "MyGem::Custom", events.first[:gem_name]
-    ensure
-      ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
+    assert_notifications_count("deprecation.my_gem_custom", 1) do
+      assert_notification("deprecation.my_gem_custom", expected_payload) do
+        behavior.call("Some error!", ["call stack!"], @deprecator)
+      end
     end
   end
 

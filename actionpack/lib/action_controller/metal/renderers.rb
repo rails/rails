@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "set"
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)
@@ -31,6 +29,7 @@ module ActionController
 
     included do
       class_attribute :_renderers, default: Set.new.freeze
+      class_attribute :escape_json_responses, instance_accessor: false, default: true
     end
 
     # Used in ActionController::Base and ActionController::API to include all
@@ -88,7 +87,7 @@ module ActionController
       remove_possible_method(method_name)
     end
 
-    def self._render_with_renderer_method_name(key)
+    def self._render_with_renderer_method_name(key) # :nodoc:
       "_render_with_renderer_#{key}"
     end
 
@@ -142,7 +141,7 @@ module ActionController
       _render_to_body_with_renderer(options) || super
     end
 
-    def _render_to_body_with_renderer(options)
+    def _render_to_body_with_renderer(options) # :nodoc:
       _renderers.each do |name|
         if options.key?(name)
           _process_options(options)
@@ -154,27 +153,29 @@ module ActionController
     end
 
     add :json do |json, options|
-      json = json.to_json(options) unless json.kind_of?(String)
+      json_options = options.except(:callback, :content_type, :status)
+      json_options[:escape] ||= false if !self.class.escape_json_responses? && options[:callback].blank?
+      json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?
         if media_type.nil? || media_type == Mime[:json]
-          self.content_type = Mime[:js]
+          self.content_type = :js
         end
 
         "/**/#{options[:callback]}(#{json})"
       else
-        self.content_type = Mime[:json] if media_type.nil?
+        self.content_type = :json if media_type.nil?
         json
       end
     end
 
     add :js do |js, options|
-      self.content_type = Mime[:js] if media_type.nil?
+      self.content_type = :js if media_type.nil?
       js.respond_to?(:to_js) ? js.to_js(options) : js
     end
 
     add :xml do |xml, options|
-      self.content_type = Mime[:xml] if media_type.nil?
+      self.content_type = :xml if media_type.nil?
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
   end

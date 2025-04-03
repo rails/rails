@@ -263,6 +263,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def set_html_flash
+      flash["that"] = ActiveSupport::SafeBuffer.new("<p>Hello world</p>")
+      head :ok
+    end
+
     def set_flash_now
       flash.now["that"] = "hello"
       head :ok
@@ -274,7 +279,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     def set_bar
       flash[:bar] = "for great justice"
-      head :ok
+      render inline: "<%= bar %>"
     end
 
     def set_flash_optionally
@@ -294,6 +299,18 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       get "/use_flash"
       assert_response :success
       assert_equal "flash: hello", @response.body
+    end
+  end
+
+  def test_flash_safebuffer
+    with_test_route_set do
+      get "/set_html_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "<p>Hello world</p>", @request.flash["that"]
+
+      get "/use_flash", env: { "action_dispatch.cookies_serializer" => :message_pack }
+      assert_response :success
+      assert_equal "flash: <p>Hello world</p>", @response.body
     end
   end
 
@@ -330,7 +347,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     with_test_route_set do
       get "/set_bar"
       assert_response :success
-      assert_equal "for great justice", @controller.bar
+      assert_equal "for great justice", response.body
     end
   end
 
@@ -356,7 +373,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_flash_usable_in_metal_without_helper
+  def test_flash_unusable_in_metal_without_helper
     controller_class = nil
 
     assert_nothing_raised do
@@ -367,8 +384,11 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
 
     controller = controller_class.new
 
-    assert_respond_to controller, :alert
-    assert_respond_to controller, :notice
+    assert_not_respond_to controller, :alert
+    assert_not_respond_to controller, :notice
+
+    assert_includes controller.private_methods, :alert
+    assert_includes controller.private_methods, :notice
   end
 
   private

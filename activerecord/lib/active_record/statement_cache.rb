@@ -31,8 +31,11 @@ module ActiveRecord
     class Substitute; end # :nodoc:
 
     class Query # :nodoc:
-      def initialize(sql)
+      attr_reader :retryable
+
+      def initialize(sql, retryable:)
         @sql = sql
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -41,11 +44,12 @@ module ActiveRecord
     end
 
     class PartialQuery < Query # :nodoc:
-      def initialize(values)
+      def initialize(values, retryable:)
         @values = values
         @indexes = values.each_with_index.find_all { |thing, i|
           Substitute === thing
         }.map(&:last)
+        @retryable = retryable
       end
 
       def sql_for(binds, connection)
@@ -74,13 +78,13 @@ module ActiveRecord
         self
       end
 
-      def add_bind(obj)
+      def add_bind(obj, &)
         @binds << obj
         @parts << Substitute.new
         self
       end
 
-      def add_binds(binds, proc_for_binds = nil)
+      def add_binds(binds, proc_for_binds = nil, &)
         @binds.concat proc_for_binds ? binds.map(&proc_for_binds) : binds
         binds.size.times do |i|
           @parts << ", " unless i == 0
@@ -94,12 +98,12 @@ module ActiveRecord
       end
     end
 
-    def self.query(sql)
-      Query.new(sql)
+    def self.query(...)
+      Query.new(...)
     end
 
-    def self.partial_query(values)
-      PartialQuery.new(values)
+    def self.partial_query(...)
+      PartialQuery.new(...)
     end
 
     def self.partial_query_collector
@@ -142,14 +146,17 @@ module ActiveRecord
       @model = model
     end
 
-    def execute(params, connection, allow_retry: false, &block)
+    def execute(params, connection, async: false, &block)
       bind_values = @bind_map.bind params
-
       sql = @query_builder.sql_for bind_values, connection
 
-      @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: allow_retry, &block)
+      if async
+        @model.async_find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
+      else
+        @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
+      end
     rescue ::RangeError
-      []
+      async ? Promise.wrap([]) : []
     end
 
     def self.unsupported_value?(value)

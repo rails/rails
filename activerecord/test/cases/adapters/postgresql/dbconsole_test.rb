@@ -78,6 +78,17 @@ module ActiveRecord
         assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
       end
 
+      def test_postgresql_can_use_alternative_cli
+        ActiveRecord.database_cli[:postgresql] = "pgcli"
+        config = make_db_config(adapter: "postgresql", database: "db")
+
+        assert_find_cmd_and_exec_called_with(["pgcli", "db"]) do
+          PostgreSQLAdapter.dbconsole(config)
+        end
+      ensure
+        ActiveRecord.database_cli[:postgresql] = "psql"
+      end
+
       private
         def preserve_pg_env
           old_values = ENV_VARS.map { |var| ENV[var] }

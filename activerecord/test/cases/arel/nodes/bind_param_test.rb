@@ -4,7 +4,7 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    describe "BindParam" do
+    class BindParamTest < Arel::Spec
       it "is equal to other bind params with the same value" do
         _(BindParam.new(1)).must_equal(BindParam.new(1))
         _(BindParam.new("foo")).must_equal(BindParam.new("foo"))

@@ -5,7 +5,6 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
-require "rack"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -135,6 +134,78 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_predicate pool.lease_connection, :query_cache_enabled
       end
     }
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_not_applied_when_config_is_false
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: false))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :off
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_string
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: "unlimited"))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_nil ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_integer
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: 42))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal 42, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
+
+    mw.call({})
+  ensure
+    clean_up_connection_handler
+  end
+
+  def test_cache_is_applied_when_config_is_nil
+    ActiveRecord::Base.connected_to(role: :reading) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(query_cache: nil))
+    end
+
+    mw = middleware do |env|
+      ActiveRecord::Base.connected_to(role: :reading) do
+        assert_cache :clean
+        assert_equal ActiveRecord::ConnectionAdapters::QueryCache::DEFAULT_SIZE, ActiveRecord::Base.lease_connection.pool.query_cache.instance_variable_get(:@max_size)
+      end
+    end
 
     mw.call({})
   ensure
@@ -1026,7 +1097,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_lru_eviction
-    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(2)
+    store = ActiveRecord::ConnectionAdapters::QueryCache::Store.new(Concurrent::AtomicFixnum.new, 2)
     store.enabled = true
 
     connection = Post.lease_connection

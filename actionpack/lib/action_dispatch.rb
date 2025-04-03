@@ -53,7 +53,13 @@ module ActionDispatch
   eager_autoload do
     autoload_under "http" do
       autoload :ContentSecurityPolicy
+      autoload :InvalidParameterError, "action_dispatch/http/param_error"
+      autoload :ParamBuilder
+      autoload :ParamError
+      autoload :ParameterTypeError, "action_dispatch/http/param_error"
+      autoload :ParamsTooDeepError, "action_dispatch/http/param_error"
       autoload :PermissionsPolicy
+      autoload :QueryParser
       autoload :Request
       autoload :Response
     end

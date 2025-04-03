@@ -7,7 +7,7 @@ class HealthControllerTest < ActionController::TestCase
 
   def setup
     Rails.application.routes.draw do
-      get "/up", to: "rails/health#show", as: :rails_health_check
+      get "/up" => "rails/health#show", as: :rails_health_check
     end
     @routes = Rails.application.routes
   end

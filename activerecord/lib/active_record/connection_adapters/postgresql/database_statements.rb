@@ -11,8 +11,8 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) # :nodoc:
-          result = internal_execute(sql, name)
+        def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+          result = internal_execute(sql, name, allow_retry:, materialize_transactions:)
           result.map_types!(@type_map_for_results).values
         end
 
@@ -156,14 +156,15 @@ module ActiveRecord
 
                 raise
               end
-            elsif without_prepared_statement?(binds)
+            elsif binds.nil? || binds.empty?
               raw_connection.async_exec(sql)
             else
               raw_connection.exec_params(sql, type_casted_binds)
             end
 
             verified!
-            handle_warnings(result)
+
+            notification_payload[:affected_rows] = result.cmd_tuples
             notification_payload[:row_count] = result.count
             result
           end
@@ -174,13 +175,14 @@ module ActiveRecord
               return ActiveRecord::Result.empty
             end
 
-            types = {}
             fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
+            types = Array.new(fields.size)
+            fields.size.times do |index|
+              ftype = result.ftype(index)
+              fmod  = result.fmod(index)
+              types[index] = get_oid_type(ftype, fmod, fields[index])
             end
+
             ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
             result.clear
             ar_result
@@ -192,8 +194,8 @@ module ActiveRecord
             affected_rows
           end
 
-          def execute_batch(statements, name = nil)
-            raw_execute(combine_multi_statements(statements), name, batch: true)
+          def execute_batch(statements, name = nil, **kwargs)
+            raw_execute(combine_multi_statements(statements), name, batch: true, **kwargs)
           end
 
           def build_truncate_statements(table_names)
@@ -213,7 +215,7 @@ module ActiveRecord
             pk unless pk.is_a?(Array)
           end
 
-          def handle_warnings(sql)
+          def handle_warnings(result, sql)
             @notice_receiver_sql_warnings.each do |warning|
               next if warning_ignored?(warning)
 

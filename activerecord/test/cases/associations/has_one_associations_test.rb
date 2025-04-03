@@ -20,6 +20,8 @@ require "models/club"
 require "models/membership"
 require "models/parrot"
 require "models/cpk"
+require "models/room"
+require "models/user"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -806,6 +808,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_no_queries { new_club.save }
   end
 
+  def test_has_one_double_belongs_to_destroys_both_from_either_end
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    landlord.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+
+    landlord = User.create!
+    tenant = User.create!
+    room = Room.create!(landlord: landlord, tenant: tenant)
+
+    tenant.destroy!
+
+    assert_predicate(room, :destroyed?)
+    assert_predicate(tenant, :destroyed?)
+    assert_predicate(landlord, :destroyed?)
+  end
+
   class SpecialBook < ActiveRecord::Base
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
@@ -941,5 +965,39 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       Association Cpk::BrokenOrderWithNonCpkBooks#book primary key [\"shop_id\", \"status\"]
       doesn't match with foreign key broken_order_with_non_cpk_books_id. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
+  end
+end
+
+class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
+  include WaitForAsyncTestHelper
+
+  self.use_transactional_tests = false
+
+  fixtures :companies, :accounts
+
+  unless in_memory_db?
+    def test_async_load_has_one
+      firm = companies(:first_firm)
+      first_account = Account.find(1)
+
+      firm.association(:account).async_load_target
+      wait_for_async_query
+
+      events = []
+      callback = -> (event) do
+        events << event unless event.payload[:name] == "SCHEMA"
+      end
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        firm.account
+      end
+
+      assert_no_queries do
+        assert_equal first_account, firm.account
+        assert_equal first_account.credit_limit, firm.account.credit_limit
+      end
+
+      assert_equal 1, events.size
+      assert_equal true, events.first.payload[:async]
+    end
   end
 end

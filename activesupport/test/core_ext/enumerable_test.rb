@@ -412,7 +412,5 @@ class EnumerableTests < ActiveSupport::TestCase
   private
     def constant_cache_invalidations
       RubyVM.stat(:constant_cache_invalidations)
-    rescue ArgumentError
-      RubyVM.stat(:global_constant_state) # RUBY_VERSION < "3.2"
     end
 end

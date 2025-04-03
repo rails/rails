@@ -25,10 +25,12 @@ class MultibyteProxyText < ActiveSupport::TestCase
   end
 
   test "custom multibyte encoder" do
-    with_custom_encoder(AsciiOnlyEncoder) do
-      assert_equal "s?me string 123", "søme string 123".mb_chars.to_s
-    end
+    assert_deprecated ActiveSupport.deprecator do
+      with_custom_encoder(AsciiOnlyEncoder) do
+        assert_equal "s?me string 123", "søme string 123".mb_chars.to_s
+      end
 
-    assert_equal "søme string 123", "søme string 123".mb_chars.to_s
+      assert_equal "søme string 123", "søme string 123".mb_chars.to_s
+    end
   end
 end

@@ -13,7 +13,7 @@ module ApplicationTests
     test "#clean silences Rails code from backtrace" do
       backtrace = [
         "app/controllers/foo_controller.rb:4:in 'index'",
-        "rails/railties/lib/rails/engine.rb:536:in `call"
+        "#{Gem.default_dir}/gems/railties-1.2.3/lib/rails/engine.rb:536:in `call"
       ]
 
       cleaned = @cleaner.clean(backtrace)
@@ -25,7 +25,7 @@ module ApplicationTests
       switch_env("BACKTRACE", "1") do
         backtrace = [
           "app/app/controllers/foo_controller.rb:4:in 'index'",
-          "/rails/railties/lib/rails/engine.rb:536:in `call"
+          "#{Gem.default_dir}/gems/railties-1.2.3/lib/rails/engine.rb:536:in `call"
         ]
 
         cleaned = @cleaner.clean(backtrace)
@@ -35,7 +35,7 @@ module ApplicationTests
     end
 
     test "#clean_frame silences Rails code" do
-      frame = "rails/railties/lib/rails/engine.rb:536:in `call"
+      frame = "#{Gem.default_dir}/gems/railties-1.2.3/lib/rails/engine.rb:536:in `call"
 
       cleaned = @cleaner.clean_frame(frame)
 
@@ -44,7 +44,7 @@ module ApplicationTests
 
     test "#clean_frame does not silence when BACKTRACE is set" do
       switch_env("BACKTRACE", "1") do
-        frame = "rails/railties/lib/rails/engine.rb:536:in `call"
+        frame = "#{Gem.default_dir}/gems/railties-1.2.3/lib/rails/engine.rb:536:in `call"
 
         cleaned = @cleaner.clean_frame(frame)
 

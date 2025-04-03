@@ -29,7 +29,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
   end
 
   class EnqueueAfterCommitJob < ActiveJob::Base
-    self.enqueue_after_transaction_commit = :always
+    self.enqueue_after_transaction_commit = true
 
     def perform
       # noop
@@ -38,10 +38,6 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   class ErrorEnqueueAfterCommitJob < EnqueueErrorJob
     class EnqueueErrorAdapter
-      def enqueue_after_transaction_commit?
-        true
-      end
-
       def enqueue(...)
         raise ActiveJob::EnqueueError, "There was an error enqueuing the job"
       end
@@ -52,7 +48,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
 
     self.queue_adapter = EnqueueErrorAdapter.new
-    self.enqueue_after_transaction_commit = :always
+    self.enqueue_after_transaction_commit = true
 
     def perform
       # noop

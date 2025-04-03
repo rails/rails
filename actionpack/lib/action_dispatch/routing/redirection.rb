@@ -148,7 +148,7 @@ module ActionDispatch
     module Redirection
       # Redirect any path to another path:
       #
-      #     get "/stories", to: redirect("/posts")
+      #     get "/stories" => redirect("/posts")
       #
       # This will redirect the user, while ignoring certain parts of the request,
       # including query string, etc. `/stories`, `/stories?foo=bar`, etc all redirect
@@ -157,7 +157,7 @@ module ActionDispatch
       # The redirect will use a `301 Moved Permanently` status code by default. This
       # can be overridden with the `:status` option:
       #
-      #     get "/stories", to: redirect("/posts", status: 307)
+      #     get "/stories" => redirect("/posts", status: 307)
       #
       # You can also use interpolation in the supplied redirect argument:
       #
@@ -199,7 +199,7 @@ module ActionDispatch
       # allowing you to reuse common redirect routes. The call method must accept two
       # arguments, params and request, and return a string.
       #
-      #     get 'accounts/:name', to: redirect(SubdomainRedirector.new('api'))
+      #     get 'accounts/:name' => redirect(SubdomainRedirector.new('api'))
       #
       def redirect(*args, &block)
         options = args.extract_options!

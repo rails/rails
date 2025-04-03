@@ -31,17 +31,17 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
-    get "/", to: "foo#bar"
-    get "/other", to: "foo#other"
-    get "/article/:id", to: "foo#article", as: :article
-    get "/category/:category", to: "foo#category"
+    get "/" => "foo#bar"
+    get "/other" => "foo#other"
+    get "/article/:id" => "foo#article", :as => :article
+    get "/category/:category" => "foo#category"
     resources :sessions
     resources :workshops do
       resources :sessions
     end
 
     scope :engine do
-      get "/", to: "foo#bar"
+      get "/" => "foo#bar"
     end
   end
 
@@ -578,6 +578,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
       link_to("Hello", "http://www.example.com", method: :post, rel: "example")
+    )
+
+    assert_dom_equal(
+      %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
+      link_to("Hello", "http://www.example.com", method: :post, rel: :example)
     )
   end
 
