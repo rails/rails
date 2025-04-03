@@ -227,7 +227,7 @@ module ActiveSupport
             nodes.each do |node|
               begin
                 cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
-                node.del(*keys) unless keys.empty?
+                node.unlink(*keys) unless keys.empty?
               end until cursor == "0"
             end
           end
@@ -408,14 +408,16 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del(key) == 1 }
+            redis.then { |c| c.unlink(key) == 1 }
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
+          return 0 if entries.empty?
+
           failsafe :delete_multi_entries, returning: 0 do
-            redis.then { |c| c.del(entries) }
+            redis.then { |c| c.unlink(*entries) }
           end
         end
 
