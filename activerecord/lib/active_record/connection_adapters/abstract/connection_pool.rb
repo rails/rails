@@ -14,12 +14,12 @@ module ActiveRecord
     class NullPool # :nodoc:
       include ConnectionAdapters::AbstractPool
 
-      class NullConfig # :nodoc:
+      class NullConfig
         def method_missing(...)
           nil
         end
       end
-      NULL_CONFIG = NullConfig.new # :nodoc:
+      NULL_CONFIG = NullConfig.new
 
       def initialize
         super()
@@ -47,6 +47,11 @@ module ActiveRecord
 
       def dirties_query_cache
         true
+      end
+
+      def default_isolation_level; end
+      def default_isolation_level=(isolation_level)
+        raise NotImplementedError, "This method should never be called"
       end
     end
 
