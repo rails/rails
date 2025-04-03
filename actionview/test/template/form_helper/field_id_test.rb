@@ -21,7 +21,7 @@ end
 class FieldIdTest < ActionView::TestCase
   def test_form_builder_field_id_without_index
     item = Item.new(id: 1)
-    render inline: <<~ERB, locals: {item:}
+    render inline: <<~ERB, locals: { item: }
       <%= fields_for("items[]", item) do |form| %>
         <%= form.hidden_field :name %>
         <p><%= form.field_id :name %></p>
@@ -36,7 +36,7 @@ class FieldIdTest < ActionView::TestCase
 
   def test_form_builder_field_id_with_index
     item = Item.new(id: 1)
-    render inline: <<~ERB, locals: {item:}
+    render inline: <<~ERB, locals: { item: }
       <%= fields_for("items", item, index: item.id) do |form| %>
         <%= form.hidden_field :name %>
         <p><%= form.field_id :name %></p>
