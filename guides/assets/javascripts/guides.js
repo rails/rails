@@ -80,15 +80,12 @@
     var guidesMenuButton = document.getElementById("guides-menu-button");
 
     // The link is now acting as a button (but still allows for open in new tab).
-    guidesMenuButton.setAttribute('role', 'button')
-    guidesMenuButton.setAttribute('aria-controls', guidesMenuButton.getAttribute('data-aria-controls'));
-    guidesMenuButton.setAttribute('aria-expanded', guidesMenuButton.getAttribute('data-aria-expanded'));
-    guidesMenuButton.removeAttribute('data-aria-controls');
-    guidesMenuButton.removeAttribute('data-aria-expanded');
+    guidesMenuButton.setAttribute('role', 'button');
+    // Set aria-controls to point to the guides element
+    guidesMenuButton.setAttribute('aria-controls', 'guides');
+    guidesMenuButton.setAttribute('aria-expanded', 'false');
 
-    var guides = document.getElementById(
-      guidesMenuButton.getAttribute("aria-controls")
-    );
+    var guides = document.getElementById('guides');
 
     var toggleGuidesMenu = function () {
       var nextExpanded = guidesMenuButton.getAttribute("aria-expanded") === "false";
