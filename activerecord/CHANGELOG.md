@@ -1,3 +1,26 @@
+*   Encryption now supports `support_unencrypted_data: true` being set per-attribute.
+
+    Previously this only worked if `ActiveRecord::Encryption.config.support_unencrypted_data == true`.
+    Now, if the global config is turned off, you can still opt in for a specific attribute.
+
+    ```ruby
+    # ActiveRecord::Encryption.config.support_unencrypted_data = true
+    class User < ActiveRecord::Base
+      encrypts :name, support_unencrypted_data: false # only supports encrypted data
+      encrypts :email # supports encrypted or unencrypted data
+    end
+    ```
+
+    ```ruby
+    # ActiveRecord::Encryption.config.support_unencrypted_data = false
+    class User < ActiveRecord::Base
+      encrypts :name, support_unencrypted_data: true # supports encrypted or unencrypted data
+      encrypts :email  # only supports encrypted data
+    end
+    ```
+
+    *Alex Ghiculescu*
+
 *   Prepend `extra_flags` in postgres' `structure_load`
 
     When specifying `structure_load_flags` with a postgres adapter, the flags
