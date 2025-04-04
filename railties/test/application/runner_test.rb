@@ -37,6 +37,16 @@ module ApplicationTests
       assert_match "42", rails("runner", "puts User.count")
     end
 
+    def test_app_routes_are_loaded
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get 'foo', to: 'foo#index'
+        end
+      RUBY
+
+      assert_match "[:foo_path]", rails("runner", "puts Rails.application.routes.url_helpers.methods.grep(/foo_path/).inspect")
+    end
+
     def test_should_set_argv_when_running_code
       output = rails("runner", "puts ARGV.join(',')", "--foo", "a1", "-b", "a2", "a3", "--moo")
       assert_equal "--foo,a1,-b,a2,a3,--moo", output.chomp
