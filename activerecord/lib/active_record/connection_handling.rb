@@ -6,6 +6,20 @@ module ActiveRecord
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
+    delegate(*%i[
+             default_role
+             ], to: :connection_handler)
+
+    def self.extended(base)
+      base.class_attribute :default_connection_handler, instance_writer: false
+      base.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
+
+      base.class_attribute :default_shard, instance_writer: false, default: :default
+      base.class_attribute :shard_selector, instance_accessor: false, default: nil
+
+      base.include InstanceMethods
+    end
+
     # Establishes the connection to the database. Accepts a hash as input where
     # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
@@ -254,6 +268,24 @@ module ActiveRecord
       current_role == role.to_sym && current_shard == shard.to_sym
     end
 
+    # Returns the symbol representing the current connected role.
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.current_role #=> :writing
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     ActiveRecord::Base.current_role #=> :reading
+    #   end
+    def current_role
+      connected_to_stack.reverse_each do |hash|
+        return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
+        return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
+      end
+
+      default_role
+    end
+
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
       connection_handler.each_connection_pool do |pool|
@@ -308,6 +340,77 @@ module ActiveRecord
     # unless the +prevent_permanent_checkout+ argument is set to +true+.
     def with_connection(prevent_permanent_checkout: false, &block)
       connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
+    end
+
+    # Returns the symbol representing the current connected shard.
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     ActiveRecord::Base.current_shard #=> :default
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing, shard: :one) do
+    #     ActiveRecord::Base.current_shard #=> :one
+    #   end
+    def current_shard
+      connected_to_stack.reverse_each do |hash|
+        return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
+        return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_class_for_self)
+      end
+
+      default_shard
+    end
+
+    # Returns the symbol representing the current setting for
+    # preventing writes.
+    #
+    #   ActiveRecord::Base.connected_to(role: :reading) do
+    #     ActiveRecord::Base.current_preventing_writes #=> true
+    #   end
+    #
+    #   ActiveRecord::Base.connected_to(role: :writing) do
+    #     ActiveRecord::Base.current_preventing_writes #=> false
+    #   end
+    def current_preventing_writes
+      connected_to_stack.reverse_each do |hash|
+        return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+        return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
+      end
+
+      false
+    end
+
+    # Intended to behave like `.current_preventing_writes` given the class name as input.
+    # See PoolConfig and ConnectionHandler::ConnectionDescriptor.
+    def preventing_writes?(class_name) # :nodoc:
+      connected_to_stack.reverse_each do |hash|
+        return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+        return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].any? { |klass| klass.name == class_name }
+      end
+
+      false
+    end
+
+    def connection_class=(b) # :nodoc:
+      @connection_class = b
+    end
+
+    def connection_class # :nodoc:
+      @connection_class ||= false
+    end
+
+    def connection_class? # :nodoc:
+      connection_class
+    end
+
+    def connection_class_for_self # :nodoc:
+      klass = self
+
+      until klass == Base
+        break if klass.connection_class?
+        klass = klass.superclass
+      end
+
+      klass
     end
 
     attr_writer :connection_specification_name
@@ -381,6 +484,24 @@ module ActiveRecord
       shard_keys.any?
     end
 
+    def connected_to_stack # :nodoc:
+      if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
+        connected_to_stack
+      else
+        connected_to_stack = Concurrent::Array.new
+        ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = connected_to_stack
+        connected_to_stack
+      end
+    end
+
+    def connection_handler
+      ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] || default_connection_handler
+    end
+
+    def connection_handler=(handler)
+      ActiveSupport::IsolatedExecutionState[:active_record_connection_handler] = handler
+    end
+
     private
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
@@ -408,6 +529,12 @@ module ActiveRecord
         end
 
         connected_to_stack << entry
+      end
+
+      module InstanceMethods
+        def connection_handler
+          self.class.connection_handler
+        end
       end
   end
 end
