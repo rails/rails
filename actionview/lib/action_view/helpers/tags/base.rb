@@ -6,7 +6,7 @@ module ActionView
       class Base # :nodoc:
         include Helpers::ActiveModelInstanceTag, Helpers::TagHelper, Helpers::FormTagHelper
 
-        attr_reader :object
+        attr_reader :object, :method_name
 
         def initialize(object_name, method_name, template_object, options = {})
           @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
