@@ -1,3 +1,11 @@
+*   `create_or_find_by` will now correctly rollback a transaction.
+
+    When using `create_or_find_by`, raising a ActiveRecord::Rollback error
+    in a `after_save` callback had no effect, the transaction was committed
+    and a record created.
+
+    *Edouard Chin*
+
 *   Prepend `extra_flags` in postgres' `structure_load`
 
     When specifying `structure_load_flags` with a postgres adapter, the flags
