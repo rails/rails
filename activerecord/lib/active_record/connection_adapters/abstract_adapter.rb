@@ -260,7 +260,11 @@ module ActiveRecord
       end
 
       def valid_type?(type) # :nodoc:
-        !native_database_types[type].nil?
+        self.class.valid_type?(type)
+      end
+
+      def native_database_types # :nodoc:
+        self.class.native_database_types
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -884,6 +888,10 @@ module ActiveRecord
             register_class_with_precision m, %r(\A[^\(]*datetime)i, Type::DateTime, timezone: default_timezone
             m.alias_type %r(\A[^\(]*timestamp)i, "datetime"
           end
+        end
+
+        def valid_type?(type) # :nodoc:
+          !native_database_types[type].nil?
         end
 
         private
