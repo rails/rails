@@ -179,6 +179,9 @@ class User < ApplicationRecord
 end
 ```
 
+NOTE: `has_secure_password` doesn't validate the minimum length or the
+complexity of the password, you need to define validation for those yourself.
+
 #### `authenticate_by`
 
 The
