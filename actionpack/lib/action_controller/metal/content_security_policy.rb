@@ -63,9 +63,24 @@ module ActionController # :nodoc:
       #     class PostsController < ApplicationController
       #       content_security_policy_report_only false, only: :index
       #     end
-      def content_security_policy_report_only(report_only = true, **options)
+      def content_security_policy_report_only(enabled = true, **options, &block)
         before_action(options) do
-          request.content_security_policy_report_only = report_only
+          if block_given?
+            if current_content_security_policy_report_only == true
+              policy = ActionDispatch::ContentSecurityPolicy.new
+            else
+              policy = current_content_security_policy_report_only
+            end
+
+            yield policy
+            request.content_security_policy_report_only = policy
+          else
+            request.content_security_policy_report_only = true
+          end
+
+          unless enabled
+            request.content_security_policy_report_only = nil
+          end
         end
       end
     end
@@ -81,6 +96,10 @@ module ActionController # :nodoc:
 
       def current_content_security_policy
         request.content_security_policy&.clone || ActionDispatch::ContentSecurityPolicy.new
+      end
+
+      def current_content_security_policy_report_only
+        request.content_security_policy_report_only&.clone || ActionDispatch::ContentSecurityPolicy.new
       end
   end
 end
