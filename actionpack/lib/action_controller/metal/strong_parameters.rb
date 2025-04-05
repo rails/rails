@@ -1007,7 +1007,51 @@ module ActionController
     end
 
     # Returns a new `ActionController::Parameters` instance with all keys from
-    # `other_hash` merged into current hash.
+    # `other_hash` merged into a copy of the current parameters(`self`).
+    #
+    # Merging new data into parameters that have already been permitted
+    # can lead to unexpected behavior. Nested hashes or arrays added
+    # via the merge are not automatically permitted nor are considered to be Parameters.
+    #
+    # Accessing such a nested structure from within the merged instance later (e.g., using `[]`) will implicitly
+    # convert it into an `ActionController::Parameters` instance (or array thereof)
+    # which defaults to `permitted: false`.
+    #
+    # Subsequently calling `to_h` or `to_hash` on the merged parameters instance
+    # will then raise an `ActionController::UnfilteredParameters` error, because
+    # it contains unpermitted nested data that cannot be safely converted to a
+    # standard Hash.
+    #
+    # Example:
+    #
+    #     params = ActionController::Parameters.new(user: { name: "John" })
+    #     # => #<ActionController::Parameters {"user" => {"name" => "John"}} permitted: false>
+    #
+    #     # `:name` is not merged because this method doesn't perform a deep merge
+    #     params = params.merge(user: { age: 30 }, role: "admin")
+    #     # => #<ActionController::Parameters {"user" => {"age" => 30}, "role" => "admin"} permitted: false>
+    #
+    #     permitted_params = params.permit([:role, user: :age])
+    #     # => #<ActionController::Parameters {"role" => "admin", "user" => #<ActionController::Parameters {"age" => 30} permitted: true>} permitted: true>
+    #
+    #     # Merging after permit; the new `:location` hash is not permitted internally yet and the `:user` parameter becomes a plain hash without `permitted` status
+    #     permitted_params = permitted_params.merge(user: {age: 50}, location: { country: "India", city: "Kochi" })
+    #     # => #<ActionController::Parameters {"role" => "admin", "user" => {"age" => 50}, "location" => {"country" => "India", "city" => "Kochi"}} permitted: true>
+    #
+    #     # This works because there are no unpermitted nested parameters
+    #     permitted_params.to_h
+    #     # => {"role" => "admin", "user" => {"age" => 50}, "location" => {"country" => "India", "city" => "Kochi"}}
+    #
+    #     # Accessing via `[:key]` converts the nested hash to unpermitted Parameters
+    #     permitted_params[:user]
+    #     # => #<ActionController::Parameters {"age" => 50} permitted: false>
+    #
+    #     # Now the parent contains an unpermitted nested parameter and thus calling to_h fails
+    #     permitted_params.to_h
+    #     # => unable to convert unpermitted parameters to hash (ActionController::UnfilteredParameters)
+    #
+    # It is strongly recommended to perform all necessary merges and parameter
+    # manipulations before calling `permit`.
     def merge(other_hash)
       new_instance_with_inherited_permitted_status(
         @parameters.merge(other_hash.to_h)
