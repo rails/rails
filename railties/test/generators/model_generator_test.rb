@@ -600,6 +600,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
                              "one" => nil, "two" => nil)
   end
 
+  def test_fixture_with_namespace
+    run_generator ["Customers::Category", "label:string"]
+    assert_generated_fixture("test/fixtures/customers/categories.yml",
+                             "_fixture" => { "model_class" => "Customers::Category" },
+                             "one" => { "label" => "MyString" }, "two" => { "label" => "MyString" })
+  end
+
   private
     def assert_generated_fixture(path, parsed_contents)
       fixture_file = File.new File.expand_path(path, destination_root)
