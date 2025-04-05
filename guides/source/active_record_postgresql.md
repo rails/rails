@@ -80,14 +80,14 @@ end
 ```ruby
 # Usage
 Book.create title: "Brave New World",
-            tags: ["fantasy", "fiction"],
-            ratings: [4, 5]
+            tags: [ "fantasy", "fiction" ],
+            ratings: [ 4, 5 ]
 
 ## Books for a single tag
 Book.where("'fantasy' = ANY (tags)")
 
 ## Books for multiple tags
-Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
+Book.where("tags @> ARRAY[?]::varchar[]", [ "fantasy", "fiction" ])
 
 ## Books with 3 or more ratings
 Book.where("array_length(ratings, 1) >= 3")
@@ -257,7 +257,7 @@ The type can be mapped as a normal text column, or to an [`ActiveRecord::Enum`](
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
 def change
-  create_enum :article_status, ["draft", "published", "archived"]
+  create_enum :article_status, [ "draft", "published", "archived" ]
 
   create_table :articles do |t|
     t.enum :status, enum_type: :article_status, default: "draft", null: false
@@ -270,7 +270,7 @@ You can also create an enum type and add an enum column to an existing table:
 ```ruby
 # db/migrate/20230113024409_add_status_to_articles.rb
 def change
-  create_enum :article_status, ["draft", "published", "archived"]
+  create_enum :article_status, [ "draft", "published", "archived" ]
 
   add_column :articles, :status, :enum, enum_type: :article_status, default: "draft", null: false
 end
@@ -615,7 +615,7 @@ Multiple columns are supported:
 ```ruby
 # db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb
 
-add_index :users, :email, include: [:id, :created_at]
+add_index :users, :email, include: [ :id, :created_at ]
 ```
 
 Generated Columns
@@ -683,7 +683,7 @@ Unique Constraint
 # db/migrate/20230422225213_create_items.rb
 create_table :items do |t|
   t.integer :position, null: false
-  t.unique_constraint [:position], deferrable: :immediate
+  t.unique_constraint [ :position ], deferrable: :immediate
 end
 ```
 
@@ -834,7 +834,7 @@ You can use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to configu
 For example, to exclude comments from your structure dump, add this to an initializer:
 
 ```ruby
-ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = [ "--no-comments" ]
 ```
 
 Explain
