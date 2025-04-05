@@ -69,7 +69,7 @@ module ActiveRecord
 
       def with_context(&block)
         if @context_properties.present?
-          ActiveRecord::Encryption.with_encryption_context(**@context_properties, &block)
+          ActiveRecord::Encryption.with_encryption_context(@context_properties, ContextForAttribute, &block)
         else
           block.call
         end

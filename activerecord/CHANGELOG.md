@@ -1,3 +1,40 @@
+*   Fix custom encryption context having no effect for attributes defining their own context.
+
+    Custom encryption context methods such has `with_encryption_context`, `without_encryption`
+    and `protecting_encrypted_data` had no effect when an attribute was specifying its own context.
+
+    ```ruby
+    class User < ApplicationRecord
+      encrypts :password, compress: false
+    end
+
+    ActiveRecord::Encryption.without_encryption do
+      puts User.first.title #=> Would wrongly display the decrypted password.
+    end
+    ```
+
+    In addition to this fix, `ActiveRecord::Encryption.with_encryption_context` can now be nested
+    as intended, where some inner context properties will inherit from the outer context instead
+    of the default ones.
+
+    ```ruby
+    ActiveRecord::Encryption.with_encryption_context(key_generator: generator, encryptor: encryptor) do
+      ActiveRecord::Encryption.with_encryption_context(encryptor: another_encryptor)
+        # Before
+        ActiveRecord::Encryption.key_generator # => ***default_generator***
+        ActiveRecord::Encryption.message_serializer # => default_serializer
+        ActiveRecord::Encryption.encryptor # => another_encryptor
+
+        # Now
+        ActiveRecord::Encryption.key_generator # => ***generator***
+        ActiveRecord::Encryption.message_serializer # => default_serializer
+        ActiveRecord::Encryption.encryptor # => another_encryptor
+      end
+    end
+    ```
+
+    *Edouard Chin*
+
 *   Prepend `extra_flags` in postgres' `structure_load`
 
     When specifying `structure_load_flags` with a postgres adapter, the flags

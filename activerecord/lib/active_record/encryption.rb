@@ -13,6 +13,7 @@ module ActiveRecord
       autoload :Config
       autoload :Configurable
       autoload :Context
+      autoload :ContextForAttribute
       autoload :Contexts
       autoload :DerivedSecretKeyProvider
       autoload :EncryptableRecord
