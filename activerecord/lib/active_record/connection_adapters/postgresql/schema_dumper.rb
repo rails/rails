@@ -110,6 +110,11 @@ module ActiveRecord
           def extract_expression_for_virtual_column(column)
             column.default_function.inspect
           end
+
+          # Do not dump column definitions when defining partitions.
+          def dump_table_body?(table_options)
+            !table_options[:options]&.match?(/\APARTITION OF /i)
+          end
       end
     end
   end

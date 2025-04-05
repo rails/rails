@@ -189,7 +189,13 @@ module ActiveRecord
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts ", force: :cascade do |t|"
+          if dump_table_body?(table_options)
+            tbl.puts ", force: :cascade do |t|"
+          else
+            tbl.puts ", force: :cascade"
+            stream.print tbl.string
+            return
+          end
 
           # then dump all non-primary key columns
           columns.sort_by(&:name).each do |column|
@@ -369,6 +375,10 @@ module ActiveRecord
         prefix = Regexp.escape(@options[:table_name_prefix].to_s)
         suffix = Regexp.escape(@options[:table_name_suffix].to_s)
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
+      end
+
+      def dump_table_body?(_table_options)
+        true
       end
 
       def ignored?(table_name)

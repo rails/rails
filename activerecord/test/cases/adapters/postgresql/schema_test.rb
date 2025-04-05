@@ -889,15 +889,22 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
     skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
 
     options = "PARTITION BY LIST (kind)"
-
     @connection.create_table "trains", id: false, options: options do |t|
       t.string :name
       t.string :kind
     end
 
-    output = dump_table_schema "trains"
+    options_a = "PARTITION OF trains FOR VALUES IN ('a')"
+    @connection.create_table "trains_a", id: false, options: options_a
+
+    options_b = "PARTITION OF trains FOR VALUES IN ('b')"
+    @connection.create_table "trains_b", id: false, options: options_b
+
+    output = dump_table_schema "trains", "trains_a", "trains_b"
 
     assert_match("options: \"#{options}\"", output)
+    assert_match("options: \"#{options_a}\"", output)
+    assert_match("options: \"#{options_b}\"", output)
   end
 
   def test_range_partition_options_is_dumped
