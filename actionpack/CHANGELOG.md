@@ -1,3 +1,10 @@
+*   Add `default_parameter_encoding` method for specifying default parameter encodings in a given action.
+
+    The new `default_parameter_encoding` method allows developers to specify a default encoding for all parameters within a given action in a single line.
+    This enhancement makes the codebase of applications receiving non-UTF-8 encoded data cleaner and easier to maintain by reducing repetition and the risk of encoding-related errors.
+
+    *fusagiko (takayamaki on GitHub)*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*
