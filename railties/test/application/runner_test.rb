@@ -44,7 +44,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match "[:foo_path]", rails("runner", "puts Rails.application.routes.url_helpers.methods.grep(/foo_path/).inspect")
+      assert_match "[:foo_path, :foo_url]", rails("runner", "puts Rails.application.routes.collection.keys.grep(/foo/).inspect")
     end
 
     def test_should_set_argv_when_running_code

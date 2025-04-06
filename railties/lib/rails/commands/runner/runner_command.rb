@@ -28,9 +28,7 @@ module Rails
         end
 
         boot_application!
-        app = Rails.application
-        app.load_runner
-        app.reload_routes_unless_loaded
+        Rails.application.load_runner
 
         ARGV.replace(command_argv)
 

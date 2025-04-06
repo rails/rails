@@ -12,6 +12,11 @@ module Rails
           Rails.application&.reload_routes_unless_loaded
           super
         end
+
+        def routes
+          Rails.application&.reload_routes_unless_loaded
+          super
+        end
       end
 
       module ProxyUrlHelpers
@@ -86,6 +91,16 @@ module Rails
       def routes
         Rails.application&.reload_routes_unless_loaded
         super
+      end
+
+      def collection
+        named_routes.names.each_with_object({}) do |name, collection|
+          path_helper = "#{name}_path".to_sym
+          url_helper = "#{name}_url".to_sym
+
+          collection[path_helper] = url_helpers.method(path_helper)
+          collection[url_helper] = url_helpers.method(url_helper)
+        end
       end
 
       private
