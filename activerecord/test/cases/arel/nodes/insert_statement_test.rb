@@ -8,6 +8,7 @@ class Arel::Nodes::InsertStatementTest < Arel::Spec
       statement = Arel::Nodes::InsertStatement.new
       statement.columns = %w[a b c]
       statement.values  = %w[x y z]
+      statement.with    = "bar"
 
       dolly = statement.clone
       _(dolly.columns).must_equal statement.columns
@@ -23,9 +24,11 @@ class Arel::Nodes::InsertStatementTest < Arel::Spec
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]
+      statement1.with    = "bar"
       statement2 = Arel::Nodes::InsertStatement.new
       statement2.columns = %w[a b c]
       statement2.values  = %w[x y z]
+      statement2.with    = "bar"
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end
@@ -34,9 +37,11 @@ class Arel::Nodes::InsertStatementTest < Arel::Spec
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]
+      statement1.with    = "bar"
       statement2 = Arel::Nodes::InsertStatement.new
       statement2.columns = %w[a b c]
       statement2.values  = %w[1 2 3]
+      statement2.with    = "bar"
       array = [statement1, statement2]
       assert_equal 2, array.uniq.size
     end
