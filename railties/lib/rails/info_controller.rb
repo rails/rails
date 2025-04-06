@@ -33,9 +33,8 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   end
 
   def notes
-    @annotations = Rails::SourceAnnotationExtractor.new(
-      Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
-    ).find(
+    tags = params[:tag].presence || Rails::SourceAnnotationExtractor::Annotation.tags.join("|")
+    @annotations = Rails::SourceAnnotationExtractor.new(tags).find(
       Rails::SourceAnnotationExtractor::Annotation.directories
     )
   end
