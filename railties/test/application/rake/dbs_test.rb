@@ -258,6 +258,7 @@ module ApplicationTests
           end
         end
       end
+
       test "db:create works when schema cache exists and database does not exist" do
         use_postgresql
 
