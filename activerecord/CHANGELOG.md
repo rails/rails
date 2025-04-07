@@ -1,3 +1,11 @@
+*   `create_or_find_by` will now correctly rollback a transaction.
+
+    When using `create_or_find_by`, raising a ActiveRecord::Rollback error
+    in a `after_save` callback had no effect, the transaction was committed
+    and a record created.
+
+    *Edouard Chin*
+
 *   Gracefully handle `Timeout.timeout` firing during connection configuration.
 
     Use of `Timeout.timeout` could result in improperly initialized database connection.

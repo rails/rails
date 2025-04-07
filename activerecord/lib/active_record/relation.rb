@@ -265,7 +265,12 @@ module ActiveRecord
     # such situation.
     def create_or_find_by(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = new(attributes, &block)
+          record.save || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
           where(attributes).lock.find_by!(attributes)
@@ -280,7 +285,12 @@ module ActiveRecord
     # is raised if the created record is invalid.
     def create_or_find_by!(attributes, &block)
       with_connection do |connection|
-        transaction(requires_new: true) { create!(attributes, &block) }
+        record = nil
+        transaction(requires_new: true) do
+          record = new(attributes, &block)
+          record.save! || raise(ActiveRecord::Rollback)
+        end
+        record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
           where(attributes).lock.find_by!(attributes)
