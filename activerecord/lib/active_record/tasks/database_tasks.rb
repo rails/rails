@@ -66,7 +66,7 @@ module ActiveRecord
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
 
         configs_for(env_name: environment).each do |db_config|
-          check_current_protected_environment!(db_config)
+          database_adapter_for(db_config).check_current_protected_environment!(db_config, migration_class)
         end
       end
 
@@ -637,23 +637,6 @@ module ActiveRecord
             structure_load_flags[adapter.to_sym]
           else
             structure_load_flags
-          end
-        end
-
-        def check_current_protected_environment!(db_config)
-          with_temporary_pool(db_config) do |pool|
-            migration_context = pool.migration_context
-            current = migration_context.current_environment
-            stored  = migration_context.last_stored_environment
-
-            if migration_context.protected_environment?
-              raise ActiveRecord::ProtectedEnvironmentError.new(stored)
-            end
-
-            if stored && stored != current
-              raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
-            end
-          rescue ActiveRecord::NoDatabaseError
           end
         end
 
