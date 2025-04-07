@@ -151,8 +151,8 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 As of Ruby 2.5, most objects can be duplicated via `dup` or `clone`:
 
 ```ruby
-"foo".dup           # => "foo"
-"".dup              # => ""
++"foo"           # => "foo"
++""              # => ""
 Rational(1).dup     # => (1/1)
 Complex(0).dup      # => (0+0i)
 1.method(:+).dup    # => TypeError (allocator undefined for Method)
@@ -179,7 +179,7 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 The [`deep_dup`][Object#deep_dup] method returns a deep copy of a given object. Normally, when you `dup` an object that contains other objects, Ruby does not `dup` them, so it creates a shallow copy of the object. If you have an array with a string, for example, it will look like this:
 
 ```ruby
-array     = ["string"]
+array     = [ "string" ]
 duplicate = array.dup
 
 duplicate.push "another-string"
@@ -200,7 +200,7 @@ As you can see, after duplicating the `Array` instance, we got another object, t
 If you need a deep copy of an object, you should use `deep_dup`. Here is an example:
 
 ```ruby
-array     = ["string"]
+array     = [ "string" ]
 duplicate = array.deep_dup
 
 duplicate.first.gsub!("string", "foo")
@@ -242,7 +242,7 @@ Another example is this code from `ActiveRecord::ConnectionAdapters::AbstractAda
 ```ruby
 def log_info(sql, name, ms)
   if @logger.try(:debug?)
-    name = "%s (%.1fms)" % [name || "SQL", ms]
+    name = "%s (%.1fms)" % [ name || "SQL", ms ]
     @logger.debug(format_log_entry(name, sql.squeeze(" ")))
   end
 end
@@ -331,7 +331,7 @@ Several classes in Rails overwrite this method.
 For example `nil`, `true`, and `false` return themselves. [`Array#to_param`][Array#to_param] calls `to_param` on the elements and joins the result with "/":
 
 ```ruby
-[0, true, String].to_param # => "0/true/String"
+[ 0, true, String ].to_param # => "0/true/String"
 ```
 
 Notably, the Rails routing system calls `to_param` on models to get a value for the `:id` placeholder. `ActiveRecord::Base#to_param` returns the `id` of a model, but you can redefine that method in your models. For example, given
@@ -387,7 +387,7 @@ so its output is ready to be used in a query string.
 Arrays return the result of applying `to_query` to each element with `key[]` as key, and join the result with "&":
 
 ```ruby
-[3.4, -45.6].to_query("sample")
+[ 3.4, -45.6 ].to_query("sample")
 # => "sample%5B%5D=3.4&sample%5B%5D=-45.6"
 ```
 
@@ -529,7 +529,7 @@ The predicate [`in?`][Object#in?] tests if an object is included in another obje
 Examples of `in?`:
 
 ```ruby
-1.in?([1, 2])        # => true
+1.in?([ 1, 2 ])        # => true
 "lo".in?("hello")   # => true
 25.in?(30..50)      # => false
 1.in?(1)            # => ArgumentError
@@ -2227,7 +2227,7 @@ is either a passed default or returned in a block.
 ```ruby
 post = Post.new(title: "hey there", body: "what's up?")
 
-%i( title body ).index_with { |attr_name| post.public_send(attr_name) }
+%i[ title body ].index_with { |attr_name| post.public_send(attr_name) }
 # => { title: "hey there", body: "what's up?" }
 
 WEEKDAYS.index_with(Interval.all_day)
@@ -2276,7 +2276,7 @@ The method [`including`][Enumerable#including] returns a new enumerable that inc
 
 ```ruby
 [ 1, 2, 3 ].including(4, 5)                    # => [ 1, 2, 3, 4, 5 ]
-["David", "Rafael"].including %w[ Aaron Todd ] # => ["David", "Rafael", "Aaron", "Todd"]
+[ "David", "Rafael" ].including %w[ Aaron Todd ] # => ["David", "Rafael", "Aaron", "Todd"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2289,7 +2289,7 @@ The method [`excluding`][Enumerable#excluding] returns a copy of an enumerable w
 removed:
 
 ```ruby
-["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
+[ "David", "Rafael", "Aaron", "Todd" ].excluding("Aaron", "Todd") # => ["David", "Rafael"]
 ```
 
 `excluding` is aliased to [`without`][Enumerable#without].
@@ -2304,8 +2304,8 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 The method [`pluck`][Enumerable#pluck] extracts the given key from each element:
 
 ```ruby
-[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pluck(:name) # => ["David", "Rafael", "Aaron"]
-[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pluck(:id, :name) # => [[1, "David"], [2, "Rafael"]]
+[ { name: "David" }, { name: "Rafael" }, { name: "Aaron" } ].pluck(:name) # => ["David", "Rafael", "Aaron"]
+[ { id: 1, name: "David" }, { id: 2, name: "Rafael" } ].pluck(:id, :name) # => [[1, "David"], [2, "Rafael"]]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2317,8 +2317,8 @@ NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 The method [`pick`][Enumerable#pick] extracts the given key from the first element:
 
 ```ruby
-[{ name: "David" }, { name: "Rafael" }, { name: "Aaron" }].pick(:name) # => "David"
-[{ id: 1, name: "David" }, { id: 2, name: "Rafael" }].pick(:id, :name) # => [1, "David"]
+[ { name: "David" }, { name: "Rafael" }, { name: "Aaron" } ].pick(:name) # => "David"
+[ { id: 1, name: "David" }, { id: 2, name: "Rafael" } ].pick(:id, :name) # => [1, "David"]
 ```
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
@@ -2333,15 +2333,15 @@ Extensions to `Array`
 Active Support augments the API of arrays to ease certain ways of accessing them. For example, [`to`][Array#to] returns the subarray of elements up to the one at the passed index:
 
 ```ruby
-%w(a b c d).to(2) # => ["a", "b", "c"]
+%w[a b c d].to(2) # => ["a", "b", "c"]
 [].to(7)          # => []
 ```
 
 Similarly, [`from`][Array#from] returns the tail from the element at the passed index to the end. If the index is greater than the length of the array, it returns an empty array.
 
 ```ruby
-%w(a b c d).from(2)  # => ["c", "d"]
-%w(a b c d).from(10) # => []
+%w[a b c d].from(2)  # => ["c", "d"]
+%w[a b c d].from(10) # => []
 [].from(0)           # => []
 ```
 
@@ -2357,15 +2357,15 @@ This is an optimization of `Enumerable#excluding` that uses `Array#-`
 instead of `Array#reject` for performance reasons.
 
 ```ruby
-["David", "Rafael", "Aaron", "Todd"].excluding("Aaron", "Todd") # => ["David", "Rafael"]
+[ "David", "Rafael", "Aaron", "Todd" ].excluding("Aaron", "Todd") # => ["David", "Rafael"]
 [ [ 0, 1 ], [ 1, 0 ] ].excluding([ [ 1, 0 ] ])                  # => [ [ 0, 1 ] ]
 ```
 
 The methods [`second`][Array#second], [`third`][Array#third], [`fourth`][Array#fourth], and [`fifth`][Array#fifth] return the corresponding element, as do [`second_to_last`][Array#second_to_last] and [`third_to_last`][Array#third_to_last] (`first` and `last` are built-in). Thanks to social wisdom and positive constructiveness all around, [`forty_two`][Array#forty_two] is also available.
 
 ```ruby
-%w(a b c d).third # => "c"
-%w(a b c d).fifth # => nil
+%w[a b c d].third # => "c"
+%w[a b c d].fifth # => nil
 ```
 
 NOTE: Defined in `active_support/core_ext/array/access.rb`.
@@ -2388,7 +2388,7 @@ The method [`extract!`][Array#extract!] removes and returns the elements for whi
 If no block is given, an Enumerator is returned instead.
 
 ```ruby
-numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+numbers = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
 odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
 numbers # => [0, 2, 4, 6, 8]
 ```
@@ -2434,10 +2434,10 @@ NOTE: Defined in `active_support/core_ext/array/extract_options.rb`.
 The method [`to_sentence`][Array#to_sentence] turns an array into a string containing a sentence that enumerates its items:
 
 ```ruby
-%w().to_sentence                # => ""
-%w(Earth).to_sentence           # => "Earth"
-%w(Earth Wind).to_sentence      # => "Earth and Wind"
-%w(Earth Wind Fire).to_sentence # => "Earth, Wind, and Fire"
+%w[].to_sentence                # => ""
+%w[Earth].to_sentence           # => "Earth"
+%w[Earth Wind].to_sentence      # => "Earth and Wind"
+%w[Earth Wind Fire].to_sentence # => "Earth, Wind, and Fire"
 ```
 
 This method accepts three options:
@@ -2468,7 +2468,7 @@ collections of Active Record objects. Returned strings are:
 
 ```ruby
 [].to_fs(:db)            # => "null"
-[user].to_fs(:db)        # => "8456"
+[ user ].to_fs(:db)        # => "8456"
 invoice.lines.to_fs(:db) # => "23,567,556,12"
 ```
 
@@ -2509,7 +2509,7 @@ By default, the name of the root element is the underscored and dasherized plura
 If there's any element that does not belong to the type of the first one the root node becomes "objects":
 
 ```ruby
-[Contributor.first, Commit.first].to_xml
+[ Contributor.first, Commit.first ].to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <objects type="array">
@@ -2537,7 +2537,7 @@ If there's any element that does not belong to the type of the first one the roo
 If the receiver is an array of hashes the root element is by default also "objects":
 
 ```ruby
-[{ a: 1, b: 2 }, { c: 3 }].to_xml
+[ { a: 1, b: 2 }, { c: 3 } ].to_xml
 # =>
 # <?xml version="1.0" encoding="UTF-8"?>
 # <objects type="array">
@@ -2593,7 +2593,7 @@ Specifically:
 
 ```ruby
 Array.wrap(nil)       # => []
-Array.wrap([1, 2, 3]) # => [1, 2, 3]
+Array.wrap([ 1, 2, 3 ]) # => [1, 2, 3]
 Array.wrap(0)         # => [0]
 ```
 
@@ -2613,7 +2613,7 @@ Array(foo: :bar)      # => [[:foo, :bar]]
 There's also a related idiom that uses the splat operator:
 
 ```ruby
-[*object]
+[ *object ]
 ```
 
 NOTE: Defined in `active_support/core_ext/array/wrap.rb`.
@@ -2626,7 +2626,7 @@ The method [`Array#deep_dup`][Array#deep_dup] duplicates itself and all objects 
 recursively with the Active Support method `Object#deep_dup`. It works like `Array#map`, sending `deep_dup` method to each object inside.
 
 ```ruby
-array = [1, [2, 3]]
+array = [ 1, [ 2, 3 ] ]
 dup = array.deep_dup
 dup[1][2] = 4
 array[1][2] == nil   # => true
@@ -2643,7 +2643,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 The method [`in_groups_of`][Array#in_groups_of] splits an array into consecutive groups of a certain size. It returns an array with the groups:
 
 ```ruby
-[1, 2, 3].in_groups_of(2) # => [[1, 2], [3, nil]]
+[ 1, 2, 3 ].in_groups_of(2) # => [[1, 2], [3, nil]]
 ```
 
 or yields them in turn if a block is passed:
@@ -2661,13 +2661,13 @@ or yields them in turn if a block is passed:
 The first example shows how `in_groups_of` fills the last group with as many `nil` elements as needed to have the requested size. You can change this padding value using the second optional argument:
 
 ```ruby
-[1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
+[ 1, 2, 3 ].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
 ```
 
 And you can tell the method not to fill the last group by passing `false`:
 
 ```ruby
-[1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
+[ 1, 2, 3 ].in_groups_of(2, false) # => [[1, 2], [3]]
 ```
 
 As a consequence `false` can't be used as a padding value.
@@ -2681,17 +2681,17 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 The method [`in_groups`][Array#in_groups] splits an array into a certain number of groups. The method returns an array with the groups:
 
 ```ruby
-%w(1 2 3 4 5 6 7).in_groups(3)
+%w[1 2 3 4 5 6 7].in_groups(3)
 # => [["1", "2", "3"], ["4", "5", nil], ["6", "7", nil]]
 ```
 
 or yields them in turn if a block is passed:
 
 ```ruby
-%w(1 2 3 4 5 6 7).in_groups(3) { |group| p group }
-["1", "2", "3"]
-["4", "5", nil]
-["6", "7", nil]
+%w[1 2 3 4 5 6 7].in_groups(3) { |group| p group }
+[ "1", "2", "3" ]
+[ "4", "5", nil ]
+[ "6", "7", nil ]
 ```
 
 The examples above show that `in_groups` fills some groups with a trailing `nil` element as needed. A group can get at most one of these extra elements, the rightmost one if any. And the groups that have them are always the last ones.
@@ -2699,14 +2699,14 @@ The examples above show that `in_groups` fills some groups with a trailing `nil`
 You can change this padding value using the second optional argument:
 
 ```ruby
-%w(1 2 3 4 5 6 7).in_groups(3, "0")
+%w[1 2 3 4 5 6 7].in_groups(3, "0")
 # => [["1", "2", "3"], ["4", "5", "0"], ["6", "7", "0"]]
 ```
 
 And you can tell the method not to fill the smaller groups by passing `false`:
 
 ```ruby
-%w(1 2 3 4 5 6 7).in_groups(3, false)
+%w[1 2 3 4 5 6 7].in_groups(3, false)
 # => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
 ```
 
@@ -2730,7 +2730,7 @@ If a block is passed the separators are those elements of the array for which th
 Otherwise, the value received as argument, which defaults to `nil`, is the separator:
 
 ```ruby
-[0, 1, -5, 1, 1, "foo", "bar"].split(1)
+[ 0, 1, -5, 1, 1, "foo", "bar" ].split(1)
 # => [[0], [-5], [], ["foo", "bar"]]
 ```
 
@@ -2865,14 +2865,14 @@ The method [`Hash#deep_dup`][Hash#deep_dup] duplicates itself and all keys and v
 inside recursively with Active Support method `Object#deep_dup`. It works like `Enumerator#each_with_object` with sending `deep_dup` method to each pair inside.
 
 ```ruby
-hash = { a: 1, b: { c: 2, d: [3, 4] } }
+hash = { a: 1, b: { c: 2, d: [ 3, 4 ] } }
 
 dup = hash.deep_dup
 dup[:b][:e] = 5
 dup[:b][:d] << 5
 
 hash[:b][:e] == nil      # => true
-hash[:b][:d] == [3, 4]   # => true
+hash[:b][:d] == [ 3, 4 ]   # => true
 ```
 
 NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.

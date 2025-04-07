@@ -520,7 +520,7 @@ You can choose to create specific callbacks by passing the `only` option to the
 `define_model_callbacks` method:
 
 ```ruby
-define_model_callbacks :update, :create, only: [:after, :before]
+define_model_callbacks :update, :create, only: [ :after, :before ]
 ```
 
 This will create only the `before_create` / `after_create` and `before_update` /
