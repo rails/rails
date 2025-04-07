@@ -1,3 +1,7 @@
+*   Model generator no longer needs a database connection to validate column types.
+
+    *Mike Dalessio*
+
 *   Allow signed ID verifiers to be configurable via `Rails.application.message_verifiers`
 
     Prior to this change, the primary way to configure signed ID verifiers was

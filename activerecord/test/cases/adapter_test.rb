@@ -48,11 +48,13 @@ module ActiveRecord
     def test_valid_column
       @connection.native_database_types.each_key do |type|
         assert @connection.valid_type?(type)
+        assert @connection.class.valid_type?(type)
       end
     end
 
     def test_invalid_column
       assert_not @connection.valid_type?(:foobar)
+      assert_not @connection.class.valid_type?(:foobar)
     end
 
     def test_tables
