@@ -147,5 +147,21 @@ module ActiveRecord
       assert_equal a.rows, b.rows
       assert_equal a.column_indexes, b.column_indexes
     end
+
+    test "column_types handles nil types in the column_types array" do
+      values = [["1.1", "2.2"], ["3.3", "4.4"]]
+      columns = ["col1", "col2"]
+      types = [Type::Integer.new, nil]  # Deliberately nil type for col2
+      result = Result.new(columns, values, types)
+
+      assert_not_nil result.column_types["col1"]
+      assert_not_nil result.column_types["col2"]
+
+      assert_instance_of ActiveRecord::Type::Value, result.column_types["col2"]
+
+      assert_nothing_raised do
+        result.column_types["col2"].deserialize("test value")
+      end
+    end
   end
 end

@@ -138,6 +138,26 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     ActionCable.const_set(:Engine, old_value)
   end
 
+  def test_authentication_generator_without_action_mailer
+    old_value = ActionMailer.const_get(:Railtie)
+    ActionMailer.send(:remove_const, :Railtie)
+    generator([destination_root])
+    run_generator_instance
+
+    assert_no_file "app/mailers/application_mailer.rb"
+    assert_no_file "app/mailers/passwords_mailer.rb"
+    assert_no_file "app/views/passwords_mailer/reset.html.erb"
+    assert_no_file "app/views/passwords_mailer/reset.text.erb"
+    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "app/controllers/passwords_controller.rb" do |content|
+      assert_no_match(/def create\n    end/, content)
+      assert_no_match(/rate_limit/, content)
+    end
+  ensure
+    ActionMailer.const_set(:Railtie, old_value)
+  end
+
   private
     def run_generator_instance
       @bundle_commands = []

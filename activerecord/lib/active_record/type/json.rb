@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/json"
+
 module ActiveRecord
   module Type
     class Json < ActiveModel::Type::Value
@@ -14,8 +16,10 @@ module ActiveRecord
         ActiveSupport::JSON.decode(value) rescue nil
       end
 
+      JSON_ENCODER = ActiveSupport::JSON::Encoding.json_encoder.new(escape: false)
+
       def serialize(value)
-        ActiveSupport::JSON.encode(value) unless value.nil?
+        JSON_ENCODER.encode(value) unless value.nil?
       end
 
       def changed_in_place?(raw_old_value, new_value)

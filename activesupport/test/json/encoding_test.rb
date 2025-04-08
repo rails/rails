@@ -52,6 +52,11 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %({\"a\":\"b\",\"c\":\"d\"}), sorted_json(ActiveSupport::JSON.encode(a: :b, c: :d))
   end
 
+  def test_unicode_escape
+    assert_equal %{{"\\u2028":"\\u2029"}}, ActiveSupport::JSON.encode("\u2028" => "\u2029")
+    assert_equal %{{"\u2028":"\u2029"}}, ActiveSupport::JSON.encode({ "\u2028" => "\u2029" }, escape: false)
+  end
+
   def test_hash_keys_encoding
     ActiveSupport.escape_html_entities_in_json = true
     assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode("<>" => "<>")

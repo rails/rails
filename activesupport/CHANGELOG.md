@@ -1,3 +1,37 @@
+*   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
+
+    *Aron Roh*
+
+*   Add `Cache#read_counter` and `Cache#write_counter`
+
+    ```ruby
+    Rails.cache.write_counter("foo", 1)
+    Rails.cache.read_counter("foo") # => 1
+    Rails.cache.increment("foo")
+    Rails.cache.read_counter("foo") # => 2
+    ```
+
+    *Alex Ghiculescu*
+
+*   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
+
+    Captures all reported errors from within the block that match the given
+    error class.
+
+    ```ruby
+    reports = capture_error_reports(IOError) do
+      Rails.error.report(IOError.new("Oops"))
+      Rails.error.report(IOError.new("Oh no"))
+      Rails.error.report(StandardError.new)
+    end
+
+    assert_equal 2, reports.size
+    assert_equal "Oops", reports.first.error.message
+    assert_equal "Oh no", reports.last.error.message
+    ```
+
+    *Andrew Novoselac*
+
 *   Introduce ActiveSupport::ErrorReporter#add_middleware
 
     When reporting an error, the error context middleware will be called with the reported error
@@ -86,7 +120,7 @@
 
     *Martin Emde*
 
-*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
 
     *Martin Emde*
 

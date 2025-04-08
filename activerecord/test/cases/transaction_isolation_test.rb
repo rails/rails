@@ -62,6 +62,52 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       assert_equal 1, Tag.count
     end
 
+    test "default_isolation_level" do
+      assert_nil Tag.default_isolation_level
+
+      events = []
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { events << event.payload[:sql] },
+        "sql.active_record",
+      ) do
+        Tag.with_default_isolation_level(:read_committed) do
+          assert_equal :read_committed, Tag.default_isolation_level
+          Tag.transaction do
+            Tag.create!(name: "jon")
+          end
+        end
+      end
+      assert_begin_isolation_level_event(events)
+    end
+
+    test "default_isolation_level cannot be set within open transaction" do
+      assert_raises(ActiveRecord::TransactionIsolationError) do
+        Tag.transaction do
+          Tag.with_default_isolation_level(:read_committed) { }
+        end
+      end
+    end
+
+    test "default_isolation_level but transaction overrides isolation" do
+      assert_nil Tag.default_isolation_level
+
+      events = []
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { events << event.payload[:sql] },
+        "sql.active_record",
+      ) do
+        Tag.with_default_isolation_level(:read_committed) do
+          assert_equal :read_committed, Tag.default_isolation_level
+
+          Tag.transaction(isolation: :repeatable_read) do
+            Tag.create!(name: "jon")
+          end
+        end
+      end
+
+      assert_begin_isolation_level_event(events, isolation: "REPEATABLE READ")
+    end
+
     # We are testing that a nonrepeatable read does not happen
     if ActiveRecord::Base.lease_connection.transaction_isolation_levels.include?(:repeatable_read)
       test "repeatable read" do
@@ -106,5 +152,14 @@ class TransactionIsolationTest < ActiveRecord::TestCase
         end
       end
     end
+
+    private
+      def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
+        if current_adapter?(:PostgreSQLAdapter)
+          assert_equal 1, events.select { _1.match(/BEGIN ISOLATION LEVEL #{isolation}/) }.size
+        else
+          assert_equal 1, events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
+        end
+      end
   end
 end

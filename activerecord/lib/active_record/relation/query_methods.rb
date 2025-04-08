@@ -1996,8 +1996,10 @@ module ActiveRecord
           yield field
         elsif Arel.arel_node?(field)
           field
+        elsif is_symbol
+          Arel.sql(model.adapter_class.quote_table_name(field), retryable: true)
         else
-          Arel.sql(is_symbol ? model.adapter_class.quote_table_name(field) : field)
+          Arel.sql(field)
         end
       end
 

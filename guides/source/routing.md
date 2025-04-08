@@ -731,7 +731,7 @@ NOTE: You cannot override defaults via query parameters - this is for security r
 
 ### Naming Routes
 
-You can specify a name that will used by the `_path` and `_url` helpers for any route using the `:as` option:
+You can specify a name that will be used by the `_path` and `_url` helpers for any route using the `:as` option:
 
 ```ruby
 get "exit", to: "sessions#destroy", as: :logout

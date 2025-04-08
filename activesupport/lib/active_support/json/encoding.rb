@@ -20,8 +20,8 @@ module ActiveSupport
       #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
       #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
       #
-      # Generates JSON that is safe to include in JavaScript as it escapes
-      # U+2028 (Line Separator) and U+2029 (Paragraph Separator):
+      # By default, it generates JSON that is safe to include in JavaScript, as
+      # it escapes U+2028 (Line Separator) and U+2029 (Paragraph Separator):
       #
       #   ActiveSupport::JSON.encode({ key: "\u2028" })
       #   # => "{\"key\":\"\\u2028\"}"
@@ -32,13 +32,19 @@ module ActiveSupport
       #   ActiveSupport::JSON.encode({ key: "<>&" })
       #   # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
       #
-      # This can be changed with the +escape_html_entities+ option, or the
+      # This behavior can be changed with the +escape_html_entities+ option, or the
       # global escape_html_entities_in_json configuration option.
       #
       #   ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
       #   # => "{\"key\":\"<>&\"}"
+      #
+      # For performance reasons, you can set the +escape+ option to false,
+      # which will skip all escaping:
+      #
+      #   ActiveSupport::JSON.encode({ key: "\u2028<>&" }, escape: false)
+      #   # => "{\"key\":\"\u2028<>&\"}"
       def encode(value, options = nil)
-        if options.nil?
+        if options.nil? || options.empty?
           Encoding.encode_without_options(value)
         else
           Encoding.json_encoder.new(options).encode(value)
@@ -75,6 +81,8 @@ module ActiveSupport
             value = value.as_json(options.dup.freeze)
           end
           json = stringify(jsonify(value))
+
+          return json unless @options.fetch(:escape, true)
 
           # Rails does more escaping than the JSON gem natively does (we
           # escape \u2028 and \u2029 and optionally >, <, & to work around
@@ -161,6 +169,8 @@ module ActiveSupport
             value = value.as_json(@options) unless @options.empty?
 
             json = CODER.dump(value)
+
+            return json unless @options.fetch(:escape, true)
 
             # Rails does more escaping than the JSON gem natively does (we
             # escape \u2028 and \u2029 and optionally >, <, & to work around
