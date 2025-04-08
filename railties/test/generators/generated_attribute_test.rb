@@ -136,6 +136,10 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     end
   end
 
+  def test_default_value_is_empty_hash
+    assert_field_default_value :json, {}
+  end
+
   def test_human_name
     assert_equal(
       "Full name",

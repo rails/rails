@@ -1,3 +1,9 @@
+*   Add fixture-level support for `json` column types
+
+    Sets default fixture value to `{}` for any json-backed column
+
+    *Steve Polito*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
