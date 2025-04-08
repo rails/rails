@@ -66,6 +66,10 @@ module ActiveRecord
 
           find_cmd_and_exec(ActiveRecord.database_cli[:sqlite], *args)
         end
+
+        def native_database_types # :nodoc:
+          NATIVE_DATABASE_TYPES
+        end
       end
 
       include SQLite3::Quoting
@@ -256,10 +260,6 @@ module ActiveRecord
 
       def supports_index_sort_order?
         true
-      end
-
-      def native_database_types # :nodoc:
-        NATIVE_DATABASE_TYPES
       end
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'

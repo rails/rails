@@ -21,6 +21,90 @@
 
     *Alex Ghiculescu*
 
+*   Model generator no longer needs a database connection to validate column types.
+
+    *Mike Dalessio*
+
+*   Allow signed ID verifiers to be configurable via `Rails.application.message_verifiers`
+
+    Prior to this change, the primary way to configure signed ID verifiers was
+    to set `signed_id_verifier` on each model class:
+
+      ```ruby
+      Post.signed_id_verifier = ActiveSupport::MessageVerifier.new(...)
+      Comment.signed_id_verifier = ActiveSupport::MessageVerifier.new(...)
+      ```
+
+    And if the developer did not set `signed_id_verifier`, a verifier would be
+    instantiated with a secret derived from `secret_key_base` and the following
+    options:
+
+      ```ruby
+      { digest: "SHA256", serializer: JSON, url_safe: true }
+      ```
+
+    Thus it was cumbersome to rotate configuration for all verifiers.
+
+    This change defines a new Rails config: [`config.active_record.use_legacy_signed_id_verifier`][].
+    The default value is `:generate_and_verify`, which preserves the previous
+    behavior. However, when set to `:verify`, signed ID verifiers will use
+    configuration from `Rails.application.message_verifiers` (specifically,
+    `Rails.application.message_verifiers["active_record/signed_id"]`) to
+    generate and verify signed IDs, but will also verify signed IDs using the
+    older configuration.
+
+    To avoid complication, the new behavior only applies when `signed_id_verifier_secret`
+    is not set on a model class or any of its ancestors. Additionally,
+    `signed_id_verifier_secret` is now deprecated. If you are currently setting
+    `signed_id_verifier_secret` on a model class, you can set `signed_id_verifier`
+    instead:
+
+      ```ruby
+      # BEFORE
+      Post.signed_id_verifier_secret = "my secret"
+
+      # AFTER
+      Post.signed_id_verifier = ActiveSupport::MessageVerifier.new("my secret", digest: "SHA256", serializer: JSON, url_safe: true)
+      ```
+
+    To ease migration, `signed_id_verifier` has also been changed to behave as a
+    `class_attribute` (i.e. inheritable), but _only when `signed_id_verifier_secret`
+    is not set_:
+
+      ```ruby
+      # BEFORE
+      ActiveRecord::Base.signed_id_verifier = ActiveSupport::MessageVerifier.new(...)
+      Post.signed_id_verifier == ActiveRecord::Base.signed_id_verifier # => false
+
+      # AFTER
+      ActiveRecord::Base.signed_id_verifier = ActiveSupport::MessageVerifier.new(...)
+      Post.signed_id_verifier == ActiveRecord::Base.signed_id_verifier # => true
+
+      Post.signed_id_verifier_secret = "my secret" # => deprecation warning
+      Post.signed_id_verifier == ActiveRecord::Base.signed_id_verifier # => false
+      ```
+
+    Note, however, that it is recommended to eventually migrate from
+    model-specific verifiers to a unified configuration managed by
+    `Rails.application.message_verifiers`. `ActiveSupport::MessageVerifier#rotate`
+    can facilitate that transition. For example:
+
+      ```ruby
+      # BEFORE
+      # Generate and verify signed Post IDs using Post-specific configuration
+      Post.signed_id_verifier = ActiveSupport::MessageVerifier.new("post secret", ...)
+
+      # AFTER
+      # Generate and verify signed Post IDs using the unified configuration
+      Post.signed_id_verifier = Post.signed_id_verifier.dup
+      # Fall back to Post-specific configuration when verifying signed IDs
+      Post.signed_id_verifier.rotate("post secret", ...)
+      ```
+
+    [`config.active_record.use_legacy_signed_id_verifier`]: https://guides.rubyonrails.org/v8.1/configuring.html#config-active-record-use-legacy-signed-id-verifier
+
+    *Ali Sepehri*, *Jonathan Hefner*
+
 *   Prepend `extra_flags` in postgres' `structure_load`
 
     When specifying `structure_load_flags` with a postgres adapter, the flags
