@@ -148,7 +148,7 @@ module Rails
                      when :references, :belongs_to,
                           :attachment, :attachments,
                           :rich_text                   then nil
-                     when :json                        then {}
+                     when :json                        then '{"key": "value"}'
                      else
                        ""
         end

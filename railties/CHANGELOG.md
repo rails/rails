@@ -1,6 +1,6 @@
 *   Add fixture-level support for `json` column types
 
-    Sets default fixture value to `{}` for any json-backed column
+    Sets default fixture value to `'{"key": "value"}'` for any json-backed column
 
     *Steve Polito*
 
