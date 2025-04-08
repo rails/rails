@@ -1817,6 +1817,12 @@ config.active_record.protocol_adapters.mysql = "trilogy"
 
 If no mapping is found, the protocol is used as the adapter name.
 
+#### `config.active_record.strict_safe_http_methods`
+
+When enabled, prevents database writes while serving a "safe" HTTP request (`GET`, `HEAD`, or `OPTIONS`).
+
+The default value is `false`.
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
