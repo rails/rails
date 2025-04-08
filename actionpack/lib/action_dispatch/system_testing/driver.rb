@@ -11,7 +11,15 @@ module ActionDispatch
         @driver_type = driver_type
         @screen_size = options[:screen_size]
         @options = options[:options] || {}
-        @name = @options.delete(:name) || driver_type
+        @name = if @options.key?(:name)
+          ActionDispatch.deprecator.warn(<<-MSG.squish)
+            Passing 'name' into the 'options' hash is deprecated and will be removed in
+            Rails 8.1. Pass it as a top-level argument 'name' instead.
+          MSG
+          @options.delete(:name) || driver_type
+        else
+          options[:name] || driver_type
+        end
         @capabilities = capabilities
 
         if driver_type == :selenium

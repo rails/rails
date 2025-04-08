@@ -195,7 +195,14 @@ class DriverTest < ActiveSupport::TestCase
   end
 
   test "driver names can by specified explicitly" do
-    driver = ActionDispatch::SystemTesting::Driver.new(:selenium, options: { name: :best_driver })
+    driver = ActionDispatch::SystemTesting::Driver.new(:selenium, name: :best_driver)
+    assert_equal :best_driver, driver.name
+  end
+
+  test "driver names can by specified explicitly through options hash" do
+    driver = assert_deprecated(ActionDispatch.deprecator) do
+      ActionDispatch::SystemTesting::Driver.new(:selenium, options: { name: :best_driver })
+    end
     assert_equal :best_driver, driver.name
   end
 
