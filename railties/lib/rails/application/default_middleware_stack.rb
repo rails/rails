@@ -105,6 +105,10 @@ module Rails
 
               middleware.use ::ActiveRecord::Middleware::ShardSelector, shard_resolver, options
             end
+
+            if config.active_record.strict_safe_http_methods
+              middleware.use ::ActiveRecord::Middleware::StrictSafeHTTPMethods
+            end
           end
         end
       end

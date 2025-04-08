@@ -167,6 +167,7 @@ module ActiveRecord
 
     autoload :DatabaseSelector
     autoload :ShardSelector
+    autoload :StrictSafeHTTPMethods
   end
 
   module Tasks

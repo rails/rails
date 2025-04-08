@@ -1,3 +1,7 @@
+*   Introduce `config.active_record.strict_safe_http_methods` to prevent database writes while serving a "safe" HTTP request (`GET`, `HEAD`, or `OPTIONS`).
+
+    *Mike Dalessio*
+
 *   Encryption now supports `support_unencrypted_data: true` being set per-attribute.
 
     Previously this only worked if `ActiveRecord::Encryption.config.support_unencrypted_data == true`.
