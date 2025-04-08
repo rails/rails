@@ -1,3 +1,11 @@
+*   Allow allocated Active Records to lookup associations.
+
+    Previously, the association cache isn't setup on allocated record objects, so association
+    lookups will crash. Test frameworks like mocha use allocate to check for stubbable instance
+    methods, which can trigger an association lookup.
+
+    *Gannon McGibbon*
+
 *   Encryption now supports `support_unencrypted_data: true` being set per-attribute.
 
     Previously this only worked if `ActiveRecord::Encryption.config.support_unencrypted_data == true`.
