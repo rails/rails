@@ -610,8 +610,10 @@ module ActionDispatch
         end
 
         def check_for_overflow!(name, options)
-          if options[:value].bytesize > MAX_COOKIE_SIZE
-            raise CookieOverflow, "#{name} cookie overflowed with size #{options[:value].bytesize} bytes"
+          total_size = name.to_s.bytesize + options[:value].bytesize
+
+          if total_size > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
           end
         end
     end

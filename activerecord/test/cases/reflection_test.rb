@@ -619,13 +619,13 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_reflect_on_missing_source_assocation
+  def test_reflect_on_missing_source_association
     assert_nothing_raised do
       assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
     end
   end
 
-  def test_reflect_on_missing_source_assocation_raise_exception
+  def test_reflect_on_missing_source_association_raise_exception
     assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
       Hotel.reflect_on_association(:lost_items).check_validity!
     end

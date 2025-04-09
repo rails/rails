@@ -972,7 +972,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
     end
-    assert_equal "foo cookie overflowed with size 5522 bytes", error.message
+    assert_equal "foo cookie overflowed with size 5525 bytes", error.message
   end
 
   def test_tampered_cookies

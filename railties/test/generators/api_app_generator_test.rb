@@ -185,6 +185,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         lib
         lib/tasks
         log
+        script
         test/fixtures
         test/controllers
         test/integration

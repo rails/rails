@@ -873,8 +873,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "jsbundling-rails"
     assert_no_node_files
 
+    assert_file "app/controllers/application_controller.rb" do |content|
+      assert_no_match(/importmap/, content)
+    end
+
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
+    end
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/importmap|yarn/, content)
     end
 
     assert_file ".gitattributes" do |content|

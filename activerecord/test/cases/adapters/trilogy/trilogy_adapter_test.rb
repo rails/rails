@@ -253,7 +253,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         assert_includes payload, :type_casted_binds
         assert_equal [], payload[:type_casted_binds].is_a?(Proc) ? payload[:type_casted_binds].call : payload[:type_casted_binds]
 
-        # Rails does not include :stament_name for cached queries 🤷‍♂️
+        # Rails does not include :statement_name for cached queries 🤷‍♂️
         assert_not_includes payload, :statement_name
 
         assert_includes payload, :cached

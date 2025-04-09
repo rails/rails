@@ -72,5 +72,48 @@ module ApplicationTests
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
+
+    test "routes are loaded before inserting test routes" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/c", as: :c, to: "users#show"
+        end
+      RUBY
+
+      app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+        Rails.configuration.after_routes_loaded do
+          $after_routes_loaded = true
+        end
+      RUBY
+
+      app_file "app/controllers/users_controller.rb", <<-RUBY
+        class UsersController < ActionController::Base
+          def index
+            render json: { loaded: $after_routes_loaded }
+          end
+        end
+      RUBY
+
+      app_file "test/controllers/users_controller_test.rb", <<-RUBY
+        require "test_helper"
+
+        class UsersControllerTest < ActionDispatch::IntegrationTest
+          with_routing do |set|
+            set.draw do
+              resources(:users, only: :index)
+            end
+          end
+
+          test "lazy route loading" do
+            get("/users")
+
+            assert_equal({ "loaded" => true }, JSON.parse(response.body))
+          end
+        end
+      RUBY
+
+      output = rails("test")
+      assert_match(/0 failures, 0 errors/, output)
+    end
   end
 end

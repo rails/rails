@@ -1077,7 +1077,7 @@ module ActiveRecord
         end
       end
 
-      def test_mixed_case_integer_colum_returns_true_for_rowid
+      def test_mixed_case_integer_column_returns_true_for_rowid
         with_example_table "id_mixed_case InTeGeR PRIMARY KEY" do
           assert @conn.columns("ex").index_by(&:name)["id_mixed_case"].rowid
         end

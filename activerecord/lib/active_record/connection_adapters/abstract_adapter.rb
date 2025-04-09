@@ -260,7 +260,11 @@ module ActiveRecord
       end
 
       def valid_type?(type) # :nodoc:
-        !native_database_types[type].nil?
+        self.class.valid_type?(type)
+      end
+
+      def native_database_types # :nodoc:
+        self.class.native_database_types
       end
 
       # this method must only be called while holding connection pool's mutex
@@ -886,6 +890,10 @@ module ActiveRecord
           end
         end
 
+        def valid_type?(type) # :nodoc:
+          !native_database_types[type].nil?
+        end
+
         private
           def initialize_type_map(m)
             register_class_with_limit m, %r(boolean)i,       Type::Boolean
@@ -1221,7 +1229,7 @@ module ActiveRecord
 
         def attempt_configure_connection
           configure_connection
-        rescue
+        rescue Exception # Need to handle things such as Timeout::ExitException
           disconnect!
           raise
         end

@@ -10,7 +10,7 @@ CI.run do
 <% if using_node? -%>
   step "Security: Yarn vulnerability audit", "yarn audit"
 <% end -%>
-<% if options[:javascript] == "importmap" && !options[:api] && !options[:skip_javascript] -%>
+<% if using_importmap? -%>
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
 <% end -%>
 <% unless options.skip_brakeman? -%>
@@ -19,7 +19,8 @@ CI.run do
 <% if options[:api] || options[:skip_system_test] -%>
   step "Tests: Rails", "bin/rails test"
 <% else %>
-  step "Tests: Rails", "bin/rails test test:system"
+  step "Tests: Rails", "bin/rails test"
+  step "Tests: System", "bin/rails test:system"
 <% end -%>
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
 

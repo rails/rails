@@ -36,7 +36,7 @@ class Arel::Nodes::HomogeneousInTest < Arel::Spec
       attr_reader :type_caster
 
       def initialize(name, expr, type)
-        super(name, expr, nil)
+        super(name, expr)
         @type_caster = type
       end
     end

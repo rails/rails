@@ -23,7 +23,7 @@ module Arel
         Nodes::Avg,
       ].each do |klass|
         define_method("test_#{klass.name.gsub('::', '_')}") do
-          op = klass.new(:a, "z")
+          op = klass.new(:a)
           @visitor.accept op, Collectors::PlainString.new
           pass
         end

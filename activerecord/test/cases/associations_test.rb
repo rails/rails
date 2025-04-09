@@ -59,6 +59,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, liquids[0].molecules.length
   end
 
+  def test_allocated_record_can_see_assocations
+    assert_not_nil Ship.allocate.association(:parts)
+  end
+
   def test_subselect
     author = authors :david
     favs = author.author_favorites

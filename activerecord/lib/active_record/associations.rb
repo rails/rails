@@ -79,7 +79,7 @@ module ActiveRecord
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
       def association_instance_get(name)
-        @association_cache[name]
+        (@association_cache ||= {})[name]
       end
 
       # Set the specified association instance.

@@ -117,6 +117,9 @@ module ActiveSupport
           raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
         end
 
+        Delegation.generate(singleton_class, names, to: :instance, nilable: false, signature: "")
+        Delegation.generate(singleton_class, names.map { |n| "#{n}=" }, to: :instance, nilable: false, signature: "value")
+
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
@@ -133,9 +136,6 @@ module ActiveSupport
             end
           end
         end
-
-        Delegation.generate(singleton_class, names, to: :instance, nilable: false, signature: "")
-        Delegation.generate(singleton_class, names.map { |n| "#{n}=" }, to: :instance, nilable: false, signature: "value")
 
         self.defaults = defaults.merge(names.index_with { default })
       end
@@ -185,9 +185,16 @@ module ActiveSupport
 
         def method_added(name)
           super
+
+          # We try to generate instance delegators early to not rely on method_missing.
           return if name == :initialize
+
+          # If the added method isn't public, we don't delegate it.
           return unless public_method_defined?(name)
+
+          # If we already have a class method by that name, we don't override it.
           return if singleton_class.method_defined?(name) || singleton_class.private_method_defined?(name)
+
           Delegation.generate(singleton_class, [name], to: :instance, as: self, nilable: false)
         end
     end

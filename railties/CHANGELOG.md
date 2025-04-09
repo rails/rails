@@ -1,3 +1,7 @@
+*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
+
+    *Lovro Bikić*
+
 *   Skip generating mailer-related files in authentication generator if the application does
     not use ActionMailer
 
@@ -49,7 +53,7 @@
 
 *   Update `rails new --minimal` option
 
-    Extend the `--minimal` flag to exlcude recently added features:
+    Extend the `--minimal` flag to exclude recently added features:
     `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
     *eelcoj*

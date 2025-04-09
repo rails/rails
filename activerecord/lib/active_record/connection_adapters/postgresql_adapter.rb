@@ -397,10 +397,6 @@ module ActiveRecord
         @raw_connection = nil
       end
 
-      def native_database_types # :nodoc:
-        self.class.native_database_types
-      end
-
       def self.native_database_types # :nodoc:
         @native_database_types ||= begin
           types = NATIVE_DATABASE_TYPES.dup

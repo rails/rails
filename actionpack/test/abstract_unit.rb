@@ -515,20 +515,4 @@ module HeadersAssertions
   end
 end
 
-class DrivenByRackTest < ActionDispatch::SystemTestCase
-  driven_by :rack_test
-end
-
-class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome
-end
-
-class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome
-end
-
-class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_firefox
-end
-
 require_relative "../../tools/test_common"

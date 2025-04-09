@@ -163,7 +163,8 @@ module ActiveRecord
         @types_hash ||= begin
           types = {}
           @columns.each_with_index do |name, index|
-            types[name] = types[index] = @column_types[index]
+            type = @column_types[index] || Type.default_value
+            types[name] = types[index] = type
           end
           types.freeze
         end

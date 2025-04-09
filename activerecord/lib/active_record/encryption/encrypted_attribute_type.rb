@@ -59,7 +59,7 @@ module ActiveRecord
       end
 
       def support_unencrypted_data?
-        ActiveRecord::Encryption.config.support_unencrypted_data && scheme.support_unencrypted_data? && !previous_type?
+        scheme.support_unencrypted_data? && !previous_type?
       end
 
       private

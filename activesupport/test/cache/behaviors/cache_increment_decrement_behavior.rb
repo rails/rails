@@ -31,6 +31,18 @@ module CacheIncrementDecrementBehavior
     assert_equal @cache.is_a?(ActiveSupport::Cache::MemCacheStore) ? 0 : -100, missing
   end
 
+  def test_read_counter_and_write_counter
+    key = SecureRandom.uuid
+    @cache.write_counter(key, 1)
+    assert_equal 1, @cache.read(key, raw: true).to_i
+
+    assert_equal 1, @cache.read_counter(key)
+    assert_equal 2, @cache.increment(key)
+    assert_equal 2, @cache.read_counter(key)
+
+    assert_nil @cache.read_counter(SecureRandom.alphanumeric)
+  end
+
   def test_ttl_isnt_updated
     key = SecureRandom.uuid
 

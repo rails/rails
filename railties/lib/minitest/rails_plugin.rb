@@ -127,6 +127,11 @@ module Minitest
       options[:profile] = count
     end
 
+    opts.on(/^[^-]/) do |test_file|
+      options[:test_files] ||= []
+      options[:test_files] << test_file
+    end
+
     options[:color] = true
     options[:output_inline] = true
   end
@@ -136,6 +141,10 @@ module Minitest
   def self.plugin_rails_init(options)
     # Don't mess with Minitest unless RAILS_ENV is set
     return unless ENV["RAILS_ENV"] || ENV["RAILS_MINITEST_PLUGIN"]
+
+    if ::Rails::TestUnit::Runner.load_test_files
+      ::Rails::TestUnit::Runner.load_tests(options.fetch(:test_files, []))
+    end
 
     unless options[:full_backtrace]
       # Plugin can run without Rails loaded, check before filtering.

@@ -599,7 +599,7 @@ class MultibyteCharsExtrasTest < ActiveSupport::TestCase
       ["", 0],
       ["abc", 3],
       ["こにちわ", 4],
-      [[0x0924, 0x094D, 0x0930].pack("U*"), 2],
+      [[0x0924, 0x094D, 0x0930].pack("U*"), RbConfig::CONFIG["UNICODE_VERSION"] >= "15.1.0" ? 1 : 2],
       # GB3
       [%w(cr lf), 1],
       # GB4

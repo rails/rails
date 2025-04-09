@@ -19,7 +19,8 @@ module ApplicationTests
         # Default steps
         assert_match(/bin\/rubocop/, content)
         assert_match(/bin\/brakeman/, content)
-        assert_match(/bin\/rails test/, content)
+        assert_match(/"bin\/rails test"$/, content)
+        assert_match(/"bin\/rails test:system"$/, content)
         assert_match(/bin\/rails db:seed:replant/, content)
 
         # Node-specific steps excluded by default

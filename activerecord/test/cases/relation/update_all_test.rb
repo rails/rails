@@ -171,11 +171,57 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal pets.count, pets.update_all(name: "Bob")
   end
 
-  def test_update_all_with_left_outer_joins
-    pets = Pet.left_outer_joins(:toys)
+  def test_update_all_with_left_outer_joins_can_reference_joined_table
+    pets = Pet.left_outer_joins(:toys).where(toys: { name: ["Bone", nil] })
 
     assert_equal true, pets.exists?
-    assert_equal pets.count, pets.update_all(name: "Boby")
+    assert_equal pets.count, pets.update_all(name: Arel.sql("COALESCE(toys.name, 'Toyless')"))
+    assert_equal "Toyless", Pet.where.missing(:toys).first.name
+    assert_not_equal "Toyless", Pet.joins(:toys).first.name
+  end
+
+  def test_update_all_with_string_joins_can_reference_joined_table
+    join = current_adapter?(:Mysql2Adapter, :TrilogyAdapter) ? "LEFT OUTER JOIN" : "FULL OUTER JOIN"
+    pets = Pet.joins("#{join} toys ON toys.pet_id = pets.pet_id").where(toys: { name: ["Bone", nil] })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: Arel.sql("COALESCE(toys.name, 'Toyless')"))
+    assert_equal "Toyless", Pet.where.missing(:toys).first.name
+    assert_not_equal "Toyless", Pet.joins(:toys).first.name
+  end
+
+  def test_update_all_with_self_left_joins_can_reference_joined_table
+    lvl2 = Comment.left_joins(parent: :parent).joins(:post).where(parent: { parent: nil }).where.not(parent: nil)
+
+    assert_equal true, lvl2.exists?
+    assert_equal lvl2.count, lvl2.update_all(body: Arel.sql("COALESCE(parent.body, posts.title)"))
+  end
+
+  def test_update_all_with_left_joins_composite_primary_key_can_reference_joined_table
+    orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+    assert_equal true, orders.exists?
+    assert_equal orders.count, orders.update_all(status: Arel.sql("COALESCE(order_agreements.signature, 'orphan')"))
+    assert_equal orders.count, Cpk::Order.where(status: "orphan").count
+  end
+
+  # Limitations of the implementation
+  if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+    def test_update_all_with_left_joins_unqualified_set_reference_is_ambiguous
+      orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+      assert_raises(ActiveRecord::StatementInvalid, match: /ambiguous/) do
+        orders.update_all(status: Arel.sql("CONCAT(\"status\", 'orphan')"))
+      end
+    end
+
+    def test_update_all_with_left_joins_unqualified_where_reference_is_ambiguous
+      orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+      assert_raises(ActiveRecord::StatementInvalid, match: /ambiguous/) do
+        orders.where(Arel.sql("\"status\" != '123'")).update_all(status: "123")
+      end
+    end
   end
 
   def test_update_all_with_includes
