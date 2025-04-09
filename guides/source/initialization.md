@@ -29,8 +29,8 @@ TIP: If you want to follow along while browsing the Rails [source
 code](https://github.com/rails/rails), we recommend that you use the `t` key
 binding to open the file finder inside GitHub and find files quickly.
 
-Launch!
--------
+Start
+-----
 
 Let's start to boot and initialize the app. A Rails application is usually
 started by running `bin/rails server` or `bin/rails console`.
@@ -213,10 +213,8 @@ from `config/environment.rb`. The `environment.rb` file is the entry point for R
 The Entry Point: `config/environment.rb`
 ---------------------------------------
 
-The `initialize` method of `Rack::Builder` will take the block here and execute
-it within an instance of `Rack::Builder`. This is where the majority of the
-initialization process of Rails happens. The `require` line for
-`config/environment.rb` in `config.ru` is the first to run:
+When running `bin/rails server` a Rack based application is run, which uses the `config.ru` file.
+The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
 require_relative "config/environment"
@@ -247,8 +245,8 @@ But only if it hasn't been required before, which would be the case in
 
 Then the fun begins!
 
-Loading Rails
--------------
+What "rails/all" is
+-------------------
 
 The next line in `config/application.rb` is:
 
@@ -289,7 +287,26 @@ frameworks, but you're encouraged to try and explore them on your own.
 For now, just keep in mind that common functionality like Rails engines, I18n
 and Rails configuration are all being defined here.
 
-### Back to `config/environment.rb`
+The Fun Part with `Rails.application.initilizale!`
+-------------------------------------------------
+
+All of the things that happen when you call `initialize!`:
+
+Rails.application.initialize!
+│
+├── run_initializers
+│   ├── Load railties (ActiveRecord, ActionMailer, etc.)
+│   ├── Load app and engine initializers
+│   └── Load config/initializers/*.rb
+│
+├── Build middleware stack
+├── Prepare app classes
+└── Run after_initialize hooks
+
+
+### Load Hooks
+
+### Initialization Hooks
 
 The rest of `config/application.rb` defines the configuration for the
 `Rails::Application` which will be used once the application is fully
