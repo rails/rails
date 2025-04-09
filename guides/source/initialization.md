@@ -1,4 +1,5 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON
+<https://guides.rubyonrails.org>.**
 
 The Rails Initialization Process
 ================================
@@ -21,12 +22,454 @@ server` to boot your app. This guide goes through every method call that is
 required to boot up the Ruby on Rails stack for a default Rails application,
 explaining each part in detail along the way.
 
-NOTE: Paths in this guide are relative to the root of a Rails application unless otherwise specified.
+NOTE: Paths in this guide are relative to the root of a Rails application unless
+otherwise specified.
 
 TIP: If you want to follow along while browsing the Rails [source
-code](https://github.com/rails/rails), we recommend that you use the `t`
-key binding to open the file finder inside GitHub and find files
-quickly.
+code](https://github.com/rails/rails), we recommend that you use the `t` key
+binding to open the file finder inside GitHub and find files quickly.
+
+Launch!
+-------
+
+Let's start to boot and initialize the app. A Rails application is usually
+started by running `bin/rails server` or `bin/rails console`.
+
+### How `bin/rails server` Command Works 
+
+This file is as follows:
+
+```ruby
+#!/usr/bin/env ruby
+APP_PATH = File.expand_path("../config/application", __dir__)
+require_relative "../config/boot"
+require "rails/commands"
+```
+
+The `APP_PATH` constant will be used later in `rails/commands`. The
+`config/boot` file referenced here is the `config/boot.rb` file in our
+application which is responsible for loading Bundler and setting it up.
+
+### `config/boot.rb`
+
+`config/boot.rb` contains:
+
+```ruby
+ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
+
+require "bundler/setup" # Set up gems listed in the Gemfile.
+require "bootsnap/setup" # Speed up boot time by caching expensive operations.
+```
+
+In a standard Rails application, there's a `Gemfile` which declares all
+dependencies of the application. The `config/boot.rb` file sets
+`ENV['BUNDLE_GEMFILE']` to the location of this `Gemfile`. If the `Gemfile`
+exists, then `bundler/setup` is required. The require is used by Bundler to
+configure the load path for your Gemfile's dependencies.
+
+### `rails/commands.rb`
+
+Once `config/boot.rb` has finished, the next file that is required is
+`rails/commands`, which helps in expanding aliases. In the current case, the
+`ARGV` array simply contains `server` which will be passed over:
+
+```ruby
+require "rails/command"
+
+aliases = {
+  "g"  => "generate",
+  "d"  => "destroy",
+  "c"  => "console",
+  "s"  => "server",
+  "db" => "dbconsole",
+  "r"  => "runner",
+  "t"  => "test"
+}
+
+command = ARGV.shift
+command = aliases[command] || command
+
+Rails::Command.invoke command, ARGV
+```
+
+If we had used `s` rather than `server`, Rails would have used the `aliases`
+defined here to find the matching command.
+
+### `rails/command.rb`
+
+When one types a Rails command, `invoke` tries to lookup a command for the given
+namespace and executes the command if found.
+
+If Rails doesn't recognize the command, it hands the reins over to Rake to run a
+task of the same name.
+
+```ruby
+module Rails
+  module Command
+    class << self
+      def invoke(full_namespace, args = [], **config)
+        args = ["--help"] if rails_new_with_no_path?(args)
+
+        full_namespace = full_namespace.to_s
+        namespace, command_name = split_namespace(full_namespace)
+        command = find_by_namespace(namespace, command_name)
+
+        with_argv(args) do
+          if command && command.all_commands[command_name]
+            command.perform(command_name, args, config)
+          else
+            invoke_rake(full_namespace, args, config)
+          end
+        end
+      rescue UnrecognizedCommandError => error
+        if error.name == full_namespace && command && command_name == full_namespace
+          command.perform("help", [], config)
+        else
+          puts error.detailed_message
+        end
+        exit(1)
+      end
+    end
+  end
+end
+```
+
+With the `server` command, Rails will further run the following code:
+
+```ruby
+module Rails
+  module Command
+    class ServerCommand < Base # :nodoc:
+     def perform
+        set_application_directory!
+        prepare_restart
+
+        Rails::Server.new(server_options).tap do |server|
+          # Require application after server sets environment to propagate
+          # the --environment option.
+          require APP_PATH
+          Dir.chdir(Rails.application.root)
+
+          if server.serveable?
+            print_boot_information(server.server, server.served_url)
+            after_stop_callback = -> { say "Exiting" unless options[:daemon] }
+            server.start(after_stop_callback)
+          else
+            say rack_server_suggestion(options[:using])
+          end
+        end
+      end
+    end
+  end
+end
+```
+
+This file will change into the Rails root directory (a path two directories up
+from `APP_PATH` which points at `config/application.rb`), but only if the
+`config.ru` file isn't found. 
+
+We now jump back into the server command where `APP_PATH` (which was set
+earlier) is required.
+
+### `config/application`
+
+When `require APP_PATH` is executed, `config/application.rb` is loaded (recall
+that `APP_PATH` is defined in `bin/rails`). This file exists in your application
+and it's free for you to change based on your needs.
+
+```ruby
+require_relative "boot"
+
+require "rails/all"
+
+# Require the gems listed in Gemfile, including any gems
+# you've limited to :test, :development, or :production.
+Bundler.require(*Rails.groups)
+
+module MyAmazingApp
+  class Application < Rails::Application
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 8.0
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w[assets tasks])
+
+    # Configuration for the application, engines, and railties goes here.
+    #
+    # These settings can be overridden in specific environments using the files
+    # in config/environments, which are processed later.
+    #
+    # config.time_zone = "Central Time (US & Canada)"
+    # config.eager_load_paths << Rails.root.join("extras")
+  end
+end
+```
+
+At this point, the application is defined and configured but not initialized. The initialization happens 
+from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
+
+The Entry Point: `config/environment.rb`
+---------------------------------------
+
+The `initialize` method of `Rack::Builder` will take the block here and execute
+it within an instance of `Rack::Builder`. This is where the majority of the
+initialization process of Rails happens. The `require` line for
+`config/environment.rb` in `config.ru` is the first to run:
+
+```ruby
+require_relative "config/environment"
+```
+
+### `config/environment.rb`
+
+This file is the common file required by `config.ru` (`bin/rails server`) and
+Passenger. This is where these two ways to run the server meet; everything
+before this point has been Rack and Rails setup.
+
+This file begins with requiring `config/application.rb`:
+
+```ruby
+require_relative "application"
+```
+
+### `config/application.rb`
+
+This file requires `config/boot.rb`:
+
+```ruby
+require_relative "boot"
+```
+
+But only if it hasn't been required before, which would be the case in
+`bin/rails server` but **wouldn't** be the case with Passenger.
+
+Then the fun begins!
+
+Loading Rails
+-------------
+
+The next line in `config/application.rb` is:
+
+```ruby
+require "rails/all"
+```
+
+### `railties/lib/rails/all.rb`
+
+This file is responsible for requiring all the individual frameworks of Rails:
+
+```ruby
+require "rails"
+
+%w(
+  active_record/railtie
+  active_storage/engine
+  action_controller/railtie
+  action_view/railtie
+  action_mailer/railtie
+  active_job/railtie
+  action_cable/engine
+  action_mailbox/engine
+  action_text/engine
+  rails/test_unit/railtie
+).each do |railtie|
+  begin
+    require railtie
+  rescue LoadError
+  end
+end
+```
+
+This is where all the Rails frameworks are loaded and thus made available to the
+application. We won't go into detail of what happens inside each of those
+frameworks, but you're encouraged to try and explore them on your own.
+
+For now, just keep in mind that common functionality like Rails engines, I18n
+and Rails configuration are all being defined here.
+
+### Back to `config/environment.rb`
+
+The rest of `config/application.rb` defines the configuration for the
+`Rails::Application` which will be used once the application is fully
+initialized. When `config/application.rb` has finished loading Rails and defined
+the application namespace, we go back to `config/environment.rb`. Here, the
+application is initialized with `Rails.application.initialize!`, which is
+defined in `rails/application.rb`.
+
+### `railties/lib/rails/application.rb`
+
+The `initialize!` method looks like this:
+
+```ruby
+def initialize!(group = :default) # :nodoc:
+  raise "Application has been already initialized." if @initialized
+  run_initializers(group, self)
+  @initialized = true
+  self
+end
+```
+
+You can only initialize an app once. The Railtie
+[initializers](configuring.html#initializers) are run through the
+`run_initializers` method which is defined in
+`railties/lib/rails/initializable.rb`:
+
+```ruby
+def run_initializers(group = :default, *args)
+  return if instance_variable_defined?(:@ran)
+  initializers.tsort_each do |initializer|
+    initializer.run(*args) if initializer.belongs_to?(group)
+  end
+  @ran = true
+end
+```
+
+The `run_initializers` code itself is tricky. What Rails is doing here is
+traversing all the class ancestors looking for those that respond to an
+`initializers` method. It then sorts the ancestors by name, and runs them. For
+example, the `Engine` class will make all the engines available by providing an
+`initializers` method on them.
+
+The `Rails::Application` class, as defined in
+`railties/lib/rails/application.rb` defines `bootstrap`, `railtie`, and
+`finisher` initializers. The `bootstrap` initializers prepare the application
+(like initializing the logger) while the `finisher` initializers (like building
+the middleware stack) are run last. The `railtie` initializers are the
+initializers which have been defined on the `Rails::Application` itself and are
+run between the `bootstrap` and `finisher`.
+
+NOTE: Do not confuse Railtie initializers overall with the
+[load_config_initializers](configuring.html#using-initializer-files) initializer
+instance or its associated config initializers in `config/initializers`.
+
+After this is done we go back to `Rackup::Server`.
+
+### Rack: lib/rack/server.rb
+
+Last time we left when the `app` method was being defined:
+
+```ruby
+module Rackup
+  class Server
+    def app
+      @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
+    end
+
+    # ...
+
+    private
+      def build_app_and_options_from_config
+        if !::File.exist? options[:config]
+          abort "configuration #{options[:config]} not found"
+        end
+
+        Rack::Builder.parse_file(self.options[:config])
+      end
+
+      def build_app_from_string
+        Rack::Builder.new_from_string(self.options[:builder])
+      end
+  end
+end
+```
+
+At this point `app` is the Rails app itself (a middleware), and what happens
+next is Rack will call all the provided middlewares:
+
+```ruby
+module Rackup
+  class Server
+    private
+      def build_app(app)
+        middleware[options[:environment]].reverse_each do |middleware|
+          middleware = middleware.call(self) if middleware.respond_to?(:call)
+          next unless middleware
+          klass, *args = middleware
+          app = klass.new(app, *args)
+        end
+        app
+      end
+  end
+end
+```
+
+Remember, `build_app` was called (by `wrapped_app`) in the last line of
+`Rackup::Server#start`. Here's how it looked like when we left:
+
+```ruby
+server.run(wrapped_app, **options, &block)
+```
+
+At this point, the implementation of `server.run` will depend on the server
+you're using. For example, if you were using Puma, here's what the `run` method
+would look like:
+
+```ruby
+module Rack
+  module Handler
+    module Puma
+      # ...
+      def self.run(app, options = {})
+        conf = self.config(app, options)
+
+        log_writer = options.delete(:Silent) ? ::Puma::LogWriter.strings : ::Puma::LogWriter.stdio
+
+        launcher = ::Puma::Launcher.new(conf, log_writer: log_writer, events: @events)
+
+        yield launcher if block_given?
+        begin
+          launcher.run
+        rescue Interrupt
+          puts "* Gracefully stopping, waiting for requests to finish"
+          launcher.stop
+          puts "* Goodbye!"
+        end
+      end
+      # ...
+    end
+  end
+end
+```
+
+We won't dig into the server configuration itself, but this is the last piece of
+our journey in the Rails initialization process.
+
+This high level overview will help you understand when your code is executed and
+how, and overall become a better Rails developer. If you still want to know
+more, the Rails source code itself is probably the best place to go next.
+
+
+**********OLD VERSION**********
+
+The Rails Initialization Process
+================================
+
+This guide explains the Rails server initialization process. It is an extremely
+in-depth guide and walks through internal method calls. It is recommended for
+developers interested in exploring Rails source code.
+
+After reading this guide, you will know:
+
+* How to use `bin/rails server`.
+* The timeline of Rails' initialization sequence.
+* Where different files are required by the boot sequence.
+* How the Rails::Server interface is defined and used.
+
+--------------------------------------------------------------------------------
+
+For this guide, we will be focusing on what happens when you execute `bin/rails
+server` to boot your app. This guide goes through every method call that is
+required to boot up the Ruby on Rails stack for a default Rails application,
+explaining each part in detail along the way.
+
+NOTE: Paths in this guide are relative to the root of a Rails application unless
+otherwise specified.
+
+TIP: If you want to follow along while browsing the Rails [source
+code](https://github.com/rails/rails), we recommend that you use the `t` key
+binding to open the file finder inside GitHub and find files quickly.
 
 Launch!
 -------
@@ -99,11 +542,11 @@ defined here to find the matching command.
 When one types a Rails command, `invoke` tries to lookup a command for the given
 namespace and executes the command if found.
 
-If Rails doesn't recognize the command, it hands the reins over to Rake
-to run a task of the same name.
+If Rails doesn't recognize the command, it hands the reins over to Rake to run a
+task of the same name.
 
-As shown, `Rails::Command` displays the help output automatically if the `namespace`
-is empty.
+As shown, `Rails::Command` displays the help output automatically if the
+`namespace` is empty.
 
 ```ruby
 module Rails
@@ -172,14 +615,14 @@ from `APP_PATH` which points at `config/application.rb`), but only if the
 
 ### `actionpack/lib/action_dispatch.rb`
 
-Action Dispatch is the routing component of the Rails framework.
-It adds functionality like routing, session, and common middlewares.
+Action Dispatch is the routing component of the Rails framework. It adds
+functionality like routing, session, and common middlewares.
 
 ### `rails/commands/server/server_command.rb`
 
 The `Rails::Server` class is defined in this file by inheriting from
-`Rackup::Server`. When `Rails::Server.new` is called, this calls the `initialize`
-method in `rails/commands/server/server_command.rb`:
+`Rackup::Server`. When `Rails::Server.new` is called, this calls the
+`initialize` method in `rails/commands/server/server_command.rb`:
 
 ```ruby
 module Rails
@@ -193,7 +636,8 @@ module Rails
 end
 ```
 
-Firstly, `super` is called which calls the `initialize` method on `Rackup::Server`.
+Firstly, `super` is called which calls the `initialize` method on
+`Rackup::Server`.
 
 ### Rackup: `lib/rackup/server.rb`
 
@@ -221,10 +665,12 @@ module Rackup
 end
 ```
 
-In this case, return value of `Rails::Command::ServerCommand#server_options` will be assigned to `options`.
-When lines inside if statement is evaluated, a couple of instance variables will be set.
+In this case, return value of `Rails::Command::ServerCommand#server_options`
+will be assigned to `options`. When lines inside if statement is evaluated, a
+couple of instance variables will be set.
 
-`server_options` method in `Rails::Command::ServerCommand` is defined as follows:
+`server_options` method in `Rails::Command::ServerCommand` is defined as
+follows:
 
 ```ruby
 module Rails
@@ -257,8 +703,8 @@ end
 The value will be assigned to instance variable `@options`.
 
 After `super` has finished in `Rackup::Server`, we jump back to
-`rails/commands/server/server_command.rb`. At this point, `set_environment`
-is called within the context of the `Rails::Server` object.
+`rails/commands/server/server_command.rb`. At this point, `set_environment` is
+called within the context of the `Rails::Server` object.
 
 ```ruby
 module Rails
@@ -270,8 +716,8 @@ module Rails
 end
 ```
 
-After `initialize` has finished, we jump back into the server command
-where `APP_PATH` (which was set earlier) is required.
+After `initialize` has finished, we jump back into the server command where
+`APP_PATH` (which was set earlier) is required.
 
 ### `config/application`
 
@@ -325,14 +771,15 @@ module Rails
 end
 ```
 
-This method creates a trap for `INT` signals, so if you `CTRL-C` the server, it will exit the process.
-As we can see from the code here, it will create the `tmp/cache`,
-`tmp/pids`, and `tmp/sockets` directories. It then enables caching in development
-if `bin/rails server` is called with `--dev-caching`. Finally, it calls `wrapped_app` which is
-responsible for creating the Rack app, before creating and assigning an instance
-of `ActiveSupport::Logger`.
+This method creates a trap for `INT` signals, so if you `CTRL-C` the server, it
+will exit the process. As we can see from the code here, it will create the
+`tmp/cache`, `tmp/pids`, and `tmp/sockets` directories. It then enables caching
+in development if `bin/rails server` is called with `--dev-caching`. Finally, it
+calls `wrapped_app` which is responsible for creating the Rack app, before
+creating and assigning an instance of `ActiveSupport::Logger`.
 
-The `super` method will call `Rackup::Server.start` which begins its definition as follows:
+The `super` method will call `Rackup::Server.start` which begins its definition
+as follows:
 
 ```ruby
 module Rackup
@@ -384,9 +831,9 @@ module Rackup
 end
 ```
 
-The interesting part for a Rails app is the last line, `server.run`. Here we encounter the `wrapped_app` method again, which this time
-we're going to explore more (even though it was executed before, and
-thus memoized by now).
+The interesting part for a Rails app is the last line, `server.run`. Here we
+encounter the `wrapped_app` method again, which this time we're going to explore
+more (even though it was executed before, and thus memoized by now).
 
 ```ruby
 module Rackup
@@ -437,7 +884,8 @@ Rails.application.load_server
 ```
 
 
-The `Rack::Builder.parse_file` method here takes the content from this `config.ru` file and parses it using this code:
+The `Rack::Builder.parse_file` method here takes the content from this
+`config.ru` file and parses it using this code:
 
 ```ruby
 module Rack
@@ -463,9 +911,10 @@ module Rack
 end
 ```
 
-The `initialize` method of `Rack::Builder` will take the block here and execute it within an instance of `Rack::Builder`.
-This is where the majority of the initialization process of Rails happens.
-The `require` line for `config/environment.rb` in `config.ru` is the first to run:
+The `initialize` method of `Rack::Builder` will take the block here and execute
+it within an instance of `Rack::Builder`. This is where the majority of the
+initialization process of Rails happens. The `require` line for
+`config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
 require_relative "config/environment"
@@ -473,7 +922,9 @@ require_relative "config/environment"
 
 ### `config/environment.rb`
 
-This file is the common file required by `config.ru` (`bin/rails server`) and Passenger. This is where these two ways to run the server meet; everything before this point has been Rack and Rails setup.
+This file is the common file required by `config.ru` (`bin/rails server`) and
+Passenger. This is where these two ways to run the server meet; everything
+before this point has been Rack and Rails setup.
 
 This file begins with requiring `config/application.rb`:
 
@@ -489,8 +940,8 @@ This file requires `config/boot.rb`:
 require_relative "boot"
 ```
 
-But only if it hasn't been required before, which would be the case in `bin/rails server`
-but **wouldn't** be the case with Passenger.
+But only if it hasn't been required before, which would be the case in
+`bin/rails server` but **wouldn't** be the case with Passenger.
 
 Then the fun begins!
 
@@ -529,13 +980,12 @@ require "rails"
 end
 ```
 
-This is where all the Rails frameworks are loaded and thus made
-available to the application. We won't go into detail of what happens
-inside each of those frameworks, but you're encouraged to try and
-explore them on your own.
+This is where all the Rails frameworks are loaded and thus made available to the
+application. We won't go into detail of what happens inside each of those
+frameworks, but you're encouraged to try and explore them on your own.
 
-For now, just keep in mind that common functionality like Rails engines,
-I18n and Rails configuration are all being defined here.
+For now, just keep in mind that common functionality like Rails engines, I18n
+and Rails configuration are all being defined here.
 
 ### Back to `config/environment.rb`
 
@@ -559,8 +1009,9 @@ def initialize!(group = :default) # :nodoc:
 end
 ```
 
-You can only initialize an app once. The Railtie [initializers](configuring.html#initializers)
-are run through the `run_initializers` method which is defined in
+You can only initialize an app once. The Railtie
+[initializers](configuring.html#initializers) are run through the
+`run_initializers` method which is defined in
 `railties/lib/rails/initializable.rb`:
 
 ```ruby
@@ -575,19 +1026,21 @@ end
 
 The `run_initializers` code itself is tricky. What Rails is doing here is
 traversing all the class ancestors looking for those that respond to an
-`initializers` method. It then sorts the ancestors by name, and runs them.
-For example, the `Engine` class will make all the engines available by
-providing an `initializers` method on them.
+`initializers` method. It then sorts the ancestors by name, and runs them. For
+example, the `Engine` class will make all the engines available by providing an
+`initializers` method on them.
 
-The `Rails::Application` class, as defined in `railties/lib/rails/application.rb`
-defines `bootstrap`, `railtie`, and `finisher` initializers. The `bootstrap` initializers
-prepare the application (like initializing the logger) while the `finisher`
-initializers (like building the middleware stack) are run last. The `railtie`
-initializers are the initializers which have been defined on the `Rails::Application`
-itself and are run between the `bootstrap` and `finisher`.
+The `Rails::Application` class, as defined in
+`railties/lib/rails/application.rb` defines `bootstrap`, `railtie`, and
+`finisher` initializers. The `bootstrap` initializers prepare the application
+(like initializing the logger) while the `finisher` initializers (like building
+the middleware stack) are run last. The `railtie` initializers are the
+initializers which have been defined on the `Rails::Application` itself and are
+run between the `bootstrap` and `finisher`.
 
-NOTE: Do not confuse Railtie initializers overall with the [load_config_initializers](configuring.html#using-initializer-files)
-initializer instance or its associated config initializers in `config/initializers`.
+NOTE: Do not confuse Railtie initializers overall with the
+[load_config_initializers](configuring.html#using-initializer-files) initializer
+instance or its associated config initializers in `config/initializers`.
 
 After this is done we go back to `Rackup::Server`.
 
@@ -620,8 +1073,8 @@ module Rackup
 end
 ```
 
-At this point `app` is the Rails app itself (a middleware), and what
-happens next is Rack will call all the provided middlewares:
+At this point `app` is the Rails app itself (a middleware), and what happens
+next is Rack will call all the provided middlewares:
 
 ```ruby
 module Rackup
@@ -640,16 +1093,16 @@ module Rackup
 end
 ```
 
-Remember, `build_app` was called (by `wrapped_app`) in the last line of `Rackup::Server#start`.
-Here's how it looked like when we left:
+Remember, `build_app` was called (by `wrapped_app`) in the last line of
+`Rackup::Server#start`. Here's how it looked like when we left:
 
 ```ruby
 server.run(wrapped_app, **options, &block)
 ```
 
-At this point, the implementation of `server.run` will depend on the
-server you're using. For example, if you were using Puma, here's what
-the `run` method would look like:
+At this point, the implementation of `server.run` will depend on the server
+you're using. For example, if you were using Puma, here's what the `run` method
+would look like:
 
 ```ruby
 module Rack
@@ -678,10 +1131,9 @@ module Rack
 end
 ```
 
-We won't dig into the server configuration itself, but this is
-the last piece of our journey in the Rails initialization process.
+We won't dig into the server configuration itself, but this is the last piece of
+our journey in the Rails initialization process.
 
-This high level overview will help you understand when your code is
-executed and how, and overall become a better Rails developer. If you
-still want to know more, the Rails source code itself is probably the
-best place to go next.
+This high level overview will help you understand when your code is executed and
+how, and overall become a better Rails developer. If you still want to know
+more, the Rails source code itself is probably the best place to go next.
