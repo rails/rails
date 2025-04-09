@@ -3621,6 +3621,20 @@ The default value depends on the `config.load_defaults` target version:
 Determines whether the Active Storage assets should be added to the asset pipeline precompilation. It
 has no effect if Sprockets is not used. The default value is `true`.
 
+#### `config.active_storage.streaming_max_ranges`
+
+Defines how many ranges a byte range request may contain.
+
+`ActiveStorage::Streaming` allows requesting partial resources using HTTP Range Requests,
+but that feature can be abused for denial of service attacks.
+
+By default only a single range of byte is allowed, which allows for retries and the vast majority
+of use cases. If you need multiple byte range support, you can increase that setting.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `1`                  |
+
 ### Configuring Action Text
 
 #### `config.action_text.attachment_tag_name`

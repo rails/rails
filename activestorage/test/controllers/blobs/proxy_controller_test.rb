@@ -111,6 +111,9 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
   end
 
   test "multiple Byte Ranges" do
+    previous_streaming_max_ranges = ActiveStorage.streaming_max_ranges
+    ActiveStorage.streaming_max_ranges = 2
+
     boundary = SecureRandom.hex
     SecureRandom.stub :hex, boundary do
       get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=5-9,13-17" }
@@ -136,6 +139,8 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
         response.body
       )
     end
+  ensure
+    ActiveStorage.streaming_max_ranges = previous_streaming_max_ranges
   end
 
   test "uses a Live::Response" do

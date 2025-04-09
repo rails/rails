@@ -15,6 +15,7 @@ module ActiveStorage::Streaming
       ranges = Rack::Utils.get_byte_ranges(range_header, blob.byte_size)
 
       return head(:range_not_satisfiable) unless ranges_valid?(ranges)
+      return head(:range_not_satisfiable) if ranges.length > ActiveStorage.streaming_max_ranges
 
       if ranges.length == 1
         range = ranges.first
