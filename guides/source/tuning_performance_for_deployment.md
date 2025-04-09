@@ -111,7 +111,7 @@ The Puma configuration resides in the `config/puma.rb` file.
 The two most important Puma configurations are the number of threads per process, and the number of processes,
 which Puma calls `workers`.
 
-The number of threads per process is configured via the `thread` directive.
+The number of threads per process is configured via the `threads` directive.
 In the default generated configuration, it is set to `3`.
 You can modify it either by setting the `RAILS_MAX_THREADS` environment variable or simply editing the configuration
 file.
