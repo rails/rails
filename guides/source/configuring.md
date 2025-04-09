@@ -438,6 +438,14 @@ Rails.application.config.filter_parameters += [
 
 Parameters filter works by partial matching regular expression.
 
+To filter all paramaters you can do this:
+
+```ruby
+Rails.application.config.filter_parameters += [
+  /.*/
+]
+```
+
 #### `config.filter_redirect`
 
 Used for filtering out redirect urls from application logs.
