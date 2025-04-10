@@ -4,40 +4,48 @@
 The Rails Initialization Process
 ================================
 
-This guide explains the Rails server initialization process. It is an extremely
+This guide explains the Rails initialization process. It is an extremely
 in-depth guide and walks through internal method calls. It is recommended for
 developers interested in exploring Rails source code.
 
 After reading this guide, you will know:
 
-* How to use `bin/rails server`.
+* How `bin/rails server` command works.
 * The timeline of Rails' initialization sequence.
 * Where different files are required by the boot sequence.
-* How the Rails::Server interface is defined and used.
+* How to use Load Hooks and Initialization Hooks.
 
 --------------------------------------------------------------------------------
 
-For this guide, we will be focusing on what happens when you execute `bin/rails
-server` to boot your app. This guide goes through every method call that is
-required to boot up the Ruby on Rails stack for a default Rails application,
-explaining each part in detail along the way.
+What happens when you execute `bin/rails server` to start your Rails
+application? This guide goes through the method calls required to boot up the
+Ruby on Rails stack, explaining each part in detail along the way. It also
+explains how you can execute code by hooking into the initialization process and
+covers examples of Load Hooks and Initialization Hooks. This guide also briefly
+covers Railties and Engines as they relate to the initialization process.
+
 
 NOTE: Paths in this guide are relative to the root of a Rails application unless
 otherwise specified.
 
-TIP: If you want to follow along while browsing the Rails [source
-code](https://github.com/rails/rails), we recommend that you use the `t` key
-binding to open the file finder inside GitHub and find files quickly.
+TIP: You can follow along by browsing the Rails [source
+code](https://github.com/rails/rails) and use the `t` key binding to open file
+finder inside GitHub and find files quickly.
 
-Start
------
+At a high level, the Rails initialization process has two parts: booting the
+framework and starting the server. The booting part happens with all `bin/rails`
+commands but only `bin/rails server` also starts the server. For example,
+`bin/rails console` boots the application but does not start the server.
 
-Let's start to boot and initialize the app. A Rails application is usually
-started by running `bin/rails server` or `bin/rails console`.
+Starting with `bin/rails` Script
+--------------------------------
 
-### How `bin/rails server` Command Works 
+Let's start with what happens when we run `bin/rails server`.
 
-This file is as follows:
+### How `bin/rails server` Command Works
+
+The `bin/rails` is a ruby script in the `bin` directory of your Rails applicaiton.
+This is what that file contains:
 
 ```ruby
 #!/usr/bin/env ruby
@@ -46,15 +54,17 @@ require_relative "../config/boot"
 require "rails/commands"
 ```
 
-The `APP_PATH` constant will be used later in `rails/commands`. The
-`config/boot` file referenced here is the `config/boot.rb` file in our
-application which is responsible for loading Bundler and setting it up.
+Only 3 lines. The `APP_PATH` constant will be used later in `rails/commands`.
 
-### `config/boot.rb`
+Then it requires a `config/boot` file, which the `boot.rb` file in the `config` directory in your Rails application.
 
-`config/boot.rb` contains:
+### require_relative "../config/boot" from "bin/rails"
+
+The `config/boot.rb` file is responsible for loading Bundler and setting it up.
+The `boot.rb` file contains:
 
 ```ruby
+# config/boot.rb
 ENV["BUNDLE_GEMFILE"] ||= File.expand_path("../Gemfile", __dir__)
 
 require "bundler/setup" # Set up gems listed in the Gemfile.
@@ -62,12 +72,14 @@ require "bootsnap/setup" # Speed up boot time by caching expensive operations.
 ```
 
 In a standard Rails application, there's a `Gemfile` which declares all
-dependencies of the application. The `config/boot.rb` file sets
-`ENV['BUNDLE_GEMFILE']` to the location of this `Gemfile`. If the `Gemfile`
-exists, then `bundler/setup` is required. The require is used by Bundler to
-configure the load path for your Gemfile's dependencies.
+dependencies of the application. The `config/boot.rb` file sets the environment
+variable, `ENV['BUNDLE_GEMFILE']`, to the location of this `Gemfile`. If the
+`Gemfile` exists, then `bundler/setup` is required. The require is used by
+Bundler to configure the load path for your Gemfile's dependencies.
 
-### `rails/commands.rb`
+Let's go back to the `bin/rails` script and look at the second `require`, which is for `rails/commands`.
+
+### require "rails/commands" from "bin/rails"
 
 Once `config/boot.rb` has finished, the next file that is required is
 `rails/commands`, which helps in expanding aliases. In the current case, the
@@ -95,7 +107,7 @@ Rails::Command.invoke command, ARGV
 If we had used `s` rather than `server`, Rails would have used the `aliases`
 defined here to find the matching command.
 
-### `rails/command.rb`
+#### `rails/command.rb`
 
 When one types a Rails command, `invoke` tries to lookup a command for the given
 namespace and executes the command if found.
@@ -166,7 +178,7 @@ end
 
 This file will change into the Rails root directory (a path two directories up
 from `APP_PATH` which points at `config/application.rb`), but only if the
-`config.ru` file isn't found. 
+`config.ru` file isn't found.
 
 We now jump back into the server command where `APP_PATH` (which was set
 earlier) is required.
@@ -207,8 +219,7 @@ module MyAmazingApp
 end
 ```
 
-At this point, the application is defined and configured but not initialized. The initialization happens 
-from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
+At this point, the application is defined and configured but not initialized. The initialization happens from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
 
 The Entry Point: `config/environment.rb`
 ---------------------------------------
@@ -287,11 +298,12 @@ frameworks, but you're encouraged to try and explore them on your own.
 For now, just keep in mind that common functionality like Rails engines, I18n
 and Rails configuration are all being defined here.
 
-The Fun Part with `Rails.application.initilizale!`
+The Fun Part with `Rails.application.initialize!`
 -------------------------------------------------
 
 All of the things that happen when you call `initialize!`:
 
+```
 Rails.application.initialize!
 │
 ├── run_initializers
@@ -302,7 +314,7 @@ Rails.application.initialize!
 ├── Build middleware stack
 ├── Prepare app classes
 └── Run after_initialize hooks
-
+```
 
 ### Load Hooks
 
@@ -361,7 +373,12 @@ NOTE: Do not confuse Railtie initializers overall with the
 [load_config_initializers](configuring.html#using-initializer-files) initializer
 instance or its associated config initializers in `config/initializers`.
 
-After this is done we go back to `Rackup::Server`.
+There are two parts to the initialization process: booting and starting the
+server. We have been talking about booting. Now we star the server. After this
+is done we go back to `Rackup::Server`.
+
+Starting the Server
+-------------------
 
 ### Rack: lib/rack/server.rb
 
