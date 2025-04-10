@@ -1460,6 +1460,18 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("#1 pirate!", pirates(1).catchphrase)
   end
 
+  def test_supports_label_interpolation_with_multiple_modifiers
+    assert_equal("You almost cacth Jack Sparrow", pirates(:jack_sparrow).catchphrase)
+  end
+
+  def test_supports_label_interpolation_with_single_modifier
+    assert_equal("Henry-morgan-catchphrase", pirates(:henry_morgan).catchphrase)
+  end
+
+  def test_supports_label_interpolation_empty_modifiers
+    assert_equal("henry_avery_treasure", pirates(:henry_avery).catchphrase)
+  end
+
   def test_supports_polymorphic_belongs_to
     assert_equal(pirates(:redbeard), treasures(:sapphire).looter)
     assert_equal(parrots(:louis), treasures(:ruby).looter)
