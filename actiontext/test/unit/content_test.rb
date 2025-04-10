@@ -95,9 +95,15 @@ class ActionText::ContentTest < ActiveSupport::TestCase
   end
 
   test "ignores Trix-formatted attachments with malformed JSON" do
+    old_logger = Rails.logger
+    output = StringIO.new
+    Rails.logger = Logger.new(output)
+
     html = %Q(<div data-trix-attachment='{"sgid":"garbage...'></div>)
     content = content_from_html(html)
     assert_equal 0, content.attachments.size
+  ensure
+    Rails.logger = old_logger
   end
 
   test "minifies attachment markup" do
