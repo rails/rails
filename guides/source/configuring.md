@@ -370,9 +370,9 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
 Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
 
-Failure to handle this error will result in a `500 Internal Server Error`.
+Failure to handle given error will result in a `500 Internal Server Error`.
 
-Using the `Rails.application.routes` `RouteSet` as the exceptions application also requires this special handling.
+Using the `Rails.application.routes` `RouteSet` as the exceptions application requires special handling.
 It might look something like this:
 
 ```ruby
