@@ -1,3 +1,16 @@
+*   Fixture label modifiers
+
+    Label on fixtures can be transformed using a chain of string methods:
+
+    ```yml
+    john_doe:
+        slug: $LABEL(titleize)                 # => "John Doe"
+        username: $LABEL(dasherize.capitalize) # => "John-doe"
+        raw_label: $LABEL()                    # => "john_doe" (same as $LABEL)
+    ```
+
+    *Jose Carlos Arenas*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
