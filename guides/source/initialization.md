@@ -228,7 +228,12 @@ When running `bin/rails server` a Rack based application is run, which uses the 
 The `require` line for `config/environment.rb` in `config.ru` is the first to run:
 
 ```ruby
+# config.ru
+# This file is used by Rack-based servers to start the application.
 require_relative "config/environment"
+
+run Rails.application
+Rails.application.load_server
 ```
 
 ### `config/environment.rb`
@@ -316,9 +321,15 @@ Rails.application.initialize!
 └── Run after_initialize hooks
 ```
 
-### Load Hooks
+In order to understand this `initialize!` call, we need to understand what Railties and Engines are.
 
-### Initialization Hooks
+### Railties and Engines
+
+
+
+
+### The `initialize!` call
+
 
 The rest of `config/application.rb` defines the configuration for the
 `Rails::Application` which will be used once the application is fully
@@ -376,6 +387,34 @@ instance or its associated config initializers in `config/initializers`.
 There are two parts to the initialization process: booting and starting the
 server. We have been talking about booting. Now we star the server. After this
 is done we go back to `Rackup::Server`.
+
+Hooks
+-----
+
+### Load Hooks
+
+The purpose of Load Hooks is to do something when the application loads certain parts of the Rails framework. For example:
+
+```ruby
+# config/initializers/my_active_record_extension.rb
+ActiveSupport.on_load(:active_record) do
+  include MyActiveRecordExtension
+end
+```
+
+### Initialization Hooks
+
+Initialization Hooks are things like `after_initialized` and `before_initialed`. You specify them in your application's `configure` block inside your environment specific configuration file (e.g. development.rb):
+
+```ruby
+Rails.application.configure do
+  config.after_initialize do
+    puts "Rails has finished initializing!"
+  end
+end
+```
+
+After booting the application is done, the second part of the initialization process is starting a web server (for the `bin/rails server` command).
 
 Starting the Server
 -------------------
