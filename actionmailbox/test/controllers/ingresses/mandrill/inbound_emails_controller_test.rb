@@ -7,7 +7,8 @@ ENV["MANDRILL_INGRESS_API_KEY"] = "1l9Qf7lutEf7h73VXfBwhw"
 class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
   setup do
     ActionMailbox.ingress = :mandrill
-    @events = JSON.generate([{ event: "inbound", msg: { raw_msg: file_fixture("../files/welcome.eml").read } }])
+    raw_msg = file_fixture("../files/welcome.eml").read
+    @events = JSON.generate([{ event: "inbound", msg: { raw_msg: Mail::Utilities.to_lf(raw_msg) } }])
   end
 
   test "verifying existence of Mandrill inbound route" do
@@ -25,7 +26,8 @@ class ActionMailbox::Ingresses::Mandrill::InboundEmailsControllerTest < ActionDi
     assert_response :ok
 
     inbound_email = ActionMailbox::InboundEmail.last
-    assert_equal file_fixture("../files/welcome.eml").read, inbound_email.raw_email.download
+    expected_message = Mail::Utilities.to_lf(file_fixture("../files/welcome.eml").read)
+    assert_equal expected_message, inbound_email.raw_email.download
     assert_equal "0CB459E0-0336-41DA-BC88-E6E28C697DDB@37signals.com", inbound_email.message_id
   end
 
