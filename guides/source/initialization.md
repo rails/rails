@@ -325,8 +325,46 @@ In order to understand this `initialize!` call, we need to understand what Railt
 
 ### Railties and Engines
 
+What is a Railtie? "Railtie is the foundation for extending and configuring Rails. It allows different parts of the framework (or third-party gems) to integrate with Rails by providing hooks for configuration, initialization, and runtime execution."
 
+Railtie allows the component (e.g ActiveRecord) to be responsible for it's own configuration, it's own initialization.
 
+These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` is called.
+
+TODO Documentation needed - for when different things are available. At what point in the boot process? Like Rails.env, Rails.root, Rails.configuration, Rails.autoloaders.
+
+TODO Documentation needed - which of the 300 listed with `bin/rails initializer` is public interface.
+
+-   `initializer "name" do ... end` is a method that registers code to run during Rails initialization.
+
+-   It’s defined in `Rails::Railtie`, which is the foundation for `Rails::Application` and `Rails::Engine`.
+
+-   These initializers **are executed in order** when `Rails.application.initialize!` runs.
+
+-   They allow gems like **Active Record** to hook into the Rails initialization process.
+
+So what about a Rails Engine? A Rails Engine is a subclass of `Rails::Railtie`.
+
+```ruby
+class Rails::Engine < Rails::Railtie
+
+end
+```
+
+Engines can have `config/initializers` and `config/routes.rb`
+A Rails application ships with a bunch of Engines, such as ActiveStorage::Engine, SolidCache::Engine, Turbo::Engine.
+
+A Rails application is a subclass of Rails Engine.
+
+```ruby
+class Rails::Application < Rails::Engine
+
+end
+```
+
+So a Rails application is an Engine, which is a Railtie. Rails application has autoloaders, an Engine does not have autoloaders.
+
+the `initialize!` method is in rails/railties/lib/rails/application.rb
 
 ### The `initialize!` call
 
