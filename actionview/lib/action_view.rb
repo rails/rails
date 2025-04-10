@@ -81,6 +81,7 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :StrictLocalsError
       autoload :TemplateError
       autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError
