@@ -12,7 +12,7 @@ services:
 
     depends_on:
       - postgres
-      - mariadb
+      - mysql
       - redis
       - memcached
 
@@ -32,13 +32,13 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
 
-  mariadb:
-    image: mariadb:lts
+  mysql:
+    image: mysql:latest
     restart: unless-stopped
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     environment:
-      MARIADB_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
 
   redis:
     image: valkey/valkey:8
@@ -53,5 +53,5 @@ services:
 
 volumes:
   postgres-data:
-  mariadb-data:
+  mysql-data:
   redis-data:
