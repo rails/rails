@@ -31,6 +31,9 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/sharded/comment"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -398,6 +401,18 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     order.save!
 
     assert_equal 3, book.shop_id
+  end
+
+  def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPost.create!(blog: blog)
+    comment = Sharded::Comment.create!(blog: blog)
+
+    # Load the association once
+    comment.blog_post
+    comment.blog_post_id = blog_post.id
+
+    assert_equal blog_post, comment.blog_post
   end
 
   def test_building_the_belonging_object_with_implicit_sti_base_class
