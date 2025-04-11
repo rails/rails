@@ -1,3 +1,7 @@
+*   Use `TRUE` and `FALSE` for SQLite queries with boolean columns.
+
+    *Hartley McGuire*
+
 *   Bump minimum supported SQLite to 3.23.0.
 
     *Hartley McGuire*

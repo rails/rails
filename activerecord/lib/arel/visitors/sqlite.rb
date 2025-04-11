@@ -68,14 +68,6 @@ module Arel # :nodoc: all
           super
         end
 
-        def visit_Arel_Nodes_True(o, collector)
-          collector << "1"
-        end
-
-        def visit_Arel_Nodes_False(o, collector)
-          collector << "0"
-        end
-
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           collector = visit o.left, collector
           collector << " IS "
