@@ -284,6 +284,18 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_job_error_logging_backtrace_cleaner
+    perform_enqueued_jobs do
+      assert_raises(RescueJob::OtherError) do
+        RescueJob.perform_later "other"
+      end
+    end
+
+    assert_match(/rescue_job\.rb:\d+:in .*perform'/, @logger.messages)
+    assert_empty(@logger.messages.lines.grep(/minitest\//))
+    assert_empty(@logger.messages.lines.grep(/gems\//))
+  end
+
   def test_job_no_error_logging_on_rescuable_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*david/, @logger.messages)
