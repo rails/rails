@@ -920,4 +920,22 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "EDT", time.strftime("%Z")
     assert_equal true, time.isdst
   end
+
+  def test_find_by_identifier
+    expected_zone = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+
+    canonical_identifier = "America/Los_Angeles" # Included in the ActiveSupport::TimeZone::MAPPING
+    zone = ActiveSupport::TimeZone.find_by_identifier(canonical_identifier)
+    assert_equal expected_zone, zone
+
+    linked_identifier = "US/Pacific" # Not included in the ActiveSupport::TimeZone::MAPPING, but linked to "America/Los_Angeles"
+    zone = ActiveSupport::TimeZone.find_by_identifier(linked_identifier)
+    assert_equal expected_zone, zone
+    assert_equal "Pacific Time (US & Canada)", zone.name
+    assert_equal TZInfo::Timezone.get("America/Los_Angeles"), zone.tzinfo
+
+    unknown_identifier = "Dummy"
+    zone = ActiveSupport::TimeZone.find_by_identifier(unknown_identifier)
+    assert_nil zone
+  end
 end

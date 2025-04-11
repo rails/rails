@@ -1,3 +1,7 @@
+*   Add `find_by_identifier` to `ActiveSupport::TimeZone` for resolving both canonical and linked IANA identifiers to Rails time zones.
+
+    *Jan Piotrzkowski*
+
 *   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
 
     *Aron Roh*
