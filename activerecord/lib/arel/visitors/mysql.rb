@@ -75,6 +75,26 @@ module Arel # :nodoc: all
           visit o.relation, collector
         end
 
+        def visit_Arel_ValuesTable(o, collector)
+          # MariaDB column aliasing only introduced in 11.7. Default names
+          # are the values in the first row (seriously), so add an extra row
+          # at the front and shift it off.
+          if @connection.mariadb? && !@connection.supports_derived_table_column_aliases?
+            collector << "(SELECT * FROM (VALUES "
+            collector = values_rows_list [o.column_aliases_or_default_names, *o.rows], collector
+            collector << ") abc LIMIT #{o.rows.size} OFFSET 1) #{quote_table_name(o.name)}"
+          else
+            collector << "(VALUES "
+            collector = values_rows_list o.rows, collector, (@connection.mariadb? ? "" : "ROW")
+            collector << ") #{quote_table_name(o.name)} ("
+            o.column_aliases_or_default_names.each_with_index do |name, i|
+              collector << ", " unless i == 0
+              collector << quote_column_name(name)
+            end
+            collector << ")"
+          end
+        end
+
         # In the simple case, MySQL allows us to place JOINs directly into the UPDATE
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
