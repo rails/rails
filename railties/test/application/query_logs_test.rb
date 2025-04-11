@@ -19,7 +19,7 @@ module ApplicationTests
       app_file "app/controllers/users_controller.rb", <<-RUBY
         class UsersController < ApplicationController
           def index
-            render inline: ActiveRecord::QueryLogs.call("", Pet.connection)
+            render inline: ActiveRecord::QueryLogs.call("SELECT 1", Pet.connection)
           end
 
           def dynamic_content
@@ -146,7 +146,7 @@ module ApplicationTests
       get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
 
-      assert_equal("/*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
+      assert_equal("SELECT 1 /*action='index',controller='users',database='storage%2Fproduction_animals.sqlite3'*/", comment)
     end
 
     test "source_location information is added if enabled" do
@@ -164,6 +164,19 @@ module ApplicationTests
       comment = last_response.body.strip
 
       assert_match(/source_location='.*\d+'/, comment)
+    end
+
+    test "prepending tags comment" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      add_to_config "config.active_record.query_log_tags = [ :action, :controller ]"
+      add_to_config "config.active_record.query_log_tags_prepend_comment = true"
+
+      boot_app
+
+      get "/", {}, { "HTTPS" => "on" }
+      comment = last_response.body.strip
+
+      assert_match(/\A\/\*action='index',controller='users'\*\/ SELECT 1/, comment)
     end
 
     test "controller tags are not doubled up if already configured" do
@@ -261,7 +274,7 @@ module ApplicationTests
 
       get "/", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
-      assert_equal %(/*action='index',controller='users',namespaced_controller='users'*/), comment
+      assert_equal %(SELECT 1 /*action='index',controller='users',namespaced_controller='users'*/), comment
 
       get "/namespaced/users", {}, { "HTTPS" => "on" }
       comment = last_response.body.strip
