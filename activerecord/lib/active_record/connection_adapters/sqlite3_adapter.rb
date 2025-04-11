@@ -186,7 +186,7 @@ module ActiveRecord
       end
 
       def supports_expression_index?
-        database_version >= "3.9.0"
+        true
       end
 
       def requires_reloading?
@@ -214,7 +214,7 @@ module ActiveRecord
       end
 
       def supports_common_table_expressions?
-        database_version >= "3.8.3"
+        true
       end
 
       def supports_insert_returning?
@@ -507,8 +507,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "3.8.0"
-          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.8."
+        if database_version < "3.23.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0"
         end
       end
 
