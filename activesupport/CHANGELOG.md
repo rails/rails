@@ -1,4 +1,4 @@
-*  Add `find_by_identifier` to `ActiveSupport::TimeZone` for resolving both canonical and linked IANA identifiers to Rails time zones.
+*   Add `find_by_identifier` to `ActiveSupport::TimeZone` for resolving both canonical and linked IANA identifiers to Rails time zones.
 
     *Jan Piotrzkowski*
 
