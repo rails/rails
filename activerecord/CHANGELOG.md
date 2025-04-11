@@ -1,3 +1,19 @@
+*   Auto-detect the column type for enums defined with the array syntax.
+
+    Previously enums defined using an array were always mapped to integers
+    and indexed by position, now it is converted based on the column type,
+    it works for strings and database enums as well.
+
+    ```ruby
+    # Before
+    enum :status, { proposed: "proposed", written: "written", published: "published" }
+
+    # After
+    enum :status, [:proposed, :written, :published]
+    ```
+
+    *Felipe Felix*, *Lázaro Nixon*
+
 *   Allow allocated Active Records to lookup associations.
 
     Previously, the association cache isn't setup on allocated record objects, so association
