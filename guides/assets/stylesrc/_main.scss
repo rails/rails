@@ -372,6 +372,12 @@ body.guide {
     word-wrap: break-word; /* Internet Explorer 5.5+ */
   }
 
+  pre {
+    code {
+      white-space: pre;
+    }
+  }
+
   // Back to Top element
 
   a.back-to-top {

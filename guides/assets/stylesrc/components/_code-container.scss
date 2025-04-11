@@ -37,6 +37,10 @@ dl dd .interstitial {
     }
   }
 
+  .pre-wrapper {
+    overflow-x: auto;
+  }
+
   &.code {
     border: none !important;
     background-color: $gray-900;
