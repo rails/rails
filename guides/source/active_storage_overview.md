@@ -1057,11 +1057,17 @@ directly from the client to the cloud.
     //= require activestorage
     ```
 
-    Using the npm package:
+    Using the npm package or importmap-rails:
 
     ```js
     import * as ActiveStorage from "@rails/activestorage"
     ActiveStorage.start()
+    ```
+
+    Only for importmap-rails users: pin activestorage.
+
+    ```ruby
+    pin "@rails/activestorage", to: "activestorage.esm.js"
     ```
 
 2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
