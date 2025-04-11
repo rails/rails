@@ -503,19 +503,6 @@ module ActionController
     #     user_params, profile_params = params.require([:user, :profile])
     #     # ActionController::ParameterMissing: param is missing or the value is empty or invalid: user
     #
-    # This method is not recommended for fetching terminal values because it does
-    # not permit the values. For example, this can cause problems:
-    #
-    #     # CAREFUL
-    #     params = ActionController::Parameters.new(person: { name: "Finn" })
-    #     name = params.require(:person).require(:name) # CAREFUL
-    #
-    # It is recommended to use `expect` instead:
-    #
-    #     def person_params
-    #       params.expect(person: :name).require(:name)
-    #     end
-    #
     def require(key)
       return key.map { |k| require(k) } if key.is_a?(Array)
       value = self[key]
