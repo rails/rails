@@ -488,6 +488,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       p.frame_ancestors :none
     end
 
+    content_security_policy_report_only only: [:report_only_block] do |p|
+      p.default_src "https://true.example.com"
+    end
+
     def index
       head :ok
     end
@@ -501,6 +505,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     def report_only
+      head :ok
+    end
+
+    def report_only_block
       head :ok
     end
 
@@ -537,6 +545,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/inline", to: "policy#inline"
       get "/conditional", to: "policy#conditional"
       get "/report-only", to: "policy#report_only"
+      get "/report-only-block", to: "policy#report_only_block"
       get "/script-src", to: "policy#script_src"
       get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
@@ -596,6 +605,15 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_generates_report_only_content_security_policy
     get "/report-only"
     assert_policy "default-src 'self'; report-uri /violations", report_only: true
+    assert_nil response.headers["Content-Security-Policy"]
+  end
+
+  def test_generates_report_only_content_security_policy_from_block
+    get "/report-only-block"
+    assert_response :success
+
+    assert_equal "default-src https://true.example.com", response.headers["Content-Security-Policy-Report-Only"]
+    assert_equal "default-src 'self'", response.headers["Content-Security-Policy"]
   end
 
   def test_adds_nonce_to_script_src_content_security_policy
@@ -642,6 +660,134 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       assert_nil response.headers[unexpected_header]
       assert_equal expected, response.headers[expected_header]
     end
+end
+
+class ContentSecurityPolicyReportOnlyIntegrationTest < ActionDispatch::IntegrationTest
+  class PolicyController < ActionController::Base
+    content_security_policy_report_only only: [:override_with_block, :override_both_with_block, :override_with_block_disable_csp] do |p|
+      p.default_src "https://other.domain.com"
+    end
+
+    content_security_policy only: [:override_both_with_block] do |p|
+      p.default_src "https://new.domain.com"
+    end
+
+    content_security_policy_report_only(false, only: :disable_cspro_with_bool)
+
+    content_security_policy(false, only: [:disable_csp_with_bool, :override_with_block_disable_csp])
+
+    def index
+      head :ok
+    end
+
+    def disable_cspro_with_bool
+      head :ok
+    end
+
+    def disable_csp_with_bool
+      head :ok
+    end
+
+    def override_with_block
+      head :ok
+    end
+
+    def override_with_block_disable_csp
+      head :ok
+    end
+
+    def override_both_with_block
+      head :ok
+    end
+  end
+
+  ROUTES = ActionDispatch::Routing::RouteSet.new
+  ROUTES.draw do
+    scope module: "content_security_policy_report_only_integration_test" do
+      get "/", to: "policy#index"
+      get "/disable-cspro-with-bool", to: "policy#disable_cspro_with_bool"
+      get "/disable-csp-with-bool", to: "policy#disable_csp_with_bool"
+      get "/override-with-block", to: "policy#override_with_block"
+      get "/override-with-block-and-disable-csp", to: "policy#override_with_block_disable_csp"
+      get "/override-both-with-block", to: "policy#override_both_with_block"
+    end
+  end
+
+  POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
+    p.default_src :self
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.content_security_policy"] = POLICY
+      env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
+      env["action_dispatch.content_security_policy_report_only"] = true
+      env["action_dispatch.show_exceptions"] = false
+
+      @app.call(env)
+    end
+  end
+
+  APP = build_app(ROUTES) do |middleware|
+    middleware.use PolicyConfigMiddleware
+    middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+  end
+
+  def app
+    APP
+  end
+
+  def test_generates_content_security_policy_report_only_header
+    get "/"
+    assert_response :success
+
+    assert_equal "default-src 'self'", response.headers["Content-Security-Policy-Report-Only"]
+    assert_nil response.headers["Content-Security-Policy"]
+  end
+
+  def test_overrides_with_bool_content_security_policy_report_only_header
+    get "/disable-cspro-with-bool"
+    assert_response :success
+
+    assert_equal "default-src 'self'", response.headers["Content-Security-Policy"]
+    assert_nil response.headers["Content-Security-Policy-Report-Only"]
+  end
+
+  def test_overrides_with_bool_content_security_policy_header
+    get "/disable-csp-with-bool"
+    assert_response :success
+
+    assert_nil response.headers["Content-Security-Policy"]
+    assert_nil response.headers["Content-Security-Policy-Report-Only"]
+  end
+
+  def test_overrides_with_block_content_security_policy_report_only_header
+    get "/override-with-block"
+    assert_response :success
+
+    assert_equal "default-src https://other.domain.com", response.headers["Content-Security-Policy-Report-Only"]
+    assert_equal "default-src 'self'", response.headers["Content-Security-Policy"]
+  end
+
+  def test_overrides_with_block_and_disable_content_security_policy_report_only_header
+    get "/override-with-block-and-disable-csp"
+    assert_response :success
+
+    assert_equal "default-src https://other.domain.com", response.headers["Content-Security-Policy-Report-Only"]
+    assert_nil response.headers["Content-Security-Policy"]
+  end
+
+  def test_overrides_with_block_both_content_security_policy_headers
+    get "/override-both-with-block"
+    assert_response :success
+
+    assert_equal "default-src https://other.domain.com", response.headers["Content-Security-Policy-Report-Only"]
+    assert_equal "default-src https://new.domain.com", response.headers["Content-Security-Policy"]
+  end
 end
 
 class DisabledContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest

@@ -1,3 +1,12 @@
+*   Extend `content_security_policy_report_only` configuration to support
+    blocks, similar to `content_security_policy`.
+
+    The changes are backwards compatible.
+
+    Fixes #40452
+
+    *Shaun Russell*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
