@@ -430,6 +430,15 @@ module ActiveRecord
   #
   #   ActiveRecord::FixtureSet.identify(:boaty_mcboatface, :uuid)
   #
+  # === Fixture label modifiers
+  #
+  # The label can be transformed using a chain of string methods:
+  #
+  #   john_doe:
+  #     slug: $LABEL(titleize)                 # => "John Doe"
+  #     username: $LABEL(dasherize.capitalize) # => "John-doe"
+  #     raw_label: $LABEL()                    # => "john_doe" (same as $LABEL)
+  #
   # === Support for YAML defaults
   #
   # You can set and reuse defaults in your fixtures YAML file.

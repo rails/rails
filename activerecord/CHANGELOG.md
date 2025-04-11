@@ -1,3 +1,16 @@
+*   Fixture label modifiers
+
+    Label on fixtures can be transformed using a chain of string methods:
+
+    ```yml
+    john_doe:
+        slug: $LABEL(titleize)                 # => "John Doe"
+        username: $LABEL(dasherize.capitalize) # => "John-doe"
+        raw_label: $LABEL()                    # => "john_doe" (same as $LABEL)
+    ```
+
+    *Jose Carlos Arenas*
+
 *   Allow allocated Active Records to lookup associations.
 
     Previously, the association cache isn't setup on allocated record objects, so association
