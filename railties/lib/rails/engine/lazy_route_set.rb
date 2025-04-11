@@ -36,16 +36,6 @@ module Rails
           Rails.application&.reload_routes_unless_loaded
           super
         end
-
-        def polymorphic_url(record_or_hash_or_array, options = {})
-          Rails.application&.reload_routes_unless_loaded
-          super
-        end
-
-        def polymorphic_path(record_or_hash_or_array, options = {})
-          Rails.application&.reload_routes_unless_loaded
-          super
-        end
       end
 
       def initialize(config = DEFAULT_CONFIG)
@@ -66,6 +56,11 @@ module Rails
       end
 
       def call(req)
+        Rails.application&.reload_routes_unless_loaded
+        super
+      end
+
+      def polymorphic_mappings
         Rails.application&.reload_routes_unless_loaded
         super
       end
