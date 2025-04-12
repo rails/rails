@@ -1573,7 +1573,7 @@ Minitest.after_run do
 end
 ```
 
-[fixtures]: testing.html#the-low-down-on-fixtures
+[fixtures]: testing.html#fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
 ### Configuring services
