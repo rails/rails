@@ -796,8 +796,9 @@ require a login. If your files require a higher level of protection, you can
 implement your own authenticated controllers, based on the
 [`ActiveStorage::Blobs::RedirectController`][],
 [`ActiveStorage::Blobs::ProxyController`][],
-[`ActiveStorage::Representations::RedirectController`][] and
-[`ActiveStorage::Representations::ProxyController`][]
+[`ActiveStorage::Representations::RedirectController`][],
+[`ActiveStorage::Representations::ProxyController`][] and
+[`ActiveStorage::DirectUploadsController`][]
 
 To only allow an account to access their own logo you could do the following:
 
@@ -836,6 +837,7 @@ to prevent files being accessed with the publicly accessible URLs.
 [`ActiveStorage::Blobs::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Blobs/ProxyController.html
 [`ActiveStorage::Representations::RedirectController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/RedirectController.html
 [`ActiveStorage::Representations::ProxyController`]: https://api.rubyonrails.org/classes/ActiveStorage/Representations/ProxyController.html
+[`ActiveStorage::DirectUploadsController`]: https://api.rubyonrails.org/classes/ActiveStorage/DirectUploadsController.html
 
 Downloading Files
 -----------------
