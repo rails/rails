@@ -508,7 +508,7 @@ module ActiveRecord
 
       def check_version # :nodoc:
         if database_version < "3.23.0"
-          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0."
         end
       end
 
