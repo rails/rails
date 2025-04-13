@@ -439,6 +439,7 @@ Rails.application.config.filter_parameters += [
 Parameters filter works by partial matching regular expression.
 
 TIP: To filter all paramaters except foreign keys and timestamps you can do this:
+
 ```ruby
 Rails.application.config.filter_parameters += [
   lambda { |k, v| v.replace("[FILTERED]") unless k.match?(/\A(id|.*_id|.*_at|.*_on)\z/) }
