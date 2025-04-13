@@ -88,7 +88,9 @@ module ActionText
 
     config.after_initialize do |app|
       if klass = app.config.action_text.sanitizer_vendor
-        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        ActiveSupport.on_load(:action_view) do
+          ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        end
       end
     end
   end

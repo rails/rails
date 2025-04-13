@@ -4896,6 +4896,8 @@ module ApplicationTests
     test "Action Text uses the best supported safe list sanitizer in new apps" do
       app "development"
 
+      require "action_view/base"
+
       assert_kind_of(
         Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer,
         ActionText::ContentHelper.sanitizer,
@@ -4915,7 +4917,10 @@ module ApplicationTests
 
     test "Action Text uses the specified vendor's safe list sanitizer" do
       add_to_config "config.action_text.sanitizer_vendor = ::MySanitizerVendor"
+
       app "development"
+
+      require "action_view/base"
 
       assert_kind_of(
         ::MySafeListSanitizer,
