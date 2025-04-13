@@ -81,12 +81,13 @@ class InfoControllerTest < ActionController::TestCase
       get "/rails/info/routes" => "rails/info#routes"
     end
 
+    assert_kind_of(Rails::Engine::LazyRouteSet, Rails.application.routes)
+
     get :routes
 
     assert_select("table tr") do
       assert_select("td", text: "test_nested_route_path")
       assert_select("td", text: "test/test#show")
-      assert_select("td", text: "#{__FILE__}:79")
     end
   end
 

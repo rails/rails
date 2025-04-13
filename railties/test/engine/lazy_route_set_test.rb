@@ -52,6 +52,15 @@ module Rails
         assert_equal(200, response.first)
       end
 
+      test "app does not eager load routes when `routes` is explicily added in config/application.rb" do
+        add_to_config "config.exceptions_app = self.routes"
+        require "#{app_path}/config/environment"
+
+        @app = Rails.application
+
+        assert_not_operator(:root_path, :in?, app_url_helpers.methods)
+      end
+
       test "app lazily loads routes when polymorphic_url is called" do
         app_file "test/integration/my_test.rb", <<~RUBY
           require "test_helper"

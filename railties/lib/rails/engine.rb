@@ -588,7 +588,22 @@ module Rails
     end
 
     initializer :make_routes_lazy, before: :bootstrap_hook do |app|
-      config.route_set_class = LazyRouteSet if Rails.env.local?
+      if Rails.env.local?
+        config.route_set_class = LazyRouteSet
+
+        # If routes already exists we duplicate it
+        if @routes
+          appends = @routes.instance_variable_get(:@append).dup
+          prepends = @routes.instance_variable_get(:@prepend).dup
+          default_url_options = @routes.default_url_options.dup
+
+          @routes = config.route_set_class.new_with_config(config)
+
+          @routes.instance_variable_set(:@append, appends)
+          @routes.instance_variable_set(:@prepend, prepends)
+          @routes.default_url_options = default_url_options
+        end
+      end
     end
 
     initializer :add_routing_paths do |app|
