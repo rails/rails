@@ -1,3 +1,17 @@
+*   Allow to configure maximum cache key sizes
+
+    When the key exceeds the configured limit (250 bytes by default), it will be truncated and
+    the digest of the rest of the key appended to it.
+
+    Note that previously `ActiveSupport::Cache::RedisCacheStore` allowed up to 1kb cache keys before
+    truncation, which is now reduced to 250 bytes.
+
+    ```ruby
+    config.cache_store = :redis_cache_store, { max_key_size: 64 }
+    ```
+
+    *fatkodima*
+
 *   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
 
     *Aron Roh*
