@@ -35,6 +35,7 @@ module ActiveRecord
     config.active_record.query_log_tags = [ :application ]
     config.active_record.query_log_tags_format = :legacy
     config.active_record.cache_query_log_tags = false
+    config.active_record.query_log_tags_prepend_comment = false
     config.active_record.raise_on_assign_to_attr_readonly = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
@@ -230,6 +231,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :query_log_tags,
           :query_log_tags_format,
           :cache_query_log_tags,
+          :query_log_tags_prepend_comment,
           :sqlite3_adapter_strict_strings_by_default,
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
@@ -397,6 +399,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
           if app.config.active_record.cache_query_log_tags
             ActiveRecord::QueryLogs.cache_query_log_tags = true
+          end
+
+          if app.config.active_record.query_log_tags_prepend_comment
+            ActiveRecord::QueryLogs.prepend_comment = true
           end
         end
       end

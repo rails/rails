@@ -14,6 +14,14 @@
 
     *Felipe Felix*, *Lázaro Nixon*
 
+*   Use `TRUE` and `FALSE` for SQLite queries with boolean columns.
+
+    *Hartley McGuire*
+
+*   Bump minimum supported SQLite to 3.23.0.
+
+    *Hartley McGuire*
+
 *   Allow allocated Active Records to lookup associations.
 
     Previously, the association cache isn't setup on allocated record objects, so association
