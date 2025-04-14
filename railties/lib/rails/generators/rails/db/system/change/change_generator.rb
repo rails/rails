@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/base"
+require "rails/generators/rails/db/system/change/github/ci_generator"
 require "yaml"
 require "json"
 
@@ -57,6 +58,10 @@ module Rails
 
             edit_devcontainer_json
             edit_compose_yaml
+          end
+
+          def edit_ci_yml
+            Db::System::Change::Github::CiGenerator.new([], database: options[:database]).invoke_all
           end
 
           private
