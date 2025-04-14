@@ -74,7 +74,7 @@ module Rails
 
           @dependencies << "selenium" if options[:system_test]
           @dependencies << "redis" if options[:redis]
-          @dependencies << database.name if database.service
+          @dependencies << database.name if database.devcontainer.service
           @dependencies
         end
 
@@ -87,7 +87,7 @@ module Rails
           @container_env["SELENIUM_HOST"] = "selenium" if options[:system_test]
           @container_env["REDIS_URL"] = "redis://redis:6379/1" if options[:redis]
           @container_env["KAMAL_REGISTRY_PASSWORD"] = "$KAMAL_REGISTRY_PASSWORD" if options[:kamal]
-          @container_env["DB_HOST"] = database.name if database.service
+          @container_env["DB_HOST"] = database.name if database.devcontainer.service
 
           @container_env
         end
@@ -143,10 +143,11 @@ module Rails
           @database ||= Database.build(options[:database])
         end
 
-        def devcontainer_db_service_yaml(**options)
-          return unless service = database.service
 
-          { database.name => service }.to_yaml(**options)[4..-1]
+        def devcontainer_db_service_yaml(**options)
+          return unless database.devcontainer.service
+
+          { database.name => database.devcontainer.service }.to_yaml(**options)[4..-1]
         end
 
         def local_rails_mount
