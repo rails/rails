@@ -104,6 +104,14 @@ module GeneratorsTestHelper
     File.write File.join(destination, "compose.yaml"), compose_yaml
   end
 
+  def copy_ci_files
+    destination = File.join(destination_root, ".github/workflows")
+    mkdir_p(destination)
+
+    ci_yml = File.read(File.expand_path("../fixtures/.github/workflows/ci.yml", __dir__))
+    File.write File.join(destination, "ci.yml"), ci_yml
+  end
+
   def copy_minimal_devcontainer_compose_file
     destination = File.join(destination_root, ".devcontainer")
     mkdir_p(destination)
