@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
+require "active_support/core_ext/string/inquiry"
 require "rails/generators"
 require "rails/generators/test_case"
 require "rails/generators/app_base"
@@ -128,6 +129,12 @@ module GeneratorsTestHelper
 
   def assert_compose_file
     assert_file ".devcontainer/compose.yaml" do |content|
+      yield YAML.load(content)
+    end
+  end
+
+  def assert_ci_file
+    assert_file ".github/workflows/ci.yml" do |content|
       yield YAML.load(content)
     end
   end
