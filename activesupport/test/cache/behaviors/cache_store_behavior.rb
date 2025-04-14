@@ -742,6 +742,12 @@ module CacheStoreBehavior
     end
   end
 
+  def test_configuring_store_with_raw
+    cache = lookup_store(raw: true)
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
+
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
       old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
