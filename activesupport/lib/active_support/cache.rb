@@ -35,6 +35,7 @@ module ActiveSupport
       :race_condition_ttl,
       :serializer,
       :skip_nil,
+      :raw,
     ]
 
     # Mapping of canonical option names to aliases that a store will recognize.
