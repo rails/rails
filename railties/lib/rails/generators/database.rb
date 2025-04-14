@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/database/devcontainer"
+require "rails/generators/database/ci"
 
 module Rails
   module Generators
@@ -80,6 +81,11 @@ module Rails
       def devcontainer
         "#{Rails::Generators::Devcontainer}::#{self.class.name.demodulize}".constantize.new
       end
+
+      def ci
+        "#{Rails::Generators::Ci}::#{self.class.name.demodulize}".constantize.new
+      end
+
 
       def port
         raise NotImplementedError
@@ -236,6 +242,7 @@ module Rails
         def name; end
         def template; end
         def devcontainer; end
+        def ci; end
         def port; end
         def volume; end
         def base_package; end
