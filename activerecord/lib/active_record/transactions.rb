@@ -13,7 +13,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -436,6 +436,7 @@ module ActiveRecord
           status = yield
           raise ActiveRecord::Rollback unless status
         end
+        @_last_transaction_return_status = status
         status
       end
     end
@@ -451,6 +452,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_last_transaction_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end
