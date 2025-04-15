@@ -36,6 +36,7 @@ module ActiveSupport
       :serializer,
       :skip_nil,
       :raw,
+      :max_key_size,
     ]
 
     # Mapping of canonical option names to aliases that a store will recognize.
@@ -190,6 +191,9 @@ module ActiveSupport
       # Default +ConnectionPool+ options
       DEFAULT_POOL_OPTIONS = { size: 5, timeout: 5 }.freeze
 
+      # Keys are truncated with the Active Support digest if they exceed the limit.
+      MAX_KEY_SIZE = 250
+
       cattr_accessor :logger, instance_writer: true
       cattr_accessor :raise_on_invalid_cache_expiration_time, default: false
 
@@ -298,6 +302,9 @@ module ActiveSupport
 
         @options[:compress] = true unless @options.key?(:compress)
         @options[:compress_threshold] ||= DEFAULT_COMPRESS_LIMIT
+
+        @max_key_size = @options.delete(:max_key_size)
+        @max_key_size = MAX_KEY_SIZE if @max_key_size.nil? # allow 'false' as a value
 
         @coder = @options.delete(:coder) do
           legacy_serializer = Cache.format_version < 7.1 && !@options[:serializer]
@@ -955,14 +962,31 @@ module ActiveSupport
           options
         end
 
-        # Expands and namespaces the cache key.
+        # Expands, namespaces and truncates the cache key.
         # Raises an exception when the key is +nil+ or an empty string.
         # May be overridden by cache stores to do additional normalization.
         def normalize_key(key, options = nil)
+          key = expand_and_namespace_key(key, options)
+          truncate_key(key)
+        end
+
+        def expand_and_namespace_key(key, options = nil)
           str_key = expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options
+        end
+
+        def truncate_key(key)
+          if key && @max_key_size && key.bytesize > @max_key_size
+            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
+            truncate_at = @max_key_size - suffix.bytesize
+            key = key.byteslice(0, truncate_at)
+            key.scrub!("")
+            "#{key}#{suffix}"
+          else
+            key
+          end
         end
 
         # Prefix the key with a namespace string:

@@ -41,7 +41,6 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -80,6 +79,7 @@ module ActiveSupport
         if options.key?(:cache_nils)
           options[:skip_nil] = !options.delete(:cache_nils)
         end
+        options[:max_key_size] ||= MAX_KEY_SIZE
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -258,19 +258,12 @@ module ActiveSupport
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
         def normalize_key(key, options)
-          key = super
+          key = expand_and_namespace_key(key, options)
           if key
             key = key.dup.force_encoding(Encoding::ASCII_8BIT)
             key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-
-            if key.size > KEY_MAX_SIZE
-              key_separator = ":hash:"
-              key_hash = ActiveSupport::Digest.hexdigest(key)
-              key_trim_size = KEY_MAX_SIZE - key_separator.size - key_hash.size
-              key = "#{key[0, key_trim_size]}#{key_separator}#{key_hash}"
-            end
           end
-          key
+          truncate_key(key)
         end
 
         def deserialize_entry(payload, raw: false, **)
