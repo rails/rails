@@ -82,6 +82,10 @@ module ActiveStorage
     end
 
     initializer "active_storage.configs" do
+      config.before_initialize do |app|
+        ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
+      end
+
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
         ActiveStorage.variant_processor = app.config.active_storage.variant_processor
@@ -144,7 +148,6 @@ module ActiveStorage
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
-        ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
