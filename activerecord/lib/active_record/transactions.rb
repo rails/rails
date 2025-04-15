@@ -452,7 +452,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
-        @_last_transaction_status = nil
+        @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end
