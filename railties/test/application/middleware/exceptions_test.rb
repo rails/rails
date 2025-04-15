@@ -108,6 +108,35 @@ module ApplicationTests
       assert_not_equal "rendering index!", last_response.body
     end
 
+    test "renders when a multipart form is invalid and routes are used as the custom exceptions app" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+            render plain: "rendering index!"
+          end
+
+          def bad_request
+            render(plain: "Oh no!", status: :bad_request)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          post "/foo", to: "foo#index"
+          match "/400", to: "foo#bad_request", via: :all
+        end
+      RUBY
+
+      add_to_config "config.exceptions_app = self.routes"
+      add_to_config "config.action_dispatch.show_exceptions = :all"
+      add_to_config "config.consider_all_requests_local = false"
+
+      post "/foo", {}, { "HTTPS" => "on", "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryxQm6bAVJJEu1FxWw", input: "---invalid" }
+      assert_equal 400, last_response.status
+      assert_equal "Oh no!", last_response.body
+    end
+
     test "uses custom exceptions app" do
       add_to_config <<-RUBY
         config.exceptions_app = lambda do |env|

@@ -50,6 +50,7 @@ module ActionDispatch
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
         fallback_to_html_format_if_invalid_mime_type(request)
+        fallback_to_octet_stream_when_invalid_multipart(request, wrapper)
         request.path_info = "/#{status}"
         request.request_method = "GET"
         response = @exceptions_app.call(request.env)
@@ -78,6 +79,15 @@ module ActionDispatch
         rescue ActionDispatch::Http::MimeNegotiation::InvalidType
           request.set_header "HTTP_ACCEPT", "text/html"
         end
+      end
+
+      def fallback_to_octet_stream_when_invalid_multipart(request, wrapper)
+        rack_error = wrapper.wrapped_causes.find { |wrapped| wrapped.exception.is_a?(::EOFError) }
+        return if rack_error.nil? || !request.form_data?
+
+        request.set_header "CONTENT_TYPE", "application/octet-stream"
+        # Required for Rack 3
+        request.delete_header(Rack::RACK_REQUEST_FORM_ERROR) if defined?(Rack::RACK_REQUEST_FORM_ERROR)
       end
 
       def pass_response(status)

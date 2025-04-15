@@ -1,3 +1,11 @@
+*   Sending a invalid multipart request will no longer present a 500 error to the user.
+
+    For applications using `Rails.application.routes` as their `exceptions_app`,
+    an invalid `multipart/form-data` request would present the 500 error page,
+    instead of routing it to the "/400" endpoint.
+
+    *Edouard Chin*
+
 *   Include cookie name when calculating maximum allowed size.
 
     *Hartley McGuire*
