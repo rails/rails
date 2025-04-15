@@ -250,6 +250,50 @@ module ActiveSupport
         end
       end
 
+      # Rails MAPPING doesn't map all IANA identifiers (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+      # This method enables finding Rails time zone by its IANA identifier (cannonical or linked one). When no match is found,
+      # method will return nil.
+      #
+      # Example:
+      # US/Pacific is a linked identifier of America/Los_Angeles which exists in MAPPING
+      # ActiveSupport::TimeZone.find_by_identifier("America/Los_Angeles").name # => "Eastern Time (US & Canada)"
+      def find_by_identifier(identifier)
+        if MAPPING.value?(identifier)
+          name = MAPPING.key(identifier)
+          zone = @lazy_zones_map[name] ||= create(name, nil, TZInfo::Timezone.get(identifier))
+          return zone
+        end
+
+        begin
+          zone = TZInfo::Timezone.get(identifier)
+
+          # Get the canonical identifier for the passed identifier
+          canonical_identifier = zone.canonical_identifier
+
+          # Get all linked identifiers for the canonical identifier
+          linked_identifiers = TZInfo::Timezone.all_identifiers.select do |identifier|
+            tz = TZInfo::Timezone.get(identifier)
+            tz.canonical_identifier == canonical_identifier && identifier != canonical_identifier
+          end
+
+          all_identifiers = [canonical_identifier] + linked_identifiers
+
+          match = MAPPING.find { |key, value| all_identifiers.include?(value) }
+
+          if match.present?
+            name = match.first
+            tzinfo = TZInfo::Timezone.get(match.last)
+
+            zone = @lazy_zones_map[name] ||= create(name, nil, tzinfo)
+            return zone
+          end
+
+          nil
+        rescue TZInfo::InvalidTimezoneIdentifier
+          nil
+        end
+      end
+
       # A convenience method for returning a collection of TimeZone objects
       # for time zones in the USA.
       def us_zones

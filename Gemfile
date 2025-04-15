@@ -163,7 +163,7 @@ platforms :ruby, :windows do
   end
 end
 
-gem "tzinfo-data", platforms: [:windows, :jruby]
+gem "tzinfo-data", "~> 1.2025", ">= 1.2025.2"
 gem "wdm", ">= 0.1.0", platforms: [:windows]
 
 gem "launchy"
