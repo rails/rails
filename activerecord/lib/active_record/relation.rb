@@ -274,8 +274,8 @@ module ActiveRecord
       with_connection do |connection|
         record = nil
         transaction(requires_new: true) do
-          record = new(attributes, &block)
-          record.save || raise(ActiveRecord::Rollback)
+          record = create(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
         end
         record
       rescue ActiveRecord::RecordNotUnique
@@ -294,8 +294,8 @@ module ActiveRecord
       with_connection do |connection|
         record = nil
         transaction(requires_new: true) do
-          record = new(attributes, &block)
-          record.save! || raise(ActiveRecord::Rollback)
+          record = create!(attributes, &block)
+          record._last_transaction_return_status || raise(ActiveRecord::Rollback)
         end
         record
       rescue ActiveRecord::RecordNotUnique
