@@ -758,13 +758,17 @@ default. Loading involves three steps:
 2. Load the fixture data into the table
 3. Dump the fixture data into a method in case you want to access it directly
 
-TIP: In order to remove existing data from the database, Rails tries to disable
-referential integrity triggers (like foreign keys and check constraints). If you
-are getting permission errors on running tests, make sure the database user has
-the permission to disable these triggers in the testing environment. (In
-PostgreSQL, only superusers can disable all triggers. Read more about
-[permissions in the PostgreSQL
-docs](https://www.postgresql.org/docs/current/sql-altertable.html)).
+TIP: In order to delete and insert fixtures' data into the tables, Rails
+disables referential integrity triggers (like foreign keys and check
+constraints). If you are getting permission errors on running tests, make sure
+the database user has the permission to disable these triggers in the testing
+environment. (In PostgreSQL, only superusers can disable all triggers. Read
+more about [permissions in the PostgreSQL docs](https://www.postgresql.org/docs/current/sql-altertable.html)).
+
+NOTE: For PostgreSQL and SQLite databases, Rails verifies that all foreign key
+constraints are valid after the fixtures are loaded — provided that the
+[`verify_foreign_keys_for_fixtures` setting](configuring.html#config-active-record-verify-foreign-keys-for-fixtures)
+is enabled.
 
 #### Fixtures are Active Record Objects
 
