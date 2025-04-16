@@ -494,7 +494,7 @@ module Rails
       def javascript_gemfile_entry
         return if options[:skip_javascript]
 
-        if options[:javascript] == "importmap"
+        if using_importmap?
           GemfileEntry.floats "importmap-rails", "Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]"
         else
           GemfileEntry.floats "jsbundling-rails", "Bundle and transpile JavaScript [https://github.com/rails/jsbundling-rails]"
@@ -514,11 +514,11 @@ module Rails
       end
 
       def using_importmap?
-        options[:javascript] == "importmap"
+        !options.skip_javascript? && options[:javascript] == "importmap"
       end
 
       def using_js_runtime?
-        (options[:javascript] && !using_importmap?) || (options[:css] && !%w[tailwind sass].include?(options[:css]))
+        !options.skip_javascript? && (!using_importmap? || (options[:css] && !%w[tailwind sass].include?(options[:css])))
       end
 
       def using_node?

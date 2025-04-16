@@ -2053,7 +2053,7 @@ class PerformedJobsTest < ActiveJob::TestCase
       assert_match(/No jobs were performed/, error.message)
     end
 
-    def test_assert_performed_when_not_matching_the_class_shows_alteratives
+    def test_assert_performed_when_not_matching_the_class_shows_alternatives
       ricardo = Person.new(9)
       wilma = Person.new(11)
       HelloJob.perform_later(ricardo)

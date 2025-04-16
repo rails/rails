@@ -1049,7 +1049,27 @@ directly from the client to the cloud.
 
 ### Usage
 
-1. Include `activestorage.js` in your application's JavaScript bundle.
+1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
+
+    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
+
+    ```erb
+    <%= javascript_include_tag "activestorage" %>
+    ```
+
+    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
+
+    ```ruby
+    # config/importmap.rb
+    pin "@rails/activestorage", to: "activestorage.esm.js"
+    ```
+
+    ```html
+    <script type="module-shim">
+      import * as ActiveStorage from "@rails/activestorage"
+      ActiveStorage.start()
+    </script>
+    ```
 
     Using the asset pipeline:
 
@@ -1064,7 +1084,7 @@ directly from the client to the cloud.
     ActiveStorage.start()
     ```
 
-2. Add `direct_upload: true` to your [file field](form_helpers.html#uploading-files):
+2. Annotate file inputs with the direct upload URL using Rails' [file field helper](form_helpers.html#uploading-files).
 
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
@@ -1573,7 +1593,7 @@ Minitest.after_run do
 end
 ```
 
-[fixtures]: testing.html#the-low-down-on-fixtures
+[fixtures]: testing.html#fixtures
 [`ActiveStorage::FixtureSet`]: https://api.rubyonrails.org/classes/ActiveStorage/FixtureSet.html
 
 ### Configuring services

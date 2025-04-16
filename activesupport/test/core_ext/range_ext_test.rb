@@ -287,4 +287,16 @@ class RangeTest < ActiveSupport::TestCase
     datetime = DateTime.now
     assert(((datetime - 1.hour)..datetime).step(1) { })
   end
+
+  def test_sole
+    assert_equal 1, (1..1).sole
+
+    assert_raises(Enumerable::SoleItemExpectedError, match: "no item found") do
+      (2..1).sole
+    end
+
+    assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
+      (..1).sole
+    end
+  end
 end

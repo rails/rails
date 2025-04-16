@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "active_support/logger"
+require "active_support/core_ext/object/with"
 
 class RenderJsonTest < ActionController::TestCase
   class JsonRenderable
@@ -44,6 +45,14 @@ class RenderJsonTest < ActionController::TestCase
 
     def render_json_hello_world_with_callback
       render json: ActiveSupport::JSON.encode(hello: "world"), callback: "alert"
+    end
+
+    def render_json_unsafe_chars_with_callback
+      render json: { hello: "\u2028\u2029<script>" }, callback: "alert"
+    end
+
+    def render_json_unsafe_chars_without_callback
+      render json: { hello: "\u2028\u2029<script>" }
     end
 
     def render_json_with_custom_content_type
@@ -104,6 +113,20 @@ class RenderJsonTest < ActionController::TestCase
     get :render_json_hello_world_with_callback, xhr: true
     assert_equal '/**/alert({"hello":"world"})', @response.body
     assert_equal "text/javascript", @response.media_type
+  end
+
+  def test_render_json_with_callback_escapes_js_chars
+    get :render_json_unsafe_chars_with_callback, xhr: true
+    assert_equal '/**/alert({"hello":"\\u2028\\u2029\\u003cscript\\u003e"})', @response.body
+    assert_equal "text/javascript", @response.media_type
+  end
+
+  def test_render_json_with_new_default_and_without_callback_does_not_escape_js_chars
+    TestController.with(escape_json_responses: false) do
+      get :render_json_unsafe_chars_without_callback
+      assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
+      assert_equal "application/json", @response.media_type
+    end
   end
 
   def test_render_json_with_custom_content_type

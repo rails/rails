@@ -332,6 +332,31 @@ module ActionController
       response.cache_control.replace(no_store: true)
     end
 
+    # Adds the `must-understand` directive to the `Cache-Control` header, which indicates
+    # that a cache MUST understand the semantics of the response status code that has been
+    # received, or discard the response.
+    #
+    # This is particularly useful when returning responses with new or uncommon
+    # status codes that might not be properly interpreted by older caches.
+    #
+    # #### Example
+    #
+    #     def show
+    #       @article = Article.find(params[:id])
+    #
+    #       if @article.early_access?
+    #         must_understand
+    #         render status: 203 # Non-Authoritative Information
+    #       else
+    #         fresh_when @article
+    #       end
+    #     end
+    #
+    def must_understand
+      response.cache_control[:must_understand] = true
+      response.cache_control[:no_store] = true
+    end
+
     private
       def combine_etags(validator, options)
         [validator, *etaggers.map { |etagger| instance_exec(options, &etagger) }].compact

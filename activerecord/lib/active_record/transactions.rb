@@ -13,7 +13,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -234,6 +234,25 @@ module ActiveRecord
         end
       end
 
+      # Makes all transactions initiated within the block use the isolation level
+      # that you set as the default. Useful for gradually migrating apps onto new isolation level.
+      def with_default_isolation_level(isolation_level, &block)
+        if current_transaction.open?
+          raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
+        end
+
+        old_level = connection_pool.default_isolation_level
+        connection_pool.default_isolation_level = isolation_level
+        yield
+      ensure
+        connection_pool.default_isolation_level = old_level
+      end
+
+      # Returns the default isolation level for the connection pool, set earlier by #with_default_isolation_level.
+      def default_isolation_level
+        connection_pool.default_isolation_level
+      end
+
       # Returns a representation of the current transaction state,
       # which can be a top level transaction, a savepoint, or the absence of a transaction.
       #
@@ -417,6 +436,7 @@ module ActiveRecord
           status = yield
           raise ActiveRecord::Rollback unless status
         end
+        @_last_transaction_return_status = status
         status
       end
     end
@@ -432,6 +452,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end

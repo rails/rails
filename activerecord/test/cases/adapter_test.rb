@@ -48,11 +48,13 @@ module ActiveRecord
     def test_valid_column
       @connection.native_database_types.each_key do |type|
         assert @connection.valid_type?(type)
+        assert @connection.class.valid_type?(type)
       end
     end
 
     def test_invalid_column
       assert_not @connection.valid_type?(:foobar)
+      assert_not @connection.class.valid_type?(:foobar)
     end
 
     def test_tables
@@ -708,12 +710,14 @@ module ActiveRecord
           assert Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
           a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 6, notifications.length
+        assert_equal 8, notifications.length
 
         notifications.each do |n|
-          assert n.payload[:allow_retry]
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
         end
       end
 
@@ -727,9 +731,11 @@ module ActiveRecord
           assert_not_nil Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
           a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 6, notifications.length
+        assert_equal 8, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"

@@ -1,3 +1,51 @@
+*   Allow to configure maximum cache key sizes
+
+    When the key exceeds the configured limit (250 bytes by default), it will be truncated and
+    the digest of the rest of the key appended to it.
+
+    Note that previously `ActiveSupport::Cache::RedisCacheStore` allowed up to 1kb cache keys before
+    truncation, which is now reduced to 250 bytes.
+
+    ```ruby
+    config.cache_store = :redis_cache_store, { max_key_size: 64 }
+    ```
+
+    *fatkodima*
+
+*   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
+
+    *Aron Roh*
+
+*   Add `Cache#read_counter` and `Cache#write_counter`
+
+    ```ruby
+    Rails.cache.write_counter("foo", 1)
+    Rails.cache.read_counter("foo") # => 1
+    Rails.cache.increment("foo")
+    Rails.cache.read_counter("foo") # => 2
+    ```
+
+    *Alex Ghiculescu*
+
+*   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
+
+    Captures all reported errors from within the block that match the given
+    error class.
+
+    ```ruby
+    reports = capture_error_reports(IOError) do
+      Rails.error.report(IOError.new("Oops"))
+      Rails.error.report(IOError.new("Oh no"))
+      Rails.error.report(StandardError.new)
+    end
+
+    assert_equal 2, reports.size
+    assert_equal "Oops", reports.first.error.message
+    assert_equal "Oh no", reports.last.error.message
+    ```
+
+    *Andrew Novoselac*
+
 *   Introduce ActiveSupport::ErrorReporter#add_middleware
 
     When reporting an error, the error context middleware will be called with the reported error
@@ -86,7 +134,7 @@
 
     *Martin Emde*
 
-*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceeded by multibyte characters.
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
 
     *Martin Emde*
 

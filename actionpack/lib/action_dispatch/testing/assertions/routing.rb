@@ -25,7 +25,7 @@ module ActionDispatch
             old_integration_session = nil
 
             setup do
-              old_routes = app.routes
+              old_routes = initialize_lazy_routes(app.routes)
               old_routes_call_method = old_routes.method(:call)
               old_integration_session = integration_session
               create_routes(&block)
@@ -38,7 +38,7 @@ module ActionDispatch
         end
 
         def with_routing(&block)
-          old_routes = app.routes
+          old_routes = initialize_lazy_routes(app.routes)
           old_routes_call_method = old_routes.method(:call)
           old_integration_session = integration_session
           create_routes(&block)
@@ -47,6 +47,14 @@ module ActionDispatch
         end
 
         private
+          def initialize_lazy_routes(routes)
+            if defined?(Rails::Engine::LazyRouteSet) && routes.is_a?(Rails::Engine::LazyRouteSet)
+              routes.tap(&:routes)
+            else
+              routes
+            end
+          end
+
           def create_routes
             app = self.app
             routes = ActionDispatch::Routing::RouteSet.new

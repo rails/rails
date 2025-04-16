@@ -8,16 +8,16 @@
 #
 # Variants rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
-# default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
-# {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
-# {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
+# default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
+# {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
+# {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
 # gem).
 #
 #   Rails.application.config.active_storage.variant_processor
-#   # => :mini_magick
-#
-#   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
+#
+#   Rails.application.config.active_storage.variant_processor = :mini_magick
+#   # => :mini_magick
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
 # you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline

@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -368,40 +369,6 @@ Sets up the application-wide encoding. Defaults to UTF-8.
 
 Sets the exceptions application invoked by the `ShowException` middleware when an exception happens.
 Defaults to `ActionDispatch::PublicExceptions.new(Rails.public_path)`.
-
-Exceptions applications need to handle `ActionDispatch::Http::MimeNegotiation::InvalidType` errors, which are raised when a client sends an invalid `Accept` or `Content-Type` header.
-The default `ActionDispatch::PublicExceptions` application does this automatically, setting `Content-Type` to `text/html` and returning a `406 Not Acceptable` status.
-Failure to handle this error will result in a `500 Internal Server Error`.
-
-Using the `Rails.application.routes` `RouteSet` as the exceptions application also requires this special handling.
-It might look something like this:
-
-```ruby
-# config/application.rb
-config.exceptions_app = CustomExceptionsAppWrapper.new(exceptions_app: routes)
-
-# lib/custom_exceptions_app_wrapper.rb
-class CustomExceptionsAppWrapper
-  def initialize(exceptions_app:)
-    @exceptions_app = exceptions_app
-  end
-
-  def call(env)
-    request = ActionDispatch::Request.new(env)
-
-    fallback_to_html_format_if_invalid_mime_type(request)
-
-    @exceptions_app.call(env)
-  end
-
-  private
-    def fallback_to_html_format_if_invalid_mime_type(request)
-      request.formats
-    rescue ActionDispatch::Http::MimeNegotiation::InvalidType
-      request.set_header "CONTENT_TYPE", "text/html"
-    end
-end
-```
 
 #### `config.file_watcher`
 
@@ -1539,6 +1506,17 @@ that have a large number of queries, caching query log tags can provide a
 performance benefit when the context does not change during the lifetime of the
 request or job execution. Defaults to `false`.
 
+#### `config.active_record.query_log_tags_prepend_comment`
+
+Specifies whether or not to prepend query log tags comment to the query.
+
+By default comments are appended at the end of the query. Certain databases, such as MySQL will
+truncate the query text. This is the case for slow query logs and the results of querying
+some InnoDB internal tables where the length of the query is more than 1024 bytes.
+In order to not lose the log tags comments from the queries, you can prepend the comments using this option.
+
+Defaults to `false`.
+
 #### `config.active_record.schema_cache_ignored_tables`
 
 Define the list of table that should be ignored when generating the schema
@@ -1695,6 +1673,28 @@ required:
 
 config.active_record.database_cli = { postgresql: "pgcli", mysql: %w[ mycli mysql ] }
 ```
+
+#### `config.active_record.use_legacy_signed_id_verifier`
+
+Controls whether signed IDs are generated and verified using legacy options. Can be set to:
+
+* `:generate_and_verify` (default) - Generate and verify signed IDs using the following legacy options:
+
+    ```ruby
+    { digest: "SHA256", serializer: JSON, url_safe: true }
+    ```
+
+* `:verify` - Generate and verify signed IDs using options from [`Rails.application.message_verifiers`][], but fall back to verifying with the same options as `:generate_and_verify`.
+
+* false - Generate and verify signed IDs using options from [`Rails.application.message_verifiers`][] only.
+
+The purpose of this setting is to provide a smooth transition to a unified configuration for all message verifiers. Having a unified configuration makes it more straightforward to rotate secrets and upgrade signing algorithms.
+
+WARNING: Setting this to false may cause old signed IDs to become unreadable if `Rails.application.message_verifiers` is not properly configured. Use [`MessageVerifiers#rotate`][ActiveSupport::MessageVerifiers#rotate] or [`MessageVerifiers#prepend`][ActiveSupport::MessageVerifiers#prepend] to configure `Rails.application.message_verifiers` with the appropriate options, such as `:digest` and `:url_safe`.
+
+[`Rails.application.message_verifiers`]: https://api.rubyonrails.org/classes/Rails/Application.html#method-i-message_verifiers
+[ActiveSupport::MessageVerifiers#rotate]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifiers.html#method-i-rotate
+[ActiveSupport::MessageVerifiers#prepend]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifiers.html#method-i-prepend
 
 #### `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` and `ActiveRecord::ConnectionAdapters::TrilogyAdapter.emulate_booleans`
 
@@ -1963,6 +1963,21 @@ The default value depends on the `config.load_defaults` target version:
 
 Configures the [`ParamsWrapper`](https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html). This can be called at
 the top level, or on individual controllers.
+
+#### `config.action_controller.escape_json_responses`
+
+Configures the JSON renderer to escape HTML entities and Unicode characters that are invalid in JavaScript.
+
+This is useful if you relied on the JSON response having those characters escaped to embed the JSON document in
+\<script> tags in HTML.
+
+This is mainly for compatibility when upgrading Rails applications, otherwise you can use the `:escape` option for
+`render json:` in specific controller actions.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.1                   | `false`              |
 
 ### Configuring Action Dispatch
 

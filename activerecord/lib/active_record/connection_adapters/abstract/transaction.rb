@@ -620,6 +620,7 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
+        isolation ||= @connection.pool.default_isolation_level
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin
