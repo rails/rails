@@ -425,7 +425,7 @@ module ActionController
           #
           # See ActionController::HttpAuthentication::Token for example usage.
           def http_token_authenticate_with(token:, realm: nil, **options)
-            raise ArgumentError, "Expected token: to be a String, got #{name.class}" unless name.is_a?(String)
+            raise ArgumentError, "Expected token: to be a String, got #{token.class}" unless token.is_a?(String)
             before_action(options) { http_token_authenticate_or_request_with token: token, realm: realm }
           end
         end
