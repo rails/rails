@@ -1248,8 +1248,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Dockerfile" do |content|
       assert_match(/assets:precompile/, content)
       assert_match(/libvips/, content)
+      assert_match(/libjemalloc2/, content)
       assert_no_match(/yarn/, content)
       assert_no_match(/node-gyp/, content)
+    end
+  end
+
+  def test_dockerfile_for_base_packages
+    run_generator
+
+    assert_file "Dockerfile" do |content|
+      assert_match(/curl/, content)
+      assert_match(/libvips/, content)
+      assert_match(/libjemalloc2/, content)
     end
   end
 
