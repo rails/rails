@@ -852,13 +852,14 @@ module ActiveRecord
     #
     # [:unique_by]
     #   (PostgreSQL and SQLite only) By default rows are considered to be unique
-    #   by every unique index on the table. Any duplicate rows are skipped.
+    #   by the table's primary key. Any duplicate rows are updated.
     #
-    #   To skip rows according to just one unique index pass <tt>:unique_by</tt>.
+    #   To update rows according to a unique index pass <tt>:unique_by</tt>.
     #
-    #   Consider a Book model where no duplicate ISBNs make sense, but if any
-    #   row has an existing id, or is not unique by another unique index,
-    #   ActiveRecord::RecordNotUnique is raised.
+    #   Consider a Book model where duplicate ISBNs are not permitted. If you specify
+    #   <tt>unique_by: :isbn</tt> it will be used to identify duplicates. However, if
+    #   any row has an existing primary key id, or violates another unique index,
+    #   ActiveRecord::RecordNotUnique will be raised.
     #
     #   Unique indexes can be identified by columns or name:
     #
@@ -866,9 +867,9 @@ module ActiveRecord
     #     unique_by: %i[ author_id name ]
     #     unique_by: :index_books_on_isbn
     #
-    # Because it relies on the index information from the database
-    # <tt>:unique_by</tt> is recommended to be paired with
-    # Active Record's schema_cache.
+    #   Because it relies on the index information from the database
+    #   <tt>:unique_by</tt> is recommended to be paired with
+    #   Active Record's schema_cache.
     #
     # [:on_duplicate]
     #   Configure the SQL update sentence that will be used in case of conflict.
