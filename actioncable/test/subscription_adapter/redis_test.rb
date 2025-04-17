@@ -113,6 +113,16 @@ class RedisAdapterTest::ConnectorCustomID < RedisAdapterTest::ConnectorDefaultID
   end
 end
 
+class RedisAdapterTest::ConnectorCustomIDNil < RedisAdapterTest::ConnectorDefaultID
+  def cable_config
+    super.merge(id: connection_id)
+  end
+
+  def connection_id
+    nil
+  end
+end
+
 class RedisAdapterTest::ConnectorWithExcluded < RedisAdapterTest::ConnectorDefaultID
   def cable_config
     super.merge(adapter: "redis", channel_prefix: "custom")
