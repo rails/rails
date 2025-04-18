@@ -271,7 +271,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -280,7 +280,7 @@ module ActiveRecord
 
     def test_structure_dump_with_extra_flags
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags(["--noop"]) do
@@ -291,7 +291,7 @@ module ActiveRecord
 
     def test_structure_dump_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags({ postgresql: ["--noop"] }) do
@@ -302,7 +302,7 @@ module ActiveRecord
 
     def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
+      expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_dump_flags({ trilogy: ["--noop"] }) do
@@ -318,7 +318,7 @@ module ActiveRecord
           assert_called_with(
             Kernel,
             :system,
-            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db"],
+            ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_foo", "--ignore-table=test-db.ignored_foo", "test-db", {}],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
@@ -332,13 +332,13 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: false
       ) do
         e = assert_raise(RuntimeError) {
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
         }
-        assert_match(/^failed to execute: `mysqldump`$/, e.message)
+        assert_match(/^failed to execute:\nmysqldump/, e.message)
       end
     end
 
@@ -347,7 +347,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -361,7 +361,7 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+        ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(
@@ -390,7 +390,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -401,7 +401,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do
@@ -412,7 +412,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
+      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ trilogy: ["--noop"] }) do
