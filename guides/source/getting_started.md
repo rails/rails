@@ -2800,12 +2800,12 @@ To deploy with Kamal, we need:
   Ubuntu operating system with a Long-Term Support (LTS) version so it receives
   regular security and bug fixes. Hetzner, DigitalOcean, and other hosting
   services provide servers to get started.
-- A [Docker Hub](https://hub.docker.com) account and access token. Docker Hub
-  stores the image of the application so it can be downloaded and run on the
-  server.
+- A [Docker Hub](https://hub.docker.com) account and access token with Read and
+  Write privileges. Docker Hub stores the image of the application so it can be
+  downloaded and run on the server. 
 
-On Docker Hub, [create a Repository](https://hub.docker.com/repository/create)
-for your application image. Use "store" as the name for the repository.
+Kamal will automatically create a repository for you using your application name 
+as the name for the repository.
 
 Open `config/deploy.yml` and replace `192.168.0.1` with your server's IP address
 and `your-user` with your Docker Hub username.
@@ -2843,6 +2843,9 @@ proxy:
 with Read & Write permissions on Docker's website so Kamal can push the Docker
 image for your application.
 
+In the next steps, Kamal will automatically create a repository for you using 
+your application name as the name for the repository.
+
 Then export the access token in the terminal so Kamal can find it.
 
 ```bash
@@ -2867,6 +2870,10 @@ production, you can run the following:
 ```bash
 $ bin/kamal deploy
 ```
+
+Note: Kamal will automatically create your repository as public. If using Docker
+Hub or a similar repository hosting solution, you may choose to mark it as 
+"private" if you would like to protect your source code.
 
 ### Adding a User to Production
 
