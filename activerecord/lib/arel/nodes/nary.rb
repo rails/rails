@@ -34,6 +34,11 @@ module Arel # :nodoc: all
     end
 
     And = Class.new(Nary)
-    Or = Class.new(Nary)
+
+    class Or < Nary
+      def or(other)
+        Nodes::Grouping.new(Nodes::Or.new(children + [right]))
+      end
+    end
   end
 end
