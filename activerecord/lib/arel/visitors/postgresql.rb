@@ -8,6 +8,11 @@ module Arel # :nodoc: all
           collector.retryable = false
           o = prepare_update_statement(o)
 
+          if o.with
+            collector = visit o.with, collector
+            collector << " "
+          end
+
           collector << "UPDATE "
 
           # UPDATE with JOIN is in the form of:

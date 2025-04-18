@@ -460,4 +460,25 @@
 
     *Kazuma Watanabe*
 
+*   Support `with` and `with_recursive` methods in conjunction with `update_all` and `delete_all`
+
+    This is mostly useful for using `UPDATE` and `DELETE` statements with recursive
+    Common Table Expressions:
+
+    ```ruby
+    comments = Comment.arel_table
+    calculated = Arel::Table.new('calculated')
+
+    Comment
+        .with_recursive(calculated: [
+            comments.project(comments[:id].as('comment_id'), Arel::Nodes.build_quoted(0).as('depth'))
+                .where(comments[:parent_id].eq(nil)),
+            comments.project(comments[:id], calculated[:depth] + 1)
+                .join(calculated).on(calculated[:comment_id].eq(comments[:parent_id]))
+        ])
+        .joins(:calculated).update_all(depth: calculated[:depth])
+    ```
+
+    *cryptogopher*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activerecord/CHANGELOG.md) for previous changes.

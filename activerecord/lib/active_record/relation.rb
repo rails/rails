@@ -60,7 +60,7 @@ module ActiveRecord
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -595,6 +595,23 @@ module ActiveRecord
     #
     #   # Update all books with 'Rails' in their title
     #   Book.where('title LIKE ?', '%Rails%').update_all(title: Arel.sql("title + ' - volume 1'"))
+    #
+    #   # Update all posts with '[discussion]' in their title if there are many comments
+    #   Post.with(commented_posts:
+    #     Comment.select(:post_id).distinct.group(:post_id).having('COUNT(post_id) > 1')
+    #   ).joins(:commented_posts).update_all("title = CONCAT('[discussion] ', title)")
+    #
+    #   # Update all comments and set comment depth in a hierarchy
+    #   comments = Comment.arel_table
+    #   calculated = Arel::Table.new('calculated')
+    #   Comment
+    #     .with_recursive(calculated: [
+    #       comments.project(comments[:id].as('comment_id'), Arel::Nodes.build_quoted(0).as('depth'))
+    #         .where(comments[:parent_id].eq(nil)),
+    #       comments.project(comments[:id], calculated[:depth] + 1)
+    #         .join(calculated).on(calculated[:comment_id].eq(comments[:parent_id]))
+    #     ])
+    #     .joins(:calculated).update_all(depth: calculated[:depth])
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
@@ -1030,6 +1047,11 @@ module ActiveRecord
     #
     #   Post.distinct.delete_all
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
+    #
+    # ==== Examples
+    #
+    #   # Delete all posts with at least one comment
+    #   Post.with(commented: Comment.select(:post_id).distinct).joins(:commented).delete_all
     def delete_all
       return 0 if @none
 

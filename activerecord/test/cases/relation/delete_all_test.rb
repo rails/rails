@@ -71,7 +71,6 @@ class DeleteAllTest < ActiveRecord::TestCase
 
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.with(limited: Author.limit(2)).delete_all }
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
