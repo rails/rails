@@ -17,8 +17,7 @@ module Arel # :nodoc: all
     def compile_update(
       values,
       key = nil,
-      having_clause = nil,
-      group_values_columns = []
+      having_clause = nil
     )
       um = UpdateManager.new(source)
       um.set(values)
@@ -28,19 +27,19 @@ module Arel # :nodoc: all
       um.wheres = constraints
       um.key = key
 
-      um.group(group_values_columns) unless group_values_columns.empty?
+      um.ast.groups = @ctx.groups
       um.having(having_clause) unless having_clause.nil?
       um
     end
 
-    def compile_delete(key = nil, having_clause = nil, group_values_columns = [])
+    def compile_delete(key = nil, having_clause = nil)
       dm = DeleteManager.new(source)
       dm.take(limit)
       dm.offset(offset)
       dm.order(*orders)
       dm.wheres = constraints
       dm.key = key
-      dm.group(group_values_columns) unless group_values_columns.empty?
+      dm.ast.groups = @ctx.groups
       dm.having(having_clause) unless having_clause.nil?
       dm
     end
