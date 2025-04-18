@@ -472,12 +472,7 @@ module ActionDispatch
       end
 
       def eval_block(block)
-        mapper = Mapper.new(self)
-        if default_scope
-          mapper.with_default_scope(default_scope, &block)
-        else
-          mapper.instance_exec(&block)
-        end
+        Mapper.new(self, default_scope).instance_exec(&block)
       end
       private :eval_block
 
