@@ -628,13 +628,12 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
         arel.source.left = table
 
-        having_clause_ast = having_clause.ast unless having_clause.empty?
         key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
-        stmt = arel.compile_update(values, key, having_clause_ast)
+        stmt = arel.compile_update(values, key)
         c.update(stmt, "#{model} Update All").tap { reset }
       end
     end
@@ -1044,13 +1043,12 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : build_arel(c)
         arel.source.left = table
 
-        having_clause_ast = having_clause.ast unless having_clause.empty?
         key = if model.composite_primary_key?
           primary_key.map { |pk| table[pk] }
         else
           table[primary_key]
         end
-        stmt = arel.compile_delete(key, having_clause_ast)
+        stmt = arel.compile_delete(key)
 
         c.delete(stmt, "#{model} Delete All").tap { reset }
       end

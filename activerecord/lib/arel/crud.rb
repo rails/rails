@@ -14,11 +14,7 @@ module Arel # :nodoc: all
       InsertManager.new
     end
 
-    def compile_update(
-      values,
-      key = nil,
-      having_clause = nil
-    )
+    def compile_update(values, key = nil)
       um = UpdateManager.new(source)
       um.set(values)
       um.take(limit)
@@ -28,11 +24,11 @@ module Arel # :nodoc: all
       um.key = key
 
       um.ast.groups = @ctx.groups
-      um.having(having_clause) unless having_clause.nil?
+      @ctx.havings.each { |h| um.having(h) }
       um
     end
 
-    def compile_delete(key = nil, having_clause = nil)
+    def compile_delete(key = nil)
       dm = DeleteManager.new(source)
       dm.take(limit)
       dm.offset(offset)
@@ -40,7 +36,7 @@ module Arel # :nodoc: all
       dm.wheres = constraints
       dm.key = key
       dm.ast.groups = @ctx.groups
-      dm.having(having_clause) unless having_clause.nil?
+      @ctx.havings.each { |h| dm.having(h) }
       dm
     end
   end
