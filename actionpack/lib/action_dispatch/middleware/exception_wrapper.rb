@@ -52,7 +52,7 @@ module ActionDispatch
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
       @exception = exception
-      if exception.is_a?(SyntaxError) || !exception.backtrace_locations
+      if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
       @backtrace = build_backtrace
@@ -260,7 +260,14 @@ module ActionDispatch
           end
         end
 
-        (@exception.backtrace_locations || []).map do |loc|
+        backtrace_locations =
+          @exception.backtrace_locations ||
+            @exception.backtrace.map do |trace|
+            file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+            ActiveSupport::SyntaxErrorProxy::BacktraceLocation.new(file, line.to_i, trace)
+          end
+
+        backtrace_locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
