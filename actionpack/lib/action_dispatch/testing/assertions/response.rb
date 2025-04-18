@@ -75,14 +75,14 @@ module ActionDispatch
       #
       #     assert_in_body fixture(:name).description
       def assert_in_body(text)
-        assert_match /#{text}/, @response.body
+        assert_match(/#{text}/, @response.body)
       end
 
       # Asserts that the given +text+ is not present anywhere in the response body.
       #
       #     assert_not_in_body fixture(:name).description
       def assert_not_in_body(text)
-        assert_no_match /#{text}/, @response.body
+        assert_no_match(/#{text}/, @response.body)
       end
 
       private
