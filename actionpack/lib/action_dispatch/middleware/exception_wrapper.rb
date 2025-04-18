@@ -52,7 +52,7 @@ module ActionDispatch
       @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
       @exception = exception
-      if exception.is_a?(SyntaxError)
+      if exception.is_a?(SyntaxError) || !exception.backtrace_locations
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
       @backtrace = build_backtrace

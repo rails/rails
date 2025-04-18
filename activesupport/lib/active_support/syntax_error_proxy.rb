@@ -35,15 +35,21 @@ module ActiveSupport
     end
 
     def backtrace_locations
-      return nil if super.nil?
-
-      parse_message_for_trace.map { |trace|
-        file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
-        BacktraceLocation.new(file, line.to_i, trace)
-        # We have to wrap these backtrace locations because we need the
-        # spot information to come from the originating exception, not the
-        # proxy object that's generating these
-      } + super.map { |loc| BacktraceLocationProxy.new(loc, self) }
+      orig = super
+      if orig
+        parse_message_for_trace.map { |trace|
+          file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+          BacktraceLocation.new(file, line.to_i, trace)
+          # We have to wrap these backtrace locations because we need the
+          # spot information to come from the originating exception, not the
+          # proxy object that's generating these
+        } + orig.map { |loc| BacktraceLocationProxy.new(loc, self) }
+      else
+        backtrace.map do |trace|
+          file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
+          BacktraceLocation.new(file, line.to_i, trace)
+        end
+      end
     end
 
     private
