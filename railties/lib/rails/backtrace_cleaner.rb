@@ -11,10 +11,12 @@ module Rails
     def initialize
       super
       add_filter do |line|
-        # We may be called before Rails.root is assigned.
-        # When that happens we fallback to not truncating.
-        @root ||= Rails.root && "#{Rails.root}/"
-        @root && line.start_with?(@root) ? line.from(@root.size) : line
+        local_gem_roots.find { |g| line.start_with?(g) }&.then do |gem_root|
+          gem_path_relative_to_root(gem_root) + line.from(gem_root.size)
+        end || line
+      end
+      add_filter do |line|
+        root && line.start_with?(root) ? line.from(root.size) : line
       end
       add_filter do |line|
         if RENDER_TEMPLATE_PATTERN.match?(line)
@@ -23,7 +25,10 @@ module Rails
           line
         end
       end
-      add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
+      add_silencer do |line|
+        !APP_DIRS_PATTERN.match?(line) &&
+        !relative_path_gem?(line)
+      end
     end
 
     def clean(backtrace, kind = :silent)
@@ -37,6 +42,40 @@ module Rails
       return frame if ENV["BACKTRACE"]
 
       super(frame, kind)
+    end
+
+    private
+    def root
+      # We may be called before Rails.root is assigned.
+      # When that happens we fallback to not truncating.
+      @root ||= Rails.root && "#{Rails.root}/"
+    end
+    def local_gem_roots
+      @local_gem_roots ||= Bundler.definition.sources.path_sources.collect do |spec|
+        "#{spec.expanded_original_path}"
+      end
+    end
+    def relative_path_gem?(line)
+      return false if root.nil?
+      local_gem_roots.any? do |root|
+        line.start_with?(root) ||  # detect unfiltered local_gem line
+        line.start_with?("..")     # detect filtered local_gem line
+      end
+    end
+    def gem_path_relative_to_root(gem_root)
+      return gem_root if root.nil?
+      common_path = root.each_char.zip(gem_root.each_char)
+                                  .take_while { |a, b| a == b }
+                                  .map(&:first)
+                                  .join
+
+      return gem_root if common_path.size == root.size
+
+      delta = root.from(common_path.size).split(File::SEPARATOR).count
+      back_path = "..#{File::SEPARATOR}" * delta
+      forward_path = gem_root.from(common_path.size)
+
+      "#{back_path}#{forward_path}"
     end
   end
 end

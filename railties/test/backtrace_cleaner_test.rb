@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "rails/backtrace_cleaner"
+require "minitest/mock"
 
 class BacktraceCleanerTest < ActiveSupport::TestCase
   def setup
@@ -57,6 +58,16 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     backtrace = [ "app/views/application/index.html.erb:4:in 'block in #{method_name}'"]
     result = @cleaner.clean(backtrace, :all)
     assert_equal "app/views/application/index.html.erb:4", result[0]
+  end
+
+  test "#clean should consider traces emitted from locally sourced gems" do
+    fake_dependency_root = File.expand_path("#{FileUtils.pwd}/../local_gem")
+    fake_spec = Struct.new(:expanded_original_path).new(fake_dependency_root)
+    backtrace = [ "#{fake_dependency_root}/lib/local_gem.rb:4:in `start'"]
+    result = Bundler.definition.sources.stub :path_sources, [fake_spec] do
+      @cleaner.clean(backtrace)
+    end
+    assert_equal "../local_gem/lib/local_gem.rb:4:in `start'", result[0]
   end
 
   test "#clean_frame should consider traces from irb lines as User code" do

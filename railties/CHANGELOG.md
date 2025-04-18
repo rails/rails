@@ -1,3 +1,7 @@
+*   Allow BacktraceCleaner to present the backtrace of locally sourced gems
+
+    *TheNotary*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
