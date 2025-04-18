@@ -45,7 +45,7 @@ module ActiveSupport
           # proxy object that's generating these
         } + orig.map { |loc| BacktraceLocationProxy.new(loc, self) }
       else
-        backtrace.map do |trace|
+        exception.backtrace&.map do |trace|
           file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
           BacktraceLocation.new(file, line.to_i, trace)
         end
