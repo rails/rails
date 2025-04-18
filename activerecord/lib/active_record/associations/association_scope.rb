@@ -35,7 +35,7 @@ module ActiveRecord
         binds = []
         last_reflection = chain.last
 
-        binds << last_reflection.join_id_for(owner)
+        binds.push(*last_reflection.join_id_for(owner))
         if last_reflection.type
           binds << owner.class.polymorphic_name
         end
@@ -56,12 +56,15 @@ module ActiveRecord
         end
 
         def last_chain_scope(scope, reflection, owner)
-          primary_key = reflection.join_primary_key
-          foreign_key = reflection.join_foreign_key
+          primary_key = Array(reflection.join_primary_key)
+          foreign_key = Array(reflection.join_foreign_key)
 
           table = reflection.aliased_table
-          value = transform_value(owner[foreign_key])
-          scope = apply_scope(scope, table, primary_key, value)
+          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+          primary_key_foreign_key_pairs.each do |join_key, foreign_key|
+            value = transform_value(owner._read_attribute(foreign_key))
+            scope = apply_scope(scope, table, join_key, value)
+          end
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.polymorphic_name)
@@ -76,19 +79,23 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = reflection.join_primary_key
-          foreign_key = reflection.join_foreign_key
+          primary_key = Array(reflection.join_primary_key)
+          foreign_key = Array(reflection.join_foreign_key)
 
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
-          constraint = table[primary_key].eq(foreign_table[foreign_key])
+
+          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
+          constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
+            table[join_primary_key].eq(foreign_table[foreign_key])
+          end.inject(&:and)
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, value)
           end
 
-          scope.joins!(join(foreign_table, constraint))
+          scope.joins!(join(foreign_table, constraints))
         end
 
         class ReflectionProxy < SimpleDelegator # :nodoc:

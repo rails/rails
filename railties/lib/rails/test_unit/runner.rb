@@ -1,16 +1,32 @@
 # frozen_string_literal: true
 
 require "shellwords"
-require "method_source"
 require "rake/file_list"
 require "active_support"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/range"
+require "rails/test_unit/test_parser"
 
 module Rails
   module TestUnit
+    class InvalidTestError < ArgumentError
+      def initialize(path, suggestion)
+        super(<<~MESSAGE.rstrip)
+          Could not load test file: #{path}.
+          #{suggestion}
+        MESSAGE
+      end
+
+      def backtrace(*args)
+        []
+      end
+    end
+
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes]
+      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
+      mattr_reader :load_test_files, default: false
 
       class << self
         def attach_before_load_options(opts)
@@ -31,25 +47,45 @@ module Rails
           $VERBOSE = argv.delete_at(w_index) if w_index
         end
 
-        def rake_run(argv = [])
+        def run_from_rake(test_command, argv = [])
           # Ensure the tests run during the Rake Task action, not when the process exits
-          success = system("rails", "test", *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
+          success = system("rails", test_command, *argv, *Shellwords.split(ENV["TESTOPTS"] || ""))
           success || exit(false)
         end
 
-        def run(argv = [])
-          load_tests(argv)
-
+        def run(args = [])
           require "active_support/testing/autorun"
+
+          @@load_test_files = true
+
+          at_exit do
+            ARGV.replace(args)
+          end
         end
 
         def load_tests(argv)
-          tests = list_tests(argv)
-          tests.to_a.each { |path| require File.expand_path(path) }
+          patterns = extract_filters(argv)
+          tests = list_tests(patterns)
+          tests.to_a.each do |path|
+            abs_path = File.expand_path(path)
+            require abs_path
+          rescue LoadError => exception
+            if exception.path == abs_path
+              all_tests = list_tests([default_test_glob])
+              corrections = DidYouMean::SpellChecker.new(dictionary: all_tests).correct(path)
+
+              if corrections.empty?
+                raise exception
+              end
+              raise(InvalidTestError.new(path, DidYouMean::Formatter.message_for(corrections)), cause: nil)
+            else
+              raise
+            end
+          end
         end
 
         def compose_filter(runnable, filter)
-          filter = escape_declarative_test_filter(filter)
+          filter = normalize_declarative_test_filter(filter)
 
           if filters.any? { |_, lines| lines.any? }
             CompositeFilter.new(runnable, filter, filters)
@@ -62,11 +98,9 @@ module Rails
           def extract_filters(argv)
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.filter_map do |path|
-              next unless path_argument?(path) && !regexp_filter?(path)
-
               path = path.tr("\\", "/")
               case
-              when /(:\d+)+$/.match?(path)
+              when /(:\d+(-\d+)?)+$/.match?(path)
                 file, *lines = path.split(":")
                 filters << [ file, lines ]
                 file
@@ -84,7 +118,7 @@ module Rails
           end
 
           def default_test_exclude_glob
-            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy}/**/*_test.rb"
+            ENV["DEFAULT_TEST_EXCLUDE"] || "test/{system,dummy,fixtures}/**/*_test.rb"
           end
 
           def regexp_filter?(arg)
@@ -92,21 +126,25 @@ module Rails
           end
 
           def path_argument?(arg)
-            %r"^\.*[/\\]?\w+[/\\]".match?(arg)
+            PATH_ARGUMENT_PATTERN.match?(arg)
           end
 
-          def list_tests(argv)
-            patterns = extract_filters(argv)
-
+          def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]
             tests.exclude(default_test_exclude_glob) if patterns.empty?
+            tests.exclude(%r{test/isolation/assets/node_modules})
             tests
           end
 
-          def escape_declarative_test_filter(filter)
-            if filter.is_a?(String) && !filter.start_with?("test_")
-              filter = "test_#{filter}" unless regexp_filter?(filter)
-              filter = filter.gsub(/\s+/, "_")
+          def normalize_declarative_test_filter(filter)
+            if filter.is_a?(String)
+              if regexp_filter?(filter)
+                # Minitest::Spec::DSL#it does not replace whitespace in method
+                # names, so match unmodified method names as well.
+                filter = filter.gsub(/\s+/, "_").delete_suffix("/") + "|" + filter.delete_prefix("/")
+              elsif !filter.start_with?("test_")
+                filter = "test_#{filter.gsub(/\s+/, "_")}"
+              end
             end
             filter
           end
@@ -150,17 +188,21 @@ module Rails
     end
 
     class Filter # :nodoc:
-      def initialize(runnable, file, line)
+      def initialize(runnable, file, line_or_range)
         @runnable, @file = runnable, File.expand_path(file)
-        @line = line.to_i if line
+        if line_or_range
+          first, last = line_or_range.split("-").map(&:to_i)
+          last ||= first
+          @line_range = Range.new(first, last)
+        end
       end
 
       def ===(method)
         return unless @runnable.method_defined?(method)
 
-        if @line
+        if @line_range
           test_file, test_range = definition_for(@runnable.instance_method(method))
-          test_file == @file && test_range.include?(@line)
+          test_file == @file && @line_range.overlaps?(test_range)
         else
           @runnable.instance_method(method).source_location.first == @file
         end
@@ -168,10 +210,7 @@ module Rails
 
       private
         def definition_for(method)
-          file, start_line = method.source_location
-          end_line = method.source.count("\n") + start_line - 1
-
-          return file, start_line..end_line
+          TestParser.definition_for(method)
         end
     end
   end

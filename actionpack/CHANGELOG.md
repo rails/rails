@@ -1,163 +1,139 @@
-*   Log redirects from routes the same way as redirects from controllers.
+*   Include cookie name when calculating maximum allowed size.
 
-    *Dennis Paagman*
+    *Hartley McGuire*
 
-*   Prevent `ActionDispatch::ServerTiming` from overwriting existing values in `Server-Timing`.
-    Previously, if another middleware down the chain set `Server-Timing` header,
-    it would overwritten by `ActionDispatch::ServerTiming`.
+*   Implement `must-understand` directive according to RFC 9111.
 
-    *Jakub Malinowski*
-
-*   Allow opting out of the `SameSite` cookie attribute when setting a cookie.
-
-    You can opt out of `SameSite` by passing `same_site: nil`.
-
-    `cookies[:foo] = { value: "bar", same_site: nil }`
-
-    Previously, this incorrectly set the `SameSite` attribute to the value of the `cookies_same_site_protection` setting.
-
-    *Alex Ghiculescu*
-
-*   Allow using `helper_method`s in `content_security_policy` and `permissions_policy`
-
-    Previously you could access basic helpers (defined in helper modules), but not
-    helper methods defined using `helper_method`. Now you can use either.
+    The `must-understand` directive indicates that a cache must understand the semantics of the response status code, or discard the response. This directive is enforced to be used only with `no-store` to ensure proper cache behavior.
 
     ```ruby
-    content_security_policy do |p|
-      p.default_src "https://example.com"
-      p.script_src "https://example.com" if helpers.script_csp?
+    class ArticlesController < ApplicationController
+      def show
+        @article = Article.find(params[:id])
+
+        if @article.special_format?
+          must_understand
+          render status: 203 # Non-Authoritative Information
+        else
+          fresh_when @article
+        end
+      end
     end
     ```
 
-    *Alex Ghiculescu*
+    *heka1024*
 
-*   Reimplement `ActionController::Parameters#has_value?` and `#value?` to avoid parameters and hashes comparison.
+*   The JSON renderer doesn't escape HTML entities or Unicode line separators anymore.
 
-    Deprecated equality between parameters and hashes is going to be removed in Rails 7.2.
-    The new implementation takes care of conversions.
+    Using `render json:` will no longer escape `<`, `>`, `&`, `U+2028` and `U+2029` characters that can cause errors
+    when the resulting JSON is embedded in JavaScript, or vulnerabilities when the resulting JSON is embedded in HTML.
 
-    *Seva Stefkin*
+    Since the renderer is used to return a JSON document as `application/json`, it's typically not necessary to escape
+    those characters, and it improves performance.
 
-*   Allow only String and Symbol keys in `ActionController::Parameters`.
-    Raise `ActionController::InvalidParameterKey` when initializing Parameters
-    with keys that aren't strings or symbols.
+    Escaping will still occur when the `:callback` option is set, since the JSON is used as JavaScript code in this
+    situation (JSONP).
 
-    *Seva Stefkin*
+    You can use the `:escape` option or set `config.action_controller.escape_json_responses` to `true` to restore the
+    escaping behavior.
 
-*   Add the ability to use custom logic for storing and retrieving CSRF tokens.
+    ```ruby
+    class PostsController < ApplicationController
+      def index
+        render json: Post.last(30), escape: true
+      end
+    end
+    ```
 
-    By default, the token will be stored in the session.  Custom classes can be
-    defined to specify arbitrary behavior, but the ability to store them in
-    encrypted cookies is built in.
+    *Étienne Barrié*, *Jean Boussier*
 
-    *Andrew Kowpak*
+*   Load lazy route sets before inserting test routes
 
-*   Make ActionController::Parameters#values cast nested hashes into parameters.
+    Without loading lazy route sets early, we miss `after_routes_loaded` callbacks, or risk
+    invoking them with the test routes instead of the real ones if another load is triggered by an engine.
 
     *Gannon McGibbon*
 
-*   Introduce `html:` and `screenshot:` kwargs for system test screenshot helper
+*   Raise `AbstractController::DoubleRenderError` if `head` is called after rendering.
 
-    Use these as an alternative to the already-available environment variables.
-
-    For example, this will display a screenshot in iTerm, save the HTML, and output
-    its path.
+    After this change, invoking `head` will lead to an error if response body is already set:
 
     ```ruby
-    take_screenshot(html: true, screenshot: "inline")
-    ```
-
-    *Alex Ghiculescu*
-
-*   Allow `ActionController::Parameters#to_h` to receive a block.
-
-    *Bob Farrell*
-
-*   Allow relative redirects when `raise_on_open_redirects` is enabled
-
-    *Tom Hughes*
-
-*   Allow Content Security Policy DSL to generate for API responses.
-
-    *Tim Wade*
-
-*   Fix `authenticate_with_http_basic` to allow for missing password.
-
-    Before Rails 7.0 it was possible to handle basic authentication with only a username.
-
-    ```ruby
-    authenticate_with_http_basic do |token, _|
-      ApiClient.authenticate(token)
+    class PostController < ApplicationController
+      def index
+        render locals: {}
+        head :ok
+      end
     end
     ```
 
-    This ability is restored.
+    *Iaroslav Kurbatov*
 
-    *Jean Boussier*
+*   The Cookie Serializer can now serialize an Active Support SafeBuffer when using message pack.
 
-*   Fix `content_security_policy` returning invalid directives.
-
-    Directives such as `self`, `unsafe-eval` and few others were not
-    single quoted when the directive was the result of calling a lambda
-    returning an array.
+    Such code would previously produce an error if an application was using messagepack as its cookie serializer.
 
     ```ruby
-    content_security_policy do |policy|
-      policy.frame_ancestors lambda { [:self, "https://example.com"] }
+    class PostController < ApplicationController
+      def index
+        flash.notice = t(:hello_html) # This would try to serialize a SafeBuffer, which was not possible.
+      end
     end
     ```
-
-    With this fix the policy generated from above will now be valid.
 
     *Edouard Chin*
 
-*   Fix `skip_forgery_protection` to run without raising an error if forgery
-    protection has not been enabled / `verify_authenticity_token` is not a
-    defined callback.
+*   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
-    This fix prevents the Rails 7.0 Welcome Page (`/`) from raising an
-    `ArgumentError` if `default_protect_from_forgery` is false.
+    When calling `Rails.application.reload_routes!` inside a middleware of
+    a Rake task, it was possible under certain conditions that all routes would be cleared.
+    If ran inside a middleware, this would result in getting a 404 on most page you visit.
+    This issue was only happening in development.
 
-    *Brad Trick*
+    *Edouard Chin*
 
-*   Make `redirect_to` return an empty response body.
+*   Add resource name to the `ArgumentError` that's raised when invalid `:only` or `:except` options are given to `#resource` or `#resources`
 
-    Application controllers that wish to add a response body after calling
-    `redirect_to` can continue to do so.
+    This makes it easier to locate the source of the problem, especially for routes drawn by gems.
 
-    *Jon Dufresne*
-
-*   Use non-capturing group for subdomain matching in `ActionDispatch::HostAuthorization`
-
-    Since we do nothing with the captured subdomain group, we can use a non-capturing group instead.
-
-    *Sam Bostock*
-
-*   Fix `ActionController::Live` to copy the IsolatedExecutionState in the ephemeral thread.
-
-    Since its inception `ActionController::Live` has been copying thread local variables
-    to keep things such as `CurrentAttributes` set from middlewares working in the controller action.
-
-    With the introduction of `IsolatedExecutionState` in 7.0, some of that global state was lost in
-    `ActionController::Live` controllers.
-
-    *Jean Boussier*
-
-*   Fix setting `trailing_slash: true` in route definition.
-
-    ```ruby
-    get '/test' => "test#index", as: :test, trailing_slash: true
-
-    test_path() # => "/test/"
+    Before:
+    ```
+    :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
     ```
 
-    *Jean Boussier*
+    After:
+    ```
+    Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]
+    ```
 
-*   Make `Session#merge!` stringify keys.
+    *Jeremy Green*
 
-    Previously `Session#update` would, but `merge!` wouldn't.
+*   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
 
-    *Drew Bragg*
+    Newly generated session ids use 128 bits of randomness, which is more than
+    enough to ensure collisions can't happen, but if you need to harden sessions
+    even more, you can enable this option to check in the session store that the id
+    is indeed free you can enable that option. This however incurs an extra write
+    on session creation.
 
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionpack/CHANGELOG.md) for previous changes.
+    *Shia*
+
+*   In ExceptionWrapper, match backtrace lines with built templates more often,
+    allowing improved highlighting of errors within do-end blocks in templates.
+    Fix for Ruby 3.4 to match new method labels in backtrace.
+
+    *Martin Emde*
+
+*   Allow setting content type with a symbol of the Mime type.
+
+    ```ruby
+    # Before
+    response.content_type = "text/html"
+
+    # After
+    response.content_type = :html
+    ```
+
+    *Petrik de Heus*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionpack/CHANGELOG.md) for previous changes.

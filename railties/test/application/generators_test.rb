@@ -35,6 +35,11 @@ module ApplicationTests
       assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
     end
 
+    test "allow generating plugin inside Rails app directory" do
+      rails "generate", "plugin", "vendor/plugins/bukkits"
+      assert File.exist?(File.join(rails_root, "vendor/plugins/bukkits/test/dummy/config/application.rb"))
+    end
+
     test "generators default values" do
       with_bare_config do |c|
         assert_equal(true, c.generators.colorize_logging)
@@ -183,7 +188,9 @@ module ApplicationTests
       end
 
       quietly do
-        Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        assert_nothing_raised do
+          Rails::Command.invoke(:generate, ["check_argv", "expected"]) # should not raise
+        end
       end
     end
 
@@ -196,6 +203,15 @@ module ApplicationTests
         output = rails("destroy", "--help")
         assert_no_match "active_record:migration", output
       end
+    end
+
+    test "help hides test_unit when using another test_framework" do
+      add_to_config <<-RUBY
+        config.generators.test_framework :rspec
+      RUBY
+
+      output = rails("generate", "--help")
+      assert_no_match "test_unit", output
     end
 
     test "skip collision check" do
@@ -249,6 +265,27 @@ module ApplicationTests
       end
 
       assert_match(/# Add comment to model/, File.read(model_file))
+    end
+
+    if RUBY_VERSION < "3.4" # Revisit when 3.4 is added to the matrix
+      test "generators with apply_rubocop_autocorrect_after_generate!" do
+        with_config do |c|
+          c.generators.apply_rubocop_autocorrect_after_generate!
+        end
+
+        output = rails("generate", "model", "post", "title:string", "body:string")
+        assert_no_match(/3 files inspected, no offenses detected/, output)
+      end
+
+      test "generators with apply_rubocop_autocorrect_after_generate! and pretend" do
+        with_config do |c|
+          c.generators.apply_rubocop_autocorrect_after_generate!
+        end
+
+        assert_nothing_raised do
+          rails("generate", "model", "post", "title:string", "body:string", "--pretend")
+        end
+      end
     end
   end
 end

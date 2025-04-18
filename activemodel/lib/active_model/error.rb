@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
 
 module ActiveModel
-  # == Active \Model \Error
+  # = Active \Model \Error
   #
   # Represents one single error
   class Error
@@ -49,7 +48,7 @@ module ActiveModel
       defaults << :"errors.format"
       defaults << "%{attribute} %{message}"
 
-      attr_name = attribute.tr(".", "_").humanize
+      attr_name = attribute.remove(/\.base\z/).tr(".", "_").humanize
       attr_name = base_class.human_attribute_name(attribute, {
         default: attr_name,
         base: base,
@@ -83,7 +82,7 @@ module ActiveModel
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
-          translation = I18n.translate(defaults.first, **options.merge(default: defaults.drop(1), throw: true))
+          translation = I18n.translate(defaults.first, **options, default: defaults.drop(1), throw: true)
           return translation unless translation.nil?
         end unless options[:message]
       else
@@ -121,9 +120,10 @@ module ActiveModel
     attr_reader :attribute
     # The type of error, defaults to +:invalid+ unless specified
     attr_reader :type
-    # The raw value provided as the second parameter when calling +errors#add+
+    # The raw value provided as the second parameter when calling
+    # <tt>errors#add</tt>
     attr_reader :raw_type
-    # The options provided when calling +errors#add+
+    # The options provided when calling <tt>errors#add</tt>
     attr_reader :options
 
     # Returns the error message.

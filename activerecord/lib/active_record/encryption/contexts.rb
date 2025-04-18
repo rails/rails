@@ -14,7 +14,7 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        mattr_reader :default_context, default: Context.new
+        mattr_accessor :default_context, default: Context.new
         thread_mattr_accessor :custom_contexts
       end
 
@@ -65,6 +65,10 @@ module ActiveRecord
 
         def current_custom_context
           self.custom_contexts&.last
+        end
+
+        def reset_default_context
+          self.default_context = Context.new
         end
       end
     end

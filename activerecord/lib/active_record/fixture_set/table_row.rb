@@ -87,7 +87,7 @@ module ActiveRecord
           return unless model_class
           fill_timestamps
           interpolate_label
-          generate_primary_key
+          model_class.composite_primary_key? ? generate_composite_primary_key : generate_primary_key
           resolve_enums
           resolve_sti_reflections
         end
@@ -117,12 +117,24 @@ module ActiveRecord
         end
 
         def generate_primary_key
-          # generate a primary key if necessary
-          if model_metadata.has_primary_key_column? && !@row.include?(model_metadata.primary_key_name)
-            @row[model_metadata.primary_key_name] = ActiveRecord::FixtureSet.identify(
-              @label, model_metadata.primary_key_type
-            )
+          pk = model_metadata.primary_key_name
+
+          unless column_defined?(pk)
+            @row[pk] = ActiveRecord::FixtureSet.identify(@label, model_metadata.column_type(pk))
           end
+        end
+
+        def generate_composite_primary_key
+          composite_key = ActiveRecord::FixtureSet.composite_identify(@label, model_metadata.primary_key_name)
+          composite_key.each do |column, value|
+            next if column_defined?(column)
+
+            @row[column] = value
+          end
+        end
+
+        def column_defined?(col)
+          !model_metadata.has_column?(col) || @row.include?(col)
         end
 
         def resolve_enums
@@ -151,8 +163,17 @@ module ActiveRecord
                   raise PrimaryKeyError.new(@label, association, value)
                 end
 
-                fk_type = reflection_class.type_for_attribute(fk_name).type
-                @row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
+                if fk_name.is_a?(Array)
+                  composite_key = ActiveRecord::FixtureSet.composite_identify(value, fk_name)
+                  composite_key.each do |column, value|
+                    next if column_defined?(column)
+
+                    @row[column] = value
+                  end
+                else
+                  fk_type = reflection_class.type_for_attribute(fk_name).type
+                  @row[fk_name] = ActiveRecord::FixtureSet.identify(value, fk_type)
+                end
               end
             when :has_many
               if association.options[:through]

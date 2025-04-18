@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 API Documentation Guidelines
 ============================
@@ -23,17 +23,14 @@ in the rails root directory, run `bundle install` and execute:
 $ bundle exec rake rdoc
 ```
 
-Resulting HTML files can be found in the ./doc/rdoc directory.
+Resulting HTML files can be found in the `./doc/rdoc` directory.
 
-Please consult the RDoc documentation for help with the
-[markup](https://ruby.github.io/rdoc/RDoc/Markup.html),
-and also take into account these [additional
-directives](https://ruby.github.io/rdoc/RDoc/Parser/Ruby.html).
+NOTE: Please consult the [RDoc Markup Reference][] for help with the syntax.
 
 Links
 -----
 
-Rails API documentation are not meant to be viewed on GitHub and therefore links should use the RDoc [`link`](https://ruby.github.io/rdoc/RDoc/Markup.html#class-RDoc::Markup-label-Links) markup relative to the current API.
+Rails API documentation are not meant to be viewed on GitHub and therefore links should use the [RDoc link markup][] markup relative to the current API.
 
 This is due to differences between GitHub Markdown and the generated RDoc that is published at [api.rubyonrails.org](https://api.rubyonrails.org) and [edgeapi.rubyonrails.org](https://edgeapi.rubyonrails.org).
 
@@ -41,43 +38,123 @@ For example, we use `[link:classes/ActiveRecord/Base.html]` to create a link to 
 
 This is preferred over absolute URLs such as `[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]`, which would take the reader outside their current documentation version (e.g. edgeapi.rubyonrails.org).
 
+[RDoc Markup Reference]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html
+[RDoc link markup]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html#class-RDoc::MarkupReference-label-Links
+
 Wording
 -------
 
-Write simple, declarative sentences. Brevity is a plus: get to the point.
+Write simple, declarative sentences. Brevity is a plus. Get to the point.
 
-Write in present tense: "Returns a hash that...", rather than "Returned a hash that..." or "Will return a hash that...".
+```ruby
+# BAD
+# Caching may interfere with being able to see the results
+# of code changes.
+
+# GOOD
+# Caching interferes with seeing the results of code changes.
+```
+
+Use present tense:
+
+```ruby
+# BAD
+# Returned a hash that...
+# Will return a hash that...
+# Return a hash that...
+
+# GOOD
+# Returns a hash that...
+```
 
 Start comments in upper case. Follow regular punctuation rules:
 
 ```ruby
+# BAD
+# declares an attribute reader backed by an internally-named
+# instance variable
+
+# GOOD
 # Declares an attribute reader backed by an internally-named
 # instance variable.
-def attr_internal_reader(*attrs)
-  # ...
-end
 ```
 
 Communicate to the reader the current way of doing things, both explicitly and implicitly. Use the idioms recommended in edge. Reorder sections to emphasize favored approaches if needed, etc. The documentation should be a model for best practices and canonical, modern Rails usage.
 
+```ruby
+# BAD
+# Book.where('name = ?', "Where the Wild Things Are")
+# Book.where('year_published < ?', 50.years.ago)
+
+# GOOD
+# Book.where(name: "Where the Wild Things Are")
+# Book.where(year_published: ...50.years.ago)
+```
+
 Documentation has to be brief but comprehensive. Explore and document edge cases. What happens if a module is anonymous? What if a collection is empty? What if an argument is nil?
+
+### Naming
 
 The proper names of Rails components have a space in between the words, like "Active Support". `ActiveRecord` is a Ruby module, whereas Active Record is an ORM. All Rails documentation should consistently refer to Rails components by their proper names.
 
-Spell names correctly: Arel, minitest, RSpec, HTML, MySQL, JavaScript, ERB, Hotwire. When in doubt, please have a look at some authoritative source like their official documentation.
-
-Use the article "an" for "SQL", as in "an SQL statement". Also "an SQLite database".
-
-Prefer wordings that avoid "you"s and "your"s. For example, instead of
-
-```markdown
-If you need to use `return` statements in your callbacks, it is recommended that you explicitly define them as methods.
+```ruby
+# GOOD
+# Active Record classes can be created by inheriting from
+# ActiveRecord::Base.
 ```
 
-use this style:
+When referencing a "Rails application", as opposed to an "engine" or "plugin", always use "application". Rails apps are not "services", unless specifically discussing about service-oriented architecture.
 
-```markdown
-If `return` is needed, it is recommended to explicitly define a method.
+```ruby
+# BAD
+# Production services can report their status upstream.
+# Devise is a Rails authentication application.
+
+# GOOD
+# Production applications can report their status upstream.
+# Devise is a Rails authentication engine.
+```
+
+Spell software names correctly. When in doubt, please have a look at some authoritative source like their official documentation.
+
+```ruby
+# GOOD
+# Arel
+# ERB
+# Hotwire
+# HTML
+# JavaScript
+# minitest
+# MySQL
+# npm
+# PostgreSQL
+# RSpec
+```
+
+Use the article "an" for "SQL":
+
+```ruby
+# BAD
+# Creates a SQL statement.
+# Starts a SQLite database.
+
+# GOOD
+# Creates an SQL statement.
+# Starts an SQLite database.
+```
+
+### Pronouns
+
+Prefer wordings that avoid "you"s and "your"s.
+
+```ruby
+# BAD
+# If you need to use +return+ statements in your callbacks, it is
+# recommended that you explicitly define them as methods.
+
+# GOOD
+# If +return+ is needed, it is recommended to explicitly define a
+# method.
 ```
 
 That said, when using pronouns in reference to a hypothetical person, such as "a
@@ -90,13 +167,11 @@ used. Instead of:
 * his or hers... use theirs.
 * himself or herself... use themselves.
 
-English
--------
+### American English
 
 Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
-Oxford Comma
-------------
+### Oxford Comma
 
 Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").
@@ -106,7 +181,7 @@ Example Code
 
 Choose meaningful examples that depict and cover the basics as well as interesting points or gotchas.
 
-Use two spaces to indent chunks of code--that is, for markup purposes, two spaces with respect to the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
+For proper rendering, indent code by two spaces from the left margin. The examples themselves should use [Rails coding conventions](contributing_to_ruby_on_rails.html#follow-the-coding-conventions).
 
 Short docs do not need an explicit "Examples" label to introduce snippets; they just follow paragraphs:
 
@@ -160,14 +235,47 @@ On the other hand, regular comments do not use an arrow:
 #   polymorphic_url(record)  # same as comment_url(record)
 ```
 
+### SQL
+
+When documenting SQL statements, the result should not have `=>` before the output.
+
+For example,
+
+```ruby
+#   User.where(name: 'Oscar').to_sql
+#   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
+```
+
+### IRB
+
+When documenting the behavior for IRB, Ruby's interactive REPL, always prefix commands with `irb>`. The output should be prefixed with `=>`.
+
+For example,
+
+```ruby
+# Find the customer with primary key (id) 10.
+#   irb> customer = Customer.find(10)
+#   # => #<Customer id: 10, first_name: "Ryan">
+```
+
+### Bash / Command-line
+
+For command-line examples, always prefix the command with `$`. The output doesn't have to be prefixed with anything.
+
+```ruby
+# Run the following command:
+#   $ bin/rails new zomg
+#   ...
+```
+
 Booleans
 --------
 
-In predicates and flags prefer documenting boolean semantics over exact values.
+For predicates and flags, prefer documenting boolean semantics over exact values.
 
 When "true" or "false" are used as defined in Ruby use regular font. The
 singletons `true` and `false` need fixed-width font. Please avoid terms like
-"truthy", Ruby defines what is true and false in the language, and thus those
+"truthy". Ruby defines what is true and false in the language, and thus those
 words have a technical meaning and need no substitutes.
 
 As a rule of thumb, do not document singletons unless absolutely necessary. That
@@ -177,8 +285,9 @@ in the implementation.
 
 For example:
 
-```markdown
-`config.action_mailer.perform_deliveries` specifies whether mail will actually be delivered and is true by default
+```ruby
+# +config.action_mailer.perform_deliveries+ specifies whether mail
+# will actually be delivered and is true by default
 ```
 
 the user does not need to know which is the actual default value of the flag,
@@ -189,12 +298,11 @@ An example with a predicate:
 ```ruby
 # Returns true if the collection is empty.
 #
-# If the collection has been loaded
-# it is equivalent to <tt>collection.size.zero?</tt>. If the
-# collection has not been loaded, it is equivalent to
-# <tt>!collection.exists?</tt>. If the collection has not already been
-# loaded and you are going to fetch the records anyway it is better to
-# check <tt>collection.length.zero?</tt>.
+# If the collection has been loaded it is equivalent to
+# +collection.size.zero?+. If the collection has not been loaded,
+# it is equivalent to +!collection.exists?+. If the collection has
+# not already been loaded and you are going to fetch the records
+# anyway, it is better to check +collection.length.zero?+.
 def empty?
   if loaded?
     size.zero?
@@ -205,18 +313,13 @@ end
 ```
 
 The API is careful not to commit to any particular value, the method has
-predicate semantics, that's enough.
+predicate semantics, which is sufficient.
 
 File Names
 ----------
 
 As a rule of thumb, use filenames relative to the application root:
-
-```
-config/routes.rb            # YES
-routes.rb                   # NO
-RAILS_ROOT/config/routes.rb # NO
-```
+`config/routes.rb` instead of `routes.rb` or `RAILS_ROOT/config/routes.rb`.
 
 Fonts
 -----
@@ -225,27 +328,28 @@ Fonts
 
 Use fixed-width fonts for:
 
-* Constants, in particular class and module names.
-* Method names.
-* Literals like `nil`, `false`, `true`, `self`.
-* Symbols.
-* Method parameters.
-* File names.
+* Constants, in particular class and module names
+* Method names
+* Literals like `nil`, `false`, `true`, `self`
+* Symbols
+* Method parameters
+* File names
+* HTML tags and attributes
+* CSS selectors, attributes and values
 
 ```ruby
 class Array
   # Calls +to_param+ on all its elements and joins the result with
   # slashes. This is used by +url_for+ in Action Pack.
   def to_param
-    collect { |e| e.to_param }.join '/'
+    collect { |e| e.to_param }.join "/"
   end
 end
 ```
 
 WARNING: Using `+...+` for fixed-width font only works with simple content like
-ordinary method names, symbols, paths (with forward slashes), etc. Please use
-`<tt>...</tt>` for everything else, notably class or module names with a
-namespace as in `<tt>ActiveRecord::Base</tt>`.
+ordinary classes, modules, method names, symbols, paths (with forward slashes),
+etc. Use `<tt>...</tt>` for everything else.
 
 You can quickly test the RDoc output with the following command:
 
@@ -253,6 +357,8 @@ You can quickly test the RDoc output with the following command:
 $ echo "+:to_param+" | rdoc --pipe
 # => <p><code>:to_param</code></p>
 ```
+
+For example, code with spaces or quotes should use the `<tt>...</tt>` form.
 
 ### Regular Font
 
@@ -285,24 +391,31 @@ In lists of options, parameters, etc. use a hyphen between the item and its desc
 
 The description starts in upper case and ends with a full stop—it's standard English.
 
+An alternative approach, when you want to provide additional detail and examples is to use option section style.
+
+[`ActiveSupport::MessageEncryptor#encrypt_and_sign`][#encrypt_and_sign] is a great example of this.
+
+```ruby
+# ==== Options
+#
+# [+:expires_at+]
+#   The datetime at which the message expires. After this datetime,
+#   verification of the message will fail.
+#
+#     message = encryptor.encrypt_and_sign("hello", expires_at: Time.now.tomorrow)
+#     encryptor.decrypt_and_verify(message) # => "hello"
+#     # 24 hours later...
+#     encryptor.decrypt_and_verify(message) # => nil
+```
+
+[#encrypt_and_sign]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html#method-i-encrypt_and_sign
+
 Dynamically Generated Methods
 -----------------------------
 
 Methods created with `(module|class)_eval(STRING)` have a comment by their side with an instance of the generated code. That comment is 2 spaces away from the template:
 
-```ruby
-for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__ + 1
-    def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
-      add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
-    end                                                              # end
-                                                                     #
-    def #{severity.downcase}?                                        # def debug?
-      #{severity} >= @level                                          #   DEBUG >= @level
-    end                                                              # end
-  EOT
-end
-```
+[![(module|class)_eval(STRING) code comments](images/dynamic_method_class_eval.png)](images/dynamic_method_class_eval.png)
 
 If the resulting lines are too wide, say 200 columns or more, put the comment above the call:
 
@@ -316,19 +429,21 @@ self.class_eval %{
     options = args.extract_options!
     ...
   end
-}
+}, __FILE__, __LINE__
 ```
 
 Method Visibility
 -----------------
 
-When writing documentation for Rails, it's important to understand the difference between public user-facing API vs internal API.
+When writing documentation for Rails, it's important to differentiate between
+the user-facing API and the internal API.
 
-Rails, like most libraries, uses the private keyword from Ruby for defining internal API. However, public API follows a slightly different convention. Instead of assuming all public methods are designed for user consumption, Rails uses the `:nodoc:` directive to annotate these kinds of methods as internal API.
+Methods that are in Ruby's private scope are excluded from the user-facing API.
+However, some internal API methods must be in Ruby's public scope so that they
+can be called elsewhere in the framework. To exclude such methods from the
+user-facing API, use RDoc's `:nodoc:` directive.
 
-This means that there are methods in Rails with `public` visibility that aren't meant for user consumption.
-
-An example of this is `ActiveRecord::Core::ClassMethods#arel_table`:
+An example is `ActiveRecord::Core::ClassMethods#arel_table`:
 
 ```ruby
 module ActiveRecord::Core::ClassMethods
@@ -338,40 +453,39 @@ module ActiveRecord::Core::ClassMethods
 end
 ```
 
-If you thought, "this method looks like a public class method for `ActiveRecord::Core`", you were right. But actually the Rails team doesn't want users to rely on this method. So they mark it as `:nodoc:` and it's removed from public documentation. The reasoning behind this is to allow the team to change these methods according to their internal needs across releases as they see fit. The name of this method could change, or the return value, or this entire class may disappear; there's no guarantee and so you shouldn't depend on this API in your plugins or applications. Otherwise, you risk your app or gem breaking when you upgrade to a newer release of Rails.
+Even though it is a public method, users should not rely on it. The name of this
+method may change, or the return value may change, or this method may be removed
+entirely. By marking it with `:nodoc:`, it is removed from the user-facing API
+documentation.
 
-As a contributor, it's important to think about whether this API is meant for end-user consumption. The Rails team is committed to not making any breaking changes to public API across releases without going through a full deprecation cycle. It's recommended that you `:nodoc:` any of your internal methods/classes unless they're already private (meaning visibility), in which case it's internal by default. Once the API stabilizes the visibility can change, but changing public API is much harder due to backwards compatibility.
-
-A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
-
-To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
+As a contributor, it's important to think about whether an API should be
+user-facing or internal. The Rails team is committed to not making breaking
+changes to the user-facing API without first going through a full deprecation
+cycle. Therefore, you should add `:nodoc:` to any internal methods or modules,
+unless they are already private. (Adding `:nodoc:` to a module or class
+indicates that all methods are internal API, and it should be removed from the
+user-facing API documentation.)
 
 Regarding the Rails Stack
 -------------------------
 
-When documenting parts of Rails API, it's important to remember all of the
-pieces that go into the Rails stack.
+When documenting parts of Rails' API, it's important to be mindful of the entire
+Rails stack. Behavior of the method or class you're documenting may change
+depending on context.
 
-This means that behavior may change depending on the scope or context of the
-method or class you're trying to document.
-
-In various places there is different behavior when you take the entire stack
-into account, one such example is
-`ActionView::Helpers::AssetTagHelper#image_tag`:
+One such example is `ActionView::Helpers::AssetTagHelper#image_tag`:
 
 ```ruby
 # image_tag("icon.png")
 #   # => <img src="/assets/icon.png" />
 ```
 
-Although the default behavior for `#image_tag` is to always return
-`/images/icon.png`, we take into account the full Rails stack (including the
-Asset Pipeline) we may see the result seen above.
+In isolation, `image_tag` would return `/images/icon.png`. However, when we take
+into account the full Rails stack, including the Asset Pipeline, we may see the
+above result.
 
-We're only concerned with the behavior experienced when using the full default
-Rails stack.
-
-In this case, we want to document the behavior of the _framework_, and not just
-this specific method.
+We want to document the behavior of the _framework_, not just isolated methods.
+Our concern is the behavior that the user experiences when using the full
+default Rails stack.
 
 If you have a question on how the Rails team handles certain API, don't hesitate to open a ticket or send a patch to the [issue tracker](https://github.com/rails/rails/issues).

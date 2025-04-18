@@ -14,20 +14,15 @@ module Rails
       require_relative "credentials_command/diffing"
       include Diffing
 
-      self.environment_desc = "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
-
-      no_commands do
-        def help
-          say "Usage:\n  #{self.class.banner}"
-          say ""
-          say self.class.desc
-        end
-      end
-
+      desc "edit", "Open the decrypted credentials in `$VISUAL` or `$EDITOR` for editing"
       def edit
-        extract_environment_option_from_argument(default_environment: nil)
-        require_application!
+        load_environment_config!
         load_generators
+
+        if environment_specified?
+          @content_path = "config/credentials/#{environment}.yml.enc" unless config.overridden?(:content_path)
+          @key_path = "config/credentials/#{environment}.key" unless config.overridden?(:key_path)
+        end
 
         ensure_encryption_key_has_been_added
         ensure_credentials_have_been_added
@@ -36,23 +31,22 @@ module Rails
         change_credentials_in_system_editor
       end
 
+      desc "show", "Show the decrypted credentials"
       def show
-        extract_environment_option_from_argument(default_environment: nil)
-        require_application!
+        load_environment_config!
 
         say credentials.read.presence || missing_credentials_message
       end
 
+      desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
       option :enroll, type: :boolean, default: false,
-        desc: "Enrolls project in credentials file diffing with `git diff`"
-
+        desc: "Enroll project in credentials file diffing with `git diff`"
       option :disenroll, type: :boolean, default: false,
-        desc: "Disenrolls project from credentials file diffing"
-
+        desc: "Disenroll project from credentials file diffing"
       def diff(content_path = nil)
         if @content_path = content_path
-          extract_environment_option_from_argument(default_environment: extract_environment_from_path(content_path))
-          require_application!
+          self.environment = extract_environment_from_path(content_path)
+          load_environment_config!
 
           say credentials.read.presence || credentials.content_path.read
         else
@@ -64,6 +58,18 @@ module Rails
       end
 
       private
+        def config
+          Rails.application.config.credentials
+        end
+
+        def content_path
+          @content_path ||= relative_path(config.content_path)
+        end
+
+        def key_path
+          @key_path ||= relative_path(config.key_path)
+        end
+
         def credentials
           @credentials ||= Rails.application.encrypted(content_path, key_path: key_path)
         end
@@ -83,13 +89,14 @@ module Rails
 
           Rails::Generators::CredentialsGenerator.new(
             [content_path, key_path],
-            skip_secret_key_base: %w[development test].include?(options[:environment]),
+            skip_secret_key_base: environment_specified? && %w[development test].include?(environment),
             quiet: true
           ).invoke_all
         end
 
         def change_credentials_in_system_editor
           using_system_editor do
+            say "Editing #{content_path}..."
             credentials.change { |tmp_path| system_editor(tmp_path) }
             say "File encrypted and saved."
             warn_if_credentials_are_invalid
@@ -110,22 +117,22 @@ module Rails
 
         def missing_credentials_message
           if !credentials.key?
-            "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`"
+            "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`."
           else
             "File '#{content_path}' does not exist. Use `#{executable(:edit)}` to change that."
           end
         end
 
-        def content_path
-          @content_path ||= options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
-        end
-
-        def key_path
-          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
+        def relative_path(path)
+          Rails.root.join(path).relative_path_from(Rails.root).to_s
         end
 
         def extract_environment_from_path(path)
-          available_environments.find { |env| path.include? env } if path.end_with?(".yml.enc")
+          available_environments.find { |env| path.end_with?("#{env}.yml.enc") } || extract_custom_environment(path)
+        end
+
+        def extract_custom_environment(path)
+          path =~ %r{config/credentials/(.+)\.yml\.enc} && $1
         end
     end
   end

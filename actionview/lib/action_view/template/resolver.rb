@@ -4,15 +4,11 @@ require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template"
-require "thread"
 require "concurrent/map"
 
 module ActionView
   # = Action View Resolver
   class Resolver
-    Path = ActionView::TemplatePath
-    deprecate_constant :Path
-
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)
 
@@ -63,6 +59,11 @@ module ActionView
     # Normalizes the arguments and passes it on to find_templates.
     def find_all(name, prefix = nil, partial = false, details = {}, key = nil, locals = [])
       _find_all(name, prefix, partial, details, key, locals)
+    end
+
+    def built_templates # :nodoc:
+      # Used for error pages
+      []
     end
 
     def all_template_paths # :nodoc:
@@ -120,6 +121,10 @@ module ActionView
       end.uniq.map do |filename|
         TemplatePath.parse(filename)
       end
+    end
+
+    def built_templates # :nodoc:
+      @unbound_templates.values.flatten.flat_map(&:built_templates)
     end
 
     private

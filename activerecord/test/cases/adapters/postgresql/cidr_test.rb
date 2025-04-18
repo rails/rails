@@ -21,6 +21,23 @@ module ActiveRecord
 
           assert_equal "foo", type.serialize("foo")
         end
+
+        test "changed? with nil values" do
+          type = OID::Cidr.new
+
+          assert_not type.changed?(nil, nil, "")
+          assert type.changed?("192.168.0.0/24", nil, "")
+          assert type.changed?(nil, "192.168.0.0/24", "")
+          assert type.changed?("192.168.0.0/24", "192.168.0.0/25", "")
+          assert type.changed?(IPAddr.new("192.168.0.0/24"), nil, "")
+          assert type.changed?(nil, IPAddr.new("192.168.0.0/24"), "")
+          assert type.changed?(IPAddr.new("192.168.0.0/24"), IPAddr.new("192.168.0.0/25"), "")
+
+          assert type.changed?(IPAddr.new("0.0.0.0"), nil, "")
+          assert type.changed?(nil, IPAddr.new("0.0.0.0"), "")
+          assert type.changed?(IPAddr.new("::"), nil, "")
+          assert type.changed?(nil, IPAddr.new("::"), "")
+        end
       end
     end
   end

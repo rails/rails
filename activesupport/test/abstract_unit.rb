@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../tools/strict_warnings"
+
 ORIG_ARGV = ARGV.dup
 
 require "bundler/setup"
@@ -12,6 +14,7 @@ end
 
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
+require "active_support/testing/error_reporter_assertions"
 
 ENV["NO_RELOAD"] = "1"
 require "active_support"
@@ -19,12 +22,14 @@ require "active_support"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActiveSupport.deprecator.behavior = :raise
 
 # Default to Ruby 2.4+ to_time behavior but allow running tests with old behavior
-ActiveSupport::Deprecation.silence do
+ActiveSupport.deprecator.silence do
   ActiveSupport.to_time_preserves_timezone = ENV.fetch("PRESERVE_TIMEZONES", "1") == "1"
 end
+
+ActiveSupport::Cache.format_version = 7.1
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -37,17 +42,7 @@ class ActiveSupport::TestCase
   end
 
   include ActiveSupport::Testing::MethodCallAssertions
-
-  private
-    # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
-    end
-
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
+  include ActiveSupport::Testing::ErrorReporterAssertions
 end
 
 require_relative "../../tools/test_common"

@@ -14,6 +14,10 @@ module ActiveModel
         def changed_in_place?(raw_old_value, new_value)
           raw_old_value != serialize(new_value)
         end
+
+        def mutable? # :nodoc:
+          true
+        end
       end
     end
   end

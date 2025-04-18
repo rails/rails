@@ -12,15 +12,18 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
 
     assert_equal 0.914286, metadata[:duration]
     assert_equal 128000, metadata[:bit_rate]
+    assert_equal 44100, metadata[:sample_rate]
+    assert_not_nil metadata[:tags]
+    assert_equal "Lavc57.64", metadata[:tags][:encoder]
   end
 
   test "instrumenting analysis" do
-    events = subscribe_events_from("analyze.active_storage")
-
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
-    blob.analyze
 
-    assert_equal 1, events.size
-    assert_equal({ analyzer: "ffprobe" }, events.first.payload)
+    assert_notifications_count("analyze.active_storage", 1) do
+      assert_notification("analyze.active_storage", analyzer: "ffprobe") do
+        blob.analyze
+      end
+    end
   end
 end

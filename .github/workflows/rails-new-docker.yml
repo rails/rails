@@ -1,0 +1,49 @@
+name: rails-new-docker
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+env:
+  APP_NAME: devrails
+  APP_PATH: dev/devrails
+  BUNDLE_WITHOUT: db:job:cable:storage
+
+jobs:
+  rails-new-docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Remove Gemfile.lock
+      run: rm -f Gemfile.lock
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.4
+        bundler-cache: true
+    - name: Generate --dev app
+      run: |
+        bundle exec railties/exe/rails new $APP_PATH --dev
+    - name: Build image
+      run: |
+        podman build -t $APP_NAME \
+        -v $(pwd):$(pwd) \
+        -f ./$APP_PATH/Dockerfile \
+        ./$APP_PATH
+    - name: Run container
+      run: |
+        podman run --name $APP_NAME \
+        -v $(pwd):$(pwd) \
+        -e SECRET_KEY_BASE_DUMMY=1 \
+        -e DATABASE_URL=sqlite3:storage/production.sqlite3 \
+        -p 3000:3000 $APP_NAME &
+    - name: Test container
+      run: ruby -r ./.github/workflows/scripts/test-container.rb
+
+    - uses: zzak/action-discord@v8
+      continue-on-error: true
+      if: failure() && github.ref_name == 'main'
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}

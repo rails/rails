@@ -16,6 +16,11 @@ class Object
 end
 
 class NilClass
+  # Returns a CGI-escaped +key+.
+  def to_query(key)
+    CGI.escape(key.to_param)
+  end
+
   # Returns +self+.
   def to_param
     self
@@ -72,8 +77,6 @@ class Hash
   #
   # The string pairs "key=value" that conform the query string
   # are sorted lexicographically in ascending order.
-  #
-  # This method is also aliased as +to_param+.
   def to_query(namespace = nil)
     query = filter_map do |key, value|
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?

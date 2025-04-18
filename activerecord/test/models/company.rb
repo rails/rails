@@ -7,6 +7,8 @@ end
 class Company < AbstractCompany
   self.sequence_name = :companies_nonstd_seq
 
+  enum :status, [:active, :suspended]
+
   validates_presence_of :name
 
   has_one :account, foreign_key: "firm_id"
@@ -56,7 +58,7 @@ class Firm < Company
   has_many :unsorted_clients, class_name: "Client"
   has_many :unsorted_clients_with_symbol, class_name: :Client
   has_many :clients_sorted_desc, -> { order "id DESC" }, class_name: "Client"
-  has_many :clients_of_firm, -> { order "id" }, foreign_key: "client_of", class_name: "Client", inverse_of: :firm
+  has_many :clients_of_firm, -> { order "id" }, class_name: "Client", inverse_of: :firm
   has_many :clients_ordered_by_name, -> { order "name" }, class_name: "Client"
   has_many :unvalidated_clients_of_firm, foreign_key: "client_of", class_name: "Client", validate: false
   has_many :dependent_clients_of_firm, -> { order "id" }, foreign_key: "client_of", class_name: "Client", dependent: :destroy
@@ -83,6 +85,8 @@ class Firm < Company
   has_one :account_using_foreign_and_primary_keys, foreign_key: "firm_name", primary_key: "name", class_name: "Account"
   has_one :account_with_inexistent_foreign_key, class_name: "Account", foreign_key: "inexistent"
   has_one :deletable_account, foreign_key: "firm_id", class_name: "Account", dependent: :delete
+
+  has_one :client, foreign_key: "client_of"
 
   has_one :account_limit_500_with_hash_conditions, -> { where credit_limit: 500 }, foreign_key: "firm_id", class_name: "Account"
 
@@ -134,7 +138,7 @@ class Agency < Firm
 end
 
 class Client < Company
-  belongs_to :firm, foreign_key: "client_of"
+  belongs_to :firm, foreign_key: "client_of", inverse_of: :client
   belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id"
   belongs_to :firm_with_select, -> { select("id") }, class_name: "Firm", foreign_key: "firm_id"
   belongs_to :firm_with_other_name, class_name: "Firm", foreign_key: "client_of"
@@ -207,6 +211,16 @@ class ExclusivelyDependentFirm < Company
   has_many :dependent_sanitized_conditional_clients_of_firm, -> { order("id").where("name = 'BigShot Inc.'") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
   has_many :dependent_hash_conditional_clients_of_firm, -> { order("id").where(name: "BigShot Inc.") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
   has_many :dependent_conditional_clients_of_firm, -> { order("id").where("name = ?", "BigShot Inc.") }, foreign_key: "client_of", class_name: "Client", dependent: :delete_all
+end
+
+class LargeClient < Client
+  attribute :extra_size, :integer
+
+  after_initialize :set_extra_size
+
+  def set_extra_size
+    self[:extra_size] = 50
+  end
 end
 
 class SpecialClient < Client

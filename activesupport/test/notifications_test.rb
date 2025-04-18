@@ -37,7 +37,7 @@ module Notifications
       assert event, "should have an event"
       assert_operator event.allocations, :>, 0
       assert_operator event.cpu_time, :>, 0
-      assert_operator event.idle_time, :>, 0
+      assert_operator event.idle_time, :>=, 0
       assert_operator event.duration, :>, 0
     end
 
@@ -386,9 +386,7 @@ module Notifications
       @notifier.publish :foo
       @notifier.publish :foo
 
-      @notifier.subscribe("not_existent") do |*args|
-        @events << ActiveSupport::Notifications::Event.new(*args)
-      end
+      @notifier.subscribe("not_existent") { |event| @events << event }
 
       @notifier.publish :foo
       @notifier.publish :foo

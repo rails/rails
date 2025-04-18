@@ -87,10 +87,9 @@ module ActiveModel
       #     validates_length_of :words_in_essay, minimum: 100, too_short: 'Your essay must be at least 100 words.'
       #
       #     private
-      #
-      #     def words_in_essay
-      #       essay.scan(/\w+/)
-      #     end
+      #       def words_in_essay
+      #         essay.scan(/\w+/)
+      #       end
       #   end
       #
       # Constraint options:

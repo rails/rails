@@ -83,7 +83,7 @@ module ActiveRecord
     test "cast_values returns rows after type casting" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      types = [Type::Integer.new, Type::Float.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1, 2.2], [3, 4.4]], result.cast_values
@@ -92,7 +92,7 @@ module ActiveRecord
     test "cast_values uses identity type for unknown types" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new }
+      types = [Type::Integer.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1, "2.2"], [3, "4.4"]], result.cast_values
@@ -101,7 +101,7 @@ module ActiveRecord
     test "cast_values returns single dimensional array if single column" do
       values = [["1.1"], ["3.3"]]
       columns = ["col1"]
-      types = { "col1" => Type::Integer.new }
+      types = [Type::Integer.new]
       result = Result.new(columns, values, types)
 
       assert_equal [1, 3], result.cast_values
@@ -110,10 +110,58 @@ module ActiveRecord
     test "cast_values can receive types to use instead" do
       values = [["1.1", "2.2"], ["3.3", "4.4"]]
       columns = ["col1", "col2"]
-      types = { "col1" => Type::Integer.new, "col2" => Type::Float.new }
+      types = [Type::Integer.new, Type::Float.new]
       result = Result.new(columns, values, types)
 
       assert_equal [[1.1, 2.2], [3.3, 4.4]], result.cast_values("col1" => Type::Float.new)
+    end
+
+    test "each when two columns have the same name" do
+      result = Result.new(["foo", "foo"], [
+        ["col 1", "col 2"],
+        ["col 1", "col 2"],
+        ["col 1", "col 2"],
+      ])
+
+      assert_equal 2, result.columns.size
+      result.each do |row|
+        assert_equal 1, row.size
+        assert_equal "col 2", row["foo"]
+      end
+    end
+
+    test "dup preserve all attributes" do
+      a = result
+      b = a.dup
+
+      assert_equal a.column_types, b.column_types
+      assert_equal a.columns, b.columns
+      assert_equal a.rows, b.rows
+      assert_equal a.column_indexes, b.column_indexes
+
+      # Second round in case of mutation
+      b = b.dup
+
+      assert_equal a.column_types, b.column_types
+      assert_equal a.columns, b.columns
+      assert_equal a.rows, b.rows
+      assert_equal a.column_indexes, b.column_indexes
+    end
+
+    test "column_types handles nil types in the column_types array" do
+      values = [["1.1", "2.2"], ["3.3", "4.4"]]
+      columns = ["col1", "col2"]
+      types = [Type::Integer.new, nil]  # Deliberately nil type for col2
+      result = Result.new(columns, values, types)
+
+      assert_not_nil result.column_types["col1"]
+      assert_not_nil result.column_types["col2"]
+
+      assert_instance_of ActiveRecord::Type::Value, result.column_types["col2"]
+
+      assert_nothing_raised do
+        result.column_types["col2"].deserialize("test value")
+      end
     end
   end
 end

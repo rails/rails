@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Boolean \Type
+    #
     # A class that behaves like a boolean type, including rules for coercion of
     # user input.
     #
@@ -10,6 +12,7 @@ module ActiveModel
     # - Empty strings are coerced to +nil+.
     # - All other values will be coerced to +true+.
     class Boolean < Value
+      include Helpers::Immutable
       FALSE_VALUES = [
         false, 0,
         "0", :"0",
@@ -27,6 +30,10 @@ module ActiveModel
 
       def serialize(value) # :nodoc:
         cast(value)
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        value
       end
 
       private

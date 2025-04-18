@@ -1,18 +1,18 @@
+#!/bin/sh
+
+bundle update --bundler
 bundle install
-yarn install
 
-sudo chown -R vscode:vscode /usr/local/bundle
+if [ -n "${NVM_DIR}" ]; then
+  # shellcheck disable=SC1091
+  . "${NVM_DIR}/nvm.sh" && nvm install --lts
+  yarn install
+fi
 
-sudo service postgresql start
-sudo service mariadb start
-sudo service redis-server start
-sudo service memcached start
+cd activerecord || { echo "activerecord directory doesn't exist"; exit; }
 
-# Create PostgreSQL users and databases
-sudo su postgres -c "createuser --superuser vscode"
-sudo su postgres -c "createdb -O vscode -E UTF8 -T template0 activerecord_unittest"
-sudo su postgres -c "createdb -O vscode -E UTF8 -T template0 activerecord_unittest2"
+# Create PostgreSQL databases
+bundle exec rake db:postgresql:rebuild
 
-# Create MySQL database and databases
-cd activerecord
-MYSQL_CODESPACES=1 bundle exec rake db:mysql:build
+# Create MySQL databases
+bundle exec rake db:mysql:rebuild

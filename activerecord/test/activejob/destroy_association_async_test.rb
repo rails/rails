@@ -6,6 +6,7 @@ require "models/book_destroy_async"
 require "models/essay_destroy_async"
 require "models/tag"
 require "models/tagging"
+require "models/author"
 require "models/essay"
 require "models/category"
 require "models/post"
@@ -18,10 +19,16 @@ require "models/dl_keyed_has_one"
 require "models/dl_keyed_join"
 require "models/dl_keyed_has_many"
 require "models/dl_keyed_has_many_through"
+require "models/sharded/blog_post_destroy_async"
+require "models/sharded/comment_destroy_async"
+require "models/sharded/tag"
+require "models/sharded/blog_post"
+require "models/sharded/blog_post_tag"
+require "models/sharded/blog"
+require "models/cpk/book_destroy_async"
+require "models/cpk/chapter_destroy_async"
 
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-
   include ActiveJob::TestHelper
 
   test "destroying a record destroys the has_many :through records using a job" do
@@ -41,6 +48,39 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     Tag.delete_all
     BookDestroyAsync.delete_all
+  end
+
+  test "destroying a record destroys has_many :through associated by composite primary key using a job" do
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
+
+    tag1 = Sharded::Tag.create!(name: "Short Read", blog_id: blog.id)
+    tag2 = Sharded::Tag.create!(name: "Science", blog_id: blog.id)
+
+    blog_post.tags << [tag1, tag2]
+
+    blog_post.save!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      blog_post.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Sharded::Tag.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 2, delete_sqls.count
+
+    delete_sqls.each do |sql|
+      assert_match(/#{Regexp.escape(quote_table_name("sharded_tags.blog_id"))} =/, sql)
+    end
+  ensure
+    Sharded::Tag.delete_all
+    Sharded::BlogPostDestroyAsync.delete_all
+    Sharded::Blog.delete_all
   end
 
   test "destroying a scoped has_many through only deletes within the scope deleted" do
@@ -128,6 +168,33 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
+  test "belongs to associated by composite primary key" do
+    blog = Sharded::Blog.create!
+    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
+    comment = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:")
+
+    comment.blog_post = blog_post
+    comment.save!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      comment.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Sharded::BlogPostDestroyAsync.count }, -1 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 1, delete_sqls.count
+    assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))} =/, delete_sqls.first)
+  ensure
+    Sharded::BlogPostDestroyAsync.delete_all
+    Sharded::CommentDestroyAsync.delete_all
+    Sharded::Blog.delete_all
+  end
+
   test "enqueues belongs_to to be deleted with custom primary key" do
     belongs = DlKeyedBelongsTo.create!
     parent = DestroyAsyncParent.create!
@@ -141,6 +208,20 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedBelongsTo.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "polymorphic belongs_to" do
+    writer = Author.create(name: "David")
+    essay = EssayDestroyAsync.create!(name: "Der be treasure", writer: writer)
+
+    essay.destroy
+
+    assert_difference -> { Author.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    Author.delete_all
   end
 
   test "has_one" do
@@ -216,6 +297,32 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     DlKeyedHasMany.delete_all
     DestroyAsyncParent.delete_all
+  end
+
+  test "has_many associated with composite primary key" do
+    book = Cpk::BookDestroyAsync.create!(id: [1, 1])
+    _chapter1 = book.chapters.create!(id: [1, 1], title: "Chapter 1")
+    _chapter2 = book.chapters.create!(id: [1, 2], title: "Chapter 2")
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.destroy
+    end
+
+    sql = capture_sql do
+      assert_difference -> { Cpk::ChapterDestroyAsync.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
+    end
+
+    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+    assert_equal 2, delete_sqls.count
+
+    delete_sqls.each do |sql|
+      assert_match(/#{Regexp.escape(quote_table_name("cpk_chapters.author_id"))} =/, sql)
+    end
+  ensure
+    Cpk::ChapterDestroyAsync.delete_all
+    Cpk::BookDestroyAsync.delete_all
   end
 
   test "not enqueue the job if transaction is not committed" do
@@ -301,7 +408,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     belongs.destroy
     perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
-    assert parent.reload.deleted?
+    assert_predicate parent.reload, :deleted?
   ensure
     DlKeyedBelongsToSoftDelete.delete_all
     DestroyAsyncParentSoftDelete.delete_all
@@ -327,8 +434,8 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
     assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+  ensure
+    Tag.delete_all
+    BookDestroyAsync.delete_all
   end
-ensure
-  Tag.delete_all
-  BookDestroyAsync.delete_all
 end

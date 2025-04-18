@@ -3,12 +3,12 @@
 require "fileutils"
 require "action_dispatch"
 require "rails"
-require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
+require "rails/rackup/server"
 
 module Rails
-  class Server < ::Rack::Server
+  class Server < Rackup::Server
     class Options
       def parse!(args)
         Rails::Command::ServerCommand.new([], args).server_options
@@ -79,13 +79,13 @@ module Rails
         console.formatter = Rails.logger.formatter
         console.level = Rails.logger.level
 
-        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
-          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+        unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
+          Rails.logger.broadcast_to(console)
         end
       end
 
       def use_puma?
-        server.to_s == "Rack::Handler::Puma"
+        server.to_s.end_with?("Handler::Puma")
       end
   end
 
@@ -93,31 +93,32 @@ module Rails
     class ServerCommand < Base # :nodoc:
       include EnvironmentArgument
 
+      RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon)
       # Hard-coding a bunch of handlers here as we don't have a public way of
-      # querying them from the Rack::Handler registry.
-      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
+      # querying them from the Rackup::Handler registry.
+      RACK_HANDLERS = RACK_HANDLER_GEMS + %w(fastcgi lsws)
       RECOMMENDED_SERVER = "puma"
 
       DEFAULT_PORT = 3000
       DEFAULT_PIDFILE = "tmp/pids/server.pid"
 
       class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
+        desc: "Run Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
-        desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
+        desc: "Bind Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
       class_option :config, aliases: "-c", type: :string, default: "config.ru",
-        desc: "Uses a custom rackup configuration.", banner: :file
+        desc: "Use a custom rackup configuration.", banner: :file
       class_option :daemon, aliases: "-d", type: :boolean, default: false,
-        desc: "Runs server as a Daemon."
+        desc: "Run server as a Daemon."
       class_option :using, aliases: "-u", type: :string,
-        desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
+        desc: "Specify the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string,
-        desc: "Specifies the PID file - defaults to #{DEFAULT_PIDFILE}."
+        desc: "Specify the PID file. Defaults to #{DEFAULT_PIDFILE} in development."
       class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
-        desc: "Specifies whether to perform caching in development."
+        desc: "Specify whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
-      class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
+      class_option :early_hints, type: :boolean, default: nil, desc: "Enable HTTP/2 early hints."
       class_option :log_to_stdout, type: :boolean, default: nil, optional: true,
         desc: "Whether to log to stdout. Enabled by default in development when not daemonized."
 
@@ -127,8 +128,8 @@ module Rails
         @original_options = local_options - %w( --restart )
       end
 
+      desc "server", "Start the Rails server"
       def perform
-        extract_environment_option_from_argument
         set_application_directory!
         prepare_restart
 
@@ -242,15 +243,13 @@ module Rails
         end
 
         def pid
-          File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
-        end
-
-        def self.banner(*)
-          "#{executable} -u [thin/puma/webrick] [options]"
+          default_pidfile = environment == "development" ? DEFAULT_PIDFILE : nil
+          pid = options[:pid] || ENV["PIDFILE"] || default_pidfile
+          File.expand_path(pid) if pid
         end
 
         def prepare_restart
-          FileUtils.rm_f(pid) if options[:restart]
+          FileUtils.rm_f(pid) if pid && options[:restart]
         end
 
         def rack_server_suggestion(server)
@@ -262,7 +261,7 @@ module Rails
 
               Run `#{executable} --help` for more options.
             MSG
-          elsif server.in?(RACK_SERVERS)
+          elsif server.in?(RACK_HANDLER_GEMS)
             <<~MSG
               Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
 
@@ -271,14 +270,9 @@ module Rails
               Run `#{executable} --help` for more options.
             MSG
           else
-            error = CorrectableError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
-            if error.respond_to?(:detailed_message)
-              formatted_message = error.detailed_message
-            else
-              formatted_message = error.message
-            end
+            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_HANDLERS)
             <<~MSG
-              #{formatted_message}
+              #{error.detailed_message}
               Run `#{executable} --help` for more options.
             MSG
           end

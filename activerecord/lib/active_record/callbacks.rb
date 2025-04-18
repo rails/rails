@@ -84,7 +84,7 @@ module ActiveRecord
   # == Types of callbacks
   #
   # There are three types of callbacks accepted by the callback macros: method references (symbol), callback objects,
-  # inline methods (using a proc). Method references and callback objects are the recommended approaches,
+  # inline methods (using a proc). \Method references and callback objects are the recommended approaches,
   # inline methods using a proc are sometimes appropriate (such as for creating mix-ins).
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
@@ -173,7 +173,7 @@ module ActiveRecord
   #
   # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
   # the associated action are cancelled.
-  # Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
+  # \Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
   # methods on the model, which are called last.
   #
   # == Ordering callbacks
@@ -224,42 +224,26 @@ module ActiveRecord
   #     after_save :do_something_else
   #
   #     private
+  #       def log_children
+  #         # Child processing
+  #       end
   #
-  #     def log_children
-  #       # Child processing
-  #     end
-  #
-  #     def do_something_else
-  #       # Something else
-  #     end
+  #       def do_something_else
+  #         # Something else
+  #       end
   #   end
   #
   # In this case the +log_children+ is executed before +do_something_else+.
-  # The same applies to all non-transactional callbacks.
+  # This applies to all non-transactional callbacks, and to +before_commit+.
   #
-  # As seen below, in case there are multiple transactional callbacks the order
-  # is reversed.
+  # For transactional +after_+ callbacks (+after_commit+, +after_rollback+, etc), the order
+  # can be set via configuration.
   #
-  # For example:
+  #   config.active_record.run_after_transaction_callbacks_in_order_defined = false
   #
-  #   class Topic < ActiveRecord::Base
-  #     has_many :children
-  #
-  #     after_commit :log_children
-  #     after_commit :do_something_else
-  #
-  #     private
-  #
-  #     def log_children
-  #       # Child processing
-  #     end
-  #
-  #     def do_something_else
-  #       # Something else
-  #     end
-  #   end
-  #
-  # In this case the +do_something_else+ is executed before +log_children+.
+  # When set to +true+ (the default from \Rails 7.1), callbacks are executed in the order they
+  # are defined, just like the example above. When set to +false+, the order is reversed, so
+  # +do_something_else+ is executed before +log_children+.
   #
   # == \Transactions
   #
@@ -434,7 +418,7 @@ module ActiveRecord
 
     def destroy # :nodoc:
       @_destroy_callback_already_called ||= false
-      return if @_destroy_callback_already_called
+      return true if @_destroy_callback_already_called
       @_destroy_callback_already_called = true
       _run_destroy_callbacks { super }
     rescue RecordNotDestroyed => e
@@ -462,7 +446,7 @@ module ActiveRecord
     end
 
     def _update_record
-      _run_update_callbacks { super }
+      _run_update_callbacks { record_update_timestamps { super } }
     end
   end
 end

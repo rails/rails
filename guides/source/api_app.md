@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Using Rails for API-only Applications
 =====================================
@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
+For example, X uses its [public API](https://developer.x.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -131,7 +131,7 @@ If you're building a Rails application that will be an API server first and
 foremost, you can start with a more limited subset of Rails and add in features
 as needed.
 
-### Creating a new application
+### Creating a New Application
 
 You can generate a new api Rails app:
 
@@ -151,7 +151,98 @@ This will do three main things for you:
 - Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
-### Changing an existing application
+### Generating a New Resource
+
+To see how our newly created API handles generating a new resource, let's create
+a new Group resource. Each group will have a name.
+
+```bash
+$ bin/rails g scaffold Group name:string
+```
+
+Before we can use our scaffolded code, we need to update our database scheme.
+
+```bash
+$ bin/rails db:migrate
+```
+
+Now if we open our `GroupsController`, we should notice that with an API Rails
+app we are rendering JSON data only. On the index action we query for `Group.all`
+and assign it to an instance variable called `@groups`. Passing it to `render` with the
+`:json` option will automatically render the groups as JSON.
+
+```ruby
+# app/controllers/groups_controller.rb
+class GroupsController < ApplicationController
+  before_action :set_group, only: %i[ show update destroy ]
+
+  # GET /groups
+  def index
+    @groups = Group.all
+
+    render json: @groups
+  end
+
+  # GET /groups/1
+  def show
+    render json: @group
+  end
+
+  # POST /groups
+  def create
+    @group = Group.new(group_params)
+
+    if @group.save
+      render json: @group, status: :created, location: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH/PUT /groups/1
+  def update
+    if @group.update(group_params)
+      render json: @group
+    else
+      render json: @group.errors, status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /groups/1
+  def destroy
+    @group.destroy
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_group
+      @group = Group.find(params[:id])
+    end
+
+    # Only allow a list of trusted parameters through.
+    def group_params
+      params.expect(group: [:name])
+    end
+end
+```
+
+Finally we can add some groups to our database from the Rails console:
+
+```irb
+irb> Group.create(name: "Rails Founders")
+irb> Group.create(name: "Rails Contributors")
+```
+
+With some data in the app, we can boot up the server and visit <http://localhost:3000/groups.json> to see our JSON data.
+
+```json
+[
+{"id":1, "name":"Rails Founders", "created_at": ...},
+{"id":2, "name":"Rails Contributors", "created_at": ...}
+]
+```
+
+### Changing an Existing Application
 
 If you want to take an existing application and make it an API one, read the
 following steps.
@@ -234,13 +325,16 @@ You can get a list of all middleware in your application via:
 $ bin/rails middleware
 ```
 
-### Using the Cache Middleware
+### Using Rack::Cache
 
-By default, Rails will add a middleware that provides a cache store based on
-the configuration of your application (memcache by default). This means that
-the built-in HTTP cache will rely on it.
+When used with Rails, `Rack::Cache` uses the Rails cache store for its
+entity and meta stores. This means that if you use memcache, for your
+Rails app, for instance, the built-in HTTP cache will use memcache.
 
-For instance, using the `stale?` method:
+To make use of `Rack::Cache`, you first need to add the `rack-cache` gem
+to `Gemfile`, and set `config.action_dispatch.rack_cache` to `true`.
+To enable its functionality, you will want to use `stale?` in your
+controller. Here’s an example of `stale?` in use.
 
 ```ruby
 def show
@@ -257,7 +351,7 @@ with `@post.updated_at`. If the header is newer than the last modified, this
 action will return a "304 Not Modified" response. Otherwise, it will render the
 response and include a `Last-Modified` header in it.
 
-Normally, this mechanism is used on a per-client basis. The cache middleware
+Normally, this mechanism is used on a per-client basis. `Rack::Cache`
 allows us to share this caching mechanism across clients. We can enable
 cross-client caching in the call to `stale?`:
 
@@ -271,7 +365,7 @@ def show
 end
 ```
 
-This means that the cache middleware will store off the `Last-Modified` value
+This means that `Rack::Cache` will store off the `Last-Modified` value
 for a URL in the Rails cache, and add an `If-Modified-Since` header to any
 subsequent inbound requests for the same URL.
 
@@ -285,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
@@ -318,24 +413,21 @@ format and make them available in your controller inside `params`.
 To use this, your client will need to make a request with JSON-encoded parameters
 and specify the `Content-Type` as `application/json`.
 
-Here's an example in jQuery:
+Here's an example:
 
 ```js
-jQuery.ajax({
-  type: 'POST',
-  url: '/people',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify({ person: { firstName: "Yehuda", lastName: "Katz" } }),
-  success: function(json) { }
-});
+fetch('/people', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ person: { firstName: 'Yehuda', lastName: 'Katz' } })
+}).then(response => response.json())
 ```
 
 `ActionDispatch::Request` will see the `Content-Type` and your parameters
 will be:
 
 ```ruby
-{ :person => { :firstName => "Yehuda", :lastName => "Katz" } }
+{ person: { firstName: "Yehuda", lastName: "Katz" } }
 ```
 
 ### Using Session Middlewares
@@ -356,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_interslice_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies
@@ -397,24 +489,21 @@ Choosing Controller Modules
 An API application (using `ActionController::API`) comes with the following
 controller modules by default:
 
-- `ActionController::UrlFor`: Makes `url_for` and similar helpers available.
-- `ActionController::Redirecting`: Support for `redirect_to`.
-- `AbstractController::Rendering` and `ActionController::ApiRendering`: Basic support for rendering.
-- `ActionController::Renderers::All`: Support for `render :json` and friends.
-- `ActionController::ConditionalGet`: Support for `stale?`.
-- `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
-- `ActionController::StrongParameters`: Support for parameters filtering in combination with Active Model mass assignment.
-- `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
-- `AbstractController::Callbacks`: Support for `before_action` and
-  similar helpers.
-- `ActionController::Rescue`: Support for `rescue_from`.
-- `ActionController::Instrumentation`: Support for the instrumentation
-  hooks defined by Action Controller (see [the instrumentation
-  guide](active_support_instrumentation.html#action-controller) for
-more information regarding this).
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
-  so that you don't have to specify root elements sending POST requests for instance.
-- `ActionController::Head`: Support for returning a response with no content, only headers.
+|   |   |
+|---|---|
+| `ActionController::UrlFor` | Makes `url_for` and similar helpers available. |
+| `ActionController::Redirecting` | Support for `redirect_to`. |
+| `AbstractController::Rendering` and `ActionController::ApiRendering` | Basic support for rendering. |
+| `ActionController::Renderers::All` | Support for `render :json` and friends. |
+| `ActionController::ConditionalGet` | Support for `stale?`. |
+| `ActionController::BasicImplicitRender` | Makes sure to return an empty response, if there isn't an explicit one. |
+| `ActionController::StrongParameters` | Support for parameters filtering in combination with Active Model mass assignment. |
+| `ActionController::DataStreaming` | Support for `send_file` and `send_data`. |
+| `AbstractController::Callbacks` | Support for `before_action` and similar helpers. |
+| `ActionController::Rescue` | Support for `rescue_from`. |
+| `ActionController::Instrumentation` | Support for the instrumentation hooks defined by Action Controller (see [the instrumentation guide](active_support_instrumentation.html#action-controller) for more information regarding this). |
+| `ActionController::ParamsWrapper` | Wraps the parameters hash into a nested hash, so that you don't have to specify root elements sending POST requests for instance.
+| `ActionController::Head` | Support for returning a response with no content, only headers. |
 
 Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
@@ -457,7 +546,8 @@ Some common modules you might want to add:
       self.cache_store = :mem_cache_store
     end
     ```
-  Rails does *not* pass this configuration automatically.
+
+    Rails does *not* pass this configuration automatically.
 
 The best place to add a module is in your `ApplicationController`, but you can
 also add modules to individual controllers.

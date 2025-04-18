@@ -60,6 +60,10 @@ module Rails
       }
     }
 
+    # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
+    # can change when we FileUtils.cd.
+    RAILS_DEV_PATH = File.expand_path("../../..", __dir__) # :nodoc:
+
     class << self
       def configure!(config) # :nodoc:
         api_only! if config.api_only
@@ -90,14 +94,14 @@ module Rails
       end
 
       # Hold configured generators fallbacks. If a plugin developer wants a
-      # generator group to fallback to another group in case of missing generators,
+      # generator group to fall back to another group in case of missing generators,
       # they can add a fallback.
       #
-      # For example, shoulda is considered a test_framework and is an extension
-      # of test_unit. However, most part of shoulda generators are similar to
-      # test_unit ones.
+      # For example, shoulda is considered a +test_framework+ and is an extension
+      # of +test_unit+. However, most part of shoulda generators are similar to
+      # +test_unit+ ones.
       #
-      # Shoulda then can tell generators to search for test_unit generators when
+      # Shoulda then can tell generators to search for +test_unit+ generators when
       # some of them are not available by adding a fallback:
       #
       #   Rails::Generators.fallbacks[:shoulda] = :test_unit
@@ -151,8 +155,11 @@ module Rails
             "#{template}:scaffold",
             "#{template}:mailer",
             "action_text:install",
-            "action_mailbox:install"
-          ]
+            "action_mailbox:install",
+            "devcontainer"
+          ].tap do |h|
+            h << "test_unit" if test.to_s != "test_unit"
+          end
         end
       end
 
@@ -163,7 +170,8 @@ module Rails
 
       # Show help message with available generators.
       def help(command = "generate")
-        puts "Usage: rails #{command} GENERATOR [args] [options]"
+        puts "Usage:"
+        puts "  bin/rails #{command} GENERATOR [args] [options]"
         puts
         puts "General options:"
         puts "  -h, [--help]     # Print generator's options and usage"
@@ -201,7 +209,6 @@ module Rails
         rails.map! { |n| n.delete_prefix("rails:") }
         rails.delete("app")
         rails.delete("plugin")
-        rails.delete("encrypted_secrets")
         rails.delete("encrypted_file")
         rails.delete("encryption_key_file")
         rails.delete("master_key")
@@ -261,18 +268,13 @@ module Rails
           run_after_generate_callback if config[:behavior] == :invoke
         else
           options = sorted_groups.flat_map(&:last)
-          error   = Command::Base::CorrectableError.new("Could not find generator '#{namespace}'.", namespace, options)
-
-          if error.respond_to?(:detailed_message)
-            formatted_message = error.detailed_message
-          else
-            formatted_message = error.message
-          end
+          error = Command::CorrectableNameError.new("Could not find generator '#{namespace}'.", namespace, options)
 
           puts <<~MSG
-            #{formatted_message}
+            #{error.detailed_message}
             Run `bin/rails generate --help` for more options.
           MSG
+          exit 1
         end
       end
 
@@ -317,7 +319,7 @@ module Rails
 
         def run_after_generate_callback
           if defined?(@@generated_files) && !@@generated_files.empty?
-            @after_generate_callbacks.each do |callback|
+            after_generate_callbacks.each do |callback|
               callback.call(@@generated_files)
             end
             @@generated_files = []

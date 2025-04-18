@@ -38,7 +38,6 @@ export default [
       format: "umd",
       name: "ActionCable"
     },
-    breakOnWarning: false,
     plugins: [
       resolve(),
       terser(terserOptions)

@@ -36,14 +36,6 @@ module Arel # :nodoc: all
         attribute.quoted_array(values)
       end
 
-      def table_name
-        attribute.relation.table_alias || attribute.relation.name
-      end
-
-      def column_name
-        attribute.name
-      end
-
       def casted_values
         type = attribute.type_caster
 
@@ -56,7 +48,7 @@ module Arel # :nodoc: all
       end
 
       def proc_for_binds
-        -> value { ActiveModel::Attribute.with_cast_value(attribute.name, value, attribute.type_caster) }
+        -> value { ActiveModel::Attribute.with_cast_value(attribute.name, value, ActiveModel::Type.default_value) }
       end
 
       def fetch_attribute(&block)

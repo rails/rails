@@ -44,6 +44,13 @@ class Member < ActiveRecord::Base
   scope :with_member_type_id, -> (id) { where(member_type_id: id) }
 end
 
+class SimpleMember < ActiveRecord::Base
+  self.table_name = "members"
+
+  has_many :memberships
+  has_many :clubs, through: :memberships
+end
+
 class SelfMember < ActiveRecord::Base
   self.table_name = "members"
   has_and_belongs_to_many :friends, class_name: "SelfMember", join_table: "member_friends"

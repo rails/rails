@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
 
 class ExecutorTest < ActiveSupport::TestCase
   class MyBody < Array
@@ -36,40 +37,16 @@ class ExecutorTest < ActiveSupport::TestCase
     body.close
   end
 
-  def test_returned_body_object_behaves_like_underlying_object
-    body = call_and_return_body do
-      b = MyBody.new
-      b << "hello"
-      b << "world"
-      [200, { "Content-Type" => "text/html" }, b]
-    end
-    assert_equal 2, body.size
-    assert_equal "hello", body[0]
-    assert_equal "world", body[1]
-    assert_equal "foo", body.foo
-    assert_equal "bar", body.bar
-  end
-
   def test_it_calls_close_on_underlying_object_when_close_is_called_on_body
     close_called = false
     body = call_and_return_body do
       b = MyBody.new do
         close_called = true
       end
-      [200, { "Content-Type" => "text/html" }, b]
+      [200, { "content-type" => "text/html" }, b]
     end
     body.close
     assert close_called
-  end
-
-  def test_returned_body_object_responds_to_all_methods_supported_by_underlying_object
-    body = call_and_return_body do
-      [200, { "Content-Type" => "text/html" }, MyBody.new]
-    end
-    assert_respond_to body, :size
-    assert_respond_to body, :each
-    assert_respond_to body, :foo
-    assert_respond_to body, :bar
   end
 
   def test_run_callbacks_are_called_before_close
@@ -127,12 +104,15 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.to_run { total += 1; ran += 1 }
     executor.to_complete { total += 1; completed += 1 }
 
-    stack = middleware(proc { [200, {}, "response"] })
+    app = proc { [200, {}, []] }
+    env = Rack::MockRequest.env_for("", {})
+
+    stack = middleware(app)
 
     requests_count = 5
 
     requests_count.times do
-      stack.call({})
+      stack.call(env)
     end
 
     assert_equal (requests_count * 2) - 1, total
@@ -140,15 +120,66 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal requests_count - 1, completed
   end
 
+  def test_error_reporting
+    raised_error = nil
+    error_report = assert_error_reported(Exception) do
+      raised_error = assert_raises Exception do
+        call_and_return_body { raise Exception }
+      end
+    end
+    assert_same raised_error, error_report.error
+  end
+
+  def test_error_reporting_with_show_exception
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { 1 + "1" }),
+          ->(_env) { [500, {}, ["Oops"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    error_report = assert_error_reported do
+      middleware.call(env)
+    end
+    assert_instance_of TypeError, error_report.error
+  end
+
+  class BusinessAsUsual < StandardError; end
+
+  def test_handled_error_is_not_reported
+    middleware = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          Rack::Lint.new(->(_env) { raise BusinessAsUsual }),
+          ->(env) { [418, {}, ["I'm a teapot"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    ActionDispatch::ExceptionWrapper.with(rescue_responses: { BusinessAsUsual.name => 418 }) do
+      assert_no_error_reported do
+        response = middleware.call(env)
+        assert_equal 418, response[0]
+      end
+    end
+  end
+
   private
     def call_and_return_body(&block)
-      app = middleware(block || proc { [200, {}, "response"] })
-      _, _, body = app.call("rack.input" => StringIO.new(""))
+      app = block || proc { [200, {}, []] }
+      env = Rack::MockRequest.env_for("", {})
+      _, _, body = middleware(app).call(env)
       body
     end
 
     def middleware(inner_app)
-      ActionDispatch::Executor.new(inner_app, executor)
+      Rack::Lint.new(ActionDispatch::Executor.new(Rack::Lint.new(inner_app), executor))
     end
 
     def executor

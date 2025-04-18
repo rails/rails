@@ -4,11 +4,11 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/enumerable"
 
 module ActionView
-  # = Active Model Helpers
   module Helpers # :nodoc:
     module ActiveModelHelper
     end
 
+    # = Active \Model Instance Tag \Helpers
     module ActiveModelInstanceTag
       def object
         @active_model_object ||= begin

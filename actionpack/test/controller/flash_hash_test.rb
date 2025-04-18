@@ -82,7 +82,7 @@ module ActionDispatch
 
     def test_from_session_value_on_json_serializer
       decrypted_data = "{ \"session_id\":\"d98bdf6d129618fc2548c354c161cfb5\", \"flash\":{\"discard\":[\"farewell\"], \"flashes\":{\"greeting\":\"Hello\",\"farewell\":\"Goodbye\"}} }"
-      session = ActionDispatch::Cookies::JsonSerializer.load(decrypted_data)
+      session = ActiveSupport::Messages::SerializerWithFallback[:json].load(decrypted_data)
       hash = Flash::FlashHash.from_session_value(session["flash"])
 
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "active_support"
+require "active_support/rails"
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/object/blank"
+require "rails/deprecator"
 
 require "thor"
 
@@ -13,9 +14,34 @@ module Rails
     autoload :Behavior
     autoload :Base
 
+    class CorrectableNameError < StandardError # :nodoc:
+      attr_reader :name
+
+      def initialize(message, name, alternatives)
+        @name = name
+        @alternatives = alternatives
+        super(message)
+      end
+
+      if defined?(DidYouMean::Correctable) && defined?(DidYouMean::SpellChecker)
+        include DidYouMean::Correctable
+
+        def corrections
+          @corrections ||= DidYouMean::SpellChecker.new(dictionary: @alternatives).correct(name)
+        end
+      end
+    end
+
+    class UnrecognizedCommandError < CorrectableNameError # :nodoc:
+      def initialize(name)
+        super("Unrecognized command #{name.inspect}", name, Command.printing_commands.map(&:first))
+      end
+    end
+
     include Behavior
 
-    HELP_MAPPINGS = %w(-h -? --help)
+    HELP_MAPPINGS = %w(-h -? --help).to_set
+    VERSION_MAPPINGS = %w(-v --version).to_set
 
     class << self
       def hidden_commands # :nodoc:
@@ -28,30 +54,26 @@ module Rails
 
       # Receives a namespace, arguments, and the behavior to invoke the command.
       def invoke(full_namespace, args = [], **config)
-        namespace = full_namespace = full_namespace.to_s
+        args = ["--help"] if rails_new_with_no_path?(args)
 
-        if char = namespace =~ /:(\w+)$/
-          command_name, namespace = $1, namespace.slice(0, char)
-        else
-          command_name = namespace
-        end
-
-        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
-        command_name, namespace, args = "application", "application", ["--help"] if rails_new_with_no_path?(args)
-        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
-
-        original_argv = ARGV.dup
-        ARGV.replace(args)
-
+        full_namespace = full_namespace.to_s
+        namespace, command_name = split_namespace(full_namespace)
         command = find_by_namespace(namespace, command_name)
-        if command && command.all_commands[command_name]
-          command.perform(command_name, args, config)
-        else
-          args = ["--describe", full_namespace] if HELP_MAPPINGS.include?(args[0])
-          find_by_namespace("rake").perform(full_namespace, args, config)
+
+        with_argv(args) do
+          if command && command.all_commands[command_name]
+            command.perform(command_name, args, config)
+          else
+            invoke_rake(full_namespace, args, config)
+          end
         end
-      ensure
-        ARGV.replace(original_argv)
+      rescue UnrecognizedCommandError => error
+        if error.name == full_namespace && command && command_name == full_namespace
+          command.perform("help", [], config)
+        else
+          puts error.detailed_message
+        end
+        exit(1)
       end
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
@@ -76,33 +98,56 @@ module Rails
         namespaces[(lookups & namespaces.keys).first]
       end
 
-      # Returns the root of the Rails engine or app running the command.
+      # Returns the root of the \Rails engine or app running the command.
       def root
         if defined?(ENGINE_ROOT)
           Pathname.new(ENGINE_ROOT)
-        elsif defined?(APP_PATH)
-          Pathname.new(File.expand_path("../..", APP_PATH))
+        else
+          application_root
         end
       end
 
-      def print_commands # :nodoc:
-        commands.each { |command| puts("  #{command}") }
+      def application_root # :nodoc:
+        Pathname.new(File.expand_path("../..", APP_PATH)) if defined?(APP_PATH)
+      end
+
+      def printing_commands # :nodoc:
+        lookup!
+
+        (subclasses - hidden_commands).flat_map(&:printing_commands)
       end
 
       private
-        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
-        private_constant :COMMANDS_IN_USAGE
-
         def rails_new_with_no_path?(args)
           args == ["new"]
         end
 
-        def commands
-          lookup!
+        def split_namespace(namespace)
+          case namespace
+          when /^(.+):(\w+)$/
+            [$1, $2]
+          when ""
+            ["help", "help"]
+          when HELP_MAPPINGS, "help"
+            ["help", "help_extended"]
+          when VERSION_MAPPINGS
+            ["version", "version"]
+          else
+            [namespace, namespace]
+          end
+        end
 
-          visible_commands = (subclasses - hidden_commands).flat_map(&:printing_commands)
+        def with_argv(argv)
+          original_argv = ARGV.dup
+          ARGV.replace(argv)
+          yield
+        ensure
+          ARGV.replace(original_argv)
+        end
 
-          (visible_commands - COMMANDS_IN_USAGE).sort
+        def invoke_rake(task, args, config)
+          args = ["--describe", task] if HELP_MAPPINGS.include?(args[0])
+          find_by_namespace("rake").perform(task, args, config)
         end
 
         def command_type # :doc:

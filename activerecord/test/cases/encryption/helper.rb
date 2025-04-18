@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "benchmark/ips"
 
 class ActiveRecord::Fixture
   prepend ActiveRecord::Encryption::EncryptedFixtures
@@ -9,11 +8,21 @@ end
 
 module ActiveRecord::Encryption
   module EncryptionHelpers
+    def assert_ciphertext_decrypts_to(model, attribute_name, ciphertext)
+      assert_not_equal model.public_send(attribute_name), ciphertext
+      assert_not_equal model.read_attribute(attribute_name), ciphertext
+      cleartext = model.type_for_attribute(attribute_name).deserialize(ciphertext)
+      assert_equal model.read_attribute(attribute_name), cleartext
+    end
+
     def assert_encrypted_attribute(model, attribute_name, expected_value)
-      encrypted_content = model.ciphertext_for(attribute_name)
-      assert_not_equal expected_value, encrypted_content
+      assert_ciphertext_decrypts_to model, attribute_name, model.read_attribute_before_type_cast(attribute_name)
       assert_equal expected_value, model.public_send(attribute_name)
-      assert_equal expected_value, model.reload.public_send(attribute_name) unless model.new_record?
+      unless model.new_record?
+        model.reload
+        assert_ciphertext_decrypts_to model, attribute_name, model.read_attribute_before_type_cast(attribute_name)
+        assert_equal expected_value, model.public_send(attribute_name)
+      end
     end
 
     def assert_invalid_key_cant_read_attribute(model, attribute_name)
@@ -26,7 +35,7 @@ module ActiveRecord::Encryption
 
     def assert_not_encrypted_attribute(model, attribute_name, expected_value)
       assert_equal expected_value, model.send(attribute_name)
-      assert_equal expected_value, model.ciphertext_for(attribute_name)
+      assert_equal expected_value, model.read_attribute_before_type_cast(attribute_name)
     end
 
     def assert_encrypted_record(model)
@@ -69,7 +78,7 @@ module ActiveRecord::Encryption
         end
 
         # Skip type casting to simulate an upcase value. Not supported in AR without using private apis
-        EncryptedBookThatIgnoresCase.connection.execute <<~SQL
+        EncryptedBookThatIgnoresCase.lease_connection.execute <<~SQL
           UPDATE encrypted_books SET name = '#{name}' WHERE id = #{book.id};
         SQL
 
@@ -101,52 +110,23 @@ module ActiveRecord::Encryption
         attribute_type.key_provider.keys = original_keys
       end
   end
+end
 
-  module PerformanceHelpers
-    BENCHMARK_DURATION = 1
-    BENCHMARK_WARMUP = 1
-    BASELINE_LABEL = "Baseline"
-    CODE_TO_TEST_LABEL = "Code"
-
-    # Usage:
-    #
-    #     baseline = -> { <some baseline code> }
-    #
-    #     assert_slower_by_at_most 2, baseline: baseline do
-    #       <the code you want to compare against the baseline>
-    #     end
-    def assert_slower_by_at_most(threshold_factor, baseline:, baseline_label: BASELINE_LABEL, code_to_test_label: CODE_TO_TEST_LABEL, duration: BENCHMARK_DURATION, quiet: true, &block_to_test)
-      GC.start
-
-      result = nil
-      output, error = capture_io do
-        result = Benchmark.ips do |x|
-          x.config(time: duration, warmup: BENCHMARK_WARMUP)
-          x.report(code_to_test_label, &block_to_test)
-          x.report(baseline_label, &baseline)
-          x.compare!
-        end
-      end
-
-      baseline_result = result.entries.find { |entry| entry.label == baseline_label }
-      code_to_test_result = result.entries.find { |entry| entry.label == code_to_test_label }
-
-      times_slower = baseline_result.ips / code_to_test_result.ips
-
-      if !quiet || times_slower >= threshold_factor
-        puts "#{output}#{error}"
-      end
-
-      assert times_slower < threshold_factor, "Expecting #{threshold_factor} times slower at most, but got #{times_slower} times slower"
-    end
-  end
+# We eager load encrypted attribute types as they are declared, so that they pick up the
+# default encryption setup for tests. Because we load those lazily when used, this prevents
+# side effects where some tests modify encryption config settings affecting others.
+#
+# Notice that we clear the declaration listeners when each test start, so this will only affect
+# the classes loaded before tests starts, not those declared during tests.
+ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
+  klass.type_for_attribute(attribute_name)
 end
 
 class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
-  include ActiveRecord::Encryption::EncryptionHelpers, ActiveRecord::Encryption::PerformanceHelpers
+  include ActiveRecord::Encryption::EncryptionHelpers
 
   ENCRYPTION_PROPERTIES_TO_RESET = {
-    config: %i[ primary_key deterministic_key key_derivation_salt store_key_references
+    config: %i[ primary_key deterministic_key key_derivation_salt store_key_references hash_digest_class
       key_derivation_salt support_unencrypted_data encrypt_fixtures
       forced_encoding_for_deterministic_encryption ],
     context: %i[ key_provider ]

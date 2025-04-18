@@ -18,6 +18,7 @@ en:
       too_long:
         one: "is too long (maximum is 1 character)"
         other: "is too long (maximum is %{count} characters)"
+      password_too_long: "is too long"
       too_short:
         one: "is too short (minimum is 1 character)"
         other: "is too short (minimum is %{count} characters)"

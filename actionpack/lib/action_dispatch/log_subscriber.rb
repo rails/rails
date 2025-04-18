@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   class LogSubscriber < ActiveSupport::LogSubscriber
     def redirect(event)
@@ -16,6 +18,7 @@ module ActionDispatch
         message
       end
     end
+    subscribe_log_level :redirect, :info
   end
 end
 

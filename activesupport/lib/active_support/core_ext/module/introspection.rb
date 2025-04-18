@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
 require "active_support/inflector"
 
 class Module
@@ -11,6 +10,9 @@ class Module
     if defined?(@parent_name)
       @parent_name
     else
+      name = self.name
+      return if name.nil?
+
       parent_name = name =~ /::[^:]+\z/ ? -$` : nil
       @parent_name = parent_name unless frozen?
       parent_name

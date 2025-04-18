@@ -4,7 +4,6 @@ require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
-require "rails/secrets"
 
 module Rails
   class Application
@@ -14,7 +13,6 @@ module Rails
       initializer :load_environment_hook, group: :all do end
 
       initializer :load_active_support, group: :all do
-        ENV["RAILS_DISABLE_DEPRECATED_TO_S_CONVERSION"] = "true" if config.active_support.disable_to_s_conversion
         require "active_support/all" unless config.active_support.bare
       end
 
@@ -54,9 +52,23 @@ module Rails
           )
           logger
         end
-        Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
 
-        unless config.consider_all_requests_local
+        if Rails.logger.is_a?(ActiveSupport::BroadcastLogger)
+          if config.broadcast_log_level
+            Rails.logger.level = ActiveSupport::Logger.const_get(config.broadcast_log_level.to_s.upcase)
+          end
+        else
+          Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
+          broadcast_logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
+          broadcast_logger.formatter = Rails.logger.formatter
+          Rails.logger = broadcast_logger
+        end
+      end
+
+      initializer :initialize_error_reporter, group: :all do
+        if config.consider_all_requests_local
+          Rails.error.debug_mode = true
+        else
           Rails.error.logger = Rails.logger
         end
       end
@@ -80,10 +92,15 @@ module Rails
       initializer :setup_once_autoloader, after: :set_eager_load_paths, before: :bootstrap_hook do
         autoloader = Rails.autoloaders.once
 
+        # Normally empty, but if the user already defined some, we won't
+        # override them. Important if there are custom namespaces associated.
+        already_configured_dirs = Set.new(autoloader.dirs)
+
         ActiveSupport::Dependencies.autoload_once_paths.freeze
         ActiveSupport::Dependencies.autoload_once_paths.uniq.each do |path|
           # Zeitwerk only accepts existing directories in `push_dir`.
           next unless File.directory?(path)
+          next if already_configured_dirs.member?(path.to_s)
 
           autoloader.push_dir(path)
           autoloader.do_not_eager_load(path) unless ActiveSupport::Dependencies.eager_load?(path)
@@ -94,10 +111,6 @@ module Rails
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
-      end
-
-      initializer :set_secrets_root, group: :all do
-        Rails::Secrets.root = root
       end
     end
   end

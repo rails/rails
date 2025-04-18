@@ -6,6 +6,8 @@ require "action_dispatch"
 require "action_dispatch/http/content_disposition"
 
 module ActiveStorage
+  # = Active Storage \Service
+  #
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -16,7 +18,7 @@ module ActiveStorage
   # * +AzureStorage+, to manage attachments through Microsoft Azure Storage.
   # * +Mirror+, to be able to use several services to manage attachments.
   #
-  # Inside a Rails application, you can set-up your services through the
+  # Inside a \Rails application, you can set-up your services through the
   # generated <tt>config/storage.yml</tt> file and reference one
   # of the aforementioned constant under the +service+ key. For example:
   #
@@ -31,7 +33,7 @@ module ActiveStorage
   #
   #   config.active_storage.service = :local
   #
-  # If you are using Active Storage outside of a Ruby on Rails application, you
+  # If you are using Active Storage outside of a Ruby on \Rails application, you
   # can configure the service to use like this:
   #
   #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
@@ -144,6 +146,10 @@ module ActiveStorage
 
     def public?
       @public
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class}#{name.present? ? " name=#{name.inspect}" : ""}>"
     end
 
     private

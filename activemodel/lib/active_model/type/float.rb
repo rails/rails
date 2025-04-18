@@ -4,6 +4,8 @@ require "active_support/core_ext/object/try"
 
 module ActiveModel
   module Type
+    # = Active Model \Float \Type
+    #
     # Attribute type for floating point numeric values. It is registered under
     # the +:float+ key.
     #
@@ -14,18 +16,25 @@ module ActiveModel
     #   end
     #
     #   bag = BagOfCoffee.new
-    #   bag.weight = "0.25"
     #
+    #   bag.weight = "0.25"
     #   bag.weight # => 0.25
     #
-    # Values are coerced to their float representation using their +to_f+
-    # methods. However, the following strings which represent floating point
-    # constants are cast accordingly:
+    #   bag.weight = ""
+    #   bag.weight # => nil
     #
-    # - <tt>"Infinity"</tt> is cast to <tt>Float::INFINITY</tt>.
+    #   bag.weight = "NaN"
+    #   bag.weight # => Float::NAN
+    #
+    # Values are cast using their +to_f+ method, except for the following
+    # strings:
+    #
+    # - Blank strings are cast to +nil+.
+    # - <tt>"Infinity"</tt> is cast to +Float::INFINITY+.
     # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
-    # - <tt>"NaN"</tt> is cast to <tt>Float::NAN</tt>.
+    # - <tt>"NaN"</tt> is cast to +Float::NAN+.
     class Float < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       def type

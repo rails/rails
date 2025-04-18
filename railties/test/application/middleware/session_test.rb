@@ -136,7 +136,7 @@ module ApplicationTests
       assert_equal '"1"', last_response.body
     end
 
-    test "session using encrypted cookie store with json serializer" do
+    test "session using encrypted cookie store with JSON serializer" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get ':controller(/:action)'

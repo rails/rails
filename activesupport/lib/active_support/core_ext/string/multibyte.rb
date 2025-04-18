@@ -19,7 +19,7 @@ class String
   #   >> "ǉ".upcase
   #   => "Ǉ"
   #
-  # == Method chaining
+  # == \Method chaining
   #
   # All the methods on the Chars proxy which normally return a string will return a Chars object. This allows
   # method chaining on the result of any of these methods.
@@ -35,7 +35,16 @@ class String
   # For more information about the methods defined on the Chars proxy see ActiveSupport::Multibyte::Chars. For
   # information about how to change the default Multibyte behavior see ActiveSupport::Multibyte.
   def mb_chars
-    ActiveSupport::Multibyte.proxy_class.new(self)
+    ActiveSupport.deprecator.warn(
+      "String#mb_chars is deprecated and will be removed in Rails 8.2. " \
+      "Use normal string methods instead."
+    )
+
+    if ActiveSupport::Multibyte.proxy_class == ActiveSupport::Multibyte::Chars
+      ActiveSupport::Multibyte::Chars.new(self, deprecation: false)
+    else
+      ActiveSupport::Multibyte.proxy_class.new(self)
+    end
   end
 
   # Returns +true+ if string has utf_8 encoding.

@@ -1,0 +1,27 @@
+name: Rail Inspector
+
+on:
+  pull_request:
+    paths:
+    - "tools/rail_inspector/**"
+  push:
+    paths:
+    - "tools/rail_inspector/**"
+
+permissions:
+  contents: read
+
+jobs:
+  rail_inspector:
+    name: rail_inspector tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove Gemfile.lock
+        run: rm -f Gemfile.lock
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - run: cd tools/rail_inspector && bundle exec rake

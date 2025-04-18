@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 2.2 Release Notes
 ===============================
@@ -267,7 +267,7 @@ map.resources :products, :except => :destroy
 * Benchmarking numbers are now reported in milliseconds rather than tiny fractions of seconds
 * Rails now supports HTTP-only cookies (and uses them for sessions), which help mitigate some cross-site scripting risks in newer browsers.
 * `redirect_to` now fully supports URI schemes (so, for example, you can redirect to a svn`ssh: URI).
-* `render` now supports a `:js` option to render plain vanilla JavaScript with the right mime type.
+* `render` now supports a `:js` option to render plain vanilla JavaScript with the right MIME type.
 * Request forgery protection has been tightened up to apply to HTML-formatted content requests only.
 * Polymorphic URLs behave more sensibly if a passed parameter is nil. For example, calling `polymorphic_path([@project, @date, @area])` with a nil date will give you `project_area_path`.
 

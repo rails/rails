@@ -168,6 +168,27 @@ module ActionController
         end
       end
 
+      def send_stream_with_inferred_content_type
+        send_stream(filename: "sample.csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_implicit_content_type
+        send_stream(filename: "sample.csv", type: :csv) do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
+      def send_stream_with_explicit_content_type
+        send_stream(filename: "sample.csv", type: "text/csv") do |stream|
+          stream.writeln "fruit,quantity"
+          stream.writeln "apple,5"
+        end
+      end
+
       def blocking_stream
         response.headers["Content-Type"] = "text/event-stream"
         %w{ hello world }.each do |word|
@@ -207,8 +228,22 @@ module ActionController
         response.stream.close
       end
 
+      def no_thread_locals
+        tc.assert_nil Thread.current[:setting]
+
+        response.headers["Content-Type"] = "text/event-stream"
+        %w{ hello world }.each do |word|
+          response.stream.write word
+        end
+        response.stream.close
+      end
+
       def isolated_state
         render plain: CurrentState.id.inspect
+      end
+
+      def raw_isolated_state
+        render plain: ActiveSupport::IsolatedExecutionState[:raw_isolated_state].inspect
       end
 
       def with_stale
@@ -303,9 +338,9 @@ module ActionController
     tests TestController
 
     def assert_stream_closed
-      assert response.stream.closed?, "stream should be closed"
-      assert response.committed?,     "response should be committed"
-      assert response.sent?,          "response should be sent"
+      assert_predicate response.stream, :closed?, "stream should be closed"
+      assert_predicate response, :committed?,     "response should be committed"
+      assert_predicate response, :sent?,          "response should be sent"
     end
 
     def capture_log_output
@@ -323,7 +358,11 @@ module ActionController
       super
 
       def @controller.new_controller_thread(&block)
-        Thread.new(&block)
+        original_new_controller_thread(&block)
+      end
+
+      def @controller.clean_up_thread_locals(*args)
+        original_clean_up_thread_locals(*args)
       end
     end
 
@@ -352,6 +391,18 @@ module ActionController
       assert_match "my.csv", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_instrumentation
+      expected_payload = {
+        filename: "sample.csv",
+        disposition: "attachment",
+        type: "text/csv"
+      }
+
+      assert_notification("send_stream.action_controller", expected_payload) do
+        get :send_stream_with_explicit_content_type
+      end
+    end
+
     def test_send_stream_with_options
       get :send_stream_with_options
       assert_equal %[{ name: "David", age: 41 }], @response.body
@@ -360,17 +411,46 @@ module ActionController
       assert_match "export", @response.headers["Content-Disposition"]
     end
 
+    def test_send_stream_with_explicit_content_type
+      get :send_stream_with_explicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_implicit_content_type
+      get :send_stream_with_implicit_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
+    def test_send_stream_with_inferred_content_type
+      get :send_stream_with_inferred_content_type
+
+      assert_equal "fruit,quantity\napple,5\n", @response.body
+
+      content_type = @response.headers.fetch("Content-Type")
+      assert_equal String, content_type.class
+      assert_equal "text/csv", content_type
+    end
+
     def test_delayed_autoload_after_write_within_interlock_hook
       # Simulate InterlockHook
       ActiveSupport::Dependencies.interlock.start_running
       res = get :write_sleep_autoload
       res.each { }
       ActiveSupport::Dependencies.interlock.done_running
+      pass
     end
 
     def test_async_stream
-      rubinius_skip "https://github.com/rubinius/rubinius/issues/2934"
-
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ["hello", "world"]
 
@@ -462,6 +542,34 @@ module ActionController
       assert_stream_closed
     end
 
+    def test_thread_locals_get_reset
+      @controller.tc = self
+
+      Thread.current[:originating_thread] = Thread.current.object_id
+      Thread.current[:setting]            = "aaron"
+
+      get :thread_locals
+
+      Thread.current[:setting] = nil
+
+      get :no_thread_locals
+    end
+
+    def test_isolated_state_get_reset
+      @controller.tc = self
+      ActiveSupport::IsolatedExecutionState[:raw_isolated_state] = "buffy"
+
+      get :raw_isolated_state
+      assert_equal "buffy".inspect, response.body
+      assert_stream_closed
+
+      ActiveSupport::IsolatedExecutionState.clear
+
+      get :isolated_state
+      assert_equal nil.inspect, response.body
+      assert_stream_closed
+    end
+
     def test_live_stream_default_header
       get :default_header
       assert response.headers["Content-Type"]
@@ -502,13 +610,8 @@ module ActionController
     end
 
     def test_exception_callback_when_committed
-      current_threads = Thread.list
-
       capture_log_output do |output|
         get :exception_with_callback, format: "text/event-stream"
-
-        # Wait on the execution of all threads
-        (Thread.list - current_threads).each(&:join)
 
         assert_equal %(data: "500 Internal Server Error"\n\n), response.body
         assert_match "An exception occurred...", output.rewind && output.read
@@ -546,6 +649,40 @@ module ActionController
       @request.if_none_match = %(W/"#{ActiveSupport::Digest.hexdigest('123')}")
       get :with_stale
       assert_equal 304, response.status.to_i
+    end
+
+    def test_response_buffer_do_not_respond_to_to_ary
+      get :basic_stream
+      # `response.to_a` wraps the response with RackBody.
+      # RackBody is the body we return to Rack.
+      # Therefore we want to assert directly on it.
+      # The Rack spec requires bodies that cannot be
+      # buffered to return false to `respond_to?(:to_ary)`
+      assert_not response.to_a.last.respond_to? :to_ary
+    end
+  end
+
+  class LiveControllerThreadTest < ActionController::TestCase
+    class TestController < ActionController::Base
+      include ActionController::Live
+
+      def greet
+        response.headers["Content-Type"] = "text/event-stream"
+        %w{ hello world }.each do |word|
+          response.stream.write word
+        end
+        response.stream.close
+      end
+    end
+
+    tests TestController
+
+    def test_thread_locals_do_not_get_reset_in_test_environment
+      Thread.current[:setting] = "aaron"
+
+      get :greet
+
+      assert_equal "aaron", Thread.current[:setting]
     end
   end
 

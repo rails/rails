@@ -1,65 +1,68 @@
 # frozen_string_literal: true
 
 module ActionView
-  class CacheExpiry
-    class Executor
-      def initialize(watcher:)
-        @execution_lock = Concurrent::ReentrantReadWriteLock.new
-        @cache_expiry = ViewModificationWatcher.new(watcher: watcher) do
-          clear_cache
-        end
-      end
-
-      def run
-        ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-          @cache_expiry.execute_if_updated
-          @execution_lock.acquire_read_lock
-        end
-      end
-
-      def complete(_)
-        @execution_lock.release_read_lock
-      end
-
-      private
-        def clear_cache
-          @execution_lock.with_write_lock do
-            ActionView::LookupContext::DetailsKey.clear
-          end
-        end
-    end
-
-    class ViewModificationWatcher
+  module CacheExpiry # :nodoc: all
+    class ViewReloader
       def initialize(watcher:, &block)
-        @watched_dirs = nil
-        @watcher_class = watcher
-        @watcher = nil
         @mutex = Mutex.new
-        @block = block
+        @watcher_class = watcher
+        @watched_dirs = nil
+        @watcher = nil
+        @previous_change = false
+
+        ActionView::PathRegistry.file_system_resolver_hooks << method(:rebuild_watcher)
       end
 
-      def execute_if_updated
-        @mutex.synchronize do
-          watched_dirs = dirs_to_watch
-          return if watched_dirs.empty?
+      def updated?
+        build_watcher unless @watcher
+        @previous_change || @watcher.updated?
+      end
 
-          if watched_dirs != @watched_dirs
-            @watched_dirs = watched_dirs
-            @watcher = @watcher_class.new([], watched_dirs, &@block)
-            @watcher.execute
-          else
-            @watcher.execute_if_updated
-          end
+      def execute
+        return unless @watcher
+
+        watcher = nil
+        @mutex.synchronize do
+          @previous_change = false
+          watcher = @watcher
         end
+        watcher.execute
       end
 
       private
+        def reload!
+          ActionView::LookupContext::DetailsKey.clear
+        end
+
+        def build_watcher
+          @mutex.synchronize do
+            old_watcher = @watcher
+
+            if @watched_dirs != dirs_to_watch
+              @watched_dirs = dirs_to_watch
+              new_watcher = @watcher_class.new([], @watched_dirs) do
+                reload!
+              end
+              @watcher = new_watcher
+
+              # We must check the old watcher after initializing the new one to
+              # ensure we don't miss any events
+              @previous_change ||= old_watcher&.updated?
+            end
+          end
+        end
+
+        def rebuild_watcher
+          return unless @watcher
+          build_watcher
+        end
+
         def dirs_to_watch
-          all_view_paths.grep(FileSystemResolver).map!(&:path).tap(&:uniq!).sort!
+          all_view_paths.uniq.sort
         end
 
         def all_view_paths
-          ActionView::ViewPaths.all_view_paths.flat_map(&:paths)
+          ActionView::PathRegistry.all_file_system_resolvers.map(&:path)
         end
     end
   end

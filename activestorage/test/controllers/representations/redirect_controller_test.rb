@@ -110,7 +110,7 @@ end
 class ActiveStorage::Representations::RedirectControllerWithPreviewsWithStrictLoadingTest < ActionDispatch::IntegrationTest
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
-    @blob.preview(resize_to_limit: [100, 100]).processed
+    @blob.preview(resize_to_limit: [100, 100]).processed.send(:variant).processed
   end
 
   test "showing existing preview record inline" do

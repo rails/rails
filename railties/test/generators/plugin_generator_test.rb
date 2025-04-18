@@ -1,27 +1,85 @@
 # frozen_string_literal: true
 
+require "plugin_helpers"
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
 require "rails/engine/updater"
 
 DEFAULT_PLUGIN_FILES = %w(
+  .git
+  .github/dependabot.yml
+  .github/workflows/ci.yml
   .gitignore
+  .rubocop.yml
   Gemfile
-  Rakefile
-  README.md
-  bukkits.gemspec
   MIT-LICENSE
-  lib
+  README.md
+  Rakefile
+  bin/rubocop
+  bin/test
+  bukkits.gemspec
   lib/bukkits.rb
-  lib/tasks/bukkits_tasks.rake
+  lib/bukkits/railtie.rb
   lib/bukkits/version.rb
+  lib/tasks/bukkits_tasks.rake
   test/bukkits_test.rb
+  test/dummy/Rakefile
+  test/dummy/app/assets/images/.keep
+  test/dummy/app/assets/stylesheets/application.css
+  test/dummy/app/controllers/application_controller.rb
+  test/dummy/app/controllers/concerns/.keep
+  test/dummy/app/helpers/application_helper.rb
+  test/dummy/app/jobs/application_job.rb
+  test/dummy/app/mailers/application_mailer.rb
+  test/dummy/app/models/application_record.rb
+  test/dummy/app/models/concerns/.keep
+  test/dummy/app/views/layouts/application.html.erb
+  test/dummy/app/views/layouts/mailer.html.erb
+  test/dummy/app/views/layouts/mailer.text.erb
+  test/dummy/app/views/pwa/manifest.json.erb
+  test/dummy/app/views/pwa/service-worker.js
+  test/dummy/bin/bundler-audit
+  test/dummy/bin/ci
+  test/dummy/bin/dev
+  test/dummy/bin/rails
+  test/dummy/bin/rake
+  test/dummy/bin/setup
+  test/dummy/config.ru
+  test/dummy/config/application.rb
+  test/dummy/config/boot.rb
+  test/dummy/config/bundler-audit.yml
+  test/dummy/config/cable.yml
+  test/dummy/config/ci.rb
+  test/dummy/config/database.yml
+  test/dummy/config/environment.rb
+  test/dummy/config/environments/development.rb
+  test/dummy/config/environments/production.rb
+  test/dummy/config/environments/test.rb
+  test/dummy/config/initializers/content_security_policy.rb
+  test/dummy/config/initializers/filter_parameter_logging.rb
+  test/dummy/config/initializers/inflections.rb
+  test/dummy/config/locales/en.yml
+  test/dummy/config/puma.rb
+  test/dummy/config/routes.rb
+  test/dummy/config/storage.yml
+  test/dummy/log/.keep
+  test/dummy/public/400.html
+  test/dummy/public/404.html
+  test/dummy/public/406-unsupported-browser.html
+  test/dummy/public/422.html
+  test/dummy/public/500.html
+  test/dummy/public/icon.png
+  test/dummy/public/icon.svg
+  test/dummy/storage/.keep
+  test/dummy/tmp/.keep
+  test/dummy/tmp/pids/.keep
+  test/dummy/tmp/storage/.keep
   test/test_helper.rb
-  test/dummy
 )
 
 class PluginGeneratorTest < Rails::Generators::TestCase
+  include PluginHelpers
   include GeneratorsTestHelper
   destination File.join(destination_root, "bukkits")
   arguments [destination_root]
@@ -66,8 +124,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_generating_without_options
     run_generator
     assert_file "README.md", /Bukkits/
-    assert_no_file "config/routes.rb"
-    assert_no_file "app/assets/config/bukkits_manifest.js"
     assert_file "test/test_helper.rb" do |content|
       assert_match(/require_relative.+test\/dummy\/config\/environment/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+test\/dummy\/db\/migrate/, content)
@@ -81,13 +137,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/class BukkitsTest < ActiveSupport::TestCase/, content)
       assert_match(/assert Bukkits::VERSION/, content)
     end
-    assert_file "bin/test"
-    assert_no_file "bin/rails"
-  end
-
-  def test_initializes_git_repo
-    run_generator
-    assert_directory ".git"
   end
 
   def test_initializes_git_repo_with_main_branch_without_user_default
@@ -120,10 +169,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
-    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage"]
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-T", "--skip-active-storage", "--skip-active-job"]
     assert_file "bin/rails" do |content|
       assert_no_match(/\s+require\s+["']rails\/all["']/, content)
     end
+    assert_file "bin/rails", /#\s+require\s+["']active_job\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
@@ -138,14 +188,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
   end
 
-  def test_inclusion_of_git_source
-    run_generator [destination_root]
-    assert_file "Gemfile", /git_source/
-  end
-
   def test_inclusion_of_a_debugger
     run_generator [destination_root, "--full"]
-    if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
+    if defined?(JRUBY_VERSION)
       assert_file "Gemfile" do |content|
         assert_no_match(/debug/, content)
       end
@@ -173,19 +218,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "bin/rails", /APP_PATH/
   end
 
-  def test_generating_adds_dummy_app_without_javascript_and_assets_deps
-    run_generator
-
-    assert_file "test/dummy/app/assets/stylesheets/application.css"
-  end
-
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
-    FileUtils.cd(Rails.root)
+    FileUtils.cd(fixtures_root)
     assert_no_match(/It works from file!.*It works_from_file/, run_generator([destination_root, "-m", "lib/template.rb"]))
   end
 
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
-    FileUtils.cd(Rails.root)
+    FileUtils.cd(fixtures_root)
     run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test"])
     assert_directory "spec/dummy"
     assert_no_directory "test"
@@ -201,24 +240,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_default_database_dependency_is_sqlite
     run_generator
     assert_file "test/dummy/config/database.yml", /sqlite/
-    if defined?(JRUBY_VERSION)
-      assert_gem "activerecord-jdbcsqlite3-adapter"
-    else
-      assert_gem "sqlite3"
-    end
+    assert_gem "sqlite3"
   end
 
   def test_custom_database_dependency
     run_generator [destination_root, "-d", "mysql"]
     assert_file "test/dummy/config/database.yml", /mysql/
     assert_file "Gemfile", /mysql/
-  end
-
-  def test_skip_database_dependency
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "Gemfile" do |contents|
-      assert_no_match(/sqlite/, contents)
-    end
   end
 
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
@@ -241,7 +269,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generation_runs_bundle_install
+  def test_generation_does_not_run_bundle_install
     generator([destination_root])
     run_generator_instance
 
@@ -274,17 +302,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_directory "app/jobs"
   end
 
-  def test_template_from_dir_pwd
-    FileUtils.cd(Rails.root)
-    assert_match(/It works from file!/, run_generator([destination_root, "-m", "lib/template.rb"]))
-  end
-
   def test_ensure_that_migration_tasks_work_with_mountable_option
     run_generator [destination_root, "--mountable"]
-    FileUtils.cd destination_root
-    quietly { system "bundle install" }
-    output = `bin/rails db:migrate 2>&1`
-    assert $?.success?, "Command failed: #{output}"
+    prepare_plugin(destination_root)
+
+    in_plugin_context(destination_root) do
+      quietly { system "bundle install" }
+      output = `bin/rails db:migrate 2>&1`
+      assert_predicate $?, :success?, "Command failed: #{output}"
+    end
   end
 
   def test_creating_engine_in_full_mode
@@ -367,13 +393,13 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+<<.+\.\.\/db\/migrate/, content)
-      assert_match(/ActionDispatch::IntegrationTest\.fixture_path = ActiveSupport::TestCase\.fixture_pat/, content)
+      assert_match(/ActionDispatch::IntegrationTest\.fixture_paths = ActiveSupport::TestCase\.fixture_pat/, content)
       assert_no_match(/Rails::TestUnitReporter\.executable = "bin\/test"/, content)
     end
     assert_no_file "bin/test"
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_name
     run_generator [File.join(destination_root, "hyphenated-name"), "--mountable"]
     assert_no_file "hyphenated-name/app/assets/javascripts/hyphenated/name"
     assert_file "hyphenated-name/app/assets/stylesheets/hyphenated/name"
@@ -395,7 +421,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_hypenated_and_underscored_name
+  def test_create_mountable_application_with_mountable_option_and_hyphenated_and_underscored_name
     run_generator [File.join(destination_root, "my_hyphenated-name"), "--mountable"]
     assert_no_file "my_hyphenated-name/app/assets/javascripts/my_hyphenated/name"
     assert_file "my_hyphenated-name/app/assets/stylesheets/my_hyphenated/name"
@@ -412,12 +438,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "my_hyphenated-name/app/helpers/my_hyphenated/name/application_helper.rb",         /module MyHyphenated\n  module Name\n    module ApplicationHelper\n    end\n  end\nend/
     assert_file "my_hyphenated-name/app/views/layouts/my_hyphenated/name/application.html.erb" do |contents|
       assert_match "<title>My hyphenated name</title>", contents
-      assert_match(/stylesheet_link_tag\s+[""]my_hyphenated\/name\/application['"]/, contents)
+      assert_match(/stylesheet_link_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
       assert_no_match(/javascript_include_tag\s+['"]my_hyphenated\/name\/application['"]/, contents)
     end
   end
 
-  def test_create_mountable_application_with_mountable_option_and_multiple_hypenates_in_name
+  def test_create_mountable_application_with_mountable_option_and_multiple_hyphenates_in_name
     run_generator [File.join(destination_root, "deep-hyphenated-name"), "--mountable"]
     assert_no_file "deep-hyphenated-name/app/assets/javascripts/deep/hyphenated/name"
     assert_file "deep-hyphenated-name/app/assets/stylesheets/deep/hyphenated/name"
@@ -553,10 +579,14 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_dummy_application_loads_plugin
+  def test_plugin_passes_generated_test
     run_generator
+    prepare_plugin(destination_root)
 
-    assert_file "test/dummy/config/application.rb", /^require "bukkits"/
+    in_plugin_context(destination_root) do
+      output = `bin/test 2>&1`
+      assert_predicate $?, :success?, "Command failed: #{output}"
+    end
   end
 
   def test_dummy_application_sets_include_all_helpers_to_false_for_mountable
@@ -603,22 +633,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_unnecessary_files_are_not_generated_in_dummy_application
-    run_generator
-    assert_no_file "test/dummy/.gitignore"
-    assert_no_file "test/dummy/.ruby-version"
-    assert_no_file "test/dummy/db/seeds.rb"
-    assert_no_file "test/dummy/Gemfile"
-    assert_no_file "test/dummy/public/robots.txt"
-    assert_no_file "test/dummy/README.md"
-    assert_no_file "test/dummy/config/master.key"
-    assert_no_file "test/dummy/config/credentials.yml.enc"
-    assert_no_directory "test/dummy/lib/tasks"
-    assert_no_directory "test/dummy/test"
-    assert_no_directory "test/dummy/vendor"
-    assert_no_directory "test/dummy/.git"
-  end
-
   def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
     assert_no_directory "test"
@@ -630,7 +644,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_skips_asset_pipeline_when_simple_railtie
     run_generator
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
@@ -640,33 +654,23 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_dummy_application_configures_asset_pipeline_when_mountable
     run_generator [destination_root, "--mountable"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_file "test/dummy/config/initializers/assets.rb"
   end
 
   def test_dummy_application_configures_asset_pipeline_when_full
     run_generator [destination_root, "--full"]
 
-    assert_gem "sprockets-rails"
-    assert_file "test/dummy/app/assets/config/manifest.js"
+    assert_gem "propshaft"
+    assert_file "test/dummy/config/initializers/assets.rb"
+    assert_file "test/dummy/config/environments/development.rb"
   end
 
   def test_dummy_application_skips_asset_pipeline_when_flag_skip_asset_pipeline
     run_generator [destination_root, "--mountable", "--skip-asset-pipeline"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_file "test/dummy/config/initializers/assets.rb"
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match "config.assets", content
-    end
-  end
-
-  def test_dummy_application_respects_asset_pipeline_gem_choice
-    run_generator [destination_root, "--mountable", "--asset-pipeline=propshaft"]
-
-    assert_gem "propshaft"
-    assert_no_gem "sprockets-rails"
-    assert_file "test/dummy/config/initializers/assets.rb"
     assert_file "test/dummy/config/environments/development.rb" do |content|
       assert_no_match "config.assets", content
     end
@@ -675,7 +679,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_no_asset_pipeline_gem_when_no_dummy_application
     run_generator [destination_root, "--mountable", "--skip-test"]
 
-    assert_no_gem "sprockets-rails"
+    assert_no_gem "propshaft"
     assert_no_directory "test/dummy"
   end
 
@@ -703,7 +707,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
       run_generator
 
-      assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
+      assert_file gemfile_path, /^gem "bukkits", path: "tmp\/bukkits"/
     end
   end
 
@@ -712,7 +716,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       FileUtils.cd(destination_root)
       run_generator ["bukkits"]
 
-      assert_file gemfile_path, /gem 'bukkits', path: 'bukkits'/
+      assert_file gemfile_path, /gem "bukkits", path: "bukkits"/
     end
   end
 
@@ -721,7 +725,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       run_generator [destination_root, "--skip-gemfile-entry"]
 
       assert_file gemfile_path do |contents|
-        assert_no_match(/gem 'bukkits', path: 'tmp\/bukkits'/, contents)
+        assert_no_match(/gem "bukkits", path: "tmp\/bukkits"/, contents)
       end
     end
   end
@@ -768,6 +772,15 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
     assert_file "MIT-LICENSE" do |contents|
       assert_match name, contents
+    end
+  end
+
+  def test_no_year_in_license_file
+    year = Date.today.year
+
+    run_generator
+    assert_file "MIT-LICENSE" do |contents|
+      assert_no_match(/#{year}/, contents)
     end
   end
 
@@ -902,6 +915,21 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")
+  end
+
+  def test_railtie_test_command
+    run_generator [destination_root]
+    assert_file ".github/workflows/ci.yml", /run: bin\/test/
+  end
+
+  def test_engine_test_command
+    run_generator [destination_root, "--full"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails db:test:prepare test/
+  end
+
+  def test_engine_without_active_record_test_command
+    run_generator [destination_root, "--full", "--skip-active-record"]
+    assert_file ".github/workflows/ci.yml", /run: bin\/rails test/
   end
 
   private

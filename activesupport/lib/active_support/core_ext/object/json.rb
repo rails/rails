@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Hack to load json gem first so we can override its to_json.
+# Hack to load JSON gem first so we can override its to_json.
 require "json"
 require "bigdecimal"
 require "ipaddr"
@@ -29,7 +29,7 @@ require "active_support/core_ext/date/conversions"
 # It should be noted that when using ::JSON.{generate,dump} directly, ActiveSupport's encoder is
 # bypassed completely. This means that as_json won't be invoked and the JSON gem will simply
 # ignore any options it does not natively understand. This also means that ::JSON.{generate,dump}
-# should give exactly the same results with or without active support.
+# should give exactly the same results with or without Active Support.
 
 module ActiveSupport
   module ToJsonWithActiveSupportEncoder # :nodoc:
@@ -46,7 +46,7 @@ module ActiveSupport
 end
 
 [Enumerable, Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].reverse_each do |klass|
-  klass.prepend(ActiveSupport::ToJsonWithActiveSupportEncoder)
+  klass.include(ActiveSupport::ToJsonWithActiveSupportEncoder)
 end
 
 class Module
@@ -65,9 +65,15 @@ class Object
   end
 end
 
+class Data # :nodoc:
+  def as_json(options = nil)
+    to_h.as_json(options)
+  end
+end
+
 class Struct # :nodoc:
   def as_json(options = nil)
-    Hash[members.zip(values)].as_json(options)
+    to_h.as_json(options)
   end
 end
 
@@ -97,7 +103,7 @@ end
 
 class Symbol
   def as_json(options = nil) # :nodoc:
-    to_s
+    name
   end
 end
 
@@ -156,7 +162,12 @@ end
 
 class Array
   def as_json(options = nil) # :nodoc:
-    map { |v| options ? v.as_json(options.dup) : v.as_json }
+    if options
+      options = options.dup.freeze unless options.frozen?
+      map { |v| v.as_json(options) }
+    else
+      map { |v| v.as_json }
+    end
   end
 end
 
@@ -176,8 +187,11 @@ class Hash
     end
 
     result = {}
-    subset.each do |k, v|
-      result[k.to_s] = options ? v.as_json(options.dup) : v.as_json
+    if options
+      options = options.dup.freeze unless options.frozen?
+      subset.each { |k, v| result[k.to_s] = v.as_json(options) }
+    else
+      subset.each { |k, v| result[k.to_s] = v.as_json }
     end
     result
   end
@@ -225,9 +239,18 @@ class Pathname # :nodoc:
   end
 end
 
-class IPAddr # :nodoc:
-  def as_json(options = nil)
-    to_s
+unless IPAddr.method_defined?(:as_json, false)
+  # Use `IPAddr#as_json` from the IPAddr gem if the version is 1.2.7 or higher.
+  class IPAddr # :nodoc:
+    def as_json(options = nil)
+      if ipv4? && prefix == 32
+        to_s
+      elsif ipv6? && prefix == 128
+        to_s
+      else
+        "#{self}/#{prefix}"
+      end
+    end
   end
 end
 

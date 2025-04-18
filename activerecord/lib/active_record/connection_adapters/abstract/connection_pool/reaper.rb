@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-require "thread"
 require "weakref"
 
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPool
+      # = Active Record Connection Pool \Reaper
+      #
       # Every +frequency+ seconds, the reaper will call +reap+ and +flush+ on
       # +pool+. A reaper instantiated with a zero frequency will never reap
       # the connection pool.
@@ -41,6 +42,7 @@ module ActiveRecord
                 # Advise multi-threaded app servers to ignore this thread for
                 # the purposes of fork safety warnings
                 Thread.current.thread_variable_set(:fork_safe, true)
+                Thread.current.name = "AR Pool Reaper"
                 running = true
                 while running
                   sleep t

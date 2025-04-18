@@ -56,9 +56,7 @@ class CallbacksTest < ActiveSupport::TestCase
 
   test "#enqueue does not run after_enqueue callbacks when previous callbacks aborted" do
     job = AbortBeforeEnqueueJob.new
-    ActiveSupport::Deprecation.silence do
-      job.enqueue
-    end
+    job.enqueue
 
     assert_nil(job.flag)
   end

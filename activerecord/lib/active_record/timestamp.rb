@@ -30,7 +30,7 @@ module ActiveRecord
   #
   #   ActiveRecord::Base.time_zone_aware_types = [:datetime]
   #
-  # You can also add database specific timezone aware types. For example, for PostgreSQL:
+  # You can also add database-specific timezone aware types. For example, for PostgreSQL:
   #
   #   ActiveRecord::Base.time_zone_aware_types += [:tsrange, :tstzrange]
   #
@@ -54,8 +54,10 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       def touch_attributes_with_time(*names, time: nil)
+        names = names.map(&:to_s)
+        names = names.map { |name| attribute_aliases[name] || name }
         attribute_names = timestamp_attributes_for_update_in_model
-        attribute_names |= names.map(&:to_s)
+        attribute_names |= names
         attribute_names.index_with(time || current_time_from_proper_timezone)
       end
 
@@ -75,8 +77,16 @@ module ActiveRecord
       end
 
       def current_time_from_proper_timezone
-        connection.default_timezone == :utc ? Time.now.utc : Time.now
+        with_connection { |c| c.default_timezone == :utc ? Time.now.utc : Time.now }
       end
+
+      protected
+        def reload_schema_from_cache(recursive = true)
+          @timestamp_attributes_for_create_in_model = nil
+          @timestamp_attributes_for_update_in_model = nil
+          @all_timestamp_attributes_in_model = nil
+          super
+        end
 
       private
         def timestamp_attributes_for_create
@@ -86,16 +96,14 @@ module ActiveRecord
         def timestamp_attributes_for_update
           ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
         end
-
-        def reload_schema_from_cache
-          @timestamp_attributes_for_create_in_model = nil
-          @timestamp_attributes_for_update_in_model = nil
-          @all_timestamp_attributes_in_model = nil
-          super
-        end
     end
 
   private
+    def init_internals
+      super
+      @_touch_record = nil
+    end
+
     def _create_record
       if record_timestamps
         current_time = current_time_from_proper_timezone
@@ -109,6 +117,17 @@ module ActiveRecord
     end
 
     def _update_record
+      record_update_timestamps
+
+      super
+    end
+
+    def create_or_update(touch: true, **)
+      @_touch_record = touch
+      super
+    end
+
+    def record_update_timestamps
       if @_touch_record && should_record_timestamps?
         current_time = current_time_from_proper_timezone
 
@@ -118,12 +137,7 @@ module ActiveRecord
         end
       end
 
-      super
-    end
-
-    def create_or_update(touch: true, **)
-      @_touch_record = touch
-      super
+      yield if block_given?
     end
 
     def should_record_timestamps?
@@ -148,15 +162,17 @@ module ActiveRecord
 
     def max_updated_column_timestamp
       timestamp_attributes_for_update_in_model
-        .filter_map { |attr| self[attr]&.to_time }
+        .filter_map { |attr| (v = self[attr]) && (v.is_a?(::Time) ? v : v.to_time) }
         .max
     end
 
     # Clear attributes and changed_attributes
     def clear_timestamp_attributes
       all_timestamp_attributes_in_model.each do |attribute_name|
-        self[attribute_name] = nil
-        clear_attribute_change(attribute_name)
+        if self[attribute_name]
+          self[attribute_name] = nil
+          clear_attribute_change(attribute_name)
+        end
       end
     end
   end

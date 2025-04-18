@@ -41,7 +41,7 @@ module ActiveSupport
       def require_rexml
         silence_warnings { require "rexml/document" }
       rescue LoadError => e
-        $stderr.puts "You don't have rexml installed in your application. Please add it to your Gemfile and run bundle install"
+        warn "You don't have rexml installed in your application. Please add it to your Gemfile and run bundle install"
         raise e
       end
 

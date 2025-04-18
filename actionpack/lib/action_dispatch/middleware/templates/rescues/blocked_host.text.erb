@@ -1,7 +1,9 @@
-Blocked host: <%= @host %>
+Blocked hosts: <%= @hosts.join(", ") %>
 
-To allow requests to <%= @host %> make sure it is a valid hostname (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:
+To allow requests to these hosts, make sure they are valid hostnames (containing only numbers, letters, dashes and dots), then add the following to your environment configuration:
 
-  config.hosts << "<%= @host %>"
+<% @hosts.each do |host| %>
+  config.hosts << "<%= host %>"
+<% end %>
 
 For more details on host authorization view: https://guides.rubyonrails.org/configuring.html#actiondispatch-hostauthorization

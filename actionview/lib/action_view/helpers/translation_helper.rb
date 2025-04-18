@@ -4,14 +4,14 @@ require "action_view/helpers/tag_helper"
 require "active_support/html_safe_translation"
 
 module ActionView
-  # = Action View Translation Helpers
   module Helpers # :nodoc:
+    # = Action View Translation \Helpers
     module TranslationHelper
       extend ActiveSupport::Concern
 
       include TagHelper
 
-      # Specify whether an error should be raised for missing translations
+      # Specify whether an error should be raised for missing translations.
       singleton_class.attr_accessor :raise_on_missing_translations
 
       included do
@@ -93,7 +93,7 @@ module ActionView
           break translated unless translated == MISSING_TRANSLATION
 
           if alternatives.present? && !alternatives.first.is_a?(Symbol)
-            break alternatives.first && I18n.translate(**options, default: alternatives)
+            break alternatives.first && I18n.translate(nil, **options, default: alternatives)
           end
 
           first_key ||= key
@@ -140,7 +140,12 @@ module ActionView
         end
 
         def missing_translation(key, options)
-          keys = I18n.normalize_keys(options[:locale] || I18n.locale, key, options[:scope])
+          locale = options[:locale] || I18n.locale
+
+          i18n_exception = I18n::MissingTranslation.new(locale, key, options)
+          I18n.exception_handler.call(i18n_exception, locale, key, options)
+
+          keys = I18n.normalize_keys(locale, key, options[:scope])
 
           title = +"translation missing: #{keys.join(".")}"
 

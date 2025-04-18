@@ -1,21 +1,23 @@
 # frozen_string_literal: true
 
+# = Active Storage \Variant
+#
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
 # Variants rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
 # of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
-# default, images will be processed with {ImageMagick}[http://imagemagick.org] using the
-# {MiniMagick}[https://github.com/minimagick/minimagick] gem, but you can also switch to the
-# {libvips}[http://libvips.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/libvips/ruby-vips]
+# default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
+# {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
+# {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
 # gem).
 #
 #   Rails.application.config.active_storage.variant_processor
-#   # => :mini_magick
-#
-#   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
+#
+#   Rails.application.config.active_storage.variant_processor = :mini_magick
+#   # => :mini_magick
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
 # you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline
@@ -51,6 +53,8 @@
 # * {ImageProcessing::Vips}[https://github.com/janko/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
+  include ActiveStorage::Blob::Servable
+
   attr_reader :blob, :variation
   delegate :service, to: :blob
   delegate :content_type, to: :variation
@@ -72,7 +76,7 @@ class ActiveStorage::Variant
 
   # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
   #
-  # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
+  # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
@@ -89,15 +93,14 @@ class ActiveStorage::Variant
     ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
 
-  alias_method :content_type_for_serving, :content_type
-
-  def forced_disposition_for_serving # :nodoc:
-    nil
-  end
-
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
   def image
     self
+  end
+
+  # Deletes variant file from service.
+  def destroy
+    service.delete(key)
   end
 
   private

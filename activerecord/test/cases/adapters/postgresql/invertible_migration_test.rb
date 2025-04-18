@@ -35,15 +35,36 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
-  self.use_transactional_tests = false
+  class RenameEnumValueMigration < SilentMigration
+    def change
+      rename_enum_value :color, from: "blue", to: "red"
+    end
+  end
+
+  class AddAndValidateCheckConstraint < SilentMigration
+    def change
+      add_check_constraint :settings, "value >= 0", name: "positive_value", validate: false
+      validate_check_constraint :settings, name: "positive_value"
+    end
+  end
+
+  class AddAndValidateForeignKey < SilentMigration
+    def change
+      add_foreign_key :bars, :foos, validate: false
+      validate_foreign_key :bars, :foos
+    end
+  end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do
     @connection.drop_table "settings", if_exists: true
     @connection.drop_table "enums", if_exists: true
+    @connection.drop_table "bars", if_exists: true
+    @connection.drop_table "foos", if_exists: true
+    @connection.drop_enum "color", if_exists: true
   end
 
   def test_migrate_revert_add_index_with_expression
@@ -64,7 +85,7 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     CreateEnumMigration.new.migrate(:up)
 
     assert @connection.column_exists?(:enums, :best_color, sql_type: "color", default: "blue", null: false)
-    assert_equal [["color", "blue,green"]], @connection.enum_types
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
 
     CreateEnumMigration.new.migrate(:down)
 
@@ -79,6 +100,40 @@ class PostgresqlInvertibleMigrationTest < ActiveRecord::PostgreSQLTestCase
     assert_equal [], @connection.enum_types
 
     DropEnumMigration.new.migrate(:down)
-    assert_equal [["color", "blue,green"]], @connection.enum_types
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
+  end
+
+  def test_migrate_revert_rename_enum_value
+    CreateEnumMigration.new.migrate(:up)
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
+
+    RenameEnumValueMigration.new.migrate(:up)
+    assert_equal [["color", ["red", "green"]]], @connection.enum_types
+
+    RenameEnumValueMigration.new.migrate(:down)
+    assert_equal [["color", ["blue", "green"]]], @connection.enum_types
+  end
+
+  def test_migrate_revert_add_and_validate_check_constraint
+    @connection.create_table(:settings) do |t|
+      t.integer :value
+    end
+
+    AddAndValidateCheckConstraint.new.migrate(:up)
+    assert @connection.check_constraint_exists?(:settings, name: "positive_value")
+    AddAndValidateCheckConstraint.new.migrate(:down)
+    assert_not @connection.check_constraint_exists?(:settings, name: "positive_value")
+  end
+
+  def test_migrate_revert_add_and_validate_foreign_key
+    @connection.create_table(:foos)
+    @connection.create_table(:bars) do |t|
+      t.integer :foo_id
+    end
+
+    AddAndValidateForeignKey.new.migrate(:up)
+    assert @connection.foreign_key_exists?(:bars, :foos)
+    AddAndValidateForeignKey.new.migrate(:down)
+    assert_not @connection.foreign_key_exists?(:bars, :foos)
   end
 end

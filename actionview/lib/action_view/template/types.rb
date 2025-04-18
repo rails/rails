@@ -4,11 +4,14 @@ require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   class Template # :nodoc:
-    module Types
-      class Type
-        SET = Struct.new(:symbols).new([ :html, :text, :js, :css, :xml, :json ])
+    # SimpleType is mostly just a stub implementation for when Action View
+    # is used without Action Dispatch.
+    class SimpleType # :nodoc:
+      @symbols = [ :html, :text, :js, :css, :xml, :json ]
+      class << self
+        attr_reader :symbols
 
-        def self.[](type)
+        def [](type)
           if type.is_a?(self)
             type
           else
@@ -16,41 +19,32 @@ module ActionView
           end
         end
 
-        attr_reader :symbol
-
-        def initialize(symbol)
-          @symbol = symbol.to_sym
-        end
-
-        def to_s
-          @symbol.to_s
-        end
-        alias to_str to_s
-
-        def ref
-          @symbol
-        end
-        alias to_sym ref
-
-        def ==(type)
-          @symbol == type.to_sym unless type.blank?
+        def valid_symbols?(symbols) # :nodoc
+          symbols.all? { |s| @symbols.include?(s) }
         end
       end
 
-      class << self
-        attr_reader :symbols
+      attr_reader :symbol
 
-        def delegate_to(klass)
-          @symbols = klass::SET.symbols
-          @type_klass = klass
-        end
-
-        def [](type)
-          @type_klass[type]
-        end
+      def initialize(symbol)
+        @symbol = symbol.to_sym
       end
 
-      delegate_to Type
+      def to_s
+        @symbol.to_s
+      end
+      alias to_str to_s
+
+      def ref
+        @symbol
+      end
+      alias to_sym ref
+
+      def ==(type)
+        @symbol == type.to_sym unless type.blank?
+      end
     end
+
+    Types = SimpleType # :nodoc:
   end
 end

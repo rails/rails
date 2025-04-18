@@ -7,9 +7,9 @@ module ActiveSupport
     module Assertions
       UNTRACKED = Object.new # :nodoc:
 
-      # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
-      # +nil+ or +false+. "Truthy" means "considered true in a conditional"
-      # like <tt>if foo</tt>.
+      # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
+      # +false+. "Truthy" means "considered true in a conditional" like <tt>if
+      # foo</tt>.
       #
       #   assert_not nil    # => true
       #   assert_not false  # => true
@@ -19,9 +19,24 @@ module ActiveSupport
       #
       #   assert_not foo, 'foo should be false'
       def assert_not(object, message = nil)
-        message ||= "Expected #{mu_pp(object)} to be nil or false"
+        message ||= -> { "Expected #{mu_pp(object)} to be nil or false" }
         assert !object, message
       end
+
+      # Asserts that a block raises one of +exp+. This is an enhancement of the
+      # standard Minitest assertion method with the ability to test error
+      # messages.
+      #
+      #   assert_raises(ArgumentError, match: /incorrect param/i) do
+      #     perform_service(param: 'exception')
+      #   end
+      #
+      def assert_raises(*exp, match: nil, &block)
+        error = super(*exp, &block)
+        assert_match(match, error.message) if match
+        error
+      end
+      alias :assert_raise :assert_raises
 
       # Assertion that the block should not raise an exception.
       #
@@ -50,7 +65,7 @@ module ActiveSupport
       #   end
       #
       # An arbitrary positive or negative difference can be specified.
-      # The default is <tt>1</tt>.
+      # The default is +1+.
       #
       #   assert_difference 'Article.count', -1 do
       #     post :delete, params: { id: ... }
@@ -102,9 +117,14 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_difference", &block)
 
         expressions.zip(exps, before) do |(code, diff), exp, before_value|
-          error  = "#{code.inspect} didn't change by #{diff}"
-          error  = "#{message}.\n#{error}" if message
-          assert_equal(before_value + diff, exp.call, error)
+          actual = exp.call
+          rich_message = -> do
+            code_string = code.respond_to?(:call) ? _callable_to_source_string(code) : code
+            error = "`#{code_string}` didn't change by #{diff}, but by #{actual - before_value}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert_equal(before_value + diff, actual, rich_message)
         end
 
         retval
@@ -161,10 +181,22 @@ module ActiveSupport
       #
       # The keyword arguments +:from+ and +:to+ can be given to specify the
       # expected initial value and the expected value after the block was
-      # executed.
+      # executed. The comparison is done using case equality (===), which means
+      # you can specify patterns or classes:
       #
+      #   # Exact value match
       #   assert_changes :@object, from: nil, to: :foo do
       #     @object = :foo
+      #   end
+      #
+      #   # Case equality
+      #   assert_changes -> { user.token }, to: /\w{32}/ do
+      #     user.generate_token
+      #   end
+      #
+      #   # Type check
+      #   assert_changes -> { current_error }, from: nil, to: RuntimeError do
+      #     raise "Oops"
       #   end
       #
       # An error message can be specified.
@@ -179,22 +211,32 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected change from #{from.inspect}, got #{before}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected change from #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        error = "#{expression.inspect} didn't change"
-        error = "#{error}. It was already #{to}" if before == to
-        error = "#{message}.\n#{error}" if message
-        refute_equal before, after, error
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` didn't change"
+          error = "#{error}. It was already #{to.inspect}" if before == to
+          error = "#{message}.\n#{error}" if message
+          error
+        end
+        refute_equal before, after, rich_message
 
         unless to == UNTRACKED
-          error = "Expected change to #{to}, got #{after}\n"
-          error = "#{message}.\n#{error}" if message
-          assert to === after, error
+          rich_message = -> do
+            error = "Expected change to #{to.inspect}, got #{after.inspect}\n"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert to === after, rich_message
         end
 
         retval
@@ -207,11 +249,23 @@ module ActiveSupport
       #     post :create, params: { status: { ok: true } }
       #   end
       #
-      # Provide the optional keyword argument :from to specify the expected
-      # initial value.
+      # Provide the optional keyword argument +:from+ to specify the expected
+      # initial value. The comparison is done using case equality (===), which means
+      # you can specify patterns or classes:
       #
+      #   # Exact value match
       #   assert_no_changes -> { Status.all_good? }, from: true do
       #     post :create, params: { status: { ok: true } }
+      #   end
+      #
+      #   # Case equality
+      #   assert_no_changes -> { user.token }, from: /\w{32}/ do
+      #     user.touch
+      #   end
+      #
+      #   # Type check
+      #   assert_no_changes -> { current_error }, from: RuntimeError do
+      #     retry_operation
       #   end
       #
       # An error message can be specified.
@@ -226,20 +280,27 @@ module ActiveSupport
         retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
 
         unless from == UNTRACKED
-          error = "Expected initial value of #{from.inspect}"
-          error = "#{message}.\n#{error}" if message
-          assert from === before, error
+          rich_message = -> do
+            error = "Expected initial value of #{from.inspect}, got #{before.inspect}"
+            error = "#{message}.\n#{error}" if message
+            error
+          end
+          assert from === before, rich_message
         end
 
         after = exp.call
 
-        error = "#{expression.inspect} changed"
-        error = "#{message}.\n#{error}" if message
+        rich_message = -> do
+          code_string = expression.respond_to?(:call) ? _callable_to_source_string(expression) : expression
+          error = "`#{code_string}` changed"
+          error = "#{message}.\n#{error}" if message
+          error
+        end
 
         if before.nil?
-          assert_nil after, error
+          assert_nil after, rich_message
         else
-          assert_equal before, after, error
+          assert_equal before, after, rich_message
         end
 
         retval
@@ -259,6 +320,43 @@ module ActiveSupport
           end
 
           raise
+        end
+
+        def _callable_to_source_string(callable)
+          if defined?(RubyVM::InstructionSequence) && callable.is_a?(Proc)
+            iseq = RubyVM::InstructionSequence.of(callable)
+            source =
+              if iseq.script_lines
+                iseq.script_lines.join("\n")
+              elsif File.readable?(iseq.absolute_path)
+                File.read(iseq.absolute_path)
+              end
+
+            return callable unless source
+
+            location = iseq.to_a[4][:code_location]
+            return callable unless location
+
+            lines = source.lines[(location[0] - 1)..(location[2] - 1)]
+            lines[-1] = lines[-1].byteslice(...location[3])
+            lines[0] = lines[0].byteslice(location[1]...)
+            source = lines.join.strip
+
+            # We ignore procs defined with do/end as they are likely multi-line anyway.
+            if source.start_with?("{")
+              source.delete_suffix!("}")
+              source.delete_prefix!("{")
+              source.strip!
+              # It won't read nice if the callable contains multiple
+              # lines, and it should be a rare occurrence anyway.
+              # Same if it takes arguments.
+              if !source.include?("\n") && !source.start_with?("|")
+                return source
+              end
+            end
+          end
+
+          callable
         end
     end
   end

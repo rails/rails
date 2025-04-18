@@ -12,6 +12,7 @@ require "action_view/helpers/asset_tag_helper"
 require "action_view/helpers/asset_url_helper"
 require "action_view/helpers/atom_feed_helper"
 require "action_view/helpers/cache_helper"
+require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/controller_helper"
 require "action_view/helpers/csp_helper"
 require "action_view/helpers/csrf_helper"
@@ -45,6 +46,7 @@ module ActionView # :nodoc:
     include AtomFeedHelper
     include CacheHelper
     include CaptureHelper
+    include ContentExfiltrationPreventionHelper
     include ControllerHelper
     include CspHelper
     include CsrfHelper

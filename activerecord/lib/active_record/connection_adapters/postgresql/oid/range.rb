@@ -18,7 +18,7 @@ module ActiveRecord
           end
 
           def cast_value(value)
-            return if value == "empty"
+            return if ["empty", ""].include? value
             return value unless value.is_a?(::String)
 
             extracted = extract_bounds(value)

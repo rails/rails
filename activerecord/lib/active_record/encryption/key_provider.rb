@@ -12,7 +12,7 @@ module ActiveRecord
         @keys = Array(keys)
       end
 
-      # Returns the first key in the list as the active key to perform encryptions
+      # Returns the last key in the list as the active key to perform encryptions
       #
       # When +ActiveRecord::Encryption.config.store_key_references+ is true, the key will include
       # a public tag referencing the key itself. That key will be stored in the public

@@ -3,7 +3,9 @@
 require "active_support/core_ext/time/calculations"
 
 module ActiveSupport
-  # FileUpdateChecker specifies the API used by Rails to watch files
+  # = \File Update Checker
+  #
+  # FileUpdateChecker specifies the API used by \Rails to watch files
   # and control reloading. The API depends on four methods:
   #
   # * +initialize+ which expects two parameters and one block as
@@ -20,7 +22,7 @@ module ActiveSupport
   # After initialization, a call to +execute_if_updated+ must execute
   # the block only if there was really a change in the filesystem.
   #
-  # This class is used by Rails to reload the I18n framework whenever
+  # This class is used by \Rails to reload the I18n framework whenever
   # they are changed upon a new request.
   #
   #   i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
@@ -45,7 +47,7 @@ module ActiveSupport
       end
 
       @files = files.freeze
-      @glob  = compile_glob(dirs)
+      @globs = compile_glob(dirs)
       @block = block
 
       @watched    = nil
@@ -101,8 +103,8 @@ module ActiveSupport
       def watched
         @watched || begin
           all = @files.select { |f| File.exist?(f) }
-          all.concat(Dir[@glob]) if @glob
-          all
+          all.concat(Dir[*@globs]) if @globs
+          all.tap(&:uniq!)
         end
       end
 
@@ -143,10 +145,9 @@ module ActiveSupport
         hash.freeze # Freeze so changes aren't accidentally pushed
         return if hash.empty?
 
-        globs = hash.map do |key, value|
+        hash.map do |key, value|
           "#{escape(key)}/**/*#{compile_ext(value)}"
         end
-        "{#{globs.join(",")}}"
       end
 
       def escape(key)

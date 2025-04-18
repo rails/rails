@@ -1,0 +1,33 @@
+services:
+  rails-app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Uncomment the next line to use a non-root user for all processes.
+    # user: vscode
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    depends_on:
+    - selenium
+    - redis
+
+  selenium:
+    image: selenium/standalone-chromium
+    restart: unless-stopped
+
+  redis:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    volumes:
+    - redis-data:/data
+
+volumes:
+  redis-data:

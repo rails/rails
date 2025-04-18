@@ -6,17 +6,12 @@ class TestRecord < ActiveRecord::Base
 end
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
-  self.use_transactional_tests = false
-
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   teardown do
     return if in_memory_db?
-    db_config = ActiveRecord::Base.connection_db_config
-    ActiveRecord::Base.remove_connection
-    ActiveRecord::Base.establish_connection(db_config)
   end
 
   unless in_memory_db?

@@ -11,7 +11,7 @@ module ActiveRecord
       def setup
         super
 
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
 
         connection.create_table :testings, id: false do |t|
           t.column :first, :integer
@@ -25,7 +25,7 @@ module ActiveRecord
         ActiveRecord::Base.primary_key_prefix_type = nil
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         def test_column_positioning
           assert_equal %w(first second third), conn.columns(:testings).map(&:name)
         end

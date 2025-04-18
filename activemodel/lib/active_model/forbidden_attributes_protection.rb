@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveModel
+  # = Active \Model \ForbiddenAttributesError
+  #
   # Raised when forbidden attributes are used for mass assignment.
   #
   #   class Person < ActiveRecord::Base

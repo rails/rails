@@ -12,7 +12,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("hstore", @connection)
 
@@ -49,7 +49,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_not_compatible_with_serialize_array
     new_klass = Class.new(PgArray) do
-      serialize :tags, Array
+      serialize :tags, type: Array
     end
     assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
       new_klass.new
@@ -65,7 +65,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   def test_array_with_serialized_attributes
     new_klass = Class.new(PgArray) do
-      serialize :tags, MyTags
+      serialize :tags, coder: MyTags
     end
 
     new_klass.create!(tags: MyTags.new(["one", "two"]))
@@ -269,7 +269,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     oid = ActiveRecord::ConnectionAdapters::PostgreSQL::OID
     comma_delim = oid::Array.new(ActiveRecord::Type::String.new, ",")
     semicolon_delim = oid::Array.new(ActiveRecord::Type::String.new, ";")
-    conn = PgArray.connection
+    conn = PgArray.lease_connection
 
     assert_equal %({"hello,",world;}), conn.type_cast(comma_delim.serialize(strings))
     assert_equal %({hello,;"world;"}), conn.type_cast(semicolon_delim.serialize(strings))
@@ -354,11 +354,11 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
       def self.model_name; ActiveModel::Name.new(PgArray) end
     end
     e1 = klass.create("tags" => ["black", "blue"])
-    assert e1.persisted?, "Saving e1"
+    assert_predicate e1, :persisted?, "Saving e1"
 
     e2 = klass.create("tags" => ["black", "blue"])
     assert_not e2.persisted?, "e2 shouldn't be valid"
-    assert e2.errors[:tags].any?, "Should have errors for tags"
+    assert_predicate e2.errors[:tags], :any?, "Should have errors for tags"
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end
 

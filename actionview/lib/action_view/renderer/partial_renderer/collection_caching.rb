@@ -89,15 +89,32 @@ module ActionView
       # If the partial is not already cached it will also be
       # written back to the underlying cache store.
       def fetch_or_cache_partial(cached_partials, template, order_by:)
-        order_by.index_with do |cache_key|
+        entries_to_write = {}
+
+        keyed_partials = order_by.index_with do |cache_key|
           if content = cached_partials[cache_key]
             build_rendered_template(content, template)
           else
-            yield.tap do |rendered_partial|
-              collection_cache.write(cache_key, rendered_partial.body)
+            rendered_partial = yield
+            body = rendered_partial.body
+
+            # We want to cache buffers as raw strings. This both improve performance and
+            # avoid creating forward compatibility issues with the internal representation
+            # of these two types.
+            if body.is_a?(ActionView::OutputBuffer) || body.is_a?(ActiveSupport::SafeBuffer)
+              body = body.to_str
             end
+
+            entries_to_write[cache_key] = body
+            rendered_partial
           end
         end
+
+        unless entries_to_write.empty?
+          collection_cache.write_multi(entries_to_write)
+        end
+
+        keyed_partials
       end
   end
 end

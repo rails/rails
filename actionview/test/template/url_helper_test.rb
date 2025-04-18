@@ -402,6 +402,15 @@ class UrlHelperTest < ActiveSupport::TestCase
     ActionView::Helpers::UrlHelper.button_to_generates_button_tag = old_value
   end
 
+  def test_button_to_with_content_exfiltration_prevention
+    with_prepend_content_exfiltration_prevention(true) do
+      assert_dom_equal(
+        %{<!-- '"` --><!-- </textarea></xmp> --></option></form><form method="post" action="http://www.example.com" class="button_to"><button type="submit">Hello</button></form>},
+        button_to("Hello", "http://www.example.com")
+      )
+    end
+  end
+
   class FakeParams
     def initialize(permitted = true)
       @permitted = permitted
@@ -569,6 +578,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_dom_equal(
       %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
       link_to("Hello", "http://www.example.com", method: :post, rel: "example")
+    )
+
+    assert_dom_equal(
+      %{<a href="http://www.example.com" data-method="post" rel="example nofollow">Hello</a>},
+      link_to("Hello", "http://www.example.com", method: :post, rel: :example)
     )
   end
 
@@ -1036,6 +1050,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   def request_forgery_protection_token
     "form_token"
   end
+
+  private
+    def with_prepend_content_exfiltration_prevention(value)
+      old_value = ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = value
+
+      yield
+    ensure
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
+    end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
@@ -1053,7 +1077,7 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: "url_helper_controller_test/url_helper#show_named_route",
         as: :show_named_route
 
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "/:controller(/:action(/:id))"
       end
 
@@ -1283,7 +1307,7 @@ class PolymorphicControllerTest < ActionController::TestCase
     @routes = WorkshopsController::ROUTES
   end
 
-  def test_new_resource
+  def test_index_resource
     @controller = WorkshopsController.new
 
     get :index
@@ -1295,6 +1319,13 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_existing_cpk_resource
+    @controller = WorkshopsController.new
+
+    get :show, params: { id: "1-27" }
+    assert_equal %{/workshops/1-27\n<a href="/workshops/1-27">Workshop</a>}, @response.body
   end
 
   def test_current_page_when_options_does_not_respond_to_to_hash

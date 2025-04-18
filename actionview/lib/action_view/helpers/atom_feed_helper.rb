@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require "set"
-
 module ActionView
-  # = Action View Atom Feed Helpers
   module Helpers # :nodoc:
+    # = Action View Atom Feed \Helpers
     module AtomFeedHelper
       # Adds easy defaults to writing Atom feeds with the Builder template engine (this does not work on ERB or any other
       # template languages).
@@ -102,7 +100,7 @@ module ActionView
           options[:schema_date] = "2005" # The Atom spec copyright date
         end
 
-        xml = options.delete(:xml) || eval("xml", block.binding)
+        xml = options.delete(:xml) || block.binding.local_variable_get(:xml)
         xml.instruct!
         if options[:instruct]
           options[:instruct].each do |target, attrs|

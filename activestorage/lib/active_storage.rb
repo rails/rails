@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2017-2022 David Heinemeier Hansson, Basecamp
+# Copyright (c) David Heinemeier Hansson, 37signals LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -29,10 +29,13 @@ require "active_support/rails"
 require "active_support/core_ext/numeric/time"
 
 require "active_storage/version"
+require "active_storage/deprecator"
 require "active_storage/errors"
 
 require "marcel"
 
+# :markup: markdown
+# :include: ../README.md
 module ActiveStorage
   extend ActiveSupport::Autoload
 
@@ -45,6 +48,8 @@ module ActiveStorage
   mattr_accessor :logger
   mattr_accessor :verifier
   mattr_accessor :variant_processor, default: :mini_magick
+
+  mattr_accessor :variant_transformer
 
   mattr_accessor :queues, default: {}
 
@@ -351,23 +356,32 @@ module ActiveStorage
   mattr_accessor :unsupported_image_processing_arguments
 
   mattr_accessor :service_urls_expire_in, default: 5.minutes
+  mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
 
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
-  mattr_accessor :replace_on_assign_to_many, default: false
   mattr_accessor :track_variants, default: false
 
-  mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
+  singleton_class.attr_accessor :checksum_implementation
+  @checksum_implementation = OpenSSL::Digest::MD5
+  begin
+    @checksum_implementation.hexdigest("test")
+  rescue # OpenSSL may have MD5 disabled
+    require "digest/md5"
+    @checksum_implementation = Digest::MD5
+  end
 
-  mattr_accessor :silence_invalid_content_types_warning, default: false
+  mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
   module Transformers
     extend ActiveSupport::Autoload
 
     autoload :Transformer
     autoload :ImageProcessingTransformer
+    autoload :Vips
+    autoload :ImageMagick
   end
 end

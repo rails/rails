@@ -15,9 +15,9 @@ export function start() {
 }
 
 function didClick(event) {
-  const { target } = event
-  if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
-    submitButtonsByForm.set(target.form, target)
+  const button = event.target.closest("button, input")
+  if (button && button.type === "submit" && button.form) {
+    submitButtonsByForm.set(button.form, button)
   }
 }
 

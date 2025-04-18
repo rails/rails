@@ -178,25 +178,31 @@ module ApplicationTests
       RUBY
 
       output = Dir.chdir(app_path) { `bin/rails do_something RAILS_ENV=production` }
-      assert_equal "Answer: 42\n", output
+      assert_equal "Answer: 42\n", output.lines.last
     end
 
     def test_code_statistics
-      assert_match "Code LOC: 62     Test LOC: 5     Code to Test Ratio: 1:0.1",
-        rails("stats")
+      assert_match(/Code LOC: \d+\s+Test LOC: \d+\s+ Code to Test Ratio: 1:\w+/, rails("stats"))
     end
 
-    def test_logger_is_flushed_when_exiting_production_rake_tasks
+    def test_reload_routes
       add_to_config <<-RUBY
         rake_tasks do
-          task log_something: :environment do
-            Rails.logger.error("Sample log message")
+          task do_something: :environment do
+            Rails.application.reload_routes!
+            puts Rails.application.routes.named_routes.to_h.keys.join(" ")
           end
         end
       RUBY
 
-      rails "log_something", "RAILS_ENV=production"
-      assert_match "Sample log message", File.read("#{app_path}/log/production.log")
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "foo", to: "foo#bar", as: :my_great_route
+        end
+      RUBY
+
+      output = Dir.chdir(app_path) { `bin/rails do_something` }
+      assert_includes(output.lines.first, "my_great_route")
     end
 
     def test_loading_specific_fixtures
@@ -219,7 +225,9 @@ module ApplicationTests
       app_file "test/fixtures/products.csv", ""
 
       require "#{rails_root}/config/environment"
-      rails "db:fixtures:load"
+      assert_nothing_raised do
+        rails "db:fixtures:load"
+      end
     end
 
     def test_scaffold_tests_pass_by_default

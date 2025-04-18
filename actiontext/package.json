@@ -1,9 +1,9 @@
 {
   "name": "@rails/actiontext",
-  "version": "7.1.0-alpha",
+  "version": "8.1.0-alpha",
   "description": "Edit and display rich text in Rails applications",
+  "module": "app/assets/javascripts/actiontext.esm.js",
   "main": "app/assets/javascripts/actiontext.js",
-  "type": "module",
   "files": [
     "app/assets/javascripts/*.js"
   ],
@@ -15,23 +15,24 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "author": "Basecamp, LLC",
+  "author": "37signals LLC",
   "contributors": [
     "Javan Makhmali <javan@javan.us>",
     "Sam Stephenson <sstephenson@gmail.com>"
   ],
   "license": "MIT",
   "dependencies": {
-    "@rails/activestorage": ">= 7.0.0-alpha1"
+    "@rails/activestorage": ">= 8.1.0-alpha"
   },
   "peerDependencies": {
-    "trix": "^1.3.1"
+    "trix": "^2.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^11.0.1",
     "@rollup/plugin-commonjs": "^19.0.1",
+    "@rollup/plugin-node-resolve": "^11.0.1",
     "rollup": "^2.35.1",
-    "trix": "^1.3.1"
+    "rollup-plugin-terser": "^7.0.2",
+    "trix": "^2.0.0"
   },
   "scripts": {
     "build": "rollup --config rollup.config.js"

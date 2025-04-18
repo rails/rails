@@ -34,14 +34,6 @@ class CacheStoreSettingTest < ActiveSupport::TestCase
     end
   end
 
-  def test_mem_cache_fragment_cache_store_with_given_mem_cache
-    mem_cache = Dalli::Client.new
-    assert_not_called(Dalli::Client, :new) do
-      store = ActiveSupport::Cache.lookup_store :mem_cache_store, mem_cache
-      assert_kind_of(ActiveSupport::Cache::MemCacheStore, store)
-    end
-  end
-
   def test_mem_cache_fragment_cache_store_with_not_dalli_client
     assert_not_called(Dalli::Client, :new) do
       memcache = Object.new

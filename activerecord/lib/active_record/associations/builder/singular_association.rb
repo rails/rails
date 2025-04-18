@@ -19,6 +19,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
         def reload_#{name}
           association(:#{name}).force_reload_reader
         end
+
+        def reset_#{name}
+          association(:#{name}).reset
+        end
       CODE
     end
 

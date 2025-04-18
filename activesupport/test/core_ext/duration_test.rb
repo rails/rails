@@ -82,9 +82,6 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_eql
-    rubinius_skip "Rubinius' #eql? definition relies on #instance_of? " \
-                  "which behaves oddly for the sake of backward-compatibility."
-
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)
     assert 2.days.eql?(48.hours)
@@ -741,15 +738,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_not 12.minutes.variable?
     assert_not 12.hours.variable?
 
-    assert 12.days.variable?
-    assert 12.weeks.variable?
-    assert 12.months.variable?
-    assert 12.years.variable?
+    assert_predicate 12.days, :variable?
+    assert_predicate 12.weeks, :variable?
+    assert_predicate 12.months, :variable?
+    assert_predicate 12.years, :variable?
 
     assert_not (12.hours + 12.minutes).variable?
 
-    assert (12.hours + 1.day).variable?
-    assert (1.day + 12.hours).variable?
+    assert_predicate (12.hours + 1.day), :variable?
+    assert_predicate (1.day + 12.hours), :variable?
   end
 
   def test_duration_symmetry

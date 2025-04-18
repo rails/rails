@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
 require "active_support/log_subscriber"
 
 module ActiveJob
   class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def enqueue(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
@@ -23,10 +24,11 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue, :info
 
     def enqueue_at(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
@@ -42,20 +44,52 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue_at, :info
+
+    def enqueue_all(event)
+      info do
+        jobs = event.payload[:jobs]
+        adapter = event.payload[:adapter]
+        enqueued_count = event.payload[:enqueued_count].to_i
+
+        if enqueued_count == jobs.size
+          enqueued_jobs_message(adapter, jobs)
+        elsif jobs.any?(&:successfully_enqueued?)
+          enqueued_jobs = jobs.select(&:successfully_enqueued?)
+
+          failed_enqueue_count = jobs.size - enqueued_count
+          if failed_enqueue_count == 0
+            enqueued_jobs_message(adapter, enqueued_jobs)
+          else
+            "#{enqueued_jobs_message(adapter, enqueued_jobs)}. "\
+              "Failed enqueuing #{failed_enqueue_count} #{'job'.pluralize(failed_enqueue_count)}"
+          end
+        else
+          failed_enqueue_count = jobs.size - enqueued_count
+          "Failed enqueuing #{failed_enqueue_count} #{'job'.pluralize(failed_enqueue_count)} "\
+            "to #{ActiveJob.adapter_name(adapter)}"
+        end
+      end
+    end
+    subscribe_log_level :enqueue_all, :info
 
     def perform_start(event)
       info do
         job = event.payload[:job]
-        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at}" + args_info(job)
+        enqueue_info = job.enqueued_at.present? ? " enqueued at #{job.enqueued_at.utc.iso8601(9)}" : ""
+
+        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + enqueue_info + args_info(job)
       end
     end
+    subscribe_log_level :perform_start, :info
 
     def perform(event)
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
+        cleaned_backtrace = backtrace_cleaner.clean(ex.backtrace)
         error do
-          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(cleaned_backtrace).join("\n")
         end
       elsif event.payload[:aborted]
         error do
@@ -67,6 +101,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :perform, :info
 
     def enqueue_retry(event)
       job = event.payload[:job]
@@ -81,6 +116,7 @@ module ActiveJob
         end
       end
     end
+    subscribe_log_level :enqueue_retry, :info
 
     def retry_stopped(event)
       job = event.payload[:job]
@@ -90,6 +126,7 @@ module ActiveJob
         "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
+    subscribe_log_level :retry_stopped, :error
 
     def discard(event)
       job = event.payload[:job]
@@ -99,10 +136,11 @@ module ActiveJob
         "Discarded #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message})."
       end
     end
+    subscribe_log_level :discard, :error
 
     private
       def queue_name(event)
-        event.payload[:adapter].class.name.demodulize.remove("Adapter") + "(#{event.payload[:job].queue_name})"
+        ActiveJob.adapter_name(event.payload[:adapter]) + "(#{event.payload[:job].queue_name})"
       end
 
       def args_info(job)
@@ -133,6 +171,45 @@ module ActiveJob
 
       def logger
         ActiveJob::Base.logger
+      end
+
+      def info(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def error(progname = nil, &block)
+        return unless super
+
+        if ActiveJob.verbose_enqueue_logs
+          log_enqueue_source
+        end
+      end
+
+      def log_enqueue_source
+        source = enqueue_source_location
+
+        if source
+          logger.info("↳ #{source}")
+        end
+      end
+
+      def enqueue_source_location
+        Thread.each_caller_location do |location|
+          frame = backtrace_cleaner.clean_frame(location)
+          return frame if frame
+        end
+        nil
+      end
+
+      def enqueued_jobs_message(adapter, enqueued_jobs)
+        enqueued_count = enqueued_jobs.size
+        job_classes_counts = enqueued_jobs.map(&:class).tally.sort_by { |_k, v| -v }
+        "Enqueued #{enqueued_count} #{'job'.pluralize(enqueued_count)} to #{ActiveJob.adapter_name(adapter)}"\
+          " (#{job_classes_counts.map { |klass, count| "#{count} #{klass}" }.join(', ')})"
       end
   end
 end

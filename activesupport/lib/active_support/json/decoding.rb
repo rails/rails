@@ -5,7 +5,7 @@ require "active_support/core_ext/module/delegation"
 require "json"
 
 module ActiveSupport
-  # Look for and parse json strings that look like ISO 8601 times.
+  # Look for and parse JSON strings that look like ISO 8601 times.
   mattr_accessor :parse_json_times
 
   module JSON
@@ -19,8 +19,8 @@ module ActiveSupport
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
-      def decode(json)
-        data = ::JSON.parse(json, quirks_mode: true)
+      def decode(json, options = {})
+        data = ::JSON.parse(json, options)
 
         if ActiveSupport.parse_json_times
           convert_dates_from(data)

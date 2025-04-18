@@ -32,6 +32,7 @@ export default class Consumer {
     this._url = url
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
+    this.subprotocols = []
   }
 
   get url() {
@@ -55,6 +56,10 @@ export default class Consumer {
       return this.connection.open()
     }
   }
+
+  addSubProtocol(subprotocol) {
+    this.subprotocols = [...this.subprotocols, subprotocol]
+  }
 }
 
 export function createWebSocketURL(url) {
@@ -66,7 +71,7 @@ export function createWebSocketURL(url) {
     const a = document.createElement("a")
     a.href = url
     // Fix populating Location properties in IE. Otherwise, protocol will be blank.
-    a.href = a.href
+    a.href = a.href // eslint-disable-line
     a.protocol = a.protocol.replace("http", "ws")
     return a.href
   } else {

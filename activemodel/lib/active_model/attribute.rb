@@ -38,7 +38,7 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
-    def value
+    def value(&)
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
@@ -53,7 +53,10 @@ module ActiveModel
     end
 
     def value_for_database
-      type.serialize(value)
+      if !defined?(@value_for_database) || type.changed_in_place?(@value_for_database, value)
+        @value_for_database = _value_for_database
+      end
+      @value_for_database
     end
 
     def serializable?(&block)
@@ -90,6 +93,14 @@ module ActiveModel
         with_value_from_user(value).with_type(type)
       else
         self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
+    end
+
+    def dup_or_share # :nodoc:
+      if @type.mutable?
+        dup
+      else
+        self # If the underlying type is immutable we can get away with not duping
       end
     end
 
@@ -150,13 +161,17 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if defined?(@value) && @value.duplicable?
+        if @value&.duplicable?
           @value = @value.dup
         end
       end
 
       def changed_from_assignment?
         assigned? && type.changed?(original_value, value, value_before_type_cast)
+      end
+
+      def _value_for_database
+        type.serialize(value)
       end
 
       def _original_value_for_database
@@ -166,6 +181,19 @@ module ActiveModel
       class FromDatabase < Attribute # :nodoc:
         def type_cast(value)
           type.deserialize(value)
+        end
+
+        def forgetting_assignment
+          # If this attribute was not persisted (with a `value_for_database`
+          # that might differ from `value_before_type_cast`) and `value` has not
+          # changed in place, we can use the existing `value_before_type_cast`
+          # to avoid deserialize / cast / serialize calls from computing the new
+          # attribute's `value_before_type_cast`.
+          if !defined?(@value_for_database) && !changed_in_place?
+            with_value_from_database(value_before_type_cast)
+          else
+            super
+          end
         end
 
         private
@@ -182,6 +210,11 @@ module ActiveModel
         def came_from_user?
           !type.value_constructed_by_mass_assignment?(value_before_type_cast)
         end
+
+        private
+          def _value_for_database
+            Type::SerializeCastValue.serialize(type, value)
+          end
       end
 
       class WithCastValue < Attribute # :nodoc:

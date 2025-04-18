@@ -5,7 +5,7 @@ require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   class AttributeMutationTracker # :nodoc:
-    OPTION_NOT_GIVEN = Object.new
+    OPTION_NOT_GIVEN = Object.new.freeze
 
     def initialize(attributes)
       @attributes = attributes
@@ -16,17 +16,17 @@ module ActiveModel
     end
 
     def changed_values
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if changed?(attr_name)
-          result[attr_name] = original_value(attr_name)
+          result.store(attr_name, original_value(attr_name), convert_value: false)
         end
       end
     end
 
     def changes
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if change = change_to_attribute(attr_name)
-          result.merge!(attr_name => change)
+          result.store(attr_name, change, convert_value: false)
         end
       end
     end
@@ -43,8 +43,8 @@ module ActiveModel
 
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
       attribute_changed?(attr_name) &&
-        (OPTION_NOT_GIVEN == from || original_value(attr_name) == from) &&
-        (OPTION_NOT_GIVEN == to || fetch_value(attr_name) == to)
+        (OPTION_NOT_GIVEN == from || original_value(attr_name) == type_cast(attr_name, from)) &&
+        (OPTION_NOT_GIVEN == to || fetch_value(attr_name) == type_cast(attr_name, to))
     end
 
     def changed_in_place?(attr_name)
@@ -81,6 +81,10 @@ module ActiveModel
 
       def fetch_value(attr_name)
         attributes.fetch_value(attr_name)
+      end
+
+      def type_cast(attr_name, value)
+        attributes[attr_name].type_cast(value)
       end
   end
 
@@ -141,6 +145,10 @@ module ActiveModel
         value = fetch_value(attr_name)
         value.duplicable? ? value.clone : value
       rescue TypeError, NoMethodError
+        value
+      end
+
+      def type_cast(attr_name, value)
         value
       end
   end

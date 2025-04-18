@@ -13,7 +13,13 @@ module Rails
 
       def build_stack
         ActionDispatch::MiddlewareStack.new do |middleware|
-          middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
+          unless Array(config.hosts).empty?
+            middleware.use ::ActionDispatch::HostAuthorization, config.hosts, **config.host_authorization
+          end
+
+          if config.assume_ssl
+            middleware.use ::ActionDispatch::AssumeSSL
+          end
 
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, **config.ssl_options,
@@ -48,6 +54,10 @@ module Rails
           middleware.use ::ActionDispatch::RequestId, header: config.action_dispatch.request_id_header
           middleware.use ::ActionDispatch::RemoteIp, config.action_dispatch.ip_spoofing_check, config.action_dispatch.trusted_proxies
 
+          if path = config.silence_healthcheck_path
+            middleware.use ::Rails::Rack::SilenceRequest, path: path
+          end
+
           middleware.use ::Rails::Rack::Logger, config.log_tags
           middleware.use ::ActionDispatch::ShowExceptions, show_exceptions_app
           middleware.use ::ActionDispatch::DebugExceptions, app, config.debug_exception_response_format
@@ -73,7 +83,7 @@ module Rails
           unless config.api_only
             middleware.use ::ActionDispatch::Flash
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
-            middleware.use ::ActionDispatch::PermissionsPolicy::Middleware
+            middleware.use ::ActionDispatch::PermissionsPolicy::Middleware if config.permissions_policy
           end
 
           middleware.use ::Rack::Head

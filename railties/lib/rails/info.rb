@@ -4,7 +4,7 @@ require "cgi"
 
 module Rails
   # This module helps build the runtime properties that are displayed in
-  # Rails::InfoController responses. These include the active Rails version,
+  # Rails::InfoController responses. These include the active \Rails version,
   # Ruby version, Rack version, and so on.
   module Info
     mattr_accessor :properties, default: []
@@ -95,11 +95,11 @@ module Rails
 
     # The name of the database adapter for the current environment.
     property "Database adapter" do
-      ActiveRecord::Base.connection.pool.db_config.adapter
+      ActiveRecord::Base.connection_pool.db_config.adapter
     end
 
     property "Database schema version" do
-      ActiveRecord::Base.connection.migration_context.current_version rescue nil
+      ActiveRecord::Base.connection_pool.migration_context.current_version rescue nil
     end
   end
 end

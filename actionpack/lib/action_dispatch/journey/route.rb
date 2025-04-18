@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   # :stopdoc:
   module Journey
     class Route
       attr_reader :app, :path, :defaults, :name, :precedence, :constraints,
-                  :internal, :scope_options, :ast
+                  :internal, :scope_options, :ast, :source_location
 
       alias :conditions :constraints
 
@@ -36,29 +38,50 @@ module ActionDispatch
           def self.verb; ""; end
         end
 
+        class Or
+          attr_reader :verb
+
+          def initialize(verbs)
+            @verbs = verbs
+            @verb = @verbs.map(&:verb).join("|")
+          end
+
+          def call(req)
+            @verbs.any? { |v| v.call req }
+          end
+        end
+
         VERB_TO_CLASS = VERBS.each_with_object(all: All) do |verb, hash|
           klass = const_get verb
           hash[verb]                 = klass
           hash[verb.downcase]        = klass
           hash[verb.downcase.to_sym] = klass
         end
-      end
 
-      def self.verb_matcher(verb)
-        VerbMatchers::VERB_TO_CLASS.fetch(verb) do
+        VERB_TO_CLASS.default_proc = proc do |_, verb|
           VerbMatchers::Unknown.new verb.to_s.dasherize.upcase
+        end
+
+        def self.for(verbs)
+          if verbs.any? { |v| VERB_TO_CLASS[v] == All }
+            All
+          elsif verbs.one?
+            VERB_TO_CLASS[verbs.first]
+          else
+            Or.new(verbs.map { |v| VERB_TO_CLASS[v] })
+          end
         end
       end
 
       ##
       # +path+ is a path constraint.
-      # +constraints+ is a hash of constraints to be applied to this route.
-      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, request_method_match: nil, precedence: 0, scope_options: {}, internal: false)
+      # `constraints` is a hash of constraints to be applied to this route.
+      def initialize(name:, app: nil, path:, constraints: {}, required_defaults: [], defaults: {}, via: nil, precedence: 0, scope_options: {}, internal: false, source_location: nil)
         @name        = name
         @app         = app
         @path        = path
 
-        @request_method_match = request_method_match
+        @request_method_match = via && VerbMatchers.for(via)
         @constraints = constraints
         @defaults    = defaults
         @required_defaults = nil
@@ -69,6 +92,7 @@ module ActionDispatch
         @path_formatter    = @path.build_formatter
         @scope_options     = scope_options
         @internal          = internal
+        @source_location   = source_location
 
         @ast = @path.ast.root
         @path.ast.route = self
@@ -81,14 +105,14 @@ module ActionDispatch
         nil
       end
 
-      # Needed for `bin/rails routes`. Picks up succinctly defined requirements
-      # for a route, for example route
+      # Needed for `bin/rails routes`. Picks up succinctly defined requirements for a
+      # route, for example route
       #
-      #   get 'photo/:id', :controller => 'photos', :action => 'show',
-      #     :id => /[A-Z]\d{5}/
+      #     get 'photo/:id', :controller => 'photos', :action => 'show',
+      #       :id => /[A-Z]\d{5}/
       #
-      # will have {:controller=>"photos", :action=>"show", :id=>/[A-Z]\d{5}/}
-      # as requirements.
+      # will have {:controller=>"photos", :action=>"show", :[id=>/](A-Z){5}/} as
+      # requirements.
       def requirements
         @defaults.merge(path.requirements).delete_if { |_, v|
           /.+?/m == v
@@ -143,21 +167,23 @@ module ActionDispatch
       end
 
       def matches?(request)
-        match_verb(request) &&
-        constraints.all? { |method, value|
-          case value
-          when Regexp, String
-            value === request.send(method).to_s
-          when Array
-            value.include?(request.send(method))
-          when TrueClass
-            request.send(method).present?
-          when FalseClass
-            request.send(method).blank?
-          else
-            value === request.send(method)
-          end
-        }
+        @request_method_match.call(request) && (
+          constraints.empty? ||
+          constraints.all? { |method, value|
+            case value
+            when Regexp, String
+              value === request.send(method).to_s
+            when Array
+              value.include?(request.send(method))
+            when TrueClass
+              request.send(method).present?
+            when FalseClass
+              request.send(method).blank?
+            else
+              value === request.send(method)
+            end
+          }
+        )
       end
 
       def ip
@@ -165,21 +191,12 @@ module ActionDispatch
       end
 
       def requires_matching_verb?
-        !@request_method_match.all? { |x| x == VerbMatchers::All }
+        @request_method_match != VerbMatchers::All
       end
 
       def verb
-        verbs.join("|")
+        @request_method_match.verb
       end
-
-      private
-        def verbs
-          @request_method_match.map(&:verb)
-        end
-
-        def match_verb(request)
-          @request_method_match.any? { |m| m.call request }
-        end
     end
   end
   # :startdoc:

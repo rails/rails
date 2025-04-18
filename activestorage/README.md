@@ -6,11 +6,11 @@ Files can be uploaded from the server to the cloud or directly from the client t
 
 Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](https://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
-You can read more about Active Storage in the [Active Storage Overview](https://edgeguides.rubyonrails.org/active_storage_overview.html) guide.
+You can read more about Active Storage in the [Active Storage Overview](https://guides.rubyonrails.org/active_storage_overview.html) guide.
 
 ## Compared to other storage solutions
 
-A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
+A key difference to how Active Storage works compared to other attachment solutions in \Rails is through the use of built-in [Blob](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
 
 `Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
 
@@ -73,7 +73,7 @@ end
 ```erb
 <%= form_with model: @message, local: true do |form| %>
   <%= form.text_field :title, placeholder: "Title" %><br>
-  <%= form.text_area :content %><br><br>
+  <%= form.textarea :content %><br><br>
 
   <%= form.file_field :images, multiple: true %><br>
   <%= form.submit %>
@@ -88,7 +88,7 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message = Message.create! params.require(:message).permit(:title, :content, images: [])
+    message = Message.create! params.expect(message: [ :title, :content, images: [] ])
     redirect_to message
   end
 
@@ -144,11 +144,11 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 1. Include the Active Storage JavaScript in your application's JavaScript bundle or reference it directly.
 
-    Requiring directly without bundling through the asset pipeline in the application html with autostart:
-    ```html
+    Requiring directly without bundling through the asset pipeline in the application HTML with autostart:
+    ```erb
     <%= javascript_include_tag "activestorage" %>
     ```
-    Requiring via importmap-rails without bundling through the asset pipeline in the application html without autostart as ESM:
+    Requiring via importmap-rails without bundling through the asset pipeline in the application HTML without autostart as ESM:
     ```ruby
     # config/importmap.rb
     pin "@rails/activestorage", to: "activestorage.esm.js"
@@ -170,10 +170,13 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```
 2. Annotate file inputs with the direct upload URL.
 
-    ```ruby
+    ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-3. That's it! Uploads begin upon form submission.
+
+3. Configure CORS on third-party storage services to allow direct upload requests.
+
+4. That's it! Uploads begin upon form submission.
 
 ### Direct upload JavaScript events
 
@@ -199,7 +202,7 @@ API documentation is at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on Rails project can be filed here:
+Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Date \Type
+    #
     # Attribute type for date representation. It is registered under the
     # +:date+ key.
     #
@@ -22,6 +24,7 @@ module ActiveModel
     # String values are parsed using the ISO 8601 date format. Any other values
     # are cast using their +to_date+ method, if it exists.
     class Date < Value
+      include Helpers::Immutable
       include Helpers::Timezone
       include Helpers::AcceptsMultiparameterTime.new
 

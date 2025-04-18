@@ -44,6 +44,7 @@ module ActionMailbox
   #    <tt>https://example.com/rails/action_mailbox/mailgun/inbound_emails/mime</tt>.
   class Ingresses::Mailgun::InboundEmailsController < ActionMailbox::BaseController
     before_action :authenticate
+    param_encoding :create, "body-mime", Encoding::ASCII_8BIT
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail

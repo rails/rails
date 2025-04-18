@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ActiveStorage
+  # = Active Storage Image \Analyzer
+  #
   # This is an abstract base class for image analyzers, which extract width and height from an image blob.
   #
   # If the image contains EXIF data indicating its angle is 90 or 270 degrees, its width and height are swapped for convenience.
@@ -10,6 +12,11 @@ module ActiveStorage
   #   ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick.new(blob).metadata
   #   # => { width: 4104, height: 2736 }
   class Analyzer::ImageAnalyzer < Analyzer
+    extend ActiveSupport::Autoload
+
+    autoload :Vips
+    autoload :ImageMagick
+
     def self.accept?(blob)
       blob.image?
     end

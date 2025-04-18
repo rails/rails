@@ -15,9 +15,15 @@
 * If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/rails/rails/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behavior that is not occurring.
 
 * If possible, use the relevant bug report templates to create the issue. Simply copy the content of the appropriate template into a .rb file, make the necessary changes to demonstrate the issue, and **paste the content into the issue description**:
-  * [**Active Record** (models, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_main.rb)
-  * [**Action Pack** (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller_main.rb)
-  * [**Generic template** for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic_main.rb)
+  * [**Active Record** (models, encryption, database) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record.rb)
+  * [**Active Record Migrations** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_record_migrations.rb)
+  * [**Action View** (views, helpers) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_view.rb)
+  * [**Active Job** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_job.rb)
+  * [**Active Storage** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/active_storage.rb)
+  * [**Action Mailer** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailer.rb)
+  * [**Action Mailbox** issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_mailbox.rb)
+  * [**Action Pack** (controllers, routing) issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/action_controller.rb)
+  * [**Generic template** for other issues](https://github.com/rails/rails/blob/main/guides/bug_report_templates/generic.rb)
 
 * For more detailed information on submitting a bug report and creating an issue, visit our [reporting guidelines](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#reporting-an-issue).
 
@@ -38,6 +44,8 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 * Suggest your change in the [rubyonrails-core mailing list](https://discuss.rubyonrails.org/c/rubyonrails-core) and start writing code.
 
 * Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
+
+* We generally reject changes to Active Support core extensions. Those change should be proposed in the [Ruby issue tracker instead](https://bugs.ruby-lang.org/issues), as we don't want to conflict with future versions of Ruby.
 
 #### **Do you have questions about the source code?**
 

@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "rails/command"
-require "rails/commands/routes/routes_command"
 require "io/console/size"
 
 class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
@@ -15,9 +14,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command
-      No unused routes found.
-    OUTPUT
+    assert_includes run_unused_routes_command, "No unused routes found."
   end
 
   test "no controller" do
@@ -27,7 +24,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(allow_failure: true)
+    assert_includes run_unused_routes_command(allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
         Prefix Verb URI Pattern Controller#Action
@@ -47,7 +44,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(allow_failure: true)
+    assert_includes run_unused_routes_command(allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
         Prefix Verb URI Pattern Controller#Action
@@ -71,9 +68,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command
-      No unused routes found.
-    OUTPUT
+    assert_includes run_unused_routes_command, "No unused routes found."
   end
 
   test "multiple unused routes" do
@@ -84,7 +79,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(allow_failure: true)
+    assert_includes run_unused_routes_command(allow_failure: true), <<~OUTPUT
       Found 2 unused routes:
 
       Prefix Verb URI Pattern    Controller#Action
@@ -101,7 +96,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(["-g", "one"], allow_failure: true)
+    assert_includes run_unused_routes_command(["-g", "one"], allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
       Prefix Verb URI Pattern    Controller#Action
@@ -115,7 +110,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(["-g", "one"])
+    assert_includes run_unused_routes_command(["-g", "one"]), <<~OUTPUT
       No unused routes found for this grep pattern.
     OUTPUT
   end
@@ -128,7 +123,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(["-c", "posts"], allow_failure: true)
+    assert_includes run_unused_routes_command(["-c", "posts"], allow_failure: true), <<~OUTPUT
       Found 1 unused route:
 
       Prefix Verb URI Pattern    Controller#Action
@@ -142,7 +137,7 @@ class Rails::Command::UnusedRoutesTest < ActiveSupport::TestCase
       end
     RUBY
 
-    assert_equal <<~OUTPUT, run_unused_routes_command(["-c", "posts"])
+    assert_includes run_unused_routes_command(["-c", "posts"]), <<~OUTPUT
       No unused routes found for this controller.
     OUTPUT
   end

@@ -142,7 +142,7 @@ class UrlEncodedParamsParsingTest < ActionDispatch::IntegrationTest
     def with_test_routing
       with_routing do |set|
         set.draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             post ":action", to: ::UrlEncodedParamsParsingTest::TestController
           end
         end

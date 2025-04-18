@@ -3,13 +3,11 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
-require "active_support/core_ext/string/filters"
 require "active_model/error"
 require "active_model/nested_error"
-require "forwardable"
 
 module ActiveModel
-  # == Active \Model \Errors
+  # = Active \Model \Errors
   #
   # Provides error related functionalities you can include in your object
   # for handling error messages and interacting with Action View helpers.
@@ -62,8 +60,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    extend Forwardable
-
+    ##
     # :method: each
     #
     # :call-seq: each(&block)
@@ -75,7 +72,32 @@ module ActiveModel
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
     #                                       options={:count=>3}>
     #   end
-    def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
+
+    ##
+    # :method: clear
+    #
+    # :call-seq: clear
+    #
+    # Clears all errors. Clearing the errors does not, however, make the model
+    # valid. The next time the validations are run (for example, via
+    # ActiveRecord::Validations#valid?), the errors collection will be filled
+    # again if any validations fail.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq: empty?
+    #
+    # Returns true if there are no errors.
+
+    ##
+    # :method: size
+    #
+    # :call-seq: size
+    #
+    # Returns number of errors.
+
+    delegate :each, :clear, :empty?, :size, :uniq!, to: :@errors
 
     # The actual array of +Error+ objects
     # This method is aliased to <tt>objects</tt>.
@@ -215,7 +237,7 @@ module ActiveModel
 
     # Returns a Hash that can be used as the JSON representation for this
     # object. You can pass the <tt>:full_messages</tt> option. This determines
-    # if the json object should contain full messages or not (false by default).
+    # if the JSON object should contain full messages or not (false by default).
     #
     #   person.errors.as_json                      # => {:name=>["cannot be nil"]}
     #   person.errors.as_json(full_messages: true) # => {:name=>["name cannot be nil"]}
@@ -287,7 +309,7 @@ module ActiveModel
     #   person.errors.messages
     #   # => {:name=>["can't be blank"]}
     #
-    #   person.errors.add(:name, :too_long, { count: 25 })
+    #   person.errors.add(:name, :too_long, count: 25)
     #   person.errors.messages
     #   # => ["is too long (maximum is 25 characters)"]
     #
@@ -338,7 +360,7 @@ module ActiveModel
     # If the error requires options, then it returns +true+ with
     # the correct options, or +false+ with incorrect or missing options.
     #
-    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.add :name, :too_long, count: 25
     #   person.errors.added? :name, :too_long, count: 25                     # => true
     #   person.errors.added? :name, "is too long (maximum is 25 characters)" # => true
     #   person.errors.added? :name, :too_long, count: 24                     # => false
@@ -360,7 +382,7 @@ module ActiveModel
     # present, or +false+ otherwise. +type+ is treated the same as for +add+.
     #
     #   person.errors.add :age
-    #   person.errors.add :name, :too_long, { count: 25 }
+    #   person.errors.add :name, :too_long, count: 25
     #   person.errors.of_kind? :age                                            # => true
     #   person.errors.of_kind? :name                                           # => false
     #   person.errors.of_kind? :name, :too_long                                # => true
@@ -472,6 +494,8 @@ module ActiveModel
       end
   end
 
+  # = Active \Model \StrictValidationFailed
+  #
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
   #
@@ -490,10 +514,14 @@ module ActiveModel
   class StrictValidationFailed < StandardError
   end
 
+  # = Active \Model \RangeError
+  #
   # Raised when attribute values are out of range.
   class RangeError < ::RangeError
   end
 
+  # = Active \Model \UnknownAttributeError
+  #
   # Raised when unknown attributes are supplied via mass assignment.
   #
   #   class Person

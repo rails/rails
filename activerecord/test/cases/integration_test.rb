@@ -6,6 +6,7 @@ require "models/developer"
 require "models/computer"
 require "models/owner"
 require "models/pet"
+require "models/cpk"
 
 class IntegrationTest < ActiveRecord::TestCase
   fixtures :companies, :developers, :owners, :pets
@@ -97,6 +98,25 @@ class IntegrationTest < ActiveRecord::TestCase
     assert_equal "Firm", Firm.to_param
   end
 
+  def test_to_param_for_a_composite_primary_key_model
+    assert_equal "1_123", Cpk::Order.new(id: [1, 123]).to_param
+  end
+
+  def test_param_delimiter_changes_delimiter_used_in_to_param
+    Cpk::Order.stub(:param_delimiter, ",") do
+      assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
+    end
+  end
+
+  def test_param_delimiter_is_defined_per_class
+    Cpk::Order.stub(:param_delimiter, ",") do
+      Cpk::Book.stub(:param_delimiter, ";") do
+        assert_equal("1,123", Cpk::Order.new(id: [1, 123]).to_param)
+        assert_equal("1;123", Cpk::Book.new(id: [1, 123]).to_param)
+      end
+    end
+  end
+
   def test_cache_key_for_existing_record_is_not_timezone_dependent
     utc_key = Developer.first.cache_key
 
@@ -154,7 +174,6 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_key_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     dev = Developer.first
     key = dev.cache_key
     travel_to dev.updated_at + 0.000001 do
@@ -171,7 +190,6 @@ class IntegrationTest < ActiveRecord::TestCase
   end
 
   def test_cache_version_format_is_precise_enough
-    skip("Subsecond precision is not supported") unless supports_datetime_with_precision?
     with_cache_versioning do
       dev = Developer.first
       version = dev.cache_version.to_param

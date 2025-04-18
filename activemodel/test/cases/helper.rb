@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+require_relative "../../../tools/strict_warnings"
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActiveModel.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -14,17 +15,6 @@ require "active_support/core_ext/integer/time"
 
 class ActiveModel::TestCase < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
-
-  private
-    # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
-    end
-
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
 end
 
 require_relative "../../../tools/test_common"

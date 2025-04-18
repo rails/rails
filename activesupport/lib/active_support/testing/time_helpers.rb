@@ -2,7 +2,6 @@
 
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/time/calculations"
-require "concurrent/map"
 
 module ActiveSupport
   module Testing
@@ -11,7 +10,7 @@ module ActiveSupport
       Stub = Struct.new(:object, :method_name, :original_method)
 
       def initialize
-        @stubs = Concurrent::Map.new { |h, k| h[k] = {} }
+        @stubs = Hash.new { |h, k| h[k] = {} }
       end
 
       # Stubs object.method_name with the given block
@@ -26,7 +25,7 @@ module ActiveSupport
           unstub_object(stub)
         end
 
-        new_name = "__simple_stub__#{method_name}"
+        new_name = "__simple_stub__#{method_name}__#{object_id}"
 
         @stubs[object.object_id][method_name] = Stub.new(object, method_name, new_name)
 
@@ -76,6 +75,11 @@ module ActiveSupport
       # stubbing +Time.now+, +Date.today+, and +DateTime.now+. The stubs are automatically removed
       # at the end of the test.
       #
+      # Note that the usec for the resulting time will be set to 0 to prevent rounding
+      # errors with external services, like MySQL (which will round instead of floor,
+      # leading to off-by-one-second errors), unless the <tt>with_usec</tt> argument
+      # is set to <tt>true</tt>.
+      #
       #   Time.current     # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel 1.day
       #   Time.current     # => Sun, 10 Nov 2013 15:34:49 EST -05:00
@@ -90,11 +94,11 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 10 Nov 2013 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
-      def travel(duration, &block)
-        travel_to Time.now + duration, &block
+      def travel(duration, with_usec: false, &block)
+        travel_to Time.now + duration, with_usec: with_usec, &block
       end
 
-      # Changes current time to the given time by stubbing +Time.now+,
+      # Changes current time to the given time by stubbing +Time.now+, +Time.new+,
       # +Date.today+, and +DateTime.now+ to return the time or date passed into this method.
       # The stubs are automatically removed at the end of the test.
       #
@@ -159,16 +163,32 @@ module ActiveSupport
           now = date_or_time.midnight.to_time
         elsif date_or_time.is_a?(String)
           now = Time.zone.parse(date_or_time)
-        elsif with_usec
-          now = date_or_time.to_time
         else
-          now = date_or_time.to_time.change(usec: 0)
+          now = date_or_time
+          now = now.to_time unless now.is_a?(Time)
         end
 
-        stubbed_time = Time.now if simple_stubs.stubbing(Time, :now)
-        simple_stubs.stub_object(Time, :now) { at(now.to_f) }
-        simple_stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
-        simple_stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
+        now = now.change(usec: 0) unless with_usec
+
+        # +now+ must be in local system timezone, because +Time.at(now)+
+        # and +now.to_date+ (see stubs below) will use +now+'s timezone too!
+        now = now.getlocal
+
+        stubs = simple_stubs
+        stubbed_time = Time.now if stubs.stubbing(Time, :now)
+        stubs.stub_object(Time, :now) { at(now) }
+
+        stubs.stub_object(Time, :new) do |*args, **options|
+          if args.empty? && options.empty?
+            at(now)
+          else
+            stub = stubs.stubbing(Time, :new)
+            Time.send(stub.original_method, *args, **options)
+          end
+        end
+
+        stubs.stub_object(Date, :today) { jd(now.to_date.jd) }
+        stubs.stub_object(DateTime, :now) { jd(now.to_date.jd, now.hour, now.min, now.sec, Rational(now.utc_offset, 86400)) }
 
         if block_given?
           begin
@@ -218,12 +238,16 @@ module ActiveSupport
       end
       alias_method :unfreeze_time, :travel_back
 
-      # Calls +travel_to+ with +Time.now+.
+      # Calls +travel_to+ with +date_or_time+, which defaults to +Time.now+.
+      # Forwards optional <tt>with_usec</tt> argument.
       #
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   freeze_time
       #   sleep(1)
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #   freeze_time Time.current + 1.day
+      #   sleep(1)
+      #   Time.current # => Mon, 10 Jul 2017 15:34:49 EST -05:00
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -234,8 +258,8 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
-      def freeze_time(&block)
-        travel_to Time.now, &block
+      def freeze_time(date_or_time = Time.now, with_usec: false, &block)
+        travel_to date_or_time, with_usec: with_usec, &block
       end
 
       private

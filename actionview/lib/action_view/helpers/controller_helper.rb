@@ -4,6 +4,8 @@ require "active_support/core_ext/module/attr_internal"
 
 module ActionView
   module Helpers # :nodoc:
+    # = Action View Controller \Helpers
+    #
     # This module keeps all methods and behavior in ActionView
     # that simply delegates to the controller.
     module ControllerHelper # :nodoc:
@@ -18,8 +20,16 @@ module ActionView
       def assign_controller(controller)
         if @_controller = controller
           @_request = controller.request if controller.respond_to?(:request)
-          @_config  = controller.config.inheritable_copy if controller.respond_to?(:config)
+          if controller.respond_to?(:config)
+            @_config = controller.config.inheritable_copy
+          else
+            @_config = ActiveSupport::InheritableOptions.new
+          end
           @_default_form_builder = controller.default_form_builder if controller.respond_to?(:default_form_builder)
+        else
+          @_request ||= nil
+          @_config = ActiveSupport::InheritableOptions.new
+          @_default_form_builder ||= nil
         end
       end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../tools/strict_warnings"
+
 $:.unshift File.expand_path("lib", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
@@ -24,11 +26,17 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+require_relative "support/rack_parsing_override"
+
+ActiveSupport::Cache.format_version = 7.1
+
 module Rails
   class << self
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def application; end
 
     def root; end
   end
@@ -50,7 +58,8 @@ ActionPackTestSuiteUtils.require_helpers("#{__dir__}/fixtures/alternate_helpers"
 Thread.abort_on_exception = true
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveSupport::Deprecation.debug = true
+ActionController.deprecator.debug = true
+ActionDispatch.deprecator.debug = true
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
@@ -60,7 +69,7 @@ FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
 SharedTestRoutes.draw do
-  ActiveSupport::Deprecation.silence do
+  ActionDispatch.deprecator.silence do
     get ":controller(/:action)"
   end
 end
@@ -69,7 +78,7 @@ module ActionDispatch
   module SharedRoutes
     def before_setup
       @routes = Routing::RouteSet.new
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         @routes.draw { get ":controller(/:action)" }
       end
       super
@@ -86,15 +95,23 @@ module ActiveSupport
 end
 
 class RoutedRackApp
+  class Config < Struct.new(:middleware)
+  end
+
   attr_reader :routes
 
   def initialize(routes, &blk)
     @routes = routes
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    @stack = ActionDispatch::MiddlewareStack.new(&blk)
+    @app = @stack.build(@routes)
   end
 
   def call(env)
-    @stack.call(env)
+    @app.call(env)
+  end
+
+  def config
+    Config.new(@stack)
   end
 end
 
@@ -116,7 +133,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   self.app = build_app
 
   app.routes.draw do
-    ActiveSupport::Deprecation.silence do
+    ActionDispatch.deprecator.silence do
       get ":controller(/:action)"
     end
   end
@@ -143,19 +160,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
     yield DeadEndRoutes.new(config)
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    remove!
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)
@@ -357,33 +361,158 @@ require "active_support/testing/method_call_assertions"
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+end
 
-  private
-    # Skips the current run on Rubinius using Minitest::Assertions#skip
-    def rubinius_skip(message = "")
-      skip message if RUBY_ENGINE == "rbx"
+module CookieAssertions
+  def parse_set_cookie_attributes(fields, attributes = {})
+    if fields.is_a?(String)
+      fields = fields.split(";").map(&:strip)
     end
 
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
+    fields.each do |field|
+      key, value = field.split("=", 2)
+
+      # Normalize the key to lowercase:
+      key.downcase!
+
+      if value
+        value.downcase!
+        attributes[key] = value
+      else
+        attributes[key] = true
+      end
     end
+
+    attributes
+  end
+
+  # Parse the set-cookie header and return a hash of cookie names and values.
+  #
+  # Example:
+  #   set_cookies = headers["set-cookie"]
+  #   parse_set_cookies_headers(set_cookies)
+  def parse_set_cookies_headers(set_cookies)
+    if set_cookies.is_a?(String)
+      set_cookies = set_cookies.split("\n")
+    end
+
+    cookies = {}
+
+    set_cookies&.each do |cookie_string|
+      attributes = {}
+
+      fields = cookie_string.split(";").map(&:strip)
+
+      # The first one is the cookie name:
+      name, value = fields.shift.split("=", 2)
+
+      attributes[:value] = value
+
+      cookies[name] = parse_set_cookie_attributes(fields, attributes)
+    end
+
+    cookies
+  end
+
+  def assert_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}', found cookies: #{cookies.keys.join(', ')}"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      assert cookie.key?(key), "No attribute '#{key}' found for cookie '#{name}'"
+      assert_equal value, cookie[key]
+    end
+  end
+
+  def assert_not_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}'"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      if value == true
+        assert_nil cookie[key]
+      else
+        assert_not_equal value, cookie[key]
+      end
+    end
+  end
+
+  def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    # In Rack v2, this is newline delimited. In Rack v3, this is an array.
+    # Normalize the comparison so that we can assert equality in both cases.
+
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+    expected = parse_set_cookies_headers(expected)
+
+    expected.each do |key, value|
+      assert_equal value, header[key]
+    end
+  end
+
+  def assert_not_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
+    if header.is_a?(String)
+      header = header.split("\n").sort
+    end
+
+    if expected.is_a?(String)
+      expected = expected.split("\n").sort
+    end
+
+    # While not strictly speaking correct, this is probably good enough for now:
+    header = parse_set_cookies_headers(header)
+
+    expected.each do |name|
+      assert_not_includes(header, name)
+    end
+  end
 end
 
-class DrivenByRackTest < ActionDispatch::SystemTestCase
-  driven_by :rack_test
-end
+module HeadersAssertions
+  def normalize_headers(headers)
+    headers.transform_keys(&:downcase)
+  end
 
-class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome
-end
+  def assert_headers(expected, actual = @response.headers)
+    actual = normalize_headers(actual)
+    expected.each do |key, value|
+      assert_equal value, actual[key]
+    end
+  end
 
-class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome
-end
+  def assert_header(key, value, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_equal value, actual[key]
+  end
 
-class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_firefox
+  def assert_not_header(key, actual = @response.headers)
+    actual = normalize_headers(actual)
+    assert_not_includes(actual, key)
+  end
+
+  # This works for most headers, but not all, e.g. `set-cookie`.
+  def normalized_join_header(header)
+    header.is_a?(Array) ? header.join(",") : header
+  end
+
+  def assert_header_value(expected, header)
+    header = normalized_join_header(header)
+    assert_equal header, expected
+  end
 end
 
 require_relative "../../tools/test_common"

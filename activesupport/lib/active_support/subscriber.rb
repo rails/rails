@@ -3,7 +3,9 @@
 require "active_support/notifications"
 
 module ActiveSupport
-  # ActiveSupport::Subscriber is an object set to consume
+  # = Active Support \Subscriber
+  #
+  # +ActiveSupport::Subscriber+ is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
@@ -20,9 +22,9 @@ module ActiveSupport
   #     end
   #   end
   #
-  # After configured, whenever a "sql.active_record" notification is published,
-  # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
-  # the +sql+ method.
+  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # published, it will properly dispatch the event
+  # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # We can detach a subscriber as well:
   #
@@ -65,6 +67,7 @@ module ActiveSupport
 
       # Adds event subscribers for all new methods added to the class.
       def method_added(event)
+        super
         # Only public methods are added as subscribers, and only if a notifier
         # has been set up. This means that subscribers will only be set up for
         # classes that call #attach_to.
@@ -131,12 +134,12 @@ module ActiveSupport
     end
 
     def call(event)
-      method = event.name.split(".").first
+      method = event.name[0, event.name.index(".")]
       send(method, event)
     end
 
     def publish_event(event) # :nodoc:
-      method = event.name.split(".").first
+      method = event.name[0, event.name.index(".")]
       send(method, event)
     end
   end

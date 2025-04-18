@@ -24,15 +24,19 @@ module ActiveRecord
       end
 
       def test_quote_column_name
-        assert_equal "foo", @quoter.quote_column_name("foo")
+        assert_raises NotImplementedError do
+          @quoter.quote_column_name("foo")
+        end
       end
 
       def test_quote_table_name
-        assert_equal "foo", @quoter.quote_table_name("foo")
+        assert_raises NotImplementedError do
+          @quoter.quote_table_name("foo")
+        end
       end
 
       def test_quote_table_name_calls_quote_column_name
-        @quoter.extend(Module.new {
+        @quoter.class.extend(Module.new {
           def quote_column_name(string)
             "lol"
           end
@@ -186,18 +190,21 @@ module ActiveRecord
       end
 
       def test_quote_as_mb_chars_no_column
-        string = ActiveSupport::Multibyte::Chars.new('lo\l')
-        assert_equal "'lo\\\\l'", @quoter.quote(string)
+        assert_deprecated(ActiveSupport.deprecator) do
+          string = ActiveSupport::Multibyte::Chars.new('lo\l')
+          assert_equal "'lo\\\\l'", @quoter.quote(string)
+        end
       end
 
       def test_quote_duration
-        assert_equal "1800", @quoter.quote(30.minutes)
+        exception = assert_raises(TypeError) { @quoter.quote(30.minutes) }
+        assert_equal "can't quote ActiveSupport::Duration", exception.message
       end
     end
 
     class TypeCastingTest < ActiveRecord::TestCase
       def setup
-        @conn = ActiveRecord::Base.connection
+        @conn = ActiveRecord::Base.lease_connection
       end
 
       def test_type_cast_symbol
@@ -206,7 +213,7 @@ module ActiveRecord
 
       def test_type_cast_date
         date = Date.today
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           expected = date
         else
           expected = @conn.quoted_date(date)
@@ -216,7 +223,7 @@ module ActiveRecord
 
       def test_type_cast_time
         time = Time.now
-        if current_adapter?(:Mysql2Adapter)
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           expected = time
         else
           expected = @conn.quoted_date(time)
@@ -237,11 +244,15 @@ module ActiveRecord
         obj = Class.new.new
         assert_raise(TypeError) { @conn.type_cast(obj) }
       end
+
+      def test_type_cast_duration_should_raise_error
+        assert_raise(TypeError) { @conn.type_cast(1.hour) }
+      end
     end
 
     class QuoteBooleanTest < ActiveRecord::TestCase
       def setup
-        @connection = ActiveRecord::Base.connection
+        @connection = ActiveRecord::Base.lease_connection
       end
 
       def test_quote_returns_frozen_string

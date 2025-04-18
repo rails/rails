@@ -9,9 +9,10 @@ module ActiveRecord
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder)
+      def initialize(subtype, coder, comparable: false)
         @subtype = subtype
         @coder = coder
+        @comparable = comparable
         super(subtype)
       end
 
@@ -30,15 +31,19 @@ module ActiveRecord
         end
       end
 
-      def inspect
-        Kernel.instance_method(:inspect).bind_call(self)
-      end
+      define_method(:inspect, Kernel.instance_method(:inspect))
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+
+        if @comparable
+          old_value = deserialize(raw_old_value)
+          old_value != value
+        else
+          raw_new_value = encoded(value)
+          raw_old_value.nil? != raw_new_value.nil? ||
+            subtype.changed_in_place?(raw_old_value, raw_new_value)
+        end
       end
 
       def accessor
@@ -55,6 +60,10 @@ module ActiveRecord
         coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
       end
 
+      def serialized? # :nodoc:
+        true
+      end
+
       private
         def default_value?(value)
           value == coder.load(nil)
@@ -63,11 +72,11 @@ module ActiveRecord
         def encoded(value)
           return if default_value?(value)
           payload = coder.dump(value)
-          if payload && binary? && payload.encoding != Encoding::BINARY
-            payload = payload.dup if payload.frozen?
-            payload.force_encoding(Encoding::BINARY)
+          if payload && @subtype.binary?
+            ActiveModel::Type::Binary::Data.new(payload)
+          else
+            payload
           end
-          payload
         end
     end
   end

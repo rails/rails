@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
+require "active_support"
+require "active_support/rails"
+require "active_support/core_ext/numeric/time"
+
+require "action_mailbox/version"
+require "action_mailbox/deprecator"
 require "action_mailbox/mail_ext"
 
+# :markup: markdown
+# :include: ../README.md
 module ActionMailbox
   extend ActiveSupport::Autoload
 

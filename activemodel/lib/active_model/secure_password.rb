@@ -16,8 +16,8 @@ module ActiveModel
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a +XXX_digest+ attribute.
-      # Where +XXX+ is the attribute name of your desired password.
+      # This mechanism requires you to have a +XXX_digest+ attribute,
+      # where +XXX+ is the attribute name of your desired password.
       #
       # The following validations are added automatically:
       # * Password must be present on creation
@@ -39,9 +39,13 @@ module ActiveModel
       # <tt>validations: false</tt> as an argument. This allows complete
       # customizability of validation behavior.
       #
+      # Finally, a password reset token that's valid for 15 minutes after issue
+      # is automatically configured when +reset_token+ is set to true (which it is by default)
+      # and the object responds to +generates_token_for+ (which Active Records do).
+      #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
-      #   gem 'bcrypt', '~> 3.1.7'
+      #   gem "bcrypt", "~> 3.1.7"
       #
       # ==== Examples
       #
@@ -98,18 +102,29 @@ module ActiveModel
       #   account.is_guest = true
       #   account.valid? # => true
       #
-      def has_secure_password(attribute = :password, validations: true)
+      # ===== Using the password reset token
+      #
+      #   user = User.create!(name: "david", password: "123", password_confirmation: "123")
+      #   token = user.password_reset_token
+      #   User.find_by_password_reset_token(token) # returns user
+      #
+      #   # 16 minutes later...
+      #   User.find_by_password_reset_token(token) # returns nil
+      #
+      #   # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
+      #   User.find_by_password_reset_token!(token)
+      def has_secure_password(attribute = :password, validations: true, reset_token: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
         begin
           require "bcrypt"
         rescue LoadError
-          $stderr.puts "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
+          warn "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
           raise
         end
 
-        include InstanceMethodsOnActivation.new(attribute)
+        include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token)
 
         if validations
           include ActiveModel::Validations
@@ -132,14 +147,40 @@ module ActiveModel
             end
           end
 
-          validates_length_of attribute, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+          # Validates that the password does not exceed the maximum allowed bytes for BCrypt (72 bytes).
+          validate do |record|
+            password_value = record.public_send(attribute)
+            if password_value.present? && password_value.bytesize > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
+              record.errors.add(attribute, :password_too_long)
+            end
+          end
+
           validates_confirmation_of attribute, allow_blank: true
+        end
+
+        # Only generate tokens for records that are capable of doing so (Active Records, not vanilla Active Models)
+        if reset_token && respond_to?(:generates_token_for)
+          generates_token_for :"#{attribute}_reset", expires_in: 15.minutes do
+            public_send(:"#{attribute}_salt")&.last(10)
+          end
+
+          class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            silence_redefinition_of_method :find_by_#{attribute}_reset_token
+            def self.find_by_#{attribute}_reset_token(token)
+              find_by_token_for(:#{attribute}_reset, token)
+            end
+
+            silence_redefinition_of_method :find_by_#{attribute}_reset_token!
+            def self.find_by_#{attribute}_reset_token!(token)
+              find_by_token_for!(:#{attribute}_reset, token)
+            end
+          RUBY
         end
       end
     end
 
     class InstanceMethodsOnActivation < Module
-      def initialize(attribute)
+      def initialize(attribute, reset_token:)
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
@@ -170,7 +211,20 @@ module ActiveModel
           attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
         end
 
+        # Returns the salt, a small chunk of random data added to the password before it's hashed.
+        define_method("#{attribute}_salt") do
+          attribute_digest = public_send("#{attribute}_digest")
+          attribute_digest.present? ? BCrypt::Password.new(attribute_digest).salt : nil
+        end
+
         alias_method :authenticate, :authenticate_password if attribute == :password
+
+        if reset_token
+          # Returns the class-level configured reset token for the password.
+          define_method("#{attribute}_reset_token") do
+            generate_token_for(:"#{attribute}_reset")
+          end
+        end
       end
     end
   end

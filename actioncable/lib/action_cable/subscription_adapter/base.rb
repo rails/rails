@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionCable
   module SubscriptionAdapter
     class Base
@@ -27,7 +29,8 @@ module ActionCable
       end
 
       def identifier
-        @server.config.cable[:id] ||= "ActionCable-PID-#{$$}"
+        @server.config.cable[:id] = "ActionCable-PID-#{$$}" unless @server.config.cable.key?(:id)
+        @server.config.cable[:id]
       end
     end
   end

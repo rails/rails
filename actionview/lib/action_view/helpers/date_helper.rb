@@ -10,7 +10,7 @@ require "active_support/core_ext/object/with_options"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Date Helpers
+    # = Action View \Date \Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
     # elements. All of the select-type methods share a number of common options that are as follows:
@@ -72,7 +72,7 @@ module ActionView
       #   distance_of_time_in_words(to_time, from_time, include_seconds: true)                        # => about 6 years
       #   distance_of_time_in_words(Time.now, Time.now)                                               # => less than a minute
       #
-      # With the <tt>scope</tt> option, you can define a custom scope for Rails
+      # With the <tt>scope</tt> option, you can define a custom scope for \Rails
       # to look up the translation.
       #
       # For example you can define the following in your locale (e.g. en.yml).
@@ -136,8 +136,15 @@ module ActionView
             from_year += 1 if from_time.month >= 3
             to_year = to_time.year
             to_year -= 1 if to_time.month < 3
-            leap_years = (from_year > to_year) ? 0 : (from_year..to_year).count { |x| Date.leap?(x) }
+
+            leap_years = if from_year > to_year
+              0
+            else
+              fyear = from_year - 1
+              (to_year / 4 - to_year / 100 + to_year / 400) - (fyear / 4 - fyear / 100 + fyear / 400)
+            end
             minute_offset_for_leap_year = leap_years * 1440
+
             # Discount the leap year days when calculating year distance.
             # e.g. if there are 20 leap year days between 2 dates having the same day
             # and month then based on 365 days calculation
@@ -217,7 +224,7 @@ module ActionView
       # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
-      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with Rails).
+      #   the respective locale (e.g. [:year, :month, :day] in the en locale that ships with \Rails).
       # * <tt>:include_blank</tt>     - Include a blank option in every select field so it's possible to set empty
       #   dates.
       # * <tt>:default</tt>           - Set a default date if the affected date isn't set or is +nil+.
@@ -319,6 +326,10 @@ module ActionView
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
       #   time_select 'game', 'game_time', { ampm: true }
+      #
+      #   # You can set :ignore_date option to true which will remove the hidden inputs for day,
+      #   # month, and year that are set by default on this helper when you only want the time inputs
+      #   time_select 'game', 'game_time', { ignore_date: true }
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -1001,22 +1012,25 @@ module ActionView
         end
 
         # Build select option HTML from date value and options.
-        #  build_options(15, start: 1, end: 31)
-        #  => "<option value="1">1</option>
-        #      <option value="2">2</option>
-        #      <option value="3">3</option>..."
         #
-        # If <tt>use_two_digit_numbers: true</tt> option is passed
-        #  build_options(15, start: 1, end: 31, use_two_digit_numbers: true)
-        #  => "<option value="1">01</option>
-        #      <option value="2">02</option>
-        #      <option value="3">03</option>..."
+        #   build_options(15, start: 1, end: 31)
+        #   => "<option value="1">1</option>
+        #       <option value="2">2</option>
+        #       <option value="3">3</option>..."
         #
-        # If <tt>:step</tt> options is passed
-        #  build_options(15, start: 1, end: 31, step: 2)
-        #  => "<option value="1">1</option>
-        #      <option value="3">3</option>
-        #      <option value="5">5</option>..."
+        # If <tt>use_two_digit_numbers: true</tt> option is passed:
+        #
+        #   build_options(15, start: 1, end: 31, use_two_digit_numbers: true)
+        #   => "<option value="1">01</option>
+        #       <option value="2">02</option>
+        #       <option value="3">03</option>..."
+        #
+        # If <tt>:step</tt> options is passed:
+        #
+        #   build_options(15, start: 1, end: 31, step: 2)
+        #   => "<option value="1">1</option>
+        #       <option value="3">3</option>
+        #       <option value="5">5</option>..."
         def build_options(selected, options = {})
           options = {
             leading_zeros: true, ampm: false, use_two_digit_numbers: false
@@ -1041,22 +1055,25 @@ module ActionView
         end
 
         # Build select option HTML for day.
-        #  build_day_options(2)
-        #  => "<option value="1">1</option>
-        #      <option value="2" selected="selected">2</option>
-        #      <option value="3">3</option>..."
+        #
+        #   build_day_options(2)
+        #   => "<option value="1">1</option>
+        #       <option value="2" selected="selected">2</option>
+        #       <option value="3">3</option>..."
         #
         # If <tt>day_format: ->(day) { day.ordinalize }</tt> option is passed to DateTimeSelector
-        #  build_day_options(2)
-        #  => "<option value="1">1st</option>
-        #      <option value="2" selected="selected">2nd</option>
-        #      <option value="3">3rd</option>..."
+        #
+        #   build_day_options(2)
+        #   => "<option value="1">1st</option>
+        #       <option value="2" selected="selected">2nd</option>
+        #       <option value="3">3rd</option>..."
         #
         # If <tt>use_two_digit_numbers: true</tt> option is passed to DateTimeSelector
-        #  build_day_options(2)
-        #  => "<option value="1">01</option>
-        #      <option value="2" selected="selected">02</option>
-        #      <option value="3">03</option>..."
+        #
+        #   build_day_options(2)
+        #   => "<option value="1">01</option>
+        #       <option value="2" selected="selected">02</option>
+        #       <option value="3">03</option>..."
         def build_day_options(selected)
           select_options = []
           (1..31).each do |value|
@@ -1070,10 +1087,11 @@ module ActionView
         end
 
         # Build select option HTML for year.
-        #  build_year_options(1998, start: 1998, end: 2000)
-        #  => "<option value="1998" selected="selected">1998</option>
-        #      <option value="1999">1999</option>
-        #      <option value="2000">2000</option>"
+        #
+        #   build_year_options(1998, start: 1998, end: 2000)
+        #   => "<option value="1998" selected="selected">1998</option>
+        #       <option value="1999">1999</option>
+        #       <option value="2000">2000</option>"
         def build_year_options(selected, options = {})
           start = options.delete(:start)
           stop = options.delete(:end)
@@ -1091,10 +1109,11 @@ module ActionView
         end
 
         # Builds select tag from date type and HTML select options.
-        #  build_select(:month, "<option value="1">January</option>...")
-        #  => "<select id="post_written_on_2i" name="post[written_on(2i)]">
-        #        <option value="1">January</option>...
-        #      </select>"
+        #
+        #   build_select(:month, "<option value="1">January</option>...")
+        #   => "<select id="post_written_on_2i" name="post[written_on(2i)]">
+        #         <option value="1">January</option>...
+        #       </select>"
         def build_select(type, select_options_as_html)
           select_options = {
             id: input_id_from_type(type),
@@ -1111,9 +1130,10 @@ module ActionView
           (content_tag("select", select_html.html_safe, select_options) + "\n").html_safe
         end
 
-        # Builds the CSS class value for the select element
-        #  css_class_attribute(:year, 'date optional', { year: 'my-year' })
-        #  => "date optional my-year"
+        # Builds the CSS class value for the select element.
+        #
+        #   css_class_attribute(:year, 'date optional', { year: 'my-year' })
+        #   => "date optional my-year"
         def css_class_attribute(type, html_options_class, options) # :nodoc:
           css_class = \
             case options
@@ -1127,8 +1147,9 @@ module ActionView
         end
 
         # Builds a prompt option tag with supplied options or from default options.
-        #  prompt_option_tag(:month, prompt: 'Select month')
-        #  => "<option value="">Select month</option>"
+        #
+        #   prompt_option_tag(:month, prompt: 'Select month')
+        #   => "<option value="">Select month</option>"
         def prompt_option_tag(type, options)
           prompt = \
             case options
@@ -1145,8 +1166,9 @@ module ActionView
         end
 
         # Builds hidden input tag for date part and value.
-        #  build_hidden(:year, 2008)
-        #  => "<input type="hidden" id="date_year" name="date[year]" value="2008" autocomplete="off" />"
+        #
+        #   build_hidden(:year, 2008)
+        #   => "<input type="hidden" id="date_year" name="date[year]" value="2008" autocomplete="off" />"
         def build_hidden(type, value)
           select_options = {
             type: "hidden",
@@ -1213,7 +1235,7 @@ module ActionView
     class FormBuilder
       # Wraps ActionView::Helpers::DateHelper#date_select for form builders:
       #
-      #   <%= form_for @person do |f| %>
+      #   <%= form_with model: @person do |f| %>
       #     <%= f.date_select :birth_date %>
       #     <%= f.submit %>
       #   <% end %>
@@ -1225,7 +1247,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::DateHelper#time_select for form builders:
       #
-      #   <%= form_for @race do |f| %>
+      #   <%= form_with model: @race do |f| %>
       #     <%= f.time_select :average_lap %>
       #     <%= f.submit %>
       #   <% end %>
@@ -1237,7 +1259,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::DateHelper#datetime_select for form builders:
       #
-      #   <%= form_for @person do |f| %>
+      #   <%= form_with model: @person do |f| %>
       #     <%= f.datetime_select :last_request_at %>
       #     <%= f.submit %>
       #   <% end %>

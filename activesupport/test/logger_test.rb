@@ -26,6 +26,31 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_not Logger.logger_outputs_to?(@logger, STDOUT),         "Expected logger_outputs_to? to STDOUT to return false, but was true"
     assert_not Logger.logger_outputs_to?(@logger, STDOUT, STDERR), "Expected logger_outputs_to? to STDOUT or STDERR to return false, but was true"
+    assert_not Logger.logger_outputs_to?(@logger, "log/production.log")
+  end
+
+  def test_log_outputs_to_with_a_broadcast_logger
+    logger = ActiveSupport::BroadcastLogger.new(Logger.new(STDOUT))
+
+    assert(Logger.logger_outputs_to?(logger, STDOUT))
+    assert_not(Logger.logger_outputs_to?(logger, STDERR))
+
+    logger.broadcast_to(Logger.new(STDERR))
+    assert(Logger.logger_outputs_to?(logger, STDERR))
+  end
+
+  def test_log_outputs_to_with_a_filename
+    t = Tempfile.new ["development", "log"]
+    logger = ActiveSupport::BroadcastLogger.new(Logger.new(t.path))
+
+    assert Logger.logger_outputs_to?(logger, t)
+    assert Logger.logger_outputs_to?(logger, t.path)
+    assert Logger.logger_outputs_to?(logger, File.join(File.dirname(t.path), ".", File.basename(t.path)))
+    assert_not Logger.logger_outputs_to?(logger, "log/production.log")
+    assert_not Logger.logger_outputs_to?(logger, STDOUT)
+  ensure
+    logger.close
+    t.close true
   end
 
   def test_write_binary_data_to_existing_file
@@ -176,13 +201,13 @@ class LoggerTest < ActiveSupport::TestCase
     another_output  = StringIO.new
     another_logger  = ActiveSupport::Logger.new(another_output)
 
-    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
+    logger = ActiveSupport::BroadcastLogger.new(@logger, another_logger)
 
-    @logger.debug "CORRECT DEBUG"
-    @logger.silence do |logger|
-      assert_kind_of ActiveSupport::Logger, logger
-      @logger.debug "FAILURE"
-      @logger.error "CORRECT ERROR"
+    logger.debug "CORRECT DEBUG"
+    logger.silence do |logger|
+      assert_kind_of ActiveSupport::BroadcastLogger, logger
+      logger.debug "FAILURE"
+      logger.error "CORRECT ERROR"
     end
 
     assert_includes @output.string, "CORRECT DEBUG"
@@ -198,13 +223,13 @@ class LoggerTest < ActiveSupport::TestCase
     another_output  = StringIO.new
     another_logger  = ::Logger.new(another_output)
 
-    @logger.extend ActiveSupport::Logger.broadcast(another_logger)
+    logger = ActiveSupport::BroadcastLogger.new(@logger, another_logger)
 
-    @logger.debug "CORRECT DEBUG"
-    @logger.silence do |logger|
-      assert_kind_of ActiveSupport::Logger, logger
-      @logger.debug "FAILURE"
-      @logger.error "CORRECT ERROR"
+    logger.debug "CORRECT DEBUG"
+    logger.silence do |logger|
+      assert_kind_of ActiveSupport::BroadcastLogger, logger
+      logger.debug "FAILURE"
+      logger.error "CORRECT ERROR"
     end
 
     assert_includes @output.string, "CORRECT DEBUG"
@@ -390,6 +415,17 @@ class LoggerTest < ActiveSupport::TestCase
 
     assert_not_includes @output.string, "NOT THERE"
     assert_includes @output.string, "THIS IS HERE"
+  end
+
+  def test_log_at_only_impact_receiver
+    logger2 = Logger.new(StringIO.new)
+    assert_equal Logger::DEBUG, logger2.level
+    assert_equal Logger::DEBUG, @logger.level
+
+    @logger.log_at :error do
+      assert_equal Logger::DEBUG, logger2.level
+      assert_equal Logger::ERROR, @logger.level
+    end
   end
 
   private

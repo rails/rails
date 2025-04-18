@@ -18,7 +18,7 @@ module Arel
       def test_mysql_to_sql
         viz  = Arel::Visitors::MySQL.new Table.engine.connection_pool
         node = Arel::Nodes::Bin.new(Arel.sql("zomg"))
-        assert_equal "BINARY zomg", viz.accept(node, Collectors::SQLString.new).value
+        assert_equal "CAST(zomg AS BINARY)", viz.accept(node, Collectors::SQLString.new).value
       end
 
       def test_equality_with_same_ivars

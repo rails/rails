@@ -11,7 +11,7 @@ module ActiveRecord
       fixtures :people
 
       def setup
-        @writing_handler = ConnectionHandler.new
+        @handler = ConnectionHandler.new
       end
 
       def teardown
@@ -30,20 +30,19 @@ module ActiveRecord
 
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, shard: :pool_config_two)
+          @handler.establish_connection(:primary)
+          @handler.establish_connection(:primary, shard: :pool_config_two)
 
-          default_pool = @writing_handler.retrieve_connection_pool("primary", shard: :default)
-          other_pool = @writing_handler.retrieve_connection_pool("primary", shard: :pool_config_two)
+          default_pool = @handler.retrieve_connection_pool("primary", shard: :default)
+          other_pool = @handler.retrieve_connection_pool("primary", shard: :pool_config_two)
 
           assert_not_nil default_pool
           assert_not_equal default_pool, other_pool
 
           # :default if passed with no key
-          assert_equal default_pool, @writing_handler.retrieve_connection_pool("primary")
+          assert_equal default_pool, @handler.retrieve_connection_pool("primary")
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
 
@@ -58,17 +57,16 @@ module ActiveRecord
 
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, shard: :pool_config_two)
+          @handler.establish_connection(:primary)
+          @handler.establish_connection(:primary, shard: :pool_config_two)
 
           # remove default
-          @writing_handler.remove_connection_pool("primary")
+          @handler.remove_connection_pool("primary")
 
-          assert_nil @writing_handler.retrieve_connection_pool("primary")
-          assert_not_nil @writing_handler.retrieve_connection_pool("primary", shard: :pool_config_two)
+          assert_nil @handler.retrieve_connection_pool("primary")
+          assert_not_nil @handler.retrieve_connection_pool("primary", shard: :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
 
@@ -83,18 +81,17 @@ module ActiveRecord
 
           @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
 
-          @writing_handler.establish_connection(:primary)
-          @writing_handler.establish_connection(:primary, shard: :pool_config_two)
+          @handler.establish_connection(:primary)
+          @handler.establish_connection(:primary, shard: :pool_config_two)
 
           # connect to default
-          @writing_handler.connection_pool_list.first.checkout
+          @handler.connection_pool_list(:writing).first.checkout.connect!
 
-          assert @writing_handler.connected?("primary")
-          assert @writing_handler.connected?("primary", shard: :default)
-          assert_not @writing_handler.connected?("primary", shard: :pool_config_two)
+          assert @handler.connected?("primary")
+          assert @handler.connected?("primary", shard: :default)
+          assert_not @handler.connected?("primary", shard: :pool_config_two)
         ensure
           ActiveRecord::Base.configurations = @prev_configs
-          ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
       end

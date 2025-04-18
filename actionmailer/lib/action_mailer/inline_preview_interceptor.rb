@@ -3,8 +3,10 @@
 require "base64"
 
 module ActionMailer
+  # = Action Mailer \InlinePreviewInterceptor
+  #
   # Implements a mailer preview interceptor that converts image tag src attributes
-  # that use inline cid: style URLs to data: style URLs so that they are visible
+  # that use inline +cid:+ style URLs to +data:+ style URLs so that they are visible
   # when previewing an HTML email in a web browser.
   #
   # This interceptor is enabled by default. To disable it, delete it from the

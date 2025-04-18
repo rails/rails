@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \Integer \Type
+    #
     # Attribute type for integer representation. This type is registered under
     # the +:integer+ key.
     #
@@ -11,13 +13,17 @@ module ActiveModel
     #     attribute :age, :integer
     #   end
     #
-    #   person = Person.new
-    #   person.age = "18"
+    # Values are cast using their +to_i+ method, except for blank strings, which
+    # are cast to +nil+. If a +to_i+ method is not defined or raises an error,
+    # the value will be cast to +nil+.
     #
+    #   person = Person.new
+    #
+    #   person.age = "18"
     #   person.age # => 18
     #
-    # Values are cast using their +to_i+ method, if it exists. If it does not
-    # exist, or if it raises an error, the value will be cast to +nil+:
+    #   person.age = ""
+    #   person.age # => nil
     #
     #   person.age = :not_an_integer
     #   person.age # => nil (because Symbol does not define #to_i)
@@ -36,6 +42,7 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       # Column storage size in bytes.
@@ -44,7 +51,8 @@ module ActiveModel
 
       def initialize(**)
         super
-        @range = min_value...max_value
+        @max = max_value
+        @min = min_value
       end
 
       def type
@@ -57,34 +65,48 @@ module ActiveModel
       end
 
       def serialize(value)
-        return if value.is_a?(::String) && non_numeric_string?(value)
-        ensure_in_range(super)
+        case value
+        when ::Integer
+          # noop
+        when ::String
+          int = value.to_i
+          if int.zero? && value != "0"
+            return if non_numeric_string?(value)
+          end
+          value = int
+        else
+          value = super
+        end
+
+        if out_of_range?(value)
+          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
+        end
+
+        value
+      end
+
+      def serialize_cast_value(value) # :nodoc:
+        if out_of_range?(value)
+          raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
+        end
+
+        value
       end
 
       def serializable?(value)
         cast_value = cast(value)
-        in_range?(cast_value) || begin
-          yield cast_value if block_given?
-          false
-        end
+        return true unless out_of_range?(cast_value)
+        yield cast_value if block_given?
+        false
       end
 
       private
-        attr_reader :range
-
-        def in_range?(value)
-          !value || range.member?(value)
+        def out_of_range?(value)
+          value && (@max <= value || @min > value)
         end
 
         def cast_value(value)
           value.to_i rescue nil
-        end
-
-        def ensure_in_range(value)
-          unless in_range?(value)
-            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
-          end
-          value
         end
 
         def max_value

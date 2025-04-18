@@ -4,6 +4,8 @@ require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   module Associations
+    # = Active Record \Preloader
+    #
     # Implements the details of eager loading of Active Record associations.
     #
     # Suppose that you have the following two Active Record models:
@@ -22,8 +24,8 @@ module ActiveRecord
     #
     #   Author.includes(:books).where(name: ['bell hooks', 'Homer']).to_a
     #
-    #   => SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
-    #   => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    #   # SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
+    #   # SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
     #
     # Active Record saves the ids of the records from the first query to use in
     # the second. Depending on the number of associations involved there can be
@@ -33,11 +35,11 @@ module ActiveRecord
     # Record will fall back to a slightly more resource-intensive single query:
     #
     #   Author.includes(:books).where(books: {title: 'Illiad'}).to_a
-    #   => SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
-    #             `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
-    #      FROM `authors`
-    #      LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
-    #      WHERE `books`.`title` = 'Illiad'
+    #   # SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
+    #   #        `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
+    #   # FROM `authors`
+    #   # LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
+    #   # WHERE `books`.`title` = 'Illiad'
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.
@@ -73,15 +75,16 @@ module ActiveRecord
       #   for an Author.
       # - an Array which specifies multiple association names. This array
       #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>
-      #   allows this method to preload an author's avatar as well as all of his
+      #   allows this method to preload an author's avatar as well as all of their
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
       #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
-      # +:associations+ has the same format as the +:include+ method in
-      # <tt>ActiveRecord::QueryMethods</tt>. So +associations+ could look like this:
+      # +:associations+ has the same format as the arguments to
+      # ActiveRecord::QueryMethods#includes. So +associations+ could look like
+      # this:
       #
       #   :books
       #   [ :books, :author ]

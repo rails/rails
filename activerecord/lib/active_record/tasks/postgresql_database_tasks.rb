@@ -9,9 +9,6 @@ module ActiveRecord
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
       SQL_COMMENT_BEGIN = "--"
 
-      delegate :connection, :establish_connection, :clear_active_connections!,
-        to: ActiveRecord::Base
-
       def self.using_database_configurations?
         true
       end
@@ -21,14 +18,14 @@ module ActiveRecord
         @configuration_hash = db_config.configuration_hash
       end
 
-      def create(master_established = false)
-        establish_master_connection unless master_established
+      def create(connection_already_established = false)
+        establish_connection(public_schema_config) unless connection_already_established
         connection.create_database(db_config.database, configuration_hash.merge(encoding: encoding))
-        establish_connection(db_config)
+        establish_connection
       end
 
       def drop
-        establish_master_connection
+        establish_connection(public_schema_config)
         connection.drop_database(db_config.database)
       end
 
@@ -41,7 +38,7 @@ module ActiveRecord
       end
 
       def purge
-        clear_active_connections!
+        ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
         drop
         create true
       end
@@ -81,8 +78,9 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename]
+        args = ["--set", ON_ERROR_STOP_1, "--quiet", "--no-psqlrc", "--output", File::NULL]
         args.concat(Array(extra_flags)) if extra_flags
+        args.concat(["--file", filename])
         args << db_config.database
         run_cmd("psql", args, "loading")
       end
@@ -90,15 +88,20 @@ module ActiveRecord
       private
         attr_reader :db_config, :configuration_hash
 
+        def connection
+          ActiveRecord::Base.lease_connection
+        end
+
+        def establish_connection(config = db_config)
+          ActiveRecord::Base.establish_connection(config)
+        end
+
         def encoding
           configuration_hash[:encoding] || DEFAULT_ENCODING
         end
 
-        def establish_master_connection
-          establish_connection configuration_hash.merge(
-            database: "postgres",
-            schema_search_path: "public"
-          )
+        def public_schema_config
+          configuration_hash.merge(database: "postgres", schema_search_path: "public")
         end
 
         def psql_env

@@ -6,7 +6,7 @@ module Arel
   module Visitors
     class SqliteTest < Arel::Spec
       before do
-        @visitor = SQLite.new Table.engine.connection
+        @visitor = SQLite.new Table.engine.lease_connection
       end
 
       def compile(node)
@@ -23,13 +23,6 @@ module Arel
       it "does not support locking" do
         node = Nodes::Lock.new(Arel.sql("FOR UPDATE"))
         assert_equal "", @visitor.accept(node, Collectors::SQLString.new).value
-      end
-
-      it "does not support boolean" do
-        node = Nodes::True.new()
-        assert_equal "1", @visitor.accept(node, Collectors::SQLString.new).value
-        node = Nodes::False.new()
-        assert_equal "0", @visitor.accept(node, Collectors::SQLString.new).value
       end
 
       describe "Nodes::IsNotDistinctFrom" do

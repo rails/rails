@@ -12,8 +12,7 @@ namespace :guides do
 
     desc "Generate .mobi file"
     task :kindle do
-      require "active_support/deprecation"
-      ActiveSupport::Deprecation.warn("The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead")
+      warn("DEPRECATION WARNING: The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead.")
       Rake::Task["guides:generate:epub"].invoke
     end
 
@@ -24,10 +23,42 @@ namespace :guides do
     end
   end
 
+  desc "Lint guides, using `mdl` and check for broken links"
+  task lint: ["lint:check_links", "lint:mdl"]
+
+  namespace :lint do
+    desc "Check links in generated HTML guides"
+    task :check_links do
+      ENV["GUIDES_LINT"] = "1"
+      ruby "-Eutf-8:utf-8", "rails_guides.rb"
+    end
+
+    desc "Run mdl to check Markdown files for style guide violations and lint errors"
+    task :mdl do
+      require "mdl"
+      all = Dir.glob("#{__dir__}/source/*.md")
+      files = all - Dir.glob("#{__dir__}/**/*_release_notes.md") # Ignore release notes
+      MarkdownLint.run files
+    end
+  end
+
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
   task :validate do
     ruby "w3c_validator.rb"
+  end
+
+  task :vendor_javascript do
+    require "importmap-rails"
+    require "importmap/packager"
+
+    packager = Importmap::Packager.new(vendor_path: "assets/javascripts")
+    imports = packager.import("@hotwired/turbo", from: "unpkg")
+    imports.each do |package, url|
+      umd_url = url.gsub("esm.js", "umd.js")
+      puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{umd_url})
+      packager.download(package, umd_url)
+    end
   end
 
   desc "Show help"

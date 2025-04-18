@@ -3,7 +3,6 @@
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/redefine_method"
-require "active_support/core_ext/module/delegation"
 
 module ActiveModel
   class Name
@@ -230,7 +229,7 @@ module ActiveModel
       end
   end
 
-  # == Active \Model \Naming
+  # = Active \Model \Naming
   #
   # Creates a +model_name+ method on your object.
   #
@@ -347,5 +346,13 @@ module ActiveModel
       end
     end
     private_class_method :model_name_from_record_or_class
+
+    private
+      def inherited(base)
+        super
+        base.class_eval do
+          @_model_name = nil
+        end
+      end
   end
 end

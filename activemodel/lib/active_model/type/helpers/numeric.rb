@@ -8,6 +8,10 @@ module ActiveModel
           cast(value)
         end
 
+        def serialize_cast_value(value)
+          value
+        end
+
         def cast(value)
           # Checks whether the value is numeric. Spaceship operator
           # will return nil if value is not numeric.
@@ -38,7 +42,8 @@ module ActiveModel
           end
 
           def number_to_non_number?(old_value, new_value_before_type_cast)
-            old_value != nil && non_numeric_string?(new_value_before_type_cast.to_s)
+            old_value != nil && !new_value_before_type_cast.is_a?(::Numeric) &&
+              non_numeric_string?(new_value_before_type_cast.to_s)
           end
 
           def non_numeric_string?(value)

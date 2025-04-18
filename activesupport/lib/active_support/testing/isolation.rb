@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+require "active_support/testing/parallelize_executor"
+
 module ActiveSupport
   module Testing
     module Isolation
-      require "thread"
+      SubprocessCrashed = Class.new(StandardError)
 
       def self.included(klass) # :nodoc:
         klass.class_eval do
-          parallelize_me!
+          parallelize_me! unless Minitest.parallel_executor.is_a?(ActiveSupport::Testing::ParallelizeExecutor)
         end
       end
 
@@ -16,8 +18,15 @@ module ActiveSupport
       end
 
       def run
-        serialized = run_in_isolation do
+        status, serialized = run_in_isolation do
           super
+        end
+
+        unless status&.success?
+          error = SubprocessCrashed.new("Subprocess exited with an error: #{status.inspect}\noutput: #{serialized.inspect}")
+          error.set_backtrace(caller)
+          self.failures << Minitest::UnexpectedError.new(error)
+          return defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
         end
 
         Marshal.load(serialized)
@@ -25,45 +34,46 @@ module ActiveSupport
 
       module Forking
         def run_in_isolation(&blk)
-          read, write = IO.pipe
-          read.binmode
-          write.binmode
+          IO.pipe do |read, write|
+            read.binmode
+            write.binmode
 
-          pid = fork do
-            read.close
-            yield
-            begin
-              if error?
-                failures.map! { |e|
-                  begin
-                    Marshal.dump e
-                    e
-                  rescue TypeError
-                    ex = Exception.new e.message
-                    ex.set_backtrace e.backtrace
-                    Minitest::UnexpectedError.new ex
-                  end
-                }
+            pid = fork do
+              read.close
+              yield
+              begin
+                if error?
+                  failures.map! { |e|
+                    begin
+                      Marshal.dump e
+                      e
+                    rescue TypeError
+                      ex = Exception.new e.message
+                      ex.set_backtrace e.backtrace
+                      Minitest::UnexpectedError.new ex
+                    end
+                  }
+                end
+                test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
+                result = Marshal.dump(test_result)
               end
-              test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
-              result = Marshal.dump(test_result)
+
+              write.puts [result].pack("m")
+              exit!(0)
             end
 
-            write.puts [result].pack("m")
-            exit!
+            write.close
+            result = read.read
+            _, status = Process.wait2(pid)
+            return status, result.unpack1("m")
           end
-
-          write.close
-          result = read.read
-          Process.wait2(pid)
-          result.unpack1("m")
         end
       end
 
       module Subprocess
         ORIG_ARGV = ARGV.dup unless defined?(ORIG_ARGV)
 
-        # Complicated H4X to get this working in windows / jruby with
+        # Complicated H4X to get this working in Windows / JRuby with
         # no forking.
         def run_in_isolation(&blk)
           require "tempfile"
@@ -74,7 +84,7 @@ module ActiveSupport
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
               file.puts [Marshal.dump(test_result)].pack("m")
             end
-            exit!
+            exit!(0)
           else
             Tempfile.open("isolation") do |tmpfile|
               env = {
@@ -92,13 +102,14 @@ module ActiveSupport
 
               child = IO.popen([env, Gem.ruby, *load_path_args, $0, *ORIG_ARGV, test_opts])
 
+              status = nil
               begin
-                Process.wait(child.pid)
+                _, status = Process.wait2(child.pid)
               rescue Errno::ECHILD # The child process may exit before we wait
                 nil
               end
 
-              return tmpfile.read.unpack1("m")
+              return status, tmpfile.read.unpack1("m")
             end
           end
         end

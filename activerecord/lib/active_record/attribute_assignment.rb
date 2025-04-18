@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require "active_model/forbidden_attributes_protection"
-
 module ActiveRecord
   module AttributeAssignment
-    include ActiveModel::AttributeAssignment
-
     private
       def _assign_attributes(attributes)
         multi_parameter_attributes = nested_parameter_attributes = nil

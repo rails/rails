@@ -22,10 +22,26 @@ module ActiveStorage
 
     def upload
       case attachable
-      when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
+      when ActionDispatch::Http::UploadedFile
         blob.upload_without_unfurling(attachable.open)
+      when Rack::Test::UploadedFile
+        blob.upload_without_unfurling(
+          attachable.respond_to?(:open) ? attachable.open : attachable
+        )
       when Hash
         blob.upload_without_unfurling(attachable.fetch(:io))
+      when File
+        blob.upload_without_unfurling(attachable)
+      when Pathname
+        blob.upload_without_unfurling(attachable.open)
+      when ActiveStorage::Blob
+      when String
+      else
+        raise(
+          ArgumentError,
+          "Could not upload: expected attachable, " \
+            "got #{attachable.inspect}"
+        )
       end
     end
 
@@ -53,9 +69,17 @@ module ActiveStorage
         case attachable
         when ActiveStorage::Blob
           attachable
-        when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
+        when ActionDispatch::Http::UploadedFile
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable.open,
+            filename: attachable.original_filename,
+            content_type: attachable.content_type,
+            record: record,
+            service_name: attachment_service_name
+          )
+        when Rack::Test::UploadedFile
+          ActiveStorage::Blob.build_after_unfurling(
+            io: attachable.respond_to?(:open) ? attachable.open : attachable,
             filename: attachable.original_filename,
             content_type: attachable.content_type,
             record: record,
@@ -70,13 +94,36 @@ module ActiveStorage
           )
         when String
           ActiveStorage::Blob.find_signed!(attachable, record: record)
+        when File
+          ActiveStorage::Blob.build_after_unfurling(
+            io: attachable,
+            filename: File.basename(attachable),
+            record: record,
+            service_name: attachment_service_name
+          )
+        when Pathname
+          ActiveStorage::Blob.build_after_unfurling(
+            io: attachable.open,
+            filename: File.basename(attachable),
+            record: record,
+            service_name: attachment_service_name
+          )
         else
-          raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
+          raise(
+            ArgumentError,
+            "Could not find or build blob: expected attachable, " \
+              "got #{attachable.inspect}"
+          )
         end
       end
 
       def attachment_service_name
-        record.attachment_reflections[name].options[:service_name]
+        service_name = record.attachment_reflections[name].options[:service_name]
+        if service_name.is_a?(Proc)
+          service_name = service_name.call(record)
+          Attached::Model.validate_service_configuration(service_name, record.class, name)
+        end
+        service_name
       end
   end
 end

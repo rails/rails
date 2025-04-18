@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module ActiveStorage
+  # = Active Storage Mirror \Service
+  #
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all
   # have the files uploaded to them. A +primary+ service is designated to answer calls to:
   # * +download+
@@ -28,15 +29,23 @@ module ActiveStorage
 
     def initialize(primary:, mirrors:)
       @primary, @mirrors = primary, mirrors
+      @executor = Concurrent::ThreadPoolExecutor.new(
+        name: "ActiveStorage-mirror-service",
+        min_threads: 1,
+        max_threads: mirrors.size,
+        max_queue: 0,
+        fallback_policy: :caller_runs,
+        idle_time: 60
+      )
     end
 
-    # Upload the +io+ to the +key+ specified to all services. If a +checksum+ is provided, all services will
+    # Upload the +io+ to the +key+ specified to all services. The upload to the primary service is done synchronously
+    # whereas the upload to the mirrors is done asynchronously. If a +checksum+ is provided, all services will
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
-      each_service.collect do |service|
-        io.rewind
-        service.upload key, io, checksum: checksum, **options
-      end
+      io.rewind
+      primary.upload key, io, checksum: checksum, **options
+      mirror_later key, checksum: checksum
     end
 
     # Delete the file at the +key+ on all services.
@@ -49,6 +58,9 @@ module ActiveStorage
       perform_across_services :delete_prefixed, prefix
     end
 
+    def mirror_later(key, checksum:) # :nodoc:
+      ActiveStorage::MirrorJob.perform_later key, checksum: checksum
+    end
 
     # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
     def mirror(key, checksum:)
@@ -70,10 +82,12 @@ module ActiveStorage
       end
 
       def perform_across_services(method, *args)
-        # FIXME: Convert to be threaded
-        each_service.collect do |service|
-          service.public_send method, *args
+        tasks = each_service.collect do |service|
+          Concurrent::Promise.execute(executor: @executor) do
+            service.public_send method, *args
+          end
         end
+        tasks.each(&:value!)
       end
   end
 end

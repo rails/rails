@@ -7,7 +7,7 @@ test_files = FileList["test/**/*_test.rb"]
 desc "Default Task"
 task default: :test
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 # Run the unit tests
 Rake::TestTask.new do |t|
@@ -16,6 +16,7 @@ Rake::TestTask.new do |t|
 
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end
 

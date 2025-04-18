@@ -58,32 +58,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/actiontext.css"
   end
 
-  test "appends @import 'actiontext.css' to base scss file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.bootstrap.scss")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.bootstrap.scss" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-
-  test "appends @import 'actiontext.css'; to base css file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.postcss.css")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.postcss.css" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-  test "throws a warning for missing base (s)css file" do
-    assert_match "To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.",
-      run_generator_instance
-  end
-
   test "creates Active Storage view partial" do
     run_generator_instance
     assert_file "app/views/active_storage/blobs/_blob.html.erb"

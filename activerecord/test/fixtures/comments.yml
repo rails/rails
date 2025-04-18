@@ -7,6 +7,7 @@ greetings:
 more_greetings:
   id: 2
   post_id: 1
+  parent_id: 1
   body: Thank you again for the welcome
   type: Comment
 

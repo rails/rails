@@ -5,6 +5,8 @@ require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
+  # = Active Support \Rescuable
+  #
   # Rescuable module adds support for easier exception handling.
   module Rescuable
     extend Concern

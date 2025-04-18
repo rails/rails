@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/numeric/time"
+require "active_support/error_reporter/test_helper"
 
 # Tests the base functionality that should be identical across all cache stores.
 module CacheStoreBehavior
   def test_should_read_and_write_strings
     key = SecureRandom.uuid
-    assert @cache.write(key, "bar")
+    assert_equal true, @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
   end
 
   def test_should_overwrite
     key = SecureRandom.uuid
-    @cache.write(key, "bar")
-    @cache.write(key, "baz")
+    assert_equal true, @cache.write(key, "bar")
+    assert_equal true, @cache.write(key, "baz")
     assert_equal "baz", @cache.read(key)
   end
 
@@ -41,6 +42,34 @@ module CacheStoreBehavior
     cache_miss = false
     assert_equal 10, @cache.fetch(key) { |fetch_key| cache_miss = true; fetch_key.length }
     assert_not cache_miss
+  end
+
+  def test_fetch_with_dynamic_options
+    key = SecureRandom.uuid
+    expiry = 10.minutes.from_now
+    expected_options = @cache.options.dup
+    expected_options.delete(:expires_in)
+    expected_options.merge!(
+      expires_at: expiry,
+      version: "v42",
+    )
+
+    assert_called_with(@cache, :write, [key, "bar", expected_options]) do
+      @cache.fetch(key) do |key, options|
+        assert_equal @cache.options[:expires_in], options.expires_in
+        assert_nil options.expires_at
+        assert_nil options.version
+
+        options.expires_at = expiry
+        options.version = "v42"
+
+        assert_nil options.expires_in
+        assert_equal expiry, options.expires_at
+        assert_equal "v42", options.version
+
+        "bar"
+      end
+    end
   end
 
   def test_fetch_with_forced_cache_miss
@@ -87,25 +116,25 @@ module CacheStoreBehavior
 
   def test_should_read_and_write_hash
     key = SecureRandom.uuid
-    assert @cache.write(key, a: "b")
+    assert_equal true, @cache.write(key, a: "b")
     assert_equal({ a: "b" }, @cache.read(key))
   end
 
   def test_should_read_and_write_integer
     key = SecureRandom.uuid
-    assert @cache.write(key, 1)
+    assert_equal true, @cache.write(key, 1)
     assert_equal 1, @cache.read(key)
   end
 
   def test_should_read_and_write_nil
     key = SecureRandom.uuid
-    assert @cache.write(key, nil)
+    assert_equal true, @cache.write(key, nil)
     assert_nil @cache.read(key)
   end
 
   def test_should_read_and_write_false
     key = SecureRandom.uuid
-    assert @cache.write(key, false)
+    assert_equal true, @cache.write(key, false)
     assert_equal false, @cache.read(key)
   end
 
@@ -116,6 +145,10 @@ module CacheStoreBehavior
     @cache.write(other_key, "baz")
     @cache.write(SecureRandom.alphanumeric, "biz")
     assert_equal({ key => "bar", other_key => "baz" }, @cache.read_multi(key, other_key))
+  end
+
+  def test_read_multi_empty_list
+    assert_equal({}, @cache.read_multi())
   end
 
   def test_read_multi_with_expires
@@ -130,10 +163,24 @@ module CacheStoreBehavior
     end
   end
 
-  def test_read_multi_with_empty_keys_and_a_logger_and_no_namespace
-    cache = lookup_store(namespace: nil)
-    cache.logger = ActiveSupport::Logger.new(nil)
-    assert_equal({}, cache.read_multi)
+  def test_write_multi
+    key = SecureRandom.uuid
+    @cache.write_multi("#{key}1" => 1, "#{key}2" => 2)
+    assert_equal 1, @cache.read("#{key}1")
+    assert_equal 2, @cache.read("#{key}2")
+  end
+
+  def test_write_multi_empty_hash
+    assert @cache.write_multi({})
+  end
+
+  def test_write_multi_expires_in
+    key = SecureRandom.uuid
+    @cache.write_multi({ key => 1 }, expires_in: 10)
+
+    travel(11.seconds) do
+      assert_nil @cache.read(key)
+    end
   end
 
   def test_fetch_multi
@@ -147,6 +194,10 @@ module CacheStoreBehavior
 
     assert_equal({ key => "bar", other_key => "biz", third_key => (third_key * 2) }, values)
     assert_equal((third_key * 2), @cache.read(third_key))
+  end
+
+  def test_fetch_multi_empty_hash
+    assert_equal({}, @cache.fetch_multi() { raise "Not called" })
   end
 
   def test_fetch_multi_without_expires_in
@@ -216,103 +267,12 @@ module CacheStoreBehavior
     assert_equal(false, @cache.exist?(other_key))
   end
 
-  # Use strings that are guaranteed to compress well, so we can easily tell if
-  # the compression kicked in or not.
-  SMALL_STRING = "0" * 100
-  LARGE_STRING = "0" * 2.kilobytes
-
-  SMALL_OBJECT = { data: SMALL_STRING }
-  LARGE_OBJECT = { data: LARGE_STRING }
-
-  def test_nil_with_default_compression_settings
-    assert_uncompressed(nil)
-  end
-
-  def test_nil_with_compress_true
-    assert_uncompressed(nil, compress: true)
-  end
-
-  def test_nil_with_compress_false
-    assert_uncompressed(nil, compress: false)
-  end
-
-  def test_nil_with_compress_low_compress_threshold
-    assert_uncompressed(nil, compress: true, compress_threshold: 20)
-  end
-
-  def test_small_string_with_default_compression_settings
-    assert_uncompressed(SMALL_STRING)
-  end
-
-  def test_small_string_with_compress_true
-    assert_uncompressed(SMALL_STRING, compress: true)
-  end
-
-  def test_small_string_with_compress_false
-    assert_uncompressed(SMALL_STRING, compress: false)
-  end
-
-  def test_small_string_with_low_compress_threshold
-    assert_compressed(SMALL_STRING, compress: true, compress_threshold: 1)
-  end
-
-  def test_small_object_with_default_compression_settings
-    assert_uncompressed(SMALL_OBJECT)
-  end
-
-  def test_small_object_with_compress_true
-    assert_uncompressed(SMALL_OBJECT, compress: true)
-  end
-
-  def test_small_object_with_compress_false
-    assert_uncompressed(SMALL_OBJECT, compress: false)
-  end
-
-  def test_small_object_with_low_compress_threshold
-    assert_compressed(SMALL_OBJECT, compress: true, compress_threshold: 1)
-  end
-
-  def test_large_string_with_compress_true
-    assert_compressed(LARGE_STRING, compress: true)
-  end
-
-  def test_large_string_with_compress_false
-    assert_uncompressed(LARGE_STRING, compress: false)
-  end
-
-  def test_large_string_with_high_compress_threshold
-    assert_uncompressed(LARGE_STRING, compress: true, compress_threshold: 1.megabyte)
-  end
-
-  def test_large_object_with_compress_true
-    assert_compressed(LARGE_OBJECT, compress: true)
-  end
-
-  def test_large_object_with_compress_false
-    assert_uncompressed(LARGE_OBJECT, compress: false)
-  end
-
-  def test_large_object_with_high_compress_threshold
-    assert_uncompressed(LARGE_OBJECT, compress: true, compress_threshold: 1.megabyte)
-  end
-
-  def test_incompressible_data
-    assert_uncompressed(nil, compress: true, compress_threshold: 30)
-    assert_uncompressed(true, compress: true, compress_threshold: 30)
-    assert_uncompressed(false, compress: true, compress_threshold: 30)
-    assert_uncompressed(0, compress: true, compress_threshold: 30)
-    assert_uncompressed(1.2345, compress: true, compress_threshold: 30)
-    assert_uncompressed("", compress: true, compress_threshold: 30)
-
-    incompressible = nil
-
-    # generate an incompressible string
-    loop do
-      incompressible = Random.bytes(1.kilobyte)
-      break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
+  def test_fetch_multi_uses_write_multi_entries_store_provider_interface
+    assert_called(@cache, :write_multi_entries) do
+      @cache.fetch_multi "a", "b", "c" do |key|
+        key * 2
+      end
     end
-
-    assert_uncompressed(incompressible, compress: true, compress_threshold: 1)
   end
 
   def test_cache_key
@@ -435,6 +395,22 @@ module CacheStoreBehavior
     assert_nil @cache.read(key.upcase)
   end
 
+  def test_blank_key
+    invalid_keys = [nil, "", [], {}]
+    invalid_keys.each do |key|
+      assert_raises(ArgumentError) { @cache.write(key, "bar") }
+      assert_raises(ArgumentError) { @cache.read(key) }
+      assert_raises(ArgumentError) { @cache.delete(key) }
+    end
+
+    valid_keys = ["foo", ["bar"], { foo: "bar" }, 0, 1, InstanceTest.new("foo", 2)]
+    valid_keys.each do |key|
+      assert_nothing_raised { @cache.write(key, "bar") }
+      assert_nothing_raised { @cache.read(key) }
+      assert_nothing_raised { @cache.delete(key) }
+    end
+  end
+
   def test_exist
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
@@ -452,8 +428,13 @@ module CacheStoreBehavior
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
     assert @cache.exist?(key)
-    assert @cache.delete(key)
+    assert_same true, @cache.delete(key)
     assert_not @cache.exist?(key)
+  end
+
+  def test_delete_returns_false_if_not_exist
+    key = SecureRandom.alphanumeric
+    assert_same false, @cache.delete(key)
   end
 
   def test_delete_multi
@@ -466,6 +447,10 @@ module CacheStoreBehavior
     assert_equal 2, @cache.delete_multi([key, SecureRandom.uuid, other_key])
     assert_not @cache.exist?(key)
     assert_not @cache.exist?(other_key)
+  end
+
+  def test_delete_multi_empty_list
+    assert_equal(0, @cache.delete_multi([]))
   end
 
   def test_original_store_objects_should_not_be_immutable
@@ -566,6 +551,43 @@ module CacheStoreBehavior
     assert_equal "Either :expires_in or :expires_at can be supplied, but not both", error.message
   end
 
+  def test_invalid_expiration_time_raises_an_error_when_raise_on_invalid_cache_expiration_time_is_true
+    with_raise_on_invalid_cache_expiration_time(true) do
+      key = SecureRandom.uuid
+      error = assert_raises(ArgumentError) do
+        @cache.write(key, "bar", expires_in: -60)
+      end
+      assert_equal "Cache expiration time is invalid, cannot be negative: -60", error.message
+      assert_nil @cache.read(key)
+    end
+  end
+
+  def test_invalid_expiration_time_reports_and_logs_when_raise_on_invalid_cache_expiration_time_is_false
+    with_raise_on_invalid_cache_expiration_time(false) do
+      error_message = "Cache expiration time is invalid, cannot be negative: -60"
+      report = assert_error_reported(ArgumentError) do
+        logs = capture_logs do
+          key = SecureRandom.uuid
+          @cache.write(key, "bar", expires_in: -60)
+          assert_equal "bar", @cache.read(key)
+        end
+        assert_includes logs, "ArgumentError: #{error_message}"
+      end
+      assert_includes report.error.message, error_message
+    end
+  end
+
+  def test_expires_in_from_now_raises_an_error
+    time = 1.minute.from_now
+
+    key = SecureRandom.uuid
+    error = assert_raises(ArgumentError) do
+      @cache.write(key, "bar", expires_in: time)
+    end
+    assert_equal "expires_in parameter should not be a Time. Did you mean to use expires_at? Got: #{time}", error.message
+    assert_nil @cache.read(key)
+  end
+
   def test_race_condition_protection_skipped_if_not_defined
     key = SecureRandom.alphanumeric
     @cache.write(key, "bar")
@@ -625,6 +647,26 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_race_condition_protection
+    time = Time.now
+    key = SecureRandom.uuid
+    value = SecureRandom.uuid
+    expires_in = 60
+
+    @cache.write(key, value, expires_in:)
+    Time.stub(:now, time + expires_in + 1) do
+      fetched_value = @cache.fetch(key, expires_in:, race_condition_ttl: 10) do
+        SecureRandom.uuid
+      end
+      assert_not_equal fetched_value, value
+      assert_not_nil fetched_value
+    end
+
+    Time.stub(:now, time + 2 * expires_in) do
+      assert_not_nil @cache.read(key)
+    end
+  end
+
   def test_fetch_multi_race_condition_protection
     time = Time.now
     key = SecureRandom.uuid
@@ -664,9 +706,7 @@ module CacheStoreBehavior
   def test_cache_hit_instrumentation
     key = "test_key"
     @events = []
-    ActiveSupport::Notifications.subscribe "cache_read.active_support" do |*args|
-      @events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe("cache_read.active_support") { |event| @events << event }
     assert @cache.write(key, "1", raw: true)
     assert @cache.fetch(key, raw: true) { }
     assert_equal 1, @events.length
@@ -679,9 +719,7 @@ module CacheStoreBehavior
 
   def test_cache_miss_instrumentation
     @events = []
-    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) do |*args|
-      @events << ActiveSupport::Notifications::Event.new(*args)
-    end
+    ActiveSupport::Notifications.subscribe(/^cache_(.*)\.active_support$/) { |event| @events << event }
     assert_not @cache.fetch(SecureRandom.uuid) { }
     assert_equal 3, @events.length
     assert_equal "cache_read.active_support", @events[0].name
@@ -693,45 +731,56 @@ module CacheStoreBehavior
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
 
+  def test_setting_options_in_fetch_block_does_not_change_cache_options
+    key = SecureRandom.uuid
+
+    assert_no_changes -> { @cache.options.dup } do
+      @cache.fetch(key) do |_key, options|
+        options.expires_in = 5.minutes
+        "bar"
+      end
+    end
+  end
+
+  def test_configuring_store_with_raw
+    cache = lookup_store(raw: true)
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
+
+  def test_max_key_size
+    cache = lookup_store(max_key_size: 64)
+    key = "foobar" * 20
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
+  def test_max_key_size_disabled
+    cache = lookup_store(max_key_size: false)
+    key = "a" * 1000
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
   private
-    def assert_compressed(value, **options)
-      assert_compression(true, value, **options)
+    def with_raise_on_invalid_cache_expiration_time(new_value, &block)
+      old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = new_value
+
+      yield
+    ensure
+      ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time = old_value
     end
 
-    def assert_uncompressed(value, **options)
-      assert_compression(false, value, **options)
-    end
-
-    def assert_compression(should_compress, value, **options)
-      actual = "actual" + SecureRandom.uuid
-      uncompressed = "uncompressed" + SecureRandom.uuid
-
-      freeze_time do
-        @cache.write(actual, value, options)
-        @cache.write(uncompressed, value, options.merge(compress: false))
-      end
-
-      if value.nil?
-        assert_nil @cache.read(actual)
-        assert_nil @cache.read(uncompressed)
-      else
-        assert_equal value, @cache.read(actual)
-        assert_equal value, @cache.read(uncompressed)
-      end
-
-      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, actual, {}), **{})
-      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, uncompressed, {}), **{})
-
-      actual_payload = @cache.send(:serialize_entry, actual_entry, **@cache.send(:merged_options, options))
-      uncompressed_payload = @cache.send(:serialize_entry, uncompressed_entry, compress: false)
-
-      actual_size = actual_payload.bytesize
-      uncompressed_size = uncompressed_payload.bytesize
-
-      if should_compress
-        assert_operator actual_size, :<, uncompressed_size, "value should be compressed"
-      else
-        assert_equal uncompressed_size, actual_size, "value should not be compressed"
+    def capture_logs(&block)
+      old_logger = ActiveSupport::Cache::Store.logger
+      log = StringIO.new
+      ActiveSupport::Cache::Store.logger = ActiveSupport::Logger.new(log)
+      begin
+        yield
+        log.string
+      ensure
+        ActiveSupport::Cache::Store.logger = old_logger
       end
     end
 end

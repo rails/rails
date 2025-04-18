@@ -25,11 +25,11 @@ module ActiveRecord
           end
 
           def visit_ChangeColumnDefaultDefinition(o)
-            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} SET DEFAULT "
-            if o.default.nil?
-              sql << "NULL"
+            sql = +"ALTER COLUMN #{quote_column_name(o.column.name)} "
+            if o.default.nil? && !o.column.null
+              sql << "DROP DEFAULT"
             else
-              sql << quote_default_expression(o.default, o.column)
+              sql << "SET DEFAULT #{quote_default_expression(o.default, o.column)}"
             end
           end
 
@@ -49,6 +49,8 @@ module ActiveRecord
             sql << "USING #{o.using}" if o.using
             sql << "ON #{quote_table_name(o.table)}" if create
             sql << "(#{quoted_columns(o)})"
+            sql << "INVISIBLE" if o.disabled? && !mariadb?
+            sql << "IGNORED" if o.disabled? && mariadb?
 
             add_sql_comment!(sql.join(" "), o.comment)
           end

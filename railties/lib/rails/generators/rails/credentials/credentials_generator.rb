@@ -44,6 +44,8 @@ module Rails
         end
 
         def render_template_to_encrypted_file
+          empty_directory File.dirname(content_path)
+
           content = nil
 
           encrypted_file.change do |tmp_path|

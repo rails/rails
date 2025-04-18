@@ -3,9 +3,10 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/string/filters"
 
 module ActiveSupport
+  # = Active Support \Duration
+  #
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   #
@@ -13,7 +14,7 @@ module ActiveSupport
   class Duration
     class Scalar < Numeric # :nodoc:
       attr_reader :value
-      delegate :to_i, :to_f, :to_s, to: :value
+      delegate :to_i, :to_f, :to_s, to: :@value
 
       def initialize(value)
         @value = value
@@ -220,6 +221,8 @@ module ActiveSupport
         end
     end
 
+    Delegation.generate(self, [:to_f, :positive?, :negative?, :zero?, :abs], to: :@value, as: Integer, nilable: false)
+
     def initialize(value, parts, variable = nil) # :nodoc:
       @value, @parts = value, parts
       @parts.reject! { |k, v| v.zero? } unless value == 0
@@ -231,7 +234,10 @@ module ActiveSupport
       end
     end
 
-    # Returns a copy of the parts hash that defines the duration
+    # Returns a copy of the parts hash that defines the duration.
+    #
+    #   5.minutes.parts # => {:minutes=>5}
+    #   3.years.parts # => {:years=>3}
     def parts
       @parts.dup
     end
@@ -365,8 +371,8 @@ module ActiveSupport
     #   1.year.to_i     # => 31556952
     #
     # In such cases, Ruby's core
-    # Date[https://ruby-doc.org/stdlib/libdoc/date/rdoc/Date.html] and
-    # Time[https://ruby-doc.org/stdlib/libdoc/time/rdoc/Time.html] should be used for precision
+    # Date[https://docs.ruby-lang.org/en/master/Date.html] and
+    # Time[https://docs.ruby-lang.org/en/master/Time.html] should be used for precision
     # date and time arithmetic.
     def to_i
       @value.to_i
@@ -485,17 +491,21 @@ module ActiveSupport
         if @parts.empty?
           time.since(sign * value)
         else
-          @parts.inject(time) do |t, (type, number)|
-            if type == :seconds
-              t.since(sign * number)
-            elsif type == :minutes
-              t.since(sign * number * 60)
-            elsif type == :hours
-              t.since(sign * number * 3600)
-            else
-              t.advance(type => sign * number)
-            end
+          @parts.each do |type, number|
+            t = time
+            time =
+              if type == :seconds
+                t.since(sign * number)
+              elsif type == :minutes
+                t.since(sign * number * 60)
+              elsif type == :hours
+                t.since(sign * number * 3600)
+              else
+                t.advance(type => sign * number)
+              end
           end
+
+          time
         end
       end
 
@@ -503,8 +513,8 @@ module ActiveSupport
         value.respond_to?(method)
       end
 
-      def method_missing(method, *args, &block)
-        value.public_send(method, *args, &block)
+      def method_missing(...)
+        value.public_send(...)
       end
 
       def raise_type_error(other)

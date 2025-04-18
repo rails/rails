@@ -80,6 +80,10 @@ class RedirectController < ActionController::Base
     redirect_back_or_to "http://www.rubyonrails.org/", status: 307, allow_other_host: false
   end
 
+  def safe_redirect_to_root
+    redirect_to url_from("/")
+  end
+
   def unsafe_redirect
     redirect_to "http://www.rubyonrails.org/"
   end
@@ -90,6 +94,18 @@ class RedirectController < ActionController::Base
 
   def unsafe_redirect_malformed
     redirect_to "http:///www.rubyonrails.org/"
+  end
+
+  def unsafe_redirect_protocol_relative_double_slash
+    redirect_to "//www.rubyonrails.org/"
+  end
+
+  def unsafe_redirect_protocol_relative_triple_slash
+    redirect_to "///www.rubyonrails.org/"
+  end
+
+  def unsafe_redirect_with_illegal_http_header_value_character
+    redirect_to "javascript:alert(document.domain)\b", allow_other_host: true
   end
 
   def only_path_redirect
@@ -185,6 +201,12 @@ class RedirectController < ActionController::Base
 
   def redirect_with_null_bytes
     redirect_to "\000/lol\r\nwat"
+  end
+
+  def redirect_to_external_with_rescue
+    redirect_to "http://www.rubyonrails.org/", allow_other_host: false
+  rescue ActionController::Redirecting::UnsafeRedirectError
+    render plain: "caught error"
   end
 
   def rescue_errors(e) raise e end
@@ -374,6 +396,12 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://www.rubyonrails.org/", redirect_to_url
   end
 
+  def test_safe_redirect_to_root
+    get :safe_redirect_to_root
+
+    assert_equal "http://test.host/", redirect_to_url
+  end
+
   def test_redirect_back_with_explicit_fallback_kwarg
     referer = "http://www.example.com/coming/from"
     @request.env["HTTP_REFERER"] = referer
@@ -389,7 +417,7 @@ class RedirectTest < ActionController::TestCase
       set.draw do
         resources :workshops
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -411,7 +439,7 @@ class RedirectTest < ActionController::TestCase
           resources :workshops
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -429,7 +457,7 @@ class RedirectTest < ActionController::TestCase
           resources :workshops
         end
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -476,7 +504,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":controller/:action"
         end
       end
@@ -518,6 +546,39 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_unsafe_redirect_with_protocol_relative_double_slash_url
+    with_raise_on_open_redirects do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :unsafe_redirect_protocol_relative_double_slash
+      end
+
+      assert_equal "Unsafe redirect to \"//www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_unsafe_redirect_with_protocol_relative_triple_slash_url
+    with_raise_on_open_redirects do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :unsafe_redirect_protocol_relative_triple_slash
+      end
+
+      assert_equal "Unsafe redirect to \"///www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_unsafe_redirect_with_illegal_http_header_value_character
+    with_raise_on_open_redirects do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :unsafe_redirect_with_illegal_http_header_value_character
+      end
+
+      msg = "The redirect URL javascript:alert(document.domain)\b contains one or more illegal HTTP header field character. " \
+        "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
+
+      assert_equal msg, error.message
+    end
+  end
+
   def test_only_path_redirect
     with_raise_on_open_redirects do
       get :only_path_redirect
@@ -544,6 +605,19 @@ class RedirectTest < ActionController::TestCase
       assert_response :redirect
       assert_redirected_to "http://test.host/fallback"
     end
+  end
+
+  def test_redirect_to_instrumentation
+    notification = assert_notification("redirect_to.action_controller", status: 302, location: "http://test.host/redirect/hello_world") do
+      get :simple_redirect
+    end
+
+    assert_kind_of ActionDispatch::Request, notification.payload[:request]
+  end
+
+  def test_redirect_to_external_with_rescue
+    get :redirect_to_external_with_rescue
+    assert_response :ok
   end
 
   private

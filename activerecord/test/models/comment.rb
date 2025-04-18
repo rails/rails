@@ -23,12 +23,12 @@ class Comment < ActiveRecord::Base
   belongs_to :first_post, foreign_key: :post_id
   belongs_to :special_post_with_default_scope, foreign_key: :post_id
 
-  has_many :children, class_name: "Comment", foreign_key: :parent_id, inverse_of: :parent
+  has_one :post_with_inverse, ->(comment) { where(id: comment.post_id) }, class_name: "FirstPost", inverse_of: :comment_with_inverse
+
+  has_many :children, class_name: "Comment", inverse_of: :parent
   belongs_to :parent, class_name: "Comment", counter_cache: :children_count, inverse_of: :children
 
-  alias_attribute :entry, :post
-
-  enum label: [:default, :child]
+  enum :label, [:default, :child]
 
   class ::OopsError < RuntimeError; end
 

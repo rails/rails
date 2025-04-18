@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../tools/strict_warnings"
+
 ENV["RAILS_ENV"] ||= "test"
 require_relative "dummy/config/environment.rb"
 
@@ -8,39 +10,13 @@ require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
-require "active_support/configuration_file"
-require "active_storage/service/mirror_service"
 require "image_processing/mini_magick"
+
+require "active_record/testing/query_assertions"
 
 require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
-
-SERVICE_CONFIGURATIONS = begin
-  ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
-rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
-  {}
-end
-# Azure service tests are currently failing on the main branch.
-# We temporarily disable them while we get things working again.
-if ENV["CI"]
-  SERVICE_CONFIGURATIONS.delete(:azure)
-  SERVICE_CONFIGURATIONS.delete(:azure_public)
-end
-
-require "tmpdir"
-
-Rails.configuration.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
-  "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
-  "local_public" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests"), "public" => true },
-  "disk_mirror_1" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_1") },
-  "disk_mirror_2" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_2") },
-  "disk_mirror_3" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests_3") },
-  "mirror" => { "service" => "Mirror", "primary" => "local", "mirrors" => ["disk_mirror_1", "disk_mirror_2", "disk_mirror_3"] }
-).deep_stringify_keys
-
-Rails.configuration.active_storage.service = "local"
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
@@ -50,8 +26,9 @@ class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
   include ActiveRecord::TestFixtures
+  include ActiveRecord::Assertions::QueryAssertions
 
-  self.fixture_path = File.expand_path("fixtures", __dir__)
+  self.fixture_paths = [File.expand_path("fixtures", __dir__)]
 
   setup do
     ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
@@ -61,30 +38,13 @@ class ActiveSupport::TestCase
     ActiveStorage::Current.reset
   end
 
-  def assert_queries(expected_count, matcher: nil, &block)
-    ActiveRecord::Base.connection.materialize_transactions
-
-    queries = []
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
-      queries << payload[:sql] if %w[ SCHEMA TRANSACTION ].exclude?(payload[:name]) && (matcher.nil? || payload[:sql].match(matcher))
-    end
-
-    result = _assert_nothing_raised_or_warn("assert_queries", &block)
-    assert_equal expected_count, queries.size, "#{queries.size} instead of #{expected_count} queries were executed. Queries: #{queries.join("\n\n")}"
-    result
-  end
-
-  def assert_no_queries(&block)
-    assert_queries(0, &block)
-  end
-
   private
     def create_blob(key: nil, data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true, service_name: nil, record: nil)
       ActiveStorage::Blob.create_and_upload! key: key, io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify, service_name: service_name, record: record
     end
 
-    def create_file_blob(key: nil, filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil, service_name: nil, record: nil)
-      ActiveStorage::Blob.create_and_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata, service_name: service_name, record: record
+    def create_file_blob(key: nil, filename: "racecar.jpg", fixture: filename, content_type: "image/jpeg", identify: true, metadata: nil, service_name: nil, record: nil)
+      ActiveStorage::Blob.create_and_upload! io: file_fixture(fixture).open, filename: filename, content_type: content_type, identify: identify, metadata: metadata, service_name: service_name, record: record
     end
 
     def create_blob_before_direct_upload(key: nil, filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain", record: nil)
@@ -98,7 +58,7 @@ class ActiveSupport::TestCase
     def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", record: nil)
       file = file_fixture(filename)
       byte_size = file.size
-      checksum = OpenSSL::Digest::MD5.file(file).base64digest
+      checksum = ActiveStorage.checksum_implementation.file(file).base64digest
 
       create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, record: record).tap do |blob|
         service = ActiveStorage::Blob.service.try(:primary) || ActiveStorage::Blob.service
@@ -131,6 +91,7 @@ class ActiveSupport::TestCase
       strict_loading_was = ActiveRecord::Base.strict_loading_by_default
       ActiveRecord::Base.strict_loading_by_default = true
       yield
+    ensure
       ActiveRecord::Base.strict_loading_by_default = strict_loading_was
     end
 
@@ -138,6 +99,7 @@ class ActiveSupport::TestCase
       variant_tracking_was = ActiveStorage.track_variants
       ActiveStorage.track_variants = false
       yield
+    ensure
       ActiveStorage.track_variants = variant_tracking_was
     end
 
@@ -152,14 +114,6 @@ class ActiveSupport::TestCase
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
       ActiveStorage::Blob.service = old_service
     end
-
-    def subscribe_events_from(name)
-      events = []
-      ActiveSupport::Notifications.subscribe(name) do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
-      end
-      events
-    end
 end
 
 require "global_id"
@@ -167,12 +121,24 @@ GlobalID.app = "ActiveStorageExampleApp"
 ActiveRecord::Base.include GlobalID::Identification
 
 class User < ActiveRecord::Base
+  attr_accessor :record_callbacks, :callback_counter
+  attr_reader :notification_sent
+
   validates :name, presence: true
 
   has_one_attached :avatar
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
+  end
+  has_one_attached :avatar_with_preprocessed do |attachable|
+    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  end
+  has_one_attached :avatar_with_conditional_preprocessed do |attachable|
+    attachable.variant :proc, resize_to_limit: [2, 2],
+      preprocessed: ->(user) { user.name == "transform via proc" }
+    attachable.variant :method, resize_to_limit: [3, 3],
+      preprocessed: :should_preprocessed?
   end
   has_one_attached :intro_video
   has_one_attached :name_pronunciation_audio
@@ -182,8 +148,41 @@ class User < ActiveRecord::Base
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
+  has_many_attached :highlights_with_preprocessed do |attachable|
+    attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
+  end
+  has_many_attached :highlights_with_conditional_preprocessed do |attachable|
+    attachable.variant :proc, resize_to_limit: [2, 2],
+      preprocessed: ->(user) { user.name == "transform via proc" }
+    attachable.variant :method, resize_to_limit: [3, 3],
+      preprocessed: :should_preprocessed?
+  end
+  has_one_attached :resume do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400]
+  end
+  has_one_attached :resume_with_preprocessing do |attachable|
+    attachable.variant :preview, resize_to_fill: [400, 400], preprocessed: true
+  end
+
+  after_commit :increment_callback_counter
+  after_update_commit :notify
 
   accepts_nested_attributes_for :highlights_attachments, allow_destroy: true
+
+  def should_preprocessed?
+    name == "transform via method"
+  end
+
+  def increment_callback_counter
+    if record_callbacks
+      @callback_counter ||= 0
+      @callback_counter += 1
+    end
+  end
+
+  def notify
+    @notification_sent = true if highlights_attachments.any?(&:previously_new_record?)
+  end
 end
 
 class Group < ActiveRecord::Base

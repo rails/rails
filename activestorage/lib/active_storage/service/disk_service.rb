@@ -6,6 +6,8 @@ require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
+  # = Active Storage \Disk \Service
+  #
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
@@ -159,7 +161,7 @@ module ActiveStorage
       end
 
       def ensure_integrity_of(key, checksum)
-        unless OpenSSL::Digest::MD5.file(path_for(key)).base64digest == checksum
+        unless ActiveStorage.checksum_implementation.file(path_for(key)).base64digest == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end

@@ -14,9 +14,9 @@ class TestDatabasesTest < ActiveRecord::TestCase
       }
 
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-2"
+      expected_database = "#{base_db_config.database}_2"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
@@ -37,9 +37,9 @@ class TestDatabasesTest < ActiveRecord::TestCase
 
       idx = 42
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-#{idx}"
+      expected_database = "#{base_db_config.database}_#{idx}"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
@@ -65,7 +65,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       idx = 42
       base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }

@@ -4,7 +4,7 @@ require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveJob
-  # = Active Job Callbacks
+  # = Active Job \Callbacks
   #
   # Active Job provides hooks during the life cycle of a job. Callbacks allow you
   # to trigger logic during this cycle. Available callbacks are:
@@ -15,9 +15,6 @@ module ActiveJob
   # * <tt>before_perform</tt>
   # * <tt>around_perform</tt>
   # * <tt>after_perform</tt>
-  #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
-  #
   module Callbacks
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
@@ -28,9 +25,6 @@ module ActiveJob
     end
 
     included do
-      cattr_accessor :skip_after_callbacks_if_terminated, instance_accessor: false, default: false
-      singleton_class.deprecate :skip_after_callbacks_if_terminated, :skip_after_callbacks_if_terminated=
-
       define_callbacks :perform, skip_after_callbacks_if_terminated: true
       define_callbacks :enqueue, skip_after_callbacks_if_terminated: true
     end
@@ -135,7 +129,8 @@ module ActiveJob
       #     queue_as :default
       #
       #     after_enqueue do |job|
-      #       $statsd.increment "enqueue-video-job.success"
+      #       result = job.successfully_enqueued? ? "success" : "failure"
+      #       $statsd.increment "enqueue-video-job.#{result}"
       #     end
       #
       #     def perform(video_id)

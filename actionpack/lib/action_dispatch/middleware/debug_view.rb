@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "pp"
 
 require "action_view"
@@ -7,10 +9,10 @@ require "action_view/base"
 
 module ActionDispatch
   class DebugView < ActionView::Base # :nodoc:
-    RESCUES_TEMPLATE_PATH = File.expand_path("templates", __dir__)
+    RESCUES_TEMPLATE_PATHS = [File.expand_path("templates", __dir__)]
 
     def initialize(assigns)
-      paths = [RESCUES_TEMPLATE_PATH]
+      paths = RESCUES_TEMPLATE_PATHS.dup
       lookup_context = ActionView::LookupContext.new(paths)
       super(lookup_context, assigns, nil)
     end

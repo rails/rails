@@ -2,6 +2,7 @@
 
 class DrinkDesigner < ActiveRecord::Base
   has_one :chef, as: :employable
+  accepts_nested_attributes_for :chef
 end
 
 class DrinkDesignerWithPolymorphicDependentNullifyChef < ActiveRecord::Base

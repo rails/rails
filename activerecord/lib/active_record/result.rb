@@ -2,11 +2,13 @@
 
 module ActiveRecord
   ###
+  # = Active Record \Result
+  #
   # This class encapsulates a result returned from calling
   # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
   # on any database connection adapter. For example:
   #
-  #   result = ActiveRecord::Base.connection.exec_query('SELECT id, title, body FROM posts')
+  #   result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
   #   result # => #<ActiveRecord::Result:0xdeadbeef>
   #
   #   # Get the column names of the result:
@@ -34,7 +36,60 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows, :column_types
+    class IndexedRow
+      def initialize(column_indexes, row)
+        @column_indexes = column_indexes
+        @row = row
+      end
+
+      def size
+        @column_indexes.size
+      end
+      alias_method :length, :size
+
+      def each_key(&block)
+        @column_indexes.each_key(&block)
+      end
+
+      def keys
+        @column_indexes.keys
+      end
+
+      def ==(other)
+        if other.is_a?(Hash)
+          to_hash == other
+        else
+          super
+        end
+      end
+
+      def key?(column)
+        @column_indexes.key?(column)
+      end
+
+      def fetch(column)
+        if index = @column_indexes[column]
+          @row[index]
+        elsif block_given?
+          yield
+        else
+          raise KeyError, "key not found: #{column.inspect}"
+        end
+      end
+
+      def [](column)
+        if index = @column_indexes[column]
+          @row[index]
+        end
+      end
+
+      def to_h
+        @column_indexes.transform_values { |index| @row[index] }
+      end
+      alias_method :to_hash, :to_h
+    end
+
+    attr_reader :columns, :rows
 
     def self.empty(async: false) # :nodoc:
       if async
@@ -44,11 +99,15 @@ module ActiveRecord
       end
     end
 
-    def initialize(columns, rows, column_types = {})
-      @columns      = columns
+    def initialize(columns, rows, column_types = nil)
+      # We freeze the strings to prevent them getting duped when
+      # used as keys in ActiveRecord::Base's @attributes hash
+      @columns      = columns.each(&:-@).freeze
       @rows         = rows
       @hash_rows    = nil
-      @column_types = column_types
+      @column_types = column_types.freeze
+      @types_hash   = nil
+      @column_indexes = nil
     end
 
     # Returns true if this result set includes the column named +name+
@@ -62,7 +121,9 @@ module ActiveRecord
     end
 
     # Calls the given block once for each element in row collection, passing
-    # row as parameter.
+    # row as parameter. Each row is a Hash-like, read only object.
+    #
+    # To get real hashes, use +.to_a.each+.
     #
     # Returns an +Enumerator+ if no block is given.
     def each(&block)
@@ -94,6 +155,24 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
+    # Returns the +ActiveRecord::Type+ type of all columns.
+    # Note that not all database adapters return the result types,
+    # so the hash may be empty.
+    def column_types
+      if @column_types
+        @types_hash ||= begin
+          types = {}
+          @columns.each_with_index do |name, index|
+            type = @column_types[index] || Type.default_value
+            types[name] = types[index] = type
+          end
+          types.freeze
+        end
+      else
+        EMPTY_HASH
+      end
+    end
+
     def result # :nodoc:
       self
     end
@@ -102,14 +181,14 @@ module ActiveRecord
       self
     end
 
-    def cast_values(type_overrides = {}) # :nodoc:
+    def cast_values(type_overrides = nil) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
 
         type = if type_overrides.is_a?(Array)
           type_overrides.first
         else
-          column_type(columns.first, type_overrides)
+          column_type(columns.first, 0, type_overrides)
         end
 
         rows.map do |(value)|
@@ -119,7 +198,7 @@ module ActiveRecord
         types = if type_overrides.is_a?(Array)
           type_overrides
         else
-          columns.map { |name| column_type(name, type_overrides) }
+          columns.map.with_index { |name, i| column_type(name, i, type_overrides) }
         end
 
         rows.map do |values|
@@ -129,69 +208,66 @@ module ActiveRecord
     end
 
     def initialize_copy(other)
-      @columns      = columns.dup
-      @rows         = rows.dup
-      @column_types = column_types.dup
+      @rows = rows.dup
       @hash_rows    = nil
     end
 
     def freeze # :nodoc:
       hash_rows.freeze
+      indexed_rows
+      column_types
       super
     end
 
+    def column_indexes # :nodoc:
+      @column_indexes ||= begin
+        index = 0
+        hash = {}
+        length = columns.length
+        while index < length
+          hash[columns[index]] = index
+          index += 1
+        end
+        hash.freeze
+      end
+    end
+
+    def indexed_rows # :nodoc:
+      @indexed_rows ||= begin
+        columns = column_indexes
+        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+      end
+    end
+
     private
-      def column_type(name, type_overrides = {})
-        type_overrides.fetch(name) do
-          column_types.fetch(name, Type.default_value)
+      def column_type(name, index, type_overrides)
+        if type_overrides
+          type_overrides.fetch(name) do
+            column_type(name, index, nil)
+          end
+        elsif @column_types
+          @column_types[index] || Type.default_value
+        else
+          Type.default_value
         end
       end
 
       def hash_rows
-        @hash_rows ||=
-          begin
-            # We freeze the strings to prevent them getting duped when
-            # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map(&:-@)
-            length  = columns.length
-            template = nil
-
-            @rows.map { |row|
-              if template
-                # We use transform_values to build subsequent rows from the
-                # hash of the first row. This is faster because we avoid any
-                # reallocs and in Ruby 2.7+ avoid hashing entirely.
-                index = -1
-                template.transform_values do
-                  row[index += 1]
-                end
-              else
-                # In the past we used Hash[columns.zip(row)]
-                #  though elegant, the verbose way is much more efficient
-                #  both time and memory wise cause it avoids a big array allocation
-                #  this method is called a lot and needs to be micro optimised
-                hash = {}
-
-                index = 0
-                while index < length
-                  hash[columns[index]] = row[index]
-                  index += 1
-                end
-
-                # It's possible to select the same column twice, in which case
-                # we can't use a template
-                template = hash if hash.length == length
-
-                hash
-              end
-            }
-          end
+        # We use transform_values to rows.
+        # This is faster because we avoid any reallocs and avoid hashing entirely.
+        @hash_rows ||= @rows.map do |row|
+          column_indexes.transform_values { |index| row[index] }
+        end
       end
 
-      EMPTY = new([].freeze, [].freeze, {}.freeze).freeze
+      empty_array = [].freeze
+      EMPTY_HASH = {}.freeze
+      private_constant :EMPTY_HASH
+
+      EMPTY = new(empty_array, empty_array, EMPTY_HASH).freeze
       private_constant :EMPTY
 
-      EMPTY_ASYNC = FutureResult::Complete.new(EMPTY).freeze
+      EMPTY_ASYNC = FutureResult.wrap(EMPTY).freeze
       private_constant :EMPTY_ASYNC
   end
 end

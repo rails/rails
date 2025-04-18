@@ -7,7 +7,7 @@ module Arel
   module Nodes
     class SqlLiteralTest < Arel::Spec
       before do
-        @visitor = Visitors::ToSql.new Table.engine.connection
+        @visitor = Visitors::ToSql.new Table.engine.lease_connection
       end
 
       def compile(node)
@@ -68,6 +68,23 @@ module Arel
         it "serializes into YAML" do
           yaml_literal = SqlLiteral.new("foo").to_yaml
           assert_equal("foo", YAML.load(yaml_literal))
+        end
+      end
+
+      describe "addition" do
+        it "generates a Fragments node" do
+          sql1 = Arel.sql "SELECT *"
+          sql2 = Arel.sql "FROM users"
+          fragments = sql1 + sql2
+          _(fragments).must_be_kind_of Arel::Nodes::Fragments
+          assert_equal([sql1, sql2], fragments.values)
+        end
+
+        it "fails if joined with something that is not an Arel node" do
+          sql = Arel.sql "SELECT *"
+          assert_raises ArgumentError do
+            sql + "Not a node"
+          end
         end
       end
     end

@@ -11,17 +11,17 @@ module ActiveModel
   #
   #   user = User.first
   #   user.pets.select(:id).first.user_id
-  #   # => ActiveModel::MissingAttributeError: missing attribute: user_id
+  #   # => ActiveModel::MissingAttributeError: missing attribute 'user_id' for Pet
   class MissingAttributeError < NoMethodError
   end
 
-  # == Active \Model \Attribute \Methods
+  # = Active \Model \Attribute \Methods
   #
   # Provides a way to add prefixes and suffixes to your methods as
-  # well as handling the creation of <tt>ActiveRecord::Base</tt>-like
+  # well as handling the creation of ActiveRecord::Base - like
   # class methods such as +table_name+.
   #
-  # The requirements to implement <tt>ActiveModel::AttributeMethods</tt> are to:
+  # The requirements to implement +ActiveModel::AttributeMethods+ are to:
   #
   # * <tt>include ActiveModel::AttributeMethods</tt> in your class.
   # * Call each of its methods you want to add, such as +attribute_method_suffix+
@@ -49,25 +49,23 @@ module ActiveModel
   #     end
   #
   #     private
+  #       def attribute_contrived?(attr)
+  #         true
+  #       end
   #
-  #     def attribute_contrived?(attr)
-  #       true
-  #     end
+  #       def clear_attribute(attr)
+  #         send("#{attr}=", nil)
+  #       end
   #
-  #     def clear_attribute(attr)
-  #       send("#{attr}=", nil)
-  #     end
-  #
-  #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", 'Default Name')
-  #     end
+  #       def reset_attribute_to_default!(attr)
+  #         send("#{attr}=", 'Default Name')
+  #       end
   #   end
   module AttributeMethods
     extend ActiveSupport::Concern
 
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
-    FORWARD_PARAMETERS = "*args"
 
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
@@ -95,10 +93,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       #
       #   person = Person.new
@@ -131,10 +128,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -167,10 +163,9 @@ module ActiveModel
       #     define_attribute_methods :name
       #
       #     private
-      #
-      #     def reset_attribute_to_default!(attr)
-      #       send("#{attr}=", 'Default Name')
-      #     end
+      #       def reset_attribute_to_default!(attr)
+      #         send("#{attr}=", 'Default Name')
+      #       end
       #   end
       #
       #   person = Person.new
@@ -194,10 +189,9 @@ module ActiveModel
       #     alias_attribute :nickname, :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
@@ -207,36 +201,39 @@ module ActiveModel
       #   person.name_short?     # => true
       #   person.nickname_short? # => true
       def alias_attribute(new_name, old_name)
-        self.attribute_aliases = attribute_aliases.merge(new_name.to_s => old_name.to_s)
-        ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
-          attribute_method_patterns.each do |pattern|
-            method_name = pattern.method_name(new_name).to_s
-            target_name = pattern.method_name(old_name).to_s
-            parameters = pattern.parameters
+        old_name = old_name.to_s
+        new_name = new_name.to_s
+        self.attribute_aliases = attribute_aliases.merge(new_name => old_name)
+        aliases_by_attribute_name[old_name] << new_name
+        eagerly_generate_alias_attribute_methods(new_name, old_name)
+      end
 
-            mangled_name = target_name
-            unless NAME_COMPILABLE_REGEXP.match?(target_name)
-              mangled_name = "__temp__#{target_name.unpack1("h*")}"
-            end
-
-            code_generator.define_cached_method(method_name, as: mangled_name, namespace: :alias_attribute) do |batch|
-              body = if CALL_COMPILABLE_REGEXP.match?(target_name)
-                "self.#{target_name}(#{parameters || ''})"
-              else
-                call_args = [":'#{target_name}'"]
-                call_args << parameters if parameters
-                "send(#{call_args.join(", ")})"
-              end
-
-              modifier = pattern.parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
-              batch <<
-                "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
-                body <<
-                "end"
-            end
-          end
+      def eagerly_generate_alias_attribute_methods(new_name, old_name) # :nodoc:
+        ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
+          generate_alias_attribute_methods(code_generator, new_name, old_name)
         end
+      end
+
+      def generate_alias_attribute_methods(code_generator, new_name, old_name) # :nodoc:
+        ActiveSupport::CodeGenerator.batch(code_generator, __FILE__, __LINE__) do |owner|
+          attribute_method_patterns.each do |pattern|
+            alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
+          end
+          attribute_method_patterns_cache.clear
+        end
+      end
+
+      def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
+        method_name = pattern.method_name(new_name).to_s
+        target_name = pattern.method_name(old_name).to_s
+        parameters = pattern.parameters
+
+        mangled_name = build_mangled_name(target_name)
+
+        call_args = []
+        call_args << parameters if parameters
+
+        define_call(code_generator, method_name, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute, as: method_name)
       end
 
       # Is +new_name+ an alias?
@@ -250,7 +247,7 @@ module ActiveModel
       end
 
       # Declares the attributes that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass attribute names (as strings or symbols). Be sure to declare
       # +define_attribute_methods+ after you define any prefix, suffix, or affix
@@ -268,19 +265,23 @@ module ActiveModel
       #     define_attribute_methods :name, :age, :address
       #
       #     private
-      #
-      #     def clear_attribute(attr)
-      #       send("#{attr}=", nil)
-      #     end
+      #       def clear_attribute(attr)
+      #         send("#{attr}=", nil)
+      #       end
       #   end
       def define_attribute_methods(*attr_names)
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
-          attr_names.flatten.each { |attr_name| define_attribute_method(attr_name, _owner: owner) }
+          attr_names.flatten.each do |attr_name|
+            define_attribute_method(attr_name, _owner: owner)
+            aliases_by_attribute_name[attr_name.to_s].each do |aliased_name|
+              generate_alias_attribute_methods owner, aliased_name, attr_name
+            end
+          end
         end
       end
 
       # Declares an attribute that should be prefixed and suffixed by
-      # <tt>ActiveModel::AttributeMethods</tt>.
+      # +ActiveModel::AttributeMethods+.
       #
       # To use, pass an attribute name (as string or symbol). Be sure to declare
       # +define_attribute_method+ after you define any prefix, suffix or affix
@@ -298,36 +299,55 @@ module ActiveModel
       #     define_attribute_method :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
       #   person.name = 'Bob'
       #   person.name        # => "Bob"
       #   person.name_short? # => true
-      def define_attribute_method(attr_name, _owner: generated_attribute_methods)
+      def define_attribute_method(attr_name, _owner: generated_attribute_methods, as: attr_name)
         ActiveSupport::CodeGenerator.batch(_owner, __FILE__, __LINE__) do |owner|
           attribute_method_patterns.each do |pattern|
-            method_name = pattern.method_name(attr_name)
-
-            unless instance_method_already_implemented?(method_name)
-              generate_method = "define_method_#{pattern.proxy_target}"
-
-              if respond_to?(generate_method, true)
-                send(generate_method, attr_name.to_s, owner: owner)
-              else
-                define_proxy_call(owner, method_name, pattern.proxy_target, pattern.parameters, attr_name.to_s, namespace: :active_model_proxy)
-              end
-            end
+            define_attribute_method_pattern(pattern, attr_name, owner: owner, as: as)
           end
           attribute_method_patterns_cache.clear
         end
       end
 
-      # Removes all the previously dynamically defined methods from the class.
+      def define_attribute_method_pattern(pattern, attr_name, owner:, as:, override: false) # :nodoc:
+        canonical_method_name = pattern.method_name(attr_name)
+        public_method_name = pattern.method_name(as)
+
+        # If defining a regular attribute method, we don't override methods that are explicitly
+        # defined in parent classes.
+        if instance_method_already_implemented?(public_method_name)
+          # However, for `alias_attribute`, we always define the method.
+          # We check for override second because `instance_method_already_implemented?`
+          # also check for dangerous methods.
+          return unless override
+        end
+
+        generate_method = "define_method_#{pattern.proxy_target}"
+
+        if respond_to?(generate_method, true)
+          send(generate_method, attr_name.to_s, owner: owner, as: as)
+        else
+          define_proxy_call(
+            owner,
+            canonical_method_name,
+            pattern.proxy_target,
+            pattern.parameters,
+            attr_name.to_s,
+            namespace: :active_model_proxy,
+            as: public_method_name
+          )
+        end
+      end
+
+      # Removes all the previously dynamically defined methods from the class, including alias attribute methods.
       #
       #   class Person
       #     include ActiveModel::AttributeMethods
@@ -335,29 +355,44 @@ module ActiveModel
       #     attr_accessor :name
       #     attribute_method_suffix '_short?'
       #     define_attribute_method :name
+      #     alias_attribute :first_name, :name
       #
       #     private
-      #
-      #     def attribute_short?(attr)
-      #       send(attr).length < 5
-      #     end
+      #       def attribute_short?(attr)
+      #         send(attr).length < 5
+      #       end
       #   end
       #
       #   person = Person.new
       #   person.name = 'Bob'
+      #   person.first_name  # => "Bob"
       #   person.name_short? # => true
       #
       #   Person.undefine_attribute_methods
       #
       #   person.name_short? # => NoMethodError
+      #   person.first_name  # => NoMethodError
       def undefine_attribute_methods
-        generated_attribute_methods.module_eval do
+        @generated_attribute_methods&.module_eval do
           undef_method(*instance_methods)
         end
         attribute_method_patterns_cache.clear
       end
 
+      def aliases_by_attribute_name # :nodoc:
+        @aliases_by_attribute_name ||= Hash.new { |h, k| h[k] = [] }
+      end
+
       private
+        def inherited(base) # :nodoc:
+          super
+          base.class_eval do
+            @attribute_method_patterns_cache = nil
+            @aliases_by_attribute_name = nil
+            @generated_attribute_methods = nil
+          end
+        end
+
         def resolve_attribute_name(name)
           attribute_aliases.fetch(super, &:itself)
         end
@@ -367,7 +402,7 @@ module ActiveModel
         end
 
         def instance_method_already_implemented?(method_name)
-          generated_attribute_methods.method_defined?(method_name)
+          @generated_attribute_methods&.method_defined?(method_name)
         end
 
         # The methods +method_missing+ and +respond_to?+ of this module are
@@ -392,27 +427,42 @@ module ActiveModel
         # Define a method `name` in `mod` that dispatches to `send`
         # using the given `extra` args. This falls back on `send`
         # if the called name cannot be compiled.
-        def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:)
+        def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
+          mangled_name = build_mangled_name(name)
+
+          call_args.map!(&:inspect)
+          call_args << parameters if parameters
+
+          # We have to use a different namespace for every target method, because
+          # if someone defines an attribute that look like an attribute method we could clash, e.g.
+          #   attribute :title_was
+          #   attribute :title
+          namespace = :"#{namespace}_#{proxy_target}"
+
+          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace, as: as)
+        end
+
+        def build_mangled_name(name)
           mangled_name = name
+
           unless NAME_COMPILABLE_REGEXP.match?(name)
-            mangled_name = "__temp__#{name.unpack1("h*")}"
+            mangled_name = :"__temp__#{name.unpack1("h*")}"
           end
 
-          code_generator.define_cached_method(name, as: mangled_name, namespace: :"#{namespace}_#{proxy_target}") do |batch|
-            call_args.map!(&:inspect)
-            call_args << parameters if parameters
+          mangled_name
+        end
 
-            body = if CALL_COMPILABLE_REGEXP.match?(proxy_target)
-              "self.#{proxy_target}(#{call_args.join(", ")})"
+        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:, as:)
+          code_generator.define_cached_method(mangled_name, as: as, namespace: namespace) do |batch|
+            body = if CALL_COMPILABLE_REGEXP.match?(target_name)
+              "self.#{target_name}(#{call_args.join(", ")})"
             else
-              call_args.unshift(":'#{proxy_target}'")
+              call_args.unshift(":'#{target_name}'")
               "send(#{call_args.join(", ")})"
             end
 
-            modifier = parameters == FORWARD_PARAMETERS ? "ruby2_keywords " : ""
-
             batch <<
-              "#{modifier}def #{mangled_name}(#{parameters || ''})" <<
+              "def #{mangled_name}(#{parameters || ''})" <<
               body <<
               "end"
           end
@@ -426,8 +476,8 @@ module ActiveModel
           def initialize(prefix: "", suffix: "", parameters: nil)
             @prefix = prefix
             @suffix = suffix
-            @parameters = parameters.nil? ? FORWARD_PARAMETERS : parameters
-            @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
+            @parameters = parameters.nil? ? "..." : parameters
+            @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
             @proxy_target = "#{@prefix}attribute#{@suffix}"
             @method_name = "#{prefix}%s#{suffix}"
           end
@@ -454,24 +504,22 @@ module ActiveModel
     # It's also possible to instantiate related objects, so a <tt>Client</tt>
     # class belonging to the +clients+ table with a +master_id+ foreign key
     # can instantiate master through <tt>Client#master</tt>.
-    def method_missing(method, *args, &block)
+    def method_missing(method, ...)
       if respond_to_without_attributes?(method, true)
         super
       else
-        match = matched_attribute_method(method.to_s)
-        match ? attribute_missing(match, *args, &block) : super
+        match = matched_attribute_method(method.name)
+        match ? attribute_missing(match, ...) : super
       end
     end
-    ruby2_keywords(:method_missing)
 
     # +attribute_missing+ is like +method_missing+, but for attributes. When
     # +method_missing+ is called we check to see if there is a matching
     # attribute method. If so, we tell +attribute_missing+ to dispatch the
     # attribute. This method can be overloaded to customize the behavior.
-    def attribute_missing(match, *args, &block)
-      __send__(match.proxy_target, match.attr_name, *args, &block)
+    def attribute_missing(match, ...)
+      __send__(match.proxy_target, match.attr_name, ...)
     end
-    ruby2_keywords(:attribute_missing)
 
     # A +Person+ instance with a +name+ attribute can ask
     # <tt>person.respond_to?(:name)</tt>, <tt>person.respond_to?(:name=)</tt>,
@@ -502,7 +550,7 @@ module ActiveModel
       end
 
       def missing_attribute(attr_name, stack)
-        raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
+        raise ActiveModel::MissingAttributeError, "missing attribute '#{attr_name}' for #{self.class}", stack
       end
 
       def _read_attribute(attr)

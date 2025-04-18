@@ -28,16 +28,16 @@ module ActiveRecord
     def self.references(attributes)
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
-          result << Arel.sql(key)
-        elsif key.include?(".")
-          result << Arel.sql(key.split(".").first)
+          result << Arel.sql(key, retryable: true)
+        elsif (idx = key.rindex("."))
+          result << Arel.sql(key[0, idx], retryable: true)
         end
       end
     end
 
     # Define how a class is converted to Arel nodes when passed to +where+.
     # The handler can be any object that responds to +call+, and will be used
-    # for any value that +===+ the class given. For example:
+    # for any value that <tt>===</tt> the class given. For example:
     #
     #     MyCustomDateRange = Struct.new(:start, :end)
     #     handler = proc do |column, range|
@@ -72,12 +72,31 @@ module ActiveRecord
       table.associated_table(table_name, &block).arel_table[column_name]
     end
 
+    def with(table)
+      other = dup
+      other.table = table
+      other
+    end
+
     protected
+      attr_writer :table
+
       def expand_from_hash(attributes, &block)
         return ["1=0"] if attributes.empty?
 
         attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
+          if key.is_a?(Array) && key.size == 1
+            key = key.first
+            value = value.flatten
+          end
+
+          if key.is_a?(Array)
+            queries = Array(value).map do |ids_set|
+              raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
+              expand_from_hash(key.zip(ids_set).to_h)
+            end
+            grouping_queries(queries)
+          elsif value.is_a?(Hash) && !table.has_column?(key)
             table.associated_table(key, &block)
               .predicate_builder.expand_from_hash(value.stringify_keys)
           elsif table.associated_with?(key)
@@ -136,25 +155,31 @@ module ActiveRecord
           queries.first
         else
           queries.map! { |query| query.reduce(&:and) }
-          queries = queries.reduce { |result, query| Arel::Nodes::Or.new(result, query) }
+          queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
         end
       end
 
       def convert_dot_notation_to_hash(attributes)
-        dot_notation = attributes.select do |k, v|
-          k.include?(".") && !v.is_a?(Hash)
+        attributes.each_with_object({}) do |(key, value), converted|
+          if value.is_a?(Hash)
+            if (existing = converted[key])
+              existing.merge!(value)
+            else
+              converted[key] = value.dup
+            end
+          elsif (idx = key.rindex("."))
+            table_name, column_name = key[0, idx], key[idx + 1, key.length]
+
+            if (existing = converted[table_name])
+              existing[column_name] = value
+            else
+              converted[table_name] = { column_name => value }
+            end
+          else
+            converted[key] = value
+          end
         end
-
-        dot_notation.each_key do |key|
-          table_name, column_name = key.split(".")
-          value = attributes.delete(key)
-          attributes[table_name] ||= {}
-
-          attributes[table_name] = attributes[table_name].merge(column_name => value)
-        end
-
-        attributes
       end
 
       def handler_for(object)

@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "mutex_m"
 require "concurrent/map"
-require "set"
 require "active_support/core_ext/object/try"
 
 module ActiveSupport
@@ -18,26 +16,30 @@ module ActiveSupport
     end
 
     module FanoutIteration # :nodoc:
-      def iterate_guarding_exceptions(listeners)
-        exceptions = nil
+      private
+        def iterate_guarding_exceptions(collection)
+          exceptions = nil
 
-        listeners.each do |s|
-          yield s
-        rescue Exception => e
-          exceptions ||= []
-          exceptions << e
-        end
-
-        if exceptions
-          if exceptions.size == 1
-            raise exceptions.first
-          else
-            raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+          collection.each do |s|
+            yield s
+          rescue Exception => e
+            exceptions ||= []
+            exceptions << e
           end
-        end
 
-        listeners
-      end
+          if exceptions
+            exceptions = exceptions.flat_map do |exception|
+              exception.is_a?(InstrumentationSubscriberError) ? exception.exceptions : [exception]
+            end
+            if exceptions.size == 1
+              raise exceptions.first
+            else
+              raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+            end
+          end
+
+          collection
+        end
     end
 
     # This is a default queue implementation that ships with Notifications.
@@ -45,14 +47,13 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
-      include Mutex_m
-
       def initialize
-        @string_subscribers = Hash.new { |h, k| h[k] = [] }
+        @mutex = Mutex.new
+        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
-        @listeners_for = Concurrent::Map.new
+        @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
-        super
+        @silenceable_groups_for = Concurrent::Map.new
       end
 
       def inspect # :nodoc:
@@ -62,7 +63,7 @@ module ActiveSupport
 
       def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
-        synchronize do
+        @mutex.synchronize do
           case pattern
           when String
             @string_subscribers[pattern] << subscriber
@@ -78,7 +79,7 @@ module ActiveSupport
       end
 
       def unsubscribe(subscriber_or_name)
-        synchronize do
+        @mutex.synchronize do
           case subscriber_or_name
           when String
             @string_subscribers[subscriber_or_name].clear
@@ -99,11 +100,13 @@ module ActiveSupport
 
       def clear_cache(key = nil) # :nodoc:
         if key
-          @listeners_for.delete(key)
+          @all_listeners_for.delete(key)
           @groups_for.delete(key)
+          @silenceable_groups_for.delete(key)
         else
-          @listeners_for.clear
+          @all_listeners_for.clear
           @groups_for.clear
+          @silenceable_groups_for.clear
         end
       end
 
@@ -182,18 +185,36 @@ module ActiveSupport
       end
 
       def groups_for(name) # :nodoc:
-        @groups_for.compute_if_absent(name) do
-          listeners_for(name).group_by(&:group_class).transform_values do |s|
+        groups = @groups_for.compute_if_absent(name) do
+          all_listeners_for(name).reject(&:silenceable).group_by(&:group_class).transform_values do |s|
             s.map(&:delegate)
           end
         end
+
+        silenceable_groups = @silenceable_groups_for.compute_if_absent(name) do
+          all_listeners_for(name).select(&:silenceable).group_by(&:group_class).transform_values do |s|
+            s.map(&:delegate)
+          end
+        end
+
+        unless silenceable_groups.empty?
+          groups = groups.dup
+          silenceable_groups.each do |group_class, subscriptions|
+            active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
+            unless active_subscriptions.empty?
+              groups[group_class] = (groups[group_class] || []) + active_subscriptions
+            end
+          end
+        end
+
+        groups
       end
 
-      # A Handle is used to record the start and finish time of event
+      # A +Handle+ is used to record the start and finish time of event.
       #
-      # Both `#start` and `#finish` must each be called exactly once
+      # Both #start and #finish must each be called exactly once.
       #
-      # Where possible, it's best to the block form, +ActiveSupport::Notifications.instrument+
+      # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
       # +Handle+ is a low-level API intended for cases where the block form can't be used.
       #
       #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
@@ -204,6 +225,8 @@ module ActiveSupport
       #     handle.finish
       #   end
       class Handle
+        include FanoutIteration
+
         def initialize(notifier, name, id, payload) # :nodoc:
           @name = name
           @id = id
@@ -218,7 +241,7 @@ module ActiveSupport
           ensure_state! :initialized
           @state = :started
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.start(@name, @id, @payload)
           end
         end
@@ -231,7 +254,7 @@ module ActiveSupport
           ensure_state! :started
           @state = :finished
 
-          @groups.each do |group|
+          iterate_guarding_exceptions(@groups) do |group|
             group.finish(name, id, payload)
           end
         end
@@ -271,17 +294,21 @@ module ActiveSupport
         iterate_guarding_exceptions(listeners_for(event.name)) { |s| s.publish_event(event) }
       end
 
-      def listeners_for(name)
+      def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
-        @listeners_for[name] || synchronize do
+        @all_listeners_for[name] || @mutex.synchronize do
           # use synchronisation when accessing @subscribers
-          @listeners_for[name] ||=
+          @all_listeners_for[name] ||=
             @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
         end
       end
 
+      def listeners_for(name)
+        all_listeners_for(name).reject { |s| s.silenced?(name) }
+      end
+
       def listening?(name)
-        listeners_for(name).any?
+        all_listeners_for(name).any? { |s| !s.silenced?(name) }
       end
 
       # This is a sync queue, so there is no waiting.
@@ -346,11 +373,12 @@ module ActiveSupport
         end
 
         class Evented # :nodoc:
-          attr_reader :pattern, :delegate
+          attr_reader :pattern, :delegate, :silenceable
 
           def initialize(pattern, delegate)
             @pattern = Matcher.wrap(pattern)
             @delegate = delegate
+            @silenceable = delegate.respond_to?(:silenced?)
             @can_publish = delegate.respond_to?(:publish)
             @can_publish_event = delegate.respond_to?(:publish_event)
           end
@@ -371,6 +399,10 @@ module ActiveSupport
             else
               publish(event.name, event.time, event.end, event.transaction_id, event.payload)
             end
+          end
+
+          def silenced?(name)
+            @silenceable && @delegate.silenced?(name)
           end
 
           def subscribed_to?(name)

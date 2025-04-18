@@ -9,7 +9,7 @@ class PostgresqlSerialTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlSerial < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "postgresql_serials", force: true do |t|
       t.serial :seq
       t.integer :serials_id, default: -> { "nextval('postgresql_serials_id_seq')" }
@@ -51,7 +51,7 @@ class PostgresqlBigSerialTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlBigSerial < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table "postgresql_big_serials", force: true do |t|
       t.bigserial :seq
       t.bigint :serials_id, default: -> { "nextval('postgresql_big_serials_id_seq')" }
@@ -92,7 +92,7 @@ module SequenceNameDetectionTestCases
     include SchemaDumpingHelper
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :foo_bar, force: true do |t|
         t.serial :baz_id
       end
@@ -127,7 +127,7 @@ module SequenceNameDetectionTestCases
 
     def setup
       @table_name = "long_table_name_to_test_sequence_name_detection_for_serial_cols"
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table @table_name, force: true, _uses_legacy_table_name: true do |t|
         t.serial :seq
         t.bigserial :bigseq

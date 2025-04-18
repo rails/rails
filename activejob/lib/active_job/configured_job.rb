@@ -12,7 +12,16 @@ module ActiveJob
     end
 
     def perform_later(...)
-      @job_class.new(...).enqueue @options
+      job = @job_class.new(...)
+      enqueue_result = job.enqueue(@options)
+
+      yield job if block_given?
+
+      enqueue_result
+    end
+
+    def perform_all_later(multi_args)
+      @job_class.perform_all_later(multi_args, options: @options)
     end
   end
 end

@@ -23,6 +23,15 @@ module ActiveRecord
         assert_equal expected_time, topic.bonus_time
         assert_instance_of ::Time, topic.bonus_time
       end
+
+      test "serialize_cast_value is equivalent to serialize after cast" do
+        type = Type::Time.new(precision: 1)
+        value = type.cast("1999-12-31T12:34:56.789-10:00")
+
+        assert_equal type.serialize(value), type.serialize_cast_value(value)
+        assert_instance_of type.serialize(value).class, type.serialize_cast_value(value)
+        assert_instance_of type.serialize(nil).class, type.serialize_cast_value(nil)
+      end
     end
   end
 end

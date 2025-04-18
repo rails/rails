@@ -5,7 +5,7 @@
 <%= form_with(url: main_app.rails_conductor_inbound_email_sources_path, local: true) do |form| %>
   <div>
     <%= form.label :source, "Source" %><br>
-    <%= form.text_area :source, size: "80x60" %>
+    <%= form.textarea :source, size: "80x60" %>
   </div>
 
   <%= form.submit "Deliver inbound email" %>

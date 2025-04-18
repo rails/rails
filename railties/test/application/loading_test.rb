@@ -89,7 +89,9 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    User
+    assert_nothing_raised do
+      User
+    end
   end
 
   test "load config/environments/environment before Bootstrap initializers" do
@@ -122,8 +124,8 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get '/load',   to: lambda { |env| [200, {}, Post.all] }
-        get '/unload', to: lambda { |env| [200, {}, []] }
+        get '/load',   to: lambda { |env| Post.all.to_a; [200, {}, [ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq.to_json]] }
+        get '/unload', to: lambda { |env| [200, {}, [ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq.to_json]] }
       end
     RUBY
 
@@ -134,15 +136,16 @@ class LoadingTest < ActiveSupport::TestCase
     setup_ar!
 
     initial = [
-      ActiveStorage::Record, ActiveStorage::Blob, ActiveStorage::Attachment,
-      ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, ApplicationRecord
+      ActiveStorage::Record, ActiveStorage::Blob, ActiveStorage::Attachment, ApplicationRecord
     ].collect(&:to_s).sort
 
     assert_equal initial, ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
     get "/load"
-    assert_equal [Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort - initial
+    assert_equal 200, last_response.status
+    assert_equal ["Post"], JSON.parse(last_response.body) - initial
     get "/unload"
-    assert_equal ["ActiveRecord::InternalMetadata", "ActiveRecord::SchemaMigration"], ActiveRecord::Base.descendants.collect(&:to_s).sort.uniq
+    assert_equal 200, last_response.status
+    assert_equal [], JSON.parse(last_response.body) - initial
   end
 
   test "initialize can't be called twice" do
@@ -291,6 +294,46 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "7", last_response.body
   end
 
+
+  test "routes reloading triggers after_routes_loaded" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 1
+      $counter  *= 2
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| User.name; [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        $counter *= 3
+      end
+    RUBY
+
+    app_file "app/models/user.rb", <<-MODEL
+      class User
+        $counter += 1
+      end
+    MODEL
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "7", last_response.body
+
+    app_file "db/schema.rb", ""
+
+    get "/c"
+    assert_equal "43", last_response.body
+  end
+
   test "routes are only loaded once on boot" do
     add_to_config <<-RUBY
       config.enable_reloading = true
@@ -315,9 +358,40 @@ class LoadingTest < ActiveSupport::TestCase
     assert_equal "1", last_response.body
   end
 
+  test "after_routes_loaded runs once on boot" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $counter ||= 0
+      $counter += 1
+      Rails.application.routes.draw do
+        get '/c', to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$counter.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        $counter *= 3
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "3", last_response.body
+  end
+
   test "columns migrations also trigger reloading" do
     add_to_config <<-RUBY
       config.enable_reloading = true
+      config.active_record.timestamped_migrations = false
     RUBY
 
     app_file "config/routes.rb", <<-RUBY
@@ -422,10 +496,10 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.lease_connection.query_cache_enabled
               self.response_body = ["Query cache is enabled."]
             else
-              self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
+              self.response_body = ["Expected ActiveRecord::Base.lease_connection.query_cache_enabled to be true"]
             end
           end
         end
@@ -445,7 +519,7 @@ class LoadingTest < ActiveSupport::TestCase
     require "rack/test"
     extend Rack::Test::Methods
 
-    get "/omg/show"
+    get("/omg/show", {}, "HTTPS" => "on")
     assert_equal "Query cache is enabled.", last_response.body
   end
 
@@ -455,10 +529,10 @@ class LoadingTest < ActiveSupport::TestCase
         class OmgController < ActionController::Metal
           ActiveSupport.run_load_hooks(:action_controller, self)
           def show
-            if ActiveRecord::Base.connection.query_cache_enabled
+            if ActiveRecord::Base.lease_connection.query_cache_enabled
               self.response_body = ["Query cache is enabled."]
             else
-              self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
+              self.response_body = ["Expected ActiveRecord::Base.lease_connection.query_cache_enabled to be true"]
             end
           end
         end
@@ -484,7 +558,7 @@ class LoadingTest < ActiveSupport::TestCase
 
   private
     def setup_ar!
-      ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+      ActiveRecord::Base.establish_connection
       ActiveRecord::Migration.verbose = false
       ActiveRecord::Schema.define(version: 1) do
         create_table :posts do |t|

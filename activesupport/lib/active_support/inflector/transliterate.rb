@@ -62,9 +62,11 @@ module ActiveSupport
     # Transliteration is restricted to UTF-8, US-ASCII, and GB18030 strings.
     # Other encodings will raise an ArgumentError.
     def transliterate(string, replacement = "?", locale: nil)
-      string = string.dup if string.frozen?
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
       raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
+
+      return string.dup if string.ascii_only?
+      string = string.dup if string.frozen?
 
       input_encoding = string.encoding
 
@@ -126,18 +128,16 @@ module ActiveSupport
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
 
       unless separator.nil? || separator.empty?
-        if separator == "-"
-          re_duplicate_separator        = /-{2,}/
-          re_leading_trailing_separator = /^-|-$/i
+        # No more than one of the separator in a row.
+        if separator.length == 1
+          parameterized_string.squeeze!(separator)
         else
           re_sep = Regexp.escape(separator)
-          re_duplicate_separator        = /#{re_sep}{2,}/
-          re_leading_trailing_separator = /^#{re_sep}|#{re_sep}$/i
+          parameterized_string.gsub!(/#{re_sep}{2,}/, separator)
         end
-        # No more than one of the separator in a row.
-        parameterized_string.gsub!(re_duplicate_separator, separator)
         # Remove leading/trailing separator.
-        parameterized_string.gsub!(re_leading_trailing_separator, "")
+        parameterized_string.delete_prefix!(separator)
+        parameterized_string.delete_suffix!(separator)
       end
 
       parameterized_string.downcase! unless preserve_case

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
+require "nokogiri"
+
 module ActionDispatch
   class RequestEncoder # :nodoc:
     class IdentityEncoder
@@ -50,6 +54,7 @@ module ActionDispatch
       @encoders[mime_name] = new(mime_name, param_encoder, response_parser)
     end
 
-    register_encoder :json, response_parser: -> body { JSON.parse(body) }
+    register_encoder :html, response_parser: -> body { Rails::Dom::Testing.html_document.parse(body) }
+    register_encoder :json, response_parser: -> body { JSON.parse(body, object_class: ActiveSupport::HashWithIndifferentAccess) }
   end
 end

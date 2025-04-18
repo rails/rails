@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/pirate"
+require "models/developer"
 require "models/ship"
 require "models/ship_part"
 require "models/bird"
@@ -13,6 +14,7 @@ require "models/owner"
 require "models/pet"
 require "models/entry"
 require "models/message"
+require "models/cpk"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -231,6 +233,17 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
       )
     end
   end
+
+  def test_updating_models_with_cpk_provided_as_strings
+    book = Cpk::Book.create!(id: [1, 2], shop_id: 3)
+    book.chapters.create!(id: [1, 3], title: "Title")
+
+    assert_queries_count(4) do
+      book.update!(chapters_attributes: { id: ["1", "3"], title: "New title" })
+    end
+    assert_equal 1, book.reload.chapters.count
+    assert_equal "New title", book.chapters.first.title
+  end
 end
 
 class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
@@ -361,6 +374,15 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_equal "Mister Pablo", @pirate.ship.name
   end
 
+  def test_should_defer_updating_nested_associations_until_after_base_attributes_are_set
+    ship = @pirate.ship
+
+    ship_part = ShipPart.new
+    ship_part.attributes = { ship_attributes: { name: "Prometheus" }, ship_id: ship.id }
+
+    assert_equal "Prometheus", ship_part.ship.name
+  end
+
   def test_should_not_destroy_the_associated_model_until_the_parent_is_saved
     @pirate.attributes = { ship_attributes: { id: @ship.id, _destroy: "1" } }
 
@@ -379,6 +401,7 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
 
   def test_should_accept_update_only_option
     @pirate.update(update_only_ship_attributes: { id: @pirate.ship.id, name: "Mayflower" })
+    assert_equal "Mayflower", @pirate.reload.ship.name
   end
 
   def test_should_create_new_model_when_nothing_is_there_and_update_only_is_true
@@ -420,6 +443,13 @@ class TestNestedAttributesOnAHasOneAssociation < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Ship.find(@ship.id) }
 
     Pirate.accepts_nested_attributes_for :update_only_ship, update_only: true, allow_destroy: false
+  end
+
+  def test_should_raise_an_argument_error_if_something_other_than_a_hash_is_passed_in
+    exception = assert_raise ArgumentError do
+      @pirate.update(ship_attributes: "foo")
+    end
+    assert_equal "Hash expected for `ship` attributes, got String", exception.message
   end
 end
 
@@ -597,6 +627,13 @@ class TestNestedAttributesOnABelongsToAssociation < ActiveRecord::TestCase
 
     Ship.accepts_nested_attributes_for :update_only_pirate, update_only: true, allow_destroy: false
   end
+
+  def test_should_raise_an_argument_error_if_something_other_than_a_hash_is_passed_in
+    exception = assert_raise ArgumentError do
+      @ship.update(pirate_attributes: "foo")
+    end
+    assert_equal "Hash expected for `pirate` attributes, got String", exception.message
+  end
 end
 
 module NestedAttributesOnACollectionAssociationTests
@@ -767,7 +804,7 @@ module NestedAttributesOnACollectionAssociationTests
     exception = assert_raise ArgumentError do
       @pirate.public_send(association_setter, "foo")
     end
-    assert_equal %{Hash or Array expected for attribute `#{@association_name}`, got String ("foo")}, exception.message
+    assert_equal %{Hash or Array expected for `#{@association_name}` attributes, got String}, exception.message
   end
 
   def test_should_work_with_update_as_well
@@ -850,6 +887,21 @@ module NestedAttributesOnACollectionAssociationTests
       assert interest.save
       assert_not human.update(interests_attributes: { id: interest.id, zine_id: "foo" })
     end
+  end
+
+  def test_assigning_nested_attributes_target
+    params = @alternate_params[association_getter].values
+    @pirate.public_send(association_setter, params)
+    @pirate.save
+    assert_equal [@child_1, @child_2], @pirate.association(@association_name).nested_attributes_target
+  end
+
+  def test_assigning_nested_attributes_target_with_nil_placeholder_for_rejected_item
+    params = @alternate_params[association_getter].values
+    params.insert(1, {})
+    @pirate.public_send(association_setter, params)
+    @pirate.save
+    assert_equal [@child_1, nil, @child_2], @pirate.association(@association_name).nested_attributes_target
   end
 
   private
@@ -1095,7 +1147,7 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     part = ship.parts.build(name: "Stern")
     ship.treasures.build(looter: part)
 
-    assert_queries 3 do
+    assert_queries_count(5) do
       ship.save!
     end
   end
@@ -1108,13 +1160,65 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
   end
 end
 
-class TestNestedAttributesWithExtend < ActiveRecord::TestCase
-  setup do
-    Pirate.accepts_nested_attributes_for :treasures
+class TestIndexErrorsWithNestedAttributesOnlyMode < ActiveRecord::TestCase
+  def setup
+    tuning_peg_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "tuning_pegs"
+      def self.name; "TuningPeg"; end
+
+      validates_numericality_of :pitch
+    end
+
+    @guitar_class = Class.new(ActiveRecord::Base) do
+      has_many :tuning_pegs, index_errors: :nested_attributes_order, anonymous_class: tuning_peg_class
+      accepts_nested_attributes_for :tuning_pegs, reject_if: lambda { |attrs| attrs[:pitch]&.odd? }
+
+      def self.name; "Guitar"; end
+    end
   end
 
+  test "index in nested_attributes_order order" do
+    guitar = @guitar_class.create!
+    guitar.tuning_pegs.create!(pitch: 1)
+    peg2 = guitar.tuning_pegs.create!(pitch: 2)
+
+    assert_predicate guitar, :valid?
+
+    guitar.update(tuning_pegs_attributes: [{ id: peg2.id, pitch: nil }])
+
+    assert_not_predicate guitar, :valid?
+    assert_equal [:"tuning_pegs[0].pitch"], guitar.errors.messages.keys
+  end
+
+  test "index unaffected by reject_if" do
+    guitar = @guitar_class.create!
+
+    guitar.update(
+      tuning_pegs_attributes: [
+        { pitch: 1 },
+        { pitch: nil },
+      ]
+    )
+
+    assert_not_predicate guitar, :valid?
+    assert_equal [:"tuning_pegs[1].pitch"], guitar.errors.messages.keys
+  end
+end
+
+class TestNestedAttributesWithExtend < ActiveRecord::TestCase
   def test_extend_affects_nested_attributes
-    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    super_pirate = Class.new(ActiveRecord::Base) do
+      self.table_name = "pirates"
+
+      has_many :treasures, as: :looter, extend: Pirate::PostTreasuresExtension
+      self.accepts_nested_attributes_for :treasures
+
+      def self.name
+        "SuperPirate"
+      end
+    end
+
+    pirate = super_pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
     pirate.treasures_attributes = [{ id: nil }]
     assert_equal "from extension", pirate.treasures[0].name
   end

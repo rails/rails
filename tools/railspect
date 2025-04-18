@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "bundler/setup"
+require_relative "rail_inspector/lib/rail_inspector/cli"
+
+RailInspector::Cli.start

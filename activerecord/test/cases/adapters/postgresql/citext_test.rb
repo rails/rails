@@ -10,7 +10,7 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
 
     enable_extension!("citext", @connection)
 
@@ -69,6 +69,12 @@ class PostgresqlCitextTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "insert into citexts (cival) values('Cased Text')"
     x = Citext.where(cival: "cased text").first
     assert_equal "Cased Text", x.cival
+  end
+
+  def test_case_insensitiveness
+    attr = Citext.arel_table[:cival]
+    comparison = @connection.case_insensitive_comparison(attr, nil)
+    assert_no_match(/lower/i, comparison.to_sql)
   end
 
   def test_schema_dump_with_shorthand

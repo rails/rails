@@ -1,0 +1,8 @@
+Description:
+    Generates an `ApplicationRecord` base class for other models to inherit from.
+
+Example:
+    `bin/rails generate application_record`
+
+    This generates the base class. A test is not generated because no
+    behaviour is included in `ApplicationRecord` by default.

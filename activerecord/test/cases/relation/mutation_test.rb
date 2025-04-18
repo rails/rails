@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select, :with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -116,8 +116,8 @@ module ActiveRecord
 
     test "none!" do
       assert relation.none!.equal?(relation)
-      assert_equal [NullRelation], relation.extending_values
-      assert relation.is_a?(NullRelation)
+      assert_predicate relation, :none?
+      assert_predicate relation, :null_relation?
     end
 
     test "distinct!" do
@@ -133,6 +133,13 @@ module ActiveRecord
     test "skip_preloading!" do
       relation.skip_preloading!
       assert relation.skip_preloading_value
+    end
+
+    test "#regroup!" do
+      @relation = relation.group("foo")
+
+      assert relation.regroup!("bar").equal?(relation)
+      assert_equal ["bar"], relation.group_values
     end
 
     private

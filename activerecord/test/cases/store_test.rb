@@ -31,6 +31,20 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "37signals.com", @john.homepage
   end
 
+  test "reading store attributes with indifferent access" do
+    @john.preferences = { "remember_login" => "yes" }
+    assert_equal "yes", @john.remember_login
+
+    @john.preferences = { remember_login: "no" }
+    assert_equal "no", @john.remember_login
+  end
+
+  test "writing store attributes does not update unchanged value" do
+    admin_user = Admin::User.new(homepage: nil)
+    admin_user.homepage = nil
+    assert_equal({}, admin_user.settings)
+  end
+
   test "reading store attributes through accessors with prefix" do
     assert_equal "Quinn", @john.parent_name
     assert_nil @john.parent_birthday
@@ -83,7 +97,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store will mark accessor as changed" do
     @john.color = "red"
-    assert @john.color_changed?
+    assert_predicate @john, :color_changed?
   end
 
   test "new record and no accessors changes" do
@@ -93,15 +107,23 @@ class StoreTest < ActiveRecord::TestCase
     assert_nil user.color_change
 
     user.color = "red"
-    assert user.color_changed?
+    assert_predicate user, :color_changed?
     assert_nil user.color_was
     assert_equal "red", user.color_change[1]
   end
 
   test "updating the store won't mark accessor as changed if the whole store was updated" do
     @john.settings = { color: @john.color, some: "thing" }
-    assert @john.settings_changed?
+    assert_predicate @john, :settings_changed?
     assert_not @john.color_changed?
+  end
+
+  test "updating the store and changing it back won't mark accessor as changed" do
+    @john.color = "red"
+    assert_equal "black", @john.color_was
+    @john.color = "black"
+    assert_not_predicate @john, :settings_changed?
+    assert_not_predicate @john, :color_changed?
   end
 
   test "updating the store populates the accessor changed array correctly" do
@@ -119,34 +141,51 @@ class StoreTest < ActiveRecord::TestCase
   test "nullifying the store mark accessor as changed" do
     color = @john.color
     @john.settings = nil
-    assert @john.color_changed?
+    assert_predicate @john, :color_changed?
     assert_equal color, @john.color_was
     assert_equal [color, nil], @john.color_change
   end
 
   test "dirty methods for suffixed accessors" do
     @john.configs[:two_factor_auth] = true
-    assert @john.two_factor_auth_configs_changed?
+    assert_predicate @john, :two_factor_auth_configs_changed?
     assert_nil @john.two_factor_auth_configs_was
     assert_equal [nil, true], @john.two_factor_auth_configs_change
   end
 
   test "dirty methods for prefixed accessors" do
     @john.spouse[:name] = "Lena"
-    assert @john.partner_name_changed?
+    assert_predicate @john, :partner_name_changed?
     assert_equal "Dallas", @john.partner_name_was
     assert_equal ["Dallas", "Lena"], @john.partner_name_change
   end
 
   test "saved changes tracking for accessors" do
     @john.spouse[:name] = "Lena"
-    assert @john.partner_name_changed?
+    assert_predicate @john, :partner_name_changed?
 
     @john.save!
     assert_not @john.partner_name_change
-    assert @john.saved_change_to_partner_name?
+    assert_predicate @john, :saved_change_to_partner_name?
     assert_equal ["Dallas", "Lena"], @john.saved_change_to_partner_name
     assert_equal "Dallas", @john.partner_name_before_last_save
+  end
+
+  test "saved changes tracking for accessors with json column" do
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
+      skip "MariaDB doesn't support JSON store_accessor"
+    end
+    @john.enable_friend_requests = true
+    assert_predicate @john, :enable_friend_requests_changed?
+
+    @john.save!
+    assert_not @john.enable_friend_requests_change
+    assert_predicate @john, :saved_change_to_enable_friend_requests?
+    assert_equal [nil, true], @john.saved_change_to_enable_friend_requests
+    # Make a second change to test key_before_last_save
+    @john.enable_friend_requests = false
+    @john.save
+    assert_equal true, @john.enable_friend_requests_before_last_save
   end
 
   test "object initialization with not nullable column" do
@@ -178,6 +217,23 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "low", @john.json_data["height"]
     assert_equal "heavy", @john.json_data[:weight]
     assert_equal "heavy", @john.json_data["weight"]
+  end
+
+  test "serialize stored nested attributes" do
+    user = Admin::User.find_by_name("Jamis")
+    user.update(settings: { "color" => { "jenny" => "blue" }, homepage: "rails" })
+
+    assert_equal true, user.settings.instance_of?(ActiveSupport::HashWithIndifferentAccess)
+    assert_equal "blue", user.settings[:color][:jenny]
+    assert_equal "blue", user.color[:jenny]
+  end
+
+  test "store takes precedence when updating store and accessor" do
+    user = Admin::User.find_by_name("Jamis")
+    user.update(settings: { homepage: "rails" }, homepage: "not rails")
+
+    assert_equal "rails", user.settings[:homepage]
+    assert_equal "rails", user.homepage
   end
 
   def test_convert_store_attributes_from_Hash_to_HashWithIndifferentAccess_saving_the_data_and_access_attributes_indifferently
@@ -318,5 +374,19 @@ class StoreTest < ActiveRecord::TestCase
 
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
+  end
+
+  test "store_accessor raises an exception if the column is not either serializable or a structured type" do
+    user = Class.new(Admin::User) do
+      store_accessor :name, :color
+    end.new
+
+    assert_raises ActiveRecord::ConfigurationError do
+      user.color
+    end
+
+    assert_raises ActiveRecord::ConfigurationError do
+      user.color = "blue"
+    end
   end
 end

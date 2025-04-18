@@ -49,13 +49,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "to_s returns the string representation of the parameters hash" do
-    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
+    assert_equal({ "person" => { "age" => "32", "name" => { "first" => "David", "last" => "Heinemeier Hansson" },
+      "addresses" => [{ "city" => "Chicago", "state" => "Illinois" }] } }.inspect, @params.to_s)
   end
 
   test "each carries permitted status" do
     @params.permit!
-    @params.each { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each carries unpermitted status" do
@@ -77,7 +77,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair carries permitted status" do
     @params.permit!
-    @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
+    @params.each_pair { |key, value| assert_predicate(value, :permitted?) if key == "person" }
   end
 
   test "each_pair carries unpermitted status" do
@@ -147,6 +147,25 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   test "except retains unpermitted status" do
     assert_not_predicate @params.except(:person), :permitted?
     assert_not_predicate @params[:person].except(:name), :permitted?
+  end
+
+  test "without retains permitted status" do
+    @params.permit!
+    assert_predicate @params.without(:person), :permitted?
+    assert_predicate @params[:person].without(:name), :permitted?
+  end
+
+  test "without retains unpermitted status" do
+    assert_not_predicate @params.without(:person), :permitted?
+    assert_not_predicate @params[:person].without(:name), :permitted?
+  end
+
+  test "exclude? returns true if the given key is not present in the params" do
+    assert @params.exclude?(:address)
+  end
+
+  test "exclude? returns false if the given key is present in the params" do
+    assert_not @params.exclude?(:person)
   end
 
   test "fetch retains permitted status" do
@@ -368,10 +387,19 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "inspect shows both class name, parameters and permitted flag" do
+    hash = {
+      "person" => {
+        "age" => "32",
+        "name" => {
+          "first" => "David",
+          "last" => "Heinemeier Hansson"
+        },
+        "addresses" => [{ "city" => "Chicago", "state" => "Illinois" }]
+      },
+    }
+
     assert_equal(
-      '#<ActionController::Parameters {"person"=>{"age"=>"32", '\
-        '"name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
-        '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}} permitted: false>',
+      "#<ActionController::Parameters #{hash} permitted: false>",
       @params.inspect
     )
   end
@@ -401,5 +429,18 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
     @params.dig(:person, :addresses)[0] = { city: "Boston", state: "Massachusetts" }
     assert_equal "Boston", @params.dig(:person, :addresses, 0, :city)
+  end
+
+  test "#extract_value splits param by delimiter" do
+    params = ActionController::Parameters.new(
+      id: "1_123",
+      tags: "ruby,rails,web",
+      blank_tags: ",ruby,,rails,"
+    )
+
+    assert_equal(["1", "123"], params.extract_value(:id))
+    assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
+    assert_equal(["", "ruby", "", "rails", ""], params.extract_value(:blank_tags, delimiter: ","))
+    assert_nil(params.extract_value(:non_existent_key))
   end
 end

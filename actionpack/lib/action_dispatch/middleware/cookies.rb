@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
 require "active_support/message_verifier"
@@ -92,94 +94,104 @@ module ActionDispatch
     include RequestCookieMethods
   end
 
-  # Read and write data to cookies through ActionController::Base#cookies.
+  # Read and write data to cookies through ActionController::Cookies#cookies.
   #
-  # When reading cookie data, the data is read from the HTTP request header, Cookie.
-  # When writing cookie data, the data is sent out in the HTTP response header, Set-Cookie.
+  # When reading cookie data, the data is read from the HTTP request header,
+  # Cookie. When writing cookie data, the data is sent out in the HTTP response
+  # header, `Set-Cookie`.
   #
   # Examples of writing:
   #
-  #   # Sets a simple session cookie.
-  #   # This cookie will be deleted when the user's browser is closed.
-  #   cookies[:user_name] = "david"
+  #     # Sets a simple session cookie.
+  #     # This cookie will be deleted when the user's browser is closed.
+  #     cookies[:user_name] = "david"
   #
-  #   # Cookie values are String-based. Other data types need to be serialized.
-  #   cookies[:lat_lon] = JSON.generate([47.68, -122.37])
+  #     # Cookie values are String-based. Other data types need to be serialized.
+  #     cookies[:lat_lon] = JSON.generate([47.68, -122.37])
   #
-  #   # Sets a cookie that expires in 1 hour.
-  #   cookies[:login] = { value: "XJ-122", expires: 1.hour }
+  #     # Sets a cookie that expires in 1 hour.
+  #     cookies[:login] = { value: "XJ-122", expires: 1.hour }
   #
-  #   # Sets a cookie that expires at a specific time.
-  #   cookies[:login] = { value: "XJ-122", expires: Time.utc(2020, 10, 15, 5) }
+  #     # Sets a cookie that expires at a specific time.
+  #     cookies[:login] = { value: "XJ-122", expires: Time.utc(2020, 10, 15, 5) }
   #
-  #   # Sets a signed cookie, which prevents users from tampering with its value.
-  #   # It can be read using the signed method `cookies.signed[:name]`
-  #   cookies.signed[:user_id] = current_user.id
+  #     # Sets a signed cookie, which prevents users from tampering with its value.
+  #     cookies.signed[:user_id] = current_user.id
+  #     # It can be read using the signed method.
+  #     cookies.signed[:user_id] # => 123
   #
-  #   # Sets an encrypted cookie value before sending it to the client which
-  #   # prevent users from reading and tampering with its value.
-  #   # It can be read using the encrypted method `cookies.encrypted[:name]`
-  #   cookies.encrypted[:discount] = 45
+  #     # Sets an encrypted cookie value before sending it to the client which
+  #     # prevent users from reading and tampering with its value.
+  #     cookies.encrypted[:discount] = 45
+  #     # It can be read using the encrypted method.
+  #     cookies.encrypted[:discount] # => 45
   #
-  #   # Sets a "permanent" cookie (which expires in 20 years from now).
-  #   cookies.permanent[:login] = "XJ-122"
+  #     # Sets a "permanent" cookie (which expires in 20 years from now).
+  #     cookies.permanent[:login] = "XJ-122"
   #
-  #   # You can also chain these methods:
-  #   cookies.signed.permanent[:login] = "XJ-122"
+  #     # You can also chain these methods:
+  #     cookies.signed.permanent[:login] = "XJ-122"
   #
   # Examples of reading:
   #
-  #   cookies[:user_name]           # => "david"
-  #   cookies.size                  # => 2
-  #   JSON.parse(cookies[:lat_lon]) # => [47.68, -122.37]
-  #   cookies.signed[:login]        # => "XJ-122"
-  #   cookies.encrypted[:discount]  # => 45
+  #     cookies[:user_name]           # => "david"
+  #     cookies.size                  # => 2
+  #     JSON.parse(cookies[:lat_lon]) # => [47.68, -122.37]
+  #     cookies.signed[:login]        # => "XJ-122"
+  #     cookies.encrypted[:discount]  # => 45
   #
   # Example for deleting:
   #
-  #   cookies.delete :user_name
+  #     cookies.delete :user_name
   #
-  # Please note that if you specify a +:domain+ when setting a cookie, you must also specify the domain when deleting the cookie:
+  # Please note that if you specify a `:domain` when setting a cookie, you must
+  # also specify the domain when deleting the cookie:
   #
-  #  cookies[:name] = {
-  #    value: 'a yummy cookie',
-  #    expires: 1.year,
-  #    domain: 'domain.com'
-  #  }
+  #     cookies[:name] = {
+  #       value: 'a yummy cookie',
+  #       expires: 1.year,
+  #       domain: 'domain.com'
+  #     }
   #
-  #  cookies.delete(:name, domain: 'domain.com')
+  #     cookies.delete(:name, domain: 'domain.com')
   #
   # The option symbols for setting cookies are:
   #
-  # * <tt>:value</tt> - The cookie's value.
-  # * <tt>:path</tt> - The path for which this cookie applies. Defaults to the root
-  #   of the application.
-  # * <tt>:domain</tt> - The domain for which this cookie applies so you can
-  #   restrict to the domain level. If you use a schema like www.example.com
-  #   and want to share session with user.example.com set <tt>:domain</tt>
-  #   to <tt>:all</tt>. To support multiple domains, provide an array, and
-  #   the first domain matching <tt>request.host</tt> will be used. Make
-  #   sure to specify the <tt>:domain</tt> option with <tt>:all</tt> or
-  #   <tt>Array</tt> again when deleting cookies.
+  # *   `:value` - The cookie's value.
+  # *   `:path` - The path for which this cookie applies. Defaults to the root of
+  #     the application.
+  # *   `:domain` - The domain for which this cookie applies so you can restrict
+  #     to the domain level. If you use a schema like www.example.com and want to
+  #     share session with user.example.com set `:domain` to `:all`. To support
+  #     multiple domains, provide an array, and the first domain matching
+  #     `request.host` will be used. Make sure to specify the `:domain` option
+  #     with `:all` or `Array` again when deleting cookies. For more flexibility
+  #     you can set the domain on a per-request basis by specifying `:domain` with
+  #     a proc.
   #
-  #     domain: nil  # Does not set cookie domain. (default)
-  #     domain: :all # Allow the cookie for the top most level
-  #                  # domain and subdomains.
-  #     domain: %w(.example.com .example.org) # Allow the cookie
-  #                                           # for concrete domain names.
+  #         domain: nil  # Does not set cookie domain. (default)
+  #         domain: :all # Allow the cookie for the top most level
+  #                      # domain and subdomains.
+  #         domain: %w(.example.com .example.org) # Allow the cookie
+  #                                               # for concrete domain names.
+  #         domain: proc { Tenant.current.cookie_domain } # Set cookie domain dynamically
+  #         domain: proc { |req| ".sub.#{req.host}" }     # Set cookie domain dynamically based on request
   #
-  # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
-  #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
-  #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 2.
-  # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time or ActiveSupport::Duration object.
-  # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
-  #   Default is +false+.
-  # * <tt>:httponly</tt> - Whether this cookie is accessible via scripting or
-  #   only HTTP. Defaults to +false+.
-  # * <tt>:same_site</tt> - The value of the +SameSite+ cookie attribute, which
-  #   determines how this cookie should be restricted in cross-site contexts.
-  #   Possible values are +nil+, +:none+, +:lax+, and +:strict+. Defaults to
-  #   +:lax+.
+  # *   `:tld_length` - When using `:domain => :all`, this option can be used to
+  #     explicitly set the TLD length when using a short (<= 3 character) domain
+  #     that is being interpreted as part of a TLD. For example, to share cookies
+  #     between user1.lvh.me and user2.lvh.me, set `:tld_length` to 2.
+  # *   `:expires` - The time at which this cookie expires, as a Time or
+  #     ActiveSupport::Duration object.
+  # *   `:secure` - Whether this cookie is only transmitted to HTTPS servers.
+  #     Default is `false`.
+  # *   `:httponly` - Whether this cookie is accessible via scripting or only
+  #     HTTP. Defaults to `false`.
+  # *   `:same_site` - The value of the `SameSite` cookie attribute, which
+  #     determines how this cookie should be restricted in cross-site contexts.
+  #     Possible values are `nil`, `:none`, `:lax`, and `:strict`. Defaults to
+  #     `:lax`.
+  #
   class Cookies
     HTTP_HEADER   = "Set-Cookie"
     GENERATOR_KEY = "action_dispatch.key_generator"
@@ -203,59 +215,69 @@ module ActionDispatch
     # Raised when storing more than 4K of session data.
     CookieOverflow = Class.new StandardError
 
-    # Include in a cookie jar to allow chaining, e.g. +cookies.permanent.signed+.
+    # Include in a cookie jar to allow chaining, e.g. `cookies.permanent.signed`.
     module ChainedCookieJars
-      # Returns a jar that'll automatically set the assigned cookies to have an expiration date 20 years from now. Example:
+      # Returns a jar that'll automatically set the assigned cookies to have an
+      # expiration date 20 years from now. Example:
       #
-      #   cookies.permanent[:prefers_open_id] = true
-      #   # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      #     cookies.permanent[:prefers_open_id] = true
+      #     # => Set-Cookie: prefers_open_id=true; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       #
-      # This jar is only meant for writing. You'll read permanent cookies through the regular accessor.
+      # This jar is only meant for writing. You'll read permanent cookies through the
+      # regular accessor.
       #
-      # This jar allows chaining with the signed jar as well, so you can set permanent, signed cookies. Examples:
+      # This jar allows chaining with the signed jar as well, so you can set
+      # permanent, signed cookies. Examples:
       #
-      #   cookies.permanent.signed[:remember_me] = current_user.id
-      #   # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
+      #     cookies.permanent.signed[:remember_me] = current_user.id
+      #     # => Set-Cookie: remember_me=BAhU--848956038e692d7046deab32b7131856ab20e14e; path=/; expires=Sun, 16-Dec-2029 03:24:16 GMT
       def permanent
         @permanent ||= PermanentCookieJar.new(self)
       end
 
-      # Returns a jar that'll automatically generate a signed representation of cookie value and verify it when reading from
-      # the cookie again. This is useful for creating cookies with values that the user is not supposed to change. If a signed
-      # cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
+      # Returns a jar that'll automatically generate a signed representation of cookie
+      # value and verify it when reading from the cookie again. This is useful for
+      # creating cookies with values that the user is not supposed to change. If a
+      # signed cookie was tampered with by the user (or a 3rd party), `nil` will be
+      # returned.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your
+      # app's `secret_key_base`.
       #
       # Example:
       #
-      #   cookies.signed[:discount] = 45
-      #   # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
+      #     cookies.signed[:discount] = 45
+      #     # => Set-Cookie: discount=BAhpMg==--2c1c6906c90a3bc4fd54a51ffb41dffa4bf6b5f7; path=/
       #
-      #   cookies.signed[:discount] # => 45
+      #     cookies.signed[:discount] # => 45
       def signed
         @signed ||= SignedKeyRotatingCookieJar.new(self)
       end
 
-      # Returns a jar that'll automatically encrypt cookie values before sending them to the client and will decrypt them for read.
-      # If the cookie was tampered with by the user (or a 3rd party), +nil+ will be returned.
+      # Returns a jar that'll automatically encrypt cookie values before sending them
+      # to the client and will decrypt them for read. If the cookie was tampered with
+      # by the user (or a 3rd party), `nil` will be returned.
       #
-      # If +config.action_dispatch.encrypted_cookie_salt+ and +config.action_dispatch.encrypted_signed_cookie_salt+
-      # are both set, legacy cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
+      # If `config.action_dispatch.encrypted_cookie_salt` and
+      # `config.action_dispatch.encrypted_signed_cookie_salt` are both set, legacy
+      # cookies encrypted with HMAC AES-256-CBC will be transparently upgraded.
       #
-      # This jar requires that you set a suitable secret for the verification on your app's +secret_key_base+.
+      # This jar requires that you set a suitable secret for the verification on your
+      # app's `secret_key_base`.
       #
       # Example:
       #
-      #   cookies.encrypted[:discount] = 45
-      #   # => Set-Cookie: discount=DIQ7fw==--K3n//8vvnSbGq9dA--7Xh91HfLpwzbj1czhBiwOg==; path=/
+      #     cookies.encrypted[:discount] = 45
+      #     # => Set-Cookie: discount=DIQ7fw==--K3n//8vvnSbGq9dA--7Xh91HfLpwzbj1czhBiwOg==; path=/
       #
-      #   cookies.encrypted[:discount] # => 45
+      #     cookies.encrypted[:discount] # => 45
       def encrypted
         @encrypted ||= EncryptedKeyRotatingCookieJar.new(self)
       end
 
-      # Returns the +signed+ or +encrypted+ jar, preferring +encrypted+ if +secret_key_base+ is set.
-      # Used by ActionDispatch::Session::CookieStore to avoid the need to introduce new cookie stores.
+      # Returns the `signed` or `encrypted` jar, preferring `encrypted` if
+      # `secret_key_base` is set. Used by ActionDispatch::Session::CookieStore to
+      # avoid the need to introduce new cookie stores.
       def signed_or_encrypted
         @signed_or_encrypted ||=
           if request.secret_key_base.present?
@@ -291,20 +313,6 @@ module ActionDispatch
     class CookieJar # :nodoc:
       include Enumerable, ChainedCookieJars
 
-      # This regular expression is used to split the levels of a domain.
-      # The top level domain can be any string without a period or
-      # **.**, ***.** style TLDs like co.uk or com.au
-      #
-      # www.example.co.uk gives:
-      # $& => example.co.uk
-      #
-      # example.com gives:
-      # $& => example.com
-      #
-      # lots.of.subdomains.example.local gives:
-      # $& => example.local
-      DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
-
       def self.build(req, cookies)
         jar = new(req)
         jar.update(cookies)
@@ -333,7 +341,7 @@ module ActionDispatch
         @cookies.each(&block)
       end
 
-      # Returns the value of the cookie by +name+, or +nil+ if no such cookie exists.
+      # Returns the value of the cookie by `name`, or `nil` if no such cookie exists.
       def [](name)
         @cookies[name.to_s]
       end
@@ -366,8 +374,8 @@ module ActionDispatch
         @cookies.map { |k, v| "#{escape(k)}=#{escape(v)}" }.join "; "
       end
 
-      # Sets the cookie named +name+. The second argument may be the cookie's
-      # value or a hash of options as documented above.
+      # Sets the cookie named `name`. The second argument may be the cookie's value or
+      # a hash of options as documented above.
       def []=(name, options)
         if options.is_a?(Hash)
           options.symbolize_keys!
@@ -388,9 +396,11 @@ module ActionDispatch
         value
       end
 
-      # Removes the cookie on the client machine by setting the value to an empty string
-      # and the expiration date in the past. Like <tt>[]=</tt>, you can pass in
-      # an options hash to delete cookies with extra data such as a <tt>:path</tt>.
+      # Removes the cookie on the client machine by setting the value to an empty
+      # string and the expiration date in the past. Like `[]=`, you can pass in an
+      # options hash to delete cookies with extra data such as a `:path`.
+      #
+      # Returns the value of the cookie, or `nil` if the cookie does not exist.
       def delete(name, options = {})
         return unless @cookies.has_key? name.to_s
 
@@ -402,23 +412,29 @@ module ActionDispatch
         value
       end
 
-      # Whether the given cookie is to be deleted by this CookieJar.
-      # Like <tt>[]=</tt>, you can pass in an options hash to test if a
-      # deletion applies to a specific <tt>:path</tt>, <tt>:domain</tt> etc.
+      # Whether the given cookie is to be deleted by this CookieJar. Like `[]=`, you
+      # can pass in an options hash to test if a deletion applies to a specific
+      # `:path`, `:domain` etc.
       def deleted?(name, options = {})
         options.symbolize_keys!
         handle_options(options)
         @delete_cookies[name.to_s] == options
       end
 
-      # Removes all cookies on the client machine by calling <tt>delete</tt> for each cookie.
+      # Removes all cookies on the client machine by calling `delete` for each cookie.
       def clear(options = {})
         @cookies.each_key { |k| delete(k, options) }
       end
 
-      def write(headers)
-        if header = make_set_cookie_header(headers[HTTP_HEADER])
-          headers[HTTP_HEADER] = header
+      def write(response)
+        @set_cookies.each do |name, value|
+          if write_cookie?(value)
+            response.set_cookie(name, value)
+          end
+        end
+
+        @delete_cookies.each do |name, value|
+          response.delete_cookie(name, value)
         end
       end
 
@@ -427,19 +443,6 @@ module ActionDispatch
       private
         def escape(string)
           ::Rack::Utils.escape(string)
-        end
-
-        def make_set_cookie_header(header)
-          header = @set_cookies.inject(header) { |m, (k, v)|
-            if write_cookie?(v)
-              ::Rack::Utils.add_cookie_to_header(m, k, v)
-            else
-              m
-            end
-          }
-          @delete_cookies.inject(header) { |m, (k, v)|
-            ::Rack::Utils.add_remove_cookie_to_header(m, k, v)
-          }
         end
 
         def write_cookie?(cookie)
@@ -458,13 +461,35 @@ module ActionDispatch
           end
 
           if options[:domain] == :all || options[:domain] == "all"
-            # If there is a provided tld length then we use it otherwise default domain regexp.
-            domain_regexp = options[:tld_length] ? /([^.]+\.?){#{options[:tld_length]}}$/ : DOMAIN_REGEXP
+            cookie_domain = ""
+            dot_splitted_host = request.host.split(".", -1)
 
-            # If host is not ip and matches domain regexp.
-            # (ip confirms to domain regexp so we explicitly check for ip)
-            options[:domain] = if !request.host.match?(/^[\d.]+$/) && (request.host =~ domain_regexp)
-              ".#{$&}"
+            # Case where request.host is not an IP address or it's an invalid domain (ip
+            # confirms to the domain structure we expect so we explicitly check for ip)
+            if request.host.match?(/^[\d.]+$/) || dot_splitted_host.include?("") || dot_splitted_host.length == 1
+              options[:domain] = nil
+              return
+            end
+
+            # If there is a provided tld length then we use it otherwise default domain.
+            if options[:tld_length].present?
+              # Case where the tld_length provided is valid
+              if dot_splitted_host.length >= options[:tld_length]
+                cookie_domain = dot_splitted_host.last(options[:tld_length]).join(".")
+              end
+            # Case where tld_length is not provided
+            else
+              # Regular TLDs
+              if !(/\.[^.]{2,3}\.[^.]{2}\z/.match?(request.host))
+                cookie_domain = dot_splitted_host.last(2).join(".")
+              # **.**, ***.** style TLDs like co.uk and com.au
+              else
+                cookie_domain = dot_splitted_host.last(3).join(".")
+              end
+            end
+
+            options[:domain] = if cookie_domain.present?
+              cookie_domain
             end
           elsif options[:domain].is_a? Array
             # If host matches one of the supplied domains.
@@ -472,6 +497,8 @@ module ActionDispatch
               domain = domain.delete_prefix(".")
               request.host == domain || request.host.end_with?(".#{domain}")
             end
+          elsif options[:domain].respond_to?(:call)
+            options[:domain] = options[:domain].call(request)
           end
         end
     end
@@ -535,75 +562,59 @@ module ActionDispatch
         end
     end
 
-    class MarshalWithJsonFallback # :nodoc:
-      def self.load(value)
-        Marshal.load(value)
-      rescue TypeError => e
-        ActiveSupport::JSON.decode(value) rescue raise e
-      end
-
-      def self.dump(value)
-        Marshal.dump(value)
-      end
-    end
-
-    class JsonSerializer # :nodoc:
-      def self.load(value)
-        ActiveSupport::JSON.decode(value)
-      end
-
-      def self.dump(value)
-        ActiveSupport::JSON.encode(value)
-      end
-    end
-
     module SerializedCookieJars # :nodoc:
-      MARSHAL_SIGNATURE = "\x04\x08"
       SERIALIZER = ActiveSupport::MessageEncryptor::NullSerializer
 
       protected
-        def needs_migration?(value)
-          request.cookies_serializer == :hybrid && value.start_with?(MARSHAL_SIGNATURE)
-        end
-
-        def serialize(value)
-          serializer.dump(value)
-        end
-
-        def deserialize(name)
-          rotate = false
-          value  = yield -> { rotate = true }
-
-          if value
-            case
-            when needs_migration?(value)
-              Marshal.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            when rotate
-              serializer.load(value).tap do |v|
-                self[name] = { value: v }
-              end
-            else
-              serializer.load(value)
-            end
-          end
-        end
-
-        def serializer
-          serializer = request.cookies_serializer || :marshal
-          case serializer
-          when :marshal
-            MarshalWithJsonFallback
-          when :json, :hybrid
-            JsonSerializer
-          else
-            serializer
-          end
-        end
-
         def digest
           request.cookies_digest || "SHA1"
+        end
+
+      private
+        def serializer
+          @serializer ||=
+            case request.cookies_serializer
+            when nil
+              ActiveSupport::Messages::SerializerWithFallback[:marshal]
+            when :hybrid
+              ActiveSupport::Messages::SerializerWithFallback[:json_allow_marshal]
+            when Symbol
+              ActiveSupport::Messages::SerializerWithFallback[request.cookies_serializer]
+            else
+              request.cookies_serializer
+            end
+        end
+
+        def reserialize?(dumped)
+          serializer.is_a?(ActiveSupport::Messages::SerializerWithFallback) &&
+            serializer != ActiveSupport::Messages::SerializerWithFallback[:marshal] &&
+            !serializer.dumped?(dumped)
+        end
+
+        def parse(name, dumped, force_reserialize: false, **)
+          if dumped
+            begin
+              value = serializer.load(dumped)
+            rescue StandardError
+              return
+            end
+
+            self[name] = { value: value } if force_reserialize || reserialize?(dumped)
+
+            value
+          end
+        end
+
+        def commit(name, options)
+          options[:value] = serializer.dump(options[:value])
+        end
+
+        def check_for_overflow!(name, options)
+          total_size = name.to_s.bytesize + options[:value].bytesize
+
+          if total_size > MAX_COOKIE_SIZE
+            raise CookieOverflow, "#{name} cookie overflowed with size #{total_size} bytes"
+          end
         end
     end
 
@@ -624,15 +635,15 @@ module ActionDispatch
 
       private
         def parse(name, signed_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @verifier.verified(signed_message, on_rotation: rotate, purpose: purpose)
-          end
+          rotated = false
+          data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
         end
 
         def commit(name, options)
-          options[:value] = @verifier.generate(serialize(options[:value]), **cookie_metadata(name, options))
-
-          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
+          super
+          options[:value] = @verifier.generate(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 
@@ -674,17 +685,17 @@ module ActionDispatch
 
       private
         def parse(name, encrypted_message, purpose: nil)
-          deserialize(name) do |rotate|
-            @encryptor.decrypt_and_verify(encrypted_message, on_rotation: rotate, purpose: purpose)
-          end
+          rotated = false
+          data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          super(name, data, force_reserialize: rotated)
         rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
         end
 
         def commit(name, options)
-          options[:value] = @encryptor.encrypt_and_sign(serialize(options[:value]), **cookie_metadata(name, options))
-
-          raise CookieOverflow if options[:value].bytesize > MAX_COOKIE_SIZE
+          super
+          options[:value] = @encryptor.encrypt_and_sign(options[:value], **cookie_metadata(name, options))
+          check_for_overflow!(name, options)
         end
     end
 
@@ -693,21 +704,18 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
-
-      status, headers, body = @app.call(env)
+      request = ActionDispatch::Request.new(env)
+      response = @app.call(env)
 
       if request.have_cookie_jar?
         cookie_jar = request.cookie_jar
         unless cookie_jar.committed?
-          cookie_jar.write(headers)
-          if headers[HTTP_HEADER].respond_to?(:join)
-            headers[HTTP_HEADER] = headers[HTTP_HEADER].join("\n")
-          end
+          response = Rack::Response[*response]
+          cookie_jar.write(response)
         end
       end
 
-      [status, headers, body]
+      response.to_a
     end
   end
 end

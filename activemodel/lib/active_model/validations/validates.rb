@@ -6,11 +6,11 @@ module ActiveModel
   module Validations
     module ClassMethods
       # This method is a shortcut to all default validators and any custom
-      # validator classes ending in 'Validator'. Note that Rails default
+      # validator classes ending in 'Validator'. Note that \Rails default
       # validators can be overridden inside specific classes by creating
       # custom validator classes in their place such as PresenceValidator.
       #
-      # Examples of using the default rails validators:
+      # Examples of using the default Rails validators:
       #
       #   validates :username, absence: true
       #   validates :terms, acceptance: true
@@ -78,7 +78,12 @@ module ActiveModel
       #   or an array of symbols. (e.g. <tt>on: :create</tt> or
       #   <tt>on: :custom_validation_context</tt> or
       #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc, or string to call to determine
+      # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default +nil+. You can pass a symbol
+      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   <tt>except_on: :custom_validation_context</tt> or
+      #   <tt>except_on: [:create, :custom_validation_context]</tt>)
+      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
       #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
       #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
       #   proc or string should return or evaluate to a +true+ or +false+ value.
@@ -96,7 +101,7 @@ module ActiveModel
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, length: 24, strict: TokenLengthException
+      #   validates :token, length: { is: 24 }, strict: TokenLengthException
       #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
@@ -130,7 +135,7 @@ module ActiveModel
       # This method is used to define validations that cannot be corrected by end
       # users and are considered exceptional. So each validator defined with bang
       # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
-      # <tt>ActiveModel::StrictValidationFailed</tt> instead of adding error
+      # ActiveModel::StrictValidationFailed instead of adding error
       # when validation fails. See <tt>validates</tt> for more information about
       # the validation itself.
       #
@@ -155,7 +160,7 @@ module ActiveModel
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [:if, :unless, :on, :allow_blank, :allow_nil, :strict]
+        [:if, :unless, :on, :allow_blank, :allow_nil, :strict, :except_on]
       end
 
       def _parse_validates_options(options)

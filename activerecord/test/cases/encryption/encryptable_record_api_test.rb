@@ -27,7 +27,9 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
   end
 
   test "encrypt won't fail for classes without attributes to encrypt" do
-    posts(:welcome).encrypt
+    assert_nothing_raised do
+      posts(:welcome).encrypt
+    end
   end
 
   test "decrypt decrypts encrypted attributes" do
@@ -73,14 +75,40 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
   test "encrypted_attribute? returns false for encrypted attributes which content is not encrypted" do
     book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune") }
-    assert_not book.encrypted_attribute?(:title)
+    assert_not book.encrypted_attribute?(:name)
   end
 
-  test "ciphertext_for returns the chiphertext for a given attributes" do
+  test "ciphertext_for returns the ciphertext for a given attribute" do
     book = EncryptedBook.create!(name: "Dune")
 
-    assert_equal book.ciphertext_for(:name), book.ciphertext_for(:name)
-    assert_not_equal book.name, book.ciphertext_for(:name)
+    assert_ciphertext_decrypts_to book, :name, book.ciphertext_for(:name)
+  end
+
+  test "ciphertext_for returns the persisted ciphertext for a non-deterministically encrypted attribute" do
+    post = EncryptedPost.create!(title: "Fear is the mind-killer", body: "Fear is the little-death...")
+
+    assert_equal post.title_before_type_cast, post.ciphertext_for(:title)
+    assert_ciphertext_decrypts_to post, :title, post.ciphertext_for(:title)
+  end
+
+  test "ciphertext_for returns the ciphertext of a new value" do
+    book = EncryptedBook.create!(name: "Dune")
+    book.name = "Arrakis"
+
+    assert_ciphertext_decrypts_to book, :name, book.ciphertext_for(:name)
+  end
+
+  test "ciphertext_for returns the ciphertext of a decrypted value" do
+    book = EncryptedBook.create!(name: "Dune")
+    book.decrypt
+
+    assert_ciphertext_decrypts_to book, :name, book.ciphertext_for(:name)
+  end
+
+  test "ciphertext_for returns the ciphertext of a value when the record is new" do
+    book = EncryptedBook.new(name: "Dune")
+
+    assert_ciphertext_decrypts_to book, :name, book.ciphertext_for(:name)
   end
 
   test "encrypt won't change the encoding of strings even when compression is used" do
@@ -96,7 +124,7 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
     book.encrypt
-    assert Encoding::UTF_8, book.reload.name.encoding
+    assert_equal Encoding::UTF_8, book.reload.name.encoding
   end
 
   test "encrypt won't force encoding for deterministic attributes when option is nil" do
@@ -104,7 +132,7 @@ class ActiveRecord::Encryption::EncryptableRecordApiTest < ActiveRecord::Encrypt
 
     book = ActiveRecord::Encryption.without_encryption { EncryptedBook.create!(name: "Dune".encode("US-ASCII")) }
     book.encrypt
-    assert Encoding::US_ASCII, book.reload.name.encoding
+    assert_equal Encoding::US_ASCII, book.reload.name.encoding
   end
 
   test "encrypt will preserve case when :ignore_case option is used" do

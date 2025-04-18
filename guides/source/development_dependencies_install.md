@@ -1,7 +1,7 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
-Development Dependencies Install
-================================
+Installing Rails Core Development Dependencies
+==============================================
 
 This guide covers how to set up an environment for Ruby on Rails core development.
 
@@ -86,45 +86,25 @@ $ brew services start mysql
 
 Replace `mysql` with the name of the service you want to start.
 
-##### Potential Issues
-
-This section details some of the potential issues you may run into with native extensions on macOS, particularly when bundling the mysql2 gem in local development. This documentation is subject to change and may be incorrect as Apple makes changes to the developer environment on Rails.
-
-In order to compile the `mysql2` gem on macOS you will need the following:
-
-1) `openssl@1.1` installed (not `openssl@3`)
-2) Ruby compiled with  `openssl@1.1`
-3) Set compiler flags in the bundle config for `mysql2`.
-
-If both `openssl@1.1` and `openssl@3` are installed, you will need to tell Ruby to use `openssl@1.1` in order for Rails to bundle `mysql2`.
-
-In your `.bash_profile` set the `PATH` and `RUBY_CONFIGURE_OPTS` to point to `openssl@1.1`:
-
-```
-export PATH="/usr/local/opt/openssl@1.1/bin:$PATH"
-export RUBY_CONFIGURE_OPTS="--with-openssl-dir=$(brew --prefix openssl@1.1)"
-```
-
-In your `~/.bundle/config` set the following for `mysql2`. Be sure to delete any other entries for `BUNDLE_BUILD__MYSQL2`:
-
-```
-BUNDLE_BUILD__MYSQL2: "--with-ldflags=-L/usr/local/opt/openssl@1.1/lib --with-cppflags=-L/usr/local/opt/openssl@1.1/include"
-```
-
-By setting these flags before installing Ruby and bundling Rails, you should be able to get your local macOS development environment working.
-
 #### Ubuntu
 
 To install all run:
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+$ sudo apt-get install sqlite3 libsqlite3-dev mysql-server libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils libyaml-dev libffi-dev
 
 # Install Yarn
-$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-$ sudo apt-get install yarn
+# Use this command if you do not have Node.js installed
+# ref: https://github.com/nodesource/distributions#installation-instructions
+$ sudo mkdir -p /etc/apt/keyrings
+$ curl --fail --silent --show-error --location https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+$ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+$ sudo apt-get update
+$ sudo apt-get install -y nodejs
+
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Fedora or CentOS
@@ -132,14 +112,16 @@ $ sudo apt-get install yarn
 To install all run:
 
 ```bash
-$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached imagemagick ffmpeg mupdf libxml2-devel vips poppler-utils
+$ sudo dnf install sqlite-devel sqlite-libs mysql-server mysql-devel postgresql-server postgresql-devel redis memcached ImageMagick ffmpeg mupdf libxml2-devel vips poppler-utils
 
 # Install Yarn
 # Use this command if you do not have Node.js installed
-$ curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
-# If you have Node.js installed, use this command instead
-$ curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-$ sudo dnf install yarn
+# ref: https://github.com/nodesource/distributions#installation-instructions-1
+$ sudo dnf install https://rpm.nodesource.com/pub_20/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+$ sudo dnf install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
+
+# Once you have installed Node.js, install the yarn npm package
+$ sudo npm install --global yarn
 ```
 
 #### Arch Linux
@@ -170,6 +152,16 @@ Or install everything through ports (these packages are located under the
 NOTE: If you run into problems during the installation of MySQL, please see
 [the MySQL documentation](https://dev.mysql.com/doc/refman/en/freebsd-installation.html).
 
+#### Debian
+
+To install all dependencies run:
+
+```bash
+$ sudo apt-get install sqlite3 libsqlite3-dev default-mysql-server default-libmysqlclient-dev postgresql postgresql-client postgresql-contrib libpq-dev redis-server memcached imagemagick ffmpeg mupdf mupdf-tools libxml2-dev libvips42 poppler-utils
+```
+
+NOTE: If you are running Debian, MariaDB is the default MySQL server, so be aware there may be differences.
+
 ### Database Configuration
 
 There are couple of additional steps required to configure database engines
@@ -188,7 +180,7 @@ and for macOS:
 $ createuser --superuser $USER
 ```
 
-MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
+NOTE: MySQL will create the users when the databases are created. The task assumes your user is `root` with no password.
 
 Then, you need to create the test databases for both MySQL and PostgreSQL with:
 
@@ -216,7 +208,7 @@ NOTE: Using the Rake task to create the test databases ensures they have the cor
 
 If you're using another database, check the file `activerecord/test/config.yml` or `activerecord/test/config.example.yml` for default connection information. You can edit `activerecord/test/config.yml` to provide different credentials on your machine, but you should not push any of those changes back to Rails.
 
-### Install JavaScript dependencies
+### Install JavaScript Dependencies
 
 If you installed Yarn, you will need to install the JavaScript dependencies:
 
@@ -224,7 +216,7 @@ If you installed Yarn, you will need to install the JavaScript dependencies:
 $ yarn install
 ```
 
-### Installing gem dependencies
+### Installing Gem Dependencies
 
 Gems are installed with [Bundler](https://bundler.io/) which ships by default with Ruby.
 
@@ -237,7 +229,8 @@ $ bundle install
 If you don't need to run Active Record tests, you can run:
 
 ```bash
-$ bundle install --without db
+$ bundle config set without db
+$ bundle install
 ```
 
 ### Contribute to Rails

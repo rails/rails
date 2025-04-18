@@ -1,245 +1,99 @@
-*   Add `routes --unused` option to detect extraneous routes.
+*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
-    Example:
+    *Lovro Bikić*
 
-    ```
-    > bin/rails routes --unused
+*   Skip generating mailer-related files in authentication generator if the application does
+    not use ActionMailer
 
-    Found 2 unused routes:
+    *Rami Massoud*
 
-    Prefix Verb URI Pattern    Controller#Action
-       one GET  /one(.:format) action#one
-       two GET  /two(.:format) action#two
-    ```
+*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
 
-    *Gannon McGibbon*
-
-*   Add `--parent` option to controller generator to specify parent class of job.
-
-    Example:
-
-    `bin/rails g controller admin/users --parent=admin_controller` generates:
+    The specific steps are defined by a new DSL in `config/ci.rb`.
 
     ```ruby
-    class Admin::UsersController < AdminController
-      # ...
+    ActiveSupport::ContinuousIntegration.run do
+      step "Setup", "bin/setup --skip-server"
+      step "Style: Ruby", "bin/rubocop"
+      step "Security: Gem audit", "bin/bundler-audit"
+      step "Tests: Rails", "bin/rails test test:system"
     end
     ```
 
-    *Gannon McGibbon*
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
 
-*   In-app custom credentials templates are now supported.  When a credentials
-    file does not exist, `rails credentials:edit` will now try to use
-    `lib/templates/rails/credentials/credentials.yml.tt` to generate the
-    credentials file, before falling back to the default template.
+    *Jeremy Daer*, *DHH*
 
-    This allows e.g. an open-source Rails app (which would not include encrypted
-    credentials files in its repo) to include a credentials template, so that
-    users who install the app will get a custom pre-filled credentials file when
-    they run `rails credentials:edit`.
+*   Generate session controller tests when running the authentication generator.
 
-    *Jonathan Hefner*
+    *Jerome Dalbert*
 
-*   Except for `dev` and `test` environments, newly generated per-environment
-    credentials files (e.g. `config/credentials/production.yml.enc`) now include
-    a `secret_key_base` for convenience, just as `config/credentials.yml.enc`
-    does.
+*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
 
-    *Jonathan Hefner*
+    *DHH*
 
-*   `--no-*` options now work with the app generator's `--minimal` option, and
-    are both comprehensive and precise.  For example:
+*   Rails no longer generates a `bin/bundle` binstub when creating new applications.
 
-    ```console
-    $ rails new my_cool_app --minimal
-    Based on the specified options, the following options will also be activated:
+    The `bin/bundle` binstub used to help activate the right version of bundler.
+    This is no longer necessary as this mechanism is now part of Rubygem itself.
 
-      --skip-active-job [due to --minimal]
-      --skip-action-mailer [due to --skip-active-job, --minimal]
-      --skip-active-storage [due to --skip-active-job, --minimal]
-      --skip-action-mailbox [due to --skip-active-storage, --minimal]
-      --skip-action-text [due to --skip-active-storage, --minimal]
-      --skip-javascript [due to --minimal]
-      --skip-hotwire [due to --skip-javascript, --minimal]
-      --skip-action-cable [due to --minimal]
-      --skip-bootsnap [due to --minimal]
-      --skip-dev-gems [due to --minimal]
-      --skip-system-test [due to --minimal]
+    *Edouard Chin*
 
-    ...
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
 
-    $ rails new my_cool_app --minimal --no-skip-active-storage
-    Based on the specified options, the following options will also be activated:
+    *Bijan Rahnema*
 
-      --skip-action-mailer [due to --minimal]
-      --skip-action-mailbox [due to --minimal]
-      --skip-action-text [due to --minimal]
-      --skip-javascript [due to --minimal]
-      --skip-hotwire [due to --skip-javascript, --minimal]
-      --skip-action-cable [due to --minimal]
-      --skip-bootsnap [due to --minimal]
-      --skip-dev-gems [due to --minimal]
-      --skip-system-test [due to --minimal]
+*   Rate limit password resets in authentication generator
 
-    ...
+    This helps mitigate abuse from attackers spamming the password reset form.
+
+    *Chris Oliver*
+
+*   Update `rails new --minimal` option
+
+    Extend the `--minimal` flag to exclude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
+
+    *eelcoj*
+
+*   Add `application-name` metadata to application layout
+
+    The following metatag will be added to `app/views/layouts/application.html.erb`
+
+    ```html
+    <meta name="application-name" content="Name of Rails Application">
     ```
 
-    *Brad Trick* and *Jonathan Hefner*
+    *Steve Polito*
 
-*   Add `--skip-dev-gems` option to app generator to skip adding development
-    gems (like `web-console`) to the Gemfile.
+*   Use `secret_key_base` from ENV or credentials when present locally.
 
-    *Brad Trick*
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
 
-*   Skip Active Storage and Action Mailer if Active Job is skipped.
+    *Petrik de Heus*
 
-    *Étienne Barrié*
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
 
-*   Correctly check if frameworks are disabled when running app:update.
+    *Steve Polito*
 
-    *Étienne Barrié* and *Paulo Barros*
+*   Colorize the Rails console prompt even on non standard environments.
 
-*   Delegate model generator description to orm hooked generator.
+    *Lorenzo Zabot*
 
-    *Gannon McGibbon*
+*   Don't enable YJIT in development and test environments
 
-*   Execute `rails runner` scripts inside the executor.
+    Development and test environments tend to reload code and redefine methods (e.g. mocking),
+    hence YJIT isn't generally faster in these environments.
 
-    Enables error reporting, query cache, etc.
+    *Ali Ismayilov*, *Jean Boussier*
 
-    *Jean Boussier*
+*   Only include PermissionsPolicy::Middleware if policy is configured.
 
-*   Avoid booting in development then test for test tasks.
+    *Petrik de Heus*
 
-    Running one of the rails test subtasks (e.g. test:system, test:models) would
-    go through Rake and cause the app to be booted twice. Now all the test:*
-    subtasks are defined as Thor tasks and directly load the test environment.
-
-    *Étienne Barrié*
-
-*   Deprecate `Rails::Generators::Testing::Behaviour` in favor of `Rails::Generators::Testing::Behavior`.
-
-    *Gannon McGibbon*
-
-*   Allow configuration of logger size for local and test environments
-
-    `config.log_file_size`
-
-    Defaults to `100` megabytes.
-
-    *Bernie Chiu*
-
-*   Enroll new apps in decrypted diffs of credentials by default.  This behavior
-    can be opted out of with the app generator's `--skip-decrypted-diffs` flag.
-
-    *Jonathan Hefner*
-
-*   Support declarative-style test name filters with `bin/rails test`.
-
-    This makes it possible to run a declarative-style test such as:
-
-    ```ruby
-    class MyTest < ActiveSupport::TestCase
-      test "does something" do
-        # ...
-      end
-    end
-    ```
-
-    Using its declared name:
-
-    ```bash
-    $ bin/rails test test/my_test.rb -n "does something"
-    ```
-
-    Instead of having to specify its expanded method name:
-
-    ```bash
-    $ bin/rails test test/my_test.rb -n test_does_something
-    ```
-
-    *Jonathan Hefner*
-
-*   Add `--js` and `--skip-javascript` options to `rails new`
-
-    `--js` alias to `rails new --javascript ...`
-
-    Same as `-j`, e.g. `rails new --js esbuild ...`
-
-    `--skip-js` alias to `rails new --skip-javascript ...`
-
-    Same as `-J`, e.g. `rails new --skip-js ...`
-
-    *Dorian Marié*
-
-*   Allow relative paths with leading dot slash to be passed to `rails test`.
-
-    Fix `rails test ./test/model/post_test.rb` to run a single test file.
-
-    *Shouichi Kamiya* and *oljfte*
-
-*   Deprecate `config.enable_dependency_loading`. This flag addressed a limitation of the `classic` autoloader and has no effect nowadays. To fix this deprecation, please just delete the reference.
-
-    *Xavier Noria*
-
-*   Define `config.enable_reloading` to be `!config.cache_classes` for a more intuitive name. While `config.enable_reloading` and `config.reloading_enabled?` are preferred from now on, `config.cache_classes` is supported for backwards compatibility.
-
-    *Xavier Noria*
-
-*   Add JavaScript dependencies installation on bin/setup
-
-    Add  `yarn install` to bin/setup when using esbuild, webpack, or rollout.
-
-    *Carlos Ribeiro*
-
-*   Use `controller_class_path` in `Rails::Generators::NamedBase#route_url`
-
-    The `route_url` method now returns the correct path when generating
-    a namespaced controller with a top-level model using `--model-name`.
-
-    Previously, when running this command:
-
-    ``` sh
-    bin/rails generate scaffold_controller Admin/Post --model-name Post
-    ```
-
-    the comments above the controller action would look like:
-
-    ``` ruby
-    # GET /posts
-    def index
-      @posts = Post.all
-    end
-    ```
-
-    afterwards, they now look like this:
-
-    ``` ruby
-    # GET /admin/posts
-    def index
-      @posts = Post.all
-    end
-    ```
-
-    Fixes #44662.
-
-    *Andrew White*
-
-*   No longer add autoloaded paths to `$LOAD_PATH`.
-
-    This means it won't be possible to load them with a manual `require` call, the class or module can be referenced instead.
-
-    Reducing the size of `$LOAD_PATH` speed-up `require` calls for apps not using `bootsnap`, and reduce the
-    size of the `bootsnap` cache for the others.
-
-    *Jean Boussier*
-
-*   Remove default `X-Download-Options` header
-
-    This header is currently only used by Internet Explorer which
-    will be discontinued in 2022 and since Rails 7 does not fully
-    support Internet Explorer this header should not be a default one.
-
-    *Harun Sabljaković*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/railties/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

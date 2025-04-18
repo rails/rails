@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/topic"
 require "models/customer"
+require "models/comment"
 require "models/company"
 require "models/company_in_module"
 require "models/ship"
@@ -27,6 +28,11 @@ require "models/cake_designer"
 require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
+require "models/hardback"
+require "models/sharded/comment"
+require "models/admin"
+require "models/admin/user"
+require "models/user"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -44,25 +50,25 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_read_attribute_names
     assert_equal(
-      %w( id title author_name author_email_address bonus_time written_on last_read content important group approved replies_count unique_replies_count parent_id parent_title type created_at updated_at ).sort,
+      %w( id title author_name author_email_address bonus_time written_on last_read content important binary_content group approved replies_count unique_replies_count parent_id parent_title type created_at updated_at ).sort,
       @first.attribute_names.sort
     )
   end
 
   def test_columns
-    assert_equal 18, Topic.columns.length
+    assert_equal 19, Topic.columns.length
   end
 
   def test_columns_are_returned_in_the_order_they_were_declared
     column_names = Topic.columns.map(&:name)
-    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important approved replies_count unique_replies_count parent_id parent_title type group created_at updated_at), column_names
+    assert_equal %w(id title author_name author_email_address written_on bonus_time last_read content important binary_content approved replies_count unique_replies_count parent_id parent_title type group created_at updated_at), column_names
   end
 
   def test_content_columns
     content_columns        = Topic.content_columns
     content_column_names   = content_columns.map(&:name)
-    assert_equal 13, content_columns.length
-    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important group approved parent_title created_at updated_at).sort, content_column_names.sort
+    assert_equal 14, content_columns.length
+    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important binary_content group approved parent_title created_at updated_at).sort, content_column_names.sort
   end
 
   def test_column_string_type_and_limit
@@ -138,17 +144,80 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "PluralIrregular", reflection.class_name
   end
 
-  def test_reflection_klass_is_not_ar_subclass
-    [:account_invalid,
-     :account_class_name,
-     :info_invalids,
-     :infos_class_name,
-     :infos_through_class_name,
+  def test_reflection_klass_not_found_with_no_class_name_option
+    error = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:not_a_class).klass
+    end
+
+    assert_equal "NotAClass", error.name
+    assert_match %r/missing/i, error.message
+    assert_match "NotAClass", error.message
+    assert_match "UserWithInvalidRelation#not_a_class", error.message
+    assert_match ":class_name", error.message
+  end
+
+  def test_reflection_klass_not_found_with_pointer_to_non_existent_class_name
+    error = assert_raise(NameError) do
+      UserWithInvalidRelation.reflect_on_association(:class_name_provided_not_a_class).klass
+    end
+
+    assert_equal "NotAClass", error.name
+    assert_match %r/missing/i, error.message
+    assert_match %r/\bNotAClass\b/, error.message
+    assert_match "UserWithInvalidRelation#class_name_provided_not_a_class", error.message
+    assert_no_match ":class_name", error.message
+  end
+
+  def test_reflection_klass_requires_ar_subclass
+    [ :account_invalid,          # has_one, without :class_name
+      :account_class_name,       # has_one, with :class_name
+      :info_invalids,            # has_many through, without :class_name
+      :infos_class_name,         # has_many through, with :class_name
+      :infos_through_class_name, # has_many through other :class_name, with :class_name
     ].each do |rel|
-      assert_raise(ArgumentError) do
+      error = assert_raise(ArgumentError) do
         UserWithInvalidRelation.reflect_on_association(rel).klass
       end
+
+      assert_match "not an ActiveRecord::Base subclass", error.message
+      assert_match "UserWithInvalidRelation##{rel}", error.message
     end
+  end
+
+  def test_reflection_klass_with_same_demodularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      {},
+      Admin::User
+    )
+
+    assert_equal User, reflection.klass
+  end
+
+  def test_reflection_klass_with_same_demodularized_different_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_one,
+      :user,
+      nil,
+      { class_name: "Nested::User" },
+      Admin::User
+    )
+
+    assert_equal Nested::User, reflection.klass
+  end
+
+  def test_reflection_klass_with_same_modularized_name
+    reflection = ActiveRecord::Reflection.create(
+      :has_many,
+      :nested_users,
+      nil,
+      {},
+      Nested::NestedUser
+    )
+
+    assert_equal Nested::NestedUser, reflection.klass
   end
 
   def test_aggregation_reflection
@@ -297,7 +366,7 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 2, hotel.chefs.count
   end
 
-  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_subclass_source
     hotel = Hotel.create!
     hotel.mocktail_designers << MocktailDesigner.create!
 
@@ -312,6 +381,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal 0, hotel.mocktail_designers.count
     assert_equal 0, hotel.chef_lists.size
     assert_equal 0, hotel.chef_lists.count
+  end
+
+  def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_and_subclass_source_2
+    author = Author.create!(name: "John Doe")
+    hardback = BestHardback.create!
+    author.best_hardbacks << hardback
+
+    assert_equal [hardback], author.best_hardbacks
+    assert_equal [hardback], author.reload.best_hardbacks
+
+    author.best_hardbacks = []
+
+    assert_empty author.best_hardbacks
+    assert_empty author.reload.best_hardbacks
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
@@ -419,6 +502,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_foreign_key
     assert_equal "author_id", Author.reflect_on_association(:posts).foreign_key.to_s
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
+    assert_equal "comment_id", FirstPost.reflect_on_association(:comment_with_inverse).foreign_key.to_s
   end
 
   def test_foreign_key_is_inferred_from_model_name
@@ -525,13 +609,102 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_reflect_on_association_accepts_symbols
     assert_nothing_raised do
-      assert_equal Hotel.reflect_on_association(:departments).name, :departments
+      assert_equal :departments, Hotel.reflect_on_association(:departments).name
     end
   end
 
   def test_reflect_on_association_accepts_strings
     assert_nothing_raised do
-      assert_equal Hotel.reflect_on_association("departments").name, :departments
+      assert_equal :departments, Hotel.reflect_on_association("departments").name
+    end
+  end
+
+  def test_reflect_on_missing_source_association
+    assert_nothing_raised do
+      assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
+    end
+  end
+
+  def test_reflect_on_missing_source_association_raise_exception
+    assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
+      Hotel.reflect_on_association(:lost_items).check_validity!
+    end
+  end
+
+  def test_name_error_from_incidental_code_is_not_converted_to_name_error_for_association
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.klass
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
+    end
+  end
+
+  def test_automatic_inverse_suppresses_name_error_for_association
+    reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+    assert_not reflection.dup.has_inverse? # dup to prevent global memoization
+  end
+
+  def test_automatic_inverse_does_not_suppress_name_error_from_incidental_code
+    UserWithInvalidRelation.stub(:const_missing, proc { oops }) do
+      reflection = UserWithInvalidRelation.reflect_on_association(:not_a_class)
+
+      error = assert_raises(NameError) do
+        reflection.dup.has_inverse? # dup to prevent global memoization
+      end
+
+      assert_equal :oops, error.name
+      assert_match "oops", error.message
+      assert_no_match "NotAClass", error.message
+      assert_no_match "not_a_class", error.message
+    end
+  end
+
+  def test_association_primary_key_uses_explicit_primary_key_option_as_first_priority
+    actual = Sharded::Comment.reflect_on_association(:blog_post_by_id).association_primary_key
+    assert_equal "id", actual
+  end
+
+  def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
+    blog_foreign_key = Sharded::Comment.reflect_on_association(:blog).foreign_key
+    blog_post_foreign_key = Sharded::Comment.reflect_on_association(:blog_post).foreign_key
+
+    assert_equal "blog_id", blog_foreign_key
+    assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
+  end
+
+  def test_using_query_constraints_warns_about_changing_behavior
+    has_many_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    has_one_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
+      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    end
+
+    belongs_to_expected_message = <<~MSG.squish
+      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
+    MSG
+
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
+      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
   end
 

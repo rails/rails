@@ -19,17 +19,17 @@ module ActiveRecord
         #
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
-        def all
+        def all(all_queries: nil)
           scope = current_scope
 
           if scope
-            if self == scope.klass
+            if self == scope.model
               scope.clone
             else
               relation.merge!(scope)
             end
           else
-            default_scoped
+            default_scoped(all_queries: all_queries)
           end
         end
 
@@ -190,7 +190,11 @@ module ActiveRecord
 
         private
           def singleton_method_added(name)
-            generate_relation_method(name) if Kernel.respond_to?(name) && !ActiveRecord::Relation.method_defined?(name)
+            super
+            # Most Kernel extends are both singleton and instance methods so
+            # respond_to is a fast check, but we don't want to define methods
+            # only on the module (ex. Module#name)
+            generate_relation_method(name) if Kernel.respond_to?(name) && (Kernel.method_defined?(name) || Kernel.private_method_defined?(name)) && !ActiveRecord::Relation.method_defined?(name)
           end
       end
     end

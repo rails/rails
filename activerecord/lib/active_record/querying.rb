@@ -10,15 +10,16 @@ module ActiveRecord
       :first_or_create, :first_or_create!, :first_or_initialize,
       :find_or_create_by, :find_or_create_by!, :find_or_initialize_by,
       :create_or_find_by, :create_or_find_by!,
-      :destroy_all, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
+      :destroy, :destroy_all, :delete, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
-      :select, :reselect, :order, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :strict_loading, :excluding, :without, :with,
+      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with, :with_recursive,
       :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
+      :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
 
@@ -47,22 +48,29 @@ module ActiveRecord
     #
     # Note that building your own SQL query string from user input may expose your application to
     # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
-    def find_by_sql(sql, binds = [], preparable: nil, &block)
-      _load_from_sql(_query_by_sql(sql, binds, preparable: preparable), &block)
+    def find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
+      result = with_connection do |c|
+        _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry)
+      end
+      _load_from_sql(result, &block)
     end
 
-    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
-    def async_find_by_sql(sql, binds = [], preparable: nil, &block)
-      _query_by_sql(sql, binds, preparable: preparable, async: true).then do |result|
+    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
+    def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
+      with_connection do |c|
+        _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
+      end.then do |result|
         _load_from_sql(result, &block)
       end
     end
 
-    def _query_by_sql(sql, binds = [], preparable: nil, async: false) # :nodoc:
-      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async)
+    def _query_by_sql(connection, sql, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
+      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:
+      return [] if result_set.empty?
+
       column_types = result_set.column_types
 
       unless column_types.empty?
@@ -78,10 +86,10 @@ module ActiveRecord
 
       message_bus.instrument("instantiation.active_record", payload) do
         if result_set.includes_column?(inheritance_column)
-          result_set.map { |record| instantiate(record, column_types, &block) }
+          result_set.indexed_rows.map { |record| instantiate(record, column_types, &block) }
         else
           # Instantiate a homogeneous set
-          result_set.map { |record| instantiate_instance_of(self, record, column_types, &block) }
+          result_set.indexed_rows.map { |record| instantiate_instance_of(self, record, column_types, &block) }
         end
       end
     end
@@ -99,12 +107,16 @@ module ActiveRecord
     #
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
+      with_connection do |c|
+        c.select_value(sanitize_sql(sql), "#{name} Count").to_i
+      end
     end
 
-    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an <tt>ActiveRecord::Promise</tt>
+    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
-      connection.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
+      with_connection do |c|
+        c.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
+      end
     end
   end
 end

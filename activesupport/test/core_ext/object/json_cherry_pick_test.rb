@@ -2,7 +2,7 @@
 
 require_relative "../../abstract_unit"
 
-# These test cases were added to test that cherry-picking the json extensions
+# These test cases were added to test that cherry-picking the JSON extensions
 # works correctly, primarily for dependencies problems reported in #16131. They
 # need to be executed in isolation to reproduce the scenario correctly, because
 # other test cases might have already loaded additional dependencies.
@@ -39,6 +39,6 @@ class JsonCherryPickTest < ActiveSupport::TestCase
 
   private
     def require_or_skip(file)
-      require(file) || skip("'#{file}' was already loaded")
+      require(file) || force_skip("'#{file}' was already loaded")
     end
 end

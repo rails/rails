@@ -3,6 +3,8 @@
 require "test_helper"
 
 class ActionText::ModelTest < ActiveSupport::TestCase
+  include QueryHelpers
+
   test "html conversion" do
     message = Message.new(subject: "Greetings", content: "<h1>Hello world</h1>")
     assert_equal %Q(<div class="trix-content">\n  <h1>Hello world</h1>\n</div>\n), "#{message.content}"
@@ -14,21 +16,25 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   end
 
   test "without content" do
-    message = Message.create!(subject: "Greetings")
-    assert message.content.nil?
-    assert message.content.blank?
-    assert message.content.empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = Message.create!(subject: "Greetings")
+      assert_nil message.content
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "with blank content" do
-    message = Message.create!(subject: "Greetings", content: "")
-    assert_not message.content.nil?
-    assert message.content.blank?
-    assert message.content.empty?
-    assert_not message.content?
-    assert_not message.content.present?
+    assert_difference("ActionText::RichText.count" => 1) do
+      message = Message.create!(subject: "Greetings", content: "")
+      assert_not message.content.nil?
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
   end
 
   test "embed extraction" do
@@ -53,6 +59,21 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     assert_nothing_raised do
       Message.create!(subject: "Greetings", content: content)
     end
+  end
+
+  test "embed extraction occurs before validation" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new.append_attachables(blob)
+    message = Message.build(subject: "Greetings", content: content)
+
+    assert_changes -> { message.content.embeds.empty? }, from: true, to: false do
+      message.content.validate
+    end
+
+    embeds = message.content.embeds
+    assert_kind_of ActiveStorage::Attached::Many, embeds
+    assert_kind_of ActiveStorage::Attachment, embeds.first
+    assert_equal blob, embeds.first.blob
   end
 
   test "saving content" do
@@ -97,19 +118,65 @@ class ActionText::ModelTest < ActiveSupport::TestCase
   test "eager loading" do
     Message.create!(subject: "Subject", content: "<h1>Content</h1>")
 
-    message = assert_queries(2) { Message.with_rich_text_content.last }
+    message = assert_queries_count(2) { Message.with_rich_text_content.last }
     assert_no_queries do
       assert_equal "Content", message.content.to_plain_text
     end
   end
 
   test "eager loading all rich text" do
-    Message.create!(subject: "Subject", content: "<h1>Content</h1>", body: "<h2>Body</h2>")
+    2.times do
+      Message.create!(subject: "Subject", content: "<h1>Content</h1>", body: "<h2>Body</h2>")
+    end
 
-    message = assert_queries(1) { Message.with_all_rich_text.last }
+    message = assert_queries_count(3) do
+      # 3 queries:
+      # messages x 1
+      # action texts (content) x 1
+      # action texts (body) x 1
+      Message.with_all_rich_text.to_a.last
+    end
+
     assert_no_queries do
       assert_equal "Content", message.content.to_plain_text
       assert_equal "Body", message.body.to_plain_text
     end
+  end
+
+  test "with blank content and store_if_blank: false" do
+    assert_difference("ActionText::RichText.count" => 0) do
+      message = MessageWithoutBlanks.create!(subject: "Greetings", content: "")
+      assert_nil message.content
+      assert_predicate message.content, :blank?
+      assert_predicate message.content, :empty?
+      assert_not message.content?
+      assert_not message.content.present?
+    end
+  end
+
+  test "if allowing blanks, updates rich text record on edit" do
+    message = Message.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => 0) do
+      message.update(content: "")
+    end
+  end
+
+  test "if disallowing blanks, deletes rich text record on edit" do
+    message = MessageWithoutBlanks.create!(subject: "Greetings", content: "content")
+    assert_difference("ActionText::RichText.count" => -1) do
+      message.update(content: "")
+    end
+  end
+
+  test "if disallowing blanks, can still validate presence" do
+    message1 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "")
+    assert_not_predicate message1, :valid?
+    message1.content = "content"
+    assert_predicate message1, :valid?
+
+    message2 = MessageWithoutBlanksWithContentValidation.new(subject: "Greetings", content: "content")
+    assert_predicate message2, :valid?
+    message2.content = ""
+    assert_not_predicate message2, :valid?
   end
 end

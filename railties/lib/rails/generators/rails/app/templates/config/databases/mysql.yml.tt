@@ -1,4 +1,4 @@
-# MySQL. Versions 5.5.8 and up are supported.
+# MySQL. Versions 5.6.4 and up are supported.
 #
 # Install the MySQL driver
 #   gem install mysql2
@@ -15,10 +15,10 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
-<% if mysql_socket -%>
-  socket: <%= mysql_socket %>
+<% if database.socket -%>
+  socket: <%= database.socket %>
 <% else -%>
-  host: localhost
+  host: <%%= ENV.fetch("DB_HOST") { "<%= database.host %>" } %>
 <% end -%>
 
 development:
@@ -52,8 +52,31 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+<%- else -%>
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= app_name %>_production
+    username: <%= app_name %>
+    password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: <%= app_name %>_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: <%= app_name %>_production_queue
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_production
+    database: <%= app_name %>_production_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
+<%- end -%>

@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Http
     module Cache
       module Request
         HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
         HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
+
+        mattr_accessor :strict_freshness, default: false
 
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
@@ -18,7 +22,7 @@ module ActionDispatch
         end
 
         def if_none_match_etags
-          if_none_match ? if_none_match.split(/\s*,\s*/) : []
+          if_none_match ? if_none_match.split(",").each(&:strip!) : []
         end
 
         def not_modified?(modified_at)
@@ -32,19 +36,32 @@ module ActionDispatch
           end
         end
 
-        # Check response freshness (Last-Modified and ETag) against request
-        # If-Modified-Since and If-None-Match conditions. If both headers are
-        # supplied, both must match, or the request is not considered fresh.
+        # Check response freshness (`Last-Modified` and `ETag`) against request
+        # `If-Modified-Since` and `If-None-Match` conditions.
+        # If both headers are supplied, based on configuration, either `ETag` is preferred over `Last-Modified`
+        # or both are considered equally. You can adjust the preference with
+        # `config.action_dispatch.strict_freshness`.
+        # Reference: http://tools.ietf.org/html/rfc7232#section-6
         def fresh?(response)
-          last_modified = if_modified_since
-          etag          = if_none_match
+          if Request.strict_freshness
+            if if_none_match
+              etag_matches?(response.etag)
+            elsif if_modified_since
+              not_modified?(response.last_modified)
+            else
+              false
+            end
+          else
+            last_modified = if_modified_since
+            etag          = if_none_match
 
-          return false unless last_modified || etag
+            return false unless last_modified || etag
 
-          success = true
-          success &&= not_modified?(response.last_modified) if last_modified
-          success &&= etag_matches?(response.etag) if etag
-          success
+            success = true
+            success &&= not_modified?(response.last_modified) if last_modified
+            success &&= etag_matches?(response.etag) if etag
+            success
+          end
         end
       end
 
@@ -79,25 +96,24 @@ module ActionDispatch
           set_header DATE, utc_time.httpdate
         end
 
-        # This method sets a weak ETag validator on the response so browsers
-        # and proxies may cache the response, keyed on the ETag. On subsequent
-        # requests, the If-None-Match header is set to the cached ETag. If it
-        # matches the current ETag, we can return a 304 Not Modified response
-        # with no body, letting the browser or proxy know that their cache is
-        # current. Big savings in request time and network bandwidth.
+        # This method sets a weak ETag validator on the response so browsers and proxies
+        # may cache the response, keyed on the ETag. On subsequent requests, the
+        # `If-None-Match` header is set to the cached ETag. If it matches the current
+        # ETag, we can return a `304 Not Modified` response with no body, letting the
+        # browser or proxy know that their cache is current. Big savings in request time
+        # and network bandwidth.
         #
-        # Weak ETags are considered to be semantically equivalent but not
-        # byte-for-byte identical. This is perfect for browser caching of HTML
-        # pages where we don't care about exact equality, just what the user
-        # is viewing.
+        # Weak ETags are considered to be semantically equivalent but not byte-for-byte
+        # identical. This is perfect for browser caching of HTML pages where we don't
+        # care about exact equality, just what the user is viewing.
         #
-        # Strong ETags are considered byte-for-byte identical. They allow a
-        # browser or proxy cache to support Range requests, useful for paging
-        # through a PDF file or scrubbing through a video. Some CDNs only
-        # support strong ETags and will ignore weak ETags entirely.
+        # Strong ETags are considered byte-for-byte identical. They allow a browser or
+        # proxy cache to support `Range` requests, useful for paging through a PDF file
+        # or scrubbing through a video. Some CDNs only support strong ETags and will
+        # ignore weak ETags entirely.
         #
-        # Weak ETags are what we almost always need, so they're the default.
-        # Check out #strong_etag= to provide a strong ETag validator.
+        # Weak ETags are what we almost always need, so they're the default. Check out
+        # #strong_etag= to provide a strong ETag validator.
         def etag=(weak_validators)
           self.weak_etag = weak_validators
         end
@@ -112,12 +128,13 @@ module ActionDispatch
 
         def etag?; etag; end
 
-        # True if an ETag is set and it's a weak validator (preceded with W/)
+        # True if an ETag is set, and it's a weak validator (preceded with `W/`).
         def weak_etag?
           etag? && etag.start_with?('W/"')
         end
 
-        # True if an ETag is set and it isn't a weak validator (not preceded with W/)
+        # True if an ETag is set, and it isn't a weak validator (not preceded with
+        # `W/`).
         def strong_etag?
           etag? && !weak_etag?
         end
@@ -125,7 +142,7 @@ module ActionDispatch
       private
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
-        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate must-understand])
 
         def generate_weak_etag(validators)
           "W/#{generate_strong_etag(validators)}"
@@ -138,15 +155,13 @@ module ActionDispatch
         def cache_control_segments
           if cache_control = _cache_control
             cache_control.delete(" ").split(",")
-          else
-            []
           end
         end
 
         def cache_control_headers
           cache_control = {}
 
-          cache_control_segments.each do |segment|
+          cache_control_segments&.each do |segment|
             directive, argument = segment.split("=", 2)
 
             if SPECIAL_KEYS.include? directive
@@ -171,12 +186,13 @@ module ActionDispatch
         PUBLIC                = "public"
         PRIVATE               = "private"
         MUST_REVALIDATE       = "must-revalidate"
+        IMMUTABLE             = "immutable"
+        MUST_UNDERSTAND       = "must-understand"
 
         def handle_conditional_get!
-          # Normally default cache control setting is handled by ETag
-          # middleware. But, if an etag is already set, the middleware
-          # defaults to `no-cache` unless a default `Cache-Control` value is
-          # previously set. So, set a default one here.
+          # Normally default cache control setting is handled by ETag middleware. But, if
+          # an etag is already set, the middleware defaults to `no-cache` unless a default
+          # `Cache-Control` value is previously set. So, set a default one here.
           if (etag? || last_modified?) && !self._cache_control
             self._cache_control = DEFAULT_CACHE_CONTROL
           end
@@ -188,8 +204,8 @@ module ActionDispatch
           return if control.empty? && cache_control.empty?  # Let middleware handle default behavior
 
           if cache_control.any?
-            # Any caching directive coming from a controller overrides
-            # no-cache/no-store in the default Cache-Control header.
+            # Any caching directive coming from a controller overrides no-cache/no-store in
+            # the default Cache-Control header.
             control.delete(:no_cache)
             control.delete(:no_store)
 
@@ -206,6 +222,7 @@ module ActionDispatch
 
           if control[:no_store]
             options << PRIVATE if control[:private]
+            options << MUST_UNDERSTAND if control[:must_understand]
             options << NO_STORE
           elsif control[:no_cache]
             options << PUBLIC if control[:public]
@@ -222,6 +239,7 @@ module ActionDispatch
             options << MUST_REVALIDATE if control[:must_revalidate]
             options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
             options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
+            options << IMMUTABLE if control[:immutable]
             options.concat(extras) if extras
           end
 

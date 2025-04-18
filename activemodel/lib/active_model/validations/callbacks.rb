@@ -2,12 +2,12 @@
 
 module ActiveModel
   module Validations
-    # == Active \Model \Validation \Callbacks
+    # = Active \Model \Validation \Callbacks
     #
-    # Provides an interface for any class to have +before_validation+ and
-    # +after_validation+ callbacks.
+    # Provides an interface for any class to have ClassMethods#before_validation and
+    # ClassMethods#after_validation callbacks.
     #
-    # First, include ActiveModel::Validations::Callbacks from the class you are
+    # First, include +ActiveModel::Validations::Callbacks+ from the class you are
     # creating:
     #
     #   class MyModel
@@ -43,10 +43,9 @@ module ActiveModel
         #     before_validation :remove_whitespaces
         #
         #     private
-        #
-        #     def remove_whitespaces
-        #       name.strip!
-        #     end
+        #       def remove_whitespaces
+        #         name.strip!
+        #       end
         #   end
         #
         #   person = Person.new
@@ -74,10 +73,9 @@ module ActiveModel
         #     after_validation :set_status
         #
         #     private
-        #
-        #     def set_status
-        #       self.status = errors.empty?
-        #     end
+        #       def set_status
+        #         self.status = errors.empty?
+        #       end
         #   end
         #
         #   person = Person.new
@@ -103,9 +101,19 @@ module ActiveModel
               options[:on] = Array(options[:on])
               options[:if] = [
                 ->(o) {
-                  !(options[:on] & Array(o.validation_context)).empty?
+                  options[:on].intersect?(Array(o.validation_context))
                 },
                 *options[:if]
+              ]
+            end
+
+            if options.key?(:except_on)
+              options[:except_on] = Array(options[:except_on])
+              options[:unless] = [
+                ->(o) {
+                  options[:except_on].intersect?(Array(o.validation_context))
+                },
+                *options[:unless]
               ]
             end
           end

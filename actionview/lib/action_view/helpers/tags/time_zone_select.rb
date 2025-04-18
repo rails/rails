@@ -4,6 +4,9 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class TimeZoneSelect < Base # :nodoc:
+        include SelectRenderer
+        include FormOptionsHelper
+
         def initialize(object_name, method_name, template_object, priority_zones, options, html_options)
           @priority_zones = priority_zones
           @html_options   = html_options

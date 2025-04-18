@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/core_ext/object/with"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
+  # = Current Attributes
+  #
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
   # available to the whole system.
@@ -90,6 +93,10 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
+    INVALID_ATTRIBUTE_NAMES = [:set, :reset, :resets, :instance, :before_reset, :after_reset, :reset_all, :clear_all] # :nodoc:
+
+    NOT_SET = Object.new.freeze # :nodoc:
+
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -97,50 +104,50 @@ module ActiveSupport
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
-      def attribute(*names)
+      #
+      # ==== Options
+      #
+      # * <tt>:default</tt> - The default value for the attributes. If the value
+      # is a proc or lambda, it will be called whenever an instance is
+      # constructed. Otherwise, the value will be duplicated with +#dup+.
+      # Default values are re-assigned when the attributes are reset.
+      def attribute(*names, default: NOT_SET)
+        invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
+        if invalid_attribute_names.any?
+          raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
+        end
+
+        Delegation.generate(singleton_class, names, to: :instance, nilable: false, signature: "")
+        Delegation.generate(singleton_class, names.map { |n| "#{n}=" }, to: :instance, nilable: false, signature: "value")
+
         ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
           names.each do |name|
             owner.define_cached_method(name, namespace: :current_attributes) do |batch|
               batch <<
                 "def #{name}" <<
-                "attributes[:#{name}]" <<
+                "@attributes[:#{name}]" <<
                 "end"
             end
             owner.define_cached_method("#{name}=", namespace: :current_attributes) do |batch|
               batch <<
                 "def #{name}=(value)" <<
-                "attributes[:#{name}] = value" <<
+                "@attributes[:#{name}] = value" <<
                 "end"
             end
           end
         end
 
-        ActiveSupport::CodeGenerator.batch(singleton_class, __FILE__, __LINE__) do |owner|
-          names.each do |name|
-            owner.define_cached_method(name, namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}" <<
-                "instance.#{name}" <<
-                "end"
-            end
-            owner.define_cached_method("#{name}=", namespace: :current_attributes_delegation) do |batch|
-              batch <<
-                "def #{name}=(value)" <<
-                "instance.#{name} = value" <<
-                "end"
-            end
-          end
-        end
+        self.defaults = defaults.merge(names.index_with { default })
       end
 
-      # Calls this block before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
-      def before_reset(&block)
-        set_callback :reset, :before, &block
+      # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
+      def before_reset(*methods, &block)
+        set_callback :reset, :before, *methods, &block
       end
 
-      # Calls this block after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
-      def resets(&block)
-        set_callback :reset, :after, &block
+      # Calls this callback after #reset is called on the instance. Used for resetting external collaborators, like Time.zone.
+      def resets(*methods, &block)
+        set_callback :reset, :after, *methods, &block
       end
       alias_method :after_reset, :resets
 
@@ -168,25 +175,40 @@ module ActiveSupport
           @current_instances_key ||= name.to_sym
         end
 
-        def method_missing(name, *args, &block)
-          # Caches the method definition as a singleton method of the receiver.
-          #
-          # By letting #delegate handle it, we avoid an enclosure that'll capture args.
-          singleton_class.delegate name, to: :instance
-
-          send(name, *args, &block)
+        def method_missing(name, ...)
+          instance.public_send(name, ...)
         end
-        ruby2_keywords(:method_missing)
 
         def respond_to_missing?(name, _)
-          super || instance.respond_to?(name)
+          instance.respond_to?(name) || super
+        end
+
+        def method_added(name)
+          super
+
+          # We try to generate instance delegators early to not rely on method_missing.
+          return if name == :initialize
+
+          # If the added method isn't public, we don't delegate it.
+          return unless public_method_defined?(name)
+
+          # If we already have a class method by that name, we don't override it.
+          return if singleton_class.method_defined?(name) || singleton_class.private_method_defined?(name)
+
+          Delegation.generate(singleton_class, [name], to: :instance, as: self, nilable: false)
         end
     end
 
-    attr_accessor :attributes
+    class_attribute :defaults, instance_writer: false, default: {}.freeze
+
+    attr_writer :attributes
 
     def initialize
-      @attributes = {}
+      @attributes = resolve_defaults
+    end
+
+    def attributes
+      @attributes.dup
     end
 
     # Expose one or more attributes within a block. Old values are returned after the block concludes.
@@ -199,28 +221,24 @@ module ActiveSupport
     #       end
     #     end
     #   end
-    def set(set_attributes)
-      old_attributes = compute_attributes(set_attributes.keys)
-      assign_attributes(set_attributes)
-      yield
-    ensure
-      assign_attributes(old_attributes)
+    def set(attributes, &block)
+      with(**attributes, &block)
     end
 
     # Reset all attributes. Should be called before and after actions, when used as a per-request singleton.
     def reset
       run_callbacks :reset do
-        self.attributes = {}
+        self.attributes = resolve_defaults
       end
     end
 
     private
-      def assign_attributes(new_attributes)
-        new_attributes.each { |key, value| public_send("#{key}=", value) }
-      end
-
-      def compute_attributes(keys)
-        keys.index_with { |key| public_send(key) }
+      def resolve_defaults
+        defaults.each_with_object({}) do |(key, value), result|
+          if value != NOT_SET
+            result[key] = Proc === value ? value.call : value.dup
+          end
+        end
       end
   end
 end

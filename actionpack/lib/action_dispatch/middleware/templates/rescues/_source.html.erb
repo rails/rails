@@ -18,7 +18,11 @@
             </td>
 <td width="100%">
 <pre>
-<% source_extract[:code].each do |line, source| -%><div class="line<%= " active" if line == source_extract[:line_number] -%>"><%= source -%></div><% end -%>
+<% source_extract[:code].each do |line, source| -%>
+<div class="line<%= " active" if line == source_extract[:line_number] -%>"><% if source.is_a?(Array) -%><%= source[0] -%><span class="error_highlight"><%= source[1] -%></span><%= source[2] -%>
+<% else -%>
+<%= source -%>
+<% end -%></div><% end -%>
 </pre>
 </td>
           </tr>

@@ -3,6 +3,7 @@
 module ActiveRecord
   module Associations
     # = Active Record Has Many Association
+    #
     # This is the proxy that handles a has many association.
     #
     # If the association has a <tt>:through</tt> option further specialization
@@ -33,10 +34,12 @@ module ActiveRecord
 
           unless target.empty?
             association_class = target.first.class
-            primary_key_column = association_class.primary_key.to_sym
-
-            ids = target.collect do |assoc|
-              assoc.public_send(primary_key_column)
+            if association_class.query_constraints_list
+              primary_key_column = association_class.query_constraints_list
+              ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
+            else
+              primary_key_column = association_class.primary_key
+              ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
             end
 
             ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
@@ -75,7 +78,7 @@ module ActiveRecord
         # If the collection is empty the target is set to an empty array and
         # the loaded flag is set to true as well.
         def count_records
-          count = if reflection.has_cached_counter?
+          count = if reflection.has_active_cached_counter?
             owner.read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count(:all)
@@ -126,7 +129,9 @@ module ActiveRecord
             records.each(&:destroy!)
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
-            scope = self.scope.where(reflection.klass.primary_key => records)
+            query_constraints = reflection.klass.composite_query_constraints_list
+            values = records.map { |r| query_constraints.map { |col| r._read_attribute(col) } }
+            scope = self.scope.where(query_constraints => values)
             update_counter(-delete_count(method, scope))
           end
         end

@@ -24,7 +24,7 @@ module Arel
 
       def test_ascending?
         ascending = Ascending.new "zomg"
-        assert ascending.ascending?
+        assert_predicate ascending, :ascending?
       end
 
       def test_descending?

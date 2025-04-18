@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record and PostgreSQL
 ============================
@@ -9,7 +9,10 @@ After reading this guide, you will know:
 
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
+* How to include non-key columns in indexes.
 * How to use deferrable foreign keys.
+* How to use unique constraints.
+* How to implement exclusion constraints.
 * How to implement full text search with PostgreSQL.
 * How to back your Active Record models with database views.
 
@@ -36,7 +39,7 @@ that are supported by the PostgreSQL adapter.
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
 create_table :documents do |t|
-  t.binary 'payload'
+  t.binary "payload"
 end
 ```
 
@@ -60,12 +63,12 @@ Document.create payload: data
 ```ruby
 # db/migrate/20140207133952_create_books.rb
 create_table :books do |t|
-  t.string 'title'
-  t.string 'tags', array: true
-  t.integer 'ratings', array: true
+  t.string "title"
+  t.string "tags", array: true
+  t.integer "ratings", array: true
 end
-add_index :books, :tags, using: 'gin'
-add_index :books, :ratings, using: 'gin'
+add_index :books, :tags, using: "gin"
+add_index :books, :ratings, using: "gin"
 ```
 
 ```ruby
@@ -99,10 +102,10 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-class CreateProfiles < ActiveRecord::Migration[7.0]
-  enable_extension 'hstore' unless extension_enabled?('hstore')
+class CreateProfiles < ActiveRecord::Migration[8.1]
+  enable_extension "hstore" unless extension_enabled?("hstore")
   create_table :profiles do |t|
-    t.hstore 'settings'
+    t.hstore "settings"
   end
 end
 ```
@@ -136,11 +139,11 @@ irb> Profile.where("settings->'color' = ?", "yellow")
 # db/migrate/20131220144913_create_events.rb
 # ... for json datatype:
 create_table :events do |t|
-  t.json 'payload'
+  t.json "payload"
 end
 # ... or for jsonb datatype:
 create_table :events do |t|
-  t.jsonb 'payload'
+  t.jsonb "payload"
 end
 ```
 
@@ -167,12 +170,12 @@ irb> Event.where("payload->>'kind' = ?", "user_renamed")
 * [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
 * [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
-This type is mapped to Ruby [`Range`](https://ruby-doc.org/core-2.7.0/Range.html) objects.
+This type is mapped to Ruby [`Range`](https://docs.ruby-lang.org/en/master/Range.html) objects.
 
 ```ruby
 # db/migrate/20130923065404_create_events.rb
 create_table :events do |t|
-  t.daterange 'duration'
+  t.daterange "duration"
 end
 ```
 
@@ -253,60 +256,98 @@ The type can be mapped as a normal text column, or to an [`ActiveRecord::Enum`](
 
 ```ruby
 # db/migrate/20131220144913_create_articles.rb
-def up
-  create_enum :article_status, ["draft", "published"]
+def change
+  create_enum :article_status, ["draft", "published", "archived"]
 
   create_table :articles do |t|
     t.enum :status, enum_type: :article_status, default: "draft", null: false
   end
 end
+```
 
-# The above migration is reversible (using #change), but you can
-# also define a #down method:
+You can also create an enum type and add an enum column to an existing table:
+
+```ruby
+# db/migrate/20230113024409_add_status_to_articles.rb
+def change
+  create_enum :article_status, ["draft", "published", "archived"]
+
+  add_column :articles, :status, :enum, enum_type: :article_status, default: "draft", null: false
+end
+```
+
+The above migrations are both reversible, but you can define separate `#up` and `#down` methods if required. Make sure you remove any columns or tables that depend on the enum type before dropping it:
+
+```ruby
 def down
   drop_table :articles
 
+  # OR: remove_column :articles, :status
   drop_enum :article_status
 end
 ```
 
+Declaring an enum attribute in the model adds helper methods and prevents invalid values from being assigned to instances of the class:
+
 ```ruby
 # app/models/article.rb
 class Article < ApplicationRecord
-  enum status: {
-    draft: "draft", published: "published"
-  }, _prefix: true
+  enum :status, {
+    draft: "draft", published: "published", archived: "archived"
+  }, prefix: true
 end
 ```
 
 ```irb
-irb> Article.create status: "draft"
-irb> article = Article.first
-irb> article.status_draft!
+irb> article = Article.create
 irb> article.status
-=> "draft"
+=> "draft" # default status from PostgreSQL, as defined in migration above
 
-irb> article.status_published?
+irb> article.status_published!
+irb> article.status
+=> "published"
+
+irb> article.status_archived?
 => false
+
+irb> article.status = "deleted"
+ArgumentError: 'deleted' is not a valid status
 ```
 
-To add a new value before/after existing one you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
+To rename the enum you can use `rename_enum` along with updating any model
+usage:
 
 ```ruby
-# db/migrate/20150720144913_add_new_state_to_articles.rb
-# NOTE: ALTER TYPE ... ADD VALUE cannot be executed inside of a transaction block so here we are using disable_ddl_transaction!
-disable_ddl_transaction!
-
-def up
-  execute <<-SQL
-    ALTER TYPE article_status ADD VALUE IF NOT EXISTS 'archived' AFTER 'published';
-  SQL
+# db/migrate/20150718144917_rename_article_status.rb
+def change
+  rename_enum :article_status, :article_state
 end
 ```
 
-NOTE: Enum values can't be dropped. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+To add a new value you can use `add_enum_value`:
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+```ruby
+# db/migrate/20150720144913_add_new_state_to_articles.rb
+def up
+  add_enum_value :article_state, "archived" # will be at the end after published
+  add_enum_value :article_state, "in review", before: "published"
+  add_enum_value :article_state, "approved", after: "in review"
+  add_enum_value :article_state, "rejected", if_not_exists: true # won't raise an error if the value already exists
+end
+```
+
+NOTE: Enum values can't be dropped, which also means add_enum_value is irreversible. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+
+To rename a value you can use `rename_enum_value`:
+
+```ruby
+# db/migrate/20150722144915_rename_article_state.rb
+def change
+  rename_enum_value :article_state, from: "archived", to: "deleted"
+end
+```
+
+Hint: to show all the values of the all enums you have, you can call this query in `bin/rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -350,7 +391,7 @@ You can use `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :posts, id: :uuid
 
 create_table :comments, id: :uuid do |t|
@@ -409,15 +450,15 @@ irb> user.save!
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
-[`IPAddr`](https://ruby-doc.org/stdlib-2.7.0/libdoc/ipaddr/rdoc/IPAddr.html)
+[`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html)
 objects. The `macaddr` type is mapped to normal text.
 
 ```ruby
 # db/migrate/20140508144913_create_devices.rb
 create_table(:devices, force: true) do |t|
-  t.inet 'ip'
-  t.cidr 'network'
-  t.macaddr 'address'
+  t.inet "ip"
+  t.cidr "network"
+  t.macaddr "address"
 end
 ```
 
@@ -445,7 +486,7 @@ irb> macbook.address
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
-A point is casted to an array containing `x` and `y` coordinates.
+A point is cast to an array containing `x` and `y` coordinates.
 
 ### Interval
 
@@ -457,7 +498,7 @@ This type is mapped to [`ActiveSupport::Duration`](https://api.rubyonrails.org/c
 ```ruby
 # db/migrate/20200120000000_create_events.rb
 create_table :events do |t|
-  t.interval 'duration'
+  t.interval "duration"
 end
 ```
 
@@ -475,6 +516,34 @@ irb> event.duration
 => 2 days
 ```
 
+### Timestamps
+
+* [Date/Time Types](https://www.postgresql.org/docs/current/datatype-datetime.html)
+
+Rails migrations with timestamps store the time a model was created or updated. By default and for legacy reasons, the columns use the `timestamp without time zone` data type.
+
+```ruby
+# db/migrate/20241220144913_create_devices.rb
+create_table :post, id: :uuid do |t|
+  t.datetime :published_at
+  # By default, Active Record will set the data type of this column to `timestamp without time zone`.
+end
+```
+
+While this works ok, [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+This must be configured before it can be used for new migrations.
+
+To configure `timestamp with time zone` as your new timestamp default data type, place the following configuration in the `config/application.rb` file.
+
+```ruby
+# config/application.rb
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+With that configuration in place, generate and apply new migrations, then verify their timestamps use the `timestamp with time zone` data type.
+
 UUID Primary Keys
 -----------------
 
@@ -483,7 +552,7 @@ extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :devices, id: :uuid do |t|
   t.string :kind
 end
@@ -495,14 +564,59 @@ class Device < ApplicationRecord
 end
 ```
 
-```ruby
+```irb
 irb> device = Device.create
 irb> device.id
 => "814865cd-5a1d-4771-9306-4268f188fe9e"
 ```
 
-NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option was
-passed to `create_table`.
+NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option
+was passed to `create_table`.
+
+To use the Rails model generator for a table using UUID as the primary key, pass
+`--primary-key-type=uuid` to the model generator.
+
+For example:
+
+```bash
+$ rails generate model Device --primary-key-type=uuid kind:string
+```
+
+When building a model with a foreign key that will reference this UUID, treat
+`uuid` as the native field type, for example:
+
+```bash
+$ rails generate model Case device_id:uuid
+```
+
+Indexing
+--------
+
+* [index creation](https://www.postgresql.org/docs/current/sql-createindex.html)
+
+PostgreSQL includes a variety of index options. The following options are
+supported by the PostgreSQL adapter in addition to the
+[common index options](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index)
+
+### Include
+
+When creating a new index, non-key columns can be included with the `:include` option.
+These keys are not used in index scans for searching, but can be read during an index
+only scan without having to visit the associated table.
+
+```ruby
+# db/migrate/20131220144913_add_index_users_on_email_include_id.rb
+
+add_index :users, :email, include: :id
+```
+
+Multiple columns are supported:
+
+```ruby
+# db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb
+
+add_index :users, :email, include: [:id, :created_at]
+```
 
 Generated Columns
 -----------------
@@ -513,7 +627,7 @@ NOTE: Generated columns are supported since version 12.0 of PostgreSQL.
 # db/migrate/20131220144913_create_users.rb
 create_table :users do |t|
   t.string :name
-  t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+  t.virtual :name_upcased, type: :string, as: "upper(name)", stored: true
 end
 
 # app/models/user.rb
@@ -521,7 +635,7 @@ class User < ApplicationRecord
 end
 
 # Usage
-user = User.create(name: 'John')
+user = User.create(name: "John")
 User.last.name_upcased # => "JOHN"
 ```
 
@@ -530,7 +644,7 @@ Deferrable Foreign Keys
 
 * [foreign key table constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html)
 
-By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transactions is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
+By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transaction is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
 
 One example of this is creating circular dependencies in a transaction even if you have created foreign keys:
 
@@ -542,23 +656,61 @@ add_reference :alias, :person, foreign_key: { deferrable: :deferred }
 If the reference was created with the `foreign_key: true` option, the following transaction would fail when executing the first `INSERT` statement. It does not fail when the `deferrable: :deferred` option is set though.
 
 ```ruby
-ActiveRecord::Base.connection.transaction do
+ActiveRecord::Base.lease_connection.transaction do
   person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end
 ```
 
-The `:deferrable` option can also be set to `true` or `:immediate`, which has the same effect. Both options let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `SET CONSTRAINTS ALL DEFERRED` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
+When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `set_constraints` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
 
 ```ruby
-ActiveRecord::Base.transaction do
-  ActiveRecord::Base.connection.execute("SET CONSTRAINTS ALL DEFERRED")
+ActiveRecord::Base.lease_connection.transaction do
+  ActiveRecord::Base.lease_connection.set_constraints(:deferred)
   person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end
 ```
 
 By default `:deferrable` is `false` and the constraint is always checked immediately.
+
+Unique Constraint
+-----------------
+
+* [unique constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS)
+
+```ruby
+# db/migrate/20230422225213_create_items.rb
+create_table :items do |t|
+  t.integer :position, null: false
+  t.unique_constraint [:position], deferrable: :immediate
+end
+```
+
+If you want to change an existing unique index to deferrable, you can use `:using_index` to create deferrable unique constraints.
+
+```ruby
+add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
+```
+
+Like foreign keys, unique constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
+
+Exclusion Constraints
+---------------------
+
+* [exclusion constraints](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION)
+
+```ruby
+# db/migrate/20131220144913_create_products.rb
+create_table :products do |t|
+  t.integer :price, null: false
+  t.daterange :availability_range, null: false
+
+  t.exclusion_constraint "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+end
+```
+
+Like foreign keys, exclusion constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
 
 Full Text Search
 ----------------
@@ -570,7 +722,7 @@ create_table :documents do |t|
   t.string :body
 end
 
-add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: "documents_idx"
 ```
 
 ```ruby
@@ -600,7 +752,7 @@ create_table :documents do |t|
             type: :tsvector, as: "to_tsvector('english', title || ' ' || body)", stored: true
 end
 
-add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
+add_index :documents, :textsearchable_index_col, using: :gin, name: "documents_idx"
 
 # Usage
 Document.create(title: "Cats and Dogs", body: "are nice!")
@@ -645,7 +797,7 @@ CREATE VIEW articles AS
          "BL_ARCH" AS archived
   FROM "TBL_ART"
   WHERE "BL_ARCH" = 'f'
-  SQL
+SQL
 ```
 
 ```ruby
@@ -672,7 +824,7 @@ irb> Article.count
 NOTE: This application only cares about non-archived `Articles`. A view also
 allows for conditions so we can exclude the archived `Articles` directly.
 
-Structure dumps
+Structure Dumps
 --------------
 
 If your `config.active_record.schema_format` is `:sql`, Rails will call `pg_dump` to generate a
@@ -682,5 +834,23 @@ You can use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to configu
 For example, to exclude comments from your structure dump, add this to an initializer:
 
 ```ruby
-ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ['--no-comments']
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 ```
+
+Explain
+-------
+
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
+
+```ruby
+Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
+#=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
+# ...
+# Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
+# ...
+```
+
+See their documentation for more details.
+
+[explain-options]: active_record_querying.html#explain-options
+[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html

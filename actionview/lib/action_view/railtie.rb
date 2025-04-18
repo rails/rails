@@ -13,6 +13,7 @@ module ActionView
     config.action_view.image_loading = nil
     config.action_view.image_decoding = nil
     config.action_view.apply_stylesheet_media_default = true
+    config.action_view.prepend_content_exfiltration_prevention = false
 
     config.eager_load_namespaces << ActionView
 
@@ -41,6 +42,17 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      prepend_content_exfiltration_prevention = app.config.action_view.delete(:prepend_content_exfiltration_prevention)
+      ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = prepend_content_exfiltration_prevention
+    end
+
+    config.after_initialize do |app|
+      if klass = app.config.action_view.delete(:sanitizer_vendor)
+        ActionView::Helpers::SanitizeHelper.sanitizer_vendor = klass
+      end
+    end
+
+    config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
         ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
@@ -60,11 +72,21 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["style-src", "style-src-elem", "style-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
+      ActionView::Helpers::JavaScriptHelper.auto_include_nonce = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
+    end
+
+    config.after_initialize do |app|
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           send "#{k}=", v
         end
       end
+    end
+
+    initializer "action_view.deprecator", before: :load_environment_config do |app|
+      app.deprecators[:action_view] = ActionView.deprecator
     end
 
     initializer "action_view.logger" do
@@ -97,7 +119,13 @@ module ActionView
       end
 
       unless enable_caching
-        app.executor.register_hook ActionView::CacheExpiry::Executor.new(watcher: app.config.file_watcher)
+        view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
+
+        app.reloaders << view_reloader
+        app.reloader.to_run do
+          require_unload_lock!
+          view_reloader.execute
+        end
       end
     end
 

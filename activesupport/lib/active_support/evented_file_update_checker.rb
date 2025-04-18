@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "set"
+gem "listen", "~> 3.5"
+require "listen"
+
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
-require "listen"
-require "active_support/fork_tracker"
 
 module ActiveSupport
   # Allows you to "listen" to changes in a file system.
@@ -43,6 +43,10 @@ module ActiveSupport
       ObjectSpace.define_finalizer(self, @core.finalizer)
     end
 
+    def inspect
+      "#<ActiveSupport::EventedFileUpdateChecker:#{object_id} @files=#{@core.files.to_a.inspect}"
+    end
+
     def updated?
       if @core.restart?
         @core.thread_safely(&:restart)
@@ -66,7 +70,7 @@ module ActiveSupport
     end
 
     class Core
-      attr_reader :updated
+      attr_reader :updated, :files
 
       def initialize(files, dirs)
         @files = files.map { |file| Pathname(file).expand_path }.to_set
@@ -84,6 +88,10 @@ module ActiveSupport
         @mutex = Mutex.new
 
         start
+        # inotify / FSEvents file descriptors are inherited on fork, so
+        # we need to reopen them otherwise only the parent or the child
+        # will be notified.
+        # FIXME: this callback is keeping a reference on the instance
         @after_fork = ActiveSupport::ForkTracker.after_fork { start }
       end
 
@@ -105,6 +113,11 @@ module ActiveSupport
         @dtw, @missing = [*@dtw, *@missing].partition(&:exist?)
         @listener = @dtw.any? ? Listen.to(*@dtw, &method(:changed)) : nil
         @listener&.start
+
+        # Wait for the listener to be ready to avoid race conditions
+        # Unfortunately this isn't quite enough on macOS because the Darwin backend
+        # has an extra private thread we can't wait on.
+        @listener&.wait_for_state(:processing_events)
       end
 
       def stop

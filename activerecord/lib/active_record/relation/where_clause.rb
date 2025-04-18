@@ -23,12 +23,8 @@ module ActiveRecord
         WhereClause.new(predicates | other.predicates)
       end
 
-      def merge(other, rewhere = nil)
-        predicates = if rewhere
-          except_predicates(other.extract_attributes)
-        else
-          predicates_unreferenced_by(other)
-        end
+      def merge(other)
+        predicates = except_predicates(other.extract_attributes)
 
         WhereClause.new(predicates | other.predicates)
       end
@@ -51,7 +47,11 @@ module ActiveRecord
           right = right.ast
           right = right.expr if right.is_a?(Arel::Nodes::Grouping)
 
-          or_clause = Arel::Nodes::Or.new(left, right)
+          or_clause = if left.is_a?(Arel::Nodes::Or)
+            Arel::Nodes::Or.new(left.children + [right])
+          else
+            Arel::Nodes::Or.new([left, right])
+          end
 
           common.predicates << Arel::Nodes::Grouping.new(or_clause)
           common
@@ -154,18 +154,6 @@ module ActiveRecord
           end
 
           equalities
-        end
-
-        def predicates_unreferenced_by(other)
-          referenced_columns = other.referenced_columns
-
-          predicates.reject do |node|
-            attr = extract_attribute(node) || begin
-              node.left if equality_node?(node) && node.left.is_a?(Arel::Predications)
-            end
-
-            attr && referenced_columns[attr]
-          end
         end
 
         def equality_node?(node)

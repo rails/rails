@@ -6,19 +6,6 @@ module ActiveRecord
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
-    def self.runtime=(value)
-      ActiveRecord::RuntimeRegistry.sql_runtime = value
-    end
-
-    def self.runtime
-      ActiveRecord::RuntimeRegistry.sql_runtime ||= 0
-    end
-
-    def self.reset_runtime
-      rt, self.runtime = runtime, 0
-      rt
-    end
-
     def strict_loading_violation(event)
       debug do
         owner = event.payload[:owner]
@@ -26,11 +13,9 @@ module ActiveRecord
         color(reflection.strict_loading_violation_message(owner), RED)
       end
     end
+    subscribe_log_level :strict_loading_violation, :debug
 
     def sql(event)
-      self.class.runtime += event.duration
-      return unless logger.debug?
-
       payload = event.payload
 
       return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
@@ -66,10 +51,11 @@ module ActiveRecord
       end
 
       name = colorize_payload_name(name, payload[:name])
-      sql  = color(sql, sql_color(sql), true) if colorize_logging
+      sql  = color(sql, sql_color(sql), bold: true) if colorize_logging
 
       debug "  #{name}  #{sql}#{binds}"
     end
+    subscribe_log_level :sql, :debug
 
     private
       def type_casted_binds(casted_binds)
@@ -93,9 +79,9 @@ module ActiveRecord
 
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
-          color(name, MAGENTA, true)
+          color(name, MAGENTA, bold: true)
         else
-          color(name, CYAN, true)
+          color(name, CYAN, bold: true)
         end
       end
 
@@ -133,15 +119,19 @@ module ActiveRecord
       end
 
       def log_query_source
-        source = extract_query_source_location(caller)
+        source = query_source_location
 
         if source
           logger.debug("  ↳ #{source}")
         end
       end
 
-      def extract_query_source_location(locations)
-        backtrace_cleaner.clean(locations.lazy).first
+      def query_source_location
+        Thread.each_caller_location do |location|
+          frame = backtrace_cleaner.clean_frame(location)
+          return frame if frame
+        end
+        nil
       end
 
       def filter(name, value)

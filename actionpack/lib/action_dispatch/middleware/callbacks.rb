@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
+  # # Action Dispatch Callbacks
+  #
   # Provides callbacks to be executed before and after dispatching the request.
   class Callbacks
     include ActiveSupport::Callbacks

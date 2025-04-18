@@ -1,6 +1,5 @@
-*   Fix an issue that caused the content layout to render multiple times when a
-    rich_text field was updated.
+*   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
 
-    *Jacob Herrington*
+    *Sean Doyle*
 
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actiontext/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.

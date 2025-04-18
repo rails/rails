@@ -39,13 +39,13 @@ module ActiveRecord
 
       def test_add_column_without_limit
         # TODO: limit: nil should work with all adapters.
-        skip "MySQL wrongly enforces a limit of 255" if current_adapter?(:Mysql2Adapter)
+        skip "MySQL wrongly enforces a limit of 255" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         add_column :test_models, :description, :string, limit: nil
         TestModel.reset_column_information
         assert_nil TestModel.columns_hash["description"].limit
       end
 
-      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
         def test_unabstracted_database_dependent_types
           add_column :test_models, :intelligence_quotient, :smallint
           TestModel.reset_column_information
@@ -62,12 +62,7 @@ module ActiveRecord
 
           connection.add_column "test_models", "wealth", :decimal, precision: "30", scale: "10"
 
-          # Do a manual insertion
-          if current_adapter?(:OracleAdapter)
-            connection.execute "insert into test_models (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
-          else
-            connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
-          end
+          connection.execute "insert into test_models (wealth) values (12345678901234567890.0123456789)"
 
           # SELECT
           row = TestModel.first
@@ -174,7 +169,7 @@ module ActiveRecord
         end
       end
 
-      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :PostgreSQLAdapter)
         def test_out_of_range_limit_should_raise
           assert_raise(ArgumentError) { add_column :test_models, :integer_too_big, :integer, limit: 10 }
           assert_raise(ArgumentError) { add_column :test_models, :text_too_big, :text, limit: 0xfffffffff }

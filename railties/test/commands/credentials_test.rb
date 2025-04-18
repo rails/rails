@@ -3,19 +3,30 @@
 require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
-require "rails/commands/credentials/credentials_command"
 require "fileutils"
 
-class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
+class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation, EnvHelpers
 
   setup :build_app
   teardown :teardown_app
 
-  test "edit without editor gives hint" do
-    run_edit_command(editor: "").tap do |output|
-      assert_match "No $EDITOR to open file in", output
+  test "edit without visual or editor gives hint" do
+    run_edit_command(visual: "", editor: "").tap do |output|
+      assert_match "No $VISUAL or $EDITOR to open file in", output
       assert_match "rails credentials:edit", output
+    end
+  end
+
+  test "edit with visual but not editor does not give hint" do
+    run_edit_command(visual: "cat", editor: "").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
+    end
+  end
+
+  test "edit with editor but not visual does not give hint" do
+    run_edit_command(visual: "", editor: "cat").tap do |output|
+      assert_no_match "No $VISUAL or $EDITOR to open file in", output
     end
   end
 
@@ -146,7 +157,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match %r/file encrypted and saved/i, run_edit_command
 
     interrupt_command_process = %(ruby -e "Process.kill 'INT', Process.ppid")
-    output = run_edit_command(editor: interrupt_command_process)
+    output = run_edit_command(visual: interrupt_command_process)
 
     assert_no_match %r/file encrypted and saved/i, output
     assert_match %r/nothing saved/i, output
@@ -155,7 +166,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit command preserves user's content even if it contains invalid YAML" do
     write_invalid_yaml = %(ruby -e "File.write ARGV[0], 'foo: bar: bad'")
 
-    assert_match %r/WARNING: Invalid YAML/, run_edit_command(editor: write_invalid_yaml)
+    assert_match %r/WARNING: Invalid YAML/, run_edit_command(visual: write_invalid_yaml)
     assert_match %r/foo: bar: bad/, run_edit_command
   end
 
@@ -237,11 +248,14 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
   test "running edit after enrolling in diffing sets diff driver" do
     run_diff_command(enroll: true)
-    run_edit_command
+
+    assert_match %r/git diff driver/i, run_edit_command
 
     Dir.chdir(app_path) do
       assert_equal "bin/rails credentials:diff", `git config --get 'diff.rails_credentials.textconv'`.strip
     end
+
+    assert_no_match %r/git diff driver/i, run_edit_command
   end
 
   test "diff from git diff left file" do
@@ -271,6 +285,20 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(raw_content, run_diff_command("config/credentials.yml.enc"))
   end
 
+  test "diff for custom environment" do
+    run_edit_command(environment: "custom")
+
+    assert_match(/access_key_id: 123/, run_diff_command("config/credentials/custom.yml.enc"))
+  end
+
+  test "diff for custom environment when key is not available" do
+    run_edit_command(environment: "custom")
+    remove_file "config/credentials/custom.key"
+
+    raw_content = File.read(app_path("config", "credentials", "custom.yml.enc"))
+    assert_match(raw_content, run_diff_command("config/credentials/custom.yml.enc"))
+  end
+
   test "diff returns raw encrypted content when errors occur" do
     run_edit_command(environment: "development")
 
@@ -281,13 +309,56 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(encrypted_content, run_diff_command(content_path))
   end
 
+
+  test "respects config.credentials.content_path when set in config/application.rb" do
+    content_path = "my_secrets/credentials.yml.enc"
+    add_to_config "config.credentials.content_path = #{content_path.inspect}"
+
+    assert_credentials_paths content_path, "config/master.key"
+
+    assert_credentials_paths content_path, "config/credentials/production.key", environment: "production"
+  end
+
+  test "respects config.credentials.key_path when set in config/application.rb" do
+    key_path = "my_secrets/master.key"
+    add_to_config "config.credentials.key_path = #{key_path.inspect}"
+
+    assert_credentials_paths "config/credentials.yml.enc", key_path
+
+    assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
+  test "respects config.credentials.content_path when set in config/environments/*.rb" do
+    content_path = "my_secrets/credentials.yml.enc"
+    add_to_env_config "production", "config.credentials.content_path = #{content_path.inspect}"
+
+    with_rails_env "production" do
+      assert_credentials_paths content_path, "config/master.key"
+    end
+
+    assert_credentials_paths content_path, "config/credentials/production.key", environment: "production"
+  end
+
+  test "respects config.credentials.key_path when set in config/environments/*.rb" do
+    key_path = "my_secrets/master.key"
+    add_to_env_config "production", "config.credentials.key_path = #{key_path.inspect}"
+
+    with_rails_env "production" do
+      assert_credentials_paths "config/credentials.yml.enc", key_path
+    end
+
+    assert_credentials_paths "config/credentials/production.yml.enc", key_path, environment: "production"
+  end
+
   private
     DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
 
-    def run_edit_command(editor: "cat", environment: nil, **options)
-      switch_env("EDITOR", editor) do
-        args = environment ? ["--environment", environment] : []
-        rails "credentials:edit", args, **options
+    def run_edit_command(visual: "cat", editor: "cat", environment: nil, **options)
+      switch_env("VISUAL", visual) do
+        switch_env("EDITOR", editor) do
+          args = environment ? ["--environment", environment] : []
+          rails "credentials:edit", args, **options
+        end
       end
     end
 
@@ -303,7 +374,24 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
 
     def write_credentials(content, **options)
       switch_env("CONTENT", content) do
-        run_edit_command(editor: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
+        run_edit_command(visual: %(ruby -e "File.write ARGV[0], ENV['CONTENT']"), **options)
+      end
+    end
+
+    def assert_credentials_paths(content_path, key_path, environment: nil)
+      content = "foo: #{content_path}"
+      remove_file content_path
+      remove_file key_path
+
+      assert_match "Editing #{content_path}", write_credentials(content, environment: environment)
+      assert_file content_path
+      assert_file key_path
+
+      assert_match content, run_show_command(environment: environment)
+
+      # Decrypted diffs apply to credentials files in standard locations only.
+      if %r"config/credentials(?:/.*)?\.yml\.enc$".match?(content_path)
+        assert_match content, run_diff_command(content_path)
       end
     end
 

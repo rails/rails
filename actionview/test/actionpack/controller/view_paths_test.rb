@@ -102,6 +102,28 @@ class ViewLoadPathsTest < ActionController::TestCase
     assert_paths TestController, *class_view_paths
   end
 
+  def test_append_view_path_does_not_bust_template_cache
+    template_instances = 2.times.map do
+      controller = Test::SubController.new
+      controller.append_view_path "#{FIXTURE_LOAD_PATH}/override2"
+      controller.lookup_context.find_all("layouts/test/sub")
+    end
+
+    object_ids = template_instances.flatten.map(&:object_id)
+    assert_equal 1, object_ids.uniq.count
+  end
+
+  def test_prepend_view_path_does_not_bust_template_cache
+    template_instances = 2.times.map do
+      controller = TestController.new
+      controller.prepend_view_path "#{FIXTURE_LOAD_PATH}/override"
+      controller.lookup_context.find_all("hello_world", "test")
+    end
+
+    object_ids = template_instances.flatten.map(&:object_id)
+    assert_equal 1, object_ids.uniq.count
+  end
+
   def test_view_paths
     get :hello_world
     assert_response :success
@@ -117,14 +139,16 @@ class ViewLoadPathsTest < ActionController::TestCase
 
   def test_view_paths_override_for_layouts_in_controllers_with_a_module
     @controller = Test::SubController.new
-    with_routes do
-      get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
-    end
+    with_routing do |routes|
+      routes.draw do
+        get :hello_world, to: "view_load_paths_test/test/sub#hello_world"
+      end
 
-    Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
-    get :hello_world
-    assert_response :success
-    assert_equal "layout: Hello overridden world!", @response.body
+      Test::SubController.view_paths = [ "#{FIXTURE_LOAD_PATH}/override", FIXTURE_LOAD_PATH, "#{FIXTURE_LOAD_PATH}/override2" ]
+      get :hello_world
+      assert_response :success
+      assert_equal "layout: Hello overridden world!", @response.body
+    end
   end
 
   def test_view_paths_override_at_request_time
@@ -155,7 +179,7 @@ class ViewLoadPathsTest < ActionController::TestCase
     end
 
     decorator = decorator_class.new(TestController.view_paths)
-    TestController.view_paths = ActionView::PathSet.new.push(decorator)
+    TestController.view_paths = ActionView::PathSet.new([decorator])
 
     get :hello_world
     assert_response :success
@@ -165,11 +189,11 @@ class ViewLoadPathsTest < ActionController::TestCase
   def test_inheritance
     original_load_paths = ActionController::Base.view_paths
 
-    self.class.class_eval %{
+    self.class.class_eval <<~RUBY, __FILE__, __LINE__ + 1
       class A < ActionController::Base; end
       class B < A; end
       class C < ActionController::Base; end
-    }
+    RUBY
 
     A.view_paths = ["a/path"]
 

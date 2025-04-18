@@ -12,6 +12,26 @@ class SummablePayment < Payment
 end
 
 class EnumerableTests < ActiveSupport::TestCase
+  class Money
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def +(other)
+      Money.new(value + other.value)
+    end
+
+    def coerce(other)
+      [Money.new(other), self]
+    end
+
+    def ==(other)
+      other.value == value
+    end
+  end
+
   class GenericEnumerable
     include Enumerable
 
@@ -57,11 +77,11 @@ class EnumerableTests < ActiveSupport::TestCase
     enum = GenericEnumerable.new(%w(a b c))
     assert_equal "abc", enum.sum("")
     assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
-    assert_deprecated do
-      assert_equal "abc", enum.sum
+    assert_raises(TypeError) do
+      enum.sum
     end
-    assert_deprecated do
-      assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_raises(TypeError) do
+      enum.sum { |i| i * 2 }
     end
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10) ])
@@ -69,13 +89,13 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = GenericEnumerable.new([ SummablePayment.new(5), SummablePayment.new(15) ])
-    assert_deprecated do
-      assert_equal SummablePayment.new(20), payments.sum
+    assert_raises(TypeError) do
+      payments.sum
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
-    assert_deprecated do
-      assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    assert_raises(TypeError) do
+      payments.sum { |p| p }
     end
 
     sum = GenericEnumerable.new([3, 5.quo(1)]).sum
@@ -117,8 +137,8 @@ class EnumerableTests < ActiveSupport::TestCase
     expected_raise = TypeError
 
     assert_raise(expected_raise) { GenericEnumerable.new([5, 15, nil]).sum }
-    assert_deprecated do
-      assert_equal 0, [nil].sum
+    assert_raises(expected_raise) do
+      [nil].sum
     end
 
     payments = GenericEnumerable.new([ Payment.new(5), Payment.new(15), Payment.new(10), Payment.new(nil) ])
@@ -141,8 +161,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 10, (1..4).sum
     assert_equal 10, (1..4.5).sum
     assert_equal 6, (1...4).sum
-    assert_deprecated do
-      assert_equal "abc", ("a".."c").sum
+    assert_raises(TypeError) do
+      ("a".."c").sum
     end
     assert_equal "abc", ("a".."c").sum("")
     assert_equal 50_000_005_000_000, (0..10_000_000).sum
@@ -162,12 +182,12 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, enum.sum { |i| i * 2 }
 
     enum = %w(a b c)
-    assert_deprecated do
-      assert_equal "abc", enum.sum
+    assert_raises(TypeError) do
+      enum.sum
     end
     assert_equal "abc", enum.sum("")
-    assert_deprecated do
-      assert_equal "aabbcc", enum.sum { |i| i * 2 }
+    assert_raises(TypeError) do
+      enum.sum { |i| i * 2 }
     end
     assert_equal "aabbcc", enum.sum("") { |i| i * 2 }
 
@@ -176,14 +196,16 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 60, payments.sum { |p| p.price * 2 }
 
     payments = [ SummablePayment.new(5), SummablePayment.new(15) ]
-    assert_deprecated do
-      assert_equal SummablePayment.new(20), payments.sum
+    assert_raises(TypeError) do
+      payments.sum
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0))
-    assert_deprecated do
-      assert_equal SummablePayment.new(20), payments.sum { |p| p }
+    assert_raises(TypeError) do
+      payments.sum { |p| p }
     end
     assert_equal SummablePayment.new(20), payments.sum(SummablePayment.new(0)) { |p| p }
+
+    assert_equal Money.new(3), [Money.new(1), Money.new(2)].sum
 
     sum = [3, 5.quo(1)].sum
     assert_typed_equal(8, sum, Rational)
@@ -255,6 +277,8 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 2 ]).many? { |x| x > 1 }
     assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
     assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
+    assert_equal true,  GenericEnumerable.new([ 1, 2, 3]).each_with_index.many? { |x, i| x == i + 1 }
+    assert_equal true,  GenericEnumerable.new([ [1, 2], [3, 4] ]).many? { |x| x.sum > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
@@ -352,6 +376,21 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [ Payment.new(1), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
   end
 
+  def test_in_order_of_preserves_duplicates
+    values = [ Payment.new(5), Payment.new(1), Payment.new(5) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(5) ], values.in_order_of(:price, [ 1, 5 ])
+  end
+
+  def test_in_order_of_preserves_nested_elements
+    values = [[:paid, { price: 1, currency: :eur }], [:opened, { price: 2, currency: :usd }]]
+    assert_equal [[:opened, { price: 2, currency: :usd }], [:paid, { price: 1, currency: :eur }]], values.in_order_of(:first, [:opened, :paid])
+  end
+
+  def test_in_order_of_with_filter_false
+    values = [ Payment.new(5), Payment.new(3), Payment.new(1) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5 ], filter: false)
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 
@@ -359,6 +398,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 1, GenericEnumerable.new([1]).sole
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
   end
 
   def test_doesnt_bust_constant_cache
@@ -373,7 +413,5 @@ class EnumerableTests < ActiveSupport::TestCase
   private
     def constant_cache_invalidations
       RubyVM.stat(:constant_cache_invalidations)
-    rescue ArgumentError
-      RubyVM.stat(:global_constant_state) # RUBY_VERSION < "3.2"
     end
 end

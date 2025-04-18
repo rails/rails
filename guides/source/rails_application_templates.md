@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Rails Application Templates
 ===========================
@@ -60,10 +60,18 @@ gem "bj"
 gem "nokogiri"
 ```
 
-Please note that this will NOT install the gems for you and you will have to run `bundle install` to do that.
+Note that this method only adds the gem to the `Gemfile`; it does not install the gem.
 
-```bash
-$ bundle install
+You can also specify an exact version:
+
+```ruby
+gem "nokogiri", "~> 1.16.4"
+```
+
+And you can also add comments that will be added to the `Gemfile`:
+
+```ruby
+gem "nokogiri", "~> 1.16.4", comment: "Add the nokogiri gem for XML parsing"
 ```
 
 ### gem_group(*names, &block)
@@ -103,7 +111,7 @@ Adds a line inside the `Application` class for `config/application.rb`.
 If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
 
 ```ruby
-environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: 'production'
+environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: "production"
 ```
 
 A block can be used in place of the `data` argument.
@@ -115,7 +123,7 @@ Adds an initializer to the generated application's `config/initializers` directo
 Let's say you like using `Object#not_nil?` and `Object#not_blank?`:
 
 ```ruby
-initializer 'bloatlol.rb', <<-CODE
+initializer "bloatlol.rb", <<-CODE
   class Object
     def not_nil?
       !nil?
@@ -133,7 +141,7 @@ Similarly, `lib()` creates a file in the `lib/` directory and `vendor()` creates
 There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
 
 ```ruby
-file 'app/components/foo.rb', <<-CODE
+file "app/components/foo.rb", <<-CODE
   class Foo
   end
 CODE
@@ -186,7 +194,7 @@ rails_command "db:migrate"
 You can also run commands with a different Rails environment:
 
 ```ruby
-rails_command "db:migrate", env: 'production'
+rails_command "db:migrate", env: "production"
 ```
 
 You can also run commands as a super-user:
@@ -214,7 +222,7 @@ route "root to: 'person#index'"
 Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
 
 ```ruby
-inside('vendor') do
+inside("vendor") do
   run "ln -s ~/commit-rails/rails rails"
 end
 ```
@@ -260,7 +268,7 @@ are generated. Useful for adding generated files to version control:
 ```ruby
 after_bundle do
   git :init
-  git add: '.'
+  git add: "."
   git commit: "-a -m 'Initial commit'"
 end
 ```
@@ -272,7 +280,7 @@ Advanced Usage
 
 The application template is evaluated in the context of a
 `Rails::Generators::AppGenerator` instance. It uses the
-[`apply`](https://rdoc.info/github/wycats/thor/Thor/Actions#apply-instance_method)
+[`apply`](https://www.rubydoc.info/gems/thor/Thor/Actions#apply-instance_method)
 action provided by Thor.
 
 This means you can extend and change the instance to match your needs.

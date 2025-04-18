@@ -134,7 +134,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(ArgumentError) do
       draw do
         namespace :admin do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get "/:controller(/:action(/:id(.:format)))"
           end
         end
@@ -145,7 +145,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespace_without_controller_segment
     draw do
       namespace :admin do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get "hello/:controllers/:action"
         end
       end
@@ -354,6 +354,20 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_websocket
+    draw do
+      connect "chat/live", to: "chat#live"
+    end
+
+    # HTTP/1.1 connection upgrade:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "GET", "HTTP_CONNECTION" => "Upgrade", "HTTP_UPGRADE" => "websocket" }
+    assert_equal "chat#live", @response.body
+
+    # `rack.protocol` connection:
+    get "/chat/live", headers: { "REQUEST_METHOD" => "CONNECT", "rack.protocol" => "websocket" }
+    assert_equal "chat#live", @response.body
+  end
+
   def test_bookmarks
     draw do
       scope "bookmark", controller: "bookmarks", as: :bookmark do
@@ -430,19 +444,19 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "queenbee#index", @response.body
 
     get "/admin", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     get "/admin/accounts", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "queenbee#accounts", @response.body
 
     get "/admin/accounts", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     get "/admin/passwords", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "queenbee#passwords", @response.body
 
     get "/admin/passwords", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
   end
 
   def test_global
@@ -452,7 +466,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "global/export",      action: :export, as: :export_request
         get "/export/:id/:file",  action: :export, as: :export_download, constraints: { file: /.*/ }
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get "global/:action"
         end
       end
@@ -477,7 +491,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_local
     draw do
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "/local/:action", controller: "local"
       end
     end
@@ -763,7 +777,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
           member do
             put  :accessible_projects
-            post :resend, :generate_new_password
+            post :resend
+            post :generate_new_password
           end
         end
       end
@@ -812,7 +827,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       resources :projects do
         resources :posts do
-          get  :archive, :toggle_view, on: :collection
+          get :archive, on: :collection
+          get :toggle_view, on: :collection
           post :preview, on: :member
 
           resource :subscription
@@ -890,13 +906,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/posts/1/comments", post_comments_path(post_id: 1)
 
     post "/posts"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     put "/posts/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     delete "/posts/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     delete "/posts/1/comments"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
   end
 
   def test_resource_routes_only_create_update_destroy
@@ -972,13 +988,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resource :user, options }
+    draw { resource :user, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resources :users, options }
+    draw { resources :users, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
@@ -1325,7 +1341,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "articles#with_id", @response.body
 
     get "/articles/123/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
 
     assert_equal "/articles/rails/1", article_with_title_path(title: "rails", id: 1)
   end
@@ -1533,8 +1549,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    draw do
-      get "get/first", "get/second", "get/third", to: "get#show"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        get "get/first", "get/second", "get/third", to: "get#show"
+      end
     end
 
     get "/get/first"
@@ -1570,9 +1588,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    draw do
-      namespace :proposals do
-        put "activate", "inactivate"
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :proposals do
+          put "activate", "inactivate"
+        end
       end
     end
 
@@ -1624,7 +1644,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_not_matching_shorthand_with_dynamic_parameters
     draw do
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get ":controller/:action/admin"
       end
     end
@@ -1662,7 +1682,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_scoped_controller_with_namespace_and_action
     draw do
       namespace :account do
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get ":action/callback", action: /twitter|github/, controller: "callbacks", as: :callback
         end
       end
@@ -1909,7 +1929,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/products/1"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/products"
     assert_equal "products#root", @response.body
     get "/products/favorite"
@@ -1918,14 +1938,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "products#show", @response.body
 
     get "/products/1/images"
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/products/0001/images"
     assert_equal "images#index", @response.body
     get "/products/0001/images/0001"
     assert_equal "images#show", @response.body
 
     get "/dashboard", headers: { "REMOTE_ADDR" => "10.0.0.100" }
-    assert_equal "pass", @response.headers["X-Cascade"]
+    assert_equal "pass", @response.headers["x-cascade"]
     get "/dashboard", headers: { "REMOTE_ADDR" => "192.168.1.100" }
     assert_equal "dashboards#show", @response.body
   end
@@ -1995,7 +2015,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_url_generator_for_generic_route
     draw do
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "whatever/:controller(/:action(/:id))"
       end
     end
@@ -2009,7 +2029,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_url_generator_for_namespaced_generic_route
     draw do
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "whatever/:controller(/:action(/:id))", id: /\d+/
       end
     end
@@ -3509,16 +3529,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/streams"
-    assert @response.ok?, "route without trailing slash should work"
+    assert_predicate @response, :ok?, "route without trailing slash should work"
 
     get "/streams/"
-    assert @response.ok?, "route with trailing slash should work"
+    assert_predicate @response, :ok?, "route with trailing slash should work"
 
     get "/streams?foobar"
-    assert @response.ok?, "route without trailing slash and with QUERY_STRING should work"
+    assert_predicate @response, :ok?, "route without trailing slash and with QUERY_STRING should work"
 
     get "/streams/?foobar"
-    assert @response.ok?, "route with trailing slash and with QUERY_STRING should work"
+    assert_predicate @response, :ok?, "route with trailing slash and with QUERY_STRING should work"
   end
 
   def test_route_with_dashes_in_path
@@ -3797,7 +3817,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_dynamic_controller_segments_are_deprecated
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       draw do
         get "/:controller", action: "index"
       end
@@ -3805,7 +3825,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_dynamic_action_segments_are_deprecated
-    assert_deprecated do
+    assert_deprecated(ActionDispatch.deprecator) do
       draw do
         get "/pages/:action", controller: "pages"
       end
@@ -3882,6 +3902,16 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/formats/1/items/2.json", format_item_path(1, 2, :json)
   end
 
+  def test_routes_with_double_colon
+    draw do
+      get "/sort::sort", to: "sessions#sort"
+    end
+
+    get "/sort:asc"
+    assert_equal "asc", @request.params[:sort]
+    assert_equal "sessions#sort", @response.body
+  end
+
 private
   def draw(&block)
     self.class.stub_controllers do |routes|
@@ -3895,9 +3925,9 @@ private
     @app.routes.url_helpers.url_for(options)
   end
 
-  def method_missing(method, *args, &block)
-    if method.to_s.match?(/_(path|url)$/)
-      @app.routes.url_helpers.send(method, *args, &block)
+  def method_missing(method, ...)
+    if method.match?(/_(path|url)$/)
+      @app.routes.url_helpers.send(method, ...)
     else
       super
     end
@@ -4037,6 +4067,7 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     routes = ActionDispatch::Routing::RouteSet.new
     routes.draw(&block)
     @app = self.class.build_app routes
+    @routes = routes
   end
 
   def test_missing_controller
@@ -4057,7 +4088,25 @@ class TestNamespaceWithControllerOption < ActionDispatch::IntegrationTest
     assert_match(/Missing :controller/, ex.message)
   end
 
-  def test_missing_action_on_hash
+  def test_implicit_controller_with_to
+    draw do
+      controller :foo do
+        get "/foo/bar", to: "bar"
+      end
+    end
+    assert_routing "/foo/bar", controller: "foo", action: "bar"
+  end
+
+  def test_to_is_a_symbol
+    ex = assert_raises(ArgumentError) {
+      draw do
+        get "/foo/bar", to: :foo
+      end
+    }
+    assert_match(/:to must respond to/, ex.message)
+  end
+
+  def test_missing_action_with_to
     ex = assert_raises(ArgumentError) {
       draw do
         get "/foo/bar", to: "foo#"
@@ -4397,7 +4446,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
       get "/foo" => ok, as: :foo
 
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get "/post(/:action(/:id))" => ok, as: :posts
       end
 
@@ -4578,7 +4627,7 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
         ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
         get "/foobar/:id", to: ok
 
-        ActiveSupport::Deprecation.silence do
+        ActionDispatch.deprecator.silence do
           get "/:controller(/:action(/:id))"
         end
       end
@@ -4907,11 +4956,7 @@ class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
 
   test "exceptions have suggestions for fix" do
     error = assert_raises(ActionController::UrlGenerationError) { product_path(nil, "id" => "url-tested") }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
   end
 
   # FIXME: we should fix all locations that raise this exception to provide
@@ -4966,7 +5011,7 @@ class TestErrorsInController < ActionDispatch::IntegrationTest
 
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
-    ActiveSupport::Deprecation.silence do
+    ActionDispatch.deprecator.silence do
       get "/:controller(/:action)"
     end
   end
@@ -5109,7 +5154,7 @@ class TestPathParameters < ActionDispatch::IntegrationTest
         end
       end
 
-      ActiveSupport::Deprecation.silence do
+      ActionDispatch.deprecator.silence do
         get ":controller(/:action/(:id))"
       end
     end

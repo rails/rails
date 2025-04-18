@@ -23,6 +23,33 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal copied.build, @policy.build
   end
 
+  def test_whitespace_validation
+    @policy.base_uri "https://some.url https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
+
+  def test_semicolon_validation
+    @policy.base_uri "https://some.url; script-src https://other.url"
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::InvalidDirectiveError) do
+      @policy.build
+    end
+    assert_equal(<<~MSG.squish, error.message)
+      Invalid Content Security Policy base-uri: "https://some.url; script-src https://other.url".
+      Directive values must not contain whitespace or semicolons.
+      Please use multiple arguments or other directive methods instead.
+    MSG
+  end
+
   def test_mappings
     @policy.script_src :data
     assert_equal "script-src data:", @policy.build
@@ -45,6 +72,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.script_src :unsafe_eval
     assert_equal "script-src 'unsafe-eval'", @policy.build
 
+    @policy.script_src :wasm_unsafe_eval
+    assert_equal "script-src 'wasm-unsafe-eval'", @policy.build
+
     @policy.script_src :none
     assert_equal "script-src 'none'", @policy.build
 
@@ -59,6 +89,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     @policy.script_src :none, :report_sample
     assert_equal "script-src 'none' 'report-sample'", @policy.build
+
+    @policy.script_src :unsafe_hashes
+    assert_equal "script-src 'unsafe-hashes'", @policy.build
   end
 
   def test_fetch_directives
@@ -299,6 +332,51 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 end
 
+class ContentSecurityPolicyMiddlewareTest < ActiveSupport::TestCase
+  def setup
+    @env = Rack::MockRequest.env_for("", {})
+    @env["action_dispatch.content_security_policy"] = ActionDispatch::ContentSecurityPolicy.new do |p|
+      p.default_src -> { :self  }
+    end
+    @env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
+    @env["action_dispatch.content_security_policy_report_only"] = false
+    @env["action_dispatch.show_exceptions"] = :none
+
+    @default_csp = "default-src 'self' https: http:"
+  end
+
+  def test_rack_lint
+    app = proc { [200, {}, []] }
+
+    assert_nothing_raised do
+      Rack::Lint.new(
+        ActionDispatch::ContentSecurityPolicy::Middleware.new(
+          Rack::Lint.new(app)
+        )
+      ).call(@env)
+    end
+  end
+
+  def test_does_not_override_app_content_security_policy
+    app = proc { [200, { ActionDispatch::Constants::CONTENT_SECURITY_POLICY => @default_csp }, []] }
+    _, headers, _ = Rack::Lint.new(
+      ActionDispatch::ContentSecurityPolicy::Middleware.new(Rack::Lint.new(app))
+    ).call(@env)
+
+    assert_equal @default_csp, headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY]
+  end
+
+  def test_does_not_override_app_content_security_policy_report_only
+    app = proc { [200, { ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY => @default_csp }, []] }
+    @env["action_dispatch.content_security_policy_report_only"] = true
+    _, headers, _ = Rack::Lint.new(
+      ActionDispatch::ContentSecurityPolicy::Middleware.new(Rack::Lint.new(app))
+    ).call(@env)
+
+    assert_equal @default_csp, headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY]
+  end
+end
+
 class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   class PolicyController < ActionController::Base
     def index
@@ -328,15 +406,17 @@ class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -440,6 +520,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       render json: {}
     end
 
+    def not_modified
+      head :not_modified
+    end
+
     private
       def condition?
         params[:condition] == "true"
@@ -457,6 +541,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/style-src", to: "policy#style_src"
       get "/no-policy", to: "policy#no_policy"
       get "/api", to: "policy#api"
+      get "/not-modified", to: "policy#not_modified"
     end
   end
 
@@ -473,15 +558,17 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -533,6 +620,13 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
     assert_policy "default-src 'none'; frame-ancestors 'none'"
   end
 
+  def test_generates_no_content_security_policy_for_not_modified
+    get "/not-modified"
+
+    assert_nil response.headers["Content-Security-Policy"]
+    assert_nil response.headers["Content-Security-Policy-Report-Only"]
+  end
+
   private
     def assert_policy(expected, report_only: false)
       assert_response :success
@@ -582,15 +676,17 @@ class DisabledContentSecurityPolicyIntegrationTest < ActionDispatch::Integration
       env["action_dispatch.content_security_policy"] = nil
       env["action_dispatch.content_security_policy_nonce_generator"] = nil
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -638,15 +734,17 @@ class NonceDirectiveContentSecurityPolicyIntegrationTest < ActionDispatch::Integ
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
       env["action_dispatch.content_security_policy_nonce_directives"] = %w(script-src)
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app
@@ -710,15 +808,17 @@ class HelpersContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationT
       env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
-      env["action_dispatch.show_exceptions"] = false
+      env["action_dispatch.show_exceptions"] = :none
 
       @app.call(env)
     end
   end
 
   APP = build_app(ROUTES) do |middleware|
+    middleware.use Rack::Lint
     middleware.use PolicyConfigMiddleware
     middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+    middleware.use Rack::Lint
   end
 
   def app

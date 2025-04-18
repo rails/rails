@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 module ActiveJob
+  # Raised during job payload deserialization when it references an uninitialized job class.
+  class UnknownJobClassError < NameError
+    def initialize(job_class_name)
+      super("Failed to instantiate job, class `#{job_class_name}` doesn't exist", job_class_name)
+    end
+  end
+
+  # = Active Job \Core
+  #
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
   module Core
@@ -10,7 +19,7 @@ module ActiveJob
     attr_accessor :arguments
     attr_writer :serialized_arguments
 
-    # Timestamp when the job should be performed
+    # Time when the job should be performed
     attr_accessor :scheduled_at
 
     # Job Identifier
@@ -58,7 +67,10 @@ module ActiveJob
     module ClassMethods
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
-        job = job_data["job_class"].constantize.new
+        job_class = job_data["job_class"].safe_constantize
+        raise UnknownJobClassError, job_data["job_class"] unless job_class
+
+        job = job_class.new
         job.deserialize(job_data)
         job
       end
@@ -92,6 +104,7 @@ module ActiveJob
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
+      @scheduled_at = nil
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
@@ -113,7 +126,8 @@ module ActiveJob
         "exception_executions" => exception_executions,
         "locale"     => I18n.locale.to_s,
         "timezone"   => timezone,
-        "enqueued_at" => Time.now.utc.iso8601(9)
+        "enqueued_at" => Time.now.utc.iso8601(9),
+        "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
       }
     end
 
@@ -153,13 +167,14 @@ module ActiveJob
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone&.name
-      self.enqueued_at          = job_data["enqueued_at"]
+      self.enqueued_at          = Time.iso8601(job_data["enqueued_at"]) if job_data["enqueued_at"]
+      self.scheduled_at         = Time.iso8601(job_data["scheduled_at"]) if job_data["scheduled_at"]
     end
 
     # Configures the job with the given options.
     def set(options = {}) # :nodoc:
-      self.scheduled_at = options[:wait].seconds.from_now.to_f if options[:wait]
-      self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
+      self.scheduled_at = options[:wait].seconds.from_now if options[:wait]
+      self.scheduled_at = options[:wait_until] if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
 
@@ -191,7 +206,7 @@ module ActiveJob
       end
 
       def arguments_serialized?
-        defined?(@serialized_arguments) && @serialized_arguments
+        @serialized_arguments
       end
   end
 end

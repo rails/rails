@@ -1,164 +1,171 @@
-*   Add `skip_nil:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+*   Allow to configure maximum cache key sizes
 
-    *Daniel Alfaro*
+    When the key exceeds the configured limit (250 bytes by default), it will be truncated and
+    the digest of the rest of the key appended to it.
 
-*   Add `quarter` method to date/time
-
-    *Matt Swanson*
-
-*   Fix `NoMethodError` on custom `ActiveSupport::Deprecation` behavior.
-
-    `ActiveSupport::Deprecation.behavior=` was supposed to accept any object
-    that responds to `call`, but in fact its internal implementation assumed that
-    this object could respond to `arity`, so it was restricted to only `Proc` objects.
-
-    This change removes this `arity` restriction of custom behaviors.
-
-    *Ryo Nakamura*
-
-*   Support `:url_safe` option for `MessageEncryptor`.
-
-    The `MessageEncryptor` constructor now accepts a `:url_safe` option, similar
-    to the `MessageVerifier` constructor.  When enabled, this option ensures
-    that messages use a URL-safe encoding.
-
-    *Jonathan Hefner*
-
-*   Add `url_safe` option to `ActiveSupport::MessageVerifier` initializer
-
-    `ActiveSupport::MessageVerifier.new` now takes optional `url_safe` argument.
-    It can generate URL-safe strings by passing `url_safe: true`.
+    Note that previously `ActiveSupport::Cache::RedisCacheStore` allowed up to 1kb cache keys before
+    truncation, which is now reduced to 250 bytes.
 
     ```ruby
-    verifier = ActiveSupport::MessageVerifier.new(url_safe: true)
-    message = verifier.generate(data) # => URL-safe string
-    ```
-
-    This option is `false` by default to be backwards compatible.
-
-    *Shouichi Kamiya*
-
-*   Enable connection pooling by default for `MemCacheStore` and `RedisCacheStore`.
-
-    If you want to disable connection pooling, set `:pool` option to `false` when configuring the cache store:
-
-    ```ruby
-    config.cache_store = :mem_cache_store, "cache.example.com", pool: false
+    config.cache_store = :redis_cache_store, { max_key_size: 64 }
     ```
 
     *fatkodima*
 
-*   Add `force:` support to `ActiveSupport::Cache::Store#fetch_multi`.
+*   Use `UNLINK` command instead of `DEL` in `ActiveSupport::Cache::RedisCacheStore` for non-blocking deletion.
+
+    *Aron Roh*
+
+*   Add `Cache#read_counter` and `Cache#write_counter`
+
+    ```ruby
+    Rails.cache.write_counter("foo", 1)
+    Rails.cache.read_counter("foo") # => 1
+    Rails.cache.increment("foo")
+    Rails.cache.read_counter("foo") # => 2
+    ```
+
+    *Alex Ghiculescu*
+
+*   Introduce ActiveSupport::Testing::ErrorReporterAssertions#capture_error_reports
+
+    Captures all reported errors from within the block that match the given
+    error class.
+
+    ```ruby
+    reports = capture_error_reports(IOError) do
+      Rails.error.report(IOError.new("Oops"))
+      Rails.error.report(IOError.new("Oh no"))
+      Rails.error.report(StandardError.new)
+    end
+
+    assert_equal 2, reports.size
+    assert_equal "Oops", reports.first.error.message
+    assert_equal "Oh no", reports.last.error.message
+    ```
+
+    *Andrew Novoselac*
+
+*   Introduce ActiveSupport::ErrorReporter#add_middleware
+
+    When reporting an error, the error context middleware will be called with the reported error
+    and base execution context. The stack may mutate the context hash. The mutated context will
+    then be passed to error subscribers. Middleware receives the same parameters as `ErrorReporter#report`.
+
+    *Andrew Novoselac*, *Sam Schmidt*
+
+*   Change execution wrapping to report all exceptions, including `Exception`.
+
+    If a more serious error like `SystemStackError` or `NoMemoryError` happens,
+    the error reporter should be able to report these kinds of exceptions.
+
+    *Gannon McGibbon*
+
+*   `ActiveSupport::Testing::Parallelization.before_fork_hook` allows declaration of callbacks that
+    are invoked immediately before forking test workers.
+
+    *Mike Dalessio*
+
+*   Allow the `#freeze_time` testing helper to accept a date or time argument.
+
+    ```ruby
+    Time.current # => Sun, 09 Jul 2024 15:34:49 EST -05:00
+    freeze_time Time.current + 1.day
+    sleep 1
+    Time.current # => Mon, 10 Jul 2024 15:34:49 EST -05:00
+    ```
+
+    *Joshua Young*
+
+*   `ActiveSupport::JSON` now accepts options
+
+    It is now possible to pass options to `ActiveSupport::JSON`:
+    ```ruby
+    ActiveSupport::JSON.decode('{"key": "value"}', symbolize_names: true) # => { key: "value" }
+    ```
+
+    *matthaigh27*
+
+*   `ActiveSupport::Testing::NotificationAssertions`'s `assert_notification` now matches against payload subsets by default.
+
+    Previously the following assertion would fail due to excess key vals in the notification payload. Now with payload subset matching, it will pass.
+
+    ```ruby
+    assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+    end
+    ```
+
+    Additionally, you can now persist a matched notification for more customized assertions.
+
+    ```ruby
+    notification = assert_notification("post.submitted", title: "Cool Post") do
+      ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: Body.new("Cool Body"))
+    end
+
+    assert_instance_of(Body, notification.payload[:body])
+    ```
+
+    *Nicholas La Roux*
+
+*   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
+
+    These APIs are a relic of the Ruby 1.8 days when Ruby strings weren't encoding
+    aware. There is no legitimate reasons to need these APIs today.
+
+    *Jean Boussier*
+
+*   Deprecate `ActiveSupport::Configurable`
+
+    *Sean Doyle*
+
+*   `nil.to_query("key")` now returns `key`.
+
+    Previously it would return `key=`, preventing round tripping with `Rack::Utils.parse_nested_query`.
+
+    *Erol Fornoles*
+
+*   Avoid wrapping redis in a `ConnectionPool` when using `ActiveSupport::Cache::RedisCacheStore` if the `:redis`
+    option is already a `ConnectionPool`.
+
+    *Joshua Young*
+
+*   Alter `ERB::Util.tokenize` to return :PLAIN token with full input string when string doesn't contain ERB tags.
+
+    *Martin Emde*
+
+*   Fix a bug in `ERB::Util.tokenize` that causes incorrect tokenization when ERB tags are preceded by multibyte characters.
+
+    *Martin Emde*
+
+*   Add `ActiveSupport::Testing::NotificationAssertions` module to help with testing `ActiveSupport::Notifications`.
+
+    *Nicholas La Roux*, *Yishu See*, *Sean Doyle*
+
+*   `ActiveSupport::CurrentAttributes#attributes` now will return a new hash object on each call.
+
+    Previously, the same hash object was returned each time that method was called.
 
     *fatkodima*
 
-*   Deprecated `:pool_size` and `:pool_timeout` options for configuring connection pooling in cache stores.
+*   `ActiveSupport::JSON.encode` supports CIDR notation.
 
-    Use `pool: true` to enable pooling with default settings:
-
-    ```ruby
-    config.cache_store = :redis_cache_store, pool: true
-    ```
-
-    Or pass individual options via `:pool` option:
+    Previously:
 
     ```ruby
-    config.cache_store = :redis_cache_store, pool: { size: 10, timeout: 2 }
+    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0\""
     ```
 
-    *fatkodima*
+    After this change:
 
-*   Allow #increment and #decrement methods of `ActiveSupport::Cache::Store`
-    subclasses to set new values.
+    ```ruby
+    ActiveSupport::JSON.encode(IPAddr.new("172.16.0.0/24")) # => "\"172.16.0.0/24\""
+    ```
 
-    Previously incrementing or decrementing an unset key would fail and return
-    nil. A default will now be assumed and the key will be created.
+    *Taketo Takashima*
 
-    *Andrej Blagojević*, *Eugene Kenny*
+*   Make `ActiveSupport::FileUpdateChecker` faster when checking many file-extensions.
 
-*   Add `skip_nil:` support to `RedisCacheStore`
+    *Jonathan del Strother*
 
-    *Joey Paris*
-
-*   `ActiveSupport::Cache::MemoryStore#write(name, val, unless_exist:true)` now
-    correctly writes expired keys.
-
-    *Alan Savage*
-
-*   `ActiveSupport::ErrorReporter` now accepts and forward a `source:` parameter.
-
-    This allow libraries to signal the origin of the errors, and reporters
-    to easily ignore some sources.
-
-    *Jean Boussier*
-
-*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
-
-    Add the method `ERB::Util.xml_name_escape` to escape dangerous characters
-    in names of tags and names of attributes, following the specification of XML.
-
-    *Álvaro Martín Fraguas*
-
-*   Respect `ActiveSupport::Logger.new`'s `:formatter` keyword argument
-
-    The stdlib `Logger::new` allows passing a `:formatter` keyword argument to
-    set the logger's formatter. Previously `ActiveSupport::Logger.new` ignored
-    that argument by always setting the formatter to an instance of
-    `ActiveSupport::Logger::SimpleFormatter`.
-
-    *Steven Harman*
-
-*   Deprecate preserving the pre-Ruby 2.4 behavior of `to_time`
-
-    With Ruby 2.4+ the default for +to_time+ changed from converting to the
-    local system time to preserving the offset of the receiver. At the time Rails
-    supported older versions of Ruby so a compatibility layer was added to assist
-    in the migration process. From Rails 5.0 new applications have defaulted to
-    the Ruby 2.4+ behavior and since Rails 7.0 now only supports Ruby 2.7+
-    this compatibility layer can be safely removed.
-
-    To minimize any noise generated the deprecation warning only appears when the
-    setting is configured to `false` as that is the only scenario where the
-    removal of the compatibility layer has any effect.
-
-    *Andrew White*
-
-*   `Pathname.blank?` only returns true for `Pathname.new("")`
-
-    Previously it would end up calling `Pathname#empty?` which returned true
-    if the path existed and was an empty directory or file.
-
-    That behavior was unlikely to be expected.
-
-    *Jean Boussier*
-
-*   Deprecate `Notification::Event`'s `#children` and `#parent_of?`
-
-    *John Hawthorn*
-
-*   Change default serialization format of `MessageEncryptor` from `Marshal` to `JSON` for Rails 7.1.
-
-    Existing apps are provided with an upgrade path to migrate to `JSON` as described in `guides/source/upgrading_ruby_on_rails.md`
-
-    *Zack Deveau* and *Martin Gingras*
-
-*   Add `ActiveSupport::TestCase#stub_const` to stub a constant for the duration of a yield.
-
-    *DHH*
-
-*   Fix `ActiveSupport::EncryptedConfiguration` to be compatible with Psych 4
-
-    *Stephen Sugden*
-
-*   Improve `File.atomic_write` error handling
-
-    *Daniel Pepper*
-
-*   Fix `Class#descendants` and `DescendantsTracker#descendants` compatibility with Ruby 3.1.
-
-    [The native `Class#descendants` was reverted prior to Ruby 3.1 release](https://bugs.ruby-lang.org/issues/14394#note-33),
-    but `Class#subclasses` was kept, breaking the feature detection.
-
-    *Jean Boussier*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/activesupport/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activesupport/CHANGELOG.md) for previous changes.

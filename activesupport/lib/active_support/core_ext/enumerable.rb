@@ -25,18 +25,6 @@ module Enumerable
   ActiveSupport::EnumerableCoreExt::SoleItemExpectedError = remove_const(:SoleItemExpectedError)
   singleton_class.prepend(ActiveSupport::EnumerableCoreExt::Constants)
 
-  # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
-  # when we omit an identity.
-
-  # :stopdoc:
-
-  # We can't use Refinements here because Refinements with Module which will be prepended
-  # doesn't work well https://bugs.ruby-lang.org/issues/13446
-  alias :_original_sum_with_required_identity :sum
-  private :_original_sum_with_required_identity
-
-  # :startdoc:
-
   # Calculates the minimum from the extracted elements.
   #
   #   payments = [Payment.new(5), Payment.new(15), Payment.new(10)]
@@ -51,45 +39,6 @@ module Enumerable
   #   payments.maximum(:price) # => 15
   def maximum(key)
     map(&key).max
-  end
-
-  # Calculates a sum from the elements.
-  #
-  #  payments.sum { |p| p.price * p.tax_rate }
-  #  payments.sum(&:price)
-  #
-  # The latter is a shortcut for:
-  #
-  #  payments.inject(0) { |sum, p| sum + p.price }
-  #
-  # It can also calculate the sum without the use of a block.
-  #
-  #   [5, 15, 10].sum # => 30
-  #   ['foo', 'bar'].sum('') # => "foobar"
-  #   [[1, 2], [3, 1, 5]].sum([]) # => [1, 2, 3, 1, 5]
-  #
-  # The default sum of an empty list is zero. You can override this default:
-  #
-  #   [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-  def sum(identity = nil, &block)
-    if identity
-      _original_sum_with_required_identity(identity, &block)
-    elsif block_given?
-      map(&block).sum
-    # we check `first(1) == []` to check if we have an
-    # empty Enumerable; checking `empty?` would return
-    # true for `[nil]`, which we want to deprecate to
-    # keep consistent with Ruby
-    elsif first.is_a?(Numeric) || first(1) == []
-      identity ||= 0
-      _original_sum_with_required_identity(identity, &block)
-    else
-      ActiveSupport::Deprecation.warn(<<-MSG.squish)
-        Rails 7.0 has deprecated Enumerable.sum in favor of Ruby's native implementation available since 2.4.
-        Sum of non-numeric elements requires an initial argument.
-      MSG
-      inject(:+) || 0
-    end
   end
 
   # Convert an enumerable to a hash, using the block result as the key and the
@@ -144,8 +93,8 @@ module Enumerable
   def many?
     cnt = 0
     if block_given?
-      any? do |element|
-        cnt += 1 if yield element
+      any? do |*args|
+        cnt += 1 if yield(*args)
         cnt > 1
       end
     else
@@ -225,8 +174,8 @@ module Enumerable
   #   [1, "", nil, 2, " ", [], {}, false, true].compact_blank
   #   # =>  [1, 2, true]
   #
-  #   Set.new([nil, "", 1, 2])
-  #   # => [2, 1] (or [1, 2])
+  #   Set.new([nil, "", 1, false]).compact_blank
+  #   # => [1]
   #
   # When called on a +Hash+, returns a new +Hash+ without the blank values.
   #
@@ -243,22 +192,39 @@ module Enumerable
   #   # => [ Person.find(1), Person.find(5), Person.find(3) ]
   #
   # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
-  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
-  def in_order_of(key, series)
-    index_by(&key).values_at(*series).compact
+  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result, unless
+  # the +filter+ option is set to +false+.
+  def in_order_of(key, series, filter: true)
+    if filter
+      group_by(&key).values_at(*series).flatten(1).compact
+    else
+      sort_by { |v| series.index(v.public_send(key)) || series.size }.compact
+    end
   end
 
   # Returns the sole item in the enumerable. If there are no items, or more
-  # than one item, raises +Enumerable::SoleItemExpectedError+.
+  # than one item, raises Enumerable::SoleItemExpectedError.
   #
   #   ["x"].sole          # => "x"
   #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   def sole
-    case count
-    when 1   then return first # rubocop:disable Style/RedundantReturn
-    when 0   then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "no item found"
-    when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
+    result = nil
+    found = false
+
+    each do |element|
+      if found
+        raise SoleItemExpectedError, "multiple items found"
+      end
+
+      result = element
+      found = true
+    end
+
+    if found
+      result
+    else
+      raise SoleItemExpectedError, "no item found"
     end
   end
 end
@@ -284,38 +250,22 @@ end
 class Range # :nodoc:
   # Optimize range sum to use arithmetic progression if a block is not given and
   # we have a range of numeric values.
-  def sum(identity = nil)
+  def sum(initial_value = 0)
     if block_given? || !(first.is_a?(Integer) && last.is_a?(Integer))
       super
     else
       actual_last = exclude_end? ? (last - 1) : last
       if actual_last >= first
-        sum = identity || 0
+        sum = initial_value || 0
         sum + (actual_last - first + 1) * (actual_last + first) / 2
       else
-        identity || 0
+        initial_value || 0
       end
     end
   end
 end
 
-# Using Refinements here in order not to expose our internal method
-using Module.new {
-  refine Array do
-    alias :orig_sum :sum
-  end
-}
-
 class Array # :nodoc:
-  def sum(init = nil, &block)
-    if init.is_a?(Numeric) || first.is_a?(Numeric)
-      init ||= 0
-      orig_sum(init, &block)
-    else
-      super
-    end
-  end
-
   # Removes all blank elements from the +Array+ in place and returns self.
   # Uses Object#blank? for determining if an item is blank.
   #

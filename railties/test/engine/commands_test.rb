@@ -2,13 +2,16 @@
 
 require "abstract_unit"
 require "console_helpers"
+require "plugin_helpers"
+require "net/http"
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   include ConsoleHelpers
+  include PluginHelpers
 
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
-    Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --mountable` }
+    generate_plugin("#{@destination_root}/bukkits", "--mountable")
   end
 
   def teardown
@@ -17,48 +20,63 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
   def test_help_command_work_inside_engine
     output = capture(:stderr) do
-      Dir.chdir(plugin_path) { `bin/rails --help` }
+      in_plugin_context(plugin_path) { `bin/rails --help` }
     end
     assert_no_match "NameError", output
   end
 
   def test_runner_command_work_inside_engine
     output = capture(:stdout) do
-      Dir.chdir(plugin_path) { system("bin/rails runner 'puts Rails.env'") }
+      in_plugin_context(plugin_path) { system({ "RAILS_ENV" => "test" }, "bin/rails runner 'puts Rails.env'") }
     end
 
     assert_equal "test", output.strip
   end
 
-  def test_console_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+  if available_pty?
+    def test_console_command_work_inside_engine
+      primary, replica = PTY.open
+      cmd = "console"
+      spawn_command(cmd, replica, env: { "TERM" => "dumb" })
+      assert_output(">", primary)
+    ensure
+      primary.puts "quit"
+    end
 
-    primary, replica = PTY.open
-    cmd = "console --singleline"
-    spawn_command(cmd, replica)
-    assert_output(">", primary)
-  ensure
-    primary.puts "quit"
-  end
+    def test_dbconsole_command_work_inside_engine
+      primary, replica = PTY.open
+      spawn_command("dbconsole", replica)
+      assert_output("sqlite>", primary)
+    ensure
+      primary.puts ".exit"
+    end
 
-  def test_dbconsole_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+    def test_server_command_work_inside_engine
+      primary, replica = PTY.open
+      pid = spawn_command("server", replica)
+      assert_output("Listening on", primary)
+    ensure
+      kill(pid)
+    end
 
-    primary, replica = PTY.open
-    spawn_command("dbconsole", replica)
-    assert_output("sqlite>", primary)
-  ensure
-    primary.puts ".exit"
-  end
+    def test_server_command_broadcast_logs
+      primary, replica = PTY.open
+      pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
+      assert_output("Listening on", primary)
 
-  def test_server_command_work_inside_engine
-    skip "PTY unavailable" unless available_pty?
+      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
+        net.get("/")
+      end
 
-    primary, replica = PTY.open
-    pid = spawn_command("server", replica)
-    assert_output("Listening on", primary)
-  ensure
-    kill(pid)
+      in_plugin_context(plugin_path) do
+        logs = File.read("test/dummy/log/development.log")
+        assert_match("Processing by Rails::WelcomeController", logs)
+      end
+
+      assert_output("Processing by Rails::WelcomeController", primary)
+    ensure
+      kill(pid)
+    end
   end
 
   private
@@ -66,11 +84,10 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       "#{@destination_root}/bukkits"
     end
 
-    def spawn_command(command, fd)
-      Process.spawn(
-        "#{plugin_path}/bin/rails #{command}",
-        in: fd, out: fd, err: fd
-      )
+    def spawn_command(command, fd, env: {})
+      in_plugin_context(plugin_path) do
+        Process.spawn(env, "bin/rails #{command}", in: fd, out: fd, err: fd)
+      end
     end
 
     def kill(pid)

@@ -1,92 +1,54 @@
-*   Allow templates to set strict `locals`.
+*   Respect `html_options[:form]` when `collection_checkboxes` generates the
+    hidden `<input>`.
 
-    By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
+    *Riccardo Odone*
 
-    ```erb
-    <%# locals: (message:) -%>
-    <%= message %>
-    ```
+*   Layouts have access to local variables passed to `render`.
 
-    Default values can also be provided:
-
-    ```erb
-    <%# locals: (message: "Hello, world!") -%>
-    <%= message %>
-    ```
-
-    Or `locals` can be disabled entirely:
-
-    ```erb
-    <%# locals: () %>
-    ```
-
-    *Joel Hawksley*
-
-*   Add `include_seconds` option for `datetime_local_field`
-
-    This allows to omit seconds part in the input field, by passing `include_seconds: false`
-
-    *Wojciech Wnętrzak*
-
-*   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
-    `object_name` arguments. For example:
-
-    ```erb
-    <%= fields do |f| %>
-      <%= f.field_name :body %>
-    <% end %>
-    ```
-
-    *Sean Doyle*
-
-*   Strings returned from `strip_tags` are correctly tagged `html_safe?`
-
-    Because these strings contain no HTML elements and the basic entities are escaped, they are safe
-    to be included as-is as PCDATA in HTML content. Tagging them as html-safe avoids double-escaping
-    entities when being concatenated to a SafeBuffer during rendering.
-
-    Fixes [rails/rails-html-sanitizer#124](https://github.com/rails/rails-html-sanitizer/issues/124)
+    This fixes #31680 which was a regression in Rails 5.1.
 
     *Mike Dalessio*
 
-*   Move `convert_to_model` call from `form_for` into `form_with`
+*   Argument errors related to strict locals in templates now raise an
+    `ActionView::StrictLocalsError`, and all other argument errors are reraised as-is.
 
-    Now that `form_for` is implemented in terms of `form_with`, remove the
-    `convert_to_model` call from `form_for`.
+    Previously, any `ArgumentError` raised during template rendering was swallowed during strict
+    local error handling, so that an `ArgumentError` unrelated to strict locals (e.g., a helper
+    method invoked with incorrect arguments) would be replaced by a similar `ArgumentError` with an
+    unrelated backtrace, making it difficult to debug templates.
 
-    *Sean Doyle*
+    Now, any `ArgumentError` unrelated to strict locals is reraised, preserving the original
+    backtrace for developers.
 
-*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+    Also note that `ActionView::StrictLocalsError` is a subclass of `ArgumentError`, so any existing
+    code that rescues `ArgumentError` will continue to work.
 
-    Escape dangerous characters in names of tags and names of attributes in the
-    tag helpers, following the XML specification. Rename the option
-    `:escape_attributes` to `:escape`, to simplify by applying the option to the
-    whole tag.
+    Fixes #52227.
 
-    *Álvaro Martín Fraguas*
+    *Mike Dalessio*
 
-*   Extend audio_tag and video_tag to accept Active Storage attachments.
+*   Improve error highlighting of multi-line methods in ERB templates or
+    templates where the error occurs within a do-end block.
 
-    Now it's possible to write
+    *Martin Emde*
 
-    ```ruby
-    audio_tag(user.audio_file)
-    video_tag(user.video_file)
-    ```
+*   Fix a crash in ERB template error highlighting when the error occurs on a
+    line in the compiled template that is past the end of the source template.
 
-    Instead of
+    *Martin Emde*
 
-    ```ruby
-    audio_tag(polymorphic_path(user.audio_file))
-    video_tag(polymorphic_path(user.video_file))
-    ```
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
 
-    `image_tag` already supported that, so this follows the same pattern.
+    *Martin Emde*
 
-    *Matheus Richard*
+*   Allow `hidden_field` and `hidden_field_tag` to accept a custom autocomplete value.
 
-*   Ensure models passed to `form_for` attempt to call `to_model`.
+    *brendon*
 
-    *Sean Doyle*
+*   Add a new configuration `content_security_policy_nonce_auto` for automatically adding a nonce to the tags affected by the directives specified by the `content_security_policy_nonce_directives` configuration option.
 
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionview/CHANGELOG.md) for previous changes.
+    *francktrouillez*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionview/CHANGELOG.md) for previous changes.

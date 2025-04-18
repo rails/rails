@@ -49,7 +49,7 @@ module Epub # :nodoc:
     end
 
     def is_name_invalid(name)
-      (/[0-9]/ === name.chars.first)
+      name.match?(/\A\d/)
     end
 
     def fix_file_names(output_dir)

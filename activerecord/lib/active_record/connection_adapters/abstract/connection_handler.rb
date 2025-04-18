@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "thread"
 require "concurrent/map"
 
 module ActiveRecord
   module ConnectionAdapters
+    # = Active Record Connection Handler
+    #
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
     # for keeping separate connection pools that connect to different databases.
     #
@@ -53,31 +54,28 @@ module ActiveRecord
     # about the model. The model needs to pass a connection specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      FINALIZER = lambda { |_| ActiveSupport::ForkTracker.check! }
-      private_constant :FINALIZER
-
-      class StringConnectionName # :nodoc:
-        attr_reader :name
-
-        def initialize(name)
+      class ConnectionDescriptor # :nodoc:
+        def initialize(name, primary = false)
           @name = name
+          @primary = primary
+        end
+
+        def name
+          primary_class? ? "ActiveRecord::Base" : @name
         end
 
         def primary_class?
-          false
+          @primary
         end
 
         def current_preventing_writes
-          false
+          ActiveRecord::Base.preventing_writes?(@name)
         end
       end
 
       def initialize
         # These caches are keyed by pool_config.connection_name (PoolConfig#connection_name).
         @connection_name_to_pool_manager = Concurrent::Map.new(initial_capacity: 2)
-
-        # Backup finalizer: if the forked child skipped Kernel#fork the early discard has not occurred
-        ObjectSpace.define_finalizer self, FINALIZER
       end
 
       def prevent_writes # :nodoc:
@@ -92,22 +90,35 @@ module ActiveRecord
         connection_name_to_pool_manager.keys
       end
 
-      def all_connection_pools
-        connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
-      end
-
-      def connection_pool_list(role = ActiveRecord::Base.current_role)
-        connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
+      # Returns the pools for a connection handler and given role. If +:all+ is passed,
+      # all pools belonging to the connection handler will be returned.
+      def connection_pool_list(role = nil)
+        if role.nil? || role == :all
+          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs.map(&:pool) }
+        else
+          connection_name_to_pool_manager.values.flat_map { |m| m.pool_configs(role).map(&:pool) }
+        end
       end
       alias :connection_pools :connection_pool_list
 
-      def establish_connection(config, owner_name: Base, role: ActiveRecord::Base.current_role, shard: Base.current_shard)
-        owner_name = StringConnectionName.new(config.to_s) if config.is_a?(Symbol)
+      def each_connection_pool(role = nil, &block) # :nodoc:
+        role = nil if role == :all
+        return enum_for(__method__, role) unless block_given?
+
+        connection_name_to_pool_manager.each_value do |manager|
+          manager.each_pool_config(role) do |pool_config|
+            yield pool_config.pool
+          end
+        end
+      end
+
+      def establish_connection(config, owner_name: Base, role: Base.current_role, shard: Base.current_shard, clobber: false)
+        owner_name = determine_owner_name(owner_name, config)
 
         pool_config = resolve_pool_config(config, owner_name, role, shard)
         db_config = pool_config.db_config
 
-        pool_manager = set_pool_manager(pool_config.connection_name)
+        pool_manager = set_pool_manager(pool_config.connection_descriptor)
 
         # If there is an existing pool with the same values as the pool_config
         # don't remove the connection. Connections should only be removed if we are
@@ -115,12 +126,12 @@ module ActiveRecord
         # configuration.
         existing_pool_config = pool_manager.get_pool_config(role, shard)
 
-        if existing_pool_config && existing_pool_config.db_config == db_config
+        if !clobber && existing_pool_config && existing_pool_config.db_config == db_config
           # Update the pool_config's connection class if it differs. This is used
           # for ensuring that ActiveRecord::Base and the primary_abstract_class use
           # the same pool. Without this granular swapping will not work correctly.
-          if owner_name.primary_class? && (existing_pool_config.connection_class != owner_name)
-            existing_pool_config.connection_class = owner_name
+          if owner_name.primary_class? && (existing_pool_config.connection_descriptor != owner_name)
+            existing_pool_config.connection_descriptor = owner_name
           end
 
           existing_pool_config.pool
@@ -129,7 +140,8 @@ module ActiveRecord
           pool_manager.set_pool_config(role, shard, pool_config)
 
           payload = {
-            connection_name: pool_config.connection_name,
+            connection_name: pool_config.connection_descriptor.name,
+            role: role,
             shard: shard,
             config: db_config.configuration_hash
           }
@@ -142,33 +154,36 @@ module ActiveRecord
 
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
-      def active_connections?(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).any?(&:active_connection?)
+      def active_connections?(role = nil)
+        each_connection_pool(role).any?(&:active_connection?)
       end
 
       # Returns any connections in use by the current thread back to the pool,
       # and also returns connections to the pool cached by threads that are no
       # longer alive.
-      def clear_active_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:release_connection)
+      def clear_active_connections!(role = nil)
+        each_connection_pool(role).each do |pool|
+          pool.release_connection
+          pool.disable_query_cache!
+        end
       end
 
       # Clears the cache which maps classes.
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
-      def clear_reloadable_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:clear_reloadable_connections!)
+      def clear_reloadable_connections!(role = nil)
+        each_connection_pool(role).each(&:clear_reloadable_connections!)
       end
 
-      def clear_all_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:disconnect!)
+      def clear_all_connections!(role = nil)
+        each_connection_pool(role).each(&:disconnect!)
       end
 
       # Disconnects all currently idle connections.
       #
       # See ConnectionPool#flush! for details.
-      def flush_idle_connections!(role = ActiveRecord::Base.current_role)
-        connection_pool_list(role).each(&:flush!)
+      def flush_idle_connections!(role = nil)
+        each_connection_pool(role).each(&:flush!)
       end
 
       # Locate the connection of the nearest super class. This can be an
@@ -176,21 +191,8 @@ module ActiveRecord
       # opened and set as the active connection for the class it was defined
       # for (not necessarily the current class).
       def retrieve_connection(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard) # :nodoc:
-        pool = retrieve_connection_pool(connection_name, role: role, shard: shard)
-
-        unless pool
-          if shard != ActiveRecord::Base.default_shard
-            message = "No connection pool for '#{connection_name}' found for the '#{shard}' shard."
-          elsif role != ActiveRecord::Base.default_role
-            message = "No connection pool for '#{connection_name}' found for the '#{role}' role."
-          else
-            message = "No connection pool for '#{connection_name}' found."
-          end
-
-          raise ConnectionNotEstablished, message
-        end
-
-        pool.connection
+        pool = retrieve_connection_pool(connection_name, role: role, shard: shard, strict: true)
+        pool.lease_connection
       end
 
       # Returns true if a connection that's accessible to this class has
@@ -209,9 +211,29 @@ module ActiveRecord
       # Retrieving the connection pool happens a lot, so we cache it in @connection_name_to_pool_manager.
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
-      def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
-        pool_config = get_pool_manager(connection_name)&.get_pool_config(role, shard)
-        pool_config&.pool
+      def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard, strict: false)
+        pool_manager = get_pool_manager(connection_name)
+        pool = pool_manager&.get_pool_config(role, shard)&.pool
+
+        if strict && !pool
+          selector = [
+            ("'#{shard}' shard" unless shard == ActiveRecord::Base.default_shard),
+            ("'#{role}' role" unless role == ActiveRecord::Base.default_role),
+          ].compact.join(" and ")
+
+          selector = [
+            (connection_name unless connection_name == "ActiveRecord::Base"),
+            selector.presence,
+          ].compact.join(" with ")
+
+          selector = " for #{selector}" if selector.present?
+
+          message = "No database connection defined#{selector}."
+
+          raise ConnectionNotDefined.new(message, connection_name: connection_name, shard: shard, role: role)
+        end
+
+        pool
       end
 
       private
@@ -223,8 +245,12 @@ module ActiveRecord
         end
 
         # Get the existing pool manager or initialize and assign a new one.
-        def set_pool_manager(connection_name)
-          connection_name_to_pool_manager[connection_name] ||= PoolManager.new
+        def set_pool_manager(connection_descriptor)
+          connection_name_to_pool_manager[connection_descriptor.name] ||= PoolManager.new
+        end
+
+        def pool_managers
+          connection_name_to_pool_manager.values
         end
 
         def disconnect_pool_from_pool_manager(pool_manager, role, shard)
@@ -248,35 +274,19 @@ module ActiveRecord
         #
         def resolve_pool_config(config, connection_name, role, shard)
           db_config = Base.configurations.resolve(config)
-
+          db_config.validate!
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless db_config.adapter
-
-          # Require the adapter itself and give useful feedback about
-          #   1. Missing adapter gems and
-          #   2. Adapter gems' missing dependencies.
-          path_to_adapter = "active_record/connection_adapters/#{db_config.adapter}_adapter"
-          begin
-            require path_to_adapter
-          rescue LoadError => e
-            # We couldn't require the adapter itself. Raise an exception that
-            # points out config typos and missing gems.
-            if e.path == path_to_adapter
-              # We can assume that a non-builtin adapter was specified, so it's
-              # either misspelled or missing from Gemfile.
-              raise LoadError, "Could not load the '#{db_config.adapter}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
-
-              # Bubbled up from the adapter require. Prefix the exception message
-              # with some guidance about how to address it and reraise.
-            else
-              raise LoadError, "Error loading the '#{db_config.adapter}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
-            end
-          end
-
-          unless ActiveRecord::Base.respond_to?(db_config.adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{db_config.adapter} adapter"
-          end
-
           ConnectionAdapters::PoolConfig.new(connection_name, db_config, role, shard)
+        end
+
+        def determine_owner_name(owner_name, config)
+          if owner_name.is_a?(String) || owner_name.is_a?(Symbol)
+            ConnectionDescriptor.new(owner_name.to_s)
+          elsif config.is_a?(Symbol)
+            ConnectionDescriptor.new(config.to_s)
+          else
+            owner_name
+          end
         end
     end
   end

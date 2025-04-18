@@ -2,7 +2,7 @@
 
 require_relative "../abstract_unit"
 require "active_support/core_ext/class"
-require "set"
+require "active_support/descendants_tracker"
 
 class ClassTest < ActiveSupport::TestCase
   class Parent; end
@@ -36,5 +36,19 @@ class ClassTest < ActiveSupport::TestCase
   def test_subclasses_excludes_singleton_classes
     klass = Parent.new.singleton_class
     assert_not Parent.subclasses.include?(klass), "subclasses should not include singleton classes"
+  end
+
+  def test_subclasses_exclude_reloaded_classes
+    subclass = Class.new(Parent)
+    assert_includes Parent.subclasses, subclass
+    ActiveSupport::DescendantsTracker.clear(Set[subclass])
+    assert_not_includes Parent.subclasses, subclass
+  end
+
+  def test_descendants_exclude_reloaded_classes
+    subclass = Class.new(Parent)
+    assert_includes Parent.descendants, subclass
+    ActiveSupport::DescendantsTracker.clear(Set[subclass])
+    assert_not_includes Parent.descendants, subclass
   end
 end

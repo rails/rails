@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module ActiveStorage
+  # = Active Storage \Attached
+  #
   # Abstract base class for the concrete ActiveStorage::Attached::One and ActiveStorage::Attached::Many
   # classes that both provide proxy access to the blob association for a record.
   class Attached

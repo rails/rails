@@ -1,97 +1,133 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionController
-  # ActionController::Renderer allows you to render arbitrary templates
-  # without requirement of being in controller actions.
+  # # Action Controller Renderer
   #
-  # You get a concrete renderer class by invoking ActionController::Base#renderer.
-  # For example:
+  # ActionController::Renderer allows you to render arbitrary templates without
+  # being inside a controller action.
   #
-  #   ApplicationController.renderer
+  # You can get a renderer instance by calling `renderer` on a controller class:
   #
-  # It allows you to call method #render directly.
+  #     ApplicationController.renderer
+  #     PostsController.renderer
   #
-  #   ApplicationController.renderer.render template: '...'
+  # and render a template by calling the #render method:
   #
-  # You can use this shortcut in a controller, instead of the previous example:
+  #     ApplicationController.renderer.render template: "posts/show", assigns: { post: Post.first }
+  #     PostsController.renderer.render :show, assigns: { post: Post.first }
   #
-  #   ApplicationController.render template: '...'
+  # As a shortcut, you can also call `render` directly on the controller class
+  # itself:
   #
-  # #render allows you to use the same options that you can use when rendering in a controller.
-  # For example:
-  #
-  #   FooController.render :action, locals: { ... }, assigns: { ... }
-  #
-  # The template will be rendered in a Rack environment which is accessible through
-  # ActionController::Renderer#env. You can set it up in two ways:
-  #
-  # *  by changing renderer defaults, like
-  #
-  #       ApplicationController.renderer.defaults # => hash with default Rack environment
-  #
-  # *  by initializing an instance of renderer by passing it a custom environment.
-  #
-  #       ApplicationController.renderer.new(method: 'post', https: true)
+  #     ApplicationController.render template: "posts/show", assigns: { post: Post.first }
+  #     PostsController.render :show, assigns: { post: Post.first }
   #
   class Renderer
-    attr_reader :defaults, :controller
+    attr_reader :controller
 
     DEFAULTS = {
-      http_host: "example.org",
-      https: false,
       method: "get",
-      script_name: "",
       input: ""
     }.freeze
 
-    # Create a new renderer instance for a specific controller class.
-    def self.for(controller, env = {}, defaults = DEFAULTS.dup)
+    def self.normalize_env(env) # :nodoc:
+      new_env = {}
+
+      env.each_pair do |key, value|
+        case key
+        when :https
+          value = value ? "on" : "off"
+        when :method
+          value = -value.upcase
+        end
+
+        key = RACK_KEY_TRANSLATION[key] || key.to_s
+
+        new_env[key] = value
+      end
+
+      if new_env["HTTP_HOST"]
+        new_env["HTTPS"] ||= "off"
+        new_env["SCRIPT_NAME"] ||= ""
+      end
+
+      if new_env["HTTPS"]
+        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
+      end
+
+      new_env
+    end
+
+    # Creates a new renderer using the given controller class. See ::new.
+    def self.for(controller, env = nil, defaults = DEFAULTS)
       new(controller, env, defaults)
     end
 
-    # Create a new renderer for the same controller but with a new env.
-    def new(env = {})
-      self.class.new controller, env, defaults
+    # Creates a new renderer using the same controller, but with a new Rack env.
+    #
+    #     ApplicationController.renderer.new(method: "post")
+    #
+    def new(env = nil)
+      self.class.new controller, env, @defaults
     end
 
-    # Create a new renderer for the same controller but with new defaults.
+    # Creates a new renderer using the same controller, but with the given defaults
+    # merged on top of the previous defaults.
     def with_defaults(defaults)
-      self.class.new controller, @env, self.defaults.merge(defaults)
+      self.class.new controller, @env, @defaults.merge(defaults)
     end
 
-    # Accepts a custom Rack environment to render templates in.
-    # It will be merged with the default Rack environment defined by
-    # +ActionController::Renderer::DEFAULTS+.
+    # Initializes a new Renderer.
+    #
+    # #### Parameters
+    #
+    # *   `controller` - The controller class to instantiate for rendering.
+    # *   `env` - The Rack env to use for mocking a request when rendering. Entries
+    #     can be typical Rack env keys and values, or they can be any of the
+    #     following, which will be converted appropriately:
+    #     *   `:http_host` - The HTTP host for the incoming request. Converts to
+    #         Rack's `HTTP_HOST`.
+    #     *   `:https` - Boolean indicating whether the incoming request uses HTTPS.
+    #         Converts to Rack's `HTTPS`.
+    #     *   `:method` - The HTTP method for the incoming request,
+    #         case-insensitive. Converts to Rack's `REQUEST_METHOD`.
+    #     *   `:script_name` - The portion of the incoming request's URL path that
+    #         corresponds to the application. Converts to Rack's `SCRIPT_NAME`.
+    #     *   `:input` - The input stream. Converts to Rack's `rack.input`.
+    #
+    # *   `defaults` - Default values for the Rack env. Entries are specified in the
+    #     same format as `env`. `env` will be merged on top of these values.
+    #     `defaults` will be retained when calling #new on a renderer instance.
+    #
+    #
+    # If no `http_host` is specified, the env HTTP host will be derived from the
+    # routes' `default_url_options`. In this case, the `https` boolean and the
+    # `script_name` will also be derived from `default_url_options` if they were not
+    # specified. Additionally, the `https` boolean will fall back to
+    # `Rails.application.config.force_ssl` if `default_url_options` does not specify
+    # a `protocol`.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
-      @env = normalize_keys defaults, env
+      if env.blank? && @defaults == DEFAULTS
+        @env = DEFAULT_ENV
+      else
+        @env = normalize_env(@defaults)
+        @env.merge!(normalize_env(env)) unless env.blank?
+      end
     end
 
-    # Render templates with any options from ActionController::Base#render_to_string.
-    #
-    # The primary options are:
-    # * <tt>:partial</tt> - See ActionView::PartialRenderer for details.
-    # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
-    #   It shouldn’t be used directly with unsanitized user input due to lack of validation.
-    # * <tt>:inline</tt> - Renders an ERB template string.
-    # * <tt>:plain</tt> - Renders provided text and sets the content type as <tt>text/plain</tt>.
-    # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
-    #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
-    # * <tt>:json</tt> - Renders the provided hash or object in JSON. You don't
-    #   need to call <tt>.to_json</tt> on the object you want to render.
-    # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
-    #
-    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, then:
-    #
-    # If an object responding to +render_in+ is passed, +render_in+ is called on the object,
-    # passing in the current view context.
-    #
-    # Otherwise, a partial is rendered using the second parameter as the locals hash.
-    def render(*args)
-      raise "missing controller" unless controller
+    def defaults
+      @defaults = @defaults.dup if @defaults.frozen?
+      @defaults
+    end
 
-      request = ActionDispatch::Request.new @env
+    # Renders a template to a string, just like
+    # ActionController::Rendering#render_to_string.
+    def render(*args)
+      request = ActionDispatch::Request.new(env_for_request)
       request.routes = controller._routes
 
       instance = controller.new
@@ -102,19 +138,6 @@ module ActionController
     alias_method :render_to_string, :render # :nodoc:
 
     private
-      def normalize_keys(defaults, env)
-        new_env = {}
-        env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
-
-        defaults.each_pair do |k, v|
-          key = rack_key_for(k)
-          new_env[key] = rack_value_for(k, v) unless new_env.key?(key)
-        end
-
-        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
-        new_env
-      end
-
       RACK_KEY_TRANSLATION = {
         http_host:   "HTTP_HOST",
         https:       "HTTPS",
@@ -123,18 +146,15 @@ module ActionController
         input:       "rack.input"
       }
 
-      def rack_key_for(key)
-        RACK_KEY_TRANSLATION[key] || key.to_s
-      end
+      DEFAULT_ENV = normalize_env(DEFAULTS).freeze # :nodoc:
 
-      def rack_value_for(key, value)
-        case key
-        when :https
-          value ? "on" : "off"
-        when :method
-          -value.upcase
+      delegate :normalize_env, to: :class
+
+      def env_for_request
+        if @env.key?("HTTP_HOST") || controller._routes.nil?
+          @env.dup
         else
-          value
+          controller._routes.default_env.merge(@env)
         end
       end
   end

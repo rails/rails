@@ -11,34 +11,50 @@ module ActiveSupport
       attr_accessor :gem_name
 
       # Outputs a deprecation warning to the output configured by
-      # <tt>ActiveSupport::Deprecation.behavior</tt>.
+      # ActiveSupport::Deprecation#behavior.
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   ActiveSupport::Deprecation.new.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       def warn(message = nil, callstack = nil)
         return if silenced
 
         callstack ||= caller_locations(2)
-        deprecation_message(callstack, message).tap do |m|
+        deprecation_message(callstack, message).tap do |full_message|
           if deprecation_disallowed?(message)
-            disallowed_behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            disallowed_behavior.each { |b| b.call(full_message, callstack, self) }
           else
-            behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
+            behavior.each { |b| b.call(full_message, callstack, self) }
           end
         end
       end
 
       # Silence deprecation warnings within the block.
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator = ActiveSupport::Deprecation.new
+      #   deprecator.warn('something broke!')
       #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       #
-      #   ActiveSupport::Deprecation.silence do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.silence do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => nil
       def silence(&block)
-        @silenced_thread.bind(true, &block)
+        begin_silence
+        block.call
+      ensure
+        end_silence
+      end
+
+      def begin_silence # :nodoc:
+        @silence_counter.value += 1
+      end
+
+      def end_silence # :nodoc:
+        @silence_counter.value -= 1
+      end
+
+      def silenced
+        @silenced || @silence_counter.value.nonzero?
       end
 
       # Allow previously disallowed deprecation warnings within the block.
@@ -46,27 +62,28 @@ module ActiveSupport
       # expressions. (Symbols are treated as strings). These are compared against
       # the text of deprecation warning messages generated within the block.
       # Matching warnings will be exempt from the rules set by
-      # +ActiveSupport::Deprecation.disallowed_warnings+
+      # ActiveSupport::Deprecation#disallowed_warnings.
       #
       # The optional <tt>if:</tt> argument accepts a truthy/falsy value or an object that
       # responds to <tt>.call</tt>. If truthy, then matching warnings will be allowed.
       # If falsey then the method yields to the block without allowing the warning.
       #
-      #   ActiveSupport::Deprecation.disallowed_behavior = :raise
-      #   ActiveSupport::Deprecation.disallowed_warnings = [
+      #   deprecator = ActiveSupport::Deprecation.new
+      #   deprecator.disallowed_behavior = :raise
+      #   deprecator.disallowed_warnings = [
       #     "something broke"
       #   ]
       #
-      #   ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.warn('something broke!')
       #   # => ActiveSupport::DeprecationException
       #
-      #   ActiveSupport::Deprecation.allow ['something broke'] do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.allow ['something broke'] do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => nil
       #
-      #   ActiveSupport::Deprecation.allow ['something broke'], if: Rails.env.production? do
-      #     ActiveSupport::Deprecation.warn('something broke!')
+      #   deprecator.allow ['something broke'], if: Rails.env.production? do
+      #     deprecator.warn('something broke!')
       #   end
       #   # => ActiveSupport::DeprecationException for dev/test, nil for production
       def allow(allowed_warnings = :all, if: true, &block)
@@ -77,10 +94,6 @@ module ActiveSupport
         else
           yield
         end
-      end
-
-      def silenced
-        @silenced || @silenced_thread.value
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
@@ -125,32 +138,24 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
-          return _extract_callstack(callstack) if callstack.first.is_a? String
+          return [] if callstack.empty?
 
           offending_line = callstack.find { |frame|
-            frame.absolute_path && !ignored_callstack(frame.absolute_path)
+            # Code generated with `eval` doesn't have an `absolute_path`, e.g. templates.
+            path = frame.absolute_path || frame.path
+            path && !ignored_callstack?(path)
           } || callstack.first
 
           [offending_line.path, offending_line.lineno, offending_line.label]
         end
 
-        def _extract_callstack(callstack)
-          warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
-          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
-
-          if offending_line
-            if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
-              md.captures
-            else
-              offending_line
-            end
-          end
-        end
-
         RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
+        private_constant :RAILS_GEM_ROOT
+        LIB_DIR = RbConfig::CONFIG["libdir"]
+        private_constant :LIB_DIR
 
-        def ignored_callstack(path)
-          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
+        def ignored_callstack?(path)
+          path.start_with?(RAILS_GEM_ROOT, LIB_DIR) || path.include?("<internal:")
         end
     end
   end

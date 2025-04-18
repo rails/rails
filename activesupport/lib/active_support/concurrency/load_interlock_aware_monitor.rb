@@ -4,9 +4,7 @@ require "monitor"
 
 module ActiveSupport
   module Concurrency
-    # A monitor that will permit dependency loading while blocked waiting for
-    # the lock.
-    class LoadInterlockAwareMonitor < Monitor
+    module LoadInterlockAwareMonitorMixin # :nodoc:
       EXCEPTION_NEVER = { Exception => :never }.freeze
       EXCEPTION_IMMEDIATE = { Exception => :immediate }.freeze
       private_constant :EXCEPTION_NEVER, :EXCEPTION_IMMEDIATE
@@ -28,6 +26,47 @@ module ActiveSupport
           end
         end
       end
+    end
+    # A monitor that will permit dependency loading while blocked waiting for
+    # the lock.
+    class LoadInterlockAwareMonitor < Monitor
+      include LoadInterlockAwareMonitorMixin
+    end
+
+    class ThreadLoadInterlockAwareMonitor # :nodoc:
+      prepend LoadInterlockAwareMonitorMixin
+
+      def initialize
+        @owner = nil
+        @count = 0
+        @mutex = Mutex.new
+      end
+
+      private
+        def mon_try_enter
+          if @owner != Thread.current
+            return false unless @mutex.try_lock
+            @owner = Thread.current
+          end
+          @count += 1
+        end
+
+        def mon_enter
+          @mutex.lock if @owner != Thread.current
+          @owner = Thread.current
+          @count += 1
+        end
+
+        def mon_exit
+          unless @owner == Thread.current
+            raise ThreadError, "current thread not owner"
+          end
+
+          @count -= 1
+          return unless @count == 0
+          @owner = nil
+          @mutex.unlock
+        end
     end
   end
 end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "fiber"
 
 module ActionView
   # == TODO
@@ -26,6 +25,13 @@ module ActionView
         self
       end
 
+      # Returns the complete body as a string.
+      def body
+        buffer = String.new
+        each { |part| buffer << part }
+        buffer
+      end
+
       private
         # This is the same logging logic as in ShowExceptions middleware.
         def log_error(exception)
@@ -43,10 +49,10 @@ module ActionView
     # object that responds to each. This object is initialized with a block
     # that knows how to render the template.
     def render_template(view, template, layout_name = nil, locals = {}) # :nodoc:
-      return [super.body] unless layout_name && template.supports_streaming?
+      return [super.body] unless template.supports_streaming?
 
       locals ||= {}
-      layout   = layout_name && find_layout(layout_name, locals.keys, [formats.first])
+      layout   = find_layout(layout_name, locals.keys, [formats.first])
 
       Body.new do |buffer|
         delayed_render(buffer, template, layout, view, locals)
@@ -65,7 +71,8 @@ module ActionView
         ActiveSupport::Notifications.instrument(
           "render_template.action_view",
           identifier: template.identifier,
-          layout: layout && layout.virtual_path
+          layout: layout && layout.virtual_path,
+          locals: locals
         ) do
           outer_config = I18n.config
           fiber = Fiber.new do

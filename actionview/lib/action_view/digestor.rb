@@ -11,7 +11,7 @@ module ActionView
       #
       # * <tt>name</tt>         - Template name
       # * <tt>format</tt>       - Template format
-      # * <tt>finder</tt>       - An instance of <tt>ActionView::LookupContext</tt>
+      # * +finder+              - An instance of ActionView::LookupContext
       # * <tt>dependencies</tt> - An array of dependent views
       def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
@@ -107,8 +107,12 @@ module ActionView
         end.join("-")
       end
 
-      def to_dep_map
-        children.any? ? { name => children.map(&:to_dep_map) } : name
+      def to_dep_map(seen = Set.new.compare_by_identity)
+        if seen.add?(self)
+          children.any? ? { name => children.map { |c| c.to_dep_map(seen) } } : name
+        else # the tree has a cycle
+          name
+        end
       end
     end
 

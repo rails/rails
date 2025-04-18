@@ -1,0 +1,264 @@
+// ----------------------------------------------------------------------------
+// Dark Mode Styles for Rails Guided 2024 Redesign
+// ----------------------------------------------------------------------------
+//
+// @include-media does not handle prefers-color-scheme so we are declaring this
+// as an independent file with the overrides for dark mode.
+
+@media (prefers-color-scheme: dark) {
+  body.guide {
+
+    background-color: $gray-1000;
+    color: $text-on-darker-bg;
+
+    &::-webkit-scrollbar {
+      width: 12px;
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        background-color: $gray-900;
+      }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: $gray-500;
+        border-radius: 10px;
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    h1, h2, h3 {
+      color: $large-text-on-darker-bg;
+    }
+
+    a {
+      &:link {
+        color: $rf-brand-lightest;
+      }
+      &:hover,
+      &:active {
+        color: $rf-brand-lighter;
+      } // &:hover, &:active
+      &:visited {
+        color: $rf-brand-lightest;
+      } // &:visited
+    } // a
+
+    a.skip-link {
+      background-color: $gray-900;
+    }
+
+    h2 a, h3 a {
+      &:link,
+      &:visited {
+        color: inherit;
+      }
+    } // h2 a
+
+    table {
+      th {
+        background-color: $gray-900;
+        border-bottom: 2px solid $gray-700;
+        color: $text-on-darker-bg;
+      } // th
+
+      tr {
+        &:nth-child(even) {
+          background-color: $gray-900;
+        }
+      }
+    } // table
+
+    h4, h5, h6 {
+      a,
+      a:link,
+      a:visited {
+        color: inherit;
+      } // a, a:link, a:visited
+    } // h3
+
+    hr {
+      background: url("../images/hr_rails_white_mobile.svg") center no-repeat;
+
+      @include media('>tablet') {
+        background: url("../images/hr_rails_white.svg") center no-repeat;
+      }
+    }
+
+    pre, code {
+      background-color: $gray-900;
+      color: #fff;
+    } // pre, code
+
+    p code, ul code, li code {
+      background-color: $gray-850;
+      color: $text-on-darker-bg;
+    }
+
+    td code {
+      background-color: transparent;
+    }
+
+    h2 code, h3 code, h4 code, h5 code {
+      background-color: transparent;
+      color: #fff;
+    }
+
+    #mobile-navigation-bar {
+      background-color: $gray-900;
+      color: $gray-400;
+
+
+      .more-info-links {
+        background: $gray-1000;
+      } // .more-info-links
+
+      li {
+        border-bottom: 1px solid $gray-800;
+      } // li
+    } // #mobile-navigation-bar
+
+    header#page-header {
+      nav#feature-nav {
+        .header-logo {
+          a, a:link, a:visited {
+            color: #fff;
+          }
+          span#version-switcher {
+            color: $gray-400;
+
+            select {
+              background-color: $gray-900;
+              color: $gray-400;
+            } // select
+          } // span#version-switcher
+        } // .header-logo
+
+        ul.nav {
+          li {
+            background: $gray-1000;
+            border-bottom: 1px solid $gray-1000;
+
+            @include media('>desktop'){
+              a,
+              a:link,
+              a:visited {
+                color: $text-on-darker-bg;
+              } // a
+
+              a#home_nav {
+                background-image: url("../images/icon_house-chimney-wht.svg");
+              }
+            } // @include media('>desktop')
+
+            &:last-child {
+              // the drop down
+
+              select {
+                background-color: $gray-900;
+                color: $gray-400;
+              } // select
+            }
+          } // li
+        } // ul.nav
+      } // nav#feature-nav
+    } // header#page-header
+
+    #guides {
+      background: $gray-800;
+      color: $text-on-dark-bg;
+
+      .guides-section {
+        dd {
+          a,
+          a:link,
+          a:visited {
+            color: $text-on-dark-bg;
+          } // a
+
+          a:hover,
+          a:active {
+            color: $rf-brand-lighter;
+          } // a:hover
+        } // dd
+      } // .guides-section
+    } // #guides
+
+
+    #feature {
+      background-color: $gray-900;
+
+      @include media('>desktop') {
+        background-color: $gray-1000;
+      }
+
+      #column-side {
+        background-color: $gray-900;
+
+        ol.chapters {
+          &::-webkit-scrollbar {
+            background-color: $gray-800;
+          }
+
+          &::-webkit-scrollbar-track {
+            background-color: $gray-700;
+            border-radius: 5px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background-image: -webkit-gradient(linear,
+                            left bottom,
+                            left top,
+                            color-stop(0.44, $rf-brand-lightest),
+                            color-stop(0.86, $rf-brand-lighter));
+            border-radius: 5px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+          }
+          li {
+            a,
+            a:link,
+            a:visited {
+              color: inherit;
+            }
+
+            a:hover,
+            a:active {
+              color: $rf-brand-lighter;
+            } // a
+          } // li
+        } // ol
+      } // #column-side
+    } // #feature
+
+    .interstitial {
+      &.code {
+        background-color: $gray-900;
+        border: 1px solid $gray-800 !important;
+        color: $gray-200;
+      }
+      &.note,
+      &.work-in-progress,
+      &.todo {
+        border-color: $note-dark;
+        background-color: $note-bkgnd-dark;
+      }
+
+      &.info {
+        border-color: $tip-dark;
+        background-color: $tip-bkgnd-dark;
+      }
+
+      &.warning {
+        border-color: $stop-dark;
+        background-color: $stop-bkgnd-dark;
+      }
+
+      &.question {
+        border-color: $gray-600;
+        background-color: $gray-700;
+      }
+    }
+  } // body.guide
+} // @media (prefers-color-scheme: dark)

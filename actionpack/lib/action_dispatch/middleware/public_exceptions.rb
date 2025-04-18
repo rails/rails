@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
+  # # Action Dispatch PublicExceptions
+  #
   # When called, this middleware renders an error page. By default if an HTML
-  # response is expected it will render static error pages from the <tt>/public</tt>
+  # response is expected it will render static error pages from the `/public`
   # directory. For example when this middleware receives a 500 response it will
-  # render the template found in <tt>/public/500.html</tt>.
-  # If an internationalized locale is set, this middleware will attempt to render
-  # the template in <tt>/public/500.<locale>.html</tt>. If an internationalized template
-  # is not found it will fall back on <tt>/public/500.html</tt>.
+  # render the template found in `/public/500.html`. If an internationalized
+  # locale is set, this middleware will attempt to render the template in
+  # `/public/500.<locale>.html`. If an internationalized template is not found it
+  # will fall back on `/public/500.html`.
   #
   # When a request with a content type other than HTML is made, this middleware
   # will attempt to convert error information into the appropriate response type.
@@ -21,11 +25,7 @@ module ActionDispatch
     def call(env)
       request      = ActionDispatch::Request.new(env)
       status       = request.path_info[1..-1].to_i
-      begin
-        content_type = request.formats.first
-      rescue ActionDispatch::Http::MimeNegotiation::InvalidType
-        content_type = Mime[:text]
-      end
+      content_type = request.formats.first
       body = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
       render(status, content_type, body)
@@ -42,8 +42,8 @@ module ActionDispatch
       end
 
       def render_format(status, content_type, body)
-        [status, { "Content-Type" => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
-                  "Content-Length" => body.bytesize.to_s }, [body]]
+        [status, { Rack::CONTENT_TYPE => "#{content_type}; charset=#{ActionDispatch::Response.default_charset}",
+                  Rack::CONTENT_LENGTH => body.bytesize.to_s }, [body]]
       end
 
       def render_html(status)
@@ -53,7 +53,7 @@ module ActionDispatch
         if found || File.exist?(path)
           render_format(status, "text/html", File.read(path))
         else
-          [404, { "X-Cascade" => "pass" }, []]
+          [404, { Constants::X_CASCADE => "pass" }, []]
         end
       end
   end

@@ -18,6 +18,7 @@ module ActiveModel
         assert_equal ::Time.utc(2000,  1,  1, 16, 45, 54), type.cast("2015-06-13T19:45:54+03:00")
         assert_equal ::Time.utc(1999, 12, 31, 21,  7,  8), type.cast("06:07:08+09:00")
         assert_equal ::Time.utc(2000,  1,  1, 16, 45, 54), type.cast(4 => 16, 5 => 45, 6 => 54)
+        assert_equal ::Time.utc(2000,  1,  1, 3, 30, 0), type.cast("2023-01-01T00:00:00-03:30")
       end
 
       def test_user_input_in_time_zone
@@ -34,6 +35,13 @@ module ActiveModel
           assert_equal 19, type.user_input_in_time_zone(time_string).hour
           assert_equal offset, type.user_input_in_time_zone(time_string).formatted_offset
         end
+      end
+
+      test "serialize_cast_value is equivalent to serialize after cast" do
+        type = Type::Time.new(precision: 1)
+        value = type.cast("1999-12-31T12:34:56.789-10:00")
+
+        assert_equal type.serialize(value), type.serialize_cast_value(value)
       end
     end
   end

@@ -16,6 +16,7 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "models/cpk"
 require "support/stubs/strong_parameters"
 
 module ActiveRecord
@@ -31,10 +32,6 @@ module ActiveRecord
     def test_where_with_through_association
       assert_equal [authors(:david)], Author.joins(:comments).where(comments: comments(:greetings))
       assert_equal [authors(:bob)], Author.joins(:categories).where(categories: categories(:technology))
-    end
-
-    def test_where_with_aliased_association
-      assert_equal [comments(:does_it_hurt)], Comment.where(entry: posts(:thinking))
     end
 
     def test_type_cast_is_not_evaluated_at_relation_build_time
@@ -93,6 +90,72 @@ module ActiveRecord
 
     def test_rewhere_on_root
       assert_equal posts(:welcome), Post.rewhere(title: "Welcome to the weblog").first
+    end
+
+    def test_where_with_tuple_syntax
+      first_topic = topics(:first)
+      third_topic = topics(:third)
+
+      key = [:title, :author_name]
+
+      conditions = [
+        [first_topic.title, first_topic.author_name],
+        [third_topic.title, third_topic.author_name],
+      ]
+
+      assert_equal [first_topic], Topic.where([:id] => [[first_topic.id]])
+      assert_equal [first_topic, third_topic].sort, Topic.where(key => conditions).sort
+    end
+
+    def test_where_with_tuple_syntax_on_composite_models
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => [[1, 2]])
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [[1, 2], [3, 4]]).sort
+      assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
+    end
+
+    def test_where_with_tuple_syntax_with_incorrect_arity
+      error = assert_raise ArgumentError do
+        Cpk::Book.where([:one, :two, :three] => [1, 2, 3])
+      end
+
+      assert_match(/Expected corresponding value for.*to be an Array/, error.message)
+
+      error = assert_raise ArgumentError do
+        Cpk::Book.where([:one, :two] => 1)
+      end
+
+      assert_match(/Expected corresponding value for.*to be an Array/, error.message)
+    end
+
+    def test_where_with_tuple_syntax_and_regular_syntax_combined
+      book_one = Cpk::Book.create!(id: [1, 2], title: "The Alchemist")
+      book_two = Cpk::Book.create!(id: [3, 4], title: "The Alchemist")
+
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist").sort
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[1, 2], [3, 4]]).sort
+      assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[3, 4]])
+    end
+
+    def test_with_tuple_syntax_and_large_values_list
+      # sqlite3 raises "Expression tree is too large (maximum depth 1000)"
+      skip if current_adapter?(:SQLite3Adapter)
+
+      assert_nothing_raised do
+        ids = [[1, 2]] * 1500
+        Cpk::Book.where([:author_id, :id] => ids).to_sql
+      end
+    end
+
+    def test_where_with_nil_cpk_association
+      order = Cpk::Order.create!(id: [1, 2])
+      book = order.books.create!(id: [3, 4])
+      assert_includes Cpk::Book.where(order: order), book
+
+      book.update!(order: nil)
+      assert_includes Cpk::Book.where(order: nil), book
     end
 
     def test_belongs_to_shallow_where
@@ -265,8 +328,8 @@ module ActiveRecord
           model.is_a?(klass)
         end
 
-        def method_missing(method, *args, &block)
-          model.send(method, *args, &block)
+        def method_missing(...)
+          model.send(...)
         end
       end
 
@@ -374,7 +437,7 @@ module ActiveRecord
     def test_where_on_association_with_relation_performs_subselect_not_two_queries
       author = authors(:david)
 
-      assert_queries(1) do
+      assert_queries_count(1) do
         Essay.where(writer: Author.where(id: author.id)).to_a
       end
     end
@@ -408,6 +471,11 @@ module ActiveRecord
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take
       assert_equal essays(:david_modest_proposal), essay
+    end
+
+    def test_where_on_association_with_collection_polymorphic_relation
+      treasures = Treasure.where(name: ["diamond", "emerald"], price_estimates: PriceEstimate.all)
+      assert_equal [treasures(:diamond)], treasures
     end
 
     def test_where_with_strong_parameters

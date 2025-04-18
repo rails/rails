@@ -5,7 +5,7 @@ require "rake/testtask"
 desc "Default Task"
 task default: [ :test ]
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 # Run the unit tests
 Rake::TestTask.new { |t|
@@ -13,6 +13,7 @@ Rake::TestTask.new { |t|
   t.pattern = "test/**/*_test.rb"
   t.warning = true
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 }
 

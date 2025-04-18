@@ -8,6 +8,20 @@ module BareMetalTest
     def index
       self.response_body = "Hello world"
     end
+
+    def assign_response_array
+      self.response = [200, { "content-type" => "text/html" }, ["Hello world"]]
+    end
+
+    def assign_response_object
+      self.response = Rack::Response.new("Hello world", 200, { "content-type" => "text/html" })
+    end
+
+    def assign_response_body_proc
+      self.response_body = proc do |stream|
+        stream.close
+      end
+    end
   end
 
   class BareTest < ActiveSupport::TestCase
@@ -32,7 +46,43 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
+
+      assert_predicate controller, :performed?
       assert_equal ["Hello world"], controller.response_body
+    end
+
+    test "can assign response array as part of the controller execution" do
+      controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.assign_response_array
+
+      assert_predicate controller, :performed?
+      assert_equal true, controller.response_body
+      assert_equal 200, controller.response[0]
+      assert_equal "text/html", controller.response[1]["content-type"]
+    end
+
+    test "can assign response object as part of the controller execution" do
+      controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.assign_response_object
+
+      assert_predicate controller, :performed?
+      assert_equal true, controller.response_body
+      assert_equal 200, controller.response.status
+      assert_equal "text/html", controller.response.headers["content-type"]
+    end
+
+    test "can assign response body streamable object as part of the controller execution" do
+      controller = BareController.new
+      controller.set_request!(ActionDispatch::Request.empty)
+      controller.set_response!(BareController.make_response!(controller.request))
+      controller.assign_response_body_proc
+
+      assert_predicate controller, :performed?
+      assert controller.response_body.is_a?(Proc)
+      assert_equal 200, controller.response.status
+      assert_predicate controller.response.headers, :empty?
     end
 
     test "connect a request to controller instance without dispatch" do

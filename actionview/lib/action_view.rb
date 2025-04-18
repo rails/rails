@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2022 David Heinemeier Hansson
+# Copyright (c) David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,7 +26,9 @@
 require "active_support"
 require "active_support/rails"
 require "action_view/version"
+require "action_view/deprecator"
 
+# :include: ../README.rdoc
 module ActionView
   extend ActiveSupport::Autoload
 
@@ -39,6 +41,7 @@ module ActionView
     autoload :Helpers
     autoload :LookupContext
     autoload :Layouts
+    autoload :PathRegistry
     autoload :PathSet
     autoload :RecordIdentifier
     autoload :Rendering
@@ -78,6 +81,7 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :StrictLocalsError
       autoload :TemplateError
       autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError

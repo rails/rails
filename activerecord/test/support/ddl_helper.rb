@@ -5,6 +5,6 @@ module DdlHelper
     connection.execute("CREATE TABLE #{table_name}(#{definition})")
     yield
   ensure
-    connection.execute("DROP TABLE #{table_name}")
+    connection.drop_table(table_name)
   end
 end

@@ -10,7 +10,8 @@ module ActionView
 
     def initialize(original_config, lookup_context)
       original_config = original_config.original_config if original_config.respond_to?(:original_config)
-      @original_config, @lookup_context = original_config, lookup_context
+      @original_config = original_config
+      @lookup_context = lookup_context
     end
 
     def locale
@@ -26,10 +27,10 @@ module ActionView
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    attr_reader :rendered_format
+    attr_internal_reader :rendered_format
 
     def initialize
-      @rendered_format = nil
+      @_rendered_format = nil
       super
     end
 
@@ -79,7 +80,7 @@ module ActionView
       end
 
       def view_context_class
-        klass = ActionView::LookupContext::DetailsKey.view_context_class(ActionView::Base)
+        klass = ActionView::LookupContext::DetailsKey.view_context_class
 
         @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 
@@ -117,6 +118,7 @@ module ActionView
 
     def render_to_body(options = {})
       _process_options(options)
+      _process_render_template_options(options)
       _render_template(options)
     end
 
@@ -135,7 +137,7 @@ module ActionView
         end
 
         rendered_format = rendered_template.format || lookup_context.formats.first
-        @rendered_format = Template::Types[rendered_format]
+        @_rendered_format = Template::Types[rendered_format]
 
         rendered_template.body
       end
@@ -172,18 +174,16 @@ module ActionView
       end
 
       # Normalize options.
-      def _normalize_options(options)
-        options = super(options)
+      def _process_render_template_options(options)
         if options[:partial] == true
           options[:partial] = action_name
         end
 
-        if (options.keys & [:partial, :file, :template]).empty?
+        if !options.keys.intersect?([:partial, :file, :template])
           options[:prefixes] ||= _prefixes
         end
 
         options[:template] ||= (options[:action] || action_name).to_s
-        options
       end
   end
 end

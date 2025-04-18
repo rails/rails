@@ -25,6 +25,10 @@ module ActiveRecord
               build_point(x, y)
             when ::Array
               build_point(*value)
+            when ::Hash
+              return if value.blank?
+
+              build_point(*values_array_from_hash(value))
             else
               value
             end
@@ -36,6 +40,8 @@ module ActiveRecord
               "(#{number_for_point(value.x)},#{number_for_point(value.y)})"
             when ::Array
               serialize(build_point(*value))
+            when ::Hash
+              serialize(build_point(*values_array_from_hash(value)))
             else
               super
             end
@@ -56,6 +62,10 @@ module ActiveRecord
 
             def build_point(x, y)
               ActiveRecord::Point.new(Float(x), Float(y))
+            end
+
+            def values_array_from_hash(value)
+              [value.values_at(:x, "x").compact.first, value.values_at(:y, "y").compact.first]
             end
         end
       end

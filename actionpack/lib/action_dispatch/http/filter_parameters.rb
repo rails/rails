@@ -1,46 +1,34 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/parameter_filter"
 
 module ActionDispatch
   module Http
-    # Allows you to specify sensitive parameters which will be replaced from
-    # the request log by looking in the query string of the request and all
-    # sub-hashes of the params hash to filter. Filtering only certain sub-keys
-    # from a hash is possible by using the dot notation: 'credit_card.number'.
-    # If a block is given, each key and value of the params hash and all
-    # sub-hashes are passed to it, where the value or the key can be replaced using
-    # String#replace or similar methods.
+    # # Action Dispatch HTTP Filter Parameters
     #
-    #   env["action_dispatch.parameter_filter"] = [:password]
-    #   => replaces the value to all keys matching /password/i with "[FILTERED]"
+    # Allows you to specify sensitive query string and POST parameters to filter
+    # from the request log.
     #
-    #   env["action_dispatch.parameter_filter"] = [:foo, "bar"]
-    #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
+    #     # Replaces values with "[FILTERED]" for keys that match /foo|bar/i.
+    #     env["action_dispatch.parameter_filter"] = [:foo, "bar"]
     #
-    #   env["action_dispatch.parameter_filter"] = [ /\Apin\z/i, /\Apin_/i ]
-    #   => replaces the value for the exact (case-insensitive) key 'pin' and all
-    #   (case-insensitive) keys beginning with 'pin_', with "[FILTERED]"
-    #   Does not match keys with 'pin' as a substring, such as 'shipping_id'.
-    #
-    #   env["action_dispatch.parameter_filter"] = [ "credit_card.code" ]
-    #   => replaces { credit_card: {code: "xxxx"} } with "[FILTERED]", does not
-    #   change { file: { code: "xxxx"} }
-    #
-    #   env["action_dispatch.parameter_filter"] = -> (k, v) do
-    #     v.reverse! if k.match?(/secret/i)
-    #   end
-    #   => reverses the value to all keys matching /secret/i
+    # For more information about filter behavior, see
+    # ActiveSupport::ParameterFilter.
     module FilterParameters
-      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"] # :nodoc:
-      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new # :nodoc:
-      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH # :nodoc:
+      # :stopdoc:
+      ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"]
+      NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new
+      NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH
+      # :startdoc:
 
       def initialize
         super
         @filtered_parameters = nil
         @filtered_env        = nil
         @filtered_path       = nil
+        @parameter_filter    = nil
       end
 
       # Returns a hash of parameters with all sensitive data replaced.
@@ -60,13 +48,17 @@ module ActionDispatch
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-    private
-      def parameter_filter # :doc:
-        parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
-          return NULL_PARAM_FILTER
-        }
+      # Returns the `ActiveSupport::ParameterFilter` object used to filter in this
+      # request.
+      def parameter_filter
+        @parameter_filter ||= if has_header?("action_dispatch.parameter_filter")
+          parameter_filter_for get_header("action_dispatch.parameter_filter")
+        else
+          NULL_PARAM_FILTER
+        end
       end
 
+    private
       def env_filter # :doc:
         user_key = fetch_header("action_dispatch.parameter_filter") {
           return NULL_ENV_FILTER
@@ -78,12 +70,17 @@ module ActionDispatch
         ActiveSupport::ParameterFilter.new(filters)
       end
 
-      KV_RE   = "[^&;=]+"
-      PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
       def filtered_query_string # :doc:
-        query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter($1 => $2).first.join("=")
+        parts = query_string.split(/([&;])/)
+        filtered_parts = parts.map do |part|
+          if part.include?("=")
+            key, value = part.split("=", 2)
+            parameter_filter.filter(key => value).first.join("=")
+          else
+            part
+          end
         end
+        filtered_parts.join("")
       end
     end
   end

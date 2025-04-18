@@ -49,6 +49,10 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_exit_on_failure
+    assert_equal true, generator_class.exit_on_failure?
+  end
+
   def test_add_migration_with_attributes
     migration = "add_title_body_to_posts"
     run_generator [migration, "title:string", "body:text"]
@@ -447,6 +451,29 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/remove_column :messages, :content, :rich_text/, change)
         assert_no_match(/remove_column :messages, :video, :attachment/, change)
         assert_no_match(/remove_column :messages, :photos, :attachments/, change)
+      end
+    end
+  end
+
+  def test_create_table_migration_with_required_attributes
+    run_generator ["create_books", "title:string!", "content:text!"]
+    assert_migration "db/migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+        assert_match(/  t\.string :title, null: false/, change)
+        assert_match(/  t\.text :content, null: false/, change)
+      end
+    end
+  end
+
+  def test_add_migration_with_required_attributes
+    migration = "add_title_body_to_posts"
+    run_generator [migration, "title:string!", "body:text!"]
+
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_column :posts, :title, :string, null: false/, change)
+        assert_match(/add_column :posts, :body, :text, null: false/, change)
       end
     end
   end

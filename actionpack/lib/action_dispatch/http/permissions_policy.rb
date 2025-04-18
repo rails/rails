@@ -1,65 +1,60 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/object/deep_dup"
 
 module ActionDispatch # :nodoc:
+  # # Action Dispatch PermissionsPolicy
+  #
   # Configures the HTTP
-  # {Feature-Policy}[https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy]
-  # response header to specify which browser features the current document and
-  # its iframes can use.
+  # [Feature-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy)
+  # response header to specify which browser features the current
+  # document and its iframes can use.
   #
   # Example global policy:
   #
-  #   Rails.application.config.permissions_policy do |policy|
-  #     policy.camera      :none
-  #     policy.gyroscope   :none
-  #     policy.microphone  :none
-  #     policy.usb         :none
-  #     policy.fullscreen  :self
-  #     policy.payment     :self, "https://secure.example.com"
-  #   end
+  #     Rails.application.config.permissions_policy do |policy|
+  #       policy.camera      :none
+  #       policy.gyroscope   :none
+  #       policy.microphone  :none
+  #       policy.usb         :none
+  #       policy.fullscreen  :self
+  #       policy.payment     :self, "https://secure.example.com"
+  #     end
   #
+  # The Feature-Policy header has been renamed to Permissions-Policy. The
+  # Permissions-Policy requires a different implementation and isn't yet supported
+  # by all browsers. To avoid having to rename this middleware in the future we
+  # use the new name for the middleware but keep the old header name and
+  # implementation for now.
   class PermissionsPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type"
-      # The Feature-Policy header has been renamed to Permissions-Policy.
-      # The Permissions-Policy requires a different implementation and isn't
-      # yet supported by all browsers. To avoid having to rename this
-      # middleware in the future we use the new name for the middleware but
-      # keep the old header name and implementation for now.
-      POLICY       = "Feature-Policy"
-
       def initialize(app)
         @app = app
       end
 
       def call(env)
-        request = ActionDispatch::Request.new(env)
         _, headers, _ = response = @app.call(env)
 
-        return response unless html_response?(headers)
         return response if policy_present?(headers)
 
+        request = ActionDispatch::Request.new(env)
+
         if policy = request.permissions_policy
-          headers[POLICY] = policy.build(request.controller_instance)
+          headers[ActionDispatch::Constants::FEATURE_POLICY] = policy.build(request.controller_instance)
         end
 
         if policy_empty?(policy)
-          headers.delete(POLICY)
+          headers.delete(ActionDispatch::Constants::FEATURE_POLICY)
         end
 
         response
       end
 
       private
-        def html_response?(headers)
-          if content_type = headers[CONTENT_TYPE]
-            /html/.match?(content_type)
-          end
-        end
-
         def policy_present?(headers)
-          headers[POLICY]
+          headers[ActionDispatch::Constants::FEATURE_POLICY]
         end
 
         def policy_empty?(policy)
@@ -85,25 +80,30 @@ module ActionDispatch # :nodoc:
     }.freeze
 
     # List of available permissions can be found at
-    # https://github.com/w3c/webappsec-permissions-policy/blob/master/features.md#policy-controlled-features
+    # https://github.com/w3c/webappsec-permissions-policy/blob/main/features.md#policy-controlled-features
     DIRECTIVES = {
       accelerometer:        "accelerometer",
       ambient_light_sensor: "ambient-light-sensor",
       autoplay:             "autoplay",
       camera:               "camera",
+      display_capture:      "display-capture",
       encrypted_media:      "encrypted-media",
       fullscreen:           "fullscreen",
       geolocation:          "geolocation",
       gyroscope:            "gyroscope",
+      hid:                  "hid",
+      idle_detection:       "idle-detection",
+      keyboard_map:         "keyboard-map",
       magnetometer:         "magnetometer",
       microphone:           "microphone",
       midi:                 "midi",
       payment:              "payment",
       picture_in_picture:   "picture-in-picture",
-      speaker:              "speaker",
+      screen_wake_lock:     "screen-wake-lock",
+      serial:               "serial",
+      sync_xhr:             "sync-xhr",
       usb:                  "usb",
-      vibrate:              "vibrate",
-      vr:                   "vr",
+      web_share:            "web-share",
     }.freeze
 
     private_constant :MAPPINGS, :DIRECTIVES
@@ -185,5 +185,9 @@ module ActionDispatch # :nodoc:
           raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"
         end
       end
+  end
+
+  ActiveSupport.on_load(:action_dispatch_request) do
+    include ActionDispatch::PermissionsPolicy::Request
   end
 end

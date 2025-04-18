@@ -4,10 +4,12 @@ require "monitor"
 
 module ActiveSupport
   module Cache
+    # = Memory \Cache \Store
+    #
     # A cache store implementation which stores everything into memory in the
-    # same process. If you're running multiple Ruby on Rails server processes
+    # same process. If you're running multiple Ruby on \Rails server processes
     # (which is the case if you're using Phusion Passenger or puma clustered mode),
-    # then this means that Rails server process instances won't be able
+    # then this means that \Rails server process instances won't be able
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
@@ -16,37 +18,61 @@ module ActiveSupport
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
     #
-    # Unlike other Cache store implementations, MemoryStore does not compress
-    # values by default. MemoryStore does not benefit from compression as much
+    # Unlike other Cache store implementations, +MemoryStore+ does not compress
+    # values by default. +MemoryStore+ does not benefit from compression as much
     # as other Store implementations, as it does not send data over a network.
     # However, when compression is enabled, it still pays the full cost of
     # compression in terms of cpu use.
     #
-    # MemoryStore is thread-safe.
+    # +MemoryStore+ is thread-safe.
     class MemoryStore < Store
       module DupCoder # :nodoc:
         extend self
 
         def dump(entry)
-          entry.dup_value! unless entry.compressed?
-          entry
+          if entry.value && entry.value != true && !entry.value.is_a?(Numeric)
+            Cache::Entry.new(dump_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
 
         def dump_compressed(entry, threshold)
-          entry = entry.compressed(threshold)
-          entry.dup_value! unless entry.compressed?
-          entry
+          compressed_entry = entry.compressed(threshold)
+          compressed_entry.compressed? ? compressed_entry : dump(entry)
         end
 
         def load(entry)
-          entry = entry.dup
-          entry.dup_value!
-          entry
+          if !entry.compressed? && entry.value.is_a?(String)
+            Cache::Entry.new(load_value(entry.value), expires_at: entry.expires_at, version: entry.version)
+          else
+            entry
+          end
         end
+
+        private
+          MARSHAL_SIGNATURE = "\x04\x08".b.freeze
+
+          def dump_value(value)
+            if value.is_a?(String) && !value.start_with?(MARSHAL_SIGNATURE)
+              value.dup
+            else
+              Marshal.dump(value)
+            end
+          end
+
+          def load_value(string)
+            if string.start_with?(MARSHAL_SIGNATURE)
+              Marshal.load(string)
+            else
+              string.dup
+            end
+          end
       end
 
       def initialize(options = nil)
         options ||= {}
+        options[:coder] = DupCoder unless options.key?(:coder) || options.key?(:serializer)
         # Disable compression by default.
         options[:compress] ||= false
         super(options)
@@ -74,7 +100,7 @@ module ActiveSupport
       # Preemptively iterates through all stored keys and removes the ones which have expired.
       def cleanup(options = nil)
         options = merged_options(options)
-        instrument(:cleanup, size: @data.size) do
+        _instrument(:cleanup, size: @data.size) do
           keys = synchronize { @data.keys }
           keys.each do |key|
             entry = @data[key]
@@ -120,8 +146,10 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.increment("baz") # => 6
       #
-      def increment(name, amount = 1, options = nil)
-        modify_value(name, amount, options)
+      def increment(name, amount = 1, **options)
+        instrument(:increment, name, amount: amount) do
+          modify_value(name, amount, **options)
+        end
       end
 
       # Decrement a cached integer value. Returns the updated value.
@@ -135,15 +163,18 @@ module ActiveSupport
       #   cache.write("baz", 5)
       #   cache.decrement("baz") # => 4
       #
-      def decrement(name, amount = 1, options = nil)
-        modify_value(name, -amount, options)
+      def decrement(name, amount = 1, **options)
+        instrument(:decrement, name, amount: amount) do
+          modify_value(name, -amount, **options)
+        end
       end
 
       # Deletes cache entries if the cache key matches a given pattern.
       def delete_matched(matcher, options = nil)
         options = merged_options(options)
+        matcher = key_matcher(matcher, options)
+
         instrument(:delete_matched, matcher.inspect) do
-          matcher = key_matcher(matcher, options)
           keys = synchronize { @data.keys }
           keys.each do |key|
             delete_entry(key, **options) if key.match(matcher)
@@ -164,10 +195,6 @@ module ActiveSupport
       private
         PER_ENTRY_OVERHEAD = 240
 
-        def default_coder
-          DupCoder
-        end
-
         def cached_size(key, payload)
           key.to_s.bytesize + payload.bytesize + PER_ENTRY_OVERHEAD
         end
@@ -187,7 +214,7 @@ module ActiveSupport
         def write_entry(key, entry, **options)
           payload = serialize_entry(entry, **options)
           synchronize do
-            return false if options[:unless_exist] && exist?(key)
+            return false if options[:unless_exist] && exist?(key, namespace: nil)
 
             old_payload = @data[key]
             if old_payload
@@ -211,16 +238,22 @@ module ActiveSupport
 
         # Modifies the amount of an integer value that is stored in the cache.
         # If the key is not found it is created and set to +amount+.
-        def modify_value(name, amount, options)
+        def modify_value(name, amount, **options)
           options = merged_options(options)
+          key     = normalize_key(name, options)
+          version = normalize_version(name, options)
+
           synchronize do
-            if num = read(name, options)
-              num = num.to_i + amount
-              write(name, num, options)
-              num
-            else
+            entry = read_entry(key, **options)
+
+            if !entry || entry.expired? || entry.mismatched?(version)
               write(name, Integer(amount), options)
               amount
+            else
+              num = entry.value.to_i + amount
+              entry = Entry.new(num, expires_at: entry.expires_at, version: entry.version)
+              write_entry(key, entry)
+              num
             end
           end
         end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Rails on Rack
 =============
@@ -58,29 +58,7 @@ class Server < ::Rack::Server
 end
 ```
 
-### `rackup`
-
-To use `rackup` instead of Rails' `bin/rails server`, you can put the following inside `config.ru` of your Rails application's root directory:
-
-```ruby
-# Rails.root/config.ru
-require_relative "config/environment"
-run Rails.application
-```
-
-And start the server:
-
-```bash
-$ rackup config.ru
-```
-
-To find out more about different `rackup` options, you can run:
-
-```bash
-$ rackup --help
-```
-
-### Development and auto-reloading
+### Development and Auto-reloading
 
 Middlewares are loaded once and are not monitored for changes. You will have to restart the server for changes to be reflected in the running application.
 
@@ -171,6 +149,24 @@ You can swap an existing middleware in the middleware stack using `config.middle
 
 # Replace ActionDispatch::ShowExceptions with Lifo::ShowExceptions
 config.middleware.swap ActionDispatch::ShowExceptions, Lifo::ShowExceptions
+```
+
+#### Moving a Middleware
+
+You can move an existing middleware in the middleware stack using `config.middleware.move_before` and `config.middleware.move_after`.
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to before Lifo::ShowExceptions
+config.middleware.move_before Lifo::ShowExceptions, ActionDispatch::ShowExceptions
+```
+
+```ruby
+# config/application.rb
+
+# Move ActionDispatch::ShowExceptions to after Lifo::ShowExceptions
+config.middleware.move_after Lifo::ShowExceptions, ActionDispatch::ShowExceptions
 ```
 
 #### Deleting a Middleware
@@ -321,7 +317,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rack::Head`**
 
-* Converts HEAD requests to `GET` requests and serves them as so.
+* Returns an empty body for all HEAD requests. It leaves all other requests unchanged.
 
 **`Rack::ConditionalGet`**
 

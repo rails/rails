@@ -14,6 +14,13 @@ module ActiveRecord
         target
       end
 
+      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
+      def reset
+        super
+        @target = nil
+        @future_target = nil
+      end
+
       # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar
       def writer(record)
         replace(record)
@@ -34,14 +41,18 @@ module ActiveRecord
 
       private
         def scope_for_create
-          super.except!(klass.primary_key)
+          super.except!(*Array(klass.primary_key))
         end
 
-        def find_target
+        def find_target(async: false)
           if disable_joins
-            scope.first
+            if async
+              scope.load_async.then(&:first)
+            else
+              scope.first
+            end
           else
-            super.first
+            super.then(&:first)
           end
         end
 

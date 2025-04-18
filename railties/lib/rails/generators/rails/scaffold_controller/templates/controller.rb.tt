@@ -34,7 +34,7 @@ class <%= controller_class_name %>Controller < ApplicationController
   # PATCH/PUT <%= route_url %>/1
   def update
     if @<%= orm_instance.update("#{singular_table_name}_params") %>
-      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>
+      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>, status: :see_other
     else
       render :edit, status: :unprocessable_entity
     end
@@ -43,13 +43,13 @@ class <%= controller_class_name %>Controller < ApplicationController
   # DELETE <%= route_url %>/1
   def destroy
     @<%= orm_instance.destroy %>
-    redirect_to <%= index_helper %>_url, notice: <%= %("#{human_name} was successfully destroyed.") %>
+    redirect_to <%= index_helper %>_path, notice: <%= %("#{human_name} was successfully destroyed.") %>, status: :see_other
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_<%= singular_table_name %>
-      @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+      @<%= singular_table_name %> = <%= orm_class.find(class_name, "params.expect(:id)") %>
     end
 
     # Only allow a list of trusted parameters through.
@@ -57,7 +57,7 @@ class <%= controller_class_name %>Controller < ApplicationController
       <%- if attributes_names.empty? -%>
       params.fetch(:<%= singular_table_name %>, {})
       <%- else -%>
-      params.require(:<%= singular_table_name %>).permit(<%= permitted_params %>)
+      params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
       <%- end -%>
     end
 end

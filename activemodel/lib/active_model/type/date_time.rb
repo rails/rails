@@ -2,6 +2,8 @@
 
 module ActiveModel
   module Type
+    # = Active Model \DateTime \Type
+    #
     # Attribute type to represent dates and times. It is registered under the
     # +:datetime+ key.
     #
@@ -39,13 +41,21 @@ module ActiveModel
     #   end
     class DateTime < Value
       include Helpers::Timezone
-      include Helpers::TimeValue
       include Helpers::AcceptsMultiparameterTime.new(
         defaults: { 4 => 0, 5 => 0 }
       )
+      include Helpers::TimeValue
 
       def type
         :datetime
+      end
+
+      def mutable? # :nodoc:
+        # Time#zone can be mutated by #utc or #localtime
+        # However when serializing the time zone will always
+        # be coerced and even if the zone was mutated Time instances
+        # remain equal, so we don't need to implement `#changed_in_place?`
+        true
       end
 
       private

@@ -8,7 +8,7 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   test "passing on the request id via a configured header" do
-    assert_equal "external-uu-rid", stub_request({ "HTTP_TRACER_ID" => "external-uu-rid" }, header: "Tracer-Id").request_id
+    assert_equal "external-uu-rid", stub_request({ "HTTP_TRACER_ID" => "external-uu-rid" }, header: "tracer-id").request_id
   end
 
   test "ensure that only alphanumeric uurids are accepted" do
@@ -33,8 +33,17 @@ class RequestIdTest < ActiveSupport::TestCase
   end
 
   private
-    def stub_request(env = {}, header: "X-Request-Id")
-      ActionDispatch::RequestId.new(lambda { |environment| [ 200, environment, [] ] }, header: header).call(env)
+    def stub_request(env = {}, header: "x-request-id")
+      app = lambda { |_env| [ 200, {}, [] ] }
+      env = Rack::MockRequest.env_for("", env)
+
+      Rack::Lint.new(
+        ActionDispatch::RequestId.new(
+          Rack::Lint.new(app),
+          header: header,
+        )
+      ).call(env)
+
       ActionDispatch::Request.new(env)
     end
 end
@@ -44,6 +53,10 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
     def index
       head :ok
     end
+  end
+
+  setup do
+    @header = "X-Request-Id"
   end
 
   test "request id is passed all the way to the response" do
@@ -61,21 +74,26 @@ class RequestIdResponseTest < ActionDispatch::IntegrationTest
   end
 
   test "using a custom request_id header key" do
-    with_test_route_set(header: "X-Tracer-Id") do
+    @header = "X-Tracer-Id"
+    with_test_route_set do
       get "/"
       assert_match(/\w+/, @response.headers["X-Tracer-Id"])
     end
   end
 
   private
+    def app
+      @app ||= self.class.build_app do |middleware|
+        middleware.use Rack::Lint
+        middleware.use ActionDispatch::RequestId, header: @header
+        middleware.use Rack::Lint
+      end
+    end
+
     def with_test_route_set(header: "X-Request-Id")
       with_routing do |set|
         set.draw do
           get "/", to: ::RequestIdResponseTest::TestController.action(:index)
-        end
-
-        @app = self.class.build_app(set) do |middleware|
-          middleware.use ActionDispatch::RequestId, header: header
         end
 
         yield

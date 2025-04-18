@@ -17,6 +17,20 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<blockquote> tag with whitespace" do
+    assert_converted_to(
+      "   “Hello world!” ",
+      "<blockquote>   Hello world! </blockquote>"
+    )
+  end
+
+  test "<blockquote> tag with only whitespace" do
+    assert_converted_to(
+      "“”",
+      "<blockquote> </blockquote>"
+    )
+  end
+
   test "<ol> tags are separated by two new lines" do
     assert_converted_to(
       "Hello world!\n\n1. list1\n\n1. list2\n\nHow are you?",
@@ -127,6 +141,30 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "Hello\nHow are you?",
       "<strong>Hello<br></strong>How are you?"
+    )
+  end
+
+  test "script tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <script type="javascript">
+          console.log("message");
+        </script>
+        <div><strong>Hello </strong>world!</div>
+      HTML
+    )
+  end
+
+  test "style tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <style type="text/css">
+          body { color: red; }
+        </style>
+        <div><strong>Hello </strong>world!</div>
+      HTML
     )
   end
 

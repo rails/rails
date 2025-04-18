@@ -11,16 +11,16 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlEnum < ActiveRecord::Base
     self.table_name = "postgresql_enums"
 
-    enum current_mood: {
+    enum :current_mood, {
       sad: "sad",
       okay: "ok", # different spelling
       happy: "happy",
       aliased_field: "happy"
-    }, _prefix: true
+    }, prefix: true
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.create_enum("mood", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums") do |t|
@@ -101,14 +101,61 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   def test_schema_dump
     @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy", null: false
 
-    output = dump_all_table_schema
+    output = dump_table_schema("postgresql_enums")
 
-    assert output.include?("# Note that some types may not work with other database engines. Be careful if changing database."), output
+    assert_includes output, "# Note that some types may not work with other database engines. Be careful if changing database."
 
-    assert output.include?('create_enum "mood", ["sad", "ok", "happy"]'), output
+    assert_includes output, 'create_enum "mood", ["sad", "ok", "happy"]'
 
-    assert output.include?('t.enum "current_mood", enum_type: "mood"'), output
-    assert output.include?('t.enum "good_mood", default: "happy", null: false, enum_type: "mood"'), output
+    assert_includes output, 't.enum "current_mood", enum_type: "mood"'
+    assert_includes output, 't.enum "good_mood", default: "happy", null: false, enum_type: "mood"'
+  end
+
+  def test_schema_dump_renamed_enum
+    @connection.rename_enum :mood, :feeling
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "feeling", ["sad", "ok", "happy"]'
+
+    assert_includes output, 't.enum "current_mood", enum_type: "feeling"'
+  end
+
+  def test_schema_dump_renamed_enum_with_to_option
+    @connection.rename_enum :mood, to: :feeling
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "feeling", ["sad", "ok", "happy"]'
+
+    assert_includes output, 't.enum "current_mood", enum_type: "feeling"'
+  end
+
+  def test_schema_dump_added_enum_value
+    skip("Adding enum values can not be run in a transaction") if @connection.database_version < 10_00_00
+
+    @connection.add_enum_value :mood, :angry, before: :ok
+    @connection.add_enum_value :mood, :nervous, after: :ok
+    @connection.add_enum_value :mood, :glad
+
+    assert_nothing_raised do
+      @connection.add_enum_value :mood, :glad, if_not_exists: true
+      @connection.add_enum_value :mood, :curious, if_not_exists: true
+    end
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "angry", "ok", "nervous", "happy", "glad", "curious"]'
+  end
+
+  def test_schema_dump_renamed_enum_value
+    skip("Renaming enum values is only supported in PostgreSQL 10 or later") if @connection.database_version < 10_00_00
+
+    @connection.rename_enum_value :mood, from: :ok, to: :okay
+
+    output = dump_table_schema("postgresql_enums")
+
+    assert_includes output, 'create_enum "mood", ["sad", "okay", "happy"]'
   end
 
   def test_schema_load
@@ -154,7 +201,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     model.save!
 
     model = PostgresqlEnum.find(model.id)
-    assert model.current_mood_happy?
+    assert_predicate model, :current_mood_happy?
   end
 
   def test_enum_type_scoped_to_schemas
@@ -190,18 +237,24 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_scoped_to_schemas
+    @connection.create_schema("other_schema")
+    @connection.create_enum("other_schema.mood_in_other_schema", ["sad", "ok", "happy"])
+
     with_test_schema("test_schema") do
       @connection.create_enum("mood_in_test_schema", ["sad", "ok", "happy"])
       @connection.create_table("postgresql_enums_in_test_schema") do |t|
         t.column :current_mood, :mood_in_test_schema
       end
 
-      output = dump_all_table_schema
+      output = dump_table_schema("postgresql_enums_in_test_schema")
 
-      assert output.include?('create_enum "public.mood", ["sad", "ok", "happy"]'), output
-      assert output.include?('create_enum "mood_in_test_schema", ["sad", "ok", "happy"]'), output
-      assert output.include?('t.enum "current_mood", enum_type: "mood_in_test_schema"'), output
+      assert_includes output, 'create_enum "public.mood", ["sad", "ok", "happy"]'
+      assert_includes output, 'create_enum "mood_in_test_schema", ["sad", "ok", "happy"]'
+      assert_includes output, 't.enum "current_mood", enum_type: "mood_in_test_schema"'
+      assert_not_includes output, 'create_enum "other_schema.mood_in_other_schema"'
     end
+  ensure
+    @connection.drop_schema("other_schema")
   end
 
   def test_schema_load_scoped_to_schemas
@@ -230,7 +283,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     def with_test_schema(name, drop: true)
       old_search_path = @connection.schema_search_path
       @connection.create_schema(name)
-      @connection.schema_search_path = name
+      @connection.schema_search_path = "#{name}, public"
       yield
     ensure
       @connection.drop_schema(name) if drop

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
-require "set"
 require "active_support/descendants_tracker"
 
 class DescendantsTrackerTest < ActiveSupport::TestCase
@@ -69,24 +68,10 @@ class DescendantsTrackerTest < ActiveSupport::TestCase
     assert_equal_sets [Child1, Grandchild1, Grandchild2, Child2], Parent.descendants
   end
 
-  test ".direct_descendants" do
-    assert_deprecated do
-      assert_equal_sets [Child1, Child2], Parent.direct_descendants
-    end
-
-    assert_deprecated do
-      assert_equal_sets [Grandchild1, Grandchild2], Child1.direct_descendants
-    end
-
-    assert_deprecated do
-      assert_equal_sets [], Child2.direct_descendants
-    end
-  end
-
   test ".subclasses" do
-    [Parent, Child1, Child2].each do |klass|
-      assert_equal assert_deprecated { klass.direct_descendants }, klass.subclasses
-    end
+    assert_equal_sets [Child1, Child2], Parent.subclasses
+    assert_equal_sets [Grandchild1, Grandchild2], Child1.subclasses
+    assert_equal_sets [], Child2.subclasses
   end
 
   test ".clear(classes) deletes the given classes only" do
@@ -94,9 +79,6 @@ class DescendantsTrackerTest < ActiveSupport::TestCase
 
     assert_equal_sets [Child1, Grandchild2], Parent.descendants
     assert_equal_sets [Grandchild2], Child1.descendants
-
-    assert_equal_sets [Child1], assert_deprecated { Parent.direct_descendants }
-    assert_equal_sets [Grandchild2], assert_deprecated { Child1.direct_descendants }
   end
 
   private

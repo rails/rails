@@ -3,7 +3,7 @@
 require "active_model/attribute_mutation_tracker"
 
 module ActiveModel
-  # == Active \Model \Dirty
+  # = Active \Model \Dirty
   #
   # Provides a way to track changes in your object in the same way as
   # Active Record does.
@@ -13,8 +13,7 @@ module ActiveModel
   # * <tt>include ActiveModel::Dirty</tt> in your object.
   # * Call <tt>define_attribute_methods</tt> passing each method you want to
   #   track.
-  # * Call <tt>[attr_name]_will_change!</tt> before each change to the tracked
-  #   attribute.
+  # * Call <tt>*_will_change!</tt> before each change to the tracked attribute.
   # * Call <tt>changes_applied</tt> after the changes are persisted.
   # * Call <tt>clear_changes_information</tt> when you want to reset the changes
   #   information.
@@ -109,20 +108,136 @@ module ActiveModel
   #   person.changes # => {"name" => ["Bill", "Bob"]}
   #
   # If an attribute is modified in-place then make use of
-  # <tt>[attribute_name]_will_change!</tt> to mark that the attribute is changing.
+  # {*_will_change!}[rdoc-label:method-i-2A_will_change-21] to mark that the attribute is changing.
   # Otherwise \Active \Model can't track changes to in-place attributes. Note
   # that Active Record can detect in-place modifications automatically. You do
-  # not need to call <tt>[attribute_name]_will_change!</tt> on Active Record models.
+  # not need to call <tt>*_will_change!</tt> on Active Record models.
   #
   #   person.name_will_change!
   #   person.name_change # => ["Bill", "Bill"]
   #   person.name << 'y'
   #   person.name_change # => ["Bill", "Billy"]
+  #
+  # Methods can be invoked as +name_changed?+ or by passing an argument to the
+  # generic method <tt>attribute_changed?("name")</tt>.
   module Dirty
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
 
     included do
+      ##
+      # :method: *_previously_changed?
+      #
+      # :call-seq: *_previously_changed?(**options)
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns true if the attribute previously had unsaved changes.
+      #
+      #   person = Person.new
+      #   person.name = 'Britanny'
+      #   person.save
+      #   person.name_previously_changed? # => true
+      #   person.name_previously_changed?(from: nil, to: 'Britanny') # => true
+
+      ##
+      # :method: *_changed?
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns true if the attribute has unsaved changes.
+      #
+      #   person = Person.new
+      #   person.name = 'Andrew'
+      #   person.name_changed? # => true
+
+      ##
+      # :method: *_change
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns the old and the new value of the attribute.
+      #
+      #   person = Person.new
+      #   person.name = 'Nick'
+      #   person.name_change # => [nil, 'Nick']
+
+      ##
+      # :method: *_will_change!
+      #
+      # This method is generated for each attribute.
+      #
+      # If an attribute is modified in-place then make use of
+      # <tt>*_will_change!</tt> to mark that the attribute is changing.
+      # Otherwise Active Model can’t track changes to in-place attributes. Note
+      # that Active Record can detect in-place modifications automatically. You
+      # do not need to call <tt>*_will_change!</tt> on Active Record
+      # models.
+      #
+      #   person = Person.new('Sandy')
+      #   person.name_will_change!
+      #   person.name_change # => ['Sandy', 'Sandy']
+
+      ##
+      # :method: *_was
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns the old value of the attribute.
+      #
+      #   person = Person.new(name: 'Steph')
+      #   person.name = 'Stephanie'
+      #   person.name_was # => 'Steph'
+
+      ##
+      # :method: *_previous_change
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns the old and the new value of the attribute before the last save.
+      #
+      #   person = Person.new
+      #   person.name = 'Emmanuel'
+      #   person.save
+      #   person.name_previous_change # => [nil, 'Emmanuel']
+
+      ##
+      # :method: *_previously_was
+      #
+      # This method is generated for each attribute.
+      #
+      # Returns the old value of the attribute before the last save.
+      #
+      #   person = Person.new
+      #   person.name = 'Sage'
+      #   person.save
+      #   person.name_previously_was  # => nil
+
+      ##
+      # :method: restore_*!
+      #
+      # This method is generated for each attribute.
+      #
+      # Restores the attribute to the old value.
+      #
+      #   person = Person.new
+      #   person.name = 'Amanda'
+      #   person.restore_name!
+      #   person.name # => nil
+
+      ##
+      # :method: clear_*_change
+      #
+      # This method is generated for each attribute.
+      #
+      # Clears all dirty data of the attribute: current changes and previous changes.
+      #
+      #   person = Person.new(name: 'Chris')
+      #   person.name = 'Jason'
+      #   person.name_change # => ['Chris', 'Jason']
+      #   person.clear_name_change
+      #   person.name_change # => nil
+
       attribute_method_suffix "_previously_changed?", "_changed?", parameters: "**options"
       attribute_method_suffix "_change", "_will_change!", "_was", parameters: false
       attribute_method_suffix "_previous_change", "_previously_was", parameters: false
@@ -132,16 +247,23 @@ module ActiveModel
 
     def initialize_dup(other) # :nodoc:
       super
-      if self.class.respond_to?(:_default_attributes)
-        @attributes = self.class._default_attributes.map do |attr|
-          attr.with_value_from_user(@attributes.fetch_value(attr.name))
-        end
-      end
       @mutations_from_database = nil
     end
 
+    def init_attributes(other) # :nodoc:
+      attrs = super
+      if self.class.respond_to?(:_default_attributes)
+        self.class._default_attributes.map do |attr|
+          attr.with_value_from_user(attrs.fetch_value(attr.name))
+        end
+      else
+        attrs
+      end
+    end
+
     def as_json(options = {}) # :nodoc:
-      options[:except] = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      except = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      options = options.merge except: except
       super(options)
     end
 
@@ -174,23 +296,23 @@ module ActiveModel
       mutations_from_database.changed_attribute_names
     end
 
-    # Dispatch target for <tt>*_changed?</tt> attribute methods.
-    def attribute_changed?(attr_name, **options) # :nodoc:
+    # Dispatch target for {*_changed?}[rdoc-label:method-i-2A_changed-3F] attribute methods.
+    def attribute_changed?(attr_name, **options)
       mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
-    # Dispatch target for <tt>*_was</tt> attribute methods.
-    def attribute_was(attr_name) # :nodoc:
+    # Dispatch target for {*_was}[rdoc-label:method-i-2A_was] attribute methods.
+    def attribute_was(attr_name)
       mutations_from_database.original_value(attr_name.to_s)
     end
 
-    # Dispatch target for <tt>*_previously_changed?</tt> attribute methods.
-    def attribute_previously_changed?(attr_name, **options) # :nodoc:
+    # Dispatch target for {*_previously_changed?}[rdoc-label:method-i-2A_previously_changed-3F] attribute methods.
+    def attribute_previously_changed?(attr_name, **options)
       mutations_before_last_save.changed?(attr_name.to_s, **options)
     end
 
-    # Dispatch target for <tt>*_previously_was</tt> attribute methods.
-    def attribute_previously_was(attr_name) # :nodoc:
+    # Dispatch target for {*_previously_was}[rdoc-label:method-i-2A_previously_was] attribute methods.
+    def attribute_previously_was(attr_name)
       mutations_before_last_save.original_value(attr_name.to_s)
     end
 
@@ -247,6 +369,12 @@ module ActiveModel
     end
 
     private
+      def init_internals
+        super
+        @mutations_before_last_save = nil
+        @mutations_from_database = nil
+      end
+
       def clear_attribute_change(attr_name)
         mutations_from_database.forget_change(attr_name.to_s)
       end

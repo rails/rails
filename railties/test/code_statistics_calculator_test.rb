@@ -5,7 +5,7 @@ require "rails/code_statistics_calculator"
 
 class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
   def setup
-    @code_statistics_calculator = CodeStatisticsCalculator.new
+    @code_statistics_calculator = Rails::CodeStatisticsCalculator.new
   end
 
   test "calculate statistics using #add_by_file_path" do
@@ -46,7 +46,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
   end
 
   test "add statistics to another using #add" do
-    code_statistics_calculator_1 = CodeStatisticsCalculator.new(1, 2, 3, 4)
+    code_statistics_calculator_1 = Rails::CodeStatisticsCalculator.new(1, 2, 3, 4)
     @code_statistics_calculator.add(code_statistics_calculator_1)
 
     assert_equal 1, @code_statistics_calculator.lines
@@ -54,7 +54,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
     assert_equal 3, @code_statistics_calculator.classes
     assert_equal 4, @code_statistics_calculator.methods
 
-    code_statistics_calculator_2 = CodeStatisticsCalculator.new(2, 3, 4, 5)
+    code_statistics_calculator_2 = Rails::CodeStatisticsCalculator.new(2, 3, 4, 5)
     @code_statistics_calculator.add(code_statistics_calculator_2)
 
     assert_equal 3, @code_statistics_calculator.lines
@@ -64,7 +64,7 @@ class CodeStatisticsCalculatorTest < ActiveSupport::TestCase
   end
 
   test "accumulate statistics using #add_by_io" do
-    code_statistics_calculator_1 = CodeStatisticsCalculator.new(1, 2, 3, 4)
+    code_statistics_calculator_1 = Rails::CodeStatisticsCalculator.new(1, 2, 3, 4)
     @code_statistics_calculator.add(code_statistics_calculator_1)
 
     code = <<-'CODE'

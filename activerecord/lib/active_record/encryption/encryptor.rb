@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "openssl"
-require "zlib"
 require "active_support/core_ext/numeric"
 
 module ActiveRecord
@@ -12,6 +11,22 @@ module ActiveRecord
     # It interacts with a KeyProvider for getting the keys, and delegate to
     # ActiveRecord::Encryption::Cipher the actual encryption algorithm.
     class Encryptor
+      # The compressor to use for compressing the payload
+      attr_reader :compressor
+
+      # === Options
+      #
+      # * <tt>:compress</tt> - Boolean indicating whether records should be compressed before encryption.
+      #   Defaults to +true+.
+      # * <tt>:compressor</tt> - The compressor to use.
+      #   1. If compressor is provided, it will be used.
+      #   2. If not, it will use ActiveRecord::Encryption.config.compressor which default value is +Zlib+.
+      #   If you want to use a custom compressor, it must respond to +deflate+ and +inflate+.
+      def initialize(compress: true, compressor: nil)
+        @compress = compress
+        @compressor = compressor || ActiveRecord::Encryption.config.compressor
+      end
+
       # Encrypts +clean_text+ and returns the encrypted result
       #
       # Internally, it will:
@@ -38,7 +53,7 @@ module ActiveRecord
         serialize_message build_encrypted_message(clear_text, key_provider: key_provider, cipher_options: cipher_options)
       end
 
-      # Decrypts a +clean_text+ and returns the result as clean text
+      # Decrypts an +encrypted_text+ and returns the result as clean text
       #
       # === Options
       #
@@ -64,6 +79,14 @@ module ActiveRecord
         true
       rescue Errors::Encoding, *DECRYPT_ERRORS
         false
+      end
+
+      def binary?
+        serializer.binary?
+      end
+
+      def compress? # :nodoc:
+        @compress
       end
 
       private
@@ -100,7 +123,6 @@ module ActiveRecord
         end
 
         def deserialize_message(message)
-          raise Errors::Encoding unless message.is_a?(String)
           serializer.load message
         rescue ArgumentError, TypeError, Errors::ForbiddenClass
           raise Errors::Encoding
@@ -112,7 +134,7 @@ module ActiveRecord
 
         # Under certain threshold, ZIP compression is actually worse that not compressing
         def compress_if_worth_it(string)
-          if string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
+          if compress? && string.bytesize > THRESHOLD_TO_JUSTIFY_COMPRESSION
             [compress(string), true]
           else
             [string, false]
@@ -120,7 +142,7 @@ module ActiveRecord
         end
 
         def compress(data)
-          Zlib::Deflate.deflate(data).tap do |compressed_data|
+          @compressor.deflate(data).tap do |compressed_data|
             compressed_data.force_encoding(data.encoding)
           end
         end
@@ -134,7 +156,7 @@ module ActiveRecord
         end
 
         def uncompress(data)
-          Zlib::Inflate.inflate(data).tap do |uncompressed_data|
+          @compressor.inflate(data).tap do |uncompressed_data|
             uncompressed_data.force_encoding(data.encoding)
           end
         end

@@ -130,7 +130,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_dynamic_action_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get "api/:action" => "api"
           end
         end
@@ -143,7 +143,7 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_only_route
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller/:action"
           end
         end
@@ -156,14 +156,14 @@ module ActionDispatch
 
       def test_inspect_routes_shows_controller_and_action_route_with_constraints
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action(/:id))", id: /\d+/
           end
         end
 
         assert_equal [
           "Prefix Verb URI Pattern                            Controller#Action",
-          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action {:id=>/\\d+/}"
+          "       GET  /:controller(/:action(/:id))(.:format) :controller#:action #{{ id: /\d+/ }}"
         ], output
       end
 
@@ -174,7 +174,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          '       GET  /photos/:id(.:format) photos#show {:format=>"jpg"}'
+          "       GET  /photos/:id(.:format) photos#show #{{ format: "jpg" }}"
         ], output
       end
 
@@ -185,7 +185,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern           Controller#Action",
-          "       GET  /photos/:id(.:format) photos#show {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /photos/:id(.:format) photos#show #{{ id: /[A-Z]\d{5}/ }}"
         ], output
       end
 
@@ -219,7 +219,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern        Controller#Action",
-          "       GET  /foo/:id(.:format) MountedRackApp {:id=>/[A-Z]\\d{5}/}"
+          "       GET  /foo/:id(.:format) MountedRackApp #{{ id: /[A-Z]\d{5}/ }}"
         ], output
       end
 
@@ -260,7 +260,7 @@ module ActionDispatch
 
         assert_equal [
           "          Prefix Verb URI Pattern Controller#Action",
-          "mounted_rack_app      /foo        MountedRackApp {:constraint=>( my custom constraint )}"
+          "mounted_rack_app      /foo        MountedRackApp #{{ constraint: constraint.new }}"
         ], output
       end
 
@@ -293,7 +293,7 @@ module ActionDispatch
 
         assert_equal [
           "Prefix Verb URI Pattern       Controller#Action",
-          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) {:subdomain=>\"admin\"}",
+          "   foo GET  /foo(.:format)    redirect(301, /foo/bar) #{{ subdomain: "admin" }}",
           "   bar GET  /bar(.:format)    redirect(307, path: /foo/bar)",
           "foobar GET  /foobar(.:format) redirect(301)"
         ], output
@@ -317,11 +317,14 @@ module ActionDispatch
       end
 
       def test_routes_when_expanded
+        ActionDispatch::Routing::Mapper.route_source_locations = true
         engine = Class.new(Rails::Engine) do
           def self.inspect
             "Blog::Engine"
           end
         end
+        file_name = ActiveSupport::BacktraceCleaner.new.clean([__FILE__]).first
+        lineno = __LINE__
         engine.routes.draw do
           get "/cart", to: "cart#show"
         end
@@ -332,28 +335,36 @@ module ActionDispatch
           mount engine => "/blog", :as => "blog"
         end
 
-        assert_equal ["--[ Route 1 ]----------",
-                      "Prefix            | custom_assets",
-                      "Verb              | GET",
-                      "URI               | /custom/assets(.:format)",
-                      "Controller#Action | custom_assets#show",
-                      "--[ Route 2 ]----------",
-                      "Prefix            | custom_furnitures",
-                      "Verb              | GET",
-                      "URI               | /custom/furnitures(.:format)",
-                      "Controller#Action | custom_furnitures#show",
-                      "--[ Route 3 ]----------",
-                      "Prefix            | blog",
-                      "Verb              | ",
-                      "URI               | /blog",
-                      "Controller#Action | Blog::Engine",
-                      "",
-                      "[ Routes for Blog::Engine ]",
-                      "--[ Route 1 ]----------",
-                      "Prefix            | cart",
-                      "Verb              | GET",
-                      "URI               | /cart(.:format)",
-                      "Controller#Action | cart#show"], output
+        expected = ["--[ Route 1 ]----------",
+                     "Prefix            | custom_assets",
+                     "Verb              | GET",
+                     "URI               | /custom/assets(.:format)",
+                     "Controller#Action | custom_assets#show",
+                     "Source Location   | #{file_name}:#{lineno + 6}",
+                     "--[ Route 2 ]----------",
+                     "Prefix            | custom_furnitures",
+                     "Verb              | GET",
+                     "URI               | /custom/furnitures(.:format)",
+                     "Controller#Action | custom_furnitures#show",
+                     "Source Location   | #{file_name}:#{lineno + 7}",
+                     "--[ Route 3 ]----------",
+                     "Prefix            | blog",
+                     "Verb              | ",
+                     "URI               | /blog",
+                     "Controller#Action | Blog::Engine",
+                     "Source Location   | #{file_name}:#{lineno + 8}",
+                     "",
+                     "[ Routes for Blog::Engine ]",
+                     "--[ Route 1 ]----------",
+                     "Prefix            | cart",
+                     "Verb              | GET",
+                     "URI               | /cart(.:format)",
+                     "Controller#Action | cart#show",
+                     "Source Location   | #{file_name}:#{lineno + 2}"]
+
+        assert_equal expected, output
+      ensure
+        ActionDispatch::Routing::Mapper.route_source_locations = false
       end
 
       def test_no_routes_matched_filter_when_expanded
@@ -400,26 +411,13 @@ module ActionDispatch
 
       def test_regression_route_with_controller_regexp
         output = draw do
-          ActiveSupport::Deprecation.silence do
+          ActionDispatch.deprecator.silence do
             get ":controller(/:action)", controller: /api\/[^\/]+/, format: false
           end
         end
 
         assert_equal ["Prefix Verb URI Pattern            Controller#Action",
                       "       GET  /:controller(/:action) :controller#:action"], output
-      end
-
-      def test_inspect_routes_shows_resources_route_when_assets_disabled
-        @set = ActionDispatch::Routing::RouteSet.new
-
-        output = draw do
-          get "/cart", to: "cart#show"
-        end
-
-        assert_equal [
-          "Prefix Verb URI Pattern     Controller#Action",
-          "  cart GET  /cart(.:format) cart#show"
-        ], output
       end
 
       def test_routes_with_undefined_filter

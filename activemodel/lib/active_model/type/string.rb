@@ -4,6 +4,8 @@ require "active_model/type/immutable_string"
 
 module ActiveModel
   module Type
+    # = Active Model \String \Type
+    #
     # Attribute type for strings. It is registered under the +:string+ key.
     #
     # This class is a specialization of ActiveModel::Type::ImmutableString. It
@@ -15,6 +17,10 @@ module ActiveModel
         if new_value.is_a?(::String)
           raw_old_value != new_value
         end
+      end
+
+      def mutable? # :nodoc:
+        true
       end
 
       def to_immutable_string

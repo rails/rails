@@ -8,7 +8,7 @@ module AbstractController
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
-            ActiveSupport::Deprecation.silence {
+            ActionDispatch.deprecator.silence {
               get ":controller(/:action(/:id(.:format)))"
             }
           }
@@ -77,8 +77,8 @@ module AbstractController
       end
 
       def test_anchor_should_call_to_param
-        assert_equal("/c/a#anchor",
-          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("anchor"))
+        assert_equal("/c/a/i#anchor",
+          W.new.url_for(only_path: true, controller: "c", action: "a", id: "i", anchor: Struct.new(:to_param).new("anchor"))
         )
       end
 
@@ -180,13 +180,6 @@ module AbstractController
         )
       end
 
-      def test_protocol
-        add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-      end
-
       def test_protocol_with_and_without_separators
         add_host!
         assert_equal("https://www.basecamphq.com/c/a/i",
@@ -219,6 +212,22 @@ module AbstractController
         )
         assert_equal("//www.basecamphq.com:3000/c/a/i",
           W.new.url_for(controller: "c", action: "a", id: "i", protocol: false)
+        )
+      end
+
+      def test_user_name_and_password
+        add_host!
+        assert_equal(
+          "http://david:secret@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "david", password: "secret", controller: "c", action: "a", id: "i")
+        )
+      end
+
+      def test_user_name_and_password_with_escape_codes
+        add_host!
+        assert_equal(
+          "http://openid.aol.com%2Fnextangler:one+two%3F@www.basecamphq.com/c/a/i",
+          W.new.url_for(user: "openid.aol.com/nextangler", password: "one two?", controller: "c", action: "a", id: "i")
         )
       end
 
@@ -268,7 +277,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new "/subdir"
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { ActiveSupport::Deprecation.silence { get ":controller(/:action(/:id(.:format)))" } }
+          r.draw { ActionDispatch.deprecator.silence { get ":controller(/:action(/:id(.:format)))" } }
           include r.url_helpers
         }
         add_host!(w)
@@ -312,6 +321,58 @@ module AbstractController
         end
       end
 
+      def test_path_params_with_default_url_options
+        with_routing do |set|
+          set.draw do
+            scope ":account_id" do
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
+            end
+            delete "signout" => "sessions#destroy", as: :signout
+          end
+
+          kls = Class.new do
+            include set.url_helpers
+            def default_url_options
+              { path_params: { account_id: "foo" } }
+            end
+          end
+
+          controller = kls.new
+
+          assert_equal("/foo/dashboard", controller.dashboard_path)
+          assert_equal("/bar/dashboard", controller.dashboard_path(account_id: "bar"))
+          assert_equal("/signout", controller.signout_path)
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar"))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
+          assert_equal("/foo/search/quin", controller.search_path("quin"))
+        end
+      end
+
+      def test_path_params_without_default_url_options
+        with_routing do |set|
+          set.draw do
+            scope ":account_id" do
+              get "dashboard" => "pages#dashboard", as: :dashboard
+              get "search(/:term)" => "search#search", as: :search
+            end
+            delete "signout" => "sessions#destroy", as: :signout
+          end
+
+          kls = Class.new { include set.url_helpers }
+          controller = kls.new
+
+          assert_raise(ActionController::UrlGenerationError) do
+            controller.dashboard_path # missing required keys :account_id
+          end
+
+          assert_equal("/bar/dashboard", controller.dashboard_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout", controller.signout_path(path_params: { account_id: "bar" }))
+          assert_equal("/signout?account_id=bar", controller.signout_path(account_id: "bar", path_params: { account_id: "baz" }))
+          assert_equal("/foo/search/quin", controller.search_path("foo", "quin"))
+        end
+      end
+
       def test_using_nil_script_name_properly_concats_with_original_script_name
         add_host!
         assert_equal("https://www.basecamphq.com/subdir/c/a/i",
@@ -324,7 +385,7 @@ module AbstractController
           set.draw do
             get "home/sweet/home/:user", to: "home#index", as: :home
 
-            ActiveSupport::Deprecation.silence do
+            ActionDispatch.deprecator.silence do
               get ":controller/:action/:id"
             end
           end

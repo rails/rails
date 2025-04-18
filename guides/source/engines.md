@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Getting Started with Engines
 ============================
@@ -151,7 +151,7 @@ When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: 'engines/blorgh'
+gem "blorgh", path: "engines/blorgh"
 ```
 
 Don't forget to run `bundle install` as usual. By specifying it as a gem within
@@ -237,28 +237,6 @@ application.
 NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
-
-NOTE: If the parent application runs in `classic` mode, you may run into a
-situation where your engine controller is inheriting from the main application
-controller and not your engine's application controller. The best way to prevent
-this is to switch to `zeitwerk` mode in the parent application. Otherwise, use
-`require_dependency` to ensure that the engine's application controller is
-loaded. For example:
-
-```ruby
-# ONLY NEEDED IN `classic` MODE.
-require_dependency "blorgh/application_controller"
-
-module Blorgh
-  class ArticlesController < ApplicationController
-    # ...
-  end
-end
-```
-
-WARNING: Don't use `require` because it will break the automatic reloading of
-classes in the development environment - using `require_dependency` ensures that
-classes are loaded and unloaded in the correct manner.
 
 Just like for `app/controllers`, you will find a `blorgh` subdirectory under
 the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
@@ -351,6 +329,8 @@ create      app/views/blorgh/articles/edit.html.erb
 create      app/views/blorgh/articles/show.html.erb
 create      app/views/blorgh/articles/new.html.erb
 create      app/views/blorgh/articles/_form.html.erb
+create      app/views/blorgh/articles/_article.html.erb
+invoke    resource_route
 invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 create      test/system/blorgh/articles_test.rb
@@ -460,11 +440,11 @@ model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the engine root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: an `article_id` integer
-and `text` text column.
+`Comment` model, with the related table having two columns: an `article` references
+column and `text` text column.
 
 ```bash
-$ bin/rails generate model Comment article_id:integer text:text
+$ bin/rails generate model Comment article:references text:text
 ```
 
 This will output the following:
@@ -535,7 +515,7 @@ directory at `app/views/blorgh/comments` and in it a new file called
 <%= form_with model: [@article, @article.comments.build] do |form| %>
   <p>
     <%= form.label :text %><br>
-    <%= form.text_area :text %>
+    <%= form.textarea :text %>
   </p>
   <%= form.submit %>
 <% end %>
@@ -589,7 +569,7 @@ end
 
 private
   def comment_params
-    params.require(:comment).permit(:text)
+    params.expect(comment: [:text])
   end
 ```
 
@@ -648,14 +628,14 @@ Usually, specifying the engine inside the `Gemfile` would be done by specifying 
 as a normal, everyday gem.
 
 ```ruby
-gem 'devise'
+gem "devise"
 ```
 
 However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: 'engines/blorgh'
+gem "blorgh", path: "engines/blorgh"
 ```
 
 Then run `bundle` to install the gem.
@@ -697,6 +677,18 @@ If you have multiple engines that need migrations copied over, use
 
 ```bash
 $ bin/rails railties:install:migrations
+```
+
+You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
+```
+
+If you have multiple databases you can also specify the target database by specifying DATABASE.
+
+```bash
+$ bin/rails railties:install:migrations DATABASE=animals
 ```
 
 This command, when run for the first time, will copy over all the migrations
@@ -784,7 +776,7 @@ permit the new form parameter:
 
 ```ruby
 def article_params
-  params.require(:article).permit(:title, :text, :author_name)
+  params.expect(article: [:title, :text, :author_name])
 end
 ```
 
@@ -854,12 +846,12 @@ an author - represented by a record in the `users` table - with an article,
 represented by the `blorgh_articles` table from the engine.
 
 Finally, the author's name should be displayed on the article's page. Add this code
-above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
+above the "Title" output inside `app/views/blorgh/articles/_article.html.erb`:
 
 ```html+erb
 <p>
-  <b>Author:</b>
-  <%= @article.author.name %>
+  <strong>Author:</strong>
+  <%= article.author.name %>
 </p>
 ```
 
@@ -1090,7 +1082,7 @@ module MyApp
     Rails.autoloaders.main.ignore(overrides)
 
     config.to_prepare do
-      Dir.glob("#{overrides}/**/*_override.rb").each do |override|
+      Dir.glob("#{overrides}/**/*_override.rb").sort.each do |override|
         load override
       end
     end
@@ -1098,7 +1090,7 @@ module MyApp
 end
 ```
 
-#### Reopening existing classes using `class_eval`
+#### Reopening Existing Classes Using `class_eval`
 
 For example, in order to override the engine model
 
@@ -1122,7 +1114,7 @@ end
 
 It is very important that the override _reopens_ the class or module. Using the `class` or `module` keywords would define them if they were not already in memory, which would be incorrect because the definition lives in the engine. Using `class_eval` as shown above ensures you are reopening.
 
-#### Reopening existing classes using ActiveSupport::Concern
+#### Reopening Existing Classes Using ActiveSupport::Concern
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
 class modifications, you might want to consider using [`ActiveSupport::Concern`]
@@ -1184,7 +1176,7 @@ module Blorgh::Concerns::Models::Article
 
   module ClassMethods
     def some_class_method
-      'some class method string'
+      "some class method string"
     end
   end
 end
@@ -1377,150 +1369,3 @@ module MyEngine
   end
 end
 ```
-
-Load and Configuration Hooks
-----------------------------
-
-Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
-
-Load and configuration hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
-
-### Avoid loading Rails Frameworks
-
-Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
-
-```ruby
-ActiveRecord::Base.include(MyActiveRecordHelper)
-```
-
-This snippet means that when this file is loaded, it will encounter `ActiveRecord::Base`. This encounter causes Ruby to look for the definition of that constant and will require it. This causes the entire Active Record framework to be loaded on boot.
-
-`ActiveSupport.on_load` is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:
-
-```ruby
-ActiveSupport.on_load(:active_record) do
-  include MyActiveRecordHelper
-end
-```
-
-This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
-
-### When are Hooks called?
-
-In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
-
-### Modifying Code to use Load Hooks
-
-Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in a load hook.
-
-**Modifying calls to `include`**
-
-```ruby
-ActiveRecord::Base.include(MyActiveRecordHelper)
-```
-
-becomes
-
-```ruby
-ActiveSupport.on_load(:active_record) do
-  # self refers to ActiveRecord::Base here,
-  # so we can call .include
-  include MyActiveRecordHelper
-end
-```
-
-**Modifying calls to `prepend`**
-
-```ruby
-ActionController::Base.prepend(MyActionControllerHelper)
-```
-
-becomes
-
-```ruby
-ActiveSupport.on_load(:action_controller_base) do
-  # self refers to ActionController::Base here,
-  # so we can call .prepend
-  prepend MyActionControllerHelper
-end
-```
-
-**Modifying calls to class methods**
-
-```ruby
-ActiveRecord::Base.include_root_in_json = true
-```
-
-becomes
-
-```ruby
-ActiveSupport.on_load(:active_record) do
-  # self refers to ActiveRecord::Base here
-  self.include_root_in_json = true
-end
-```
-
-### Available Load Hooks
-
-These are the load hooks you can use in your own code. To hook into the initialization process of one of the following classes use the available hook.
-
-| Class                                | Hook                                 |
-| -------------------------------------| ------------------------------------ |
-| `ActionCable`                        | `action_cable`                       |
-| `ActionCable::Channel::Base`         | `action_cable_channel`               |
-| `ActionCable::Connection::Base`      | `action_cable_connection`            |
-| `ActionCable::Connection::TestCase`  | `action_cable_connection_test_case`  |
-| `ActionController::API`              | `action_controller_api`              |
-| `ActionController::API`              | `action_controller`                  |
-| `ActionController::Base`             | `action_controller_base`             |
-| `ActionController::Base`             | `action_controller`                  |
-| `ActionController::TestCase`         | `action_controller_test_case`        |
-| `ActionDispatch::IntegrationTest`    | `action_dispatch_integration_test`   |
-| `ActionDispatch::Response`           | `action_dispatch_response`           |
-| `ActionDispatch::Request`            | `action_dispatch_request`            |
-| `ActionDispatch::SystemTestCase`     | `action_dispatch_system_test_case`   |
-| `ActionMailbox::Base`                | `action_mailbox`                     |
-| `ActionMailbox::InboundEmail`        | `action_mailbox_inbound_email`       |
-| `ActionMailbox::Record`              | `action_mailbox_record`              |
-| `ActionMailbox::TestCase`            | `action_mailbox_test_case`           |
-| `ActionMailer::Base`                 | `action_mailer`                      |
-| `ActionMailer::TestCase`             | `action_mailer_test_case`            |
-| `ActionText::Content`                | `action_text_content`                |
-| `ActionText::Record`                 | `action_text_record`                 |
-| `ActionText::RichText`               | `action_text_rich_text`              |
-| `ActionView::Base`                   | `action_view`                        |
-| `ActionView::TestCase`               | `action_view_test_case`              |
-| `ActiveJob::Base`                    | `active_job`                         |
-| `ActiveJob::TestCase`                | `active_job_test_case`               |
-| `ActiveRecord::Base`                 | `active_record`                      |
-| `ActiveStorage::Attachment`          | `active_storage_attachment`          |
-| `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
-| `ActiveStorage::Blob`                | `active_storage_blob`                |
-| `ActiveStorage::Record`              | `active_storage_record`              |
-| `ActiveSupport::TestCase`            | `active_support_test_case`           |
-| `i18n`                               | `i18n`                               |
-
-### Available Configuration Hooks
-
-Configuration hooks do not hook into any particular framework, but instead they run in context of the entire application.
-
-| Hook                   | Use Case                                                                           |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| `before_configuration` | First configurable block to run. Called before any initializers are run.           |
-| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
-| `before_eager_load`    | Third configurable block to run. Does not run if [`config.eager_load`][] set to false. |
-| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
-
-Configuration hooks can be called in the Engine class.
-
-```ruby
-module Blorgh
-  class Engine < ::Rails::Engine
-    config.before_configuration do
-      puts 'I am called before any initializers'
-    end
-  end
-end
-```
-
-[`config.eager_load`]: configuring.html#config-eager-load

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title></title>
+  <meta charset="utf-8" />
+
+  <style>
+    body {
+      font-family: monospace;
+
+      & a {
+        color: #D30001;
+      }
+    }
+
+    .layout {
+      width: 500px;
+      margin: 0 auto;
+    }
+
+    .metadata table {
+      width: 500px;
+      border-bottom: 1px dotted #000;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+
+      & th {
+        text-align: left;
+      }
+    }
+
+    .links {
+      & .left {
+        float: left;
+        width: 40%;
+        margin: 2px 3%;
+      }
+
+      & .card {
+        padding: 0px 5px;
+        border-left: 3px solid #cbcb;
+      }
+
+      & h1, h2 {
+        margin: 5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+  <div class="container">
+    <div class="metadata">
+      <table>
+        <tr>
+          <th>Author</th>
+          <th>Build</th>
+          <th>Commit</th>
+          <th>PR</th>
+        </tr>
+        <tr>
+          <td><%= @author %></td>
+          <td><%= @build %></td>
+          <td><%= @commit %></td>
+          <td><%= @pull_request %></td>
+        <tr>
+          <th>Repo</th>
+          <th colspan=2>Branch</th>
+        </tr>
+        <tr>
+          <td><%= @repo %></td>
+          <td colspan=2><%= @branch %></td>
+        </tr>
+        <tr>
+          <th colspan=3>Message</th>
+        </tr>
+        <tr>
+          <td colspan=3><%= @message %></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="links">
+      <div class="left">
+        <div class="card">
+          <h1><a href="api">/api</a></h1>
+          <h2>Reference documentation</h2>
+        </div>
+      </div>
+
+      <div class="left">
+        <div class="card">
+          <h1><a href="guides">/guides</a></h1>
+          <h2>In-depth tutorials</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

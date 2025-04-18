@@ -53,7 +53,7 @@ module ActionPack
 
       get "news(.:format)" => "news#index"
 
-      ActiveSupport::Deprecation.silence {
+      ActionDispatch.deprecator.silence {
         get "comment/:id(/:action)" => "comments#show"
         get "ws/:controller(/:action(/:id))", ws: true
         get "account(/:action)" => "account#subscription"
@@ -87,6 +87,9 @@ module ActionPack
       ["/blog/2009", [     { controller: "posts", action: "show_date", year: 2009 }]],
       ["/blog/2009/1", [   { controller: "posts", action: "show_date", year: 2009, month: 1 }]],
       ["/blog/2009/1/1", [ { controller: "posts", action: "show_date", year: 2009, month: 1, day: 1 }]],
+      ["/blog/2009/1/1", [ { controller: "posts", action: "show_date", path_params: { year: 2009, month: 1, day: 1 } }]],
+      ["/blog/2009", [ { controller: "posts", action: "show_date", year: 2009, path_params: { year: 2024 } }]],
+      ["/blog/2009", [ { controller: "posts", action: "show_date", year: 2009, path_params: "ignores_a_string" }]],
 
       ["/archive/2010", [ { controller: "archive", action: "index", year: "2010" }]],
       ["/archive", [      { controller: "archive", action: "index" }]],

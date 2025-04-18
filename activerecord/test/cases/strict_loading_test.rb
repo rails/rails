@@ -36,18 +36,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
 
     assert developer.strict_loading!(mode: :n_plus_one_only)
-    assert developer.strict_loading_n_plus_one_only?
+    assert_predicate developer, :strict_loading_n_plus_one_only?
   end
 
-  def test_strict_loading_n_plus_one_only_mode
+  def test_strict_loading_n_plus_one_only_mode_with_has_many
     developer = Developer.first
-    ship = Ship.first
-    ShipPart.create!(name: "Stern", ship: ship)
     firm = Firm.create!(name: "NASA")
-    project = Project.create!(name: "Apollo", firm: firm)
+    developer.projects << Project.create!(name: "Apollo", firm: firm)
 
-    ship.update_column(:developer_id, developer.id)
-    developer.projects << project
     developer.reload
 
     developer.strict_loading!(mode: :n_plus_one_only)
@@ -64,6 +60,27 @@ class StrictLoadingTest < ActiveRecord::TestCase
       developer.projects.last.firm
     end
 
+    assert_nothing_raised do
+      developer.projects_extended_by_name.to_a
+    end
+
+    assert developer.projects_extended_by_name.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.projects_extended_by_name.last.firm
+    end
+  end
+
+  def test_strict_loading_n_plus_one_only_mode_with_belongs_to
+    developer = Developer.first
+    ship = Ship.first
+    ShipPart.create!(name: "Stern", ship: ship)
+
+    ship.update_column(:developer_id, developer.id)
+    developer.reload
+
+    developer.strict_loading!(mode: :n_plus_one_only)
+    assert_predicate developer, :strict_loading?
+
     # Does not raise when a belongs_to association (:ship) loads its
     # has_many association (:parts)
     assert_nothing_raised do
@@ -78,14 +95,40 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_n_plus_one_only_mode_does_not_eager_load_child_associations
+    developer = Developer.first
+    developer.strict_loading!(mode: :n_plus_one_only)
+    developer.projects.first
+
+    assert_not_predicate developer.projects, :loaded?
+
+    assert_nothing_raised do
+      developer.projects.first.firm
+    end
+  end
+
+  def test_default_mode_is_all
+    developer = Developer.first
+    assert_predicate developer, :strict_loading_all?
+  end
+
+  def test_default_mode_can_be_changed_globally
+    developer = Class.new(ActiveRecord::Base) do
+      self.strict_loading_mode = :n_plus_one_only
+      self.table_name = "developers"
+    end.new
+
+    assert_predicate developer, :strict_loading_n_plus_one_only?
+  end
+
   def test_strict_loading
     Developer.all.each { |d| assert_not d.strict_loading? }
-    Developer.strict_loading.each { |d| assert d.strict_loading? }
+    Developer.strict_loading.each { |d| assert_predicate d, :strict_loading? }
   end
 
   def test_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
-      Developer.all.each { |d| assert d.strict_loading? }
+      Developer.all.each { |d| assert_predicate d, :strict_loading? }
       Developer.strict_loading(false).each { |d| assert_not d.strict_loading? }
     end
   end
@@ -162,6 +205,60 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_strict_loading_on_concat_is_ignored
+    developer = Developer.first
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs << AuditLog.new(message: "message")
+    end
+  end
+
+  def test_strict_loading_on_build_is_ignored
+    developer = Developer.first
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs.build(message: message)
+    end
+  end
+
+  def test_strict_loading_on_writer_is_ignored
+    developer = Developer.first
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs = [AuditLog.new(message: "message")]
+    end
+  end
+
+  def test_strict_loading_with_new_record_on_concat_is_ignored
+    developer = Developer.new(id: Developer.first.id)
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs << AuditLog.new(message: "message")
+    end
+  end
+
+  def test_strict_loading_with_new_record_on_build_is_ignored
+    developer = Developer.new(id: Developer.first.id)
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs.build(message: "message")
+    end
+  end
+
+  def test_strict_loading_with_new_record_on_writer_is_ignored
+    developer = Developer.new(id: Developer.first.id)
+    developer.strict_loading!
+
+    assert_nothing_raised do
+      developer.audit_logs = [AuditLog.new(message: "message")]
+    end
+  end
+
   def test_strict_loading_has_one_reload
     with_strict_loading_by_default(Developer) do
       ship = Ship.create!(developer: Developer.first, name: "The Great Ship")
@@ -229,6 +326,20 @@ class StrictLoadingTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_strict_loading_with_has_one_through_does_not_prevent_creation_of_association
+    firm = Firm.new(name: "SuperFirm").tap(&:strict_loading!)
+    computer = Computer.new(extendedWarranty: 1).tap(&:strict_loading!)
+
+    computer.firm = firm
+    computer.developer.name = "Joe"
+    firm.lead_developer = computer.developer
+
+    assert_nothing_raised do
+      computer.save!
+    end
+  end
+
 
   def test_preload_audit_logs_are_strict_loading_because_parent_is_strict_loading
     developer = Developer.first

@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/syntax_error_proxy"
+require "active_support/core_ext/thread/backtrace/location"
 require "rack/utils"
 
 module ActionDispatch
@@ -41,22 +45,76 @@ module ActionDispatch
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ]
 
-    attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
+    attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
-      @exception = exception
-      @exception_class_name = @exception.class.name
+      @exception_class_name = exception.class.name
       @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
+      @exception = exception
+      if exception.is_a?(SyntaxError)
+        @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
+      end
+      @backtrace = build_backtrace
+    end
 
-      expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
+    def routing_error?
+      @exception.is_a?(ActionController::RoutingError)
+    end
+
+    def template_error?
+      @exception.is_a?(ActionView::Template::Error)
+    end
+
+    def sub_template_message
+      @exception.sub_template_message
+    end
+
+    def has_cause?
+      @exception.cause
+    end
+
+    def failures
+      @exception.failures
+    end
+
+    def has_corrections?
+      @exception.respond_to?(:original_message) && @exception.respond_to?(:corrections)
+    end
+
+    def original_message
+      @exception.original_message
+    end
+
+    def corrections
+      @exception.corrections
+    end
+
+    def file_name
+      @exception.file_name
+    end
+
+    def line_number
+      @exception.line_number
+    end
+
+    def actions
+      ActiveSupport::ActionableError.actions(@exception)
     end
 
     def unwrapped_exception
       if wrapper_exceptions.include?(@exception_class_name)
-        exception.cause
+        @exception.cause
       else
-        exception
+        @exception
+      end
+    end
+
+    def annotated_source_code
+      if exception.respond_to?(:annotated_source_code)
+        exception.annotated_source_code
+      else
+        []
       end
     end
 
@@ -118,18 +176,28 @@ module ActionDispatch
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
+    def show?(request)
+      # We're treating `nil` as "unset", and we want the default setting to be `:all`.
+      # This logic should be extracted to `env_config` and calculated once.
+      config = request.get_header("action_dispatch.show_exceptions")
+
+      case config
+      when :none
+        false
+      when :rescuable
+        rescue_response?
+      else
+        true
+      end
+    end
+
     def rescue_response?
       @@rescue_responses.key?(exception.class.name)
     end
 
     def source_extracts
       backtrace.map do |trace|
-        file, line_number = extract_file_and_line_number(trace)
-
-        {
-          code: source_fragment(file, line_number),
-          line_number: line_number
-        }
+        extract_source(trace)
       end
     end
 
@@ -145,9 +213,65 @@ module ActionDispatch
       (traces[trace_to_show].first || {})[:id]
     end
 
+    def exception_name
+      exception.cause.class.to_s
+    end
+
+    def message
+      exception.message
+    end
+
+    def exception_inspect
+      exception.inspect
+    end
+
+    def exception_id
+      exception.object_id
+    end
+
     private
-      def backtrace
-        Array(@exception.backtrace)
+      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
+        def initialize(location, template)
+          super(location)
+          @template = template
+        end
+
+        def spot(exc)
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
+            location = @template.spot(__getobj__)
+          else
+            location = super
+          end
+
+          if location
+            @template.translate_location(__getobj__, location)
+          end
+        end
+      end
+
+      attr_reader :backtrace
+
+      def build_backtrace
+        built_methods = {}
+
+        ActionView::PathRegistry.all_resolvers.each do |resolver|
+          resolver.built_templates.each do |template|
+            built_methods[template.method_name] = template
+          end
+        end
+
+        (@exception.backtrace_locations || []).map do |loc|
+          if built_methods.key?(loc.base_label)
+            thread_backtrace_location = if loc.respond_to?(:__getobj__)
+              loc.__getobj__
+            else
+              loc
+            end
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.base_label])
+          else
+            loc
+          end
+        end
       end
 
       def causes_for(exception)
@@ -168,29 +292,53 @@ module ActionDispatch
         end
       end
 
+      def extract_source(trace)
+        spot = trace.spot(@exception)
+
+        if spot
+          line = spot[:first_lineno]
+          code = extract_source_fragment_lines(spot[:script_lines], line)
+
+          if line == spot[:last_lineno]
+            code[line] = [
+              code[line][0, spot[:first_column]],
+              code[line][spot[:first_column]...spot[:last_column]],
+              code[line][spot[:last_column]..-1],
+            ]
+          end
+
+          return {
+            code: code,
+            line_number: line
+          }
+        end
+
+        file, line_number = extract_file_and_line_number(trace)
+
+        {
+          code: source_fragment(file, line_number),
+          line_number: line_number
+        }
+      end
+
+      def extract_source_fragment_lines(source_lines, line)
+        start = [line - 3, 0].max
+        lines = source_lines.drop(start).take(6)
+        Hash[*(start + 1..(lines.count + start)).zip(lines).flatten]
+      end
+
       def source_fragment(path, line)
         return unless Rails.respond_to?(:root) && Rails.root
         full_path = Rails.root.join(path)
         if File.exist?(full_path)
           File.open(full_path, "r") do |file|
-            start = [line - 3, 0].max
-            lines = file.each_line.drop(start).take(6)
-            Hash[*(start + 1..(lines.count + start)).zip(lines).flatten]
+            extract_source_fragment_lines(file.each_line, line)
           end
         end
       end
 
       def extract_file_and_line_number(trace)
-        # Split by the first colon followed by some digits, which works for both
-        # Windows and Unix path styles.
-        file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
-        [file, line.to_i]
-      end
-
-      def expand_backtrace
-        @exception.backtrace.unshift(
-          @exception.to_s.split("\n")
-        ).flatten!
+        [trace.path, trace.lineno]
       end
   end
 end

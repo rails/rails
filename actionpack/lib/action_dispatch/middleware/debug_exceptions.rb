@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
 require "action_view"
 
 module ActionDispatch
-  # This middleware is responsible for logging exceptions and
-  # showing a debugging page in case the request is local.
+  # # Action Dispatch DebugExceptions
+  #
+  # This middleware is responsible for logging exceptions and showing a debugging
+  # page in case the request is local.
   class DebugExceptions
     cattr_reader :interceptors, instance_accessor: false, default: []
 
@@ -24,26 +28,26 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
-      if headers["X-Cascade"] == "pass"
+      if headers[Constants::X_CASCADE] == "pass"
         body.close if body.respond_to?(:close)
         raise ActionController::RoutingError, "No route matches [#{env['REQUEST_METHOD']}] #{env['PATH_INFO'].inspect}"
       end
 
       response
     rescue Exception => exception
-      invoke_interceptors(request, exception)
-      raise exception unless request.show_exceptions?
-      render_exception(request, exception)
+      request = ActionDispatch::Request.new env
+      backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+      wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+
+      invoke_interceptors(request, exception, wrapper)
+      raise exception unless wrapper.show?(request)
+      render_exception(request, exception, wrapper)
     end
 
     private
-      def invoke_interceptors(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-
+      def invoke_interceptors(request, exception, wrapper)
         @interceptors.each do |interceptor|
           interceptor.call(request, exception)
         rescue Exception
@@ -51,9 +55,7 @@ module ActionDispatch
         end
       end
 
-      def render_exception(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+      def render_exception(request, exception, wrapper)
         log_error(request, wrapper)
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
@@ -94,7 +96,7 @@ module ActionDispatch
             wrapper.status_code,
             Rack::Utils::HTTP_STATUS_CODES[500]
           ),
-          exception: wrapper.exception.inspect,
+          exception: wrapper.exception_inspect,
           traces: wrapper.traces
         }
 
@@ -115,19 +117,19 @@ module ActionDispatch
         DebugView.new(
           request: request,
           exception_wrapper: wrapper,
+          # Everything should use the wrapper, but we need to pass `exception` for legacy
+          # code.
           exception: wrapper.exception,
           traces: wrapper.traces,
           show_source_idx: wrapper.source_to_show_id,
           trace_to_show: wrapper.trace_to_show,
-          routes_inspector: routes_inspector(wrapper.exception),
+          routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
-          line_number: wrapper.line_number,
-          file: wrapper.file
         )
       end
 
       def render(status, body, format)
-        [status, { "Content-Type" => "#{format}; charset=#{Response.default_charset}", "Content-Length" => body.bytesize.to_s }, [body]]
+        [status, { Rack::CONTENT_TYPE => "#{format}; charset=#{Response.default_charset}", Rack::CONTENT_LENGTH => body.bytesize.to_s }, [body]]
       end
 
       def log_error(request, wrapper)
@@ -136,26 +138,46 @@ module ActionDispatch
         return unless logger
         return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
-        exception = wrapper.exception
         trace = wrapper.exception_trace
 
         message = []
         message << "  "
-        message << "#{exception.class} (#{exception.message}):"
-        message.concat(exception.annotated_source_code) if exception.respond_to?(:annotated_source_code)
+        if wrapper.has_cause?
+          message << "#{wrapper.exception_class_name} (#{wrapper.message})"
+          wrapper.wrapped_causes.each do |wrapped_cause|
+            message << "Caused by: #{wrapped_cause.exception_class_name} (#{wrapped_cause.message})"
+          end
+
+          message << "\nInformation for: #{wrapper.exception_class_name} (#{wrapper.message}):"
+        else
+          message << "#{wrapper.exception_class_name} (#{wrapper.message}):"
+        end
+
+        message.concat(wrapper.annotated_source_code)
         message << "  "
         message.concat(trace)
 
-        log_array(logger, message)
+        if wrapper.has_cause?
+          wrapper.wrapped_causes.each do |wrapped_cause|
+            message << "\nInformation for cause: #{wrapped_cause.exception_class_name} (#{wrapped_cause.message}):"
+            message.concat(wrapped_cause.annotated_source_code)
+            message << "  "
+            message.concat(wrapped_cause.exception_trace)
+          end
+        end
+
+        log_array(logger, message, request)
       end
 
-      def log_array(logger, lines)
+      def log_array(logger, lines, request)
         return if lines.empty?
 
+        level = request.get_header("action_dispatch.debug_exception_log_level")
+
         if logger.formatter && logger.formatter.respond_to?(:tags_text)
-          logger.fatal lines.join("\n#{logger.formatter.tags_text}")
+          logger.add(level, lines.join("\n#{logger.formatter.tags_text}"))
         else
-          logger.fatal lines.join("\n")
+          logger.add(level, lines.join("\n"))
         end
       end
 
@@ -168,7 +190,7 @@ module ActionDispatch
       end
 
       def routes_inspector(exception)
-        if @routes_app.respond_to?(:routes) && (exception.is_a?(ActionController::RoutingError) || exception.is_a?(ActionView::Template::Error))
+        if @routes_app.respond_to?(:routes) && (exception.routing_error? || exception.template_error?)
           ActionDispatch::Routing::RoutesInspector.new(@routes_app.routes.routes)
         end
       end

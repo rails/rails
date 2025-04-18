@@ -30,12 +30,18 @@ module Arel # :nodoc: all
     end
 
     module FetchAttribute
-      def fetch_attribute
+      def fetch_attribute(&)
         if left.is_a?(Arel::Attributes::Attribute)
           yield left
         elsif right.is_a?(Arel::Attributes::Attribute)
           yield right
         end
+      end
+    end
+
+    class As < Binary
+      def to_cte
+        Arel::Nodes::Cte.new(left.name, right)
       end
     end
 
@@ -105,14 +111,7 @@ module Arel # :nodoc: all
       end
     end
 
-    class Or < Binary
-      def fetch_attribute(&block)
-        left.fetch_attribute(&block) && right.fetch_attribute(&block)
-      end
-    end
-
     %w{
-      As
       Assignment
       Join
       Union
