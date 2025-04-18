@@ -1,3 +1,7 @@
+*   Allow BacktraceCleaner to present backtraces of files in the project tmp dir
+
+    *TheNotary*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
