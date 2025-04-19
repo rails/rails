@@ -243,6 +243,7 @@ module ActiveSupport
         attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
+          options.assert_valid_keys(:if, :unless)
           @chain_config = chain_config
           @name    = name
           @kind    = kind
@@ -737,13 +738,14 @@ module ActiveSupport
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 
+          prepend = options.delete(:prepend)
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
             Callback.build(self_chain, filter, type, options)
           end
 
           __update_callbacks(name) do |target, chain|
-            options[:prepend] ? chain.prepend(*mapped) : chain.append(*mapped)
+            prepend ? chain.prepend(*mapped) : chain.append(*mapped)
             target.set_callbacks name, chain
           end
         end
@@ -785,6 +787,8 @@ module ActiveSupport
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
+
+          options.assert_valid_keys(:if, :unless, :raise)
 
           options[:raise] = true unless options.key?(:raise)
 

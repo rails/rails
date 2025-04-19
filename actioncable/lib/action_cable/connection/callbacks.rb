@@ -40,16 +40,16 @@ module ActionCable
       end
 
       module ClassMethods
-        def before_command(*methods, &block)
-          set_callback(:command, :before, *methods, &block)
+        def before_command(...)
+          set_callback(:command, :before, ...)
         end
 
-        def after_command(*methods, &block)
-          set_callback(:command, :after, *methods, &block)
+        def after_command(...)
+          set_callback(:command, :after, ...)
         end
 
-        def around_command(*methods, &block)
-          set_callback(:command, :around, *methods, &block)
+        def around_command(...)
+          set_callback(:command, :around, ...)
         end
       end
     end

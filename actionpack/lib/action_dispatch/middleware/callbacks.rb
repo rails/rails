@@ -12,12 +12,12 @@ module ActionDispatch
     define_callbacks :call
 
     class << self
-      def before(*args, &block)
-        set_callback(:call, :before, *args, &block)
+      def before(...)
+        set_callback(:call, :before, ...)
       end
 
-      def after(*args, &block)
-        set_callback(:call, :after, *args, &block)
+      def after(...)
+        set_callback(:call, :after, ...)
       end
     end
 

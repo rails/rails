@@ -100,7 +100,7 @@ module ActiveModel
             _validators[nil] << validator
           end
 
-          validate(validator, options)
+          validate(validator, options.slice(VALID_OPTIONS_FOR_VALIDATE))
         end
       end
     end

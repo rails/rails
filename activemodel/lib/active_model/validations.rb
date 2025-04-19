@@ -169,14 +169,15 @@ module ActiveModel
         end
 
         if options.key?(:on)
-          options = options.merge(if: [predicate_for_validation_context(options[:on]), *options[:if]])
+          on = options.delete(:on)
+          options = options.merge(if: [predicate_for_validation_context(on), *options[:if]])
         end
 
         if options.key?(:except_on)
           options = options.dup
-          options[:except_on] = Array(options[:except_on])
+          except_on = Array(options.delete(:except_on))
           options[:unless] = [
-            ->(o) { options[:except_on].intersect?(Array(o.validation_context)) },
+            ->(o) { except_on.intersect?(Array(o.validation_context)) },
             *options[:unless]
           ]
         end
