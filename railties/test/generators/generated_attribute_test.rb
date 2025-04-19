@@ -136,6 +136,10 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     end
   end
 
+  def test_default_value_is_json
+    assert_field_default_value :json, '{"key": "value"}'
+  end
+
   def test_human_name
     assert_equal(
       "Full name",
