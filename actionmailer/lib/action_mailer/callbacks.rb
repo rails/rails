@@ -12,19 +12,19 @@ module ActionMailer
     module ClassMethods
       # Defines a callback that will get called right before the
       # message is sent to the delivery method.
-      def before_deliver(*filters, &blk)
-        set_callback(:deliver, :before, *filters, &blk)
+      def before_deliver(...)
+        set_callback(:deliver, :before, ...)
       end
 
       # Defines a callback that will get called right after the
       # message's delivery method is finished.
-      def after_deliver(*filters, &blk)
-        set_callback(:deliver, :after, *filters, &blk)
+      def after_deliver(...)
+        set_callback(:deliver, :after, ...)
       end
 
       # Defines a callback that will get called around the message's deliver method.
-      def around_deliver(*filters, &blk)
-        set_callback(:deliver, :around, *filters, &blk)
+      def around_deliver(...)
+        set_callback(:deliver, :around, ...)
       end
     end
   end

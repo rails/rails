@@ -47,8 +47,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def before_perform(*filters, &blk)
-        set_callback(:perform, :before, *filters, &blk)
+      def before_perform(...)
+        set_callback(:perform, :before, ...)
       end
 
       # Defines a callback that will get called right after the
@@ -66,8 +66,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def after_perform(*filters, &blk)
-        set_callback(:perform, :after, *filters, &blk)
+      def after_perform(...)
+        set_callback(:perform, :after, ...)
       end
 
       # Defines a callback that will get called around the job's perform method.
@@ -99,8 +99,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def around_perform(*filters, &blk)
-        set_callback(:perform, :around, *filters, &blk)
+      def around_perform(...)
+        set_callback(:perform, :around, ...)
       end
 
       # Defines a callback that will get called right before the
@@ -118,8 +118,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def before_enqueue(*filters, &blk)
-        set_callback(:enqueue, :before, *filters, &blk)
+      def before_enqueue(...)
+        set_callback(:enqueue, :before, ...)
       end
 
       # Defines a callback that will get called right after the
@@ -138,8 +138,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def after_enqueue(*filters, &blk)
-        set_callback(:enqueue, :after, *filters, &blk)
+      def after_enqueue(...)
+        set_callback(:enqueue, :after, ...)
       end
 
       # Defines a callback that will get called around the enqueuing
@@ -159,8 +159,8 @@ module ActiveJob
       #     end
       #   end
       #
-      def around_enqueue(*filters, &blk)
-        set_callback(:enqueue, :around, *filters, &blk)
+      def around_enqueue(...)
+        set_callback(:enqueue, :around, ...)
       end
     end
   end

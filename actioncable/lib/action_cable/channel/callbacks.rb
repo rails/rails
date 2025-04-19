@@ -45,8 +45,8 @@ module ActionCable
       end
 
       module ClassMethods
-        def before_subscribe(*methods, &block)
-          set_callback(:subscribe, :before, *methods, &block)
+        def before_subscribe(...)
+          set_callback(:subscribe, :before, ...)
         end
 
         # This callback will be triggered after the Base#subscribed method is called,
@@ -57,17 +57,17 @@ module ActionCable
         #
         #     after_subscribe :my_method, unless: :subscription_rejected?
         #
-        def after_subscribe(*methods, &block)
-          set_callback(:subscribe, :after, *methods, &block)
+        def after_subscribe(...)
+          set_callback(:subscribe, :after, ...)
         end
         alias_method :on_subscribe, :after_subscribe
 
-        def before_unsubscribe(*methods, &block)
-          set_callback(:unsubscribe, :before, *methods, &block)
+        def before_unsubscribe(...)
+          set_callback(:unsubscribe, :before, ...)
         end
 
-        def after_unsubscribe(*methods, &block)
-          set_callback(:unsubscribe, :after, *methods, &block)
+        def after_unsubscribe(...)
+          set_callback(:unsubscribe, :after, ...)
         end
         alias_method :on_unsubscribe, :after_unsubscribe
       end
