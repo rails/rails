@@ -90,14 +90,13 @@ module AbstractController
       # *   `only`   - The callback should be run only for this action.
       # *   `except`  - The callback should be run for all actions except this action.
       #
-      def _normalize_callback_options(options)
-        _normalize_callback_option(options, :only, :if)
-        _normalize_callback_option(options, :except, :unless)
+      def _normalize_callback_options(filters, options)
+        _normalize_callback_option(filters, options, :only, :if)
+        _normalize_callback_option(filters, options, :except, :unless)
       end
 
-      def _normalize_callback_option(options, from, to) # :nodoc:
+      def _normalize_callback_option(filters, options, from, to) # :nodoc:
         if from_value = options.delete(from)
-          filters = options[:filters]
           from_value = ActionFilter.new(filters, from, from_value)
           options[to] = Array(options[to]).unshift(from_value)
         end
@@ -117,12 +116,10 @@ module AbstractController
       # *   `name`     - The callback to be added.
       # *   `options`  - A hash of options to be used when adding the callback.
       #
-      def _insert_callbacks(callbacks, block = nil)
+      def _insert_callbacks(callbacks, block = nil, &blk)
         options = callbacks.extract_options!
         callbacks.push(block) if block
-        options[:filters] = callbacks
-        _normalize_callback_options(options)
-        options.delete(:filters)
+        _normalize_callback_options(callbacks, options)
         callbacks.each do |callback|
           yield callback, options
         end
@@ -229,12 +226,18 @@ module AbstractController
       # of before, after, and around.
       [:before, :after, :around].each do |callback|
         define_method "#{callback}_action" do |*names, &blk|
+          options = names.extract_options!
+          names << options
+          options.assert_valid_keys(:if, :unless, :prepend, :only, :except)
           _insert_callbacks(names, blk) do |name, options|
             set_callback(:process_action, callback, name, options)
           end
         end
 
         define_method "prepend_#{callback}_action" do |*names, &blk|
+          options = names.extract_options!
+          names << options
+          options.assert_valid_keys(:if, :unless, :prepend, :only, :except)
           _insert_callbacks(names, blk) do |name, options|
             set_callback(:process_action, callback, name, options.merge(prepend: true))
           end
@@ -243,6 +246,9 @@ module AbstractController
         # Skip a before, after or around callback. See _insert_callbacks for details on
         # the allowed parameters.
         define_method "skip_#{callback}_action" do |*names|
+          options = names.extract_options!
+          names << options
+          options.assert_valid_keys(:if, :unless, :prepend, :only, :except, :raise)
           _insert_callbacks(names) do |name, options|
             skip_callback(:process_action, callback, name, options)
           end

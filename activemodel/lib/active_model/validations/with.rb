@@ -89,6 +89,7 @@ module ActiveModel
         options = args.extract_options!
         options[:class] = self
 
+        validate_options = options.slice(*VALID_OPTIONS_FOR_VALIDATE)
         args.each do |klass|
           validator = klass.new(options.dup, &block)
 
@@ -100,7 +101,7 @@ module ActiveModel
             _validators[nil] << validator
           end
 
-          validate(validator, options)
+          validate(validator, validate_options)
         end
       end
     end

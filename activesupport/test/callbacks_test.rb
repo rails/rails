@@ -9,12 +9,12 @@ module CallbacksTest
 
     define_callbacks :save
 
-    def self.before_save(*filters, &blk)
-      set_callback(:save, :before, *filters, &blk)
+    def self.before_save(...)
+      set_callback(:save, :before, ...)
     end
 
-    def self.after_save(*filters, &blk)
-      set_callback(:save, :after, *filters, &blk)
+    def self.after_save(...)
+      set_callback(:save, :after, ...)
     end
 
     class << self
@@ -1113,7 +1113,7 @@ module CallbacksTest
         define_callbacks :foo
         n.times { set_callback :foo, :before, callback }
         def run; run_callbacks :foo; end
-        def self.skip(*things); skip_callback :foo, :before, *things; end
+        def self.skip(...); skip_callback(:foo, :before, ...); end
       }
     end
 
@@ -1282,6 +1282,34 @@ module CallbacksTest
       klass = AllSaveCallbacks.new
       klass.run_callbacks :save, :after
       assert_equal ["after_save_2", "after_save_1"], klass.history
+    end
+  end
+
+  class ValidateArgsCallbackTest < ActiveSupport::TestCase
+    def test_invalid_args_are_not_permitted
+      klass = Class.new(Record)
+
+      assert_raises(ArgumentError) do
+        klass.before_save :foo, other: :bar
+      end
+    end
+
+    def test_invalid_skip_args_are_not_permitted
+      klass = Class.new(Record)
+
+      assert_raises(ArgumentError) do
+        klass.before_save :foo
+        klass.skip_callback :save, :before, :foo, other: :bar
+      end
+    end
+
+    def test_invalid_prepend_args_are_not_permitted
+      klass = Class.new(Record)
+
+      assert_raises(ArgumentError) do
+        klass.before_save :foo
+        klass.set_callback :save, :before, :bar, prepend: true, other: :baz
+      end
     end
   end
 end

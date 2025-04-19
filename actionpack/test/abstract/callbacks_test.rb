@@ -26,6 +26,33 @@ module AbstractController
         controller.process(:index)
         assert_equal "Hello world", controller.response_body
       end
+
+      def test_before_action_doesnt_allow_on_option
+        exception = assert_raises ArgumentError do
+          Class.new(ControllerWithCallbacks) do
+            before_action(on: :create) { }
+          end
+        end
+        assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :only, :except", exception.message
+      end
+
+      def test_around_action_doesnt_allow_on_option
+        exception = assert_raises ArgumentError do
+          Class.new(ControllerWithCallbacks) do
+            around_action(on: :create) { }
+          end
+        end
+        assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :only, :except", exception.message
+      end
+
+      def test_after_action_doesnt_allow_on_option
+        exception = assert_raises ArgumentError do
+          Class.new(ControllerWithCallbacks) do
+            after_action(on: :create) { }
+          end
+        end
+        assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :only, :except", exception.message
+      end
     end
 
     class Callback2 < ControllerWithCallbacks
