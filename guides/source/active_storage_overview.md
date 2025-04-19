@@ -412,7 +412,7 @@ class SignupController < ApplicationController
 
   private
     def user_params
-      params.expect(user: [:email_address, :password, :avatar])
+      params.expect(user: [ :email_address, :password, :avatar ])
     end
 end
 ```
@@ -443,7 +443,7 @@ You can configure specific variants per attachment by calling the `variant` meth
 ```ruby
 class User < ApplicationRecord
   has_one_attached :avatar do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.variant :thumb, resize_to_limit: [ 100, 100 ]
   end
 end
 ```
@@ -459,7 +459,7 @@ You can use specific variants for previews as well:
 ```ruby
 class User < ApplicationRecord
   has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.variant :thumb, resize_to_limit: [ 100, 100 ]
   end
 end
 ```
@@ -474,7 +474,7 @@ Rails should generate them ahead of time:
 ```ruby
 class User < ApplicationRecord
   has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+    attachable.variant :thumb, resize_to_limit: [ 100, 100 ], preprocessed: true
   end
 end
 ```
@@ -548,7 +548,7 @@ Configuring specific variants is done the same way as `has_one_attached`, by cal
 ```ruby
 class Message < ApplicationRecord
   has_many_attached :images do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
+    attachable.variant :thumb, resize_to_limit: [ 100, 100 ]
   end
 end
 ```
@@ -911,7 +911,7 @@ previewable files. You can also call these methods directly.
 By default, Active Storage will process representations lazily. This code:
 
 ```ruby
-image_tag file.representation(resize_to_limit: [100, 100])
+image_tag file.representation(resize_to_limit: [ 100, 100 ])
 ```
 
 Will generate an `<img>` tag with the `src` pointing to the
@@ -931,7 +931,7 @@ This works fine for most cases.
 If you want to generate URLs for images immediately, you can call `.processed.url`:
 
 ```ruby
-image_tag file.representation(resize_to_limit: [100, 100]).processed.url
+image_tag file.representation(resize_to_limit: [ 100, 100 ]).processed.url
 ```
 
 The Active Storage variant tracker improves performance of this, by storing a
@@ -946,7 +946,7 @@ use the named scopes on [`ActiveStorage::Attachment`][].
 
 ```ruby
 message.images.with_all_variant_records.each do |file|
-  image_tag file.representation(resize_to_limit: [100, 100]).processed.url
+  image_tag file.representation(resize_to_limit: [ 100, 100 ]).processed.url
 end
 ```
 
