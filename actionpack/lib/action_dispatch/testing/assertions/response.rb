@@ -71,6 +71,20 @@ module ActionDispatch
         assert_operator redirect_expected, :===, redirect_is, message
       end
 
+      # Asserts that the given +text+ is present somewhere in the response body.
+      #
+      #     assert_in_body fixture(:name).description
+      def assert_in_body(text)
+        assert_match(/#{Regexp.escape(text)}/, @response.body)
+      end
+
+      # Asserts that the given +text+ is not present anywhere in the response body.
+      #
+      #     assert_not_in_body fixture(:name).description
+      def assert_not_in_body(text)
+        assert_no_match(/#{Regexp.escape(text)}/, @response.body)
+      end
+
       private
         # Proxy to to_param if the object will respond to it.
         def parameterize(value)
