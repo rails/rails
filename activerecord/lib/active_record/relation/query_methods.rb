@@ -1591,8 +1591,12 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
-    def arel(aliases = nil) # :nodoc:
-      @arel ||= with_connection { |c| build_arel(c, aliases) }
+    def arel(conn = nil, aliases: nil) # :nodoc:
+      @arel ||= if conn
+        build_arel(conn, aliases)
+      else
+        with_connection { |c| build_arel(c, aliases) }
+      end
     end
 
     def construct_join_dependency(associations, join_type) # :nodoc:

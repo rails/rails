@@ -53,7 +53,7 @@ module ActiveRecord
               end
             end
 
-            arel = scope.arel(alias_tracker.aliases)
+            arel = scope.arel(aliases: alias_tracker.aliases)
             nodes = arel.constraints.first
 
             if nodes.is_a?(Arel::Nodes::And)
