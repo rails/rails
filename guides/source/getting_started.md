@@ -1795,6 +1795,8 @@ this rich text in the text area.
 
 Check out the [Action Text Overview](action_text_overview.html) to learn more.
 
+NOTE: The [Attachments](https://guides.rubyonrails.org/action_text_overview.html#attachments) section on Active Storage dependencies explains what to install to render images through Action Text.
+
 File Uploads with Active Storage
 --------------------------------
 
