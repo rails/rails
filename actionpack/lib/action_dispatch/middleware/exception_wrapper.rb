@@ -260,7 +260,17 @@ module ActionDispatch
           end
         end
 
-        (@exception.backtrace_locations || []).map do |loc|
+        backtrace_locations =
+          @exception.backtrace_locations ||
+            @exception.backtrace&.filter_map do |trace|
+              next if trace.start_with?("(eval")
+              file, line = trace.match(/^(.+?):(\d+).*$/, &:captures)
+              ActiveSupport::SyntaxErrorProxy::BacktraceLocation.new(file, line.to_i, trace)
+            end
+
+        return [] unless backtrace_locations
+
+        backtrace_locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__

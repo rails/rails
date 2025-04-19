@@ -48,7 +48,7 @@ module ActiveSupport
 
     private
       def parse_message_for_trace
-        if __getobj__.to_s.start_with?("(eval")
+        if __getobj__.to_s.start_with?("(eval") && __getobj__.backtrace_locations
           # If the exception is coming from a call to eval, we need to keep
           # the path of the file in which eval was called to ensure we can
           # return the right source fragment to show the location of the
