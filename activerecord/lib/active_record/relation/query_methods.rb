@@ -1624,13 +1624,17 @@ module ActiveRecord
         case opts
         when String
           if rest.empty?
-            parts = [Arel.sql(opts)]
+            if Arel.arel_node?(opts)
+              parts = [opts]
+            else
+              parts = [Arel.sql(opts)]
+            end
           elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
             parts = [build_named_bound_sql_literal(opts, rest.first)]
           elsif opts.include?("?")
             parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+            parts = [Arel.sql(model.sanitize_sql([opts, *rest]))]
           end
         when Hash
           opts = opts.transform_keys do |key|

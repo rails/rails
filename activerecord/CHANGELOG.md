@@ -1,3 +1,7 @@
+*   Enable passing retryable SqlLiterals to `#where`.
+
+    *Hartley McGuire*
+
 *   Set default for primary keys in `insert_all`/`upsert_all`.
 
     Previously in Postgres, updating and inserting new records in one upsert wasn't possible
