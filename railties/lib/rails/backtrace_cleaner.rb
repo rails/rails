@@ -5,7 +5,7 @@ require "active_support/core_ext/string/access"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
-    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|tmp|\(\w+(?:-\w+)*\))/
+    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|tmp|db|\(\w+(?:-\w+)*\))/
     RENDER_TEMPLATE_PATTERN = /:in [`'].*_\w+_{2,3}\d+_\d+'/
 
     def initialize
