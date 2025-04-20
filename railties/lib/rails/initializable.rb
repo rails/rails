@@ -21,6 +21,7 @@ module Rails
       end
 
       def run(*args)
+        block = self.block
         @context.instance_exec(*args, &block)
       end
 

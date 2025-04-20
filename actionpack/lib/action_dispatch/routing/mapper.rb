@@ -897,7 +897,8 @@ module ActionDispatch
             assign_deprecated_options(deprecated_options, mapping, :connect)
           end
 
-          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: [:get, :connect], &block)
+          via = [:get, :connect]
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via:, &block)
           self
         end
       end
