@@ -5,7 +5,8 @@ require "active_support/core_ext/string/access"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner # :nodoc:
-    APP_DIRS_PATTERN = /\A(?:\.\/)?(?:app|config|lib|test|\(\w+(?:-\w+)*\))/
+    APP_DIRS = "app|config|lib|test"
+    APP_DIRS_PATTERN = /\A(?:\.\.\/|(?:\.\/)?(?:#{APP_DIRS}|\(\w+(?:-\w+)*\)))/
     RENDER_TEMPLATE_PATTERN = /:in [`'].*_\w+_{2,3}\d+_\d+'/
 
     def initialize
@@ -26,8 +27,7 @@ module Rails
         end
       end
       add_silencer do |line|
-        !APP_DIRS_PATTERN.match?(line) &&
-        !relative_path_gem?(line)
+        !APP_DIRS_PATTERN.match?(line)
       end
     end
 
@@ -55,13 +55,6 @@ module Rails
         "#{spec.expanded_original_path}"
       end
     end
-    def relative_path_gem?(line)
-      return false if root.nil?
-      local_gem_roots.any? do |root|
-        line.start_with?(root) ||  # detect unfiltered local_gem line
-        line.start_with?("..")     # detect filtered local_gem line
-      end
-    end
     def gem_path_relative_to_root(gem_root)
       return gem_root if root.nil?
       common_path = root.each_char.zip(gem_root.each_char)
@@ -69,10 +62,10 @@ module Rails
                                   .map(&:first)
                                   .join
 
-      return gem_root if common_path.size == root.size
+      return gem_root if common_path.size >= root.size # no '../'s for gems nested within rails root
 
-      delta = root.from(common_path.size).split(File::SEPARATOR).count
-      back_path = "..#{File::SEPARATOR}" * delta
+      dir_divergence = root.from(common_path.size).split(File::SEPARATOR).count
+      back_path = "..#{File::SEPARATOR}" * dir_divergence
       forward_path = gem_root.from(common_path.size)
 
       "#{back_path}#{forward_path}"
