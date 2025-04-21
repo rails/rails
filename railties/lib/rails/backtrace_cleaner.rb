@@ -13,7 +13,7 @@ module Rails
       super
       add_filter do |line|
         local_gem_roots.find { |g| line.start_with?(g) }&.then do |gem_root|
-          gem_path_relative_to_root(gem_root) + line.from(gem_root.size)
+          root && relative_gem_path(gem_root) + line.from(gem_root.size)
         end || line
       end
       add_filter do |line|
@@ -45,9 +45,8 @@ module Rails
     end
 
     private
+    # enable shortcircuiting if we are called before Rails.root is assigned
     def root
-      # We may be called before Rails.root is assigned.
-      # When that happens we fallback to not truncating.
       @root ||= Rails.root && "#{Rails.root}/"
     end
     def local_gem_roots
@@ -55,20 +54,8 @@ module Rails
         "#{spec.expanded_original_path}"
       end
     end
-    def gem_path_relative_to_root(gem_root)
-      return gem_root if root.nil?
-      common_path = root.each_char.zip(gem_root.each_char)
-                                  .take_while { |a, b| a == b }
-                                  .map(&:first)
-                                  .join
-
-      return gem_root if common_path.size >= root.size # no '../'s for gems nested within rails root
-
-      dir_divergence = root.from(common_path.size).split(File::SEPARATOR).count
-      back_path = "..#{File::SEPARATOR}" * dir_divergence
-      forward_path = gem_root.from(common_path.size)
-
-      "#{back_path}#{forward_path}"
+    def relative_gem_path(gem_root)
+      "#{Pathname(gem_root).relative_path_from(Pathname(root))}"
     end
   end
 end
