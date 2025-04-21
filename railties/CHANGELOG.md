@@ -96,4 +96,9 @@
 
     *Petrik de Heus*
 
+*   Add `Rails::Generators::Rails::Github::CiGenerator` and `Rails::Generators::Rails::Db::System::Change::Github::CiGenerator`
+    to create and update the database in `.github/workflows/ci.yml` when calling `rails db:system:change`.
+
+    *delCatta*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.
