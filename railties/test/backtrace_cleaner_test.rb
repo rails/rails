@@ -36,6 +36,12 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     assert_equal 2, result.length
   end
 
+  test "#clean should consider traces in the project tmp directory" do
+    backtrace = [ "tmp/storage/lasted_dsl.rb:4:in `start'"]
+    result = @cleaner.clean(backtrace)
+    assert_equal "tmp/storage/lasted_dsl.rb:4:in `start'", result[0]
+  end
+
   test "#clean should consider traces that include dasherized Rails application name" do
     backtrace = [ "(my-app):1",
                   "/Path/to/rails/railties/lib/rails/commands/console.rb:77:in `start'",
