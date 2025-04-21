@@ -26,9 +26,7 @@ module Rails
           line
         end
       end
-      add_silencer do |line|
-        !APP_DIRS_PATTERN.match?(line)
-      end
+      add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
     end
 
     def clean(backtrace, kind = :silent)
