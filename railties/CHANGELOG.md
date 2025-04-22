@@ -1,3 +1,7 @@
+*   Add disallow_authenticated_access to authentication generator.
+
+    *Bradley Johnson*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
