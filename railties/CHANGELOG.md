@@ -2,6 +2,10 @@
 
     *Bradley Johnson*
 
+*   Add --reset option to bin/setup which will call db:reset as part of the setup.
+
+    *DHH*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
