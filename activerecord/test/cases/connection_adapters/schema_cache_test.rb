@@ -467,11 +467,15 @@ module ActiveRecord
         values = [["z", nil], ["y", nil], ["x", nil]]
         expected = values.sort.to_h
 
+        named = Struct.new(:name)
+        named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
+        named_expected = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
+
         coder = {
-          "columns" => values,
+          "columns" => named_values,
           "primary_keys" => values,
           "data_sources" => values,
-          "indexes" => values,
+          "indexes" => named_values,
           "deduplicated" => true
         }
 
@@ -479,10 +483,10 @@ module ActiveRecord
         schema_cache.init_with(coder)
         schema_cache.encode_with(coder)
 
-        assert_equal expected, coder["columns"]
+        assert_equal named_expected, coder["columns"]
         assert_equal expected, coder["primary_keys"]
         assert_equal expected, coder["data_sources"]
-        assert_equal expected, coder["indexes"]
+        assert_equal named_expected, coder["indexes"]
         assert coder.key?("version")
       end
 
