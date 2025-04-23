@@ -98,6 +98,24 @@ module ActiveSupport
         "#<#{self.class} options=#{options.inspect} mem_cache=#{instance.inspect}>"
       end
 
+      # Returns the underlying Dalli client instance.
+      #
+      # This provides direct access to the Dalli client or connection pool to perform operations
+      # not exposed by the cache store interface.
+      #
+      # For example, to close the connection before forking:
+      #
+      #   Rails.cache.client.close if Rails.cache.is_a?(ActiveSupport::Cache::MemCacheStore)
+
+      # To perform operations on a pooled connection:
+      #
+      #   Rails.cache.client.with do |c|
+      #     c.close
+      #   end
+      def client
+        @data
+      end
+
       ##
       # :method: write
       # :call-seq: write(name, value, options = nil)

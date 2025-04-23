@@ -1,3 +1,11 @@
+*   Add `client` method to `ActiveSupport::Cache::MemCacheStore` to provide access to the underlying Dalli client.
+
+    ```ruby
+    Rails.cache.client.close if Rails.cache.is_a?(ActiveSupport::Cache::MemCacheStore)
+    ```
+
+    *Patrick Tulskie*
+
 *   Allow to configure maximum cache key sizes
 
     When the key exceeds the configured limit (250 bytes by default), it will be truncated and

@@ -387,6 +387,18 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal 5, pool.instance_variable_get(:@timeout)
   end
 
+  def test_client_returns_direct_dalli_client_when_not_pooled
+    cache = lookup_store(pool: false)
+    assert_same cache.instance_variable_get(:@data), cache.client
+    assert_instance_of Dalli::Client, cache.client
+  end
+
+  def test_client_returns_connection_pool_when_pooled
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    assert_same cache.instance_variable_get(:@data), cache.client
+    assert_instance_of ConnectionPool, cache.client
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
