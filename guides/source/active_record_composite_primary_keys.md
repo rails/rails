@@ -118,7 +118,7 @@ Take caution when using `find_by(id:)` on models where `:id` is not the primary
 key, such as composite primary key models. See the [Active Record Querying][]
 guide to learn more.
 
-[Active Record Querying]: active_record_querying.html#using-id-as-a-condition
+[Active Record Querying]: active_record_querying.html#conditions-with-id
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
