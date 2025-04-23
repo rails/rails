@@ -409,6 +409,24 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "New edition", Book.find(1).name
   end
 
+  def test_upsert_all_implicitly_sets_primary_keys_when_nil
+    assert_difference "Book.count", 2 do
+      Book.upsert_all [
+        { id: 1, name: "New edition" },
+        { id: nil, name: "New edition 2" },
+        { id: nil, name: "New edition 3" },
+      ]
+    end
+
+    assert_equal "New edition", Book.find(1).name
+  end
+
+  def test_insert_all_implicitly_sets_primary_keys_when_nil
+    assert_difference "Book.count", 1 do
+      Book.insert_all [ { id: nil, name: "New edition" } ]
+    end
+  end
+
   def test_upsert_all_only_applies_last_value_when_given_duplicate_identifiers
     skip unless supports_insert_on_duplicate_update? && !current_adapter?(:PostgreSQLAdapter)
 
