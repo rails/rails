@@ -1125,6 +1125,21 @@ module ActiveRecord
       where(*args).destroy_all
     end
 
+    # Finds and destroys all records matching the specified conditions.
+    # This is short-hand for <tt>relation.where(condition).destroy_all!</tt>.
+    # Returns the collection of objects that were destroyed.
+    #
+    # If no record is found, returns empty array.
+    #
+    #   Person.destroy_by!(id: 13)
+    #   Person.destroy_by!(name: 'Spartacus', rating: 4)
+    #   Person.destroy_by!("published_at < ?", 2.weeks.ago)
+    #
+    # If one record isn't destroyed, it raises ActiveRecord::RecordNotDestroyed.
+    def destroy_by!(*args)
+      where(*args).destroy_all!
+    end
+
     # Finds and deletes all records matching the specified conditions.
     # This is short-hand for <tt>relation.where(condition).delete_all</tt>.
     # Returns the number of rows affected.

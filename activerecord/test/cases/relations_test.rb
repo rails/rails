@@ -2052,6 +2052,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [david], destroyed
   end
 
+  def test_destroy_by!
+    david = authors(:david)
+
+    assert_difference("Post.count", -3) { david.posts.destroy_by!(body: "hello") }
+
+    destroyed = Author.destroy_by!(id: david.id)
+    assert_equal [david], destroyed
+  end
+
   test "find_by with hash conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.order(:id).find_by(author_id: 2)
   end
