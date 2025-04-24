@@ -358,7 +358,7 @@ The above will produce the following output:
 
 The object yielded by `fields_for` is a form builder like the one yielded by
 `form_with`. The `fields_for` helper creates a similar binding but without
-rendering a `<form>` tag. You can learn more about `field_for` in the [API
+rendering a `<form>` tag. You can learn more about `fields_for` in the [API
 docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for).
 
 ### Relying on Record Identification
