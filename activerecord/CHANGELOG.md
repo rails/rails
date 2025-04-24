@@ -1,3 +1,7 @@
+*   Add a load hook `active_record_database_configurations` for `ActiveRecord::DatabaseConfigurations`
+
+    *Mike Dalessio*
+
 *   Use `TRUE` and `FALSE` for SQLite queries with boolean columns.
 
     *Hartley McGuire*
