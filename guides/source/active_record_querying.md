@@ -199,7 +199,7 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+If your table uses a composite primary key, you'll need to pass in an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
 # Find the customer with store_id 3 and id 17
