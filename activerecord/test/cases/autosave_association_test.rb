@@ -2148,6 +2148,20 @@ class TestAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCase
     @child_2 = @pirate.birds.create(name: "Killer bandita Dionne")
   end
 
+  def test_should_not_persist_add_remove_immediately_when_defer_is_true
+    @pirate.defered_birds = []
+    assert_equal 2, @pirate.defered_birds.reload.count
+    @pirate.defered_birds = []
+    @pirate.save
+    assert_equal 0, @pirate.defered_birds.reload.count
+
+    @pirate.defered_birds << Bird.first
+    assert_equal 0, @pirate.defered_birds.reload.count
+    @pirate.defered_birds << Bird.first
+    @pirate.save
+    assert_equal 1, @pirate.defered_birds.reload.count
+  end
+
   include AutosaveAssociationOnACollectionAssociationTests
 end
 
@@ -2161,6 +2175,20 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
     @pirate = Pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
     @child_1 = @pirate.parrots.create(name: "Posideons Killer")
     @child_2 = @pirate.parrots.create(name: "Killer bandita Dionne")
+  end
+
+  def test_should_not_persist_add_remove_immediately_when_defer_is_true
+    @pirate.defered_parrots = []
+    assert_equal 2, @pirate.defered_parrots.reload.count
+    @pirate.defered_parrots = []
+    @pirate.save
+    assert_equal 0, @pirate.defered_parrots.reload.count
+
+    @pirate.defered_parrots << Parrot.first
+    assert_equal 0, @pirate.defered_parrots.reload.count
+    @pirate.defered_parrots << Parrot.first
+    @pirate.save
+    assert_equal 1, @pirate.defered_parrots.reload.count
   end
 
   include AutosaveAssociationOnACollectionAssociationTests
