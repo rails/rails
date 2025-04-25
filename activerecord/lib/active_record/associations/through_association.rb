@@ -6,6 +6,11 @@ module ActiveRecord
     module ThroughAssociation # :nodoc:
       delegate :source_reflection, to: :reflection
 
+      def reload(force = false)
+        through_association.reset
+        super
+      end
+
       private
         def transaction(&block)
           through_reflection.klass.transaction(&block)

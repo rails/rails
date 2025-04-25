@@ -7,18 +7,15 @@ module ActiveRecord
   #
   # AutosaveAssociation is a module that takes care of automatically saving
   # associated records when their parent is saved. In addition to saving, it
-  # also destroys any associated records that were marked for destruction.
-  # (See #mark_for_destruction and #marked_for_destruction?).
+  # also destroys/deletes any associated records that were marked for destruction/deletion.
+  # (See #mark_for_destruction, #marked_for_destruction?, #mark_for_deletion and #marked_for_deletion?).
   #
-  # Saving of the parent, its associations, and the destruction of marked
+  # Saving of the parent, its associations, and the destruction/deletion of marked
   # associations, all happen inside a transaction. This should never leave the
   # database in an inconsistent state.
   #
   # If validations for any of the associations fail, their error messages will
   # be applied to the parent.
-  #
-  # Note that it also means that associations marked for destruction won't
-  # be destroyed directly. They will however still be marked for destruction.
   #
   # Note that <tt>autosave: false</tt> is not same as not declaring <tt>:autosave</tt>.
   # When the <tt>:autosave</tt> option is not present then new association records are
@@ -58,11 +55,16 @@ module ActiveRecord
   #   post.title       # => "On the migration of ducks"
   #   post.author.name # => "Eloy Duran"
   #
-  # Destroying an associated model, as part of the parent's save action, is as
-  # simple as marking it for destruction:
+  # Destroying or deleting an associated model, as part of the parent's save action, is as
+  # simple as marking it for destruction/deletion:
   #
   #   post.author.mark_for_destruction
   #   post.author.marked_for_destruction? # => true
+  #   post.author.marked_for_removal? # => true
+  #
+  #   post.author.mark_for_deletion
+  #   post.author.marked_for_deletion? # => true
+  #   post.author.marked_for_removal? # => true
   #
   # Note that the model is _not_ yet removed from the database:
   #
@@ -110,12 +112,19 @@ module ActiveRecord
   #   post.comments.build(body: "good morning.")
   #   post.save # => saves post and both comments.
   #
-  # Destroying one of the associated models as part of the parent's save action
-  # is as simple as marking it for destruction:
+  # Destroying or deleting one of the associated models as part of the parent's save action
+  # is as simple as marking it for destruction/deletion:
   #
   #   post.comments # => [#<Comment id: 1, ...>, #<Comment id: 2, ...]>
   #   post.comments[1].mark_for_destruction
-  #   post.comments[1].marked_for_destruction? # => true
+  #   post.comments[1].marked_for_destruction? #
+  #   post.author.marked_for_removal? # => true
+  #   post.comments.length # => 2
+  #
+  #   post.comments # => [#<Comment id: 1, ...>, #<Comment id: 2, ...]>
+  #   post.comments[1].mark_for_deletion
+  #   post.comments[1].marked_for_deletion? # => true
+  #   post.author.marked_for_removal? # => true
   #   post.comments.length # => 2
   #
   # Note that the model is _not_ yet removed from the database:
@@ -234,9 +243,10 @@ module ActiveRecord
         end
     end
 
-    # Reloads the attributes of the object as usual and clears <tt>marked_for_destruction</tt> flag.
+    # Reloads the attributes of the object as usual and clears any flags.
     def reload(options = nil)
       @marked_for_destruction = false
+      @marked_for_deletion = false
       @destroyed_by_association = nil
       super
     end
@@ -257,6 +267,29 @@ module ActiveRecord
       @marked_for_destruction
     end
 
+    # Marks this record to be deleted as part of the parent's save transaction.
+    # This does _not_ actually delete the record instantly, rather child record will be deleted
+    # when <tt>parent.save</tt> is called.
+    #
+    # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
+    def mark_for_deletion
+      @marked_for_deletion = true
+    end
+
+    # Returns whether or not this record will be deleted as part of the parent's save transaction.
+    #
+    # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
+    def marked_for_deletion?
+      @marked_for_deletion
+    end
+
+    # Returns wheather or not this record will be removed (via destruction or deletion) as part of the parent's save transaction.
+    #
+    # Only useful if the <tt>:autosave</tt> option on the parent is enabled for this associated model.
+    def marked_for_removal?
+      @marked_for_destruction || @marked_for_deletion
+    end
+
     # Records the association that is being destroyed and destroying this
     # record in the process.
     def destroyed_by_association=(reflection)
@@ -273,7 +306,7 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
+      new_record? || has_changes_to_save? || marked_for_removal? || nested_records_changed_for_autosave?
     end
 
     def validating_belongs_to_for?(association)
@@ -290,6 +323,9 @@ module ActiveRecord
       def init_internals
         super
         @_already_called = nil
+        @marked_for_destruction = false
+        @marked_for_deletion = false
+        @destroyed_by_association = nil
       end
 
       # Returns the record for an association collection that should be validated
@@ -367,9 +403,9 @@ module ActiveRecord
 
       # Returns whether or not the association is valid and applies any errors to
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
-      # enabled records if they're marked_for_destruction? or destroyed.
+      # enabled records if they're marked_for_removal? or destroyed.
       def association_valid?(association, record)
-        return true if record.destroyed? || (association.options[:autosave] && record.marked_for_destruction?)
+        return true if record.destroyed? || (association.options[:autosave] && record.marked_for_removal?)
 
         context = validation_context if custom_validation_context?
         return true if record.valid?(context)
@@ -412,7 +448,8 @@ module ActiveRecord
       # <tt>:autosave</tt> is enabled on the association.
       #
       # In addition, it destroys all children that were marked for destruction
-      # with #mark_for_destruction.
+      # with #mark_for_destruction, and deletes all that were marked for
+      # deletion with #mark_for_deletion.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
@@ -432,6 +469,9 @@ module ActiveRecord
               records_to_destroy = records.select(&:marked_for_destruction?)
               records_to_destroy.each { |record| association.destroy(record) }
               records -= records_to_destroy
+              records_to_delete = records.select(&:marked_for_deletion?)
+              records_to_delete.each { |record| association.delete(record) }
+              records -= records_to_delete
             end
 
             records.each do |record|
@@ -466,7 +506,8 @@ module ActiveRecord
       # on the association.
       #
       # In addition, it will destroy the association if it was marked for
-      # destruction with #mark_for_destruction.
+      # destruction with #mark_for_destruction, or delete it if it was marked
+      # for deletion with #mark_for_deletion.
       #
       # This all happens inside a transaction, _if_ the Transactions module is included into
       # ActiveRecord::Base after the AutosaveAssociation module, which it does by default.
@@ -479,8 +520,12 @@ module ActiveRecord
 
         autosave = reflection.options[:autosave]
 
-        if autosave && record.marked_for_destruction?
-          record.destroy
+        if autosave && record.marked_for_removal?
+          if record.marked_for_destruction?
+            record.destroy
+          elsif record.marked_for_deletion?
+            record.delete
+          end
         elsif autosave != false
           primary_key = Array(compute_primary_key(reflection, self)).map(&:to_s)
           primary_key_value = primary_key.map { |key| _read_attribute(key) }
@@ -541,10 +586,14 @@ module ActiveRecord
         if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
-          if autosave && record.marked_for_destruction?
-            foreign_key = Array(reflection.foreign_key)
-            foreign_key.each { |key| self[key] = nil }
-            record.destroy
+          if autosave && record.marked_for_removal?
+            if record.marked_for_destruction?
+              foreign_key = Array(reflection.foreign_key)
+              foreign_key.each { |key| self[key] = nil }
+              record.destroy
+            elsif record.marked_for_deletion?
+              record.delete
+            end
           elsif autosave != false
             saved = if record.new_record? || (autosave && record.changed_for_autosave?)
               begin
