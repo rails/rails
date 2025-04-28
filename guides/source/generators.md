@@ -449,8 +449,7 @@ $ bin/rails generate scaffold Comment body:text
 Creating Application Templates
 ------------------------------
 
-Application templates are a little different from generators. While generators add files to an existing Rails application (models, views, etc.), templates are used while creating a new Rails application. Templates are written as a Ruby
-script.
+Application templates are a little different from generators. While generators add files to an existing Rails application (models, views, etc.), templates are used to automate the setup of a new Rails application. Templates are written as a Ruby script.
 
 Let's see how to use a template while creating a new Rails application and also an example of a template ruby script.
 
@@ -509,7 +508,9 @@ The above `template.rb` uses helper methods such as `after_bundle` and `rails_co
 Rails Template API
 ------------------
 
-The Rails templates API is easy to understand. Here's an example of a typical Rails template:
+The Rails template ruby scripts have access to several helper methods using a DSL (Domain Specific Language).
+
+Here's an example of a typical Rails template:
 
 ```ruby
 # template.rb
@@ -524,38 +525,38 @@ after_bundle do
 end
 ```
 
-The following sections outline the primary methods provided by the API:
+Let's see how to use the methods provided by the [Rails Template API](https://api.rubyonrails.org/v7.1/classes/Rails/Generators/Actions.html).
 
-### gem(*args)
+NOTE: All of the code snippets in the examples are below are in a `template.rb` file.
 
-Adds a `gem` entry for the supplied gem to the generated application's `Gemfile`.
+### gem
 
-For example, if your application depends on the gems `bj` and `nokogiri`:
+This helper adds an entry for the given gem to the generated application's `Gemfile`.
+
+For example, if your application depends on the gems `devise` and `tailwindcss-rails`:
 
 ```ruby
-gem "bj"
-gem "nokogiri"
+gem "devise"
+gem "tailwindcss-rails"
 ```
 
-Note that this method only adds the gem to the `Gemfile`; it does not install the gem.
+Note that this method only adds the gem to the `Gemfile`, it does not install the gem.
 
 You can also specify an exact version:
 
 ```ruby
-gem "nokogiri", "~> 1.16.4"
+gem "devise", "~> 4.9.4"
 ```
 
 And you can also add comments that will be added to the `Gemfile`:
 
 ```ruby
-gem "nokogiri", "~> 1.16.4", comment: "Add the nokogiri gem for XML parsing"
+gem "devise", comment: "Add devise for authentication."
 ```
 
-### gem_group(*names, &block)
+### gem_group
 
-Wraps gem entries inside a group.
-
-For example, if you want to load `rspec-rails` only in the `development` and `test` groups:
+The helper wraps gem entries inside a group. For example, to load `rspec-rails` only in the `development` and `test` groups:
 
 ```ruby
 gem_group :development, :test do
@@ -563,17 +564,15 @@ gem_group :development, :test do
 end
 ```
 
-### add_source(source, options={}, &block)
+### add_source
 
 Adds the given source to the generated application's `Gemfile`.
 
-For example, if you need to source a gem from `"http://gems.github.com"`:
-
 ```ruby
-add_source "http://gems.github.com"
+add_source "https://rubygems.org"
 ```
 
-If block is given, gem entries in block are wrapped into the source group.
+If block is given, gem entries in the block are wrapped into the source group. For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
 add_source "http://gems.github.com/" do
@@ -581,7 +580,7 @@ add_source "http://gems.github.com/" do
 end
 ```
 
-### environment/application(data=nil, options={}, &block)
+### environment, application
 
 Adds a line inside the `Application` class for `config/application.rb`.
 
@@ -591,16 +590,16 @@ If `options[:env]` is specified, the line is appended to the corresponding file 
 environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: "production"
 ```
 
-A block can be used in place of the `data` argument.
+The above will add the config line to `config/environments/production.rb`.
 
-### vendor/lib/file/initializer(filename, data = nil, &block)
+### initializer, vendor, lib, file
 
-Adds an initializer to the generated application's `config/initializers` directory.
+The `initializer` helper method adds an initializer to the generated application's `config/initializers` directory.
 
-Let's say you like using `Object#not_nil?` and `Object#not_blank?`:
+After adding the below to the `template.rb` file, you can use `Object#not_nil?` and `Object#not_blank?` in your application:
 
 ```ruby
-initializer "bloatlol.rb", <<-CODE
+initializer "not_methods.rb", <<-CODE
   class Object
     def not_nil?
       !nil?
@@ -613,9 +612,9 @@ initializer "bloatlol.rb", <<-CODE
 CODE
 ```
 
-Similarly, `lib()` creates a file in the `lib/` directory and `vendor()` creates a file in the `vendor/` directory.
+Similarly, the `lib()` method creates a file in the `lib/` directory and `vendor()` method creates a file in the `vendor/` directory.
 
-There is even `file()`, which accepts a relative path from `Rails.root` and creates all the directories/files needed:
+There is also a `file()` method, which accepts a relative path from `Rails.root` and creates all the directories and files needed:
 
 ```ruby
 file "app/components/foo.rb", <<-CODE
@@ -624,7 +623,7 @@ file "app/components/foo.rb", <<-CODE
 CODE
 ```
 
-That'll create the `app/components` directory and put `foo.rb` in there.
+The above will create the `app/components` directory and put `foo.rb` in there.
 
 ### rakefile(filename, data = nil, &block)
 
