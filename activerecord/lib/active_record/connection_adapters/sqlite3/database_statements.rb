@@ -61,6 +61,14 @@ module ActiveRecord
           @previous_read_uncommitted = nil
         end
 
+        def default_insert_value(column) # :nodoc:
+          if column.default_function
+            Arel.sql(column.default_function)
+          else
+            column.default
+          end
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -135,14 +143,6 @@ module ActiveRecord
 
           def returning_column_values(result)
             result.rows.first
-          end
-
-          def default_insert_value(column)
-            if column.default_function
-              Arel.sql(column.default_function)
-            else
-              column.default
-            end
           end
       end
     end

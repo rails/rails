@@ -225,7 +225,7 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -239,8 +239,13 @@ module ActiveRecord
           types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
-            next value if Arel::Nodes::SqlLiteral === value
-            ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            if Arel::Nodes::SqlLiteral === value
+              value
+            elsif primary_keys.include?(key) && value.nil?
+              connection.default_insert_value(column_from_key(key))
+            else
+              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            end
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
@@ -322,6 +327,10 @@ module ActiveRecord
 
           def quote_column(column)
             connection.quote_column_name(column)
+          end
+
+          def column_from_key(key)
+            model.schema_cache.columns_hash(model.table_name)[key]
           end
       end
   end
