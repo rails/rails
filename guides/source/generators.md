@@ -625,9 +625,9 @@ CODE
 
 The above will create the `app/components` directory and put `foo.rb` in there.
 
-### rakefile(filename, data = nil, &block)
+### rakefile
 
-Creates a new rake file under `lib/tasks` with the supplied tasks:
+The `rakefile` method creates a new rake file under `lib/tasks` with the given tasks:
 
 ```ruby
 rakefile("bootstrap.rake") do
@@ -643,25 +643,25 @@ end
 
 The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
-### generate(what, *args)
+### generate
 
-Runs the supplied rails generator with given arguments.
+You can even call a generator from inside a `template.rb`. The following runs the `scaffold` rails generator with the given arguments:
 
 ```ruby
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
 ```
 
-### run(command)
+### run
 
-Executes an arbitrary command. Just like the backticks. Let's say you want to remove the `README.rdoc` file:
+This method executes an arbitrary command. Let's say you want to remove the `README.rdoc` file:
 
 ```ruby
 run "rm README.rdoc"
 ```
 
-### rails_command(command, options = {})
+### rails_command
 
-Runs the supplied command in the Rails application. Let's say you want to migrate the database:
+You can run the Rails commands in the generated application. Let's say you want to migrate the database at some point in the template ruby script:
 
 ```ruby
 rails_command "db:migrate"
@@ -673,21 +673,15 @@ You can also run commands with a different Rails environment:
 rails_command "db:migrate", env: "production"
 ```
 
-You can also run commands as a super-user:
-
-```ruby
-rails_command "log:clear", sudo: true
-```
-
 You can also run commands that should abort application generation if they fail:
 
 ```ruby
 rails_command "db:migrate", abort_on_failure: true
 ```
 
-### route(routing_code)
+### route
 
-Adds a routing entry to the `config/routes.rb` file. In the steps above, we generated a person scaffold and also removed `README.rdoc`. Now, to make `PeopleController#index` the default page for the application:
+This method adds an entry to the `config/routes.rb` file. To make `PeopleController#index` the default page for the application, we can add:
 
 ```ruby
 route "root to: 'person#index'"
