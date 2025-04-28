@@ -449,9 +449,35 @@ $ bin/rails generate scaffold Comment body:text
 Creating Application Templates
 ------------------------------
 
-Application templates are a special kind of generator. They can use all of the
-[generator helper methods](#generator-helper-methods), but are written as a Ruby
-script instead of a Ruby class. Here is an example:
+Application templates are a little different from generators. While generators add files to an existing Rails application (models, views, etc.), templates are used while creating a new Rails application. Templates are written as a Ruby
+script.
+
+Let's see how to use a template while creating a new Rails application and also an example of a template ruby script.
+
+### Usage
+
+To apply a template while creating a new Rails application, you need to provide the location of the template using the `-m` option.
+
+```bash
+$ rails new blog -m ~/template.rb
+```
+
+You can also use the `app:template` rails command to apply templates to an existing Rails application. The location of the template needs to be passed in via the `LOCATION` environment variable.
+
+```bash
+$ bin/rails app:template LOCATION=~/template.rb
+```
+
+Templates don't have to be stored locally, you can also specify a URL instead
+of a path:
+
+```bash
+$ rails new blog -m http://example.com/template.rb
+$ bin/rails app:template LOCATION=http://example.com/template.rb
+```
+
+TODO: update the example and explanation
+Here is a sample `template.rb` file:
 
 ```ruby
 # template.rb
@@ -476,48 +502,9 @@ First, the template asks the user whether they would like to install Devise.
 If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`,
 and asks the user for the name of the Devise user model (defaulting to `User`).
 Later, after `bundle install` has been run, the template will run the Devise
-generators and `bin/rails db:migrate` if a Devise model was specified. Finally, the
-template will `git add` and `git commit` the entire app directory.
+generators and `bin/rails db:migrate` if a Devise model was specified. Finally, the template will `git add` and `git commit` the entire app directory.
 
-We can run our template when generating a new Rails application by passing the
-`-m` option to the `rails new` command:
-
-```bash
-$ rails new my_cool_app -m path/to/template.rb
-```
-
-Alternatively, we can run our template inside an existing application with
-`bin/rails app:template`:
-
-```bash
-$ bin/rails app:template LOCATION=path/to/template.rb
-```
-
-Templates also don't need to be stored locally — you can specify a URL instead
-of a path:
-
-```bash
-$ rails new my_cool_app -m http://example.com/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
-```
-
-NEW FROM THE OTHER GUIDE
-
-
-
-To apply a template, you need to provide the Rails generator with the location of the template you wish to apply using the `-m` option. This can either be a path to a file or a URL.
-
-```bash
-$ rails new blog -m ~/template.rb
-$ rails new blog -m http://example.com/template.rb
-```
-
-You can use the `app:template` rails command to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
-
-```bash
-$ bin/rails app:template LOCATION=~/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
-```
+The above `template.rb` uses helper methods such as `after_bundle` and `rails_command`. You can see a list of available helper methods that templates can use in the [generator helper methods](#generator-helper-methods) section. The following sections explains some of them with examples.
 
 Rails Template API
 ------------------
