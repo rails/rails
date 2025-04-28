@@ -687,9 +687,9 @@ This method adds an entry to the `config/routes.rb` file. To make `PeopleControl
 route "root to: 'person#index'"
 ```
 
-### inside(dir)
+### inside
 
-Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
+This mehtod enables you to run a command from a given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
 
 ```ruby
 inside("vendor") do
@@ -697,9 +697,9 @@ inside("vendor") do
 end
 ```
 
-### ask(question)
+### ask
 
-`ask()` gives you a chance to get some feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you're adding:
+The `ask()` methods allows you to get feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you're adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library ?")
@@ -711,16 +711,16 @@ lib lib_name, <<-CODE
 CODE
 ```
 
-### yes?(question) or no?(question)
+### yes? or no?
 
 These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to prompt the user to run migrations:
 
 ```ruby
 rails_command("db:migrate") if yes?("Run database migrations?")
-# no?(question) acts just the opposite.
+# no? questions acts the opposite of yes?
 ```
 
-### git(:command)
+### git
 
 Rails templates let you run any git command:
 
@@ -730,16 +730,18 @@ git add: "."
 git commit: "-a -m 'Initial commit'"
 ```
 
-### after_bundle(&block)
+### after_bundle
 
-Registers a callback to be executed after the gems are bundled and binstubs
-are generated. Useful for adding generated files to version control:
+The method registers a callback to be executed after the gems are bundled. For example, it would make sense to run the "install" command for gems `tailwindcss-rails` and `devise` only after those gems are bundled:
 
 ```ruby
+# Install gems
 after_bundle do
-  git :init
-  git add: "."
-  git commit: "-a -m 'Initial commit'"
+  # Install TailwindCSS
+  rails_command 'tailwindcss:install'
+
+  # Install Devise
+  generate 'devise:install'
 end
 ```
 
