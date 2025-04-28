@@ -103,7 +103,21 @@ module ActiveSupport
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your +test_helper.rb+ add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_before_fork do
+      #       # run this before fork
+      #     end
+      #   end
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #
