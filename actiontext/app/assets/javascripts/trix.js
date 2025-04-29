@@ -1,6 +1,6 @@
 /*
-Trix 2.1.12
-Copyright © 2024 37signals, LLC
+Trix 2.1.14
+Copyright © 2025 37signals, LLC
  */
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -9,7 +9,7 @@ Copyright © 2024 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.12";
+  var version = "2.1.14";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -80,7 +80,7 @@ Copyright © 2024 37signals, LLC
   	start: "yarn build-assets && concurrently --kill-others --names js,css,dev-server 'yarn watch' 'yarn build-css --watch' 'yarn dev'"
   };
   var dependencies = {
-  	dompurify: "^3.2.3"
+  	dompurify: "^3.2.5"
   };
   var _package = {
   	name: name,
@@ -1742,7 +1742,7 @@ $\
     }
   }
 
-  /*! @license DOMPurify 3.2.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.3/LICENSE */
+  /*! @license DOMPurify 3.2.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.5/LICENSE */
 
   const {
     entries,
@@ -1781,8 +1781,10 @@ $\
     };
   }
   const arrayForEach = unapply(Array.prototype.forEach);
+  const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
   const arrayPop = unapply(Array.prototype.pop);
   const arrayPush = unapply(Array.prototype.push);
+  const arraySplice = unapply(Array.prototype.splice);
   const stringToLowerCase = unapply(String.prototype.toLowerCase);
   const stringToString = unapply(String.prototype.toString);
   const stringMatch = unapply(String.prototype.match);
@@ -1800,6 +1802,9 @@ $\
    */
   function unapply(func) {
     return function (thisArg) {
+      if (thisArg instanceof RegExp) {
+        thisArg.lastIndex = 0;
+      }
       for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         args[_key - 1] = arguments[_key];
       }
@@ -1936,7 +1941,7 @@ $\
   // eslint-disable-next-line unicorn/better-regex
   const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
   const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
-  const TMPLIT_EXPR = seal(/\$\{[\w\W]*}/gm); // eslint-disable-line unicorn/better-regex
+  const TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm); // eslint-disable-line unicorn/better-regex
   const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
   const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
   const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
@@ -2038,9 +2043,9 @@ $\
   function createDOMPurify() {
     let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
     const DOMPurify = root => createDOMPurify(root);
-    DOMPurify.version = '3.2.3';
+    DOMPurify.version = '3.2.5';
     DOMPurify.removed = [];
-    if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
+    if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
       // Not running in a browser, provide a factory function
       // so that you can pass your own Window
       DOMPurify.isSupported = false;
@@ -2643,7 +2648,7 @@ $\
         allowedTags: ALLOWED_TAGS
       });
       /* Detect mXSS attempts abusing namespace confusion */
-      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
         _forceRemove(currentNode);
         return true;
       }
@@ -3059,7 +3064,11 @@ $\
       }
       arrayPush(hooks[entryPoint], hookFunction);
     };
-    DOMPurify.removeHook = function (entryPoint) {
+    DOMPurify.removeHook = function (entryPoint, hookFunction) {
+      if (hookFunction !== undefined) {
+        const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
+        return index === -1 ? undefined : arraySplice(hooks[entryPoint], index, 1)[0];
+      }
       return arrayPop(hooks[entryPoint]);
     };
     DOMPurify.removeHooks = function (entryPoint) {
@@ -13580,11 +13589,11 @@ $\
       } else if (this.parentNode) {
         const toolbarId = "trix-toolbar-".concat(this.trixId);
         this.setAttribute("toolbar", toolbarId);
-        const element = makeElement("trix-toolbar", {
+        this.internalToolbar = makeElement("trix-toolbar", {
           id: toolbarId
         });
-        this.parentNode.insertBefore(element, this);
-        return element;
+        this.parentNode.insertBefore(this.internalToolbar, this);
+        return this.internalToolbar;
       } else {
         return undefined;
       }
@@ -13628,6 +13637,14 @@ $\
       (_this$editor = this.editor) === null || _this$editor === void 0 || _this$editor.loadHTML(this.defaultValue);
     }
 
+    // Element callbacks
+
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === "connected" && this.isConnected && oldValue != null && oldValue !== newValue) {
+        requestAnimationFrame(() => this.reconnect());
+      }
+    }
+
     // Controller delegate methods
 
     notify(message, data) {
@@ -13665,6 +13682,7 @@ $\
         }
         this.editorController.registerSelectionManager();
         _classPrivateFieldGet(this, _delegate).connectedCallback();
+        this.toggleAttribute("connected", true);
         autofocus(this);
       }
     }
@@ -13672,6 +13690,17 @@ $\
       var _this$editorControlle2;
       (_this$editorControlle2 = this.editorController) === null || _this$editorControlle2 === void 0 || _this$editorControlle2.unregisterSelectionManager();
       _classPrivateFieldGet(this, _delegate).disconnectedCallback();
+      this.toggleAttribute("connected", false);
+    }
+    reconnect() {
+      this.removeInternalToolbar();
+      this.disconnectedCallback();
+      this.connectedCallback();
+    }
+    removeInternalToolbar() {
+      var _this$internalToolbar;
+      (_this$internalToolbar = this.internalToolbar) === null || _this$internalToolbar === void 0 || _this$internalToolbar.remove();
+      this.internalToolbar = null;
     }
 
     // Form support
@@ -13699,6 +13728,7 @@ $\
     }
   }
   _defineProperty(TrixEditorElement, "formAssociated", "ElementInternals" in window);
+  _defineProperty(TrixEditorElement, "observedAttributes", ["connected"]);
 
   var elements = /*#__PURE__*/Object.freeze({
     __proto__: null,
