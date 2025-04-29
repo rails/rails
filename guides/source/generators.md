@@ -467,16 +467,15 @@ You can also use the `app:template` rails command to apply templates to an exist
 $ bin/rails app:template LOCATION=~/template.rb
 ```
 
-Templates don't have to be stored locally, you can also specify a URL instead
-of a path:
+Templates don't have to be stored locally, you can also specify a URL instead of
+a path:
 
 ```bash
 $ rails new blog -m http://example.com/template.rb
 $ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
-TODO: update the example and explanation
-Here is a sample `template.rb` file:
+Next, let's take a look at a sample `template.rb` file. This template installs Devise with some user interactivity:
 
 ```ruby
 # template.rb
@@ -497,11 +496,10 @@ after_bundle do
 end
 ```
 
-First, the template asks the user whether they would like to install Devise.
-If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`,
-and asks the user for the name of the Devise user model (defaulting to `User`).
-Later, after `bundle install` has been run, the template will run the Devise
-generators and `bin/rails db:migrate` if a Devise model was specified. Finally, the template will `git add` and `git commit` the entire app directory.
+The above template adds Devise to the `Gemfile` after asking the user and also
+allows user to name the Device user model. After `bundle install` has been run,
+the template runs the Devise generators and `bin/rails db:migrate`. Finally, the
+template does `git add` and `git commit`.
 
 The above `template.rb` uses helper methods such as `after_bundle` and `rails_command`. You can see a list of available helper methods that templates can use in the [generator helper methods](#generator-helper-methods) section. The following sections explains some of them with examples.
 
