@@ -43,6 +43,16 @@ module ActiveSupport
 
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
+      class NullSerializer
+        def self.dump(value)
+          value
+        end
+
+        def self.load(value)
+          value
+        end
+      end
+
       # Creates a new Dalli::Client instance with specified addresses and options.
       # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
       # - ENV["MEMCACHE_SERVERS"] (if defined)
@@ -89,7 +99,9 @@ module ActiveSupport
         @mem_cache_options = options.dup
         # The value "compress: false" prevents duplicate compression within Dalli.
         @mem_cache_options[:compress] = false
-        (OVERRIDDEN_OPTIONS - %i(compress)).each { |name| @mem_cache_options.delete(name) }
+        # The value "serializer: NullSerializer" prevents duplicate serialization within Dalli.
+        @mem_cache_options[:serializer] = NullSerializer
+        (OVERRIDDEN_OPTIONS - %i(compress) - %i(serializer)).each { |name| @mem_cache_options.delete(name) }
         @data = self.class.build_mem_cache(*(addresses + [@mem_cache_options]))
       end
 

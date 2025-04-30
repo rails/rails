@@ -289,6 +289,22 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_no_multiple_serialize
+    cache = lookup_store(serializer: :message_pack)
+    val = random_string(8.bytes)
+    serialized_value = MessagePack.dump(val)
+
+    assert_called(
+      Marshal,
+      :dump,
+      "Memcached writes should not perform duplicate serialization.",
+      times: 0,
+      returns: serialized_value
+    ) do
+      cache.write("foo", val)
+    end
+  end
+
   def test_unless_exist_expires_when_configured
     cache = lookup_store(namespace: nil)
 
