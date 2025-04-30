@@ -24,7 +24,7 @@ At this time the following features are supported:
 * Multiple writer databases and a replica for each
 * Automatic connection switching for the model you're working with
 * Automatic swapping between the writer and replica depending on the HTTP verb and recent writes
-* Rails tasks for creating, dropping, migrating, and interacting with multiple databases
+* Rails tasks for creating, dropping, migrating, and interacting with the multiple databases
 
 The following features are not (yet) supported:
 
@@ -166,8 +166,8 @@ config.active_record.reading_role = :readonly
 ```
 
 It's important to connect to your database in a single model and then inherit from that model
-for the tables rather than connecting multiple individual models to the same database. Database
-clients have a limit to the number of open connections that can be, and if you do this, it will
+for the tables rather than connect multiple individual models to the same database. Database
+clients have a limit to the number of open connections there can be, and if you do this, it will
 multiply the number of connections you have since Rails uses the model class name for the
 connection specification name.
 
