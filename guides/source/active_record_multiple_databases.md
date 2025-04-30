@@ -138,7 +138,7 @@ class Person < PrimaryApplicationRecord
 end
 ```
 
-On the other hand, we need to setup our models persisted in the "animals" database:
+On the other hand, we need to set up our models persisted in the "animals" database:
 
 ```ruby
 class AnimalsRecord < ApplicationRecord
@@ -212,7 +212,7 @@ db:setup:primary                   # Create the primary database, loads the sche
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
 Note that there is no command for creating the database users, and you'll need to do that manually
-to support the readonly users for your replicas. If you want to create just the animals
+to support the read-only users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
 ## Connecting to Databases without Managing Schema and Migrations
@@ -295,8 +295,8 @@ use a different parent class.
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
 
-Automatic switching allows the application to switch from the writer to replica or replica
-to writer based on the HTTP verb and whether there was a recent write by the requesting user.
+Automatic switching allows the application to switch from the writer to the replica or the replica
+to the writer based on the HTTP verb and whether there was a recent write by the requesting user.
 
 If the application receives a POST, PUT, DELETE, or PATCH request, the application will
 automatically write to the writer database. If the request is not one of those methods,
@@ -328,7 +328,7 @@ to the replicas unless they wrote recently.
 
 The automatic connection switching in Rails is relatively primitive and deliberately doesn't
 do a whole lot. The goal is a system that demonstrates how to do automatic connection
-switching that was flexible enough to be customizable by app developers.
+switching that is flexible enough to be customizable by app developers.
 
 The setup in Rails allows you to easily change how the switching is done and what
 parameters it's based on. Let's say you want to use a cookie instead of a session to
@@ -392,7 +392,7 @@ using the connection specification name. This means that if you pass an unknown 
 like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'nonexistent' role.)`
 
-If you want Rails to ensure any queries performed are read only, pass `prevent_writes: true`.
+If you want Rails to ensure any queries performed are read-only, pass `prevent_writes: true`.
 This just prevents queries that look like writes from being sent to the database.
 You should also configure your replica database to run in read-only mode.
 
