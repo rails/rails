@@ -20,16 +20,16 @@ module ActionMailbox
     end
 
     class_methods do
-      def before_processing(*methods, &block)
-        set_callback(:process, :before, *methods, &block)
+      def before_processing(...)
+        set_callback(:process, :before, ...)
       end
 
-      def after_processing(*methods, &block)
-        set_callback(:process, :after, *methods, &block)
+      def after_processing(...)
+        set_callback(:process, :after, ...)
       end
 
-      def around_processing(*methods, &block)
-        set_callback(:process, :around, *methods, &block)
+      def around_processing(...)
+        set_callback(:process, :around, ...)
       end
     end
   end

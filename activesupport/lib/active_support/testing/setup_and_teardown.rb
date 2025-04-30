@@ -26,13 +26,13 @@ module ActiveSupport
 
       module ClassMethods
         # Add a callback, which runs before <tt>TestCase#setup</tt>.
-        def setup(*args, &block)
-          set_callback(:setup, :before, *args, &block)
+        def setup(...)
+          set_callback(:setup, :before, ...)
         end
 
         # Add a callback, which runs after <tt>TestCase#teardown</tt>.
-        def teardown(*args, &block)
-          set_callback(:teardown, :after, *args, &block)
+        def teardown(...)
+          set_callback(:teardown, :after, ...)
         end
       end
 

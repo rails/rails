@@ -1,3 +1,7 @@
+*   Validate options when setting or skipping callbacks
+
+    *ccutrer*
+
 *   Allow to configure maximum cache key sizes
 
     When the key exceeds the configured limit (250 bytes by default), it will be truncated and

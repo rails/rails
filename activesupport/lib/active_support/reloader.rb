@@ -31,18 +31,18 @@ module ActiveSupport
     define_callbacks :class_unload
 
     # Registers a callback that will run once at application startup and every time the code is reloaded.
-    def self.to_prepare(*args, &block)
-      set_callback(:prepare, *args, &block)
+    def self.to_prepare(...)
+      set_callback(:prepare, ...)
     end
 
     # Registers a callback that will run immediately before the classes are unloaded.
-    def self.before_class_unload(*args, &block)
-      set_callback(:class_unload, *args, &block)
+    def self.before_class_unload(...)
+      set_callback(:class_unload, ...)
     end
 
     # Registers a callback that will run immediately after the classes are unloaded.
-    def self.after_class_unload(*args, &block)
-      set_callback(:class_unload, :after, *args, &block)
+    def self.after_class_unload(...)
+      set_callback(:class_unload, :after, ...)
     end
 
     to_run(:after) { self.class.prepare! }

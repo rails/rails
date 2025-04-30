@@ -264,9 +264,8 @@ module ActiveRecord
         connection_pool.active_connection&.current_transaction&.user_transaction || Transaction::NULL_TRANSACTION
       end
 
-      def before_commit(*args, &block) # :nodoc:
-        set_options_for_callbacks!(args)
-        set_callback(:before_commit, :before, *args, &block)
+      def before_commit(...) # :nodoc:
+        set_callback(:before_commit, :before, ...)
       end
 
       # This callback is called after a record has been created, updated, or destroyed.
@@ -325,14 +324,8 @@ module ActiveRecord
         filter_list << options
 
         if name.in?([:commit, :rollback]) && options[:on]
-          fire_on = Array(options[:on])
-          assert_valid_transaction_action(fire_on)
-          options[:if] = [
-            -> { transaction_include_any_action?(fire_on) },
-            *options[:if]
-          ]
+          set_options_for_callbacks!(filter_list)
         end
-
 
         super(name, *filter_list, &block)
       end
@@ -351,7 +344,7 @@ module ActiveRecord
           args << options
 
           if options[:on]
-            fire_on = Array(options[:on])
+            fire_on = Array(options.delete(:on))
             assert_valid_transaction_action(fire_on)
             options[:if] = [
               -> { transaction_include_any_action?(fire_on) },

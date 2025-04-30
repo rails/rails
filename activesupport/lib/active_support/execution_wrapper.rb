@@ -14,12 +14,12 @@ module ActiveSupport
     define_callbacks :run
     define_callbacks :complete
 
-    def self.to_run(*args, &block)
-      set_callback(:run, *args, &block)
+    def self.to_run(...)
+      set_callback(:run, ...)
     end
 
-    def self.to_complete(*args, &block)
-      set_callback(:complete, *args, &block)
+    def self.to_complete(...)
+      set_callback(:complete, ...)
     end
 
     RunHook = Struct.new(:hook) do # :nodoc:
