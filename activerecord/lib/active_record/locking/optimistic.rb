@@ -139,11 +139,10 @@ module ActiveRecord
         end
 
         def _lock_value_for_database(locking_column)
-          if will_save_change_to_attribute?(locking_column)
-            @attributes[locking_column].value_for_database
-          else
-            @attributes[locking_column].original_value_for_database
-          end
+          # Always use the original value read from the database for the optimistic lock check.
+          # This ensures that even if the lock_version attribute is manually assigned a new
+          # value in memory, the WHERE clause correctly checks against the version last seen.
+          @attributes[locking_column].original_value_for_database
         end
 
         def _clear_locking_column

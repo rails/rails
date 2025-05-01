@@ -238,17 +238,86 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_explicit_update_lock_column_raise_error
+  test "update succeeds with manually assigned lock_version if record is not actually stale" do
     person = Person.find(1)
+    assert_equal 0, person.lock_version
 
-    assert_raises(ActiveRecord::StaleObjectError) do
-      person.first_name = "Douglas Adams"
-      person.lock_version = 42
+    # Manually change lock_version in memory
+    new_lock_version_in_memory = 42
+    person.first_name = "Douglas Adams"
+    person.lock_version = new_lock_version_in_memory
 
-      assert_predicate person, :lock_version_changed?
+    assert_predicate person, :lock_version_changed?, "lock_version should be marked as changed"
 
-      person.save
+    # Save should now succeed because the WHERE clause correctly uses the original_lock_version (0)
+    # which matches the database (assuming no concurrent update occurred).
+    assert_nothing_raised do
+      person.save!
     end
+
+    # Verify the lock_version was incremented based on the *manually assigned* value.
+    # The _update_row logic increments the current in-memory value.
+    assert_equal new_lock_version_in_memory + 1, person.lock_version, "Lock version should be incremented from the assigned value"
+    assert_equal "Douglas Adams", person.first_name
+
+    # Verify the database was updated correctly
+    person.reload
+    assert_equal new_lock_version_in_memory + 1, person.lock_version
+    assert_equal "Douglas Adams", person.first_name
+  end
+
+  test "optimistic locking raises StaleObjectError even if lock_version is manually assigned to match a concurrent update" do
+    # Setup: Create a record with optimistic locking enabled
+    p1 = Person.create!(first_name: "P1") # Assuming initial lock_version is 0 after create
+    assert_equal 0, p1.lock_version
+
+    # Simulate another process loading the same record
+    p2 = Person.find(p1.id)
+    assert_equal 0, p2.lock_version
+
+    # Simulate User A manually changing lock_version in memory *before* User B saves
+    # This value coincidentally matches what User B's save *will* result in.
+    p1.lock_version = 1
+
+    # Simulate User B successfully updating and saving the record concurrently
+    assert p2.update!(first_name: "P2 Updated"), "P2 should save successfully"
+    assert_equal 1, p2.lock_version # Database lock_version is now 1
+
+    # Attempt to save User A's record (which is now stale relative to when it was loaded)
+    # Even though p1's in-memory lock_version matches the database's current version (1),
+    # the optimistic lock check MUST use p1's *original* lock_version (0) in the WHERE clause.
+    assert_raises(ActiveRecord::StaleObjectError, "Should raise StaleObjectError because original lock_version (0) doesn't match DB (1)") do
+      p1.first_name = "P1 Updated"
+      p1.save!
+    end
+
+    # Verify database state reflects User B's change, not User A's attempted save
+    p1.reload
+    assert_equal 1, p1.lock_version
+    assert_equal "P2 Updated", p1.first_name
+  end
+
+  test "optimistic locking on destroy raises StaleObjectError even if lock_version is manually assigned to match a concurrent update" do
+    # Setup
+    p1 = Person.create!(first_name: "P1")
+    p2 = Person.find(p1.id)
+
+    # Simulate User A manually changing lock_version in memory
+    p1.lock_version = 1
+
+    # Simulate User B updating the record concurrently
+    assert p2.update!(first_name: "P2 Updated")
+    assert_equal 1, p2.lock_version
+
+    # Attempt to destroy User A's record (stale)
+    # The WHERE clause must use p1's original lock_version (0).
+    assert_raises(ActiveRecord::StaleObjectError, "Should raise StaleObjectError on destroy") do
+      p1.destroy!
+    end
+
+    # Verify database state
+    assert Person.exists?(p1.id), "Record should still exist"
+    assert_equal 1, Person.find(p1.id).lock_version # Verify lock_version is still 1 from p2's update
   end
 
   def test_lock_column_name_existing
