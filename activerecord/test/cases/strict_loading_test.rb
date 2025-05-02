@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/developer"
 require "models/contract"
 require "models/company"
 require "models/computer"
 require "models/mentor"
+require "models/post"
 require "models/project"
 require "models/ship"
 require "models/ship_part"
@@ -15,7 +17,7 @@ require "models/treasure"
 require "models/pirate"
 
 class StrictLoadingTest < ActiveRecord::TestCase
-  fixtures :developers, :developers_projects, :projects, :ships
+  fixtures :authors, :developers, :developers_projects, :posts, :projects, :ships
 
   def test_strict_loading!
     developer = Developer.first
@@ -181,6 +183,16 @@ class StrictLoadingTest < ActiveRecord::TestCase
       assert_raises ActiveRecord::StrictLoadingViolationError do
         dev.audit_logs.to_a
       end
+    end
+  end
+
+  def test_raises_if_strict_loading_disable_joins_association
+    author = Author.strict_loading.first
+    assert_predicate author, :strict_loading?
+    assert_predicate author.association(:no_joins_comments), :disable_joins
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      author.no_joins_comments.to_a
     end
   end
 
