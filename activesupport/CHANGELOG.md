@@ -1,3 +1,9 @@
+*   Fix `ActiveSupport::Cache::MemCacheStore#read_multi` to handle network errors.
+
+    This method specifically wasn't handling network errors like other codepaths.
+
+    *Alessandro Dal Grande*
+
 *   Fix Active Support Cache `fetch_multi` when local store is active.
 
     `fetch_multi` now properly yield to the provided block for missing entries

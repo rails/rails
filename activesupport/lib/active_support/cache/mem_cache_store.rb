@@ -212,26 +212,24 @@ module ActiveSupport
         def read_multi_entries(names, **options)
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
-          raw_values = begin
-            @data.with { |c| c.get_multi(keys_to_names.keys) }
-          rescue Dalli::UnmarshalError
-            {}
-          end
+          rescue_error_with({}) do
+            raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
 
-          values = {}
+            values = {}
 
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value, raw: options[:raw])
+            raw_values.each do |key, value|
+              entry = deserialize_entry(value, raw: options[:raw])
 
-            unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
-              begin
-                values[keys_to_names[key]] = entry.value
-              rescue DeserializationError
+              unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+                begin
+                  values[keys_to_names[key]] = entry.value
+                rescue DeserializationError
+                end
               end
             end
-          end
 
-          values
+            values
+          end
         end
 
         # Delete an entry from the cache.
