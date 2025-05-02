@@ -13,11 +13,12 @@ require "models/ship"
 require "models/ship_part"
 require "models/strict_zine"
 require "models/interest"
+require "models/rating"
 require "models/treasure"
 require "models/pirate"
 
 class StrictLoadingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :developers_projects, :posts, :projects, :ships
+  fixtures :authors, :comments, :developers, :developers_projects, :posts, :projects, :ratings, :ships
 
   def test_strict_loading!
     developer = Developer.first
@@ -186,13 +187,24 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
-  def test_raises_if_strict_loading_disable_joins_association
+  def test_raises_if_strict_loading_association_with_disabled_joins
     author = Author.strict_loading.first
     assert_predicate author, :strict_loading?
     assert_predicate author.association(:no_joins_comments), :disable_joins
+    assert_not_predicate author.association(:no_joins_comments), :loaded?
 
     assert_raises ActiveRecord::StrictLoadingViolationError do
       author.no_joins_comments.to_a
+    end
+  end
+
+  def test_raises_if_disabled_joins_association_not_preloaded
+    author = Author.preload(:no_joins_comments).strict_loading.first
+    assert_predicate author, :strict_loading?
+    assert_predicate author.association(:no_joins_good_ratings), :disable_joins
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      author.no_joins_good_ratings.to_a
     end
   end
 
