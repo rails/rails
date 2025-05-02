@@ -166,9 +166,10 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil error.backtrace
     assert_nil error.backtrace_locations
 
-    assert_nil @reporter.report(error)
-    assert_not_predicate error.backtrace, :empty?
-    assert_not_predicate error.backtrace_locations, :empty?
+    @reporter.report(error)
+
+    assert error.backtrace.first.start_with?(__FILE__)
+    assert_equal __FILE__, error.backtrace_locations.first.path
   end
 
   test "#record passes through the return value" do
