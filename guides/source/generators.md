@@ -8,7 +8,7 @@ Rails generators and application templates are useful tools that can help improv
 * How to see which generators are available in your application.
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
-* How to customize Rails scaffold by overriding generators and templates.
+* How to customize Rails scaffolding by overriding generators and templates.
 * How to use fallbacks to avoid overwriting a huge set of generators.
 * How to use templates to create/customize Rails applications.
 * How to use the Rails Template API to write your own reusable application templates.
