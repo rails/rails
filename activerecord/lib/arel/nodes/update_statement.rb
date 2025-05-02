@@ -3,11 +3,12 @@
 module Arel # :nodoc: all
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :values, :groups, :havings, :orders, :limit, :offset, :key
+      attr_accessor :relation, :from, :wheres, :values, :groups, :havings, :orders, :limit, :offset, :key
 
       def initialize(relation = nil)
         super()
         @relation = relation
+        @from     = nil
         @wheres   = []
         @values   = []
         @groups   = []
@@ -25,12 +26,13 @@ module Arel # :nodoc: all
       end
 
       def hash
-        [@relation, @wheres, @values, @orders, @limit, @offset, @key].hash
+        [@relation, @from, @wheres, @values, @orders, @limit, @offset, @key].hash
       end
 
       def eql?(other)
         self.class == other.class &&
           self.relation == other.relation &&
+          self.from == other.from &&
           self.wheres == other.wheres &&
           self.values == other.values &&
           self.groups == other.groups &&
