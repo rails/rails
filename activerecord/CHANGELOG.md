@@ -1,3 +1,7 @@
+*   `strict_loading` is enforced on associations configured with joins disabled.
+
+    *Garrett Bjerkhoel*
+
 *   Set default for primary keys in `insert_all`/`upsert_all`.
 
     Previously in Postgres, updating and inserting new records in one upsert wasn't possible
