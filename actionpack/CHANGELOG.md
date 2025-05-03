@@ -1,3 +1,18 @@
+*   Default to SHA256 for the signed cookie digest, replacing the previous SHA1 default.
+
+    To ensure the legacy SHA1-signed cookies can still be read, Rails applications relying on the
+    previous default should define a signed cookie rotation until all these cookies have expired
+    or been replaced. For example:
+
+    ```ruby
+    # config/initializers/cookie_rotations.rb
+    Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+      cookies.rotate :signed, digest: "SHA1"
+    end
+    ```
+
+    *Jan Gulan*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*

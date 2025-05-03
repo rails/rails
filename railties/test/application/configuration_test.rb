@@ -829,7 +829,7 @@ module ApplicationTests
       get "/"
 
       secret = app.key_generator.generate_key("signed cookie")
-      verifier = ActiveSupport::MessageVerifier.new(secret)
+      verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256")
       assert_equal "some_value", verifier.verify(last_response.body)
     end
 
@@ -3573,6 +3573,33 @@ module ApplicationTests
       app "development"
 
       assert_equal :lax, Rails.application.config.action_dispatch.cookies_same_site_protection
+    end
+
+    test "Rails.application.config.action_dispatch.signed_cookie_digest defaults to SHA1 in 5.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal "SHA1", Rails.application.config.action_dispatch.signed_cookie_digest
+    end
+
+    test "Rails.application.config.action_dispatch.signed_cookie_digest defaults to SHA256" do
+      app "development"
+
+      assert_equal "SHA256", Rails.application.config.action_dispatch.signed_cookie_digest
+    end
+
+    test "Rails.application.config.action_dispatch.signed_cookie_digest defaults can be overridden" do
+      app_file "config/environments/development.rb", <<~RUBY
+        Rails.application.configure do
+          config.action_dispatch.signed_cookie_digest = "SHA512"
+        end
+      RUBY
+
+      app "development"
+
+      assert_equal "SHA512", Rails.application.config.action_dispatch.signed_cookie_digest
     end
 
     test "Rails.application.config.action_dispatch.ssl_default_redirect_status is 308 in 6.1 defaults" do

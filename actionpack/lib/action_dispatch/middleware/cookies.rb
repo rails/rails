@@ -306,7 +306,7 @@ module ActionDispatch
         end
 
         def signed_cookie_digest
-          request.signed_cookie_digest || "SHA1"
+          request.signed_cookie_digest || "SHA256"
         end
     end
 

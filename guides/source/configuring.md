@@ -61,6 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_dispatch.signed_cookie_digest`](#config-action-dispatch-signed-cookie-digest): `"SHA256"`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -151,6 +152,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 5.2
 
 - [`config.action_controller.default_protect_from_forgery`](#config-action-controller-default-protect-from-forgery): `true`
+- [`config.action_dispatch.signed_cookie_digest`](#config-action-dispatch-signed-cookie-digest): `"SHA1"`
 - [`config.action_dispatch.use_authenticated_cookie_encryption`](#config-action-dispatch-use-authenticated-cookie-encryption): `true`
 - [`config.action_view.form_with_generates_ids`](#config-action-view-form-with-generates-ids): `true`
 - [`config.active_record.cache_versioning`](#config-active-record-cache-versioning): `true`
@@ -2067,7 +2069,7 @@ Sets the cipher to be used for encrypted cookies. This defaults to
 
 #### `config.action_dispatch.signed_cookie_digest`
 
-Sets the digest to be used for signed cookies. This defaults to `"SHA1"`.
+Sets the digest to be used for signed cookies. This defaults to `"SHA256"`.
 
 #### `config.action_dispatch.cookies_rotations`
 

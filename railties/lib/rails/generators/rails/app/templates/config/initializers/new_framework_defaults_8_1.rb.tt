@@ -26,3 +26,11 @@
 # Applications that want to keep the escaping behavior can set the config to `true`.
 #++
 # Rails.configuration.action_controller.escape_json_responses = false
+
+# Change the default signed cookie digest to SHA256.
+# Changing this default means that signed cookies created using a different digest
+# (e.g. SHA1, which was the previous default) can no longer be read. In this case, a
+# signed cookie rotation should be registered as described in the upgrade guide:
+# https://guides.rubyonrails.org/upgrading_ruby_on_rails.html#upgrading-from-rails-8-0-to-rails-8-1
+#
+# Rails.application.config.action_dispatch.signed_cookie_digest = "SHA256"
