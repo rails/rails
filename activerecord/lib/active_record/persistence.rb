@@ -926,6 +926,10 @@ module ActiveRecord
       # Creates a record with values matching those of the instance attributes
       # and returns its id.
       def _create_record(attribute_names = self.attribute_names)
+        if !new_record?
+          return _update_record
+        end
+
         attribute_names = attributes_for_create(attribute_names)
 
         self.class.with_connection do |connection|
