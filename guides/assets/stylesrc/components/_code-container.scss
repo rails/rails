@@ -44,6 +44,7 @@ dl dd .interstitial {
     padding-left: 1em !important; // remove if icon is restored
     direction: ltr !important;
     text-align: left !important;
+    overflow-x: auto; // Fix for horizontal overflow issue
 
     pre {
       margin: 0;
