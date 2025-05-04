@@ -122,6 +122,52 @@ module ActiveModel
     #   # => {"name" => "Napoleon"}
     #   user.serializable_hash(include: { notes: { only: 'title' }})
     #   # => {"name" => "Napoleon", "notes" => [{"title"=>"Battle of Austerlitz"}]}
+    #
+    # The <tt>:include</tt> option also accepts <tt>:if</tt> and <tt>:unless</tt> options
+    # to conditionally include associations based on the state of the record.
+    #
+    #   class User
+    #     include ActiveModel::Serializers::JSON
+    #     attr_accessor :name, :notes, :admin
+    #
+    #     def admin?
+    #       admin
+    #     end
+    #
+    #     def attributes
+    #       {'name' => nil, 'admin' => nil}
+    #     end
+    #   end
+    #
+    #   note = Note.new
+    #   note.title = 'Secret'
+    #   note.text = 'Need milk'
+    #
+    #   user = User.new
+    #   user.name = 'Will'
+    #   user.admin = true
+    #   user.notes = [note]
+    #
+    #   # Only include notes if the user is an admin
+    #   user.serializable_hash(include: { notes: { if: :admin? } })
+    #   # => {"name"=>"Will", "admin"=>true, "notes"=>[{"title"=>"Secret", "text"=>"Need milk"}]}
+    #
+    #   user.admin = false
+    #   user.serializable_hash(include: { notes: { if: :admin? } })
+    #   # => {"name"=>"Will", "admin"=>false, "notes"=>[]}
+    #
+    #   # Using a Proc
+    #   user.serializable_hash(include: { notes: { if: -> { admin } } })
+    #   # => {"name"=>"Will", "admin"=>false, "notes"=>[]}
+    #
+    #   # Using :unless option
+    #   user.serializable_hash(include: { notes: { unless: -> { !admin } } })
+    #   # => {"name"=>"Will", "admin"=>false, "notes"=>[]}
+    #
+    #   # Using both :if and :unless options
+    #   user.admin = true
+    #   user.serializable_hash(include: { notes: { if: :admin?, unless: -> { name.blank? } } })
+    #   # => {"name"=>"Will", "admin"=>true, "notes"=>[{"title"=>"Secret", "text"=>"Need milk"}]}
     def serializable_hash(options = nil)
       attribute_names = attribute_names_for_serialization
 
@@ -189,9 +235,43 @@ module ActiveModel
         end
 
         includes.each do |association, opts|
-          if records = send(association)
-            yield association, records, opts
+          records = send(association)
+
+          # When the condition fails we still expose the key for *collections*
+          if opts.is_a?(Hash) && !should_include_association?(opts)
+            if records.respond_to?(:to_ary)
+              yield association, [], {}
+            end
+            next
           end
+
+          next unless records
+
+          association_opts = opts.is_a?(Hash) ? opts.except(:if, :unless) : opts
+          yield association, records, association_opts
+        end
+      end
+
+      # Evaluates whether an association should be included based on :if and :unless options
+      def should_include_association?(options)
+        if_condition     = options[:if]
+        unless_condition = options[:unless]
+
+        result = true
+        result = evaluate_condition(if_condition)          unless if_condition.nil?
+        result &&= !evaluate_condition(unless_condition)   unless unless_condition.nil?
+        result
+      end
+
+      # Evaluates a condition which can be a Symbol (method name), Proc, or other value
+      def evaluate_condition(condition)
+        case condition
+        when Symbol, String
+          send(condition)
+        when Proc
+          instance_exec(&condition)
+        else
+          !!condition
         end
       end
   end
