@@ -1446,3 +1446,20 @@ class RequestSession < BaseRequestTest
     assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
   end
 end
+
+class RequestCacheControlTest < BaseRequestTest
+  test "only_if_cached? is false when Cache-Control header is missing" do
+    request = stub_request
+    assert_not request.only_if_cached?
+  end
+
+  test "only_if_cached? is true when only-if-cached is the sole directive" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "only-if-cached")
+    assert request.only_if_cached?
+  end
+
+  test "only_if_cached? is true when only-if-cached appears among multiple directives" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-age=60, only-if-cached, immutable")
+    assert request.only_if_cached?
+  end
+end

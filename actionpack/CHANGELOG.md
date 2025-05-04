@@ -140,4 +140,26 @@
 
     *Petrik de Heus*
 
+*   Add support for the `Cache-Control: only-if-cached` directive according to RFC 9111.
+
+    Provides a `request.only_if_cached?` method to detect when a request includes this directive.
+    According to RFC 9111, a 504 Gateway Timeout should be returned if no suitable cached response exists.
+
+    ```ruby
+    def show
+      if request.only_if_cached?
+        @article = Rails.cache.read("article/#{params[:id]}")
+        return head(:gateway_timeout) if @article.nil?
+
+        render :show
+        return
+      end
+
+      @article = Article.find(params[:id])
+      render :show
+    end
+    ```
+
+    *egg528*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionpack/CHANGELOG.md) for previous changes.

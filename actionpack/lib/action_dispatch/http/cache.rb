@@ -8,6 +8,9 @@ module ActionDispatch
       module Request
         HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
         HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
+        HTTP_CACHE_CONTROL    = "HTTP_CACHE_CONTROL"
+
+        ONLY_IF_CACHED = "only-if-cached"
 
         mattr_accessor :strict_freshness, default: false
 
@@ -34,6 +37,14 @@ module ActionDispatch
             validators = if_none_match_etags
             validators.include?(etag) || validators.include?("*")
           end
+        end
+
+        # Returns true when the request includes the `Cache-Control: only-if-cached` directive.
+        # If no suitable cached response exists, recommends responding with `504 Gateway Timeout`.
+        # Reference: https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.1.7
+        def only_if_cached?
+          cache_control = get_header(HTTP_CACHE_CONTROL)
+          cache_control && cache_control.split(",").any? { |d| d.strip == ONLY_IF_CACHED }
         end
 
         # Check response freshness (`Last-Modified` and `ETag`) against request
