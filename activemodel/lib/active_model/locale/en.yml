@@ -36,3 +36,4 @@ en:
       in: "must be in %{count}"
       odd: "must be odd"
       even: "must be even"
+      taken_among: "has already been taken among %{attributes}"

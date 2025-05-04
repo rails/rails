@@ -1,3 +1,25 @@
+*   Add `UniquenessAmongValidator` to validate attribute uniqueness within a model.
+
+    ```ruby
+    class User < ApplicationRecord
+      # Validates that primary and secondary emails are different
+      validates_uniqueness_of_among :primary_email, :secondary_email
+
+      # Validates that all phone numbers are unique
+      validates_uniqueness_of_among :home_phone, :work_phone, :mobile_phone,
+                                    message: "must be different from other phone numbers"
+
+      # Validates that all tag sets are unique
+      validates_uniqueness_of_among :primary_tags, :secondary_tags
+
+      # Validates that metadata fields are unique, treating string and symbol keys as equivalent
+      validates_uniqueness_of_among :primary_metadata, :secondary_metadata,
+                                    compare_hash_keys_as_strings: true
+    end
+    ```
+
+    *Zakaria Fatahi*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*
