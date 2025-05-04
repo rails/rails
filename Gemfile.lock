@@ -540,7 +540,7 @@ GEM
     sdoc (2.6.1)
       rdoc (>= 5.0)
     securerandom (0.4.1)
-    selenium-webdriver (4.29.1)
+    selenium-webdriver (4.32.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
