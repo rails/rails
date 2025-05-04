@@ -104,7 +104,7 @@ gem "useragent", require: false
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
-  gem "sidekiq", require: false
+  gem "sidekiq", "!= 8.0.3", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby

@@ -549,7 +549,7 @@ GEM
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
     set (1.1.1)
-    sidekiq (8.0.1)
+    sidekiq (8.0.2)
       connection_pool (>= 2.5.0)
       json (>= 2.9.0)
       logger (>= 1.6.2)
@@ -742,7 +742,7 @@ DEPENDENCIES
   rubyzip (~> 2.0)
   sdoc
   selenium-webdriver (>= 4.20.0)
-  sidekiq
+  sidekiq (!= 8.0.3)
   sneakers
   solid_cable
   solid_cache
