@@ -3248,6 +3248,11 @@ Configures the HTML sanitizer used by Action Text by setting `ActionText::Conten
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
 
+#### `config.action_text.precompile_assets`
+
+Determines whether the Action Text assets should be added to the asset pipeline precompilation. It
+has no effect if Sprockets is not used. The default value is `true`.
+
 #### `Regexp.timeout`
 
 
