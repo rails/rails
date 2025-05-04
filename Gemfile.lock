@@ -437,7 +437,7 @@ GEM
     redcarpet (3.2.3)
     redis (5.2.0)
       redis-client (>= 0.22.0)
-    redis-client (0.22.2)
+    redis-client (0.24.0)
       connection_pool
     redis-namespace (1.11.0)
       redis (>= 4)
@@ -519,12 +519,13 @@ GEM
       websocket (~> 1.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
-    set (1.1.0)
-    sidekiq (7.2.4)
-      concurrent-ruby (< 2)
-      connection_pool (>= 2.3.0)
-      rack (>= 2.2.4)
-      redis-client (>= 0.19.0)
+    set (1.1.1)
+    sidekiq (8.0.2)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
     sigdump (0.2.5)
     signet (0.19.0)
       addressable (~> 2.8)
@@ -678,7 +679,7 @@ DEPENDENCIES
   rubyzip (~> 2.0)
   sdoc
   selenium-webdriver (>= 4.20.0)
-  sidekiq
+  sidekiq (!= 8.0.3)
   sneakers
   sprockets-rails (>= 2.0.0)
   sqlite3 (>= 1.6.6)
