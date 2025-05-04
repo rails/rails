@@ -411,10 +411,10 @@ GEM
     rbtree (0.4.6)
     rdoc (6.5.0)
       psych (>= 4.0.0)
-    redcarpet (3.2.3)
-    redis (5.0.5)
-      redis-client (>= 0.9.0)
-    redis-client (0.12.0)
+    redcarpet (3.6.1)
+    redis (5.3.0)
+      redis-client (>= 0.22.0)
+    redis-client (0.24.0)
       connection_pool
     redis-namespace (1.10.0)
       redis (>= 4)
@@ -481,14 +481,15 @@ GEM
       websocket (~> 1.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
-    set (1.0.3)
-    sidekiq (7.0.3)
-      concurrent-ruby (< 2)
-      connection_pool (>= 2.3.0)
-      rack (>= 2.2.4)
-      redis-client (>= 0.11.0)
-    sigdump (0.2.4)
-    signet (0.17.0)
+    set (1.1.1)
+    sidekiq (8.0.2)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
+    sigdump (0.2.5)
+    signet (0.19.0)
       addressable (~> 2.8)
       faraday (>= 0.17.5, < 3.a)
       jwt (>= 1.5, < 3.0)
@@ -632,9 +633,9 @@ DEPENDENCIES
   rubocop-performance
   rubocop-rails
   rubyzip (~> 2.0)
-  sdoc
-  selenium-webdriver (>= 4.11.0)
-  sidekiq
+  sdoc!
+  selenium-webdriver (>= 4.20.0)
+  sidekiq (!= 8.0.3)
   sneakers
   sprockets-rails (>= 2.0.0)
   sqlite3 (>= 1.6.6)
