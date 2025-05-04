@@ -15,6 +15,7 @@ require "active_model/type/immutable_string"
 require "active_model/type/integer"
 require "active_model/type/string"
 require "active_model/type/time"
+require "active_model/type/array"
 
 require "active_model/type/registry"
 
@@ -51,5 +52,6 @@ module ActiveModel
     register(:integer, Type::Integer)
     register(:string, Type::String)
     register(:time, Type::Time)
+    register(:array, Type::Array)
   end
 end
