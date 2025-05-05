@@ -21,6 +21,55 @@ guide.
 Major Features
 --------------
 
+### Kamal 2
+
+Rails now comes preconfigured with [Kamal 2](https://kamal-deploy.org/) for 
+deploying your application. Kamal takes a fresh Linux box and turns it into an 
+application or accessory server with just a single “kamal setup” command.
+
+Kamal 2 also includes a proxy called [Kamal Proxy](https://github.com/basecamp/kamal-proxy) 
+to replace the generic Traefik option it used at launch.
+
+### Thruster
+
+The Dockerfile has been upgraded to include a new proxy called 
+[Thruster](https://github.com/basecamp/thruster), which sits in front of the 
+Puma web server to provide X-Sendfile acceleration, asset caching, and asset 
+compression.
+
+### Solid Cable
+
+[Solid Cable](https://github.com/rails/solid_cable) replaces Redis to act as 
+the pubsub server to relay WebSocket messages from the application to clients 
+connected to different processes. Solid Cable retains the messages sent in 
+the database for a day by default.
+
+### Solid Cache
+
+[Solid Cache](https://github.com/rails/solid_cache) replaces either 
+Redis or Memcached for storing HTML fragment caches in particular.
+
+### Solid Queue
+
+[Solid Queue](https://github.com/rails/solid_queue) replaces the need for 
+Redis, also a separate job-running framework, like Resque, Delayed Job, or 
+Sidekiq. 
+
+For high-performance installations, it’s built on the new `FOR UPDATE SKIP LOCKED` 
+mechanism first introduced in PostgreSQL 9.5, but now also available in MySQL 8.0
+and beyond. It also works with SQLite.
+
+### Propshaft
+
+[Propshaft](https://github.com/rails/propshaft) is now the default asset 
+pipeline, replacing the old Sprockets system.
+
+### Authentication
+
+[Authentication system generator](https://github.com/rails/rails/pull/52328), 
+creates a starting point for a session-based, password-resettable, 
+metadata-tracking authentication system.
+
 Railties
 --------
 
