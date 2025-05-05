@@ -1,3 +1,30 @@
+*   Fix `becomes!` to correctly rebind enum attributes when converting
+    between STI subclasses that define different enum mappings for the same column.
+
+    Previously, enum methods such as `#published!` or `#published?` could raise
+    `ArgumentError` or return incorrect values after calling `becomes!`,
+     because the enum type was not properly updated to the new subclass.
+
+    Example:
+
+    ```ruby
+    class Foo < ActiveRecord::Base; end
+
+    class Bar < Foo
+      enum :state, { draft: "draft" }
+    end
+
+    class Baz < Foo
+      enum :state, { published: "published" }
+    end
+
+    bar = Bar.create!(state: "draft")
+    baz = bar.becomes!(Baz)
+    baz.published! # Previously: raises ArgumentError
+    ```
+
+    *Yuhi Sato*
+
 *   Add `affected_rows` to `ActiveRecord::Result`.
 
     *Jenny Shen*
