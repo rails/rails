@@ -461,7 +461,7 @@ To apply a template while creating a new Rails application, you need to provide 
 $ rails new blog -m ~/template.rb
 ```
 
-You can also use the `app:template` rails command to apply templates to an existing Rails application. The location of the template needs to be passed in via the `LOCATION` environment variable.
+You can also use the `app:template` command to apply templates to an existing Rails application. The location of the template needs to be passed in via the `LOCATION` environment variable.
 
 ```bash
 $ bin/rails app:template LOCATION=~/template.rb
@@ -506,9 +506,9 @@ The above `template.rb` uses helper methods such as `after_bundle` and `rails_co
 Rails Template API
 ------------------
 
-The Rails template ruby scripts have access to several helper methods using a DSL (Domain Specific Language).
+The Rails template Ruby scripts have access to several helper methods using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific Language).
 
-Here's an example of a typical Rails template:
+Here's an example of a typical Rails template that scaffolds a model, runs migrations, and commits the changes with git:
 
 ```ruby
 # template.rb
@@ -525,7 +525,7 @@ end
 
 Let's see how to use the methods provided by the [Rails Template API](https://api.rubyonrails.org/v7.1/classes/Rails/Generators/Actions.html).
 
-NOTE: All of the code snippets in the examples are below are in a `template.rb` file.
+NOTE: All of the code snippets in the examples below can be used in a template file, such as the `template.rb` file above.
 
 ### gem
 
