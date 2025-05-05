@@ -497,7 +497,7 @@ end
 ```
 
 The above template adds Devise to the `Gemfile` after asking the user and also
-allows user to name the Device user model. After `bundle install` has been run,
+allows the user to name the Devise user model. After `bundle install` has been run,
 the template runs the Devise generators and `bin/rails db:migrate`. Finally, the
 template does `git add` and `git commit`.
 
@@ -570,7 +570,7 @@ Adds the given source to the generated application's `Gemfile`.
 add_source "https://rubygems.org"
 ```
 
-If block is given, gem entries in the block are wrapped into the source group. For example, if you need to source a gem from `"http://gems.github.com"`:
+If a block is given, gem entries in the block are wrapped into the source group. For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
 add_source "http://gems.github.com/" do
@@ -632,7 +632,7 @@ rakefile("bootstrap.rake") do
   <<-TASK
     namespace :boot do
       task :strap do
-        puts "i like boots!"
+        puts "I like boots!"
       end
     end
   TASK
@@ -743,7 +743,7 @@ after_bundle do
 end
 ```
 
-The callbacks gets executed even if `--skip-bundle` has been passed.
+The callbacks get executed even if `--skip-bundle` has been passed.
 
 Generator Helper Methods
 ------------------------
