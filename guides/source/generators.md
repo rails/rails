@@ -736,10 +736,10 @@ This method registers a callback to be executed after the gems are bundled. For 
 # Install gems
 after_bundle do
   # Install TailwindCSS
-  rails_command 'tailwindcss:install'
+  rails_command "tailwindcss:install"
 
   # Install Devise
-  generate 'devise:install'
+  generate "devise:install"
 end
 ```
 
