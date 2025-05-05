@@ -1705,4 +1705,12 @@ class QueryConstraintsTest < ActiveRecord::TestCase
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
   end
+
+  def test_enum_preserved_across_becomes
+    parrot = LiveParrot.create!(name: "Scipio", breed: "african")
+    dead_parrot = parrot.becomes!(DeadParrot)
+    dead_parrot.asian!
+
+    assert dead_parrot.asian?
+  end
 end

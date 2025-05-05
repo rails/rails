@@ -2,6 +2,35 @@
 
     *Hartley McGuire*
 
+*   Fix `becomes!` to correctly rebind enum attributes when converting
+    between STI subclasses that define different enum mappings for the same column.
+
+    Previously, enum methods such as `#published!` or `#published?` could raise
+    `ArgumentError` or return incorrect values after calling `becomes!`,
+     because the enum type was not properly updated to the new subclass.
+
+    Example:
+
+    ```ruby
+    class Foo < ActiveRecord::Base; end
+
+    class Bar < Foo
+      enum :state, { draft: "draft" }
+    end
+
+    class Baz < Foo
+      enum :state, { published: "published" }
+    end
+
+    bar = Bar.create!(state: "draft")
+    baz = bar.becomes!(Baz)
+    baz.published! # Previously: raises ArgumentError
+    ```
+
+    Fixes #55001.
+
+    *Yuhi Sato*
+
 *   Set default for primary keys in `insert_all`/`upsert_all`.
 
     Previously in Postgres, updating and inserting new records in one upsert wasn't possible
