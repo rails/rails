@@ -1624,11 +1624,7 @@ module ActiveRecord
         case opts
         when String
           if rest.empty?
-            if Arel.arel_node?(opts)
-              parts = [opts]
-            else
-              parts = [Arel.sql(opts)]
-            end
+            parts = [Arel.sql(opts)]
           elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
             parts = [build_named_bound_sql_literal(opts, rest.first)]
           elsif opts.include?("?")
