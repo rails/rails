@@ -495,6 +495,14 @@ module ActiveRecord
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
         becoming.errors.copy!(errors)
+
+        klass.attribute_types.each do |name, type|
+          next if type.is_a?(ActiveRecord::Encryption::EncryptedAttributeType)
+
+          if (attribute = @attributes[name])
+            @attributes[name] = attribute.with_type(type)
+          end
+        end
       end
 
       became
