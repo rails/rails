@@ -95,7 +95,7 @@ module ActionText
 
       def bullet_for_li_node(node)
         if list_node_name_for_li_node(node) == "ol"
-          index = node.parent.children.index(node)
+          index = node.parent.elements.index(node)
           "#{index + 1}."
         else
           "•"
