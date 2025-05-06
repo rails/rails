@@ -7,37 +7,39 @@ module ActionText
     extend self
 
     def node_to_plain_text(node)
-      remove_trailing_newlines(plain_text_for_node(node))
+      remove_trailing_newlines(node_to_plain_text_content_tree(node).content)
     end
 
     private
-      def plain_text_for_node(node, index = 0)
+      def node_to_plain_text_content_tree(node)
+        BottomUpReplacer.replace_content(node.dup) { |n| plain_text_for_node(n) }
+      end
+
+      def plain_text_for_node(node)
         if respond_to?(plain_text_method_for_node(node), true)
-          send(plain_text_method_for_node(node), node, index)
+          send(plain_text_method_for_node(node), node)
         else
           plain_text_for_node_children(node)
         end
       end
 
       def plain_text_for_node_children(node)
-        texts = []
-        node.children.each_with_index do |child, index|
-          next if skippable?(child)
-
-          texts << plain_text_for_node(child, index)
-        end
-        texts.join
-      end
-
-      def skippable?(node)
-        node.name == "script" || node.name == "style"
+        node.children.map(&:content).join
       end
 
       def plain_text_method_for_node(node)
         :"plain_text_for_#{node.name}_node"
       end
 
-      def plain_text_for_block(node, index = 0)
+      def plain_text_for_unsupported_node(node)
+        ""
+      end
+
+      %i[ script style].each do |element|
+        alias_method :"plain_text_for_#{element}_node", :plain_text_for_unsupported_node
+      end
+
+      def plain_text_for_block(node)
         "#{remove_trailing_newlines(plain_text_for_node_children(node))}\n\n"
       end
 
@@ -45,7 +47,7 @@ module ActionText
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
       end
 
-      def plain_text_for_list(node, index)
+      def plain_text_for_list(node)
         "#{break_if_nested_list(node, plain_text_for_block(node))}"
       end
 
@@ -53,23 +55,23 @@ module ActionText
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_list
       end
 
-      def plain_text_for_br_node(node, index)
+      def plain_text_for_br_node(node)
         "\n"
       end
 
-      def plain_text_for_text_node(node, index)
+      def plain_text_for_text_node(node)
         remove_trailing_newlines(node.text)
       end
 
-      def plain_text_for_div_node(node, index)
+      def plain_text_for_div_node(node)
         "#{remove_trailing_newlines(plain_text_for_node_children(node))}\n"
       end
 
-      def plain_text_for_figcaption_node(node, index)
+      def plain_text_for_figcaption_node(node)
         "[#{remove_trailing_newlines(plain_text_for_node_children(node))}]"
       end
 
-      def plain_text_for_blockquote_node(node, index)
+      def plain_text_for_blockquote_node(node)
         text = plain_text_for_block(node)
         return "“”" if text.blank?
 
@@ -79,8 +81,8 @@ module ActionText
         text
       end
 
-      def plain_text_for_li_node(node, index)
-        bullet = bullet_for_li_node(node, index)
+      def plain_text_for_li_node(node)
+        bullet = bullet_for_li_node(node)
         text = remove_trailing_newlines(plain_text_for_node_children(node))
         indentation = indentation_for_li_node(node)
 
@@ -91,8 +93,9 @@ module ActionText
         text.chomp("")
       end
 
-      def bullet_for_li_node(node, index)
+      def bullet_for_li_node(node)
         if list_node_name_for_li_node(node) == "ol"
+          index = node.parent.children.index(node)
           "#{index + 1}."
         else
           "•"
@@ -120,6 +123,37 @@ module ActionText
         else
           text
         end
+      end
+
+      class BottomUpReplacer
+        def self.replace_content(node, &block)
+          new(node).replace_content(&block)
+        end
+
+        def initialize(node)
+          @node = node
+        end
+
+        def replace_content(&block)
+          @node.tap do |node|
+            traverse_bottom_up(node) do |n|
+              n.content = block.call(n)
+            end
+          end
+        end
+
+        private
+          def traverse_bottom_up(node, &block)
+            call_stack, processing_stack = [ node ], []
+
+            until call_stack.empty?
+              node = call_stack.pop
+              processing_stack.push(node)
+              call_stack.concat node.children
+            end
+
+            processing_stack.reverse_each(&block)
+          end
       end
   end
 end
