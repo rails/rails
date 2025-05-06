@@ -34,7 +34,7 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
   test "<ol> tags are separated by two new lines" do
     assert_converted_to(
       "Hello world!\n\n1. list1\n\n1. list2\n\nHow are you?",
-      "<p>Hello world!</p><ol><li>list1</li></ol><ol><li>list2</li></ol><p>How are you?</p>"
+      "<p>Hello world!</p><ol>\n<li>list1</li>\n</ol><ol>\n<li>list2</li>\n</ol><p>How are you?</p>"
     )
   end
 
