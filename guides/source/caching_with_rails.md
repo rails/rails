@@ -736,7 +736,7 @@ config.cache_store = :redis_cache_store, { url: ENV["REDIS_URL"] }
 A more complex, production Redis cache store may look something like this:
 
 ```ruby
-cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
+cache_servers = %w[redis://cache-01:6379/0 redis://cache-02:6379/0]
 config.cache_store = :redis_cache_store, { url: cache_servers,
 
   connect_timeout:    30,  # Defaults to 1 second
@@ -744,7 +744,7 @@ config.cache_store = :redis_cache_store, { url: cache_servers,
   write_timeout:      0.2, # Defaults to 1 second
   reconnect_attempts: 2,   # Defaults to 1
 
-  error_handler: -> (method:, returning:, exception:) {
+  error_handler: ->(method:, returning:, exception:) {
     # Report errors to Sentry as warnings
     Sentry.capture_exception exception, level: "warning",
       tags: { method: method, returning: returning }
@@ -789,7 +789,7 @@ You can use Hashes and Arrays of values as cache keys.
 
 ```ruby
 # This is a valid cache key
-Rails.cache.read(site: "mysite", owners: [owner_1, owner_2])
+Rails.cache.read(site: "mysite", owners: [ owner_1, owner_2 ])
 ```
 
 The keys you use on `Rails.cache` will not be the same as those actually used with

@@ -279,7 +279,7 @@ It also creates an index for the `user_id` column. The schema looks as follows:
 ```ruby
   create_table "products", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.index ["user_id"], name: "index_products_on_user_id"
+    t.index [ "user_id" ], name: "index_products_on_user_id"
   end
 ```
 
@@ -486,7 +486,7 @@ more about [composite primary keys](active_record_composite_primary_keys.html).
 ```ruby
 class CreateUsers < ActiveRecord::Migration[8.1]
   def change
-    create_table :users, primary_key: [:id, :name] do |t|
+    create_table :users, primary_key: [ :id, :name ] do |t|
       t.string :name
       t.string :email
       t.timestamps
@@ -821,7 +821,7 @@ You can create a table with a composite primary key by passing the
 ```ruby
 class CreateProducts < ActiveRecord::Migration[8.1]
   def change
-    create_table :products, primary_key: [:customer_id, :product_sku] do |t|
+    create_table :products, primary_key: [ :customer_id, :product_sku ] do |t|
       t.integer :customer_id
       t.string :product_sku
       t.text :description
@@ -1639,7 +1639,7 @@ NOTE: The code here should be idempotent so that it can be executed at any point
 in every environment.
 
 ```ruby
-["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
+[ "Action", "Comedy", "Drama", "Horror" ].each do |genre_name|
   MovieGenre.find_or_create_by!(name: genre_name)
 end
 ```
