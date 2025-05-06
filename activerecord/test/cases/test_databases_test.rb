@@ -101,5 +101,30 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
     end
+
+    def test_databases_are_cleaned_up_after_run
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+        }
+      }
+
+      idx = 42
+      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      expected_database = "#{base_db_config.database}_#{idx}"
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:drop, ->(db_config) {
+        assert_equal expected_database, db_config.database
+      }) do
+        ActiveSupport::Testing::Parallelization.run_cleanup_hooks.each { |cb| cb.call(idx) }
+      end
+
+      assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
   end
 end

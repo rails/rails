@@ -16,6 +16,12 @@ module ActiveRecord
       end
     end
 
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook do |i|
+      if ActiveSupport.parallelize_test_databases
+        cleanup_test_databases(id: i, env_name: ActiveRecord::ConnectionHandling::DEFAULT_ENV.call)
+      end
+    end
+
     def self.create_and_load_schema(i, env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
@@ -27,6 +33,14 @@ module ActiveRecord
     ensure
       ActiveRecord::Base.establish_connection
       ENV["VERBOSE"] = old
+    end
+
+    def self.cleanup_test_databases(id:, env_name:)
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
+        db_config._database = "#{db_config.database}_#{id}"
+
+        ActiveRecord::Tasks::DatabaseTasks.drop(db_config)
+      end
     end
   end
 end
