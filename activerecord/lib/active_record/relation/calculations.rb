@@ -232,7 +232,7 @@ module ActiveRecord
         relation = apply_join_dependency
 
         if operation == "count"
-          unless distinct_value || distinct_select?(column_name || select_for_count)
+          if distinct_count?(relation, column_name)
             relation.distinct!
             relation.select_values = Array(model.primary_key || table[Arel.star])
           end
@@ -614,6 +614,17 @@ module ActiveRecord
           return type if type
         end
         nil
+      end
+
+      def distinct_count?(relation, column_name)
+        return false if distinct_value || distinct_select?(column_name || select_for_count)
+        return true if limit_value || relation.limit_value
+
+        joined_fields = references_values | eager_load_values
+        joined_fields.any? do |field|
+          association  = model._reflect_on_association(field)
+          !association&.belongs_to?
+        end
       end
 
       def type_cast_pluck_values(result, columns)
