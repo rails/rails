@@ -352,14 +352,14 @@ class CookiesTest < ActionController::TestCase
 
     def rails_5_2_stable_signed_cookie_with_metadata
       # cookies.signed[:favorite] = { value: "5-2-Stable Choco Chip Cookie", expires: 1000.years }
-      cookies[:favorite] = "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaEpJaUUxTFRJdFUzUmhZbXhsSUVOb2IyTnZJRU5vYVhBZ1EyOXZhMmxsQmpvR1JWUT0iLCJleHAiOiIzMDE4LTA3LTExVDE2OjExOjI2Ljc1M1oiLCJwdXIiOm51bGx9fQ==--5682db22b5165c2fcd20ecc0b7de2787a1412e4ad4ee96f320869f9dd39aa6af"
+      cookies[:favorite] = "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaEpJaUUxTFRJdFUzUmhZbXhsSUVOb2IyTnZJRU5vYVhBZ1EyOXZhMmxsQmpvR1JWUT0iLCJleHAiOiIzMDE4LTA3LTExVDE2OjExOjI2Ljc1M1oiLCJwdXIiOm51bGx9fQ==--7df5d885b78b70a501d6e82140ae91b24060ac00"
 
       head :ok
     end
 
     def rails_5_2_stable_signed_cookie_without_metadata
       # cookies.signed[:favorite] = "5-2-Stable Choco Chip Cookie"
-      cookies[:favorite] = "BAhJIiE1LTItU3RhYmxlIENob2NvIENoaXAgQ29va2llBjoGRVQ=--6a6bbde3780ee877bcd78de77b5336fb4fe3b218c7d836583d72ac1ac56a70ab"
+      cookies[:favorite] = "BAhJIiE1LTItU3RhYmxlIENob2NvIENoaXAgQ29va2llBjoGRVQ=--50bbdbf8d64f5a3ec3e54878f54d4f55b6cb3aff"
 
       head :ok
     end
@@ -624,7 +624,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA1")
     assert_equal verifier.generate(45), cookies[:user_id]
   end
 
@@ -665,7 +665,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA1")
     message = verifier.generate(45)
 
     @request.headers["Cookie"] = "user_id=#{Marshal.dump 45}--#{message.split("--").last}"
@@ -725,7 +725,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA256").generate(45)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
     @request.headers["Cookie"] = "user_id=#{json_value}"
 
     get :get_signed_cookie
@@ -743,7 +743,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA256").generate(45)
+    marshal_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal).generate(45)
     @request.headers["Cookie"] = "user_id=#{marshal_value}"
 
     get :get_signed_cookie
@@ -752,7 +752,7 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal 45, cookies[:user_id]
     assert_equal 45, cookies.signed[:user_id]
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 
@@ -762,7 +762,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA256").generate(45)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
     @request.headers["Cookie"] = "user_id=#{json_value}"
 
     get :get_signed_cookie
@@ -798,7 +798,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON, digest: "SHA256").generate(45)
+    json_value = ActiveSupport::MessageVerifier.new(secret, serializer: JSON).generate(45)
     @request.headers["Cookie"] = "user_id=#{json_value}"
 
     get :get_signed_cookie
@@ -807,7 +807,7 @@ class CookiesTest < ActionController::TestCase
     assert_not_equal 45, cookies[:user_id]
     assert_equal 45, cookies.signed[:user_id]
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: ActiveSupport::MessagePack, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: ActiveSupport::MessagePack)
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 

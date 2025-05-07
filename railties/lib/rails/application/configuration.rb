@@ -145,7 +145,6 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.use_authenticated_cookie_encryption = true
-            action_dispatch.signed_cookie_digest = "SHA1"
           end
 
           if respond_to?(:active_support)
