@@ -1,3 +1,7 @@
+*   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
+
+    *Bengt-Ove Hollaender*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
