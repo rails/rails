@@ -27,6 +27,10 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, encoding: :"UTF8", collation: :"ja_JP.UTF8", ctype: :"ja_JP.UTF8")
   end
 
+  def test_create_database_with_locale_provider_and_locale
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'utf8' LOCALE_PROVIDER = 'builtin' LOCALE = 'C.UTF-8'), create_database(:aimonetti, locale_provider: :builtin, locale: "C.UTF-8")
+  end
+
   def test_add_index
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")

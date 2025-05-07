@@ -1,3 +1,7 @@
+*   PostgreSQL adapter create DB now supports `locale_provider` and `locale`
+
+    *Bengt-Ove Hollaender*
+
 *   Enable passing retryable SqlLiterals to `#where`.
 
     *Hartley McGuire*
