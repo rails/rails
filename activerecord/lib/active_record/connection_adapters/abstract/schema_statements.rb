@@ -354,11 +354,13 @@ module ActiveRecord
       #   # Creates a table called 'music_artists_records' with no id.
       #   create_join_table('music_artists', 'music_records')
       #
+      # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference]
+      # for details of the options you can use in +column_options+. +column_options+
+      # will be applied to both columns.
+      #
       # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
-      # [<tt>:column_options</tt>]
-      #   Any extra options you want appended to the columns definition.
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
@@ -374,6 +376,19 @@ module ActiveRecord
       #     t.index :product_id
       #     t.index :category_id
       #   end
+      #
+      # ====== Add foreign keys with delete cascade
+      #
+      #   create_join_table(:assemblies, :parts, column_options: { foreign_key: { on_delete: :cascade } })
+      #
+      # generates:
+      #
+      #   CREATE TABLE assemblies_parts (
+      #     assembly_id bigint NOT NULL,
+      #     part_id bigint NOT NULL,
+      #     CONSTRAINT fk_rails_0d8a572d89 FOREIGN KEY ("assembly_id") REFERENCES "assemblies" ("id") ON DELETE CASCADE,
+      #     CONSTRAINT fk_rails_ec7b48402b FOREIGN KEY ("part_id") REFERENCES "parts" ("id") ON DELETE CASCADE
+      #   )
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
