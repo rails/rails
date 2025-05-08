@@ -6,19 +6,16 @@ module ActionDispatch
   module Http
     module Cache
       module Request
-        HTTP_IF_MODIFIED_SINCE = "HTTP_IF_MODIFIED_SINCE"
-        HTTP_IF_NONE_MATCH     = "HTTP_IF_NONE_MATCH"
-
         mattr_accessor :strict_freshness, default: false
 
         def if_modified_since
-          if since = get_header(HTTP_IF_MODIFIED_SINCE)
+          if since = get_header("HTTP_IF_MODIFIED_SINCE")
             Time.rfc2822(since) rescue nil
           end
         end
 
         def if_none_match
-          get_header HTTP_IF_NONE_MATCH
+          get_header "HTTP_IF_NONE_MATCH"
         end
 
         def if_none_match_etags
