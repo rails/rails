@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
@@ -14,16 +13,18 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   teardown { ActiveStorage::Blob.all.each(&:delete) }
 
   test "analyzing a directly-uploaded blob after attaching it" do
-    blob = directly_upload_file_blob(filename: "racecar.jpg")
-    assert_not blob.analyzed?
+    analyze_with("ImageAnalyzer::Vips") do
+      blob = directly_upload_file_blob(filename: "racecar.jpg")
+      assert_not blob.analyzed?
 
-    perform_enqueued_jobs do
-      @user.highlights.attach(blob)
+      perform_enqueued_jobs do
+        @user.highlights.attach(blob)
+      end
+
+      assert_predicate blob.reload, :analyzed?
+      assert_equal 4104, blob.metadata[:width]
+      assert_equal 2736, blob.metadata[:height]
     end
-
-    assert_predicate blob.reload, :analyzed?
-    assert_equal 4104, blob.metadata[:width]
-    assert_equal 2736, blob.metadata[:height]
   end
 
   test "attaching a un-analyzable blob" do
