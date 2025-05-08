@@ -366,6 +366,12 @@ module Rails
         @loaded_config_version = target_version
       end
 
+      def yjit_enabled?
+        RubyVM::YJIT.enabled?
+      rescue NameError # When Ruby isn't built with YJIT support
+        false
+      end
+
       def reloading_enabled?
         enable_reloading
       end
