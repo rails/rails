@@ -60,6 +60,108 @@ module ActionDispatch
             success
           end
         end
+
+        def cache_control_directives
+          @cache_control_directives ||= CacheControlDirectives.new(get_header("HTTP_CACHE_CONTROL"))
+        end
+
+        # Represents the HTTP Cache-Control header for requests,
+        # providing methods to access various cache control directives
+        # Reference: https://www.rfc-editor.org/rfc/rfc9111.html#name-request-directives
+        class CacheControlDirectives
+          VALUE_DIRECTIVES = Set["max-age", "min-fresh", "stale-if-error"]
+          BOOLEAN_DIRECTIVES = Set["no-cache", "no-store", "no-transform", "only-if-cached"]
+          SPECIAL_DIRECTIVES = Set["max-stale"]
+
+          def initialize(cache_control_header)
+            @directives = parse_directives(cache_control_header)
+          end
+
+          # Returns true if the only-if-cached directive is present.
+          # This directive indicates that the client only wishes to obtain a
+          # stored response. If a valid stored response is not available,
+          # the server should respond with a 504 (Gateway Timeout) status.
+          def only_if_cached?
+            @directives.key?("only-if-cached")
+          end
+
+          # Returns true if the no-cache directive is present.
+          # This directive indicates that a cache must not use the response
+          # to satisfy subsequent requests without successful validation on the origin server.
+          def no_cache?
+            @directives.key?("no-cache")
+          end
+
+          # Returns true if the no-store directive is present.
+          # This directive indicates that a cache must not store any part of the
+          # request or response.
+          def no_store?
+            @directives.key?("no-store")
+          end
+
+          # Returns true if the no-transform directive is present.
+          # This directive indicates that a cache or proxy must not transform the payload.
+          def no_transform?
+            @directives.key?("no-transform")
+          end
+
+          # Returns the value of the max-age directive.
+          # This directive indicates that the client is willing to accept a response
+          # whose age is no greater than the specified number of seconds.
+          def max_age
+            @directives["max-age"]
+          end
+
+          # Returns the value of the max-stale directive.
+          # When max-stale is present with a value, returns that integer value.
+          # When max-stale is present without a value, returns true (unlimited staleness).
+          # When max-stale is not present, returns nil.
+          def max_stale
+            @directives["max-stale"]
+          end
+
+          # Returns true if max-stale directive is present (with or without a value)
+          def max_stale?
+            @directives.key?("max-stale")
+          end
+
+          # Returns true if max-stale directive is present without a value (unlimited staleness)
+          def max_stale_unlimited?
+            @directives.key?("max-stale") && !@directives["max-stale"].is_a?(Integer)
+          end
+
+          # Returns the value of the min-fresh directive.
+          # This directive indicates that the client is willing to accept a response
+          # whose freshness lifetime is no less than its current age plus the specified time in seconds.
+          def min_fresh
+            @directives["min-fresh"]
+          end
+
+          # Returns the value of the stale-if-error directive.
+          # This directive indicates that the client is willing to accept a stale response
+          # if the check for a fresh one fails with an error for the specified number of seconds.
+          def stale_if_error
+            @directives["stale-if-error"]
+          end
+
+          private
+            def parse_directives(header_value)
+              return {} unless header_value
+
+              header_value.delete(" ").downcase.split(",").each_with_object({}) do |directive, directives|
+                directive_name, directive_value = directive.split("=", 2)
+
+                case
+                when SPECIAL_DIRECTIVES.include?(directive_name)
+                  directives[directive_name] = directive_value ? directive_value.to_i : true
+                when directive_value && VALUE_DIRECTIVES.include?(directive_name)
+                  directives[directive_name] = directive_value.to_i
+                when BOOLEAN_DIRECTIVES.include?(directive_name)
+                  directives[directive_name] = true
+                end
+              end
+            end
+        end
       end
 
       module Response
