@@ -3,7 +3,7 @@
 Active Record Encryption
 ========================
 
-This guide covers encrypting your database information using Active Record.
+This guide covers how to encrypt data in your database using Active Record.
 
 After reading this guide, you will know:
 
@@ -11,19 +11,16 @@ After reading this guide, you will know:
 * How to migrate unencrypted data.
 * How to make different encryption schemes coexist.
 * How to use the API.
-* How to configure the library and how to extend it.
 
 --------------------------------------------------------------------------------
 
-Active Record supports application-level encryption. It works by declaring which attributes should be encrypted and seamlessly encrypting and decrypting them when necessary. The encryption layer sits between the database and the application. The application will access unencrypted data, but the database will store it encrypted.
+Active Record Encryption exists to protect sensitive information in your application, such as personally identifying information about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It works by seamlessly encrypting and decrypting the attributes when necessary. The encryption layer sits between the application and the database.
 
 ## Why Encrypt Data at the Application Level?
 
-Active Record Encryption exists to protect sensitive information in your application. A typical example is personally identifiable information from users. But why would you want application-level encryption if you are already encrypting your database at rest?
+Encrypting specific attributes at the application-level adds an additional security layer. For example, if someone gains access to your application logs or database backup, the encrypted data remains unreadable. It also helps avoid accidental exposure of sensitive information in your application console or logs.
 
-As an immediate practical benefit, encrypting sensitive attributes adds an additional security layer. For example, if an attacker gained access to your database, a snapshot of it, or your application logs, they wouldn't be able to make sense of the encrypted information. Additionally, encryption can prevent developers from unintentionally exposing users' sensitive data in application logs.
-
-But more importantly, by using Active Record Encryption, you define what constitutes sensitive information in your application at the code level. Active Record Encryption enables granular control of data access in your application and services consuming data from your application. For example, consider [auditable Rails consoles that protect encrypted data](https://github.com/basecamp/console1984) or check the built-in system to [filter controller params automatically](#filtering-params-named-as-encrypted-columns).
+Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in Rails consoles. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
 
 ## Basic Usage
 
