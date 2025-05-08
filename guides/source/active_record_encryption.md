@@ -75,7 +75,7 @@ However, in the Rails console, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
-#### Important: About Storage and Column Size
+### Column Size and Storage Consideration
 
 Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
 
@@ -96,7 +96,7 @@ Some examples:
 | Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
 | Arbitrary long text                               | text                 | text                              | negligible                    |
 
-### Deterministic and Non-deterministic Encryption
+### Deterministic vs. Non-deterministic Encryption
 
 By default, Active Record Encryption uses a non-deterministic approach to encryption. Non-deterministic, in this context, means that encrypting the same content with the same password twice will result in different ciphertexts. This approach improves security by making crypto-analysis of ciphertexts harder, and querying the database impossible.
 
@@ -116,7 +116,30 @@ NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key 
 
 NOTE: You can disable deterministic encryption by omitting a `deterministic_key`.
 
-## Features
+## Basic Usage
+
+### Using the API
+
+ActiveRecord encryption is meant to be used declaratively, but there is also an API for debugging or advance use cases.
+
+You can encrypt and decrypt all relevant attributes of the `article` model like this:
+
+```ruby
+article.encrypt # encrypt or re-encrypt all the encryptable attributes
+article.decrypt # decrypt all the encryptable attributes
+```
+
+You can check whether a given attribute is encrypted:
+
+```ruby
+article.encrypted_attribute?(:title)
+```
+
+You can read the `cipertext` for an attribute:
+
+```ruby
+article.ciphertext_for(:title)
+```
 
 ### Action Text
 
@@ -144,7 +167,7 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 To encrypt Action Text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
-### Supported Types
+### Serialized Attributes
 
 `active_record.encryption` will serialize values using the underlying type before encrypting them, but, unless using a custom `message_serializer`, *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
 
@@ -183,56 +206,6 @@ class Label
   encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
 end
 ```
-
-### Support for Unencrypted Data
-
-To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
-
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
-* Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
-
-**This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
-
-### Support for Previous Encryption Schemes
-
-Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you just change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
-
-To support these situations, you can declare previous encryption schemes that will be used in two scenarios:
-
-* When reading encrypted data, Active Record Encryption will try previous encryption schemes if the current scheme doesn't work.
-* When querying deterministic data, it will add ciphertexts using previous schemes so that queries work seamlessly with data encrypted with different schemes. You must set `config.active_record.encryption.extend_queries = true` to enable this.
-
-You can configure previous encryption schemes:
-
-* Globally
-* On a per-attribute basis
-
-#### Global Previous Encryption Schemes
-
-You can add previous encryption schemes by adding them as list of properties using the `previous` config property in your `application.rb`:
-
-```ruby
-config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
-```
-
-#### Per-attribute Encryption Schemes
-
-Use `:previous` when declaring the attribute:
-
-```ruby
-class Article
-  encrypts :title, deterministic: true, previous: { deterministic: false }
-end
-```
-
-#### Encryption Schemes and Deterministic Attributes
-
-When adding previous encryption schemes:
-
-* With **non-deterministic encryption**, new information will always be encrypted with the *newest* (current) encryption scheme.
-* With **deterministic encryption**, new information will always be encrypted with the *oldest* encryption scheme by default.
-
-Typically, with deterministic encryption, you want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false }`. In that case, it will use the *newest* encryption scheme for encrypting new data.
 
 ### Unique Constraints
 
@@ -334,6 +307,58 @@ You can configure the compressor globally:
 ```ruby
 config.active_record.encryption.compressor = ZstdCompressor
 ```
+
+## Migrating Existing Data
+
+### Support for Unencrypted Data
+
+To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
+
+* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
+* Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
+
+**This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
+
+### Support for Previous Encryption Schemes
+
+Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you just change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
+
+To support these situations, you can declare previous encryption schemes that will be used in two scenarios:
+
+* When reading encrypted data, Active Record Encryption will try previous encryption schemes if the current scheme doesn't work.
+* When querying deterministic data, it will add ciphertexts using previous schemes so that queries work seamlessly with data encrypted with different schemes. You must set `config.active_record.encryption.extend_queries = true` to enable this.
+
+You can configure previous encryption schemes:
+
+* Globally
+* On a per-attribute basis
+
+#### Global Previous Encryption Schemes
+
+You can add previous encryption schemes by adding them as list of properties using the `previous` config property in your `application.rb`:
+
+```ruby
+config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+```
+
+#### Per-attribute Encryption Schemes
+
+Use `:previous` when declaring the attribute:
+
+```ruby
+class Article
+  encrypts :title, deterministic: true, previous: { deterministic: false }
+end
+```
+
+#### Encryption Schemes and Deterministic Attributes
+
+When adding previous encryption schemes:
+
+* With **non-deterministic encryption**, new information will always be encrypted with the *newest* (current) encryption scheme.
+* With **deterministic encryption**, new information will always be encrypted with the *oldest* encryption scheme by default.
+
+Typically, with deterministic encryption, you want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false }`. In that case, it will use the *newest* encryption scheme for encrypting new data.
 
 ## Key Management
 
@@ -445,31 +470,6 @@ config.active_record.encryption.store_key_references = true
 ```
 
 Doing so makes for more performant decryption because the system can now locate keys directly instead of trying lists of keys. The price to pay is storage: encrypted data will be a bit bigger.
-
-## API
-
-### Basic API
-
-ActiveRecord encryption is meant to be used declaratively, but it offers an API for advanced usage scenarios.
-
-#### Encrypt and Decrypt
-
-```ruby
-article.encrypt # encrypt or re-encrypt all the encryptable attributes
-article.decrypt # decrypt all the encryptable attributes
-```
-
-#### Read Ciphertext
-
-```ruby
-article.ciphertext_for(:title)
-```
-
-#### Check if Attribute is Encrypted or Not
-
-```ruby
-article.encrypted_attribute?(:title)
-```
 
 ## Configuration
 
