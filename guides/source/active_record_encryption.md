@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Active Record Encryption exists to protect sensitive information in your application, such as personally identifying information about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It works by seamlessly encrypting and decrypting the attributes when necessary. The encryption layer sits between the application and the database.
+Active Record Encryption exists to protect sensitive information in your application, such as personally identifying information about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It enables transparent encryption and decryption of attributes when saving and retrieving data. The encryption layer sits between the application and the database.
 
 ## Why Encrypt Data at the Application Level?
 
@@ -22,9 +22,11 @@ Encrypting specific attributes at the application-level adds an additional secur
 
 Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in Rails consoles. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
 
-## Basic Usage
+## Setup
 
-### Setup
+To start using Active Record Encryption, you need to generate keys and declare attributes you want to encrypt in the Model.
+
+### Generate Encryption Key
 
 Run `bin/rails db:encryption:init` to generate a random key set:
 
@@ -48,24 +50,26 @@ config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPT
 
 NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
 
-### Declaration of Encrypted Attributes
+Once the keys are generated and stored, you can start using Active Record Encryption by declaring attributes to be encrypted.
 
-Encryptable attributes are defined at the model level. These are regular Active Record attributes backed by a column with the same name.
+### Declare Encrypted Attributes
+
+The `encrypts` method defines attribute to be encrypted at the model level. These are regular Active Record attributes backed by a column with the same name.
 
 ```ruby
 class Article < ApplicationRecord
   encrypts :title
 end
-````
+```
 
-The library will transparently encrypt these attributes before saving them in the database and will decrypt them upon retrieval:
+Active Record Encryption library will transparently encrypt these attributes before saving them to the database and will decrypt them upon retrieval. For example,
 
 ```ruby
 article = Article.create title: "Encrypt it all!"
 article.title # => "Encrypt it all!"
 ```
 
-But, under the hood, the executed SQL looks like this:
+However, in the Rails console, the executed SQL looks like this:
 
 ```sql
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
