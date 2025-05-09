@@ -278,14 +278,12 @@ module ActiveSupport
 
     private
       def ensure_backtrace(error)
-        return if error.frozen? # re-raising won't add a backtrace
+        return if error.frozen? # re-raising won't add a backtrace or set the cause
         return unless error.backtrace.nil?
 
         begin
-          # We could use Exception#set_backtrace, but until Ruby 3.4
-          # it only support setting `Exception#backtrace` and not
-          # `Exception#backtrace_locations`. So raising the exception
-          # is a good way to build a real backtrace.
+          # As of Ruby 3.4, we could use Exception#set_backtrace to set the backtrace,
+          # but there's nothing like Exception#set_cause. Raising+rescuing is the only way to set the cause.
           raise error
         rescue error.class => error
         end

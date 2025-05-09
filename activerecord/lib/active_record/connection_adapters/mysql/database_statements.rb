@@ -45,14 +45,14 @@ module ActiveRecord
           end
         end
 
+        def default_insert_value(column) # :nodoc:
+          super unless column.auto_increment?
+        end
+
         private
           # https://mariadb.com/kb/en/analyze-statement/
           def analyze_without_explain?
             mariadb? && database_version >= "10.1.0"
-          end
-
-          def default_insert_value(column)
-            super unless column.auto_increment?
           end
 
           def returning_column_values(result)

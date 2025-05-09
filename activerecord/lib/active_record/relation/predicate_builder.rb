@@ -82,7 +82,7 @@ module ActiveRecord
       attr_writer :table
 
       def expand_from_hash(attributes, &block)
-        return ["1=0"] if attributes.empty?
+        return [Arel.sql("1=0", retryable: true)] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if key.is_a?(Array) && key.size == 1

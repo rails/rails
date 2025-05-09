@@ -79,7 +79,16 @@ module ActiveSupport
       # Because parallelization presents an overhead, it is only enabled when the
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
+      #
+      # If you want to skip Rails default creation of one database per process in favor of
+      # writing your own implementation, you can set +parallelize_databases+, or configure it
+      # via +config.active_support.parallelize_test_databases+.
+      #
+      #   parallelize(workers: :number_of_processes, parallelize_databases: false)
+      #
+      # Note that your test suite may deadlock if you attempt to use only one database
+      # with multiple processes.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases)
         case
         when ENV["PARALLEL_WORKERS"]
           workers = ENV["PARALLEL_WORKERS"].to_i
@@ -87,10 +96,28 @@ module ActiveSupport
           workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
         end
 
+        if with == :processes
+          ActiveSupport.parallelize_test_databases = parallelize_databases
+        end
+
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your +test_helper.rb+ add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_before_fork do
+      #       # run this before fork
+      #     end
+      #   end
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #

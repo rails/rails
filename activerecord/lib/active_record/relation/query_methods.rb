@@ -1630,7 +1630,7 @@ module ActiveRecord
           elsif opts.include?("?")
             parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+            parts = [Arel.sql(model.sanitize_sql([opts, *rest]))]
           end
         when Hash
           opts = opts.transform_keys do |key|

@@ -166,9 +166,21 @@ class ErrorReporterTest < ActiveSupport::TestCase
     assert_nil error.backtrace
     assert_nil error.backtrace_locations
 
-    assert_nil @reporter.report(error)
-    assert_not_predicate error.backtrace, :empty?
-    assert_not_predicate error.backtrace_locations, :empty?
+    @reporter.report(error)
+
+    assert error.backtrace.first.start_with?(__FILE__)
+    assert_equal __FILE__, error.backtrace_locations.first.path
+  end
+
+  test "#report assigns a cause if it's missing" do
+    raise "the original cause"
+  rescue => cause
+    new_error = StandardError.new("A new error that should wrap the StandardError")
+    assert_nil new_error.cause
+
+    @reporter.report(new_error)
+
+    assert_same cause, new_error.cause
   end
 
   test "#record passes through the return value" do
