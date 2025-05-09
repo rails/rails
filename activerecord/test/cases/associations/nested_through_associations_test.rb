@@ -29,6 +29,7 @@ require "models/department"
 require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
+require "models/location"
 
 class NestedThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
@@ -479,6 +480,19 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_empty scope.where("comments.type" => "Comment")
     assert_not_empty scope.where("comments.type" => "SpecialComment")
     assert_not_empty scope.where("comments.type" => "SubSpecialComment")
+  end
+
+  def test_has_many_through_with_sti_on_through_association
+    state = State.create!
+    county = state.counties.create!
+    city = county.cities.create!
+    people(:david).update(city: city)
+
+    assert_not_empty Person.joins(:county).where(county: { parent_id: state.id })
+
+    assert_not_empty city.people
+    assert_not_empty county.people
+    assert_not_empty state.people
   end
 
   def test_has_many_through_with_sti_on_nested_through_reflection
