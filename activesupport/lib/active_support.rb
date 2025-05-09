@@ -55,6 +55,7 @@ module ActiveSupport
   autoload :Notifications
   autoload :Reloader
   autoload :SecureCompareRotator
+  autoload :MiddlewareStack
 
   eager_autoload do
     autoload :BacktraceCleaner

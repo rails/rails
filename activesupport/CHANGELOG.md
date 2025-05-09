@@ -1,3 +1,11 @@
+*   Extract MiddlewareStack from ActionDispatch
+
+    The ActionDispatch MiddlewareStack doesn't contain anything specific to ActionDispatch.
+    Extract it into ActiveSupport so anything building Rack-like middleware can reuse the
+    available mechanisms for organising and instantiating middleware.
+
+    *Sam Schmidt* *Juniper Alanna Berry*
+
 *   Add public API for `before_fork_hook` in parallel testing.
 
     Introduces a public API for calling the before fork hooks implemented by parallel testing.

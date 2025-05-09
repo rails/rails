@@ -1,3 +1,10 @@
+*   Extract MiddlewareStack to ActiveSupport.
+
+    This class can be reused for anything that is using Rack-like middleware. It has no dependency
+    on anything in actionpack.
+
+    *Sam Schmidt* *Juniper Alanna Berry*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*
