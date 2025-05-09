@@ -1,3 +1,12 @@
+*   Respect table aliases in through associations.
+
+    Previously when the same table was joined multiple times in the same query,
+    such as with tree structures and through STI models, any default scope or
+    STI type would only apply to the base table. Default scope and STI type are
+    now applied to the correct table alias.
+
+    *Colin Kuebler*
+
 *   Enable passing retryable SqlLiterals to `#where`.
 
     *Hartley McGuire*
