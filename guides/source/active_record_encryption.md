@@ -28,12 +28,16 @@ To start using Active Record Encryption, you need to generate keys and declare a
 
 ### Generate Encryption Key
 
-Run `bin/rails db:encryption:init` to generate a random key set:
+You can generate a random key set by running `bin/rails db:encryption:init`:
 
 ```bash
 $ bin/rails db:encryption:init
-Add this entry to the credentials of the target environment:
+```
 
+Then, add the keys to the credentials file of the target environment:
+
+```yml
+# config/credentials.yml
 active_record_encryption:
   primary_key: EGY8WhulUOXixybod7ZWwMIL68R9o5kC
   deterministic_key: aPA5XyALhf75NNnMzaspW7akTfZp0lPY
@@ -75,6 +79,29 @@ However, in the Rails console, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
+### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
+
+By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder.  However, it makes querying the database impossible.
+
+If you need to able to query the encrypted `email` field on the `Author` model below, you can use deterministic encryption:
+
+```ruby
+class Author < ApplicationRecord
+  encrypts :email, deterministic: true
+end
+
+# You can query the email only if using deterministic encryption.
+Author.find_by_email("tolkien@email.com")
+```
+
+The `deterministic:` option generates initialization vectors in a deterministic way, meaning it will produce the same encrypted output given the same input value. This makes querying encrypted attributes possible, like the `email` above.
+
+The `:deterministic` option allows for querying by trading off lesser security. The data is still encrypted but the determinism makes crypto-analysis easier. For this reason, non-deterministic encryption is recommended for all data unless you need to query the attributes.
+
+NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it also uses AES-GCM, but the initialization vector is generated as an HMAC-SHA-256 digest of the key and contents to encrypt.
+
+NOTE: You can disable deterministic encryption by omitting the `deterministic_key`.
+
 ### Column Size and Storage Consideration
 
 Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
@@ -95,26 +122,6 @@ Some examples:
 | Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
 | Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
 | Arbitrary long text                               | text                 | text                              | negligible                    |
-
-### Deterministic vs. Non-deterministic Encryption
-
-By default, Active Record Encryption uses a non-deterministic approach to encryption. Non-deterministic, in this context, means that encrypting the same content with the same password twice will result in different ciphertexts. This approach improves security by making crypto-analysis of ciphertexts harder, and querying the database impossible.
-
-You can use the `deterministic:`  option to generate initialization vectors in a deterministic way, effectively enabling querying encrypted data.
-
-```ruby
-class Author < ApplicationRecord
-  encrypts :email, deterministic: true
-end
-
-Author.find_by_email("some@email.com") # You can query the model normally
-```
-
-The non-deterministic approach is recommended unless you need to query the data.
-
-NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it also uses AES-GCM, but the initialization vector is generated as an HMAC-SHA-256 digest of the key and contents to encrypt.
-
-NOTE: You can disable deterministic encryption by omitting a `deterministic_key`.
 
 ## Basic Usage
 
