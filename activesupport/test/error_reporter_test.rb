@@ -415,4 +415,13 @@ class ErrorReporterTest < ActiveSupport::TestCase
 
     assert_equal [[reported_error, true, :warning, "application", { foo: :bar }]], @subscriber.events
   end
+
+  test "error context middleware can be prepended" do
+    @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :right }) }, insert: :append)
+    @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :wrong, bar: :right }) }, insert: :prepend)
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { foo: :right, bar: :right }]], @subscriber.events
+  end
 end

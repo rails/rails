@@ -215,8 +215,10 @@ module ActiveSupport
     #
     #   Rails.error.add_middleware(-> (error, context) { context.merge({ foo: :bar }) })
     #
-    def add_middleware(middleware)
-      @context_middlewares.use(middleware)
+    # If +insert+ is +:append+, the middleware is added to the end of the stack.
+    # If +insert+ is +:prepend+, the middleware is added to the beginning of the stack.
+    def add_middleware(middleware, insert: :append)
+      @context_middlewares.use(middleware, insert:)
     end
 
     # Report an error directly to subscribers. You can use this method when the
@@ -303,12 +305,22 @@ module ActiveSupport
         end
 
         # Add a middleware to the error context stack.
-        def use(middleware)
+        #
+        # If +insert+ is +:append+, the middleware is added to the end of the stack.
+        # If +insert+ is +:prepend+, the middleware is added to the beginning of the stack.
+        def use(middleware, insert: :append)
           unless middleware.respond_to?(:call)
             raise ArgumentError, "Error context middleware must respond to #call"
           end
 
-          @stack << middleware
+          case insert
+          when :append
+            @stack << middleware
+          when :prepend
+            @stack.unshift(middleware)
+          else
+            raise ArgumentError, "Invalid insert option: #{insert}"
+          end
         end
 
         # Run all middlewares in the stack

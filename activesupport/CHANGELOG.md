@@ -1,3 +1,11 @@
+*   Allow prepending error middleware
+
+    ActiveSupport::ErrorReporter#add_middleware now receives an `insert` kwarg. If this is set to `:prepend`,
+    the middleware will be added to the top of the stack, rather than the bottom. The default behavior remains
+    to append middleware.
+
+    *Sam Schmidt*
+
 *   Allow to configure maximum cache key sizes
 
     When the key exceeds the configured limit (250 bytes by default), it will be truncated and
