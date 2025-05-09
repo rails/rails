@@ -43,12 +43,93 @@ module ActiveRecord
         end
 
         ##
+        # :method: jsonb
+        # :call-seq: jsonb(*names, **options)
+        #
+        # Adds a `jsonb` column for storing structured JSON data.
+        #
+        #   t.jsonb :payload
+        #
+        # Query using PostgreSQL JSON operators:
+        #
+        #   Event.where("payload->>'kind' = ?", "user_renamed")
+
+        ##
+        # :method: uuid
+        # :call-seq: uuid(*names, **options)
+        #
+        # Adds a UUID column. Often used as a primary key.
+        #
+        #   create_table :posts, id: :uuid do |t|
+        #     t.string :title
+        #   end
+
+        ##
+        # :method: hstore
+        # :call-seq: hstore(*names, **options)
+        #
+        # Adds an hstore column for storing key-value pairs.
+        #
+        #   t.hstore :settings
+        #
+        # Query example:
+        #
+        #   Profile.where("settings->'color' = ?", "blue")
+
+        ##
+        # :method: interval
+        # :call-seq: interval(*names, **options)
+        #
+        # Adds a column for PostgreSQL's `interval` type.
+        #
+        #   t.interval :duration
+        #
+        # Mapped to ActiveSupport::Duration in Ruby.
+
+        ##
+        # :method: timestamptz
+        # :call-seq: timestamptz(*names, **options)
+        #
+        # Adds a timestamp column with time zone.
+        #
+        # Rails uses `timestamp without time zone` by default.
+        # To use `timestamptz`, you must opt in:
+        #
+        #   ActiveSupport.on_load(:active_record_postgresqladapter) do
+        #     self.datetime_type = :timestamptz
+        #   end
+
+        ##
+        # :method: bytea
+        # :call-seq: binary(*names, **options)
+        #
+        # Adds a binary column mapped to PostgreSQL's `bytea` type.
+        #
+        #   t.binary :payload
+        #
+        # Commonly used to store raw files.
+
+        # Note: array support is a modifier, not a method.
+        #
+        # You can enable arrays with:
+        #
+        #   t.string :tags, array: true
+        #
+        # And index with:
+        #
+        #   add_index :books, :tags, using: :gin
+
+        ##
         # :method: bigserial
         # :call-seq: bigserial(*names, **options)
 
         ##
         # :method: bit
         # :call-seq: bit(*names, **options)
+        #
+        # Example:
+        #
+        #   t.column :flags, "bit(8)"
 
         ##
         # :method: bit_varying
@@ -67,16 +148,8 @@ module ActiveRecord
         # :call-seq: daterange(*names, **options)
 
         ##
-        # :method: hstore
-        # :call-seq: hstore(*names, **options)
-
-        ##
         # :method: inet
         # :call-seq: inet(*names, **options)
-
-        ##
-        # :method: interval
-        # :call-seq: interval(*names, **options)
 
         ##
         # :method: int4range
@@ -85,10 +158,6 @@ module ActiveRecord
         ##
         # :method: int8range
         # :call-seq: int8range(*names, **options)
-
-        ##
-        # :method: jsonb
-        # :call-seq: jsonb(*names, **options)
 
         ##
         # :method: ltree
@@ -155,16 +224,8 @@ module ActiveRecord
         # :call-seq: tsvector(*names, **options)
 
         ##
-        # :method: uuid
-        # :call-seq: uuid(*names, **options)
-
-        ##
         # :method: xml
         # :call-seq: xml(*names, **options)
-
-        ##
-        # :method: timestamptz
-        # :call-seq: timestamptz(*names, **options)
 
         ##
         # :method: enum
