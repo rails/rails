@@ -2528,11 +2528,15 @@ module ActionDispatch
 
       DEFAULT = Object.new # :nodoc:
 
-      def initialize(set) # :nodoc:
+      def initialize(set, scope = nil) # :nodoc:
         @set = set
         @draw_paths = set.draw_paths
-        @scope = Scope.new(path_names: @set.resources_path_names)
         @concerns = {}
+
+        hash = { path_names: @set.resources_path_names }
+        hash.merge!(scope) unless scope.nil?
+
+        @scope = Scope.new(hash)
       end
 
       include Base

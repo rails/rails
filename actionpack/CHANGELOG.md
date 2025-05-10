@@ -1,3 +1,12 @@
+*   Allow `direct` and `resolve` in engine routes at the root level
+
+    The detection of being at the root level of an engine's routeset was failing because an isolated engine
+    would always have a default scope for the module and would call the `with_default_scope` method causing
+    it to be always one level down. Fix the problem by initializing the root scope with the default scope so
+    there's no need to call the `with_default_scope` method.
+
+    *Andrew White*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*
