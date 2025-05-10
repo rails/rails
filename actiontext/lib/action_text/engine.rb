@@ -17,8 +17,8 @@ module ActionText
     config.action_text = ActiveSupport::OrderedOptions.new
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
-      #{root}/app/helpers
       #{root}/app/models
+      #{root}/app/helpers
     )
 
     initializer "action_text.deprecator", before: :load_environment_config do |app|
@@ -87,7 +87,9 @@ module ActionText
 
     config.after_initialize do |app|
       if klass = app.config.action_text.sanitizer_vendor
-        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        ActiveSupport.on_load(:action_view_base) do
+          ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+        end
       end
     end
   end
