@@ -182,6 +182,7 @@ amazon:
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
+  default_digest_algorithm: "SHA256"
   upload:
     server_side_encryption: "" # 'aws:kms' or 'AES256'
     cache_control: "private, max-age=<%= 1.day.to_i %>"
