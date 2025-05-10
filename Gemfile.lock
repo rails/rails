@@ -33,6 +33,7 @@ PATH
     actionpack (7.2.2.1)
       actionview (= 7.2.2.1)
       activesupport (= 7.2.2.1)
+      cgi
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4, < 3.2)
@@ -51,6 +52,7 @@ PATH
     actionview (7.2.2.1)
       activesupport (= 7.2.2.1)
       builder (~> 3.1)
+      cgi
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
@@ -98,6 +100,7 @@ PATH
     railties (7.2.2.1)
       actionpack (= 7.2.2.1)
       activesupport (= 7.2.2.1)
+      cgi
       irb (~> 1.13)
       rackup (>= 1.0.0)
       rake (>= 12.2)
