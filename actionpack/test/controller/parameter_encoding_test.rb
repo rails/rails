@@ -17,6 +17,11 @@ class ParameterEncodingController < ActionController::Base
     render body: ::JSON.dump({ "baz" => params[:baz].encoding, "qux" => params[:qux].encoding })
   end
 
+  default_parameter_encoding :test_default_parameter_encoding, Encoding::SHIFT_JIS
+  def test_default_parameter_encoding
+    render body: ::JSON.dump(params.except(:action, :controller).values.map(&:encoding).map(&:name))
+  end
+
   skip_parameter_encoding :test_all_values_encoding
   def test_all_values_encoding
     render body: ::JSON.dump(params.except(:action, :controller).values.map(&:encoding).map(&:name))
@@ -46,6 +51,13 @@ class ParameterEncodingTest < ActionController::TestCase
     assert_response :success
     assert_equal "Shift_JIS", JSON.parse(@response.body)["baz"]
     assert_equal "UTF-8", JSON.parse(@response.body)["qux"]
+  end
+
+  test "properly transcodes parameters of the action specified by default_parameter_encoding into specified encodings" do
+    post :test_default_parameter_encoding, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
+
+    assert_response :success
+    assert_equal ["Shift_JIS"], JSON.parse(@response.body).uniq
   end
 
   test "properly encodes all ASCII_8BIT parameters into binary" do
