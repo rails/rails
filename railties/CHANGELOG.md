@@ -1,3 +1,7 @@
+*   Add disallow_authenticated_access to authentication generator.
+
+    *Bradley Johnson*
+
 *   Add --reset option to bin/setup which will call db:reset as part of the setup.
 
     *DHH*
