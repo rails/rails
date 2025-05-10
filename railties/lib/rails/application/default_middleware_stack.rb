@@ -133,7 +133,7 @@ module Rails
         end
 
         def show_exceptions_app
-          config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path)
+          config.exceptions_app || ActionDispatch::PublicExceptions.new(Rails.public_path, app.routes)
         end
     end
   end

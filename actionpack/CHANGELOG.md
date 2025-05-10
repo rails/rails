@@ -1,3 +1,14 @@
+*   All error pages (404, 422 ...) can now be rendered dynamically.
+
+    Rendering error pages to display dynamic content required to modify the
+    default Rails `exceptions_app`. It was not possible to style the pages
+    with tailwind or have layouts.
+
+    This is now possible by renaming the `404.html` to `404.html.erb` and
+    modifying the templates as any other views.
+
+    *Edouard Chin*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*

@@ -88,6 +88,7 @@ module ActionDispatch
   end
 
   autoload :Constants
+  autoload :ExceptionsController, "action_dispatch/middleware/public_exceptions"
   autoload :Journey
   autoload :MiddlewareStack, "action_dispatch/middleware/stack"
   autoload :Routing
