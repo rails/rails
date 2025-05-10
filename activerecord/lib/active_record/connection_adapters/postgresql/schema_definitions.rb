@@ -43,61 +43,24 @@ module ActiveRecord
         end
 
         ##
-        # :method: jsonb
-        # :call-seq: jsonb(*names, **options)
-        #
-        # Adds a `jsonb` column for storing structured JSON data.
-        #
-        #   t.jsonb :payload
-        #
-        # Query using PostgreSQL JSON operators:
-        #
-        #   Event.where("payload->>'kind' = ?", "user_renamed")
+        # :method: bigserial
+        # :call-seq: bigserial(*names, **options)
 
         ##
-        # :method: uuid
-        # :call-seq: uuid(*names, **options)
+        # :method: bit
+        # :call-seq: bit(*names, **options)
         #
-        # Adds a UUID column. Often used as a primary key.
+        # Example:
         #
-        #   create_table :posts, id: :uuid do |t|
-        #     t.string :title
-        #   end
+        #   t.column :flags, "bit(8)"
 
         ##
-        # :method: hstore
-        # :call-seq: hstore(*names, **options)
-        #
-        # Adds an hstore column for storing key-value pairs.
-        #
-        #   t.hstore :settings
-        #
-        # Query example:
-        #
-        #   Profile.where("settings->'color' = ?", "blue")
+        # :method: bit_varying
+        # :call-seq: bit_varying(*names, **options)
 
         ##
-        # :method: interval
-        # :call-seq: interval(*names, **options)
-        #
-        # Adds a column for PostgreSQL's `interval` type.
-        #
-        #   t.interval :duration
-        #
-        # Mapped to ActiveSupport::Duration in Ruby.
-
-        ##
-        # :method: timestamptz
-        # :call-seq: timestamptz(*names, **options)
-        #
-        # Adds a timestamp column with time zone.
-        #
-        # Rails uses `timestamp without time zone` by default.
-        # To use `timestamptz`, you must opt in:
-        #
-        #   ActiveSupport.on_load(:active_record_postgresqladapter) do
-        #     self.datetime_type = :timestamptz
-        #   end
+        # :method: box
+        # :call-seq: box(*names, **options)
 
         ##
         # :method: bytea
@@ -120,24 +83,12 @@ module ActiveRecord
         #   add_index :books, :tags, using: :gin
 
         ##
-        # :method: bigserial
-        # :call-seq: bigserial(*names, **options)
-
-        ##
-        # :method: bit
-        # :call-seq: bit(*names, **options)
-        #
-        # Example:
-        #
-        #   t.column :flags, "bit(8)"
-
-        ##
-        # :method: bit_varying
-        # :call-seq: bit_varying(*names, **options)
-
-        ##
         # :method: cidr
         # :call-seq: cidr(*names, **options)
+
+        ##
+        # :method: circle
+        # :call-seq: circle(*names, **options)
 
         ##
         # :method: citext
@@ -148,8 +99,34 @@ module ActiveRecord
         # :call-seq: daterange(*names, **options)
 
         ##
+        # :method: enum
+        # :call-seq: enum(*names, **options)
+
+        ##
+        # :method: hstore
+        # :call-seq: hstore(*names, **options)
+        #
+        # Adds an hstore column for storing key-value pairs.
+        #
+        #   t.hstore :settings
+        #
+        # Query example:
+        #
+        #   Profile.where("settings->'color' = ?", "blue")
+
+        ##
         # :method: inet
         # :call-seq: inet(*names, **options)
+
+        ##
+        # :method: interval
+        # :call-seq: interval(*names, **options)
+        #
+        # Adds a column for PostgreSQL's `interval` type.
+        #
+        #   t.interval :duration
+        #
+        # Mapped to ActiveSupport::Duration in Ruby.
 
         ##
         # :method: int4range
@@ -158,6 +135,26 @@ module ActiveRecord
         ##
         # :method: int8range
         # :call-seq: int8range(*names, **options)
+
+        ##
+        # :method: jsonb
+        # :call-seq: jsonb(*names, **options)
+        #
+        # Adds a `jsonb` column for storing structured JSON data.
+        #
+        #   t.jsonb :payload
+        #
+        # Query using PostgreSQL JSON operators:
+        #
+        #   Event.where("payload->>'kind' = ?", "user_renamed")
+
+        ##
+        # :method: line
+        # :call-seq: line(*names, **options)
+
+        ##
+        # :method: lseg
+        # :call-seq: lseg(*names, **options)
 
         ##
         # :method: ltree
@@ -180,36 +177,33 @@ module ActiveRecord
         # :call-seq: oid(*names, **options)
 
         ##
-        # :method: point
-        # :call-seq: point(*names, **options)
-
-        ##
-        # :method: line
-        # :call-seq: line(*names, **options)
-
-        ##
-        # :method: lseg
-        # :call-seq: lseg(*names, **options)
-
-        ##
-        # :method: box
-        # :call-seq: box(*names, **options)
-
-        ##
         # :method: path
         # :call-seq: path(*names, **options)
+
+        ##
+        # :method: point
+        # :call-seq: point(*names, **options)
 
         ##
         # :method: polygon
         # :call-seq: polygon(*names, **options)
 
         ##
-        # :method: circle
-        # :call-seq: circle(*names, **options)
-
-        ##
         # :method: serial
         # :call-seq: serial(*names, **options)
+
+        ##
+        # :method: timestamptz
+        # :call-seq: timestamptz(*names, **options)
+        #
+        # Adds a timestamp column with time zone.
+        #
+        # Rails uses `timestamp without time zone` by default.
+        # To use `timestamptz`, you must opt in:
+        #
+        #   ActiveSupport.on_load(:active_record_postgresqladapter) do
+        #     self.datetime_type = :timestamptz
+        #   end
 
         ##
         # :method: tsrange
@@ -224,12 +218,18 @@ module ActiveRecord
         # :call-seq: tsvector(*names, **options)
 
         ##
-        # :method: xml
-        # :call-seq: xml(*names, **options)
+        # :method: uuid
+        # :call-seq: uuid(*names, **options)
+        #
+        # Adds a UUID column. Often used as a primary key.
+        #
+        #   create_table :posts, id: :uuid do |t|
+        #     t.string :title
+        #   end
 
         ##
-        # :method: enum
-        # :call-seq: enum(*names, **options)
+        # :method: xml
+        # :call-seq: xml(*names, **options)
 
         define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
           :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
