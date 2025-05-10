@@ -378,7 +378,8 @@ GEM
       activesupport (>= 7.0.0)
       rack
       railties (>= 7.0.0)
-    psych (5.1.2)
+    psych (5.2.5)
+      date
       stringio
     public_suffix (6.0.1)
     puma (6.3.0)
@@ -517,7 +518,7 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.8)
+    stringio (3.1.7)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
