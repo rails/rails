@@ -350,14 +350,15 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
-    def rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+    def rails_5_2_stable_signed_cookie_with_metadata
       # cookies.signed[:favorite] = { value: "5-2-Stable Choco Chip Cookie", expires: 1000.years }
       cookies[:favorite] = "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaEpJaUUxTFRJdFUzUmhZbXhsSUVOb2IyTnZJRU5vYVhBZ1EyOXZhMmxsQmpvR1JWUT0iLCJleHAiOiIzMDE4LTA3LTExVDE2OjExOjI2Ljc1M1oiLCJwdXIiOm51bGx9fQ==--7df5d885b78b70a501d6e82140ae91b24060ac00"
 
       head :ok
     end
 
-    def rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+    def rails_5_2_stable_signed_cookie_without_metadata
+      # cookies.signed[:favorite] = "5-2-Stable Choco Chip Cookie"
       cookies[:favorite] = "BAhJIiE1LTItU3RhYmxlIENob2NvIENoaXAgQ29va2llBjoGRVQ=--50bbdbf8d64f5a3ec3e54878f54d4f55b6cb3aff"
 
       head :ok
@@ -628,7 +629,7 @@ class CookiesTest < ActionController::TestCase
   end
 
   def test_signed_cookie_using_custom_digest
-    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA512"
 
     get :set_signed_cookie
     cookies = @controller.send :cookies
@@ -638,7 +639,7 @@ class CookiesTest < ActionController::TestCase
     key_generator = @request.env["action_dispatch.key_generator"]
     secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
 
-    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA256")
+    verifier = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA512")
     assert_equal verifier.generate(45), cookies[:user_id]
   end
 
@@ -972,7 +973,7 @@ class CookiesTest < ActionController::TestCase
     error = assert_raise(ActionDispatch::Cookies::CookieOverflow) do
       get :raise_data_overflow
     end
-    assert_equal "foo cookie overflowed with size 5525 bytes", error.message
+    assert_match(/foo cookie overflowed with size \d+ bytes/, error.message)
   end
 
   def test_tampered_cookies
@@ -1628,7 +1629,7 @@ class CookiesTest < ActionController::TestCase
   def test_read_rails_5_2_stable_signed_cookies_if_config_is_false
     request.env["action_dispatch.use_cookies_with_metadata"] = false
 
-    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+    get :rails_5_2_stable_signed_cookie_with_metadata
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
 
@@ -1636,7 +1637,7 @@ class CookiesTest < ActionController::TestCase
       assert_nil cookies.signed[:favorite]
     end
 
-    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+    get :rails_5_2_stable_signed_cookie_without_metadata
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
   end
@@ -1660,7 +1661,7 @@ class CookiesTest < ActionController::TestCase
   def test_read_rails_5_2_stable_signed_cookies_if_use_metadata_config_is_true
     request.env["action_dispatch.use_cookies_with_metadata"] = true
 
-    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_on
+    get :rails_5_2_stable_signed_cookie_with_metadata
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
 
@@ -1668,7 +1669,7 @@ class CookiesTest < ActionController::TestCase
       assert_nil cookies.signed[:favorite]
     end
 
-    get :rails_5_2_stable_signed_cookie_with_authenticated_encryption_flag_off
+    get :rails_5_2_stable_signed_cookie_without_metadata
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
   end

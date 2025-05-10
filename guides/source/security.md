@@ -330,31 +330,31 @@ users have had their chance to get their cookies upgraded.
 
 It's possible to rotate the ciphers and digests used for encrypted and signed cookies.
 
-For instance to change the digest used for signed cookies from SHA1 to SHA256,
+For instance to change the digest used for signed cookies from SHA256 to SHA512,
 you would first assign the new configuration value:
 
 ```ruby
-Rails.application.config.action_dispatch.signed_cookie_digest = "SHA256"
+Rails.application.config.action_dispatch.signed_cookie_digest = "SHA512"
 ```
 
-Now add a rotation for the old SHA1 digest so existing cookies are
-seamlessly upgraded to the new SHA256 digest.
+Now add a rotation for the old SHA256 digest so existing cookies are
+seamlessly upgraded to the new SHA512 digest.
 
 ```ruby
 Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-  cookies.rotate :signed, digest: "SHA1"
+  cookies.rotate :signed, digest: "SHA256"
 end
 ```
 
-Then any written signed cookies will be digested with SHA256. Old cookies
-that were written with SHA1 can still be read, and if accessed will be written
+Then any written signed cookies will be digested with SHA512. Old cookies
+that were written with SHA256 can still be read, and if accessed will be written
 with the new digest so they're upgraded and won't be invalid when you remove the
 rotation.
 
-Once users with SHA1 digested signed cookies should no longer have a chance to
+Once users with SHA256 digested signed cookies should no longer have a chance to
 have their cookies rewritten, remove the rotation.
 
-While you can set up as many rotations as you'd like it's not common to have many
+While you can set up as many rotations as you'd like, it's not common to have many
 rotations going at any one time.
 
 For more details on key rotation with encrypted and signed messages as

@@ -359,6 +359,10 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.escape_json_responses = false
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.signed_cookie_digest = "SHA256"
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

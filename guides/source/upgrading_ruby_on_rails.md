@@ -82,6 +82,25 @@ Upgrading from Rails 8.0 to Rails 8.1
 
 For more information on changes made to Rails 8.1 please see the [release notes](8_1_release_notes.html).
 
+### Default signed cookie digest is changing to SHA256
+
+The default signed cookie digest is changing to SHA256, replacing the previous SHA1 default.
+
+For Rails applications that make use of signed cookies and that use the default signed cookie digest (i.e.
+not overriding `config.action_dispatch.signed_cookie_digest`), a signed cookie rotator should be registered
+to ensure a smooth upgrade. Without the cookie rotation, the upgraded application will fail to read any
+provided cookies that use the SHA1 digest.
+
+The following example rotation will allow SHA1 signed cookies to be read and replaced with the SHA256 signed variant:
+
+```ruby
+# config/initializers/cookie_rotations.rb
+Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+  cookies.rotate :signed, digest: "SHA1"
+end
+```
+
+The cookie rotation can be removed once all these cookies have expired or been replaced.
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
