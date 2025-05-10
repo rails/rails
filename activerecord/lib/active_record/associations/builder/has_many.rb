@@ -18,6 +18,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
       [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :destroy_async]
     end
 
-    private_class_method :macro, :valid_options, :valid_dependent_options
+    def self.define_change_tracking_methods(model, reflection)
+      model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{reflection.name}_added_records
+          association(:#{reflection.name}).target_added_records
+        end
+
+        def #{reflection.name}_previously_added_records
+          association(:#{reflection.name}).target_previously_added_records
+        end
+      CODE
+    end
+
+    private_class_method :macro, :valid_options, :valid_dependent_options, :define_change_tracking_methods
   end
 end
