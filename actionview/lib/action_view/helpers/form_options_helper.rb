@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "cgi"
+require "cgi/escape"
+require "cgi/util" if RUBY_VERSION < "3.5"
 require "erb"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
