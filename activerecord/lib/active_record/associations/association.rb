@@ -307,8 +307,7 @@ module ActiveRecord
           end
         end
 
-        # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
-        # through association's scope)
+        # Can be overridden to merge in other scopes
         def target_scope
           AssociationRelation.create(klass, self).merge!(klass.scope_for_association)
         end

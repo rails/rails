@@ -33,6 +33,10 @@ class Person < ActiveRecord::Base
   has_many :agents_of_agents, through: :agents, source: :agents
   belongs_to :number1_fan, class_name: "Person"
 
+  belongs_to :city, optional: true
+  has_one :county, through: :city
+  has_one :state, through: :county
+
   has_many :personal_legacy_things, dependent: :destroy
 
   has_many :agents_posts,         through: :agents,       source: :posts
