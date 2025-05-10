@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "cgi"
+require "cgi/escape"
+require "cgi/util" if RUBY_VERSION < "3.5"
 require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
