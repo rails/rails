@@ -19,12 +19,13 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version, :yjit
+
+      attr_writer :content_security_policy_report_only
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -70,7 +71,7 @@ module Rails
         @debug_exception_response_format         = nil
         @x                                       = Custom.new
         @content_security_policy                 = nil
-        @content_security_policy_report_only     = false
+        @content_security_policy_report_only     = nil
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
         @content_security_policy_nonce_auto      = false
@@ -583,6 +584,14 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      def content_security_policy_report_only(&block)
+        if block_given?
+          @content_security_policy_report_only = ActionDispatch::ContentSecurityPolicy.new(&block)
+        else
+          @content_security_policy_report_only
         end
       end
 
