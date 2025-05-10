@@ -140,4 +140,42 @@
 
     *Petrik de Heus*
 
+*   Add comprehensive support for HTTP Cache-Control request directives according to RFC 9111.
+
+    Provides a `request.cache_control_directives` object that gives access to request cache directives:
+
+    ```ruby
+    # Boolean directives
+    request.cache_control_directives.only_if_cached?  # => true/false
+    request.cache_control_directives.no_cache?        # => true/false
+    request.cache_control_directives.no_store?        # => true/false
+    request.cache_control_directives.no_transform?    # => true/false
+
+    # Value directives
+    request.cache_control_directives.max_age          # => integer or nil
+    request.cache_control_directives.max_stale        # => integer or nil (or true for valueless max-stale)
+    request.cache_control_directives.min_fresh        # => integer or nil
+    request.cache_control_directives.stale_if_error   # => integer or nil
+
+    # Special helpers for max-stale
+    request.cache_control_directives.max_stale?         # => true if max-stale present (with or without value)
+    request.cache_control_directives.max_stale_unlimited? # => true only for valueless max-stale
+    ```
+
+    Example usage:
+    ```ruby
+    def show
+      if request.cache_control_directives.only_if_cached?
+        @article = Article.find_cached(params[:id])
+        return head(:gateway_timeout) if @article.nil?
+      else
+        @article = Article.find(params[:id])
+      end
+
+      render :show
+    end
+    ```
+
+    *egg528*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionpack/CHANGELOG.md) for previous changes.
