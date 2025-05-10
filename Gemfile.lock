@@ -233,8 +233,6 @@ GEM
     faraday_middleware (1.2.0)
       faraday (~> 1.0)
     ffi (1.17.0)
-    ffi (1.17.0-x86_64-darwin)
-    ffi (1.17.0-x86_64-linux-gnu)
     fugit (1.11.0)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
@@ -268,12 +266,6 @@ GEM
       googleauth (~> 1.9)
       mini_mime (~> 1.0)
     google-protobuf (4.27.0)
-      bigdecimal
-      rake (>= 13)
-    google-protobuf (4.27.0-x86_64-darwin)
-      bigdecimal
-      rake (>= 13)
-    google-protobuf (4.27.0-x86_64-linux)
       bigdecimal
       rake (>= 13)
     googleauth (1.11.0)
@@ -379,10 +371,6 @@ GEM
     nokogiri (1.16.5)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.16.5-x86_64-linux)
-      racc (~> 1.4)
     os (1.1.4)
     parallel (1.24.0)
     parser (3.3.2.0)
@@ -397,7 +385,8 @@ GEM
       activesupport (>= 7.0.0)
       rack
       railties (>= 7.0.0)
-    psych (5.1.2)
+    psych (5.2.5)
+      date
       stringio
     public_suffix (6.0.1)
     puma (6.4.2)
@@ -501,9 +490,10 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.9.1)
       fugit (~> 1.1, >= 1.1.6)
-    sass-embedded (1.77.4)
+    sass-embedded (1.77.4-arm-linux-gnueabihf)
       google-protobuf (>= 3.25, < 5.0)
-      rake (>= 13)
+    sass-embedded (1.77.4-arm64-darwin)
+      google-protobuf (>= 3.25, < 5.0)
     sass-embedded (1.77.4-x86_64-darwin)
       google-protobuf (>= 3.25, < 5.0)
     sass-embedded (1.77.4-x86_64-linux-gnu)
@@ -520,12 +510,12 @@ GEM
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
     set (1.1.1)
-    sidekiq (8.0.2)
-      connection_pool (>= 2.5.0)
-      json (>= 2.9.0)
-      logger (>= 1.6.2)
-      rack (>= 3.1.0)
-      redis-client (>= 0.23.2)
+    sidekiq (7.3.9)
+      base64
+      connection_pool (>= 2.3.0)
+      logger
+      rack (>= 2.2.4)
+      redis-client (>= 0.22.2)
     sigdump (0.2.5)
     signet (0.19.0)
       addressable (~> 2.8)
@@ -556,17 +546,17 @@ GEM
       sprockets (>= 3.0.0)
     sqlite3 (2.0.2)
       mini_portile2 (~> 2.8.0)
-    sqlite3 (2.0.2-x86_64-darwin)
-    sqlite3 (2.0.2-x86_64-linux-gnu)
     stackprof (0.2.26)
     stimulus-rails (1.3.3)
       railties (>= 6.0.0)
-    stringio (3.1.0)
+    stringio (3.1.7)
     sucker_punch (3.2.0)
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
       prettier_print (>= 1.2.0)
-    tailwindcss-rails (2.6.0)
+    tailwindcss-rails (2.6.0-arm-linux)
+      railties (>= 7.0.0)
+    tailwindcss-rails (2.6.0-arm64-darwin)
       railties (>= 7.0.0)
     tailwindcss-rails (2.6.0-x86_64-darwin)
       railties (>= 7.0.0)
@@ -612,7 +602,8 @@ GEM
     zeitwerk (2.6.15)
 
 PLATFORMS
-  ruby
+  arm64-darwin-24
+  arm64-linux
   x86_64-darwin
   x86_64-linux
 
