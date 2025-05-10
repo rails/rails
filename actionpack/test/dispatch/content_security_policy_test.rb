@@ -228,6 +228,11 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_match %r{report-uri /violations}, @policy.build
   end
 
+  def test_report_group_directives
+    @policy.report_to "csp-endpoint"
+    assert_match %r{report-to csp-endpoint}, @policy.build
+  end
+
   def test_other_directives
     @policy.block_all_mixed_content
     assert_match %r{block-all-mixed-content}, @policy.build

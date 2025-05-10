@@ -14,6 +14,8 @@
 #     policy.style_src   :self, :https
 #     # Specify URI for violation reports
 #     # policy.report_uri "/csp-violation-report-endpoint"
+#     # Specify report group for violation reports using Reporting API
+#     # policy.report_to "csp-endpoint"
 #   end
 #
 #   # Generate session nonces for permitted importmap, inline scripts, and inline styles.

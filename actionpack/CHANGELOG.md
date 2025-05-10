@@ -1,3 +1,7 @@
+*   Add `report-to` CSP response header field.
+
+    *Espen Antonsen*
+
 *   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
 
     *DHH*
