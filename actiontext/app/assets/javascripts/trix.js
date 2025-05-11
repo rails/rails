@@ -1,5 +1,7 @@
+// trix@2.1.15 downloaded from https://unpkg.com/trix@2.1.15/dist/trix.umd.js
+
 /*
-Trix 2.1.14
+Trix 2.1.15
 Copyright © 2025 37signals, LLC
  */
 (function (global, factory) {
@@ -9,7 +11,7 @@ Copyright © 2025 37signals, LLC
 })(this, (function () { 'use strict';
 
   var name = "trix";
-  var version = "2.1.14";
+  var version = "2.1.15";
   var description = "A rich text editor for everyday writing";
   var main = "dist/trix.umd.min.js";
   var module = "dist/trix.esm.min.js";
@@ -3091,8 +3093,8 @@ $\
   const DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ");
   const DEFAULT_FORBIDDEN_ELEMENTS = "script iframe form noscript".split(" ");
   class HTMLSanitizer extends BasicObject {
-    static setHTML(element, html) {
-      const sanitizedElement = new this(html).sanitize();
+    static setHTML(element, html, options) {
+      const sanitizedElement = new this(html, options).sanitize();
       const sanitizedHtml = sanitizedElement.getHTML ? sanitizedElement.getHTML() : sanitizedElement.outerHTML;
       element.innerHTML = sanitizedHtml;
     }
@@ -3105,18 +3107,21 @@ $\
       let {
         allowedAttributes,
         forbiddenProtocols,
-        forbiddenElements
+        forbiddenElements,
+        purifyOptions
       } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       super(...arguments);
       this.allowedAttributes = allowedAttributes || DEFAULT_ALLOWED_ATTRIBUTES;
       this.forbiddenProtocols = forbiddenProtocols || DEFAULT_FORBIDDEN_PROTOCOLS;
       this.forbiddenElements = forbiddenElements || DEFAULT_FORBIDDEN_ELEMENTS;
+      this.purifyOptions = purifyOptions || {};
       this.body = createBodyElementForHTML(html);
     }
     sanitize() {
       this.sanitizeElements();
       this.normalizeListElementNesting();
-      purify.setConfig(dompurify);
+      const purifyConfig = Object.assign({}, dompurify, this.purifyOptions);
+      purify.setConfig(purifyConfig);
       this.body = purify.sanitize(this.body);
       return this.body;
     }
@@ -8369,11 +8374,13 @@ $\
     }
     constructor(html) {
       let {
-        referenceElement
+        referenceElement,
+        purifyOptions
       } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       super(...arguments);
       this.html = html;
       this.referenceElement = referenceElement;
+      this.purifyOptions = purifyOptions;
       this.blocks = [];
       this.blockElements = [];
       this.processedElements = [];
@@ -8387,7 +8394,9 @@ $\
     parse() {
       try {
         this.createHiddenContainer();
-        HTMLSanitizer.setHTML(this.containerElement, this.html);
+        HTMLSanitizer.setHTML(this.containerElement, this.html, {
+          purifyOptions: this.purifyOptions
+        });
         const walker = walkTree(this.containerElement, {
           usingFilter: nodeFilter
         });
@@ -9067,7 +9076,11 @@ $\
       }
     }
     insertHTML(html) {
-      const document = HTMLParser.parse(html).getDocument();
+      const document = HTMLParser.parse(html, {
+        purifyOptions: {
+          SAFE_FOR_XML: true
+        }
+      }).getDocument();
       const selectedRange = this.getSelectedRange();
       this.setDocument(this.document.mergeDocumentAtRange(document, selectedRange));
       const startPosition = selectedRange[0];
