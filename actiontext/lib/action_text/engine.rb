@@ -15,6 +15,7 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.precompile_assets = true
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
       #{root}/app/helpers
@@ -33,8 +34,10 @@ module ActionText
     end
 
     initializer "action_text.asset" do
-      if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( actiontext.js actiontext.esm.js trix.js trix.css )
+      config.after_initialize do |app|
+        if app.config.respond_to?(:assets) && app.config.action_text.precompile_assets
+          app.config.assets.precompile += %w( actiontext.js actiontext.esm.js trix.js trix.css )
+        end
       end
     end
 
