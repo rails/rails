@@ -1657,13 +1657,12 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
-      def async!
+      def async! # :nodoc:
         @async = true
         self
       end
 
-    protected
-      def arel_columns(columns)
+      def arel_columns(columns) # :nodoc:
         columns.flat_map do |field|
           case field
           when Symbol, String
