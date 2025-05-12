@@ -27,6 +27,7 @@ module ActionDispatch
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
+    config.action_dispatch.report_rescued_responses = false
     config.action_dispatch.log_rescued_responses = true
     config.action_dispatch.debug_exception_log_level = :fatal
     config.action_dispatch.strict_freshness = false
