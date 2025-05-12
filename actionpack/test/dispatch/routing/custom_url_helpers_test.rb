@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "rails/engine"
 
 class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
   class Linkable
@@ -340,5 +341,50 @@ class TestCustomUrlHelpers < ActionDispatch::IntegrationTest
     assert_equal "http://www.example.com/basket", Routes.url_helpers.symbol_url
     assert_equal true, Routes.named_routes.route_defined?(:symbol_url), "'symbol_url' named helper not found"
     assert_equal true, Routes.named_routes.route_defined?(:symbol_path), "'symbol_path' named helper not found"
+  end
+
+  def test_defining_resolve_and_direct_inside_an_isolated_engine
+    with_routing do |set|
+      namespace = Class.new do
+        def self.name
+          "ShopApp"
+        end
+      end
+
+      shop_engine = Class.new(Rails::Engine) do
+        isolate_namespace namespace
+      end
+
+      shop_engine.routes.draw do
+        default_url_options host: "www.example.com"
+
+        get "/basket", to: lambda { }, as: "basket"
+        get "/pages/:slug", to: lambda { }, as: "page"
+
+        resolve("Basket") { route_for(:basket) }
+
+        direct(:terms_and_conditions) { route_for(:page, "terms-and-conditions") }
+      end
+
+      set.draw do
+        mount shop_engine, at: "/shop", as: "shop_app"
+      end
+
+      singleton_class.include set.mounted_helpers
+
+      assert_equal "/shop/basket", shop_app.polymorphic_path(@basket)
+      assert_equal "/shop/basket", shop_engine.routes.url_helpers.polymorphic_path(@basket)
+      assert_equal "/shop/basket", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.path.handle_model_call(shop_app, @basket)
+
+      assert_equal "http://www.example.com/shop/basket", shop_app.polymorphic_url(@basket)
+      assert_equal "http://www.example.com/shop/basket", shop_engine.routes.url_helpers.polymorphic_url(@basket)
+      assert_equal "http://www.example.com/shop/basket", ActionDispatch::Routing::PolymorphicRoutes::HelperMethodBuilder.url.handle_model_call(shop_app, @basket)
+
+      assert_equal "/shop/pages/terms-and-conditions", shop_app.terms_and_conditions_path
+      assert_equal "/shop/pages/terms-and-conditions", shop_engine.routes.url_helpers.terms_and_conditions_path
+
+      assert_equal "http://www.example.com/shop/pages/terms-and-conditions", shop_app.terms_and_conditions_url
+      assert_equal "http://www.example.com/shop/pages/terms-and-conditions", shop_engine.routes.url_helpers.terms_and_conditions_url
+    end
   end
 end
