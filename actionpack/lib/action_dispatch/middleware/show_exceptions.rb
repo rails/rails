@@ -35,7 +35,7 @@ module ActionDispatch
       backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
       wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
       request.set_header "action_dispatch.exception", wrapper.unwrapped_exception
-      request.set_header "action_dispatch.report_exception", !wrapper.rescue_response?
+      request.set_header "action_dispatch.report_exception", !wrapper.rescue_response? || request.get_header("action_dispatch.report_rescued_responses")
 
       if wrapper.show?(request)
         render_exception(request.dup, wrapper)
