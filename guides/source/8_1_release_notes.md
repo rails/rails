@@ -76,6 +76,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Notable changes
 
+*   Default to SHA256 for the signed cookie digest, replacing the previous SHA1 default.
+
 Action View
 -----------
 
