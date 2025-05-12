@@ -1,3 +1,19 @@
+*   Enable passing retryable SqlLiterals to `#where`.
+
+    *Hartley McGuire*
+
+*   Set default for primary keys in `insert_all`/`upsert_all`.
+
+    Previously in Postgres, updating and inserting new records in one upsert wasn't possible
+    due to null primary key values. `nil` primary key values passed into `insert_all`/`upsert_all`
+    are now implicitly set to the default insert value specified by adapter.
+
+    *Jenny Shen*
+
+*   Add a load hook `active_record_database_configurations` for `ActiveRecord::DatabaseConfigurations`
+
+    *Mike Dalessio*
+
 *   Use `TRUE` and `FALSE` for SQLite queries with boolean columns.
 
     *Hartley McGuire*

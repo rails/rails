@@ -199,7 +199,7 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-If your table uses a composite primary key, you'll need to pass find an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+If your table uses a composite primary key, you'll need to pass in an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
 # Find the customer with store_id 3 and id 17
@@ -244,7 +244,7 @@ SELECT * FROM customers LIMIT 1
 
 The `take` method returns `nil` if no record is found and no exception will be raised.
 
-You can pass in a numerical argument to the `take` method to return up to that number of results. For example
+You can pass in a numerical argument to the `take` method to return up to that number of results. For example:
 
 ```irb
 irb> customers = Customer.take(2)
@@ -283,7 +283,7 @@ The `first` method returns `nil` if no matching record is found and no exception
 
 If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `first` will return the first record according to this ordering.
 
-You can pass in a numerical argument to the `first` method to return up to that number of results. For example
+You can pass in a numerical argument to the `first` method to return up to that number of results. For example:
 
 ```irb
 irb> customers = Customer.first(3)
@@ -361,7 +361,7 @@ SELECT * FROM customers ORDER BY customers.store_id DESC, customers.id DESC LIMI
 
 If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
 
-You can pass in a numerical argument to the `last` method to return up to that number of results. For example
+You can pass in a numerical argument to the `last` method to return up to that number of results. For example:
 
 ```irb
 irb> customers = Customer.last(3)
@@ -978,7 +978,7 @@ Limit and Offset
 
 To apply `LIMIT` to the SQL fired by the `Model.find`, you can specify the `LIMIT` using [`limit`][] and [`offset`][] methods on the relation.
 
-You can use `limit` to specify the number of records to be retrieved, and use `offset` to specify the number of records to skip before starting to return the records. For example
+You can use `limit` to specify the number of records to be retrieved, and use `offset` to specify the number of records to skip before starting to return the records. For example:
 
 ```ruby
 Customer.limit(5)
@@ -1150,7 +1150,7 @@ Compare this to the case where the `reselect` clause is not used:
 Book.select(:title, :isbn).select(:created_at)
 ```
 
-the SQL executed would be:
+The SQL executed would be:
 
 ```sql
 SELECT books.title, books.isbn, books.created_at FROM books
@@ -1158,7 +1158,7 @@ SELECT books.title, books.isbn, books.created_at FROM books
 
 ### `reorder`
 
-The [`reorder`][] method overrides the default scope order. For example if the class definition includes this:
+The [`reorder`][] method overrides the default scope order. For example, if the class definition includes this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1240,7 +1240,7 @@ If the `rewhere` clause is not used, the where clauses are ANDed together:
 Book.where(out_of_print: true).where(out_of_print: false)
 ```
 
-the SQL executed would be:
+The SQL executed would be:
 
 ```sql
 SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
@@ -1269,7 +1269,7 @@ If the `regroup` clause is not used, the group clauses are combined together:
 Book.group(:author).group(:id)
 ```
 
-the SQL executed would be:
+The SQL executed would be:
 
 ```sql
 SELECT * FROM books GROUP BY author, id
@@ -1734,7 +1734,7 @@ NOTE: The `preload` method uses an array, hash, or a nested hash of array/hash i
 
 With `eager_load`, Active Record loads all specified associations using a `LEFT OUTER JOIN`.
 
-Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to authors:
+Revisiting the case where N + 1 was occurred using the `eager_load` method, we could rewrite `Book.limit(10)` to eager load authors:
 
 ```ruby
 books = Book.eager_load(:author).limit(10)
@@ -2133,7 +2133,7 @@ Understanding Method Chaining
 -----------------------------
 
 The Active Record pattern implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
-which allow us to use multiple Active Record methods together in a simple and straightforward way.
+which allows us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
 [`ActiveRecord::Relation`][], like `all`, `where`, and `joins`. Methods that return
@@ -2294,7 +2294,7 @@ irb> nina.save
 Finding by SQL
 --------------
 
-If you'd like to use your own SQL to find records in a table you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example you could run this query:
+If you'd like to use your own SQL to find records in a table you can use [`find_by_sql`][]. The `find_by_sql` method will return an array of objects even if the underlying query returns just a single record. For example, you could run this query:
 
 ```irb
 irb> Customer.find_by_sql("SELECT * FROM customers INNER JOIN orders ON customers.id = orders.customer_id ORDER BY customers.created_at desc")

@@ -113,9 +113,7 @@ module ActiveJob
       set(options)
       self.successfully_enqueued = false
 
-      run_callbacks :enqueue do
-        raw_enqueue
-      end
+      raw_enqueue
 
       if successfully_enqueued?
         self
@@ -126,6 +124,12 @@ module ActiveJob
 
     private
       def raw_enqueue
+        run_callbacks :enqueue do
+          _raw_enqueue
+        end
+      end
+
+      def _raw_enqueue
         if scheduled_at
           queue_adapter.enqueue_at self, scheduled_at.to_f
         else

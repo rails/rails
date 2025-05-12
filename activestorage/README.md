@@ -173,7 +173,10 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```erb
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-3. That's it! Uploads begin upon form submission.
+
+3. Configure CORS on third-party storage services to allow direct upload requests.
+
+4. That's it! Uploads begin upon form submission.
 
 ### Direct upload JavaScript events
 

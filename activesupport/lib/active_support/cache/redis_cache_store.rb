@@ -35,9 +35,6 @@ module ActiveSupport
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
-      # Keys are truncated with the Active Support digest if they exceed 1kB
-      MAX_KEY_BYTESIZE = 1024
-
       DEFAULT_REDIS_OPTIONS = {
         connect_timeout:    1,
         read_timeout:       1,
@@ -106,7 +103,6 @@ module ActiveSupport
           end
       end
 
-      attr_reader :max_key_bytesize
       attr_reader :redis
 
       # Creates a new Redis cache store.
@@ -169,7 +165,6 @@ module ActiveSupport
           @redis = self.class.build_redis(**redis_options)
         end
 
-        @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
 
         super(universal_options)
@@ -433,21 +428,6 @@ module ActiveSupport
                 write_entry key, entry, **options
               end
             end
-          end
-        end
-
-        # Truncate keys that exceed 1kB.
-        def normalize_key(key, options)
-          truncate_key super&.b
-        end
-
-        def truncate_key(key)
-          if key && key.bytesize > max_key_bytesize
-            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
-            truncate_at = max_key_bytesize - suffix.bytesize
-            "#{key.byteslice(0, truncate_at)}#{suffix}"
-          else
-            key
           end
         end
 

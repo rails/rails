@@ -79,13 +79,6 @@
     // pressing escape, which is the standard key to collapse expanded elements.
     var guidesMenuButton = document.getElementById("guides-menu-button");
 
-    // The link is now acting as a button (but still allows for open in new tab).
-    guidesMenuButton.setAttribute('role', 'button')
-    guidesMenuButton.setAttribute('aria-controls', guidesMenuButton.getAttribute('data-aria-controls'));
-    guidesMenuButton.setAttribute('aria-expanded', guidesMenuButton.getAttribute('data-aria-expanded'));
-    guidesMenuButton.removeAttribute('data-aria-controls');
-    guidesMenuButton.removeAttribute('data-aria-expanded');
-
     var guides = document.getElementById(
       guidesMenuButton.getAttribute("aria-controls")
     );

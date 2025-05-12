@@ -742,6 +742,26 @@ module CacheStoreBehavior
     end
   end
 
+  def test_configuring_store_with_raw
+    cache = lookup_store(raw: true)
+    cache.write("foo", "bar")
+    assert_equal "bar", cache.read("foo")
+  end
+
+  def test_max_key_size
+    cache = lookup_store(max_key_size: 64)
+    key = "foobar" * 20
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
+  def test_max_key_size_disabled
+    cache = lookup_store(max_key_size: false)
+    key = "a" * 1000
+    cache.write(key, "bar")
+    assert_equal "bar", cache.read(key)
+  end
+
   private
     def with_raise_on_invalid_cache_expiration_time(new_value, &block)
       old_value = ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time

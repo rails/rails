@@ -8,7 +8,6 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
-require_relative "../../../tools/strict_warnings"
 require "fileutils"
 require "shellwords"
 

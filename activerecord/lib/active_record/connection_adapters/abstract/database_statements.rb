@@ -550,7 +550,14 @@ module ActiveRecord
         cast_result(internal_execute(...))
       end
 
+      def default_insert_value(column) # :nodoc:
+        DEFAULT_INSERT_VALUE
+      end
+
       private
+        DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
+        private_constant :DEFAULT_INSERT_VALUE
+
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
           type_casted_binds = type_casted_binds(binds)
@@ -605,13 +612,6 @@ module ActiveRecord
           statements.each do |statement|
             raw_execute(statement, name, **kwargs)
           end
-        end
-
-        DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
-        private_constant :DEFAULT_INSERT_VALUE
-
-        def default_insert_value(column)
-          DEFAULT_INSERT_VALUE
         end
 
         def build_fixture_sql(fixtures, table_name)
