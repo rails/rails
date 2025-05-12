@@ -156,7 +156,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libvips", content
+              assert_match "curl default-mysql-client libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
           end
