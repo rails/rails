@@ -485,7 +485,7 @@ GEM
       websocket (~> 1.0)
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
-    set (1.1.1)
+    set (1.1.2)
     sidekiq (8.0.2)
       connection_pool (>= 2.5.0)
       json (>= 2.9.0)
