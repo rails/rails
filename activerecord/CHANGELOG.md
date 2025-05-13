@@ -1,3 +1,7 @@
+*   Add `affected_rows` to `ActiveRecord::Result`.
+
+    *Jenny Shen*
+
 *   Enable passing retryable SqlLiterals to `#where`.
 
     *Hartley McGuire*
