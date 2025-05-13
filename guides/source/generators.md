@@ -449,19 +449,26 @@ $ bin/rails generate scaffold Comment body:text
 Creating Application Templates
 ------------------------------
 
-Application templates are a little different from generators. While generators add files to an existing Rails application (models, views, etc.), templates are used to automate the setup of a new Rails application. Templates are written as a Ruby script.
+Application templates are a little different from generators. While generators
+add files to an existing Rails application (models, views, etc.), templates are
+used to automate the setup of a new Rails application. Templates are written as
+a Ruby script.
 
-Let's see how to use a template while creating a new Rails application and also an example of a template Ruby script.
+Let's see how to use a template while creating a new Rails application and also
+an example of a template Ruby script.
 
 ### Usage
 
-To apply a template while creating a new Rails application, you need to provide the location of the template using the `-m` option.
+To apply a template while creating a new Rails application, you need to provide
+the location of the template using the `-m` option.
 
 ```bash
 $ rails new blog -m ~/template.rb
 ```
 
-You can also use the `app:template` command to apply templates to an existing Rails application. The location of the template needs to be passed in via the `LOCATION` environment variable.
+You can also use the `app:template` command to apply templates to an existing
+Rails application. The location of the template needs to be passed in via the
+`LOCATION` environment variable.
 
 ```bash
 $ bin/rails app:template LOCATION=~/template.rb
@@ -475,7 +482,8 @@ $ rails new blog -m http://example.com/template.rb
 $ bin/rails app:template LOCATION=http://example.com/template.rb
 ```
 
-Next, let's take a look at a sample `template.rb` file. This template installs Devise with some user interactivity:
+Next, let's take a look at a sample `template.rb` file. This template installs
+Devise with some user interactivity:
 
 ```ruby
 # template.rb
@@ -497,18 +505,24 @@ end
 ```
 
 The above template adds Devise to the `Gemfile` after asking the user and also
-allows the user to name the Devise user model. After `bundle install` has been run,
-the template runs the Devise generators and `bin/rails db:migrate`. Finally, the
-template does `git add` and `git commit`.
+allows the user to name the Devise user model. After `bundle install` has been
+run, the template runs the Devise generators and `bin/rails db:migrate`.
+Finally, the template does `git add` and `git commit`.
 
-The above `template.rb` uses helper methods such as `after_bundle` and `rails_command`. You can see a list of available helper methods that templates can use in the [generator helper methods](#generator-helper-methods) section. The following sections explains some of them with examples.
+The above `template.rb` uses helper methods such as `after_bundle` and
+`rails_command`. You can see a list of available helper methods that templates
+can use in the [generator helper methods](#generator-helper-methods) section.
+The following sections explains some of them with examples.
 
 Rails Template API
 ------------------
 
-The Rails template Ruby scripts have access to several helper methods using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific Language).
+The Rails template Ruby scripts have access to several helper methods using a
+[DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific
+Language).
 
-Here's an example of a typical Rails template that scaffolds a model, runs migrations, and commits the changes with git:
+Here's an example of a typical Rails template that scaffolds a model, runs
+migrations, and commits the changes with git:
 
 ```ruby
 # template.rb
@@ -523,22 +537,27 @@ after_bundle do
 end
 ```
 
-Let's see how to use the methods provided by the [Rails Template API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html).
+Let's see how to use the methods provided by the [Rails Template
+API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html).
 
-NOTE: All of the code snippets in the examples below can be used in a template file, such as the `template.rb` file above.
+NOTE: All of the code snippets in the examples below can be used in a template
+file, such as the `template.rb` file above.
 
 ### gem
 
-This helper adds an entry for the given gem to the generated application's `Gemfile`.
+This helper adds an entry for the given gem to the generated application's
+`Gemfile`.
 
-For example, if your application depends on the gems `devise` and `tailwindcss-rails`:
+For example, if your application depends on the gems `devise` and
+`tailwindcss-rails`:
 
 ```ruby
 gem "devise"
 gem "tailwindcss-rails"
 ```
 
-Note that this method only adds the gem to the `Gemfile`, it does not install the gem.
+Note that this method only adds the gem to the `Gemfile`, it does not install
+the gem.
 
 You can also specify an exact version:
 
@@ -554,7 +573,8 @@ gem "devise", comment: "Add devise for authentication."
 
 ### gem_group
 
-The helper wraps gem entries inside a group. For example, to load `rspec-rails` only in the `development` and `test` groups:
+The helper wraps gem entries inside a group. For example, to load `rspec-rails`
+only in the `development` and `test` groups:
 
 ```ruby
 gem_group :development, :test do
@@ -570,7 +590,8 @@ Adds the given source to the generated application's `Gemfile`.
 add_source "https://rubygems.org"
 ```
 
-If a block is given, gem entries in the block are wrapped into the source group. For example, if you need to source a gem from `"http://gems.github.com"`:
+If a block is given, gem entries in the block are wrapped into the source group.
+For example, if you need to source a gem from `"http://gems.github.com"`:
 
 ```ruby
 add_source "http://gems.github.com/" do
@@ -582,7 +603,8 @@ end
 
 Adds a line inside the `Application` class for `config/application.rb`.
 
-If `options[:env]` is specified, the line is appended to the corresponding file in `config/environments`.
+If `options[:env]` is specified, the line is appended to the corresponding file
+in `config/environments`.
 
 ```ruby
 environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: "production"
@@ -592,9 +614,11 @@ The above will add the config line to `config/environments/production.rb`.
 
 ### initializer, vendor, lib, file
 
-The `initializer` helper method adds an initializer to the generated application's `config/initializers` directory.
+The `initializer` helper method adds an initializer to the generated
+application's `config/initializers` directory.
 
-After adding the below to the `template.rb` file, you can use `Object#not_nil?` and `Object#not_blank?` in your application:
+After adding the below to the `template.rb` file, you can use `Object#not_nil?`
+and `Object#not_blank?` in your application:
 
 ```ruby
 initializer "not_methods.rb", <<-CODE
@@ -610,9 +634,11 @@ initializer "not_methods.rb", <<-CODE
 CODE
 ```
 
-Similarly, the `lib` method creates a file in the `lib/` directory and `vendor` method creates a file in the `vendor/` directory.
+Similarly, the `lib` method creates a file in the `lib/` directory and `vendor`
+method creates a file in the `vendor/` directory.
 
-There is also a `file` method, which accepts a relative path from `Rails.root` and creates all the directories and files needed:
+There is also a `file` method, which accepts a relative path from `Rails.root`
+and creates all the directories and files needed:
 
 ```ruby
 file "app/components/foo.rb", <<-CODE
@@ -625,7 +651,8 @@ The above will create the `app/components` directory and put `foo.rb` in there.
 
 ### rakefile
 
-The `rakefile` method creates a new Rake file under `lib/tasks` with the given tasks:
+The `rakefile` method creates a new Rake file under `lib/tasks` with the given
+tasks:
 
 ```ruby
 rakefile("bootstrap.rake") do
@@ -643,7 +670,8 @@ The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
 ### generate
 
-You can even call a generator from inside a `template.rb`. The following runs the `scaffold` rails generator with the given arguments:
+You can even call a generator from inside a `template.rb`. The following runs
+the `scaffold` rails generator with the given arguments:
 
 ```ruby
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -651,7 +679,8 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### run
 
-This method executes an arbitrary command. Let's say you want to remove the `README.rdoc` file:
+This method executes an arbitrary command. Let's say you want to remove the
+`README.rdoc` file:
 
 ```ruby
 run "rm README.rdoc"
@@ -659,7 +688,8 @@ run "rm README.rdoc"
 
 ### rails_command
 
-You can run the Rails commands in the generated application. Let's say you want to migrate the database at some point in the template ruby script:
+You can run the Rails commands in the generated application. Let's say you want
+to migrate the database at some point in the template ruby script:
 
 ```ruby
 rails_command "db:migrate"
@@ -679,7 +709,8 @@ rails_command "db:migrate", abort_on_failure: true
 
 ### route
 
-This method adds an entry to the `config/routes.rb` file. To make `PeopleController#index` the default page for the application, we can add:
+This method adds an entry to the `config/routes.rb` file. To make
+`PeopleController#index` the default page for the application, we can add:
 
 ```ruby
 route "root to: 'person#index'"
@@ -687,7 +718,9 @@ route "root to: 'person#index'"
 
 ### inside
 
-This method enables you to run a command from a given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
+This method enables you to run a command from a given directory. For example, if
+you have a copy of edge rails that you wish to symlink from your new apps, you
+can do this:
 
 ```ruby
 inside("vendor") do
@@ -697,7 +730,9 @@ end
 
 ### ask
 
-The `ask` methods allows you to get feedback from the user and use it in your templates. Let's say you want your user to name the new shiny library you're adding:
+The `ask` methods allows you to get feedback from the user and use it in your
+templates. Let's say you want your user to name the new shiny library you're
+adding:
 
 ```ruby
 lib_name = ask("What do you want to call the shiny library?")
@@ -711,7 +746,8 @@ CODE
 
 ### yes? or no?
 
-These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to prompt the user to run migrations:
+These methods let you ask questions from templates and decide the flow based on
+the user's answer. Let's say you want to prompt the user to run migrations:
 
 ```ruby
 rails_command("db:migrate") if yes?("Run database migrations?")
@@ -730,7 +766,9 @@ git commit: "-a -m 'Initial commit'"
 
 ### after_bundle
 
-This method registers a callback to be executed after the gems are bundled. For example, it would make sense to run the "install" command for `tailwindcss-rails` and `devise` only after those gems are bundled:
+This method registers a callback to be executed after the gems are bundled. For
+example, it would make sense to run the "install" command for
+`tailwindcss-rails` and `devise` only after those gems are bundled:
 
 ```ruby
 # Install gems
