@@ -218,7 +218,7 @@ module Rails
         end
 
         def base_package
-          nil
+          "default-mysql-client"
         end
 
         def build_package
