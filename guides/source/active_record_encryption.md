@@ -102,9 +102,12 @@ NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key 
 
 NOTE: You can disable deterministic encryption by omitting the `deterministic_key`.
 
+TODO: more advanced, move to a later section?
 ### Column Size and Storage Consideration
 
-Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+Encryption requires extra space because the encrypted value will be larger than the original value (due to the Base64 encoding and the metadata stored along with the encrypted payloads).
+
+When using the built-in envelope encryption key provider, you can estimate the overhead to be around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
 
 There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
 
