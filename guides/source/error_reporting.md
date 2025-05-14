@@ -248,6 +248,35 @@ Rails.error.handle(context: { b: 3 }) { raise }
 # The reported context will be: {:a=>1, :b=>3}
 ```
 
+### Setting Context with Error Context Middleware
+
+The ErrorReporter has its own middleware stack for modifying the error context before sending to subscribers.
+Use this to make changes to error context that can be seen by all error subscribers, instead of replicating
+common functionality inside subscribers.
+
+This is especially useful for gems that want to add common context to error messages without requiring modifications
+to error subscribers, or to add data to error context that is specific to your app. The concerns of "set error context"
+and "send data to error tracker" should be separated between middleware and subscribers.
+
+Context middleware runs after global context set by `Rails.error.set_context` is applied to the context hash.
+
+Context middleware receives the same parameters as `Rails.error.report`. The middleware stack returns the hash
+after running all middleware - each middleware can mutate the context hash and should return the new context hash.
+
+```ruby
+class MyErrorContextMiddleware
+  def call(error, context:, handled:, severity:, source:)
+    context.merge({ foo: :bar })
+    context
+  end
+end
+
+Rails.error.add_middleware(MyErrorContextMiddleware.new) # Append the middleware to the error context stack
+
+Rails.error.report(error, context: { bar: :baz }) # Report an error with some context
+# The reported context will be { foo: :bar, bar: :baz }
+```
+
 ### Filtering by Error Classes
 
 With `Rails.error.handle` and `Rails.error.record`, you can also choose to only
