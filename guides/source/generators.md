@@ -455,7 +455,7 @@ used to automate the setup of a new Rails application. Templates are written as
 a Ruby script.
 
 Let's see how to use a template while creating a new Rails application and also
-an example of a template Ruby script.
+look at an example of a template Ruby script.
 
 ### Usage
 
@@ -478,9 +478,11 @@ Templates don't have to be stored locally, you can also specify a URL instead of
 a path:
 
 ```bash
-$ rails new blog -m http://example.com/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
+$ rails new blog -m https://example.com/template.rb
+$ bin/rails app:template LOCATION=https://example.com/template.rb
 ```
+
+WARNING: Caution should be taken executing remote scripts from third parties. As the template script is plain Ruby it's easy to compromise your local machine. For example: download a virus, remove files or upload your private files to a server.
 
 Next, let's take a look at a sample `template.rb` file. This template installs
 Devise with some user interactivity:
