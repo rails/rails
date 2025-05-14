@@ -150,7 +150,8 @@ module ActiveJob
     #  end
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
-        enqueue options
+        job = dup
+        job.enqueue options
       end
     end
 
