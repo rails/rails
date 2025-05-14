@@ -84,6 +84,8 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            total_changes_before_query = raw_connection.total_changes
+
             if batch
               raw_connection.execute_batch2(sql)
             elsif prepare
@@ -114,10 +116,10 @@ module ActiveRecord
                 stmt.close
               end
             end
-            @last_affected_rows = raw_connection.changes
+            @affected_rows = raw_connection.total_changes - total_changes_before_query
             verified!
 
-            notification_payload[:affected_rows] = @last_affected_rows
+            notification_payload[:affected_rows] = @affected_rows
             notification_payload[:row_count] = result&.length || 0
             result
           end
@@ -129,7 +131,7 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            @last_affected_rows
+            @affected_rows
           end
 
           def execute_batch(statements, name = nil, **kwargs)
