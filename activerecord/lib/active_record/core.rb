@@ -427,11 +427,11 @@ module ActiveRecord
           end
         end
 
-        def relation
-          relation = Relation.create(self)
+        def relation(table: arel_table)
+          relation = Relation.create(self, table:)
 
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where!(type_condition)
+            relation.where!(type_condition(table))
           else
             relation
           end

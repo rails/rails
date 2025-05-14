@@ -90,8 +90,19 @@ module ActiveRecord
             table[join_primary_key].eq(foreign_table[foreign_key])
           end.inject(&:and)
 
+          # We merge in these scopes for two reasons:
+          #
+          #   1. To get the default_scope conditions for any of the other reflections in the chain
+          #   2. To get the type conditions for any STI models in the chain
+          foreign_klass = next_reflection.klass
+          foreign_relation = foreign_klass.send(:relation, table: foreign_table)
+          foreign_relation = foreign_klass.scope_for_association(foreign_relation)
+          scope.merge!(
+            foreign_relation.except(:select, :create_with, :includes, :preload, :eager_load, :joins, :left_outer_joins)
+          )
+
           if reflection.type
-            value = transform_value(next_reflection.klass.polymorphic_name)
+            value = transform_value(foreign_klass.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, value)
           end
 

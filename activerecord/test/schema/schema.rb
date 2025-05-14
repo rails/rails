@@ -752,6 +752,11 @@ ActiveRecord::Schema.define do
     t.boolean :is_vegetarian, default: false
   end
 
+  create_table :locations, force: true do |t|
+    t.string :type
+    t.integer :parent_id
+  end
+
   create_table :lock_without_defaults, force: true do |t|
     t.column :title, :string
     t.column :lock_version, :integer
@@ -954,6 +959,7 @@ ActiveRecord::Schema.define do
     t.timestamp :born_at
     t.integer :cars_count, default: 0
     t.timestamps null: false
+    t.integer :city_id
   end
 
   create_table :peoples_treasures, id: false, force: true do |t|
