@@ -247,6 +247,13 @@ module ActiveRecord
         end
       end
 
+      def test_pk_and_sequence_for_composite_primary_key
+        with_example_table("id serial, tenant_id serial, PRIMARY KEY (tenant_id, id)") do
+          seq = @connection.pk_and_sequence_for("ex").last
+          assert_equal PostgreSQL::Name.new("public", "ex_id_seq"), seq
+        end
+      end
+
       def test_pk_and_sequence_for_returns_nil_if_no_pk
         with_example_table "id integer" do
           assert_nil @connection.pk_and_sequence_for("ex")
