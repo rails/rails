@@ -446,46 +446,23 @@ $ bin/rails generate scaffold Comment body:text
       create      app/views/comments/show.json.jbuilder
 ```
 
-Creating Application Templates
-------------------------------
+Application Templates
+---------------------
 
 Application templates are a little different from generators. While generators
 add files to an existing Rails application (models, views, etc.), templates are
-used to automate the setup of a new Rails application. Templates are written as
-a Ruby script.
+used to automate the setup of a new Rails application. Templates are Ruby
+scripts (typically named `template.rb`) that customize new Rails applications
+right after they are generated.
 
-Let's see how to use a template while creating a new Rails application and also
-look at an example of a template Ruby script.
+Let's see how to use a template while creating a new Rails application.
 
-### Usage
+### Creating and Using a Template
 
-To apply a template while creating a new Rails application, you need to provide
-the location of the template using the `-m` option.
-
-```bash
-$ rails new blog -m ~/template.rb
-```
-
-You can also use the `app:template` command to apply templates to an existing
-Rails application. The location of the template needs to be passed in via the
-`LOCATION` environment variable.
-
-```bash
-$ bin/rails app:template LOCATION=~/template.rb
-```
-
-Templates don't have to be stored locally, you can also specify a URL instead of
-a path:
-
-```bash
-$ rails new blog -m https://example.com/template.rb
-$ bin/rails app:template LOCATION=https://example.com/template.rb
-```
-
-WARNING: Caution should be taken executing remote scripts from third parties. As the template script is plain Ruby it's easy to compromise your local machine. For example: download a virus, remove files or upload your private files to a server.
-
-Next, let's take a look at a sample `template.rb` file. This template installs
-Devise with some user interactivity:
+Let's start with a sample template Ruby script. The below template adds Devise
+to the `Gemfile` after asking the user and also allows the user to name the
+Devise user model. After `bundle install` has been run, the template runs the
+Devise generators and also runs migrations. Finally, the template does `git add` and `git commit`.
 
 ```ruby
 # template.rb
@@ -506,15 +483,38 @@ after_bundle do
 end
 ```
 
-The above template adds Devise to the `Gemfile` after asking the user and also
-allows the user to name the Devise user model. After `bundle install` has been
-run, the template runs the Devise generators and `bin/rails db:migrate`.
-Finally, the template does `git add` and `git commit`.
+To apply this template while creating a new Rails application, you need to
+provide the location of the template using the `-m` option:
+
+```bash
+$ rails new blog -m ~/template.rb
+```
+
+The above will create a new Rails application called `blog` that has Devise configured.
+
+You can also apply templates to an existing Rails application by using
+`app:template` command. The location of the template needs to be passed in via
+the `LOCATION` environment variable:
+
+```bash
+$ bin/rails app:template LOCATION=~/template.rb
+```
+
+Templates don't have to be stored locally, you can also specify a URL instead of
+a path:
+
+```bash
+$ rails new blog -m https://example.com/template.rb
+$ bin/rails app:template LOCATION=https://example.com/template.rb
+```
+
+WARNING: Caution should be taken when executing remote scripts from third parties. Since the template is a plain Ruby script, it can easily contain code that compromises your local machine (such as download a virus, delete files or upload files to a server).
 
 The above `template.rb` uses helper methods such as `after_bundle` and
-`rails_command`. You can see a list of available helper methods that templates
-can use in the [generator helper methods](#generator-helper-methods) section.
-The following sections explains some of them with examples.
+`rails_command` and also adds user interactivity with methods like `yes?`. All
+of these methods are part of the [Rails Template
+API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html). The
+following sections explains how to use more of these methods with examples.
 
 Rails Template API
 ------------------
