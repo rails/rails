@@ -58,7 +58,7 @@ Once the keys are generated and stored, you can start using Active Record Encryp
 
 ### Declare Encrypted Attributes
 
-The `encrypts` method defines attribute to be encrypted at the model level. These are regular Active Record attributes backed by a column with the same name.
+The [`encrypts` method](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EncryptableRecord.html#method-i-encrypts) defines attribute to be encrypted at the model level. These are regular Active Record attributes backed by a column with the same name.
 
 ```ruby
 class Article < ApplicationRecord
@@ -126,8 +126,7 @@ Some examples:
 | Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
 | Arbitrary long text                               | text                 | text                              | negligible                    |
 
-## Basic Usage
-
+TODO: find a place for this section
 ### Using the API
 
 ActiveRecord encryption is meant to be used declaratively, but there is also an API for debugging or advance use cases.
@@ -151,6 +150,8 @@ You can read the `cipertext` for an attribute:
 article.ciphertext_for(:title)
 ```
 
+## Basic Usage
+
 ### Action Text
 
 You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
@@ -161,7 +162,7 @@ class Message < ApplicationRecord
 end
 ```
 
-NOTE: Passing individual encryption options to Action Text attributes is not supported yet. It will use non-deterministic encryption with the global encryption options configured.
+NOTE: Passing individual encryption options to Action Text attributes is not supported. It will use non-deterministic encryption with the global encryption options configured.
 
 ### Fixtures
 
@@ -175,7 +176,7 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 #### Action Text Fixtures
 
-To encrypt Action Text fixtures, you should place them in `fixtures/action_text/encrypted_rich_texts.yml`.
+To encrypt Action Text fixtures, you can place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
 ### Serialized Attributes
 
