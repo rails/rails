@@ -382,6 +382,9 @@ module ActiveRecord
               AND cons.contype      = 'p'
               AND dep.classid       = 'pg_class'::regclass
               AND dep.refobjid      = #{quote(quote_table_name(table))}::regclass
+            ORDER BY
+              CASE attr.attname WHEN 'id' THEN 0 ELSE 1 END, -- Prefer 'id' column
+              attr.attnum -- Then by attribute number for stable sort
           SQL
 
           if result.nil? || result.empty?
