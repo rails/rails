@@ -21,6 +21,11 @@ module ActiveRecord
         super
       end
 
+      def add_to_target(record, skip_callbacks: false, replace: false, &block)
+        build_through_record(record) if reflection.options[:defer]
+        super
+      end
+
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
@@ -31,6 +36,18 @@ module ActiveRecord
         save_through_record(record)
 
         record
+      end
+
+      def target_added_records
+        added = []
+        @target.each { |record| added << record if through_records_for(record).any? { |trecord| trecord.new_record? } }
+        added
+      end
+
+      def target_previously_added_records
+        added = []
+        @target.each { |record| added << record if through_records_for(record).any? { |trecord| trecord.new_record_before_save? } }
+        added
       end
 
       private

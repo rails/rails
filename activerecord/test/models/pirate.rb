@@ -16,6 +16,7 @@ class Pirate < ActiveRecord::Base
     before_remove: proc { |p, pa| p.ship_log << "before_removing_proc_parrot_#{pa.id}" },
     after_remove: proc { |p, pa| p.ship_log << "after_removing_proc_parrot_#{pa.id}" }
   has_and_belongs_to_many :autosaved_parrots, class_name: "Parrot", autosave: true
+  has_and_belongs_to_many :defered_parrots, class_name: "Parrot", autosave: true, defer: true
 
   module PostTreasuresExtension
     def build(attributes = {})
@@ -41,6 +42,7 @@ class Pirate < ActiveRecord::Base
     before_remove: proc { |p, b| p.ship_log << "before_removing_proc_bird_#{b.id}" },
     after_remove: proc { |p, b| p.ship_log << "after_removing_proc_bird_#{b.id}" }
   has_many :birds_with_reject_all_blank, class_name: "Bird"
+  has_many :defered_birds, class_name: "Bird", autosave: true, defer: true
 
   has_one :foo_bulb, -> { where name: "foo" }, foreign_key: :car_id, class_name: "Bulb"
 
