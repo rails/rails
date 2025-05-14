@@ -19,6 +19,7 @@ class SecondDiscardableErrorOfTwo < StandardError; end
 class CustomDiscardableError < StandardError; end
 class UnlimitedRetryError < StandardError; end
 class ReportedError < StandardError; end
+class HeavyError < StandardError; end
 
 class RetryJob < ActiveJob::Base
   retry_on DefaultsError
@@ -33,6 +34,7 @@ class RetryJob < ActiveJob::Base
   retry_on(ActiveJob::DeserializationError) { |job, error| JobBuffer.add("Raised #{error.class} for the #{job.executions} time") }
   retry_on UnlimitedRetryError, attempts: :unlimited
   retry_on ReportedError, report: true
+  retry_on HeavyError, queue: :low
 
   discard_on DiscardableError
   discard_on FirstDiscardableErrorOfTwo, SecondDiscardableErrorOfTwo
