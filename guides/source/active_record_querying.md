@@ -2635,9 +2635,9 @@ EXPLAIN SELECT `customers`.* FROM `customers` INNER JOIN `orders` ON `orders`.`c
 2 rows in set (0.00 sec)
 ```
 
-Active Record performs a pretty printing that emulates that of the
-corresponding database shell. So, the same query running with the
-PostgreSQL adapter would yield instead:
+Active Record performs pretty printing that emulates the output of
+the corresponding database shell. So, the same query run with the
+PostgreSQL adapter would instead yield:
 
 ```sql
 EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."customer_id" = "customers"."id" WHERE "customers"."id" = $1 [["id", 1]]
