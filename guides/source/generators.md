@@ -520,7 +520,8 @@ Rails Template API
 
 The template Ruby scripts have access to several helper methods using a
 [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific
-Language).
+Language). These methods are part of the Rails Template API and you can find more details in the API at [`Thor::Actions`][] and
+[`Rails::Generators::Actions`][].
 
 Here's another example of a typical Rails template that scaffolds a model, runs
 migrations, and commits the changes with git:
@@ -538,40 +539,12 @@ after_bundle do
 end
 ```
 
-The above script uses more methods that are part of the Rails Template API.
-These methods are provided via either [`Thor::Actions`][] or
-[`Rails::Generators::Actions`][].
-
-* [`copy_file`][]
-* [`create_file`][]
-* [`gsub_file`][]
-* [`insert_into_file`][]
-* [`inside`][]
-
-In addition to those, Rails also provides many helper methods via
-[`Rails::Generators::Actions`][], such as:
-
-* [add_source][]
-* [after_bundle][]
-* [`environment`][]
-* [`gem`][]
-* [gem_group][]
-* [`generate`][]
-* [`git`][]
-* [`initializer`][]
-* [`lib`][]
-* [`rails_command`][]
-* [`rake`][]
-* [`route`][]
-* [ask][]
-* [yes][]
-
 NOTE: All code snippets in the examples below can be used in a template
 file, such as the `template.rb` file above.
 
 ### add_source
 
-Adds the given source to the generated application's `Gemfile`.
+The [`add_source`](https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source) method adds the given source to the generated application's `Gemfile`.
 
 ```ruby
 add_source "https://rubygems.org"
@@ -588,7 +561,8 @@ end
 
 ### after_bundle
 
-This method registers a callback to be executed after the gems are bundled. For
+The [`after_bundle`](https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle)
+method registers a callback to be executed after the gems are bundled. For
 example, it would make sense to run the "install" command for
 `tailwindcss-rails` and `devise` only after those gems are bundled:
 
@@ -607,7 +581,7 @@ The callbacks get executed even if `--skip-bundle` has been passed.
 
 ### environment
 
-The `environment` method adds a line inside the `Application` class for
+The [`environment`][] method adds a line inside the `Application` class for
 `config/application.rb`. If `options[:env]` is specified, the line is appended
 to the corresponding file in `config/environments`.
 
@@ -619,7 +593,7 @@ The above will add the config line to `config/environments/production.rb`.
 
 ### gem
 
-This helper adds an entry for the given gem to the generated application's
+The [`gem`][] helper adds an entry for the given gem to the generated application's
 `Gemfile`.
 
 For example, if your application depends on the gems `devise` and
@@ -647,7 +621,7 @@ gem "devise", comment: "Add devise for authentication."
 
 ### gem_group
 
-The helper wraps gem entries inside a group. For example, to load `rspec-rails`
+The [`gem_group`][] helper wraps gem entries inside a group. For example, to load `rspec-rails`
 only in the `development` and `test` groups:
 
 ```ruby
@@ -667,7 +641,7 @@ generate(:scaffold, "person", "name:string", "address:text", "age:number")
 
 ### git
 
-Rails templates let you run any git command:
+Rails templates let you run any git command with the [`git`][] helper:
 
 ```ruby
 git :init
@@ -697,11 +671,12 @@ initializer "not_methods.rb", <<-CODE
 CODE
 ```
 
-Similarly, the `lib` method creates a file in the `lib/` directory and `vendor`
-method creates a file in the `vendor/` directory.
+Similarly, the [`lib`][] method creates a file in the [`lib/`][] directory and
+`vendor` method creates a file in the `vendor/` directory.
 
-There is also a `file` method, which accepts a relative path from `Rails.root`
-and creates all the directories and files needed:
+There is also a `file` method (which is an alias for [`create_file`][]), which
+accepts a relative path from `Rails.root` and creates all the directories and
+files needed:
 
 ```ruby
 file "app/components/foo.rb", <<-CODE
@@ -714,8 +689,8 @@ The above will create the `app/components` directory and put `foo.rb` in there.
 
 ### rakefile
 
-The `rakefile` method creates a new Rake file under `lib/tasks` with the given
-tasks:
+The [`rakefile`][] method creates a new Rake file under `lib/tasks` with the
+given tasks:
 
 ```ruby
 rakefile("bootstrap.rake") do
@@ -733,8 +708,8 @@ The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
 ### run
 
-This method executes an arbitrary command. Let's say you want to remove the
-`README.rdoc` file:
+The [`run`][] method executes an arbitrary command. Let's say you want to remove
+the `README.rdoc` file:
 
 ```ruby
 run "rm README.rdoc"
@@ -742,8 +717,9 @@ run "rm README.rdoc"
 
 ### rails_command
 
-You can run the Rails commands in the generated application. Let's say you want
-to migrate the database at some point in the template ruby script:
+You can run the Rails commands in the generated application with the
+[`rails_command`][] helper. Let's say you want to migrate the database at some
+point in the template ruby script:
 
 ```ruby
 rails_command "db:migrate"
@@ -763,22 +739,24 @@ rails_command "db:migrate", abort_on_failure: true
 
 ### route
 
-This method adds an entry to the `config/routes.rb` file. To make
+The [`route`][] method adds an entry to the `config/routes.rb` file. To make
 `PeopleController#index` the default page for the application, we can add:
 
 ```ruby
 route "root to: 'person#index'"
 ```
 
-There are some commands that manipulate the local file system, such
-a[`copy_file`][], [`create_file`][], [`gsub_file`][], [`insert_into_file`][],
-and [`inside`][]. 
+There are also many helper methods that can manipulate the local file system,
+such as [`copy_file`][], [`create_file`][], [`insert_into_file`][], and
+[`inside`][]. You can see the [Thor API
+documentation](https://www.rubydoc.info/gems/thor/Thor/Actions) for details.
+Here is an example of one such method:
 
 ### inside
 
-This method enables you to run a command from a given directory. For example, if
-you have a copy of edge rails that you wish to symlink from your new apps, you
-can do this:
+This [`inside`][] method enables you to run a command from a given directory.
+For example, if you have a copy of edge rails that you wish to symlink from your
+new apps, you can do this:
 
 ```ruby
 inside("vendor") do
@@ -786,11 +764,11 @@ inside("vendor") do
 end
 ```
 
-There are some user interactivity commands such as [ask], [yes], [no]:
+There are also methods that allow you to interact with the user from the Ruby template, such as [`ask`][], [`yes`][], and [`no`][]. You can learn about all user interactivity methods in the [Thor Shell documentation](https://www.rubydoc.info/gems/thor/Thor/Shell/Basic). Let's see examples of using `ask`, `yes?` and `no?`:
 
 ### ask
 
-The `ask` methods allows you to get feedback from the user and use it in your
+The [`ask`][] methods allows you to get feedback from the user and use it in your
 templates. Let's say you want your user to name the new shiny library you're
 adding:
 
@@ -848,3 +826,15 @@ In addition to those, Rails also provides additional assertions via
 [`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
 [`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
 [`Rails::Generators::Testing::Assertions`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
+[`add_source`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source
+[`after_bundle`]: https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle
+[`gem_group`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem_group
+[`vendor`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-vendor
+[`rakefile`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rakefile
+[`run`]: https://www.rubydoc.info/gems/thor/Thor/Actions#run-instance_method
+[`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
+[`create_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
+[`ask`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#ask-instance_method
+[`yes`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#yes%3F-instance_method
+[`no`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#no%3F-instance_method
+
