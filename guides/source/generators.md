@@ -499,17 +499,17 @@ the `LOCATION` environment variable:
 $ bin/rails app:template LOCATION=~/template.rb
 ```
 
-Templates don't have to be stored locally, you can also specify a URL instead of
-a path:
+Templates don't have to be stored locally, you can also specify an URL instead
+of a path:
 
 ```bash
 $ rails new blog -m https://example.com/template.rb
 $ bin/rails app:template LOCATION=https://example.com/template.rb
 ```
 
-WARNING: Caution should be taken when executing remote scripts from third parties. Since the template is a plain Ruby script, it can easily contain code that compromises your local machine (such as download a virus, delete files or upload files to a server).
+WARNING: Caution should be taken when executing remote scripts from third parties. Since the template is a plain Ruby script, it can easily contain code that compromises your local machine (such as download a virus, delete files or upload your private files to a server).
 
-The above `template.rb` uses helper methods such as `after_bundle` and
+The above `template.rb` file uses helper methods such as `after_bundle` and
 `rails_command` and also adds user interactivity with methods like `yes?`. All
 of these methods are part of the [Rails Template
 API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html). The
@@ -520,8 +520,9 @@ Rails Template API
 
 The template Ruby scripts have access to several helper methods using a
 [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific
-Language). These methods are part of the Rails Template API and you can find more details in the API at [`Thor::Actions`][] and
-[`Rails::Generators::Actions`][].
+Language). These methods are part of the Rails Template API and you can find
+more details at [`Thor::Actions`][] and [`Rails::Generators::Actions`][] API
+documentation.
 
 Here's another example of a typical Rails template that scaffolds a model, runs
 migrations, and commits the changes with git:
@@ -544,7 +545,7 @@ file, such as the `template.rb` file above.
 
 ### add_source
 
-The [`add_source`](https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source) method adds the given source to the generated application's `Gemfile`.
+The [`add_source`][] method adds the given source to the generated application's `Gemfile`.
 
 ```ruby
 add_source "https://rubygems.org"
@@ -561,9 +562,8 @@ end
 
 ### after_bundle
 
-The [`after_bundle`](https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle)
-method registers a callback to be executed after the gems are bundled. For
-example, it would make sense to run the "install" command for
+The [`after_bundle`][] method registers a callback to be executed after the gems
+are bundled. For example, it would make sense to run the "install" command for
 `tailwindcss-rails` and `devise` only after those gems are bundled:
 
 ```ruby
@@ -632,8 +632,9 @@ end
 
 ### generate
 
-You can even call a generator from inside a `template.rb`. The following runs
-the `scaffold` rails generator with the given arguments:
+You can even call a generator from inside a `template.rb` with the
+[`generate`][] method. The following runs the `scaffold` rails generator with
+the given arguments:
 
 ```ruby
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -651,7 +652,7 @@ git commit: "-a -m 'Initial commit'"
 
 ### initializer, vendor, lib, file
 
-The `initializer` helper method adds an initializer to the generated
+The [`initializer`][] helper method adds an initializer to the generated
 application's `config/initializers` directory.
 
 After adding the below to the `template.rb` file, you can use `Object#not_nil?`
@@ -671,8 +672,8 @@ initializer "not_methods.rb", <<-CODE
 CODE
 ```
 
-Similarly, the [`lib`][] method creates a file in the [`lib/`][] directory and
-`vendor` method creates a file in the `vendor/` directory.
+Similarly, the [`lib`][] method creates a file in the `lib/` directory and
+[`vendor`][] method creates a file in the `vendor/` directory.
 
 There is also a `file` method (which is an alias for [`create_file`][]), which
 accepts a relative path from `Rails.root` and creates all the directories and
