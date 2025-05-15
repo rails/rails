@@ -16,7 +16,18 @@ module ActionController
     included do
       mattr_accessor :raise_on_open_redirects, default: false
       mattr_accessor :action_on_path_relative_redirect, default: :log
-      mattr_accessor :allowed_redirect_hosts, default: []
+      class_attribute :_allowed_redirect_hosts, :allowed_redirect_hosts_permissions, instance_accessor: false, instance_predicate: false
+      singleton_class.alias_method :allowed_redirect_hosts, :_allowed_redirect_hosts
+    end
+
+    module ClassMethods # :nodoc:
+      def allowed_redirect_hosts=(hosts)
+        hosts = hosts.dup.freeze
+        self._allowed_redirect_hosts = hosts
+        self.allowed_redirect_hosts_permissions = if hosts.present?
+          ActionDispatch::HostAuthorization::Permissions.new(hosts)
+        end
+      end
     end
 
     # Redirects the browser to the target specified in `options`. This parameter can
@@ -255,13 +266,14 @@ module ActionController
       end
 
       def _url_host_allowed?(url)
-        host = URI(url.to_s).host
+        url_to_s = url.to_s
+        host = URI(url_to_s).host
 
-        return true if host == request.host
-        return true if _allowed_redirect_hosts_permissions.allows?(host)
-        return false unless host.nil?
-        return false unless url.to_s.start_with?("/")
-        !url.to_s.start_with?("//")
+        if host.nil?
+          url_to_s.start_with?("/") && !url_to_s.start_with?("//")
+        else
+          host == request.host || self.class.allowed_redirect_hosts_permissions&.allows?(host)
+        end
       rescue ArgumentError, URI::Error
         false
       end
@@ -291,10 +303,6 @@ module ActionController
         when :raise
           raise UnsafeRedirectError, message
         end
-      end
-
-      def _allowed_redirect_hosts_permissions
-        @allowed_redirect_hosts_permissions ||= ActionDispatch::HostAuthorization::Permissions.new(allowed_redirect_hosts)
       end
   end
 end

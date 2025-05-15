@@ -34,7 +34,7 @@ module ActionController
     end
 
     initializer "action_controller.set_allowed_redirect_hosts" do |app|
-      config.action_controller.allowed_redirect_hosts << app.config.hosts
+      config.action_controller.allowed_redirect_hosts += app.config.hosts
     end
 
     initializer "action_controller.parameters_config" do |app|
