@@ -9,7 +9,7 @@ module ActiveRecord
         ["row 1 col 1", "row 1 col 2"],
         ["row 2 col 1", "row 2 col 2"],
         ["row 3 col 1", "row 3 col 2"],
-      ])
+      ], affected_rows: 3)
     end
 
     test "includes_column?" do
@@ -138,6 +138,7 @@ module ActiveRecord
       assert_equal a.columns, b.columns
       assert_equal a.rows, b.rows
       assert_equal a.column_indexes, b.column_indexes
+      assert_equal a.affected_rows, b.affected_rows
 
       # Second round in case of mutation
       b = b.dup
@@ -146,6 +147,7 @@ module ActiveRecord
       assert_equal a.columns, b.columns
       assert_equal a.rows, b.rows
       assert_equal a.column_indexes, b.column_indexes
+      assert_equal a.affected_rows, b.affected_rows
     end
 
     test "column_types handles nil types in the column_types array" do

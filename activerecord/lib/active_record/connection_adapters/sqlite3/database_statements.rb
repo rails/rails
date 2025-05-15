@@ -88,35 +88,31 @@ module ActiveRecord
 
             if batch
               raw_connection.execute_batch2(sql)
-            elsif prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
-              stmt.reset!
-              stmt.bind_params(type_casted_binds)
-
-              result = if stmt.column_count.zero? # No return
-                stmt.step
-                ActiveRecord::Result.empty
-              else
-                ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
-              end
             else
-              # Don't cache statements if they are not prepared.
-              stmt = raw_connection.prepare(sql)
+              stmt = if prepare
+                @statements[sql] ||= raw_connection.prepare(sql)
+                @statements[sql].reset!
+              else
+                # Don't cache statements if they are not prepared.
+                raw_connection.prepare(sql)
+              end
               begin
                 unless binds.nil? || binds.empty?
                   stmt.bind_params(type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
-                  ActiveRecord::Result.empty
+                  @affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.empty(affected_rows: @affected_rows)
                 else
-                  ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
+                  rows = stmt.to_a
+                  @affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: @affected_rows)
                 end
               ensure
-                stmt.close
+                stmt.close unless prepare
               end
             end
-            @affected_rows = raw_connection.total_changes - total_changes_before_query
             verified!
 
             notification_payload[:affected_rows] = @affected_rows
