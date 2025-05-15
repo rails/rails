@@ -174,7 +174,7 @@ paths](#digested-assets-in-views) using helpers like `asset_path`, `image_tag`,
 automatically converted into their fingerprinted paths using the
 [`.manifest.json` file](#manifest-files).
 
-Its possible to exclude certain directories from this process, you can read more
+It is possible to exclude certain directories from this process, you can read more
 about it in the [Fingerprinting
 section](#fingerprinting-versioning-with-digest-based-urls).
 
@@ -359,7 +359,7 @@ serve them efficiently.
 
 ### Setup
 
-Follow these steps for setup Propshaft in your Rails application:
+Follow these steps for setting up Propshaft in your Rails application:
 
 1. Create a new Rails application:
 
@@ -542,7 +542,7 @@ headers.
 For Apache:
 
 ```apache
-# The Expires* directives requires the Apache module
+# The Expires* directives require the Apache module
 # `mod_expires` to be enabled.
 <Location /assets/>
   # Use of ETag is discouraged when Last-Modified is present
@@ -642,7 +642,7 @@ it will try to find it at the "origin" `example.com/assets/smile.png`, and then
 store it for future use.
 
 If you want to serve only some assets from your CDN, you can use custom `:host`
-option your asset helper, which overwrites value set in
+option for your asset helper, which overwrites the value set in
 [`config.action_controller.asset_host`][].
 
 ```erb
@@ -1013,7 +1013,7 @@ delivered via the Rails asset pipeline.
 4. In production, the gem ensures your stylesheets are compiled and ready for
    deployment. During the `assets:precompile` step, it installs all
    `package.json` dependencies via `bun`, `yarn`, `pnpm` or `npm` and runs the
-   `build:css` task. to process your stylesheet entry points. The resulting CSS
+   `build:css` task to process your stylesheet entry points. The resulting CSS
    output is then digested by the asset pipeline and copied into the
    `public/assets` directory, just like other asset pipeline files.
 
