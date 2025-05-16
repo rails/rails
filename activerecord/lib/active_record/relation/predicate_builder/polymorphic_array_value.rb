@@ -38,6 +38,10 @@ module ActiveRecord
             value.class
           elsif value.is_a?(Relation)
             value.model
+          elsif value.nil?
+            nil
+          else
+            raise ArgumentError, "#{value.inspect} is not a valid #{associated_table.association_name}"
           end
         end
 
