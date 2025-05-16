@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "support/deprecated_associations_test_helpers"
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -679,7 +680,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_taking
-    posts(:other_by_bob).destroy
+    posts(:other_by_bob).delete
     assert_equal posts(:misc_by_bob), authors(:bob).posts.take
     assert_equal posts(:misc_by_bob), authors(:bob).posts.take!
     authors(:bob).posts.to_a
@@ -3199,9 +3200,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(<<~MESSAGE.squish, error.message)
       Unknown key: :trough. Valid keys are:
       :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
-      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
-      :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :validate, :inverse_of, :strict_loading, :query_constraints, :deprecated,
+      :autosave, :before_add, :after_add, :before_remove, :after_remove, :extend,
+      :counter_cache, :join_table, :index_errors, :as, :through
     MESSAGE
   end
 
@@ -3281,5 +3282,77 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :posts
+
+  setup do
+    @model = Author
+    @author = Author.new
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.posts
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      assert_empty @author.deprecated_posts
+    end
+  end
+
+  test "<association>=" do
+    post = Post.new
+    assert_not_deprecated_association(:posts) do
+      @author.posts = [post]
+    end
+    assert_equal [post], @author.posts
+
+    deprecated_post = Post.new
+    assert_deprecated_association(:deprecated_posts) do
+      @author.deprecated_posts = [deprecated_post]
+    end
+    assert_equal [deprecated_post], @author.deprecated_posts
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.post_ids
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      assert_empty @author.deprecated_post_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    assert_not_deprecated_association(:posts) do
+      @author.post_ids = [1]
+    end
+    assert_equal [1], @author.post_ids
+
+    assert_deprecated_association(:deprecated_posts) do
+      @author.deprecated_post_ids = [2]
+    end
+    assert_equal [2], @author.deprecated_post_ids
+  end
+
+  test "destroy" do
+    david = authors(:david)
+    mary = authors(:mary)
+
+    assert_not_deprecated_association(:thinking_posts) do
+      david.destroy
+    end
+    assert_predicate david, :destroyed?
+
+    assert_deprecated_association(:deprecated_thinking_posts) do
+      mary.destroy
+    end
+    assert_predicate mary, :destroyed?
   end
 end

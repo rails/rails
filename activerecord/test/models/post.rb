@@ -47,6 +47,7 @@ class Post < ActiveRecord::Base
 
   belongs_to :author
   belongs_to :readonly_author, -> { readonly }, class_name: "Author", foreign_key: :author_id
+  belongs_to :deprecated_author, foreign_key: "author_id", class_name: "Author", touch: true, dependent: :delete, deprecated: true
 
   belongs_to :author_with_posts, -> { includes(:posts) }, class_name: "Author", foreign_key: :author_id
   belongs_to :author_with_address, -> { includes(:author_address) }, class_name: "Author", foreign_key: :author_id
@@ -127,6 +128,7 @@ class Post < ActiveRecord::Base
   has_many :hmt_special_categories, -> { where.not(name: nil) },  through: :category_posts, source: :category, class_name: "SpecialCategory"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, join_table: "categories_posts", association_foreign_key: "category_id"
+  has_and_belongs_to_many :deprecated_categories, join_table: "categories_posts", association_foreign_key: "category_id", class_name: "Category", deprecated: true
 
   has_many :essays, through: :categories
   has_many :authors_of_essays_named_bob,

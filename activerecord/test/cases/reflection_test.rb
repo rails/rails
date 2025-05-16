@@ -708,11 +708,38 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  test "#deprecated?" do
+    # While redundant, we pass and verify macro and options to make clear while
+    # reading the test that all the relevant association types are covered.
+    assert_deprecated Author, :has_many, :deprecated_posts
+    assert_deprecated Author, :has_many, :deprecated_comments, through: :posts
+
+    assert_deprecated Author, :has_one, :deprecated_post
+    assert_deprecated Author, :has_one, :deprecated_comment_on_first_post, through: :first_post
+
+    assert_deprecated Post, :belongs_to, :deprecated_author
+    assert_deprecated Post, :has_and_belongs_to_many, :deprecated_categories
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
       options.each do |method, value|
         assert_equal(value, reflection.public_send(method))
       end
+    end
+
+    def assert_deprecated(model, expected_macro, name, **options)
+      # Verify deprecated? is false for the original, not deprecated association.
+      reflection = model.reflect_on_association(name[/^deprecated_(.*)/, 1].to_sym)
+      assert_equal expected_macro, reflection.macro
+      options.each { assert_equal _2, reflection.options[_1] }
+      assert_not_predicate reflection, :deprecated?
+
+      # Verify deprecated? is true for the given deprecated association.
+      reflection = model.reflect_on_association(name)
+      assert_equal expected_macro, reflection.macro
+      options.each { assert_equal _2, reflection.options[_1] }
+      assert_predicate reflection, :deprecated?
     end
 end
