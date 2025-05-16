@@ -155,8 +155,8 @@ module ActionDispatch
     #     driven_by :selenium, using: :firefox
     #
     #     driven_by :selenium, using: :headless_firefox
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &capabilities)
-      driver_options = { using: using, screen_size: screen_size, options: options }
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], name: nil, options: {}, &capabilities)
+      driver_options = { using: using, screen_size: screen_size, name: name, options: options }
 
       self.driver = SystemTesting::Driver.new(driver, **driver_options, &capabilities)
     end
