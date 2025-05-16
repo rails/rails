@@ -301,7 +301,7 @@ If you have a model with a [composite primary key](active_record_composite_prima
 For example, to update a `@book` model object with a composite key `[:author_id, :id]` like this:
 
 ```ruby
-@book = Book.find([2, 25])
+@book = Book.find([ 2, 25 ])
 # => #<Book id: 25, title: "Some book", author_id: 2>
 ```
 
@@ -389,7 +389,7 @@ If you have a [singular resource](routing.html#singular-resources), you will nee
 
 ```ruby
 resource :article
-resolve("Article") { [:article] }
+resolve("Article") { [ :article ] }
 ```
 
 TIP: Declaring a resource has a number of side effects. See the [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
@@ -401,7 +401,7 @@ WARNING: When you're using [single-table inheritance](association_basics.html#si
 If you have namespaced routes, `form_with` has a shorthand for that. For example, if your application has an `admin` namespace:
 
 ```ruby
-form_with model: [:admin, @article]
+form_with model: [ :admin, @article ]
 ```
 
 The above will create a form that submits to the `Admin::ArticlesController` inside the admin namespace,  therefore submitting to `admin_article_path(@article)` in the case of an update.
@@ -409,7 +409,7 @@ The above will create a form that submits to the `Admin::ArticlesController` ins
 If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
-form_with model: [:admin, :management, @article]
+form_with model: [ :admin, :management, @article ]
 ```
 
 For more information on Rails' routing system and the associated conventions, please see the [Rails Routing from the Outside In](routing.html) guide.
@@ -714,7 +714,7 @@ end
 Assuming we have the following cities stored in the database:
 
 ```ruby
-City.order(:name).map { |city| [city.name, city.id] }
+City.order(:name).map { |city| [ city.name, city.id ] }
 # => [["Berlin", 1], ["Chicago", 3], ["Madrid", 2]]
 ```
 
@@ -996,7 +996,7 @@ For example, if you want users to be able to input multiple phone numbers, you c
 This would result in `params[:person][:phone_number]` being an array containing the submitted phone numbers:
 
 ```ruby
-{ "person" => { "phone_number" => ["555-0123", "555-0124", "555-0125"] } }
+{ "person" => { "phone_number" => [ "555-0123", "555-0124", "555-0125" ] } }
 ```
 
 ### Combining Arrays and Hashes
@@ -1235,7 +1235,7 @@ end
 
 private
   def person_params
-    params.expect(person: [ :name, addresses_attributes: [[ :id, :kind, :street ]] ])
+    params.expect(person: [ :name, addresses_attributes: [ [ :id, :kind, :street ] ] ])
   end
 ```
 
@@ -1282,7 +1282,7 @@ the `_destroy` field:
 ```ruby
 def person_params
   params.require(:person).
-    permit(:name, addresses_attributes: [:id, :kind, :street, :_destroy])
+    permit(:name, addresses_attributes: [ :id, :kind, :street, :_destroy ])
 end
 ```
 

@@ -1020,7 +1020,7 @@ key](active_record_composite_primary_keys.html) for the join table in the
 class CreateAppointments < ActiveRecord::Migration[8.1]
   def change
     #  ...
-    create_table :appointments, primary_key: [:physician_id, :patient_id] do |t|
+    create_table :appointments, primary_key: [ :physician_id, :patient_id ] do |t|
       t.belongs_to :physician
       t.belongs_to :patient
       t.datetime :appointment_date
@@ -1613,7 +1613,7 @@ class CreatePictures < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :pictures, [:imageable_type, :imageable_id]
+    add_index :pictures, [ :imageable_type, :imageable_id ]
   end
 end
 ```
@@ -3050,7 +3050,7 @@ add a unique index on the table itself. For example, if you have a table named
 once, you could add the following in a migration:
 
 ```ruby
-add_index :readings, [:person_id, :article_id], unique: true
+add_index :readings, [ :person_id, :article_id ], unique: true
 ```
 
 Once you have this unique index, attempting to add the article to a person twice

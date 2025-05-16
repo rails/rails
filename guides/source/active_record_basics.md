@@ -450,7 +450,7 @@ validations**, you can directly insert records into the database using `insert` 
 
 ```ruby
 Book.insert(title: "The Lord of the Rings", author: "J.R.R. Tolkien")
-Book.insert_all([{ title: "The Lord of the Rings", author: "J.R.R. Tolkien" }])
+Book.insert_all([ { title: "The Lord of the Rings", author: "J.R.R. Tolkien" } ])
 ```
 
 ### Read
