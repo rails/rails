@@ -84,7 +84,7 @@ module ActiveSupport
       # writing your own implementation, you can set +parallelize_databases+, or configure it
       # via +config.active_support.parallelize_test_databases+.
       #
-      #   parallelize(workers: :number_of_processes, parallelize_databases: false)
+      #   parallelize(workers: :number_of_processors, parallelize_databases: false)
       #
       # Note that your test suite may deadlock if you attempt to use only one database
       # with multiple processes.
