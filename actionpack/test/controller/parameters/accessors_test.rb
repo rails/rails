@@ -42,6 +42,15 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params[:person][:name], :permitted?
   end
 
+  test "[] converts hashes to parameters" do
+    params = ActionController::Parameters.new(name: "Bruce").permit(:name)
+    assert_equal({ "name" => "Bruce" }, params.to_h)
+
+    guitar = { "make" => "Fender", "model" => "Telecaster" }
+    params[:guitar] = guitar
+    assert_equal(ActionController::Parameters.new(guitar), params[:guitar])
+  end
+
   test "as_json returns the JSON representation of the parameters hash" do
     assert_not @params.as_json.key? "parameters"
     assert_not @params.as_json.key? "permitted"
@@ -442,5 +451,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_equal(["ruby", "rails", "web"], params.extract_value(:tags, delimiter: ","))
     assert_equal(["", "ruby", "", "rails", ""], params.extract_value(:blank_tags, delimiter: ","))
     assert_nil(params.extract_value(:non_existent_key))
+  end
+
+  def test_to_h_raises_error_when_unpermitted
+    params = ActionController::Parameters.new(name: "Bruce").permit(:name)
+    assert_equal({ "name" => "Bruce" }, params.to_h)
+
+    guitar = { "make" => "Fender", "model" => "Telecaster" }
+    params[:guitar] = guitar
+    assert_raises(ActionController::UnfilteredParameters) { params.to_h }
   end
 end
