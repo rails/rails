@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class RailsStorageRedirectUrlTest < ActiveSupport::TestCase
   include Rails.application.routes.url_helpers
@@ -28,12 +27,16 @@ class RailsStorageRedirectUrlTest < ActiveSupport::TestCase
   end
 
   test "rails_blob_path with variant generates redirect path" do
-    variant = @blob.variant(resize_to_limit: [100, 100])
-    assert_includes rails_blob_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
+    with_variable_content_types(%w(image/jpeg)) do
+      variant = @blob.variant(resize_to_limit: [100, 100])
+      assert_includes rails_blob_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
+    end
   end
 
   test "rails_representation_path generates proxy path" do
-    variant = @blob.variant(resize_to_limit: [100, 100])
-    assert_includes rails_representation_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
+    with_variable_content_types(%w(image/jpeg)) do
+      variant = @blob.variant(resize_to_limit: [100, 100])
+      assert_includes rails_representation_path(variant, only_path: true), "/rails/active_storage/representations/redirect/"
+    end
   end
 end
