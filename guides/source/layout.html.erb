@@ -86,7 +86,7 @@
                   <div class="guides-section">
                     <dt><%= section['name'] %></dt>
                     <% finished_documents(section['documents']).each do |document| %>
-                    <dd><a href="<%= document['url'] %>"><%= document['name'] %></a></dd>
+                    <dd><a href="<%= document['url'] %>" <% if @path == document['url'] %> class="active" <% end %>><%= document['name'] %></a></dd>
                     <% end %>
                   </div>
                 <% end %>

@@ -792,6 +792,50 @@ body.guide {
             color: $rf-brand !important;
             text-decoration: underline !important;
           }
+
+          a.active {
+            position: relative;
+            display: block;
+
+            &::before { // red square
+              @include media('>desktop') {
+                content: '';
+                display: block;
+              }
+              position: absolute;
+              height: 8px;
+              width: 8px;
+              top: 4px;
+              left: -1.1em;
+              border-radius: 3px;
+              background-color: $rf-brand;
+
+              :where(html[dir="rtl"]) & {
+                right: -1.1em;
+                left: unset;
+              }
+            }
+
+            &::after { // highlight
+              content: '';
+              position: absolute;
+              display: block;
+              height: calc(100% + 10px);
+              @include media('>desktop') {
+                width: 100%;
+              }
+              top: 50%;
+              transform: translateY(-50%);
+              left: -1.5em;
+              border-radius: 8px;
+              background-color: $stop-bkgnd;
+
+              :where(html[dir="rtl"]) & {
+                right: -1.5em;
+                left: unset;
+              }
+            }
+          }
         }
       }
     }
