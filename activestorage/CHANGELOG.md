@@ -1,3 +1,10 @@
+*   Move responsibility for checksum implementation determination to storage service
+
+    The storage service should be able to implement any method for calculating and
+    validating checksums provided the returned class implements file, <<, base64digest
+
+    *Matt Pasquini*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
