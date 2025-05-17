@@ -1,3 +1,11 @@
+*   Move responsibility for checksum implementation determination to storage service
+
+    The storage service should be able to implement any method for calculating and
+    validating checksums provided the returned class implements file, <<, base64digest.
+    Remove ActiveStorage::Downloader
+
+    *Matt Pasquini*
+
 *   Remove unnecessary calls to the GCP metadata server.
 
     Calling Google::Auth.get_application_default triggers an explicit call to
