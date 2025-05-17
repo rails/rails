@@ -3,6 +3,28 @@
 Active Record and PostgreSQL
 ============================
 
+This guide covers PostgreSQL specific usage of Active Record.
+
+After reading this guide, you will know:
+
+* How to use PostgreSQL's datatypes.
+* How to use UUID primary keys.
+* How to include non-key columns in indexes.
+* How to use deferrable foreign keys.
+* How to use unique constraints.
+* How to implement exclusion constraints.
+* How to implement full text search with PostgreSQL.
+* How to back your Active Record models with database views.
+
+--------------------------------------------------------------------------------
+
+In order to use the PostgreSQL adapter you need to have at least version 9.3
+installed. Older versions are not supported.
+
+To get started with PostgreSQL have a look at the
+[configuring Rails guide](configuring.html#configuring-a-postgresql-database).
+It describes how to properly set up Active Record for PostgreSQL.
+
 Datatypes
 ---------
 
@@ -92,7 +114,6 @@ When building a model with a foreign key that will reference this UUID, treat
 ```bash
 $ rails generate model Case device_id:uuid
 ```
-
 
 Generated Columns
 -----------------
