@@ -47,49 +47,6 @@ Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
 Book.where("array_length(ratings, 1) >= 3")
 ```
 
-### Composite Types
-
-* [type definition](https://www.postgresql.org/docs/current/static/rowtypes.html)
-
-Currently there is no special support for composite types. They are mapped to
-normal text columns:
-
-```sql
-CREATE TYPE full_address AS
-(
-  city VARCHAR(90),
-  street VARCHAR(90)
-);
-```
-
-```ruby
-# db/migrate/20140207133952_create_contacts.rb
-execute <<-SQL
-  CREATE TYPE full_address AS
-  (
-    city VARCHAR(90),
-    street VARCHAR(90)
-  );
-SQL
-create_table :contacts do |t|
-  t.column :address, :full_address
-end
-```
-
-```ruby
-# app/models/contact.rb
-class Contact < ApplicationRecord
-end
-```
-
-```irb
-irb> Contact.create address: "(Paris,Champs-Élysées)"
-irb> contact = Contact.first
-irb> contact.address
-=> "(Paris,Champs-Élysées)"
-irb> contact.address = "(Paris,Rue Basse)"
-irb> contact.save!
-```
 
 UUID Primary Keys
 -----------------

@@ -1171,6 +1171,59 @@ This is all taken care of by `revert`.
 [`revert`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Migration.html#method-i-revert
 
+
+### Composite Types (PostgreSQL only)
+
+PostgreSQL supports [composite types](https://www.postgresql.org/docs/current/static/rowtypes.html), which let you define structured types with multiple named fields—similar to a record or struct. Rails does not currently provide first-class support for these types. When used, they are treated as plain text columns.
+
+You can define and use a composite type like this:
+
+```sql
+CREATE TYPE full_address AS (
+  city VARCHAR(90),
+  street VARCHAR(90)
+);
+```
+
+Then reference it in a migration:
+
+```ruby
+# db/migrate/20140207133952_create_contacts.rb
+class CreateContacts < ActiveRecord::Migration[7.1]
+  def change
+    execute <<-SQL
+      CREATE TYPE full_address AS (
+        city VARCHAR(90),
+        street VARCHAR(90)
+      );
+    SQL
+
+    create_table :contacts do |t|
+      t.column :address, :full_address
+    end
+  end
+end
+```
+
+Rails treats the `address` column as a string:
+
+```ruby
+# app/models/contact.rb
+class Contact < ApplicationRecord
+end
+```
+
+```irb
+irb> Contact.create(address: "(Paris,Champs-Élysées)")
+irb> contact = Contact.first
+irb> contact.address
+=> "(Paris,Champs-Élysées)"
+irb> contact.address = "(Paris,Rue Basse)"
+irb> contact.save!
+```
+
+If you want to work with the data as structured fields in Ruby, you’ll need to manually parse and serialize the values.
+
 Running Migrations
 ------------------
 
