@@ -976,9 +976,29 @@ module ActiveRecord
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
-        # Adds an exclusion constraint.
+        # Adds an exclusion constraint, which ensures that if any two rows are compared on the specified expression,
+        # at least one of those comparisons returns false. Useful for enforcing complex rules, such as no overlapping ranges.
         #
-        #  t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+        #   t.exclusion_constraint("price WITH =, availability_range WITH &&", using: :gist, name: "price_check")
+        #
+        # Example:
+        #
+        #   create_table :products do |t|
+        #     t.integer :price, null: false
+        #     t.daterange :availability_range, null: false
+        #     t.exclusion_constraint "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        #   end
+        #
+        # The expression must be a comma-separated list of +<column> WITH <operator>+ pairs.
+        # For example, +availability_range WITH &&+ ensures that no two date ranges overlap.
+        #
+        # Most exclusion constraints require a +USING+ method like +:gist+ or +:spgist+. The default is +:gist+,
+        # which must be supported by the column types involved.
+        #
+        # Like foreign keys, exclusion constraints can be deferred by setting +:deferrable+ to either +:immediate+ or +:deferred+.
+        # By default, +:deferrable+ is `false` and the constraint is always checked immediately.
+        #
+        # You can read more about exclusion constraints in the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION).
         #
         # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
         def exclusion_constraint(...)
