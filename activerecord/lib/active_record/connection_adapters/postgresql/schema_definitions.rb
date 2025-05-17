@@ -998,6 +998,24 @@ module ActiveRecord
         #
         #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
         #
+        # Example:
+        #
+        #   create_table :items do |t|
+        #     t.integer :position, null: false
+        #     t.unique_constraint [:position], deferrable: :immediate
+        #   end
+        #
+        # If you want to change an existing unique index to deferrable, you can
+        # use +:using_index+ to create deferrable unique constraints.
+        #
+        #   add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
+        #
+        # Like foreign keys, unique constraints can be deferred by setting +:deferrable+ to either +:immediate+ or +:deferred+.
+        # By default, +:deferrable+ is false and the constraint is always checked immediately.
+        #
+        # Deferrable constraints are useful when performing multiple related inserts or updates that may temporarily violate
+        # the constraint but are resolved by the end of the transaction.
+        #
         # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
         def unique_constraint(...)
           @base.add_unique_constraint(name, ...)
