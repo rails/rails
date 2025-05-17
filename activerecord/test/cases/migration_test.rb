@@ -918,6 +918,17 @@ class MigrationTest < ActiveRecord::TestCase
     Person.lease_connection.drop_table :binary_testings, if_exists: true
   end
 
+  def test_quote
+    # rubocop:disable Style/StringLiterals
+    assert_equal 'NULL', ActiveRecord::Migration.quote(nil)
+    assert_equal 'TRUE', ActiveRecord::Migration.quote(true)
+    assert_equal 'FALSE', ActiveRecord::Migration.quote(false)
+    # rubocop:enable Style/StringLiterals
+
+    t = Date.today
+    assert_equal "'#{t.to_fs(:db)}'", ActiveRecord::Migration.quote(t)
+  end
+
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
       Person.lease_connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
