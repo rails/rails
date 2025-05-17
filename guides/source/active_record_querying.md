@@ -2653,6 +2653,20 @@ EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."c
 (7 rows)
 ```
 
+Additionally, the PostgreSQL adapter supports
+[buffers](https://www.postgresql.org/docs/current/sql-explain.html), which
+provide insight into how much data was read from memory versus disk—helping you
+understand the I/O behavior of a query.
+
+```ruby
+Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
+#=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
+# ...
+# Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
+#   Buffers: shared hit=5 read=2
+# ...
+```
+
 Eager loading may trigger more than one query under the hood, and some queries
 may need the results of previous ones. Because of that, `explain` actually
 executes the query, and then asks for the query plans. For example, running:
