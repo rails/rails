@@ -158,15 +158,6 @@ When building a model with a foreign key that will reference this UUID, treat
 $ rails generate model Case device_id:uuid
 ```
 
-Indexing
---------
-
-* [index creation](https://www.postgresql.org/docs/current/sql-createindex.html)
-
-PostgreSQL includes a variety of index options. The following options are
-supported by the PostgreSQL adapter in addition to the
-[common index options](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index)
-
 
 Generated Columns
 -----------------
