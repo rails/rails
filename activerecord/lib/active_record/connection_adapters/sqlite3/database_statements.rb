@@ -85,6 +85,7 @@ module ActiveRecord
 
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
             total_changes_before_query = raw_connection.total_changes
+            affected_rows = nil
 
             if batch
               raw_connection.execute_batch2(sql)
@@ -102,12 +103,12 @@ module ActiveRecord
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
-                  @affected_rows = raw_connection.total_changes - total_changes_before_query
-                  ActiveRecord::Result.empty(affected_rows: @affected_rows)
+                  affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.empty(affected_rows: affected_rows)
                 else
                   rows = stmt.to_a
-                  @affected_rows = raw_connection.total_changes - total_changes_before_query
-                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: @affected_rows)
+                  affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
                 stmt.close unless prepare
@@ -115,7 +116,7 @@ module ActiveRecord
             end
             verified!
 
-            notification_payload[:affected_rows] = @affected_rows
+            notification_payload[:affected_rows] = affected_rows
             notification_payload[:row_count] = result&.length || 0
             result
           end
@@ -127,7 +128,7 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            @affected_rows
+            result.affected_rows
           end
 
           def execute_batch(statements, name = nil, **kwargs)
