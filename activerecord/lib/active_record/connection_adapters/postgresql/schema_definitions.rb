@@ -164,7 +164,11 @@ module ActiveRecord
         #
         #   data = File.read(Rails.root.join("tmp/output.pdf"))
         #   Document.create(payload: data)
-
+        #
+        #  🔗 See also:
+        #
+        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/datatype-binary.html
+        # - Hstore functions and operators: https://www.postgresql.org/docs/current/static/functions-binarystring.html
 
         ##
         # :method: cidr
@@ -174,18 +178,24 @@ module ActiveRecord
         #
         # The +cidr+ stands for *Classless Inter-Domain Routing*.
         # It is used to store IP addresses along with their subnet masks, such as +'192.168.0.0/24'+.
+        # The `cidr` type is mapped to Ruby [`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html)
         #
         # Example:
         #
-        #   t.cidr :ip_address
-        #
-        # You can also specify the column type explicitly:
-        #
-        #   t.column :ip_address, :cidr
+        #   create_table(:devices, force: true) do |t|
+        #     t.cidr "network"
+        #   end
         #
         # Values can be assigned using standard PostgreSQL CIDR syntax:
         #
-        #   User.create(ip_address: '192.168.0.0/24')
+        #   device = Device.create(network: '192.168.0.0/24')
+        #
+        #   device.network
+        #   => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
+        #
+        #  🔗 See also:
+        #
+        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/datatype-net-types.html
 
         ##
         # :method: circle
@@ -225,18 +235,41 @@ module ActiveRecord
         # :method: daterange
         # :call-seq: daterange(*names, **options)
         #
-        # Adds a +daterange+ column for storing a range of dates.
-        #
-        # This uses PostgreSQL’s +daterange+ type, which allows storage and querying
+        # Adds a +daterange+ column which allows storage and querying
         # of inclusive or exclusive date intervals.
         #
+        # This type is mapped to Ruby [`Range`](https://docs.ruby-lang.org/en/master/Range.html) objects.
+        #
         # Example:
+        #   t.daterange :duration
         #
-        #   t.daterange :availability_range
-        #
-        # This creates a column named +availability_range+ that can store ranges like:
+        # This creates a column named +duration+ that can store ranges like:
         #   '2024-01-01'..'2024-12-31'
-
+        #
+        #   Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+        #
+        #   event = Event.first
+        #   event.duration
+        #   => Tue, 11 Feb 2014...Thu, 13 Feb 2014
+        #
+        # For all events on a given date:
+        #
+        #   Event.where("duration @> ?::date", Date.new(2014, 2, 12))
+        #
+        # Working with range bounds:
+        #
+        #   event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
+        #
+        #   event.starts_at
+        #   => Tue, 11 Feb 2014
+        #
+        #   event.ends_at
+        #   => Thu, 13 Feb 2014
+        #
+        # 🔗 See also:
+        #
+        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/rangetypes.html
+        # - PostgreSQL range functions and operators: https://www.postgresql.org/docs/current/static/functions-range.html
 
         ##
         # The PostgreSQL +enum+ type can be used directly as a column, or mapped to
@@ -270,7 +303,9 @@ module ActiveRecord
         #     drop_enum :article_status
         #   end
         #
-        # Example: Declaring enum in the model
+        # Make sure you remove any columns or tables that depend on the enum type before dropping it.
+        #
+        # Declaring enum in the model adds helper methods and prevents invalid values from being assigned to instances of the class:
         #
         #   # app/models/article.rb
         #   class Article < ApplicationRecord
@@ -319,7 +354,7 @@ module ActiveRecord
         #     rename_enum_value :article_state, from: "archived", to: "deleted"
         #   end
         #
-        # To inspect all enum types and values in the database:
+        # To inspect all enum types and values in the database you can use this query in `bin/rails db` or `psql` console::
         #
         #   SELECT n.nspname AS enum_schema,
         #          t.typname AS enum_name,
@@ -370,7 +405,6 @@ module ActiveRecord
         #
         #   Profile.where("settings -> 'color' = ?", "yellow")
         #
-        #
         # 🔗 See also:
         #
         # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/hstore.html
@@ -388,11 +422,13 @@ module ActiveRecord
         # :call-seq: inet(*names, **options)
         #
         # Adds an +inet+ column for storing IPv4 or IPv6 addresses with or without subnet masks.
-        # In Ruby, this is mapped to an +IPAddr+ object.
+        # In Ruby, this is mapped to an [`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html) object.
         #
         # Example:
         #
-        #   t.inet :ip_address
+        #   create_table(:devices, force: true) do |t|
+        #     t.inet "ip_address"
+        #   end
         #
         # You can assign and query values as strings:
         #
@@ -400,26 +436,30 @@ module ActiveRecord
         #   device.ip_address.class
         #   # => IPAddr
         #
+        #   device.ip_address
+        #   => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
+        #
         # 🔗 See also: [Ruby IPAddr documentation](https://docs.ruby-lang.org/en/master/IPAddr.html)
 
-
-        ##
-        # :method: interval
-        # :call-seq: interval(*names, **options)
+        ## :method: interval :call-seq: interval(*names, **options)
         #
-        # Adds an +interval+ column for storing durations of time.
-        # It represents elapsed time (e.g., hours, days, months).
-        # In Ruby, this maps to +ActiveSupport::Duration+.
+        # Adds an +interval+ column for storing durations of time. It represents
+        # elapsed time (e.g., hours, days, months). In Ruby, this maps to
+        # +ActiveSupport::Duration+. This type is mapped to
+        # [`ActiveSupport::Duration`](https://api.rubyonrails.org/classes/ActiveSupport/Duration.html)
+        # objects.
         #
         # Example:
         #
-        #   t.interval :duration
+        #  create_table :events do |t|
+        #   t.interval "duration"
+        # end
         #
         # You can assign durations using ActiveSupport helpers:
+        #   event = Event.create(duration: 3.days + 2.hours)
+        #   event.duration
+        #   => 3 days 2 hours
         #
-        #   task.duration = 3.days + 2.hours
-        #
-        # 🔗 See also: [ActiveSupport::Duration](https://api.rubyonrails.org/classes/ActiveSupport/Duration.html)
 
         ##
         # :method: int4range
@@ -454,7 +494,6 @@ module ActiveRecord
         #
         #   record.usage_window = 1_000_000..2_000_000
 
-
         ##
         # :method: jsonb
         # :call-seq: jsonb(*names, **options)
@@ -472,6 +511,8 @@ module ActiveRecord
         # You can also use +json+ (text-based JSON) instead:
         #
         #   t.json :payload
+        #
+        # The +json+ type preserves formatting and key order, while +jsonb+ is optimized for speed.
         #
         #   # db/migrate/20131220144913_create_events.rb
         #   create_table :events do |t|
@@ -558,15 +599,21 @@ module ActiveRecord
         # :method: macaddr
         # :call-seq: macaddr(*names, **options)
         #
-        # Adds a +macaddr+ column for storing MAC addresses.
+        # Adds a +macaddr+ column for storing MAC addresses. It is mapped to normal text.
         #
         # Example:
         #
-        #   t.macaddr :device_mac
+        #   t.macaddr :address
         #
         # A MAC address value must be in standard colon-separated format.
         #
-        #   Device.create(device_mac: '08:00:2b:01:02:03')
+        #   Device.create(address: '32:01:16:6d:05:ef')
+        #
+        #   device = Device.first
+        #   device.address
+        #   => "32:01:16:6d:05:ef"
+        #
+        # 🔗 See also: [Ruby IPAddr documentation](https://docs.ruby-lang.org/en/master/IPAddr.html)
 
         ##
         # :method: money
@@ -672,7 +719,10 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.timestamptz :submitted_at
+        #   create_table :post, id: :uuid do |t|
+        #     t.datetime :published_at
+        #     # By default, Active Record will set the data type of this column to `timestamp without time zone`.
+        #   end
         #
         # A timestamptz value stores time in UTC with session-local zone conversion.
         #
@@ -680,8 +730,10 @@ module ActiveRecord
         #
         # Rails uses +timestamp without time zone+ by default for datetime columns.
         # This can lead to confusion or bugs in apps dealing with multiple time zones.
+        # [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+        # This must be configured before it can be used for new migrations.
         #
-        # To configure Rails to use +timestamptz+ instead:
+        # To configure Rails to use timestamp with time zone +timestamptz+ instead:
         #
         #   # config/application.rb
         #   ActiveSupport.on_load(:active_record_postgresqladapter) do
@@ -690,7 +742,6 @@ module ActiveRecord
         #
         # 🔗 See also:
         # - PostgreSQL Date/Time Types: https://www.postgresql.org/docs/current/datatype-datetime.html
-        # - PostgreSQL best practices on time zones: https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29
 
         ##
         # :method: tsrange
@@ -734,33 +785,43 @@ module ActiveRecord
         #
         #   Article.create(document: "The quick brown fox jumps over the lazy dog")
 
-        ##
-        # :method: uuid
-        # :call-seq: uuid(*names, **options)
+        ## :method: uuid :call-seq: uuid(*names, **options)
         #
-        # Adds a +uuid+ column for storing universally unique identifiers.
+        # Adds a +uuid+ column for storing Universally Unique Identifiers.
         #
-        # Example:
+        # UUIDs are 128-bit values used to uniquely identify records across
+        # space and time. They're commonly used for primary keys or to reference
+        # external systems.
+        #
+        # If you're using PostgreSQL < 13, enable one of the following
+        # extensions to use UUIDs:
+        #
+        # - `pgcrypto` extension (PostgreSQL >= 9.4)
+        # - `uuid-ossp` extension (for even earlier releases)
+        #
+        # Basic Example
+        #
+        #   t.uuid :external_id
+        #
+        #   record = Model.create(external_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
+        #   record.external_id
+        #   # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        #
+        # You can specify `id: :uuid` when creating a table to use UUIDs as the primary key:
         #
         #   create_table :posts, id: :uuid do |t|
         #     t.string :title
+        #     t.timestamps
         #   end
         #
-        # A uuid value uniquely identifies a record globally.
+        #   post = Post.create(title: "Hello UUID")
+        #   post.id
+        #   # => "1c263dc4-79fc-4eb6-b9a1-bc4a5c7ff207"
         #
-        #   Revision.create(identifier: "A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11")
-        #
-        #   revision = Revision.first
-        #   revision.identifier
-        #   # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-        #
-        # You can use +uuid+ type to define references:
-        #
-        #   enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
-        #   create_table :posts, id: :uuid
+        # You can also use UUIDs as foreign keys in associations:
         #
         #   create_table :comments, id: :uuid do |t|
-        #     t.references :post, type: :uuid
+        #     t.references :post, type: :uuid, foreign_key: true
         #   end
         #
         #   class Post < ApplicationRecord
@@ -771,12 +832,15 @@ module ActiveRecord
         #     belongs_to :post
         #   end
         #
-        # 🔗 See also:
-        # - PostgreSQL UUID type: https://www.postgresql.org/docs/current/static/datatype-uuid.html
-        # - +pgcrypto+ generator: https://www.postgresql.org/docs/current/static/pgcrypto.html
-        # - +uuid-ossp+ generator: https://www.postgresql.org/docs/current/static/uuid-ossp.html
+        #   post = Post.create!
+        #   comment = post.comments.create!
+        #   comment.post_id
+        #   # => same UUID as post.id
         #
-        # NOTE: For PostgreSQL < 13, enable +pgcrypto+ or +uuid-ossp+ extensions to support UUID generation.
+        # 🔗 See also:
+        # - PostgreSQL UUID type: https://www.postgresql.org/docs/current/datatype-uuid.html
+        # - pgcrypto extension: https://www.postgresql.org/docs/current/pgcrypto.html
+        # - uuid-ossp extension: https://www.postgresql.org/docs/current/uuid-ossp.html
 
         ##
         # :method: xml
