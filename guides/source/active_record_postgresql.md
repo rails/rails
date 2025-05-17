@@ -281,55 +281,6 @@ end
 
 Like foreign keys, exclusion constraints can be deferred by setting `:deferrable` to either `:immediate` or `:deferred`. By default, `:deferrable` is `false` and the constraint is always checked immediately.
 
-Full Text Search
-----------------
-
-```ruby
-# db/migrate/20131220144913_create_documents.rb
-create_table :documents do |t|
-  t.string :title
-  t.string :body
-end
-
-add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: "documents_idx"
-```
-
-```ruby
-# app/models/document.rb
-class Document < ApplicationRecord
-end
-```
-
-```ruby
-# Usage
-Document.create(title: "Cats and Dogs", body: "are nice!")
-
-## all documents matching 'cat & dog'
-Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
-                 "cat & dog")
-```
-
-Optionally, you can store the vector as automatically generated column (from PostgreSQL 12.0):
-
-```ruby
-# db/migrate/20131220144913_create_documents.rb
-create_table :documents do |t|
-  t.string :title
-  t.string :body
-
-  t.virtual :textsearchable_index_col,
-            type: :tsvector, as: "to_tsvector('english', title || ' ' || body)", stored: true
-end
-
-add_index :documents, :textsearchable_index_col, using: :gin, name: "documents_idx"
-
-# Usage
-Document.create(title: "Cats and Dogs", body: "are nice!")
-
-## all documents matching 'cat & dog'
-Document.where("textsearchable_index_col @@ to_tsquery(?)", "cat & dog")
-```
-
 Database Views
 --------------
 
