@@ -1,3 +1,7 @@
+*   Fix `ActiveRecord::Migration.quote` to handle non-string values correctly
+
+    *Yuhi Sato*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
