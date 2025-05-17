@@ -1,3 +1,9 @@
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    *Joshua Young*
+
 *   Add `affected_rows` to `ActiveRecord::Result`.
 
     *Jenny Shen*
