@@ -1552,7 +1552,17 @@ instances.
 
 When the schema format is set to `:sql`, the database structure will be dumped
 using a tool specific to the database into `db/structure.sql`. For example, for
-PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
+PostgreSQL, the `pg_dump` utility is used.
+
+You can then use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to
+configure `pg_dump`. For example, to exclude comments from your structure dump,
+add this to an initializer:
+
+```ruby
+ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
+```
+
+For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
 To load the schema from `db/structure.sql`, run `bin/rails db:schema:load`.
