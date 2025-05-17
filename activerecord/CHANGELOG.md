@@ -1,3 +1,7 @@
+*   Fix `ActiveRecord::Migration.quote` to avoid incorrectly stringifying non-string arguments.
+
+    *Yuhi Sato*
+
 *   Add `affected_rows` to `ActiveRecord::Result`.
 
     *Jenny Shen*
