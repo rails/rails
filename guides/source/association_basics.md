@@ -2543,6 +2543,42 @@ described in the initial examples above.
 [`config.active_record.automatic_scope_inversing`]:
     configuring.html#config-active-record-automatic-scope-inversing
 
+### Deferrable Foreign Keys
+
+By default, relational databases like PostgreSQL enforce foreign key constraints immediately after each statement within a transaction. This ensures that every inserted or updated row maintains referential integrity, and prevents you from creating records that reference other records that haven't yet been persisted.
+
+However, PostgreSQL supports a feature called [deferrable constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html), which allows constraint checks to be deferred until the end of a transaction. This is especially useful when you're working with circular dependencies between records, or performing complex inserts that require temporarily invalid foreign key states.
+
+Rails supports this feature via the `:deferrable` option when creating foreign keys using `add_reference`, `add_foreign_key`, or in your `create_table` block:
+
+```ruby
+add_reference :people, :alias, foreign_key: { deferrable: :deferred }
+add_reference :aliases, :person, foreign_key: { deferrable: :deferred }
+```
+
+In the example above, both the `people` and `aliases` tables reference each other. Without deferrable constraints, trying to insert both records in the same transaction would fail because the referenced record doesn't yet exist at the time of the insert. But with `deferrable: :deferred`, the check is postponed until the transaction is committed, allowing both inserts to succeed:
+
+```ruby
+ActiveRecord::Base.connection.transaction do
+  person = Person.create!(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
+  Alias.create!(id: person.alias_id, person_id: person.id, name: "jaydee")
+end
+```
+
+#### Using Immediate Constraints with Manual Deferral
+
+You can also mark the constraint as deferrable but still check it immediately by default, using `deferrable: :immediate`. This gives you flexibility to defer constraint checks manually inside a transaction:
+
+```ruby
+ActiveRecord::Base.connection.transaction do
+  ActiveRecord::Base.connection.set_constraints(:deferred)
+  person = Person.create!(alias_id: SecureRandom.uuid, name: "John Doe")
+  Alias.create!(id: person.alias_id, person_id: person.id, name: "jaydee")
+end
+```
+
+This is helpful when you want the safety of immediate checks by default, but need to defer them in certain transactions.
+
 Association References
 ----------------------
 

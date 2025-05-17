@@ -207,38 +207,3 @@ end
 user = User.create(name: "John")
 User.last.name_upcased # => "JOHN"
 ```
-
-Deferrable Foreign Keys
------------------------
-
-* [foreign key table constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html)
-
-By default, table constraints in PostgreSQL are checked immediately after each statement. It intentionally does not allow creating records where the referenced record is not yet in the referenced table. It is possible to run this integrity check later on when the transaction is committed by adding `DEFERRABLE` to the foreign key definition though. To defer all checks by default it can be set to `DEFERRABLE INITIALLY DEFERRED`. Rails exposes this PostgreSQL feature by adding the `:deferrable` key to the `foreign_key` options in the `add_reference` and `add_foreign_key` methods.
-
-One example of this is creating circular dependencies in a transaction even if you have created foreign keys:
-
-```ruby
-add_reference :person, :alias, foreign_key: { deferrable: :deferred }
-add_reference :alias, :person, foreign_key: { deferrable: :deferred }
-```
-
-If the reference was created with the `foreign_key: true` option, the following transaction would fail when executing the first `INSERT` statement. It does not fail when the `deferrable: :deferred` option is set though.
-
-```ruby
-ActiveRecord::Base.lease_connection.transaction do
-  person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
-  Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
-end
-```
-
-When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `set_constraints` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
-
-```ruby
-ActiveRecord::Base.lease_connection.transaction do
-  ActiveRecord::Base.lease_connection.set_constraints(:deferred)
-  person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
-  Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
-end
-```
-
-By default `:deferrable` is `false` and the constraint is always checked immediately.
