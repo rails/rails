@@ -167,25 +167,6 @@ PostgreSQL includes a variety of index options. The following options are
 supported by the PostgreSQL adapter in addition to the
 [common index options](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_index)
 
-### Include
-
-When creating a new index, non-key columns can be included with the `:include` option.
-These keys are not used in index scans for searching, but can be read during an index
-only scan without having to visit the associated table.
-
-```ruby
-# db/migrate/20131220144913_add_index_users_on_email_include_id.rb
-
-add_index :users, :email, include: :id
-```
-
-Multiple columns are supported:
-
-```ruby
-# db/migrate/20131220144913_add_index_users_on_email_include_id_and_created_at.rb
-
-add_index :users, :email, include: [:id, :created_at]
-```
 
 Generated Columns
 -----------------
