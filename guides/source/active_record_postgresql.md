@@ -69,52 +69,6 @@ Book.where("tags @> ARRAY[?]::varchar[]", ["fantasy", "fiction"])
 Book.where("array_length(ratings, 1) >= 3")
 ```
 
-
-UUID Primary Keys
------------------
-
-NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
-extension to generate random UUIDs.
-
-```ruby
-# db/migrate/20131220144913_create_devices.rb
-enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
-create_table :devices, id: :uuid do |t|
-  t.string :kind
-end
-```
-
-```ruby
-# app/models/device.rb
-class Device < ApplicationRecord
-end
-```
-
-```irb
-irb> device = Device.create
-irb> device.id
-=> "814865cd-5a1d-4771-9306-4268f188fe9e"
-```
-
-NOTE: `gen_random_uuid()` (from `pgcrypto`) is assumed if no `:default` option
-was passed to `create_table`.
-
-To use the Rails model generator for a table using UUID as the primary key, pass
-`--primary-key-type=uuid` to the model generator.
-
-For example:
-
-```bash
-$ rails generate model Device --primary-key-type=uuid kind:string
-```
-
-When building a model with a foreign key that will reference this UUID, treat
-`uuid` as the native field type, for example:
-
-```bash
-$ rails generate model Case device_id:uuid
-```
-
 Generated Columns
 -----------------
 

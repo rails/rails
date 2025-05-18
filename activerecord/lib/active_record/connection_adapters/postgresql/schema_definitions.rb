@@ -793,49 +793,40 @@ module ActiveRecord
         # space and time. They're commonly used for primary keys or to reference
         # external systems.
         #
-        # If you're using PostgreSQL < 13, enable one of the following
-        # extensions to use UUIDs:
+        # On PostgreSQL, you may need to enable an extension to use UUIDs:
         #
-        # - `pgcrypto` extension (PostgreSQL >= 9.4)
-        # - `uuid-ossp` extension (for even earlier releases)
+        # - Use the +pgcrypto+ extension for PostgreSQL >= 9.4
+        # - Use the +uuid-ossp+ extension for earlier versions
         #
-        # Basic Example
+        #   enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
         #
-        #   t.uuid :external_id
+        # When creating a table with a UUID primary key, `gen_random_uuid()` is used
+        # as the default generator if no `:default` option is specified:
         #
-        #   record = Model.create(external_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11")
-        #   record.external_id
-        #   # => "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-        #
-        # You can specify `id: :uuid` when creating a table to use UUIDs as the primary key:
-        #
-        #   create_table :posts, id: :uuid do |t|
-        #     t.string :title
-        #     t.timestamps
+        #   create_table :devices, id: :uuid do |t|
+        #     t.string :kind
         #   end
         #
-        #   post = Post.create(title: "Hello UUID")
-        #   post.id
-        #   # => "1c263dc4-79fc-4eb6-b9a1-bc4a5c7ff207"
+        # If no +:default+ option is passed when creating a table with +id: :uuid+,
+        # Rails assumes +gen_random_uuid()+ (from the +pgcrypto+ extension) as the default value.
         #
-        # You can also use UUIDs as foreign keys in associations:
+        #   device = Device.create
+        #   device.id
+        #   # => "814865cd-5a1d-4771-9306-4268f188fe9e"
+        #
+        # You can also use UUIDs in references:
         #
         #   create_table :comments, id: :uuid do |t|
         #     t.references :post, type: :uuid, foreign_key: true
         #   end
         #
-        #   class Post < ApplicationRecord
-        #     has_many :comments
-        #   end
+        # To generate a model with UUID as the primary key:
         #
-        #   class Comment < ApplicationRecord
-        #     belongs_to :post
-        #   end
+        #   $ rails generate model Device --primary-key-type=uuid kind:string
         #
-        #   post = Post.create!
-        #   comment = post.comments.create!
-        #   comment.post_id
-        #   # => same UUID as post.id
+        # And for a foreign key referencing a UUID:
+        #
+        #   $ rails generate model Case device_id:uuid
         #
         # 🔗 See also:
         # - PostgreSQL UUID type: https://www.postgresql.org/docs/current/datatype-uuid.html
