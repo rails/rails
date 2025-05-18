@@ -2655,8 +2655,8 @@ EXPLAIN SELECT "customers".* FROM "customers" INNER JOIN "orders" ON "orders"."c
 
 Additionally, the PostgreSQL adapter supports
 [buffers](https://www.postgresql.org/docs/current/sql-explain.html), which
-provide insight into how much data was read from memory versus disk—helping you
-understand the I/O behavior of a query.
+provides insight into how much data was read from memory versus disk, helping
+you understand the I/O behavior of a query.
 
 ```ruby
 Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
