@@ -260,10 +260,6 @@
       name: Composite Primary Keys
       url: active_record_composite_primary_keys.html
       description: This guide is an introduction to composite primary keys for database tables.
-    -
-      name: Working with Database Views
-      url: active_record_database_views.html
-      description: This guide is an introduction to working with database views in Active Record.
 
 -
   name: Extending Rails
