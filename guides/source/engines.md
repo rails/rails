@@ -569,7 +569,7 @@ end
 
 private
   def comment_params
-    params.expect(comment: [:text])
+    params.expect(comment: [ :text ])
   end
 ```
 
@@ -776,7 +776,7 @@ permit the new form parameter:
 
 ```ruby
 def article_params
-  params.expect(article: [:title, :text, :author_name])
+  params.expect(article: [ :title, :text, :author_name ])
 end
 ```
 
@@ -1323,7 +1323,7 @@ You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w( admin.js admin.css )
+  app.config.assets.precompile += %w[ admin.js admin.css ]
 end
 ```
 

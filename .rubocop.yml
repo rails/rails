@@ -22,12 +22,7 @@ AllCops:
     - guides/source/active_support_instrumentation.md
     - '**/node_modules/**/*'
     - '**/CHANGELOG.md'
-    - '**/2_*_release_notes.md'
-    - '**/3_*_release_notes.md'
-    - '**/4_*_release_notes.md'
-    - '**/5_*_release_notes.md'
-    - '**/6_*_release_notes.md'
-
+    - '**/*_release_notes.md'
 
 Performance:
   Exclude:

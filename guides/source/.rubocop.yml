@@ -1,0 +1,5 @@
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+Markdown:
+  Autodetect: false

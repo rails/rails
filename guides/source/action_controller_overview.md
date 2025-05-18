@@ -387,7 +387,7 @@ class PeopleController < ActionController::Base
     # Using a private method to encapsulate the permitted parameters is a good
     # pattern. You can use the same list for both create and update.
     def person_params
-      params.expect(person: [:name, :age])
+      params.expect(person: [ :name, :age ])
     end
 end
 ```
@@ -408,7 +408,7 @@ Another example is form params, you can use `expect` to ensure that the root key
 is present and the attributes are permitted.
 
 ```ruby
-user_params = params.expect(user: [:username, :password])
+user_params = params.expect(user: [ :username, :password ])
 user_params.has_key?(:username) # => true
 ```
 
@@ -508,21 +508,21 @@ You can also use `expect` (or `permit`) on nested parameters, like:
 # Given the example expected params:
 params = ActionController::Parameters.new(
   name: "Martin",
-  emails: ["me@example.com"],
+  emails: [ "me@example.com" ],
   friends: [
-    { name: "André", family: { name: "RubyGems" }, hobbies: ["keyboards", "card games"] },
-    { name: "Kewe", family: { name: "Baroness" }, hobbies: ["video games"] },
+    { name: "André", family: { name: "RubyGems" }, hobbies: [ "keyboards", "card games" ] },
+    { name: "Kewe", family: { name: "Baroness" }, hobbies: [ "video games" ] }
   ]
 )
 # the following expect will ensure the params are permitted
 name, emails, friends = params.expect(
   :name,                 # permitted scalar
   emails: [],            # array of permitted scalars
-  friends: [[            # array of permitted Parameter hashes
+  friends: [ [            # array of permitted Parameter hashes
     :name,               # permitted scalar
-    family: [:name],     # family: { name: "permitted scalar" }
+    family: [ :name ],     # family: { name: "permitted scalar" }
     hobbies: []          # array of permitted scalars
-  ]]
+  ] ]
 )
 ```
 
@@ -555,7 +555,7 @@ parameters:
 
 ```ruby
 # permit :id and :_destroy
-params.expect(author: [ :name, books_attributes: [[ :title, :id, :_destroy ]] ])
+params.expect(author: [ :name, books_attributes: [ [ :title, :id, :_destroy ] ] ])
 ```
 
 **Example 3**: Hashes with integer keys are treated differently, and you can declare
@@ -569,7 +569,7 @@ parameters when you use `accepts_nested_attributes_for` in combination with a
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
 
-params.expect(book: [ :title, chapters_attributes: [[ :title ]] ])
+params.expect(book: [ :title, chapters_attributes: [ [ :title ] ] ])
 ```
 
 **Example 4**: Imagine a scenario where you have parameters representing a product
@@ -1046,7 +1046,7 @@ actions to skip a given `before_action`:
 
 ```ruby
 class LoginsController < ApplicationController
-  skip_before_action :require_login, only: [:new, :create]
+  skip_before_action :require_login, only: [ :new, :create ]
 end
 ```
 

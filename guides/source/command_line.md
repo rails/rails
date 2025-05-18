@@ -718,7 +718,7 @@ Custom rake tasks have a `.rake` extension and are placed in
 
 ```ruby
 desc "I am short, but comprehensive description for my cool task"
-task task_name: [:prerequisite_task, :another_task_we_depend_on] do
+task task_name: [ :prerequisite_task, :another_task_we_depend_on ] do
   # All your magic here
   # Any valid Ruby code is allowed
 end
@@ -727,7 +727,7 @@ end
 To pass arguments to your custom rake task:
 
 ```ruby
-task :task_name, [:arg_1] => [:prerequisite_1, :prerequisite_2] do |task, args|
+task :task_name, [ :arg_1 ] => [ :prerequisite_1, :prerequisite_2 ] do |task, args|
   argument_1 = args.arg_1
 end
 ```
@@ -755,7 +755,7 @@ $ bin/rails db:nothing
 If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
 
 ```ruby
-task task_that_requires_app_code: [:environment] do
+task task_that_requires_app_code: [ :environment ] do
   User.create!
 end
 ```

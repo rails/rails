@@ -111,7 +111,7 @@ The configuration method `config.autoload_lib` adds the `lib` directory to `conf
 Normally, `lib` has subdirectories that should not be managed by the autoloaders. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example:
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks))
+config.autoload_lib(ignore: %w[assets tasks])
 ```
 
 Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code, their contents are not meant to be reloaded or eager loaded.
@@ -119,7 +119,7 @@ Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code
 The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloaded or eager loaded. For example,
 
 ```ruby
-config.autoload_lib(ignore: %w(assets tasks templates generators middleware))
+config.autoload_lib(ignore: %w[assets tasks templates generators middleware])
 ```
 
 `config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
@@ -379,7 +379,7 @@ Additionally, if `lib` is in the autoload paths, configure the autoloader to ign
 
 ```ruby
 # config/application.rb
-config.autoload_lib(ignore: %w(assets tasks ... middleware))
+config.autoload_lib(ignore: %w[assets tasks ... middleware])
 ```
 
 since you are loading those files yourself.
@@ -592,7 +592,7 @@ Rails < 7.1 did not support this feature, but you can still add this additional 
 # Additional code for applications running on Rails < 7.1.
 app_services_dir = "#{Rails.root}/app/services" # has to be a string
 ActiveSupport::Dependencies.autoload_paths.delete(app_services_dir)
-Rails.application.config.watchable_dirs[app_services_dir] = [:rb]
+Rails.application.config.watchable_dirs[app_services_dir] = [ :rb ]
 ```
 
 Custom namespaces are also supported for the `once` autoloader. However, since that one is set up earlier in the boot process, the configuration cannot be done in an application initializer. Instead, please put it in `config/application.rb`, for example.

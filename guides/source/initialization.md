@@ -108,7 +108,7 @@ module Rails
   module Command
     class << self
       def invoke(full_namespace, args = [], **config)
-        args = ["--help"] if rails_new_with_no_path?(args)
+        args = [ "--help" ] if rails_new_with_no_path?(args)
 
         full_namespace = full_namespace.to_s
         namespace, command_name = split_namespace(full_namespace)
@@ -302,7 +302,7 @@ module Rails
       end
 
       def create_tmp_directories
-        %w(cache pids sockets).each do |dir_to_make|
+        %w[cache pids sockets].each do |dir_to_make|
           FileUtils.mkdir_p(File.join(Rails.root, "tmp", dir_to_make))
         end
       end
@@ -507,7 +507,7 @@ This file is responsible for requiring all the individual frameworks of Rails:
 ```ruby
 require "rails"
 
-%w(
+%w[
   active_record/railtie
   active_storage/engine
   action_controller/railtie
@@ -518,7 +518,7 @@ require "rails"
   action_mailbox/engine
   action_text/engine
   rails/test_unit/railtie
-).each do |railtie|
+].each do |railtie|
   begin
     require railtie
   rescue LoadError

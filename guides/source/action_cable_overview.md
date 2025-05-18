@@ -794,7 +794,7 @@ passed to the server config as an array. The origins can be instances of
 strings or regular expressions, against which a check for the match will be performed.
 
 ```ruby
-config.action_cable.allowed_request_origins = ["https://rubyonrails.com", %r{http://ruby.*}]
+config.action_cable.allowed_request_origins = [ "https://rubyonrails.com", %r{http://ruby.*} ]
 ```
 
 To disable and allow requests from any origin:
@@ -848,9 +848,9 @@ the user account id if available, else "no-account" while tagging:
 
 ```ruby
 config.action_cable.log_tags = [
-  -> request { request.env["user_account_id"] || "no-account" },
+  ->(request) { request.env["user_account_id"] || "no-account" },
   :action_cable,
-  -> request { request.uuid }
+  ->(request) { request.uuid }
 ]
 ```
 

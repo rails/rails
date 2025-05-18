@@ -275,7 +275,7 @@ config.active_record.encryption.add_to_filter_parameters = false
 If filtering is enabled, but you want to exclude specific columns from automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`:
 
 ```ruby
-config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
+config.active_record.encryption.excluded_from_filter_parameters = [ :catchphrase ]
 ```
 
 When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
@@ -345,7 +345,7 @@ Key providers implement key management strategies. You can configure key provide
 A key provider that will serve keys derived from the provided passwords using PBKDF2.
 
 ```ruby
-config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(["some passwords", "to derive keys from. ", "These should be in", "credentials"])
+config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new([ "some passwords", "to derive keys from. ", "These should be in", "credentials" ])
 ```
 
 NOTE: By default, `active_record.encryption` configures a `DerivedSecretKeyProvider` with the keys defined in `active_record.encryption.primary_key`.

@@ -344,7 +344,7 @@ Sass](https://sass-lang.com/), and you don’t want these files to be part of th
 asset load path.
 
 ```ruby
-config.assets.excluded_paths = [Rails.root.join("app/assets/stylesheets")]
+config.assets.excluded_paths = [ Rails.root.join("app/assets/stylesheets") ]
 ```
 
 This will prevent the specified directories from being processed by Propshaft
