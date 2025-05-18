@@ -1174,7 +1174,11 @@ This is all taken care of by `revert`.
 
 ### Composite Types (PostgreSQL only)
 
-PostgreSQL supports [composite types](https://www.postgresql.org/docs/current/static/rowtypes.html), which let you define structured types with multiple named fields—similar to a record or struct. Rails does not currently provide first-class support for these types. When used, they are treated as plain text columns.
+PostgreSQL supports [composite
+types](https://www.postgresql.org/docs/current/static/rowtypes.html), which lets
+you define structured types with multiple named fields, similar to a record or
+struct. Rails does not currently provide first-class support for these types.
+When used, they are treated as plain text columns.
 
 You can define and use a composite type like this:
 
@@ -1222,7 +1226,8 @@ irb> contact.address = "(Paris,Rue Basse)"
 irb> contact.save!
 ```
 
-If you want to work with the data as structured fields in Ruby, you’ll need to manually parse and serialize the values.
+If you want to work with the data as structured fields in Ruby, you’ll need to
+manually parse and serialize the values.
 
 Running Migrations
 ------------------
