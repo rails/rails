@@ -77,7 +77,7 @@ module ActiveRecord
         #
         # When assigning values, use bit strings:
         #
-        #   user = User.new
+        #   irb> user = User.new
         #   user.settings = "01010101"  # This is a bit string
         #   user.save!
 
@@ -85,7 +85,7 @@ module ActiveRecord
         # :method: bit_varying
         # :call-seq: bit_varying(*names, **options)
         #
-        # Adds a +bit varying+ column for storing variable-length bit strings.
+        # Adds a +bit_varying+ column for storing variable-length bit strings.
         #
         # This type is useful for representing binary flags, feature toggles, or compact
         # settings as sequences of bits.
@@ -98,29 +98,22 @@ module ActiveRecord
         #
         #   t.column :flags, 'bit varying(16)'  # Up to 16 bits
         #
-        # Available options:
-        #
-        # - +:limit+ — Sets the maximum number of bits (e.g., +limit: 16+ → +bit varying(16)+)
-        # - +:null+ — Whether the column allows +NULL+ values (e.g., +null: true+ or +null: false+)
-        # - +:default+ — Sets a default bit string (e.g., +default: '1010'+)
-        # - +:comment+ — Adds a comment to the column
-        #
         # When assigning values, use bit strings:
         #
-        #   user = User.new
-        #   user.flags = "01010101"  # Valid bit string
-        #   user.save!
+        #   irb> user = User.new
+        #   irb> user.flags = "01010101"  # Valid bit string
+        #   irb> user.save!
         #
         # If you assign an integer, it will be converted to a bit string:
         #
-        #   user = User.new
-        #   user.flags = 42  # Stored as "00101010"
-        #   user.save!
+        #   irb> user = User.new
+        #   irb> user.flags = 42  # Stored as "00101010"
+        #   irb> user.save!
         #
         # If you assign a string that is not a valid bit string, it will raise an error:
         #
-        #   user = User.new
-        #   user.flags = "invalid"  # Raises a PostgreSQL error
+        #   irb> user = User.new
+        #   irb> user.flags = "invalid"  # Raises a PostgreSQL error
 
         ##
         # :method: box
@@ -135,15 +128,12 @@ module ActiveRecord
         #
         #   t.box :bounds
         #
-        # You can also specify the column type explicitly:
-        #
-        #   t.column :bounds, :box
-        #
         # Values can be assigned using PostgreSQL box syntax:
         #
-        #   Shape.create(bounds: '((1,1),(4,4))')
+        #   irb> Shape.create(bounds: '((1,1),(4,4))')
         #
         # This creates a rectangular box with opposite corners at (1,1) and (4,4).
+        #
         # PostgreSQL treats the order of the points as irrelevant for storage, but
         # typically the first point is considered the upper-right corner and the
         # second the lower-left. The box spans the area between those two points on a 2D plane.
@@ -162,13 +152,10 @@ module ActiveRecord
         #
         # You can assign binary data from a file like this:
         #
-        #   data = File.read(Rails.root.join("tmp/output.pdf"))
-        #   Document.create(payload: data)
+        #   irb> data = File.read(Rails.root.join("tmp/output.pdf"))
+        #   irb> Document.create(payload: data)
         #
-        #  🔗 See also:
-        #
-        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/datatype-binary.html
-        # - Hstore functions and operators: https://www.postgresql.org/docs/current/static/functions-binarystring.html
+        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-binary.html]
 
         ##
         # :method: cidr
@@ -176,9 +163,9 @@ module ActiveRecord
         #
         # Adds a +cidr+ column for storing IP addresses and network ranges.
         #
-        # The +cidr+ stands for *Classless Inter-Domain Routing*.
-        # It is used to store IP addresses along with their subnet masks, such as +'192.168.0.0/24'+.
-        # The `cidr` type is mapped to Ruby [`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html)
+        # The +cidr+ stands for Classless Inter-Domain Routing.
+        # It is used to store IP addresses along with their subnet masks, such as '192.168.0.0/24'.
+        # The +cidr+ type is mapped to Ruby [IPAddr](https://docs.ruby-lang.org/en/master/IPAddr.html).
         #
         # Example:
         #
@@ -188,30 +175,25 @@ module ActiveRecord
         #
         # Values can be assigned using standard PostgreSQL CIDR syntax:
         #
-        #   device = Device.create(network: '192.168.0.0/24')
+        #   irb> device = Device.create(network: '192.168.0.0/24')
+        #   irb> device.network
+        #   # => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
         #
-        #   device.network
-        #   => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
-        #
-        #  🔗 See also:
-        #
-        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/datatype-net-types.html
+        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
 
         ##
         # :method: circle
         # :call-seq: circle(*names, **options)
         #
-        # Adds a circle column for storing circular geometric objects.
+        # Adds a +circle+ column for storing circular geometric objects.
         #
         # Example:
         #
         #   t.circle :bounds
         #
-        # A circle value is stored as a center point and a radius. In SQL, the format is:
+        # A circle value is stored as a center point and a radius. In SQL, the format is: CIRCLE '((x, y), r)'
         #
-        #   CIRCLE '((x, y), r)'
-        #
-        #   Circle.create(bounds: '((1,1),2)')
+        #   irb> Circle.create(bounds: '((1,1),2)')
         #
         # This creates a circle centered at (1,1) with a radius of 2.
 
@@ -238,7 +220,7 @@ module ActiveRecord
         # Adds a +daterange+ column which allows storage and querying
         # of inclusive or exclusive date intervals.
         #
-        # This type is mapped to Ruby [`Range`](https://docs.ruby-lang.org/en/master/Range.html) objects.
+        # This type is mapped to {Ruby Range}[https://docs.ruby-lang.org/en/master/Range.html] objects.
         #
         # Example:
         #   t.daterange :duration
@@ -246,37 +228,41 @@ module ActiveRecord
         # This creates a column named +duration+ that can store ranges like:
         #   '2024-01-01'..'2024-12-31'
         #
-        #   Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+        #   irb> Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
         #
-        #   event = Event.first
-        #   event.duration
-        #   => Tue, 11 Feb 2014...Thu, 13 Feb 2014
+        #   irb> event = Event.first
+        #   irb> event.duration
+        #   # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
         #
         # For all events on a given date:
         #
-        #   Event.where("duration @> ?::date", Date.new(2014, 2, 12))
+        #   irb> Event.where("duration @> ?::date", Date.new(2014, 2, 12))
         #
         # Working with range bounds:
         #
-        #   event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
+        #   irb> event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
         #
-        #   event.starts_at
-        #   => Tue, 11 Feb 2014
+        #   irb> event.starts_at
+        #   # => Tue, 11 Feb 2014
         #
-        #   event.ends_at
-        #   => Thu, 13 Feb 2014
+        #   irb> event.ends_at
+        #   # => Thu, 13 Feb 2014
         #
-        # 🔗 See also:
-        #
-        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/rangetypes.html
-        # - PostgreSQL range functions and operators: https://www.postgresql.org/docs/current/static/functions-range.html
+        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
 
         ##
+        # :method: enum
+        # :call-seq: enum(*names, **options)
+        #
+        # Adds an +enum+ column for storing enumerated values.
+        #
         # The PostgreSQL +enum+ type can be used directly as a column, or mapped to
-        # an [`ActiveRecord::Enum`](https://api.rubyonrails.org/classes/ActiveRecord/Enum.html)
+        # an {ActiveRecord::Enum}[https://api.rubyonrails.org/classes/ActiveRecord/Enum.html]
         # to add model-level helpers and validations.
         #
-        # Example: Creating an enum type and using it in a new table
+        # Example:
+        #
+        # Creating an enum type and using it in a new table:
         #
         #   # db/migrate/20131220144913_create_articles.rb
         #   def change
@@ -316,18 +302,18 @@ module ActiveRecord
         #
         # Usage:
         #
-        #   article = Article.create
-        #   article.status
+        #   irb> article = Article.create
+        #   irb> article.status
         #   # => "draft"
         #
-        #   article.status_published!
-        #   article.status
+        #   irb> article.status_published!
+        #   irb> article.status
         #   # => "published"
         #
-        #   article.status_archived?
+        #   irb> article.status_archived?
         #   # => false
         #
-        #   article.status = "deleted"
+        #   irb> article.status = "deleted"
         #   # => ArgumentError: 'deleted' is not a valid status
         #
         # To rename an enum type:
@@ -345,8 +331,7 @@ module ActiveRecord
         #     add_enum_value :article_state, "rejected", if_not_exists: true
         #   end
         #
-        # NOTE: Enum values can't be dropped, so +add_enum_value+ is irreversible.
-        # See: https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com
+        # {Enum values can't be dropped}[https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com], so +add_enum_value+ is irreversible.
         #
         # To rename an enum value:
         #
@@ -354,7 +339,7 @@ module ActiveRecord
         #     rename_enum_value :article_state, from: "archived", to: "deleted"
         #   end
         #
-        # To inspect all enum types and values in the database you can use this query in `bin/rails db` or `psql` console::
+        # To inspect all enum types and values in the database you can use this query in +bin/rails db+ or +psql+ console:
         #
         #   SELECT n.nspname AS enum_schema,
         #          t.typname AS enum_name,
@@ -396,21 +381,18 @@ module ActiveRecord
         #
         #   Profile.create(settings: { "color" => "blue", "resolution" => "800x600" })
         #
-        #   profile = Profile.first
-        #   profile.settings
+        #   irb> profile = Profile.first
+        #   irb> profile.settings
         #   # => {"color"=>"blue", "resolution"=>"800x600"}
         #
-        #   profile.settings = { "color" => "yellow", "resolution" => "1280x1024" }
-        #   profile.save!
+        #   irb> profile.settings = { "color" => "yellow", "resolution" => "1280x1024" }
+        #   irb> profile.save!
         #
-        #   Profile.where("settings -> 'color' = ?", "yellow")
+        #   irb> Profile.where("settings -> 'color' = ?", "yellow")
         #
-        # 🔗 See also:
+        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
         #
-        # - PostgreSQL type definition: https://www.postgresql.org/docs/current/static/hstore.html
-        # - Hstore functions and operators: https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5
-        #
-        # 💡 When to use hstore vs jsonb?
+        # 💡 When to use +hstore+ vs +jsonb+?
         #
         # Use +hstore+ when you need a simple, flat key-value store where both keys and values are strings.
         # It’s lightweight and efficient for storing unstructured settings or metadata. If you require nested
@@ -422,7 +404,7 @@ module ActiveRecord
         # :call-seq: inet(*names, **options)
         #
         # Adds an +inet+ column for storing IPv4 or IPv6 addresses with or without subnet masks.
-        # In Ruby, this is mapped to an [`IPAddr`](https://docs.ruby-lang.org/en/master/IPAddr.html) object.
+        # In Ruby, this is mapped to an {IPAddr}[https://docs.ruby-lang.org/en/master/IPAddr.html] object.
         #
         # Example:
         #
@@ -432,33 +414,33 @@ module ActiveRecord
         #
         # You can assign and query values as strings:
         #
-        #   device = Device.create(ip_address: "192.168.1.1")
-        #   device.ip_address.class
+        #   irb> device = Device.create(ip_address: "192.168.1.1")
+        #   irb> device.ip_address.class
         #   # => IPAddr
         #
-        #   device.ip_address
+        #   irb> device.ip_address
         #   => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
-        #
-        # 🔗 See also: [Ruby IPAddr documentation](https://docs.ruby-lang.org/en/master/IPAddr.html)
 
-        ## :method: interval :call-seq: interval(*names, **options)
+        ##
+        # :method: interval
+        # :call-seq: interval(*names, **options)
         #
         # Adds an +interval+ column for storing durations of time. It represents
         # elapsed time (e.g., hours, days, months). In Ruby, this maps to
-        # +ActiveSupport::Duration+. This type is mapped to
-        # [`ActiveSupport::Duration`](https://api.rubyonrails.org/classes/ActiveSupport/Duration.html)
+        # {ActiveSupport::Duration}[https://api.rubyonrails.org/classes/ActiveSupport/Duration.html]
         # objects.
         #
         # Example:
         #
-        #  create_table :events do |t|
-        #   t.interval "duration"
-        # end
+        #   create_table :events do |t|
+        #     t.interval "duration"
+        #   end
         #
         # You can assign durations using ActiveSupport helpers:
-        #   event = Event.create(duration: 3.days + 2.hours)
-        #   event.duration
-        #   => 3 days 2 hours
+        #
+        #   irb> event = Event.create(duration: 3.days + 2.hours)
+        #   irb> event.duration
+        #   # => 3 days 2 hours
         #
 
         ##
@@ -523,25 +505,20 @@ module ActiveRecord
         #   class Event < ApplicationRecord
         #   end
         #
-        #   # Console usage:
-        #   Event.create(payload: { kind: "user_renamed", change: ["jack", "john"] })
-        #
-        #   event = Event.first
-        #   event.payload
+        #   irb> Event.create(payload: { kind: "user_renamed", change: ["jack", "john"] })
+        #   irb> event = Event.first
+        #   irb> event.payload
         #   # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
         #
         # Query using PostgreSQL JSON operators:
         #
         #   # -> returns a JSON object or array (as JSON)
         #   # ->> returns a value as text
-        #   Event.where("payload->>'kind' = ?", "user_renamed")
+        #   irb> Event.where("payload->>'kind' = ?", "user_renamed")
         #
         # 💡 Tip: Use +store_accessor+ to define typed accessors on +jsonb+ columns.
         #
-        # 🔗 See also:
-        #
-        # - PostgreSQL JSON/JSONB type definition: https://www.postgresql.org/docs/current/static/datatype-json.html
-        # - PostgreSQL JSON functions and operators: https://www.postgresql.org/docs/current/static/functions-json.html
+        # 🔗 See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
 
         ##
         # :method: line
@@ -557,7 +534,7 @@ module ActiveRecord
         #
         # A line is defined by the general linear equation Ax + By + C = 0.
         #
-        #   Shape.create(edge: '{1,2,3}')
+        #   irb> Shape.create(edge: '{1,2,3}')
         #
         # This creates a line with A=1, B=2, and C=3.
 
@@ -572,9 +549,9 @@ module ActiveRecord
         #
         #   t.lseg :boundary
         #
-        # An lseg value represents a straight segment between two points.
+        # An +lseg+ value represents a straight segment between two points.
         #
-        #   Wall.create(boundary: '[(0,0),(3,4)]')
+        #   irb> Wall.create(boundary: '[(0,0),(3,4)]')
         #
         # This creates a line segment from (0,0) to (3,4).
 
@@ -589,9 +566,9 @@ module ActiveRecord
         #   enable_extension "ltree"
         #   t.ltree :path
         #
-        # An ltree value represents a dot-separated path.
+        # An +ltree+ value represents a dot-separated path.
         #
-        #   Node.create(path: 'Top.Science.Astronomy')
+        #   irb> Node.create(path: 'Top.Science.Astronomy')
         #
         # This stores a path in a tree-like label hierarchy.
 
@@ -607,13 +584,13 @@ module ActiveRecord
         #
         # A MAC address value must be in standard colon-separated format.
         #
-        #   Device.create(address: '32:01:16:6d:05:ef')
+        #   irb> Device.create(address: '32:01:16:6d:05:ef')
         #
-        #   device = Device.first
-        #   device.address
-        #   => "32:01:16:6d:05:ef"
+        #   irb> device = Device.first
+        #   irb> device.address
+        #   # => "32:01:16:6d:05:ef"
         #
-        # 🔗 See also: [Ruby IPAddr documentation](https://docs.ruby-lang.org/en/master/IPAddr.html)
+        # 🔗 See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
 
         ##
         # :method: money
@@ -627,7 +604,7 @@ module ActiveRecord
         #
         # A money value stores fixed-point currency, with locale-aware formatting.
         #
-        #   Product.create(price: '19.99')
+        #   irb> Product.create(price: '19.99')
 
         ##
         # :method: numrange
@@ -639,9 +616,9 @@ module ActiveRecord
         #
         #   t.numrange :acceptable_range
         #
-        # A numrange value represents an arbitrary-precision numeric interval.
+        # A +numrange+ value represents an arbitrary-precision numeric interval.
         #
-        #   Metric.create(acceptable_range: 1.5..10.0)
+        #   irb> Metric.create(acceptable_range: 1.5..10.0)
 
         ##
         # :method: oid
@@ -653,7 +630,7 @@ module ActiveRecord
         #
         #   t.oid :object_id
         #
-        #   Record.create(object_id: 12345)
+        #   irb> Record.create(object_id: 12345)
 
         ##
         # :method: path
@@ -667,7 +644,7 @@ module ActiveRecord
         #
         # A path value is a series of connected 2D points.
         #
-        #   Trail.create(trail: '((0,0),(1,2),(2,4))')
+        #   irb> Trail.create(trail: '((0,0),(1,2),(2,4))')
 
         ##
         # :method: point
@@ -681,7 +658,7 @@ module ActiveRecord
         #
         # A point is stored as a pair of x, y coordinates.
         #
-        #   Place.create(location: '(3.5,4.5)')
+        #   irb> Place.create(location: '(3.5,4.5)')
 
         ##
         # :method: polygon
@@ -695,7 +672,7 @@ module ActiveRecord
         #
         # A polygon is defined by a sequence of at least three points.
         #
-        #   Region.create(area: '((1,1),(2,3),(3,1))')
+        #   irb> Region.create(area: '((1,1),(2,3),(3,1))')
 
         ##
         # :method: serial
@@ -709,7 +686,7 @@ module ActiveRecord
         #
         # Serial values automatically increment on insert.
         #
-        #   Record.create # legacy_id will auto-increment
+        #   irb> Record.create # legacy_id will auto-increment
 
         ##
         # :method: timestamptz
@@ -724,13 +701,13 @@ module ActiveRecord
         #     # By default, Active Record will set the data type of this column to `timestamp without time zone`.
         #   end
         #
-        # A timestamptz value stores time in UTC with session-local zone conversion.
+        # A +timestamptz+ value stores time in UTC with session-local zone conversion.
         #
-        #   Submission.create(submitted_at: Time.now)
+        #   irb> Submission.create(submitted_at: Time.now)
         #
-        # Rails uses +timestamp without time zone+ by default for datetime columns.
+        # Rails uses timestamp without time zone by default for datetime columns.
         # This can lead to confusion or bugs in apps dealing with multiple time zones.
-        # [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+        # {PostgreSQL best practices}[https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29] recommend that timestamp with time zone is used instead for timezone-aware timestamps.
         # This must be configured before it can be used for new migrations.
         #
         # To configure Rails to use timestamp with time zone +timestamptz+ instead:
@@ -740,8 +717,7 @@ module ActiveRecord
         #     self.datetime_type = :timestamptz
         #   end
         #
-        # 🔗 See also:
-        # - PostgreSQL Date/Time Types: https://www.postgresql.org/docs/current/datatype-datetime.html
+        # 🔗 See also: {PostgreSQL Date/Time Types}[https://www.postgresql.org/docs/current/datatype-datetime.html]
 
         ##
         # :method: tsrange
@@ -755,7 +731,7 @@ module ActiveRecord
         #
         # A tsrange value represents an unzoned time interval.
         #
-        #   Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
+        #   irb> Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
 
         ##
         # :method: tstzrange
@@ -769,7 +745,7 @@ module ActiveRecord
         #
         # A tstzrange value represents a time interval in UTC, aware of time zones.
         #
-        #   Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
+        #   irb> Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
 
         ##
         # :method: tsvector
@@ -783,35 +759,37 @@ module ActiveRecord
         #
         # A tsvector value stores lexemes for efficient search.
         #
-        #   Article.create(document: "The quick brown fox jumps over the lazy dog")
+        #   irb> Article.create(document: "The quick brown fox jumps over the lazy dog")
 
-        ## :method: uuid :call-seq: uuid(*names, **options)
+        ##
+        # :method: uuid
+        # :call-seq: uuid(*names, **options)
         #
         # Adds a +uuid+ column for storing Universally Unique Identifiers.
         #
-        # UUIDs are 128-bit values used to uniquely identify records across
+        # {UUID's}[https://www.postgresql.org/docs/current/datatype-uuid.html] are 128-bit values used to uniquely identify records across
         # space and time. They're commonly used for primary keys or to reference
         # external systems.
         #
         # On PostgreSQL, you may need to enable an extension to use UUIDs:
         #
-        # - Use the +pgcrypto+ extension for PostgreSQL >= 9.4
-        # - Use the +uuid-ossp+ extension for earlier versions
-        #
         #   enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
         #
-        # When creating a table with a UUID primary key, `gen_random_uuid()` is used
-        # as the default generator if no `:default` option is specified:
+        # Use the {pgcrypto extension}[https://www.postgresql.org/docs/current/pgcrypto.html] for PostgreSQL >= 9.4.
+        # Use the {uuid-ossp extension}[https://www.postgresql.org/docs/current/uuid-ossp.html] for earlier versions.
+        #
+        # When creating a table with a UUID primary key, gen_random_uuid() is used
+        # as the default generator if no +:default+ option is specified:
         #
         #   create_table :devices, id: :uuid do |t|
         #     t.string :kind
         #   end
         #
-        # If no +:default+ option is passed when creating a table with +id: :uuid+,
-        # Rails assumes +gen_random_uuid()+ (from the +pgcrypto+ extension) as the default value.
+        # If no +:default+ option is passed when creating a table with id: :uuid,
+        # Rails assumes gen_random_uuid() as the default value.
         #
-        #   device = Device.create
-        #   device.id
+        #   irb> device = Device.create
+        #   irb> device.id
         #   # => "814865cd-5a1d-4771-9306-4268f188fe9e"
         #
         # You can also use UUIDs in references:
@@ -822,16 +800,11 @@ module ActiveRecord
         #
         # To generate a model with UUID as the primary key:
         #
-        #   $ rails generate model Device --primary-key-type=uuid kind:string
+        #   irb> rails generate model Device --primary-key-type=uuid kind:string
         #
         # And for a foreign key referencing a UUID:
         #
-        #   $ rails generate model Case device_id:uuid
-        #
-        # 🔗 See also:
-        # - PostgreSQL UUID type: https://www.postgresql.org/docs/current/datatype-uuid.html
-        # - pgcrypto extension: https://www.postgresql.org/docs/current/pgcrypto.html
-        # - uuid-ossp extension: https://www.postgresql.org/docs/current/uuid-ossp.html
+        #   irb> rails generate model Case device_id:uuid
 
         ##
         # :method: xml
@@ -845,7 +818,7 @@ module ActiveRecord
         #
         # XML values are stored as valid XML documents.
         #
-        #   Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
+        #   irb> Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
 
         define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
           :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
