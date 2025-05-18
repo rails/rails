@@ -1,7 +1,7 @@
 *   Move responsibility for checksum implementation determination to storage service
 
     The storage service should be able to implement any method for calculating and
-    validating checksums provided the returned class implements file, <<, base64digest.
+    validating checksums.
     Remove ActiveStorage::Downloader
 
     *Matt Pasquini*

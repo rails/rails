@@ -154,7 +154,10 @@ module ActiveStorage
     def compute_checksum(io, **)
       raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
 
-      checksum_implementation.new.tap do |checksum|
+      # Defer to Digest class's file implementation if File
+      return ActiveStorage.checksum_implementation.file(io).base64digest if io.is_a?(File)
+
+      ActiveStorage.checksum_implementation.new.tap do |checksum|
         read_buffer = "".b
         while io.read(5.megabytes, read_buffer)
           checksum << read_buffer
@@ -162,10 +165,6 @@ module ActiveStorage
 
         io.rewind
       end.base64digest
-    end
-
-    def checksum_implementation(**)
-      ActiveStorage.checksum_implementation
     end
 
     private
