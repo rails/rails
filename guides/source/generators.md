@@ -515,12 +515,12 @@ of these methods are part of the [Rails Template
 API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html). The
 following sections shows how to use more of these methods with examples.
 
-Rails Template API
-------------------
+Rails Generators API
+--------------------
 
-The template Ruby scripts have access to several helper methods using a
+Generators and the template Ruby scripts have access to several helper methods using a
 [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific
-Language). These methods are part of the Rails Template API and you can find
+Language). These methods are part of the Rails Generators API and you can find
 more details at [`Thor::Actions`][] and [`Rails::Generators::Actions`][] API
 documentation.
 
