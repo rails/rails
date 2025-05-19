@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "support/deprecated_associations_test_helpers"
 require "cases/helper"
 require "models/post"
 require "models/person"
@@ -1721,4 +1722,157 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lesson.has_many :students, through: :lesson_students, anonymous_class: student
       [lesson, lesson_student, student]
     end
+end
+
+class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :posts, :comments
+
+  setup do
+    @model = Author
+    @author = Author.new
+  end
+
+  test "<association>" do
+    # comments ----------------------------------------------------------------
+    assert_not_deprecated_association(:comments) do
+      assert_empty @author.comments
+    end
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.comments
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.comments
+    end
+
+    # deprecated_comments -----------------------------------------------------
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.deprecated_comments
+    end
+
+    assert_deprecated_association(:deprecated_comments) do
+      assert_empty @author.deprecated_comments
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.deprecated_comments
+    end
+
+    # comments_through_deprecated_posts ---------------------------------------
+
+    assert_not_deprecated_association(:comments_through_deprecated_posts) do
+      assert_empty @author.comments_through_deprecated_posts
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      assert_empty @author.comments_through_deprecated_posts
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.comments_through_deprecated_posts
+    end
+
+    # nested_deprecated_comments ----------------------------------------------
+
+    assert_not_deprecated_association(:nested_deprecated_comments) do
+      assert_empty @author.nested_deprecated_comments
+    end
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.nested_deprecated_comments
+    end
+
+    assert_deprecated_association(:deprecated_comments, Post) do
+      assert_empty @author.nested_deprecated_comments
+    end
+
+    # full_deprecated_comments ------------------------------------------------
+
+    assert_deprecated_association(:full_deprecated_comments) do
+      @author.full_deprecated_comments
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      @author.full_deprecated_comments
+    end
+
+    assert_deprecated_association(:deprecated_comments, Post) do
+      @author.full_deprecated_comments
+    end
+  end
+
+  test "<singular_association>_ids" do
+    # comments ----------------------------------------------------------------
+    assert_not_deprecated_association(:comments) do
+      assert_empty @author.comment_ids
+    end
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.comment_ids
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.comment_ids
+    end
+
+    # deprecated_comments -----------------------------------------------------
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.deprecated_comment_ids
+    end
+
+    assert_deprecated_association(:deprecated_comments) do
+      assert_empty @author.deprecated_comment_ids
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.deprecated_comment_ids
+    end
+
+    # comments_through_deprecated_posts ---------------------------------------
+
+    assert_not_deprecated_association(:comments_through_deprecated_posts) do
+      assert_empty @author.comments_through_deprecated_post_ids
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      assert_empty @author.comments_through_deprecated_post_ids
+    end
+
+    assert_not_deprecated_association(:comments, Post) do
+      assert_empty @author.comments_through_deprecated_post_ids
+    end
+
+    # nested_deprecated_comments ----------------------------------------------
+
+    assert_not_deprecated_association(:nested_deprecated_comments) do
+      assert_empty @author.nested_deprecated_comment_ids
+    end
+
+    assert_not_deprecated_association(:posts) do
+      assert_empty @author.nested_deprecated_comment_ids
+    end
+
+    assert_deprecated_association(:deprecated_comments, Post) do
+      assert_empty @author.nested_deprecated_comment_ids
+    end
+
+    # full_deprecated_comments ------------------------------------------------
+
+    assert_deprecated_association(:full_deprecated_comments) do
+      @author.full_deprecated_comment_ids
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      @author.full_deprecated_comment_ids
+    end
+
+    assert_deprecated_association(:deprecated_comments, Post) do
+      @author.full_deprecated_comment_ids
+    end
+  end
 end

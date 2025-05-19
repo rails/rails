@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
+require "support/deprecated_associations_test_helpers"
 require "cases/helper"
+require "models/author"
+require "models/post"
 require "models/pirate"
 require "models/developer"
 require "models/ship"
@@ -1233,5 +1236,41 @@ class TestNestedAttributesForDelegatedType < ActiveRecord::TestCase
   def test_should_build_a_new_record_based_on_the_delegated_type
     assert_not_predicate @entry.entryable, :persisted?
     assert_equal "Hello world!", @entry.entryable.subject
+  end
+end
+
+class TestNestedAttributesForDeprecatedAssociations < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors
+
+  setup do
+    @model = Author
+    @author = Author.new
+    @post_attributes = { "title" => "Title" }
+  end
+
+  test "has_many" do
+    assert_not_deprecated_association(:posts) do
+      @author.posts_attributes = [@post_attributes]
+    end
+
+    assert_deprecated_association(:deprecated_posts) do
+      @author.deprecated_posts_attributes = [@post_attributes]
+    end
+
+    assert @post_attributes <= @author.deprecated_posts[0].attributes
+  end
+
+  test "has_one" do
+    assert_not_deprecated_association(:post) do
+      @author.post_attributes = @post_attributes
+    end
+
+    assert_deprecated_association(:deprecated_post) do
+      @author.deprecated_post_attributes = @post_attributes
+    end
+
+    assert @post_attributes <= @author.deprecated_post.attributes
   end
 end

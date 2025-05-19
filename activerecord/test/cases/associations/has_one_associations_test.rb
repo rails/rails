@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "support/deprecated_associations_test_helpers"
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -11,6 +12,7 @@ require "models/person"
 require "models/car"
 require "models/bulb"
 require "models/author"
+require "models/essay"
 require "models/image"
 require "models/post"
 require "models/drink_designer"
@@ -999,5 +1001,127 @@ class AsyncHasOneAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  def modify_post_title_directly_in_the_database(post)
+    title = post.title
+    new_title = "#{title} edited"
+    Post.connection.execute("UPDATE posts SET title = '#{new_title}' WHERE id = #{post.id}")
+    new_title
+  end
+
+  fixtures :authors, :posts
+
+  setup do
+    @model = Author
+    @author = Author.new
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:post) do
+      assert_nil @author.post
+    end
+
+    assert_deprecated_association(:deprecated_post) do
+      assert_nil @author.deprecated_post
+    end
+  end
+
+  test "<association>=" do
+    post = Post.new
+    assert_not_deprecated_association(:post) do
+      @author.post = post
+    end
+    assert_same post, @author.post
+
+    deprecated_post = Post.new
+    assert_deprecated_association(:deprecated_post) do
+      @author.deprecated_post = deprecated_post
+    end
+    assert_same deprecated_post, @author.deprecated_post
+  end
+
+  test "reload_<association>" do
+    author = authors(:david)
+
+    assert_not_deprecated_association(:post) do
+      author.reload_post
+    end
+
+    deprecated_post = author.deprecated_post # caches the associated object
+    new_title = modify_post_title_directly_in_the_database(deprecated_post)
+
+    assert_deprecated_association(:deprecated_post) do
+      assert_equal new_title, author.reload_deprecated_post.title
+    end
+  end
+
+  test "reset_<association>" do
+    author = authors(:david)
+
+    assert_not_deprecated_association(:post) do
+      author.reset_post
+    end
+
+    deprecated_post = author.deprecated_post # caches the associated object
+    new_title = modify_post_title_directly_in_the_database(deprecated_post)
+
+    assert_deprecated_association(:deprecated_post) do
+      author.reset_deprecated_post
+    end
+
+    assert_equal new_title, author.deprecated_post.title
+  end
+
+  test "build_<association>" do
+    assert_not_deprecated_association(:post) do
+      assert_instance_of Post, @author.build_post
+    end
+
+    assert_deprecated_association(:deprecated_post) do
+      assert_instance_of Post, @author.build_deprecated_post
+    end
+  end
+
+  test "create_<association>" do
+    author = authors(:david)
+
+    assert_not_deprecated_association(:post) do
+      assert_predicate author.create_post(title: "...", body: "..."), :persisted?
+    end
+
+    assert_deprecated_association(:deprecated_post) do
+      assert_predicate author.create_deprecated_post(title: "...", body: "..."), :persisted?
+    end
+  end
+
+  test "create_<association>!" do
+    author = authors(:david)
+
+    assert_not_deprecated_association(:post) do
+      assert_predicate author.create_post!(title: "...", body: "..."), :persisted?
+    end
+
+    assert_deprecated_association(:deprecated_post) do
+      assert_predicate author.create_deprecated_post!(title: "...", body: "..."), :persisted?
+    end
+  end
+
+  test "parent destroy" do
+    author = authors(:david)
+    assert_not_deprecated_association(:essay) do
+      author.destroy
+    end
+    assert_predicate author, :destroyed?
+
+    author = authors(:mary)
+    assert_deprecated_association(:deprecated_essay) do
+      author.destroy
+    end
+    assert_predicate author, :destroyed?
   end
 end

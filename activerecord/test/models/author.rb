@@ -3,7 +3,15 @@
 class Author < ActiveRecord::Base
   has_many :posts
   has_many :serialized_posts
+  has_many :deprecated_posts, class_name: "Post", deprecated: true
+
+  accepts_nested_attributes_for :posts, :deprecated_posts
+
   has_one :post
+  has_one :deprecated_post, class_name: "Post", deprecated: true
+
+  accepts_nested_attributes_for :post, :deprecated_post
+
   has_many :very_special_comments, through: :posts
   has_many :posts_with_comments, -> { includes(:comments) }, class_name: "Post"
   has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(legacy_comments_count) > 1").select("type") }, class_name: "Post"
@@ -21,6 +29,10 @@ class Author < ActiveRecord::Base
       Rating.joins(:comment).merge(self)
     end
   end
+  has_many :deprecated_comments, through: :posts, class_name: "Comment", source: :comments, deprecated: true
+  has_many :comments_through_deprecated_posts, through: :deprecated_posts, class_name: "Comment", source: :comments
+  has_many :nested_deprecated_comments, through: :posts, class_name: "Comment", source: :deprecated_comments
+  has_many :full_deprecated_comments, through: :deprecated_posts, class_name: "Comment", source: :deprecated_comments, deprecated: true
 
   has_many :comments_with_order, -> { ordered_by_post_id }, through: :posts, source: :comments
   has_many :no_joins_comments, through: :posts, disable_joins: :true, source: :comments
@@ -75,8 +87,10 @@ class Author < ActiveRecord::Base
 
   has_one :first_post
   has_one :comment_on_first_post, -> { order("posts.id desc, comments.id asc") }, through: :first_post, source: :comments
+  has_one :deprecated_comment_on_first_post, -> { order("posts.id desc, comments.id asc") }, through: :first_post, source: :comments, deprecated: true
 
   has_many :thinking_posts, -> { where(title: "So I was thinking") }, dependent: :delete_all, class_name: "Post"
+  has_many :deprecated_thinking_posts, -> { where(title: "So I was thinking") }, dependent: :delete_all, class_name: "Post", deprecated: true
   has_many :welcome_posts, -> { where(title: "Welcome to the weblog") }, class_name: "Post"
 
   has_many :welcome_posts_with_one_comment,
@@ -137,7 +151,7 @@ class Author < ActiveRecord::Base
 
   has_many :special_categorizations
   has_many :special_categories, through: :special_categorizations, source: :category
-  has_one  :special_category,   through: :special_categorizations, source: :category
+  has_one  :special_category, through: :special_categorizations, source: :category
 
   has_many :general_categorizations, -> { joins(:category).where("categories.name": "General") }, class_name: "Categorization"
   has_many :general_posts, through: :general_categorizations, source: :post
@@ -179,6 +193,7 @@ class Author < ActiveRecord::Base
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
 
   has_one :essay, primary_key: :name, as: :writer
+  has_one :deprecated_essay, primary_key: :name, as: :writer, class_name: "Essay", dependent: :destroy, deprecated: true
   has_one :essay_category, through: :essay, source: :category
   has_one :essay_owner, through: :essay, source: :owner
 
