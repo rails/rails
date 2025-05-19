@@ -93,7 +93,7 @@ module ActiveRecord
         shards[:default] = database
       end
 
-      self.default_shard = shards.keys.first
+      self.default_shard ||= shards.keys.first
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|
