@@ -1042,8 +1042,8 @@ through the model associations whereby life cycle events can cascade on
 associations and fire callbacks.
 
 Suppose an example where a user has many articles. A user's articles should be
-destroyed if the user is destroyed. Let's add an `after_destroy` callback to the
-`User` model by way of its association to the `Article` model:
+destroyed if the user is destroyed. Let's trigger `after_destroy` callback in the
+`Article` model by way of its association to the `User` model:
 
 ```ruby
 class User < ApplicationRecord
