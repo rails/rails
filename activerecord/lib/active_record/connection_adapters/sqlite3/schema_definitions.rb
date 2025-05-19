@@ -16,6 +16,10 @@ module ActiveRecord
         end
         alias :belongs_to :references
 
+        def jsonb(*args, **options)
+          args.each { |name| column(name, :jsonb, **options) }
+        end
+
         def new_column_definition(name, type, **options) # :nodoc:
           case type
           when :virtual

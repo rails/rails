@@ -106,6 +106,7 @@ module ActiveRecord
         binary:       { name: "blob" },
         boolean:      { name: "boolean" },
         json:         { name: "json" },
+        jsonb:        { name: "json" },
       }
 
       DEFAULT_PRAGMAS = {
