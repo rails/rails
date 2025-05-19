@@ -1,3 +1,7 @@
+*   Add `jsonb` support for SQLite.
+
+    *Paul Doran*
+
 *   Add `affected_rows` to `ActiveRecord::Result`.
 
     *Jenny Shen*
