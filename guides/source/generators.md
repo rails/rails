@@ -518,11 +518,11 @@ following sections shows how to use more of these methods with examples.
 Rails Generators API
 --------------------
 
-Generators and the template Ruby scripts have access to several helper methods using a
-[DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain Specific
-Language). These methods are part of the Rails Generators API and you can find
-more details at [`Thor::Actions`][] and [`Rails::Generators::Actions`][] API
-documentation.
+Generators and the template Ruby scripts have access to several helper methods
+using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain
+Specific Language). These methods are part of the Rails Generators API and you
+can find more details at [`Thor::Actions`][] and
+[`Rails::Generators::Actions`][] API documentation.
 
 Here's another example of a typical Rails template that scaffolds a model, runs
 migrations, and commits the changes with git:
