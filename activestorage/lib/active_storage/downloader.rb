@@ -35,8 +35,9 @@ module ActiveStorage
       end
 
       def verify_integrity_of(file, checksum:)
-        unless service.compute_checksum(file) == checksum
-          raise ActiveStorage::IntegrityError
+        actual_checksum = service.compute_checksum(file)
+        unless actual_checksum == checksum
+          raise ActiveStorage::IntegrityError, "Checksum verification failed expecting #{checksum}, but downloaded file having #{actual_checksum}"
         end
       end
   end
