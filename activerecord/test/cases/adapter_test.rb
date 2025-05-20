@@ -153,6 +153,23 @@ module ActiveRecord
       assert_not_empty result.columns
     end
 
+    test "#exec_query queries return an ActiveRecord::Result with affected rows" do
+      result = @connection.exec_query "INSERT INTO subscribers(nick, name) VALUES('me', 'me'), ('you', 'you')"
+      assert_equal 2, result.affected_rows
+
+      update_result = @connection.exec_query "UPDATE subscribers SET name = 'you' WHERE name = 'me'"
+      assert_equal 1, update_result.affected_rows
+
+      select_result = @connection.exec_query "SELECT * FROM subscribers"
+      assert_not_equal update_result.affected_rows, select_result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 2, result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 0, result.affected_rows
+    end
+
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_charset
         assert_not_nil @connection.charset
@@ -706,6 +723,7 @@ module ActiveRecord
         notifications = capture_notifications("sql.active_record") do
           assert (a = Author.first)
           assert Post.where(id: [1, 2]).first
+          assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
           assert Post.find(1)
           assert Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
@@ -714,7 +732,7 @@ module ActiveRecord
           Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 8, notifications.length
+        assert_equal 9, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -727,6 +745,7 @@ module ActiveRecord
         notifications = capture_notifications("sql.active_record") do
           assert_not_nil (a = Author.first)
           assert_not_nil Post.where(id: [1, 2]).first
+          assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
           assert_not_nil Post.find(1)
           assert_not_nil Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
@@ -735,7 +754,7 @@ module ActiveRecord
           Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 8, notifications.length
+        assert_equal 9, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"

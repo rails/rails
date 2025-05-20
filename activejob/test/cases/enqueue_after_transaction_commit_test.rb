@@ -55,6 +55,21 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
     end
   end
 
+  class EnqueueAfterCommitCallbackJob < ActiveJob::Base
+    self.enqueue_after_transaction_commit = true
+
+    attr_reader :around_enqueue_called
+
+    around_enqueue do |job, block|
+      job.instance_variable_set(:@around_enqueue_called, true)
+      block.call
+    end
+
+    def perform
+      # noop
+    end
+  end
+
   test "#perform_later wait for transactions to complete before enqueuing the job" do
     fake_active_record = FakeActiveRecord.new
     stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
@@ -96,6 +111,16 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
       fake_active_record.run_after_commit_callbacks
       assert_not_predicate job, :successfully_enqueued?
+    end
+  end
+
+  test "#perform_later defers enqueue callbacks until after commit" do
+    fake_active_record = FakeActiveRecord.new(false)
+    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+      job = EnqueueAfterCommitCallbackJob.perform_later
+      assert_not_predicate job, :around_enqueue_called
+      fake_active_record.run_after_commit_callbacks
+      assert_predicate job, :around_enqueue_called
     end
   end
 end

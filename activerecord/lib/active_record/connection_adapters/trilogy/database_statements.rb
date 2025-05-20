@@ -41,9 +41,9 @@ module ActiveRecord
 
           def cast_result(result)
             if result.fields.empty?
-              ActiveRecord::Result.empty
+              ActiveRecord::Result.empty(affected_rows: result.affected_rows)
             else
-              ActiveRecord::Result.new(result.fields, result.rows)
+              ActiveRecord::Result.new(result.fields, result.rows, affected_rows: result.affected_rows)
             end
           end
 

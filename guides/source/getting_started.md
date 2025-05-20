@@ -1756,7 +1756,7 @@ description in `app/views/products/_form.html.erb` before the submit button.
 
   <div>
     <%= form.label :description, style: "display: block" %>
-    <%= form.rich_text_area :description %>
+    <%= form.rich_textarea :description %>
   </div>
 
   <div>
@@ -2261,9 +2261,9 @@ emails anytime the inventory count changes from 0 to a positive number.
 
 ```ruby#9-19
 class Product < ApplicationRecord
+  has_many :subscribers, dependent: :destroy
   has_one_attached :featured_image
   has_rich_text :description
-  has_many :subscribers, dependent: :destroy
 
   validates :name, presence: true
   validates :inventory_count, numericality: { greater_than_or_equal_to: 0 }

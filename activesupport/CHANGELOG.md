@@ -1,3 +1,36 @@
+*   Add public API for `before_fork_hook` in parallel testing.
+
+    Introduces a public API for calling the before fork hooks implemented by parallel testing.
+
+    ```ruby
+    parallelize_before_fork do
+        # perform an action before test processes are forked
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Implement ability to skip creating parallel testing databases.
+
+    With parallel testing, Rails will create a database per process. If this isn't
+    desirable or you would like to implement databases handling on your own, you can
+    now turn off this default behavior.
+
+    To skip creating a database per process, you can change it via the
+    `parallelize` method:
+
+    ```ruby
+    parallelize(workers: 10, parallelize_databases: false)
+    ```
+
+    or via the application configuration:
+
+    ```ruby
+    config.active_support.parallelize_databases = false
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   Allow to configure maximum cache key sizes
 
     When the key exceeds the configured limit (250 bytes by default), it will be truncated and

@@ -80,16 +80,8 @@ module ActiveRecord
           "x'#{value.hex}'"
         end
 
-        def quoted_true
-          "1"
-        end
-
         def unquoted_true
           1
-        end
-
-        def quoted_false
-          "0"
         end
 
         def unquoted_false

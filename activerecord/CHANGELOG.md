@@ -1,3 +1,33 @@
+*   `:class_name` is now invalid in polymorphic `belongs_to` associations.
+
+    Reason is `:class_name` does not make sense in those associations because
+    the class name of target records is dynamic and stored in the type column.
+
+    Existing polymorphic associations setting this option can just delete it.
+    While it did not raise, it had no effect anyway.
+
+    *Xavier Noria*
+
+*   Add support for multiple databases to `db:migrate:reset`.
+
+    *Joé Dupuis*
+
+*   Add `affected_rows` to `ActiveRecord::Result`.
+
+    *Jenny Shen*
+
+*   Enable passing retryable SqlLiterals to `#where`.
+
+    *Hartley McGuire*
+
+*   Set default for primary keys in `insert_all`/`upsert_all`.
+
+    Previously in Postgres, updating and inserting new records in one upsert wasn't possible
+    due to null primary key values. `nil` primary key values passed into `insert_all`/`upsert_all`
+    are now implicitly set to the default insert value specified by adapter.
+
+    *Jenny Shen*
+
 *   Add a load hook `active_record_database_configurations` for `ActiveRecord::DatabaseConfigurations`
 
     *Mike Dalessio*
