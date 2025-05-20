@@ -1,21 +1,29 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/developer"
 require "models/contract"
 require "models/company"
 require "models/computer"
+require "models/club"
 require "models/mentor"
+require "models/member"
+require "models/member_detail"
+require "models/membership"
+require "models/organization"
+require "models/post"
 require "models/project"
 require "models/ship"
 require "models/ship_part"
 require "models/strict_zine"
 require "models/interest"
+require "models/rating"
 require "models/treasure"
 require "models/pirate"
 
 class StrictLoadingTest < ActiveRecord::TestCase
-  fixtures :developers, :developers_projects, :projects, :ships
+  fixtures :authors, :comments, :developers, :developers_projects, :members, :posts, :projects, :ratings, :ships
 
   def test_strict_loading!
     developer = Developer.first
@@ -181,6 +189,56 @@ class StrictLoadingTest < ActiveRecord::TestCase
       assert_raises ActiveRecord::StrictLoadingViolationError do
         dev.audit_logs.to_a
       end
+    end
+  end
+
+  def test_raises_if_strict_loading_has_one_association_with_disabled_joins
+    member = Member.strict_loading.first
+    assert_predicate member, :strict_loading?
+    assert_predicate member.association(:organization_without_joins), :disable_joins
+    assert_not_predicate member.association(:organization_without_joins), :loaded?
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      member.organization_without_joins
+    end
+  end
+
+  def test_raises_if_has_one_association_with_joins_disabled_not_preloaded
+    member = Member.preload(:organization_without_joins).strict_loading.first
+    assert_predicate member, :strict_loading?
+    assert_predicate member.association(:organization_without_joins), :disable_joins
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      member.club_without_joins
+    end
+
+    assert_nothing_raised do
+      member.organization_without_joins
+    end
+  end
+
+  def test_raises_if_strict_loading_has_many_through_association_with_disabled_joins
+    author = Author.strict_loading.first
+    assert_predicate author, :strict_loading?
+    assert_predicate author.association(:no_joins_comments), :disable_joins
+    assert_not_predicate author.association(:no_joins_comments), :loaded?
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      author.no_joins_comments.to_a
+    end
+  end
+
+  def test_raises_if_has_many_through_association_with_joins_disabled_not_preloaded
+    author = Author.preload(:no_joins_comments).strict_loading.first
+    assert_predicate author, :strict_loading?
+    assert_predicate author.association(:no_joins_good_ratings), :disable_joins
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      author.no_joins_good_ratings.to_a
+    end
+
+    assert_nothing_raised do
+      author.no_joins_comments.to_a
     end
   end
 

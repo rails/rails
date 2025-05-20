@@ -1,3 +1,7 @@
+*   `strict_loading` is enforced on associations configured with joins disabled.
+
+    *Garrett Bjerkhoel*
+
 *   Add support for multiple databases to `db:migrate:reset`.
 
     *Joé Dupuis*
