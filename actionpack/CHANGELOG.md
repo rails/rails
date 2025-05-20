@@ -1,3 +1,7 @@
+*   Add `render json` into `HealthController`.
+
+    *Francesco Loreti*
+
 *   Allow to open source file with a crash from the browser.
 
     *Igor Kasyanchuk*

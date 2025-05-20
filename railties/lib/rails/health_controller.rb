@@ -43,11 +43,17 @@ module Rails
 
     private
       def render_up
-        render html: html_status(color: "green")
+        respond_to do |format|
+          format.html { render html: html_status(color: "green"), status: 200 }
+          format.json { render json: { status: 200 }, status: 200 }
+        end
       end
 
       def render_down
-        render html: html_status(color: "red"), status: 500
+        respond_to do |format|
+          format.html { render html: html_status(color: "red"), status: 500 }
+          format.json { render json: { status: 500 }, status: 500 }
+        end
       end
 
       def html_status(color:)
