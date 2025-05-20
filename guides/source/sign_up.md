@@ -6,9 +6,11 @@ Sign Up and Registration
 This guide covers adding Sign Up and Registration to the store e-commerce application in the [Getting Started Guide](getting_started.html)). We will use the final code from that guide as a starting place.
 
 After reading this guide, you will know:
-* How to add registration
+* How to add Sign Up
 * How to rate limit controller actions
+* How to create a nested layout
 * How to separate controllers by role
+* How to write tests for users with different roles
 
 --------------------------------------------------------------------------------
 
@@ -1370,7 +1372,7 @@ test "sign up ignores admin attribute" do
 end
 ```
 
-This test is just like a successful registration, but it tries to set `admin: true`. After asserting the user is created, we also need to assert that the user is _not_ an admin.
+This test is just like a successful sign up, but it tries to set `admin: true`. After asserting the user is created, we also need to assert that the user is _not_ an admin.
 
 ### Testing Email Changes
 
@@ -1425,6 +1427,34 @@ Run options: --seed 31545
 
 Finished in 0.954590s, 2.0951 runs/s, 6.2854 assertions/s.
 2 runs, 6 assertions, 0 failures, 0 errors, 0 skips
+```
+
+We also need to test the `Email::ConfirmationsController` to ensure confirmation tokens are validated the email update process completes successfully.
+
+Let's add another controller test at `test/controllers/email/confirmations_controller_test.rb` with the following:
+
+```ruby
+require "test_helper"
+
+class Email::ConfirmationsControllerTest < ActionDispatch::IntegrationTest
+  test "invalid tokens are ignored" do
+    user = users(:one)
+    previous_email = user.email_address
+    user.update(unconfirmed_email: "new@example.org")
+    get email_confirmation_path(token: "invalid")
+    user.reload
+    assert_equal previous_email, user.email_address
+  end
+
+  test "email is updated with a valid token" do
+    user = users(:one)
+    user.update(unconfirmed_email: "new@example.org")
+    get email_confirmation_path(token: user.generate_token_for(:email_confirmation))
+    user.reload
+    assert_equal "new@example.org", user.email_address
+    assert_nil user.unconfirmed_email
+  end
+end
 ```
 
 ### Testing Settings
