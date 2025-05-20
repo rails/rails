@@ -120,6 +120,7 @@ module Arel # :nodoc: all
           visit_edge o, "columns"
           visit_edge o, "values"
           visit_edge o, "select"
+          visit_edge o, "with"
         end
 
         def visit_Arel_Nodes_SelectCore(o)
@@ -150,6 +151,7 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "with"
           visit_edge o, "key"
         end
 
@@ -159,6 +161,7 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "with"
           visit_edge o, "key"
         end
 
