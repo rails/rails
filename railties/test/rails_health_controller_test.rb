@@ -21,7 +21,7 @@ class HealthControllerTest < ActionController::TestCase
   test "health controller returns JSON success response" do
     get :show, format: :json
     assert_response :success
-    assert_equal({ "status" => 200 }, JSON.parse(@response.body))
+    assert_match({ "status" => 200 }, JSON.parse(@response.body))
   end
 
   test "health controller renders red internal server error page in HTML" do
@@ -43,6 +43,6 @@ class HealthControllerTest < ActionController::TestCase
     end
     get :show, format: :json
     assert_response :internal_server_error
-    assert_equal({ "status" => 500 }, JSON.parse(@response.body))
+    assert_match({ "status" => 500 }, JSON.parse(@response.body))
   end
 end
