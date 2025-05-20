@@ -18,10 +18,10 @@ module Rails
   # <tt>"config/routes.rb"</tt>:
   #
   #   Rails.application.routes.draw do
-  #     get "health" => "rails/health#show", as: :rails_health_check
+  #     get "healthz" => "rails/health#show", as: :rails_health_check
   #   end
   #
-  # The health check will now be accessible via the +/health+ path.
+  # The health check will now be accessible via the +/healthz+ path.
   #
   # NOTE: This endpoint does not reflect the status of all of your application's
   # dependencies, such as the database or Redis cluster. Replace
