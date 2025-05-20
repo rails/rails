@@ -12,14 +12,28 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
 
     def setup
       @connection = ActiveRecord::Base.lease_connection
-      @connection.create_table :virtual_columns, force: true do |t|
-        t.string  :name
-        t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true
-        t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
-        t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(name)", stored: true
-        t.integer :column1
-        t.virtual :column2, type: :integer, as: "column1 + 1", stored: true
+      if @connection.database_version >= 18_00_00
+        @connection.create_table :virtual_columns, force: true do |t|
+          t.string  :name
+          t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true
+          t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
+          t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(name)", stored: true
+          t.integer :column1
+          t.virtual :column2, type: :integer, as: "column1 + 1", stored: true
+          t.virtual :column3, type: :integer, as: "column1 + 2", stored: false
+          t.virtual :column4, type: :integer, as: "column1 + 3"
+        end
+      else
+        @connection.create_table :virtual_columns, force: true do |t|
+          t.string  :name
+          t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true
+          t.virtual :name_length, type: :integer, as: "LENGTH(name)", stored: true
+          t.virtual :name_octet_length, type: :integer, as: "OCTET_LENGTH(name)", stored: true
+          t.integer :column1
+          t.virtual :column2, type: :integer, as: "column1 + 1", stored: true
+        end
       end
+
       VirtualColumn.create(name: "Rails")
     end
 
@@ -47,6 +61,7 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
     def test_stored_column
       column = VirtualColumn.columns_hash["name_length"]
       assert_predicate column, :virtual?
+      assert_predicate column, :virtual_stored? if @connection.database_version >= 18_000
       assert_equal 5, VirtualColumn.take.name_length
     end
 
@@ -57,18 +72,44 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       VirtualColumn.reset_column_information
       column = VirtualColumn.columns_hash["lower_name"]
       assert_predicate column, :virtual?
+      assert_predicate column, :virtual_stored? if @connection.database_version >= 18_000
       assert_equal "rails", VirtualColumn.take.lower_name
     end
 
-    def test_non_persisted_column
-      message = <<~MSG
-        PostgreSQL currently does not support VIRTUAL (not persisted) generated columns.
-        Specify 'stored: true' option for 'invalid_definition'
-      MSG
-
-      assert_raise ArgumentError, message do
+    if ActiveRecord::Base.lease_connection.database_version >= 180_000
+      def test_change_table_as_stored_false
         @connection.change_table :virtual_columns do |t|
-          t.virtual :invalid_definition, type: :string, as: "LOWER(name)"
+          t.virtual :reversed_name, type: :string, as: "REVERSE(name)", stored: false
+        end
+        VirtualColumn.reset_column_information
+        column = VirtualColumn.columns_hash["reversed_name"]
+        assert_predicate column, :virtual?
+        assert_not_predicate column, :virtual_stored?
+        assert_equal "sliaR", VirtualColumn.take.reversed_name
+      end
+
+      def test_change_table_without_stored_option
+        @connection.change_table :virtual_columns do |t|
+          t.virtual :ascii_name, type: :string, as: "ASCII(name)"
+        end
+        VirtualColumn.reset_column_information
+        column = VirtualColumn.columns_hash["ascii_name"]
+        assert_predicate column, :virtual?
+        assert_not_predicate column, :virtual_stored?
+        assert_equal "82", VirtualColumn.take.ascii_name
+      end
+
+    else
+      def test_non_persisted_column
+        message = <<~MSG
+          PostgreSQL versions before 18 do not support VIRTUAL (not persisted) generated columns.
+          Specify 'stored: true' option for 'invalid_definition'
+        MSG
+
+        assert_raise ArgumentError, match: message do
+          @connection.change_table :virtual_columns do |t|
+            t.virtual :invalid_definition, type: :string, as: "LOWER(name)"
+          end
         end
       end
     end
@@ -79,6 +120,10 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       assert_match(/t\.virtual\s+"name_length",\s+type: :integer,\s+as: "length\(\(name\)::text\)", stored: true$/i, output)
       assert_match(/t\.virtual\s+"name_octet_length",\s+type: :integer,\s+as: "octet_length\(\(name\)::text\)", stored: true$/i, output)
       assert_match(/t\.virtual\s+"column2",\s+type: :integer,\s+as: "\(column1 \+ 1\)", stored: true$/i, output)
+      if @connection.database_version >= 18_00_00
+        assert_match(/t\.virtual\s+"column3",\s+type: :integer,\s+as: "\(column1 \+ 2\)", stored: false$/i, output)
+        assert_match(/t\.virtual\s+"column4",\s+type: :integer,\s+as: "\(column1 \+ 3\)", stored: false$/i, output)
+      end
     end
 
     def test_build_fixture_sql

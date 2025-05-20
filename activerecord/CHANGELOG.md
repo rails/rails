@@ -1,3 +1,18 @@
+*   Support virtual (not persisted) generated columns on PostgreSQL 18+
+
+    PostgreSQL 18 introduces virtual (not persisted) generated columns,
+    which are now the default unless the STORED option is explicitly specified on PostgreSQL 18+.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :lower_name,  type: :string,  as: "LOWER(name)", stored: false
+      t.virtual :name_length, type: :integer, as: "LENGTH(name)"
+    end
+    ```
+
+    *Yasuo Honda*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
