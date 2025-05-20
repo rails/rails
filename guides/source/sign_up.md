@@ -1594,7 +1594,22 @@ Finished in 0.625542s, 9.5917 runs/s, 12.7889 assertions/s.
 6 runs, 8 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-Now, let's get this deployed to production!
+And let's run the full test suite one more time to make sure all the tests pass.
+
+```bash
+$ bin/rails test
+Running 18 tests in a single process (parallelization threshold is 50)
+Run options: --seed 38561
+
+# Running:
+
+..................
+
+Finished in 0.915621s, 19.6588 runs/s, 51.3313 assertions/s.
+18 runs, 47 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Great! Now, let's deploy this to production.
 
 Deploying To Production
 -----------------------
