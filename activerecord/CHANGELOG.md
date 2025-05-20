@@ -1,3 +1,7 @@
+*   Add support for multiple databases to `db:migrate:reset`.
+
+    *Joé Dupuis*
+
 *   Add `affected_rows` to `ActiveRecord::Result`.
 
     *Jenny Shen*
