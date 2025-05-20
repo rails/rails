@@ -1442,6 +1442,7 @@ class Email::ConfirmationsControllerTest < ActionDispatch::IntegrationTest
     previous_email = user.email_address
     user.update(unconfirmed_email: "new@example.org")
     get email_confirmation_path(token: "invalid")
+    assert_equal "Invalid token.", flash[:alert]
     user.reload
     assert_equal previous_email, user.email_address
   end
@@ -1450,12 +1451,38 @@ class Email::ConfirmationsControllerTest < ActionDispatch::IntegrationTest
     user = users(:one)
     user.update(unconfirmed_email: "new@example.org")
     get email_confirmation_path(token: user.generate_token_for(:email_confirmation))
+    assert_equal "Your email has been confirmed.", flash[:notice]
     user.reload
     assert_equal "new@example.org", user.email_address
     assert_nil user.unconfirmed_email
   end
 end
 ```
+
+The first test simulates a user confirming their email change with an invalid token. We assert the error message was set and the email address did not change.
+
+The second test uses valid token and asserts the success notice was set and the email address was updated in the database.
+
+We need to fix one more test related to email confirmations and that is the automatically generated tests for `UserMailer`. Let's update that to match our application logic.
+
+Change `test/mailers/user_mailer_test.rb` to the following:
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "email_confirmation" do
+    user = users(:one)
+    user.update(unconfirmed_email: "new@example.org")
+    mail = UserMailer.with(user: user).email_confirmation
+    assert_equal "Email confirmation", mail.subject
+    assert_equal [ "new@example.org" ], mail.to
+    assert_match "/email/confirmations/", mail.body.encoded
+  end
+end
+```
+
+This test ensures the user has an `unconfirmed_email` and the email is sent to that email address. It also ensures that the email body contains the path to `/email/confirmations` so we know it contains the link for the user to click and confirm their new email address.
 
 ### Testing Settings
 
