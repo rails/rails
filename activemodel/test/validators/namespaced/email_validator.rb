@@ -2,7 +2,7 @@
 
 require "validators/email_validator"
 
-module Namespace
+module Namespaced
   class EmailValidator < ::EmailValidator
   end
 end
