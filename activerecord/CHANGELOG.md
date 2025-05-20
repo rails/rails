@@ -1,3 +1,11 @@
+*   Passing `:class_name` to a polymorphic `belongs_to` is deprecated and it
+    will be removed in Rails 8.1.
+
+    The class name of associated records is stored in the type column. If you
+    have this option set, please just delete it.
+
+    *Xavier Noria*
+
 *   `create_or_find_by` will now correctly rollback a transaction.
 
     When using `create_or_find_by`, raising a ActiveRecord::Rollback error
