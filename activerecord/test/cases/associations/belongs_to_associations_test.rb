@@ -1888,3 +1888,32 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 end
+
+class DeprecatedClassNameOptionInPolymorphicBelongsToTest < ActiveRecord::TestCase
+  test "issues a deprecation for :class_name in polymorphic belongs_to" do
+    test = self
+    Class.new(ActiveRecord::Base) do
+      test.assert_deprecated(ActiveRecord.deprecator) do
+        belongs_to :foo, class_name: "Foo", polymorphic: true
+      end
+    end
+  end
+
+  test "issues no deprecation if :class_name is not passed for a polymorphic belongs_to" do
+    test = self
+    Class.new(ActiveRecord::Base) do
+      test.assert_not_deprecated(ActiveRecord.deprecator) do
+        belongs_to :foo, polymorphic: true
+      end
+    end
+  end
+
+  test "issues no deprecation if :class_name is passed for a regular belongs_to" do
+    test = self
+    Class.new(ActiveRecord::Base) do
+      test.assert_not_deprecated(ActiveRecord.deprecator) do
+        belongs_to :foo, class_name: "Foo"
+      end
+    end
+  end
+end
