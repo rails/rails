@@ -2583,8 +2583,8 @@ Fixtures are predefined sets of data that populate your test database before
 running tests. They allow you to define records with easy-to-remember names,
 making it simple to access them in your tests.
 
-This file will be empty by default - you need to populate it with fixtures for
-your tests.
+This file contains some simple data by default - you need to customize the
+fixtures for your tests.
 
 Let’s update the product fixtures file at `test/fixtures/products.yml` with the
 following:
