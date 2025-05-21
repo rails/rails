@@ -444,6 +444,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
   end
 
+  def test_application_layout_sets_html_lang
+    run_generator [destination_root]
+    assert_file "app/views/layouts/application.html.erb" do |contents|
+      assert_match(/<html lang="<%= I18n\.locale %>">/, contents)
+    end
+  end
+
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
     assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "My Web Site"/

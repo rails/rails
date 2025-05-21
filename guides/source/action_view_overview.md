@@ -749,7 +749,7 @@ Here is an example of a simple layout in `application.html.erb` file:
 
 ```html+erb
 <!DOCTYPE html>
-<html>
+<html lang="<%= I18n.locale %>">
 <head>
   <title><%= "Your Rails App" %></title>
   <%= csrf_meta_tags %>
