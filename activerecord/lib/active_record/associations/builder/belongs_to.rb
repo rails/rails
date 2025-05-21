@@ -10,17 +10,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       valid = super + [:polymorphic, :counter_cache, :optional, :default]
       valid += [:foreign_type] if options[:polymorphic]
       valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
-
-      if options[:polymorphic] && options.key?(:class_name)
-        ActiveRecord.deprecator.warn(<<~MSG)
-          The :class_name option for polymorphic associations is deprecated
-          and it will be removed in Rails 8.1.
-
-          The class name of associated records is stored in the type column.
-          You can just delete the option.
-        MSG
-      end
-
       valid
     end
 
