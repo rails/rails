@@ -90,13 +90,13 @@ class Author < ApplicationRecord
   encrypts :email, deterministic: true
 end
 
-# You can query the email only if using deterministic encryption.
+# You can only query by email if using deterministic encryption.
 Author.find_by_email("tolkien@email.com")
 ```
 
 The `deterministic:` option generates initialization vectors in a deterministic way, meaning it will produce the same encrypted output given the same input value. This makes querying encrypted attributes possible, like the `email` above.
 
-The `:deterministic` option allows for querying by trading off lesser security. The data is still encrypted but the determinism makes crypto-analysis easier. For this reason, non-deterministic encryption is recommended for all data unless you need to query the attributes.
+The `:deterministic` option allows for querying by trading off lesser security. The data is still encrypted but the determinism makes crypto-analysis easier. For this reason, non-deterministic encryption is recommended for all data unless you need to query by an attribute.
 
 NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it also uses AES-GCM, but the initialization vector is generated as an HMAC-SHA-256 digest of the key and contents to encrypt.
 
@@ -178,11 +178,20 @@ When enabled, all the encryptable attributes will be encrypted according to the 
 
 To encrypt Action Text fixtures, you can place them in `fixtures/action_text/encrypted_rich_texts.yml`.
 
+DONE
 ### Serialized Attributes
 
-`active_record.encryption` will serialize values using the underlying type before encrypting them, but, unless using a custom `message_serializer`, *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
+By default, Active Record Encryption will serialize values using the underlying type before encrypting them as long as the value is serializable as Strings. If the underlying type is not serializable as a String, you can use a custom [`message_serializer`](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Encryption/MessageSerializer.html):
 
-If you need to support a custom type, the recommended way is using a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration:
+```ruby
+class Article < ApplicationRecord
+  encrypts :metadata, message_serializer: SomeCustomMessageSerializer.new
+end
+```
+
+Attributes with structured types using the [`serialized`](https://api.rubyonrails.org/v8.0.2/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize) method are supported with encryption as well. The `serialized` method is used when you have an attribute that needs to be saved to the database as a serialized object (using `YAML`, `JSON` or such), and retrieved by deserializing into the same object.
+
+NOTE: When using serialized attributes for custom types, the declaration of the serialized attribute should go **before** the encryption declaration:
 
 ```ruby
 # CORRECT
