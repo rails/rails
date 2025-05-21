@@ -2309,7 +2309,7 @@ module Product::Notifications
   end
 
   def back_in_stock?
-    inventory_count_previously_was == 0 && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count > 0
   end
 
   def notify_subscribers
