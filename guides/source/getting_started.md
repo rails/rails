@@ -2146,7 +2146,7 @@ to notify subscribers when a product is back in stock.
 We can generate a mailer with the following command:
 
 ```bash
-$ bin/rails g mailer Product in_stock
+$ bin/rails generate mailer Product in_stock
 ```
 
 This generates a class at `app/mailers/product_mailer.rb` with an `in_stock`
