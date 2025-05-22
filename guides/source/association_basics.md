@@ -2579,7 +2579,7 @@ class Book < ApplicationRecord
 end
 ```
 
-This option is no supported in polymorphic associations, since in that case the
+This option is not supported in polymorphic associations, since in that case the
 class name of the associated record is stored in the type column.
 
 #### `:dependent`
