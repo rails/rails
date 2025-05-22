@@ -2579,6 +2579,9 @@ class Book < ApplicationRecord
 end
 ```
 
+This option is no supported in polymorphic associations, since in that case the
+class name of the associated record is stored in the type column.
+
 #### `:dependent`
 
 Controls what happens to the associated object when its owner is destroyed:

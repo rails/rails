@@ -1576,7 +1576,9 @@ module ActiveRecord
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
-        #   if the real class name is Person, you'll have to specify it with this option.
+        #   if the real class name is Person, you'll have to specify it with this option. +:class_name+
+        #   is not supported in polymorphic associations, since in that case the class name of the
+        #   associated record is stored in the type column.
         # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
