@@ -793,7 +793,7 @@ body.guide {
             text-decoration: underline !important;
           }
 
-          a.active {
+          a[aria-current="page"] {
             position: relative;
             display: block;
 
