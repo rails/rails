@@ -287,6 +287,11 @@ module ActiveRecord
     #   # SELECT DATEDIFF(updated_at, created_at) FROM people
     #   # => ['0', '27761', '173']
     #
+    # Be aware that #pluck ignores any previous select clauses
+    #
+    #   Person.select(:name).pluck(:id)
+    #   # SELECT people.id FROM people
+    #
     # See also #ids.
     def pluck(*column_names)
       if @none
