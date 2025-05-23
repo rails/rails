@@ -287,17 +287,17 @@ NOTE: When generating the filter parameter, Rails will use the model name as a p
 
 ### Encoding
 
-The library will preserve the encoding for string values encrypted non-deterministically.
+When encrypting strings non-deterministically, their original encoding is preserved automatically.
 
-Because encoding is stored along with the encrypted payload, values encrypted deterministically will force UTF-8 encoding by default. Therefore the same value with a different encoding will result in a different ciphertext when encrypted. You usually want to avoid this to keep queries and uniqueness constraints working, so the library will perform the conversion automatically on your behalf.
+For deterministic encryption, Rails stores the string encoding alongside the ciphertext. However, to ensure consistent encryption output—especially for querying or enforcing uniqueness—the library forces UTF-8 encoding by default. This avoids producing different ciphertexts for identical strings with different encodings.
 
-You can configure the desired default encoding for deterministic encryption with:
+You can customize this behavior. To change the default forced encoding:
 
 ```ruby
 config.active_record.encryption.forced_encoding_for_deterministic_encryption = Encoding::US_ASCII
 ```
 
-And you can disable this behavior and preserve the encoding in all cases with:
+To disable forced encoding and preserve the original encoding in all cases:
 
 ```ruby
 config.active_record.encryption.forced_encoding_for_deterministic_encryption = nil
