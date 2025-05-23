@@ -305,7 +305,9 @@ config.active_record.encryption.forced_encoding_for_deterministic_encryption = n
 
 ### Compression
 
-The library compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads. You can disable compression by setting `compress: false` for encrypted attributes:
+The library compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads.
+
+You can disable compression by setting `compress` option when encrypting attributes:
 
 ```ruby
 class Article < ApplicationRecord
@@ -313,7 +315,7 @@ class Article < ApplicationRecord
 end
 ```
 
-You can also configure the algorithm used for the compression. The default compressor is `Zlib`. You can implement your own compressor by creating a class or module that responds to `#deflate(data)` and `#inflate(data)`.
+You can also configure the algorithm used for the compression. The default compressor is `Zlib`. You can implement your own compressor by creating a class or module that responds to `deflate` and `inflate` methods. For example:
 
 ```ruby
 require "zstd-ruby"
@@ -333,7 +335,7 @@ class User
 end
 ```
 
-You can configure the compressor globally:
+You can also configure the desired compression method globally:
 
 ```ruby
 config.active_record.encryption.compressor = ZstdCompressor
