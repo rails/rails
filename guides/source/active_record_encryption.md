@@ -425,7 +425,7 @@ Key providers implement key management strategies. You can configure key provide
 
 #### DerivedSecretKeyProvider
 
-A key provider that will serve keys derived from the provided passwords using PBKDF2.
+The [`DerivedSecretKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/DerivedSecretKeyProvider.html) key provider serves keys derived from the provided passwords using PBKDF2. This is the key provider configured by default.
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(["some passwords", "to derive keys from. ", "These should be in", "credentials"])
@@ -435,10 +435,9 @@ NOTE: By default, `active_record.encryption` configures a `DerivedSecretKeyProvi
 
 #### EnvelopeEncryptionKeyProvider
 
-Implements a simple [envelope encryption](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#enveloping) strategy:
+The [`EnvelopeEncryptionKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EnvelopeEncryptionKeyProvider.html) implements a simple [envelope encryption](https://cloud.google.com/kms/docs/envelope-encryption) strategy, where the data is encrypted with a key, which in turn is also encrypted.
 
-- It generates a random key for each data-encryption operation
-- It stores the data-key with the data itself, encrypted with a primary key defined in the credential `active_record.encryption.primary_key`.
+The `EnvelopeEncryptionKeyProvider` generates a random key for each data encryption operation. It stores the data-key with the data itself. Then, the data-key is also encrypted with a primary key defined in the credential `active_record.encryption.primary_key`.
 
 You can configure Active Record to use this key provider by adding this to your `application.rb`:
 
