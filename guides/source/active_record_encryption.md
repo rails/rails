@@ -345,26 +345,43 @@ config.active_record.encryption.compressor = ZstdCompressor
 
 ### Support for Unencrypted Data
 
-To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
+To ease the transition from unencrypted to encrypted attributes in your Rails application, you can enable support for unencrypted data with:
 
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
-* Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
+```ruby
+config.active_record.encryption.support_unencrypted_data = true
+```
 
-**This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
+When enabled:
+
+* Reading attributes that are still unencrypted will succeed without raising errors.
+
+* Queries on deterministically encrypted attributes can match both encrypted and cleartext values, if you also enable `extended_queries`:
+
+```ruby
+config.active_record.encryption.extend_queries = true
+```
+
+This setup is intended only for migration periods during which both encrypted and unencrypted data need to coexist in your application. Both options default to `false`, which is the recommended long-term configuration to ensure data is fully encrypted and enforced.
 
 ### Support for Previous Encryption Schemes
 
-Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you just change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
+Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you simply change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
 
-To support these situations, you can declare previous encryption schemes that will be used in two scenarios:
+To support these situations, you can specify previous encryption schemes be use globally or on a per-attribute basis.
+
+Once you configure the previous scheme, the following will be supported:
 
 * When reading encrypted data, Active Record Encryption will try previous encryption schemes if the current scheme doesn't work.
-* When querying deterministic data, it will add ciphertexts using previous schemes so that queries work seamlessly with data encrypted with different schemes. You must set `config.active_record.encryption.extend_queries = true` to enable this.
 
-You can configure previous encryption schemes:
+* When querying deterministic data, it will add ciphertexts using previous schemes so that queries work seamlessly with data encrypted with different schemes.
 
-* Globally
-* On a per-attribute basis
+You need to enable `extended_queries` configuration for this to work:
+
+```ruby
+ `config.active_record.encryption.extend_queries = true` to enable this.
+```
+
+Next, let's see how to configure previous encryption schemes.
 
 #### Global Previous Encryption Schemes
 
@@ -374,9 +391,9 @@ You can add previous encryption schemes by adding them as list of properties usi
 config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
 ```
 
-#### Per-attribute Encryption Schemes
+#### Per-attribute Previous Encryption Schemes
 
-Use `:previous` when declaring the attribute:
+Use `previous`option when declaring the encrypted attribute:
 
 ```ruby
 class Article
