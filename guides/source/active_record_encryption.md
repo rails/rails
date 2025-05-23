@@ -102,6 +102,27 @@ NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key 
 
 NOTE: You can disable deterministic encryption by omitting the `deterministic_key`.
 
+TODO: Edit
+### Ignoring Case
+
+You might need to ignore casing when querying deterministically encrypted data. Two approaches make accomplishing this easier:
+
+You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
+
+```ruby
+class Person
+  encrypts :email_address, deterministic: true, downcase: true
+end
+```
+
+When using `:downcase`, the original case is lost. In some situations, you might want to ignore the case only when querying while also storing the original case. For those situations, you can use the option `:ignore_case`. This requires you to add a new column named `original_<column_name>` to store the content with the case unchanged:
+
+```ruby
+class Label
+  encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
+end
+```
+
 TODO: more advanced, move to a later section?
 ### Column Size and Storage Consideration
 
@@ -207,33 +228,19 @@ class Article < ApplicationRecord
 end
 ```
 
-### Ignoring Case
+### Unique Constraints With Encrypted Data
 
-You might need to ignore casing when querying deterministically encrypted data. Two approaches make accomplishing this easier:
-
-You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
-
-```ruby
-class Person
-  encrypts :email_address, deterministic: true, downcase: true
-end
-```
-
-When using `:downcase`, the original case is lost. In some situations, you might want to ignore the case only when querying while also storing the original case. For those situations, you can use the option `:ignore_case`. This requires you to add a new column named `original_<column_name>` to store the content with the case unchanged:
-
-```ruby
-class Label
-  encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
-end
-```
-
-### Unique Constraints
-
-NOTE: Unique constraints can only be used with deterministically encrypted data.
+Unique constraints are only supported with deterministically encrypted data.
 
 #### Unique Validations
 
-Unique validations are supported normally as long as extended queries are enabled (`config.active_record.encryption.extend_queries = true`).
+In order to support unique validations, you'll need to enable extended queries. The default value for this configuration is false:
+
+```ruby
+config.active_record.encryption.extend_queries = true
+```
+
+Then, the uniqueness constraint can be specified normally, along with encryption:
 
 ```ruby
 class Person
@@ -242,21 +249,23 @@ class Person
 end
 ```
 
-They will also work when combining encrypted and unencrypted data, and when configuring previous encryption schemes.
+The `extended_queries` configuration also allows combining encrypted and unencrypted data, and when configuring previous encryption schemes.
 
-NOTE: If you want to ignore case, make sure to use `downcase:` or `ignore_case:` in the `encrypts` declaration. Using the `case_sensitive:` option in the validation won't work.
+NOTE: If you want to ignore case, make sure to use `downcase` or `ignore_case` option in the `encrypts` declaration. Using the `case_sensitive` option in the validation won't work.
 
 #### Unique Indexes
 
-To support unique indexes on deterministically-encrypted columns, you need to ensure their ciphertext doesn't ever change.
+In order to support unique indexes on deterministically encrypted columns, you need to make sure that their ciphertexts don't change.
 
-To encourage this, deterministic attributes will always use the oldest available encryption scheme by default when multiple encryption schemes are configured. Otherwise, it's your job to ensure encryption properties don't change for these attributes, or the unique indexes won't work.
+One thing Rails does to help is that, by default, deterministic attributes will use the oldest available encryption scheme when multiple encryption schemes are configured. 
 
 ```ruby
 class Person
   encrypts :email_address, deterministic: true
 end
 ```
+
+In order for unique indexes to work, you will have to ensure that the encryption properties for the underlying attributes don't change.
 
 ### Filtering Params Named as Encrypted Columns
 
