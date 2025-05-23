@@ -1,16 +1,16 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
-Sign Up and Registration
+Sign Up and Settings
 ========================
 
-This guide covers adding Sign Up and Registration to the store e-commerce application in the [Getting Started Guide](getting_started.html)). We will use the final code from that guide as a starting place.
+This guide covers adding Sign Up and Settings to the store e-commerce application in the [Getting Started Guide](getting_started.html)). We will use the final code from that guide as a starting place.
 
-After reading this guide, you will know:
-* How to add Sign Up
-* How to rate limit controller actions
-* How to create a nested layout
-* How to separate controllers by role
-* How to write tests for users with different roles
+After reading this guide, you will know how to:
+* Add user Sign Up
+* Rate limit controller actions
+* Create a nested layout
+* Separate controllers by role (users and admins)
+* Write tests for users with different roles
 
 --------------------------------------------------------------------------------
 
@@ -19,7 +19,7 @@ Introduction
 
 One of the most common features to add to any application is a sign up process for registering new users. The e-commerce application we've built so far only has authentication and users must be created in the Rails console or a script.
 
-This feature is a required foundation for adding other features. For example, to let users create wishlists, they will need to be able to sign up first before they can create a wishlist associated with their account.
+This feature is required before we can add other features. For example, to let users create wishlists, they will need to be able to sign up first before they can create a wishlist associated with their account.
 
 Let's get started!
 
@@ -67,7 +67,7 @@ Next, let's add sign up so we can register new users.
 
 ### Sign Up Routes & Controller
 
-We now have all the necessary columns in our database to register new users. The next step is to create a route for sign up and the matching controller.
+Now that our database has all the necessary columns to register new users, the next step is to create a route for sign up and its matching controller.
 
 In `config/routes.rb`, let's add a resource for sign up:
 
@@ -89,7 +89,7 @@ class SignUpsController < ApplicationController
 end
 ```
 
-We're using the `show` action to create a new `User` instance to display the sign up form.
+We're using the `show` action to create a new `User` instance, which will be used to display the sign up form.
 
 Let's create the form next at `app/views/sign_ups/show.html.erb`:
 
@@ -132,9 +132,9 @@ Let's create the form next at `app/views/sign_ups/show.html.erb`:
 <% end %>
 ```
 
-This form collects the user's name, email, and password. We're using the `autocomplete` attribute to suggest to the browser the content requested for these fields.
+This form collects the user's name, email, and password. We're using the `autocomplete` attribute to help the browser suggest the values for these fields based on the user's saved information.
 
-You'll also notice we set `url: sign_up_path` in the form alongside `model: @user`. Without the `url:` argument, `form_with` would see we have a `User` and send the form to `/users`. Since we want the form to submit to `/sign_up`, the `url:` argument tells the form exactly where to submit the data.
+You'll also notice we set `url: sign_up_path` in the form alongside `model: @user`. Without this `url:` argument, `form_with` would see we have a `User` and send the form to `/users` by default. Since we want the form to submit to `/sign_up`, we set the `url:` to override the default route.
 
 Back in `app/controllers/sign_ups_controller.rb` we can handle the form submission by adding the `create` action.
 
@@ -161,7 +161,7 @@ class SignUpsController < ApplicationController
 end
 ```
 
-The `create` action assign parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
+The `create` action assigns parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
 
 One last fix we need to make is restricting `SignUpsController` to unauthenticated users only. Let's do that by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
 
@@ -201,7 +201,7 @@ end
 
 ### Rate Limiting Sign Up
 
-Our application will be accessible on the Internet so we're bound to have malicious bots and users trying to spam our application. We can add rate limiting to sign up to slow down anyone submitting too many requests.
+Our application will be accessible on the internet so we're bound to have malicious bots and users trying to spam our application. We can add rate limiting to sign up to slow down anyone submitting too many requests.
 
 Rails makes this easy with the [`rate_limit`](https://api.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html) method in controllers.
 
@@ -219,13 +219,13 @@ This will block any form submissions that happen more than 10 times within 3 min
 Editing Passwords
 -----------------
 
-Now that users can login, we should create a few places for users to update their profile, password, email address and other settings.
+Now that users can login, let's create all the usual places that users would expect to update their profile, password, email address, and other settings.
 
 ### Using Namespaces
 
 The Rails authentication generator already created `app/controllers/passwords_controller.rb` and uses this controller for password resets. This means we need to use a different controller for editing passwords of authenticated users.
 
-To prevent conflicts, we can use a feature called namespaces. A namespace organizes routes, controllers, and views into folders and helps prevent conflicts like our two passwords controllers.
+To prevent conflicts, we can use a feature called **namespaces**. A namespace organizes routes, controllers, and views into folders and helps prevent conflicts like our two passwords controllers.
 
 We'll create a namespace called "Settings" to separate out the user and store settings from the rest of our application.
 
