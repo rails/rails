@@ -237,6 +237,7 @@ Unique constraints are only supported with deterministically encrypted data.
 In order to support unique validations, you'll need to enable extended queries. The default value for this configuration is false:
 
 ```ruby
+# config/applicaiton.rb
 config.active_record.encryption.extend_queries = true
 ```
 
@@ -269,19 +270,20 @@ In order for unique indexes to work, you will have to ensure that the encryption
 
 ### Filtering Params Named as Encrypted Columns
 
-By default, encrypted columns are configured to be [automatically filtered in Rails logs](action_controller_overview.html#parameters-filtering). You can disable this behavior by adding the following to your `application.rb`:
+Encrypted columns are configured to be automatically [filtered](action_controller_overview.html#parameters-filtering) in Rails logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
 
 ```ruby
+# config/applicaiton.rb
 config.active_record.encryption.add_to_filter_parameters = false
 ```
 
-If filtering is enabled, but you want to exclude specific columns from automatic filtering, add them to `config.active_record.encryption.excluded_from_filter_parameters`:
+When filtering is enabled, if you want to exclude specific columns from automatic filtering, you can use this configuration:
 
 ```ruby
 config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 ```
 
-When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
+NOTE: When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
 
 ### Encoding
 
