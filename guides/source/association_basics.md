@@ -953,7 +953,7 @@ object, use the `collection.build` method.
 A [`has_many :through`][`has_many`] association is often used to set up a
 many-to-many relationship with another model. This association indicates that
 the declaring model can be matched with zero or more instances of another model
-by proceeding _through_ a third model.
+by proceeding _through_ an intermediate "join" model.
 
 For example, consider a medical practice where patients make appointments to see
 physicians. The relevant association declarations could look like this:
@@ -1011,6 +1011,9 @@ In this migration the `physicians` and `patients` tables are created with a
 `name` column. The `appointments` table, which acts as the join table, is
 created with `physician_id` and `patient_id` columns, establishing the
 many-to-many relationship between `physicians` and `patients`.
+
+INFO: The through association can be any type of association, including other
+through associations, but it cannot be a polymorphic association.
 
 You could also consider using a [composite primary
 key](active_record_composite_primary_keys.html) for the join table in the
@@ -1149,6 +1152,9 @@ class CreateAccountHistories < ActiveRecord::Migration[8.1]
   end
 end
 ```
+
+INFO: The through association can be any type of association, including other
+through associations, but it cannot be a polymorphic association.
 
 ### `has_and_belongs_to_many`
 

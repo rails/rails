@@ -1208,8 +1208,10 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies an association through which to perform the query. This can be any other type
-        #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
+        #   Specifies an association through which to perform the query.
+        #
+        #   This can be any other type of association, including other <tt>:through</tt> associations,
+        #   but it cannot be a polymorphic association. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection.
         #
@@ -1411,10 +1413,12 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-        #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
-        #   or #belongs_to association on the join model.
+        #   Specifies an association through which to perform the query.
+        #
+        #   This can be any other type of association, including other <tt>:through</tt> associations,
+        #   but it cannot be a polymorphic association. Options for <tt>:class_name</tt>, <tt>:primary_key</tt>,
+        #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You can only
+        #   use a <tt>:through</tt> query through a #has_one or #belongs_to association on the join model.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
         #   and the records on the <tt>:through</tt> model will be automatically created and removed
