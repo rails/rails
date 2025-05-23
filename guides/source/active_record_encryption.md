@@ -470,13 +470,13 @@ end
 Both methods return `ActiveRecord::Encryption::Key` objects:
 
 - `encryption_key` returns the key used for encrypting some content
-- `decryption_keys` returns a list of potential keys for decrypting a given message
+- `decryption_keys` returns a list of potential keys for decrypting a given ciphertext.
 
-A key can include arbitrary tags that will be stored unencrypted with the message. You can use `ActiveRecord::Encryption::Message#headers` to examine those values when decrypting.
+A key can include arbitrary tags that will be stored unencrypted with the message. You can use [`ActiveRecord::Encryption::Message#headers`](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Encryption/Message.html) to examine those values when decrypting.
 
 ### Attribute-specific Key Providers
 
-You can configure a key provider on a per-attribute basis with the `:key_provider` option:
+You can configure a key provider on a per-attribute basis with the `key_provider` option:
 
 ```ruby
 class Article < ApplicationRecord
@@ -486,7 +486,7 @@ end
 
 ### Attribute-specific Keys
 
-You can configure a given key on a per-attribute basis with the `:key` option:
+You can configure a given key on a per-attribute basis with the `key` option:
 
 ```ruby
 class Article < ApplicationRecord
