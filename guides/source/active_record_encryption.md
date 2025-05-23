@@ -401,14 +401,21 @@ class Article
 end
 ```
 
-#### Encryption Schemes and Deterministic Attributes
+#### Encryption Schemes and Determinism
 
-When adding previous encryption schemes:
+With deterministic encryption, you typically want ciphertexts to remain constant. So when changing encryption schemes, non-deterministic and deterministic encryption behave differently.
 
 * With **non-deterministic encryption**, new information will always be encrypted with the *newest* (current) encryption scheme.
-* With **deterministic encryption**, new information will always be encrypted with the *oldest* encryption scheme by default.
 
-Typically, with deterministic encryption, you want ciphertexts to remain constant. You can change this behavior by setting `deterministic: { fixed: false }`. In that case, it will use the *newest* encryption scheme for encrypting new data.
+* With **deterministic encryption**, new information will be encrypted with the *oldest* encryption scheme by default.
+
+It is possible to change this behavior for deterministic encryption to use the *newest* encryption scheme for encrypting new data like this:
+
+```ruby
+class Article
+  encrypts :title, deterministic: { fixed: false }
+end
+```
 
 ## Key Management
 
