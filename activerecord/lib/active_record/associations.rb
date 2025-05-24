@@ -1415,7 +1415,7 @@ module ActiveRecord
         # [+:through+]
         #   Specifies an association through which to perform the query.
         #
-        #   The through association must be a `has_one`, `has_one :through`, or non-polymorphic `belongs_to`.
+        #   The through association must be a +has_one+, <tt>has_one :through</tt>, or non-polymorphic +belongs_to+.
         #   That is, a non-polymorphic singular association. Options for <tt>:class_name</tt>, <tt>:primary_key</tt>,
         #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You can only
         #   use a <tt>:through</tt> query through a #has_one or #belongs_to association on the join model.
