@@ -979,6 +979,9 @@ end
 allowing instances of one model (Physician) to be associated with multiple
 instances of another model (Patient) through a third "join" model (Appointment).
 
+We call `Physician.appointments` and `Appointment.patient` the _through_ and
+_source_ associations of `Physician.patients`, respectively.
+
 ![has_many :through Association
 Diagram](images/association_basics/has_many_through.png)
 
@@ -1013,7 +1016,8 @@ created with `physician_id` and `patient_id` columns, establishing the
 many-to-many relationship between `physicians` and `patients`.
 
 INFO: The through association can be any type of association, including other
-through associations, but it cannot be a polymorphic association.
+through associations, but it cannot be [polymorphic](#polymorphic-associations).
+Source associations can be polymorphic as long as you provide a source type.
 
 You could also consider using a [composite primary
 key](active_record_composite_primary_keys.html) for the join table in the
@@ -1125,6 +1129,9 @@ end
 This setup allows a `supplier` to directly access its `account_history` through
 its `account`.
 
+We call `Supplier.account` and `Account.account_history` the _through_ and
+_source_ associations of `Supplier.account_history`, respectively.
+
 ![has_one :through Association
 Diagram](images/association_basics/has_one_through.png)
 
@@ -1154,7 +1161,8 @@ end
 ```
 
 INFO: The through association can be any type of association, including other
-through associations, but it cannot be a polymorphic association.
+through associations, but it cannot be [polymorphic](#polymorphic-associations).
+Source associations can be polymorphic as long as you provide a source type.
 
 ### `has_and_belongs_to_many`
 
