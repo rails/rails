@@ -3621,6 +3621,19 @@ variable.
 
 Rails will now prepend "/app1" when generating links.
 
+In order for routing to work with this subdirectory further work is
+necessary either in the default `config.ru` or in the proxy if one is used.
+
+#### config.ru
+In the `config.ru` the application can be run in a block:
+
+```ruby
+map Rails.application.config.relative_url_root || '/' do
+  run Rails.application
+  Rails.application.load_server
+end
+```
+
 #### Using Passenger
 
 Passenger makes it easy to run your application in a subdirectory. You can find the relevant configuration in the [Passenger manual](https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/#deploying-an-app-to-a-sub-uri-or-subdirectory).
