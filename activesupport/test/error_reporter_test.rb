@@ -392,6 +392,12 @@ class ErrorReporterTest < ActiveSupport::TestCase
     end
   end
 
+  class MyOtherErrorContextMiddleware
+    def call(_, context:, **kwargs)
+      context.merge({ a: :b })
+    end
+  end
+
   test "can have multiple error context middlewares" do
     @reporter.add_middleware(-> (_, context:, **kwargs) { context.merge({ foo: :bar }) })
     @reporter.add_middleware(MyErrorContextMiddleware.new)
@@ -426,5 +432,77 @@ class ErrorReporterTest < ActiveSupport::TestCase
     @reporter.report(reported_error)
 
     assert_equal [[reported_error, true, :warning, "application", { foo: :bar }]], @subscriber.events
+  end
+
+  test "can insert error context middlewares at a specific index" do
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+    @reporter.context_middlewares.insert_at(0, MyOtherErrorContextMiddleware.new)
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { a: :b, bar: :baz }]], @subscriber.events
+    assert_equal 2, @reporter.context_middlewares.stack.size
+    assert_equal MyOtherErrorContextMiddleware, @reporter.context_middlewares.stack[0].class
+    assert_equal MyErrorContextMiddleware, @reporter.context_middlewares.stack[1].class
+  end
+
+  test "can insert error context middlewares before other middlewares" do
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+
+    @reporter.context_middlewares.insert_before(
+      MyErrorContextMiddleware,
+      MyOtherErrorContextMiddleware.new
+    )
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { bar: :baz, a: :b }]], @subscriber.events
+    assert_equal 2, @reporter.context_middlewares.stack.size
+    assert_equal MyOtherErrorContextMiddleware, @reporter.context_middlewares.stack[0].class
+    assert_equal MyErrorContextMiddleware, @reporter.context_middlewares.stack[1].class
+  end
+
+  test "can insert error context middlewares after other middlewares" do
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+    @reporter.context_middlewares.insert_after(
+      MyErrorContextMiddleware,
+      MyOtherErrorContextMiddleware.new
+    )
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { a: :b, bar: :baz }]], @subscriber.events
+    assert_equal 2, @reporter.context_middlewares.stack.size
+    assert_equal MyErrorContextMiddleware, @reporter.context_middlewares.stack[0].class
+    assert_equal MyOtherErrorContextMiddleware, @reporter.context_middlewares.stack[1].class
+  end
+
+  test "can swap an error context middleware for a different one" do
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+    @reporter.context_middlewares.swap(
+      MyErrorContextMiddleware,
+      MyOtherErrorContextMiddleware.new
+    )
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { a: :b }]], @subscriber.events
+    assert_equal 1, @reporter.context_middlewares.stack.size
+    assert_equal MyOtherErrorContextMiddleware, @reporter.context_middlewares.stack[0].class
+  end
+
+  test "can delete an error context middleware" do
+    @reporter.add_middleware(MyErrorContextMiddleware.new)
+    @reporter.add_middleware(MyOtherErrorContextMiddleware.new)
+    @reporter.context_middlewares.delete!(MyErrorContextMiddleware)
+
+    error = ArgumentError.new("Oops")
+    @reporter.report(error)
+
+    assert_equal [[error, true, :warning, "application", { a: :b }]], @subscriber.events
+    assert_equal 1, @reporter.context_middlewares.stack.size
   end
 end
