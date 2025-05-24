@@ -510,6 +510,45 @@ module ApplicationTests
         end
       end
 
+      test "db:schema:load:name doesn't purge the test database. The test schema is maintained when running tests" do
+        require "#{app_path}/config/environment"
+        Dir.chdir(app_path) do
+          generate_models_for_animals
+
+          File.open("test/models/dog_test.rb", "w") do |file|
+            file.write(<<~EOS)
+              require "test_helper"
+
+              class DogTest < ActiveSupport::TestCase
+                test "Dog name type" do
+                  puts Dog.type_for_attribute(:name).type
+                end
+              end
+            EOS
+          end
+
+          rails("db:migrate:primary", "db:migrate:animals")
+
+          development_runner_output = rails("runner", "puts Dog.type_for_attribute(:name).type")
+          assert_match(/string/, development_runner_output)
+
+          test_output = rails("test", "test/models/dog_test.rb")
+          assert_match(/string/, test_output)
+
+          # Simulate a schema change
+          content = File.read("db/animals_schema.rb")
+          content.gsub!(/t\.string "name"/, "t.text \"name\"")
+          File.write("db/animals_schema.rb", content)
+
+          rails("db:schema:load:animals")
+          development_runner_output = rails("runner", "puts Dog.type_for_attribute(:name).type")
+          assert_match(/text/, development_runner_output)
+
+          test_output = rails("test", "test/models/dog_test.rb")
+          assert_match(/text/, test_output)
+        end
+      end
+
       test "db:migrate respects timestamp ordering across databases" do
         require "#{app_path}/config/environment"
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
