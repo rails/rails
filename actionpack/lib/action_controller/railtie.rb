@@ -146,5 +146,11 @@ module ActionController
         end
       end
     end
+
+    initializer "action_controller.backtrace_cleaner" do
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
+      end
+    end
   end
 end
