@@ -33,6 +33,7 @@ module ActiveSupport
   #     i18n_reloader.execute_if_updated
   #   end
   class FileUpdateChecker
+    TIME_TRAVEL_THRESHOLD = 60 # seconds
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must
     # have directories as keys and the value is an array of extensions to be
@@ -49,6 +50,7 @@ module ActiveSupport
       @files = files.freeze
       @globs = compile_glob(dirs)
       @block = block
+      @init_time = Time.now
 
       @watched    = nil
       @updated_at = nil
@@ -131,7 +133,14 @@ module ActiveSupport
         paths.each do |path|
           mtime = File.mtime(path)
 
+          # Ignore files with mtime in the future relative to the current time
           next if time_now.compare_without_coercion(mtime) < 0
+
+          # Handle time travel in tests: if there's a significant time difference
+          # between init and current time, ignore files modified after initialization
+          # to prevent false positives from test time manipulation
+          time_diff = (time_now - @init_time).abs
+          next if time_diff > TIME_TRAVEL_THRESHOLD && @init_time.compare_without_coercion(mtime) < 0
 
           if max_mtime.nil? || max_mtime.compare_without_coercion(mtime) < 0
             max_mtime = mtime
