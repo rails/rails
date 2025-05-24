@@ -130,6 +130,13 @@ module ActiveStorage
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
+        ActiveStorage.base_controller_parent = app.config.active_storage.base_controller_parent ||
+          if app.config.api_only
+            "::ActionController::API"
+          else
+            "::ActionController::Base"
+          end
+
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
           -debug
