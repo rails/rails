@@ -35,5 +35,6 @@ class LiveParrot < Parrot
 end
 
 class DeadParrot < Parrot
+  enum :breed, { asian: 10 }
   belongs_to :killer, class_name: "Pirate", foreign_key: :killer_id
 end
