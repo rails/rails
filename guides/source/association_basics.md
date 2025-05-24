@@ -1160,9 +1160,10 @@ class CreateAccountHistories < ActiveRecord::Migration[8.1]
 end
 ```
 
-INFO: The through association can be any type of association, including other
-through associations, but it cannot be [polymorphic](#polymorphic-associations).
-Source associations can be polymorphic as long as you provide a source type.
+INFO: The through association must be a `has_one`, `has_one :through`, or
+non-polymorphic `belongs_to`. That is, a non-polymorphic singular association.
+On the other hand, source associations can be polymorphic as long as you provide
+a source type.
 
 ### `has_and_belongs_to_many`
 
