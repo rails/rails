@@ -3,9 +3,7 @@
 The Basics of Creating Rails Plugins
 ====================================
 
-A Rails plugin is a gem that’s designed specifically to work inside a Rails app,
-often using `Railtie` or `Engine` to hook into the Rails boot process and add
-functionality.
+This guide is for developers who want to create a Rails plugin, in order to extend or modify the behavior of a Rails application.
 
 After reading this guide, you will know:
 * What Rails plugins are.
