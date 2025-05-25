@@ -1,3 +1,14 @@
+*   Fix `ActiveRecord::EagerLoadPolymorphicError` when polymorphic association isn't part of a previous join.
+
+    This prevents `EagerLoadPolymorphicError` from being raised when a polymorphic
+    association is included alongside a non-polymorphic association that is also
+    used in a join. Polymorphic associations are now automatically preloaded
+    when they don't require joins.
+
+    Fixes #54981.
+
+    *Kai Matsudate*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
