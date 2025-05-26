@@ -106,6 +106,12 @@ module ActiveRecord
           end
       end
 
+      # Each connection pool has one of these registries. They map execution
+      # contexts to query cache stores.
+      #
+      # The keys of the internal map are threads or fibers (whatever
+      # ActiveSupport::IsolatedExecutionState.context returns), and their
+      # associated values are their respective query cache stores.
       class QueryCacheRegistry # :nodoc:
         def initialize
           @mutex = Mutex.new
