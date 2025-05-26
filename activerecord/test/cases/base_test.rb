@@ -1833,6 +1833,17 @@ class BasicsTest < ActiveRecord::TestCase
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
   end
 
+  test "allowed columns have attribute methods" do
+    assert_respond_to AllowedDeveloper.new, :name
+    assert_respond_to AllowedDeveloper.new, :salary
+    assert_respond_to AllowedDeveloper.new, :firm
+    assert_respond_to AllowedDeveloper.new, :mentor_id
+  end
+
+  test "not allowed columns have not attribute methods" do
+    assert_not_respond_to AllowedDeveloper.new, :first_name
+  end
+
   test "ignored columns are stored as an array of string" do
     assert_equal(%w(first_name last_name), Developer.ignored_columns)
     assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
