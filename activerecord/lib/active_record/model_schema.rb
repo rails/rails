@@ -186,7 +186,7 @@ module ActiveRecord
 
       initialize_load_schema_monitor
 
-      DEFAULT_ALLOWED_COLUMNS = %w[id created_at updated_at].freeze
+      DEFAULT_ALLOWED_COLUMNS = [primary_key 'created_at' 'updated_at'].freeze
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
