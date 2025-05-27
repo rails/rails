@@ -476,7 +476,7 @@ A key can include arbitrary tags that will be stored unencrypted with the messag
 
 ### Attribute-specific Key Providers
 
-You can configure a key provider on a per-attribute basis with the `key_provider` option:
+You can configure a key provider on a per-attribute basis with the `key_provider` option. For example, assuming you have defined a custom key provider called `ArticleKeyProvider`:
 
 ```ruby
 class Article < ApplicationRecord
@@ -486,7 +486,7 @@ end
 
 ### Attribute-specific Keys
 
-You can configure a given key on a per-attribute basis with the `key` option:
+You can configure a specific key for a given attribute using the `key` option:
 
 ```ruby
 class Article < ApplicationRecord
@@ -494,14 +494,11 @@ class Article < ApplicationRecord
 end
 ```
 
-Active Record uses the key to derive the key used to encrypt and decrypt the data.
+Active Record will use the key passed to `encrypts` to encrypt and decrypt the `summary` attribute above.
 
 ### Rotating Keys
 
-`active_record.encryption` can work with lists of keys to support implementing key-rotation schemes:
-
-- The **last key** will be used for encrypting new content.
-- All the keys will be tried when decrypting content until one works.
+Active Record Encryption can work with lists of keys to support implementing key rotation schemes. In the example below, the *last key* is used for encrypting new content and all keys are tried when decrypting content until one works.
 
 ```yml
 active_record_encryption:
@@ -511,21 +508,19 @@ active_record_encryption:
   key_derivation_salt: a3226b97b3b2f8372d1fc6d497a0c0d3
 ```
 
-This enables workflows in which you keep a short list of keys by adding new keys, re-encrypting content, and deleting old keys.
+This enables key rotation workflow where you keep a short list of keys by adding new keys, re-encrypting content, and deleting old keys.
 
-NOTE: Rotating keys is not currently supported for deterministic encryption.
-
-NOTE: Active Record Encryption doesn't provide automatic management of key rotation processes yet. All the pieces are there, but this hasn't been implemented yet.
+NOTE: Rotating keys is not supported for deterministic encryption.
 
 ### Storing Key References
 
-You can configure `active_record.encryption.store_key_references` to make `active_record.encryption` store a reference to the encryption key in the encrypted message itself.
+You can store a reference to the encryption key in the encrypted message itself. The advantage of doing this is that decryption can be more performant as the system does not have to try a list of keys to find one that works. The tradeoff is that the encryption data will be a bit larger.
+
+In order to store a key reference, you need to enable this configuration:
 
 ```ruby
 config.active_record.encryption.store_key_references = true
 ```
-
-Doing so makes for more performant decryption because the system can now locate keys directly instead of trying lists of keys. The price to pay is storage: encrypted data will be a bit bigger.
 
 ## Configuration
 
