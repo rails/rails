@@ -13,32 +13,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin = model.generated_association_methods
       name = reflection.name
 
-      define_constructors(mixin, name) unless reflection.polymorphic?
+      define_constructors(mixin, reflection) unless reflection.polymorphic?
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def reload_#{name}
-          association(:#{name}).force_reload_reader
+        def reload_#{reflection.name}
+          association(:#{reflection.name}).force_reload_reader
         end
 
-        def reset_#{name}
-          association(:#{name}).reset
+        def reset_#{reflection.name}
+          association(:#{reflection.name}).reset
         end
       CODE
     end
 
     # Defines the (build|create)_association methods for belongs_to or has_one association
-    def self.define_constructors(mixin, name)
+    def self.define_constructors(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def build_#{name}(*args, &block)
-          association(:#{name}).build(*args, &block)
+        def build_#{reflection.name}(*args, &block)
+          association(:#{reflection.name}).build(*args, &block)
         end
 
-        def create_#{name}(*args, &block)
-          association(:#{name}).create(*args, &block)
+        def create_#{reflection.name}(*args, &block)
+          association(:#{reflection.name}).create(*args, &block)
         end
 
-        def create_#{name}!(*args, &block)
-          association(:#{name}).create!(*args, &block)
+        def create_#{reflection.name}!(*args, &block)
+          association(:#{reflection.name}).create!(*args, &block)
         end
       CODE
     end
