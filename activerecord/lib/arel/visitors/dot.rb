@@ -120,6 +120,7 @@ module Arel # :nodoc: all
           visit_edge o, "columns"
           visit_edge o, "values"
           visit_edge o, "select"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Nodes_SelectCore(o)
@@ -151,6 +152,7 @@ module Arel # :nodoc: all
           visit_edge o, "limit"
           visit_edge o, "offset"
           visit_edge o, "key"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Nodes_DeleteStatement(o)
@@ -160,6 +162,7 @@ module Arel # :nodoc: all
           visit_edge o, "limit"
           visit_edge o, "offset"
           visit_edge o, "key"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Table(o)
