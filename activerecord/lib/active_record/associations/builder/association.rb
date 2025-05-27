@@ -108,6 +108,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_readers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}
+          #{generate_code_to_guard_deprecated_access(reflection)}
           association(:#{reflection.name}).reader
         end
       CODE
@@ -116,6 +117,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_writers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}=(value)
+          #{generate_code_to_guard_deprecated_access(reflection)}
           association(:#{reflection.name}).writer(value)
         end
       CODE
@@ -144,8 +146,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      name = reflection.name
-      model.before_destroy(->(o) { o.association(name).handle_dependency })
+      if reflection.deprecated?
+        # If :dependent is set, destroying the record has some side-effect that
+        # would no longer happen if the association is removed.
+        model.before_destroy { ActiveRecord::Associations::Deprecation.notify(reflection) }
+      end
+
+      model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)
@@ -168,9 +175,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
+    def self.generate_code_to_guard_deprecated_access(reflection)
+      ActiveRecord::Associations::Deprecation.generate_code_to_guard_deprecated_access(reflection)
+    end
+
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
-      :add_destroy_callbacks, :add_after_commit_jobs_callback
+      :add_destroy_callbacks, :add_after_commit_jobs_callback, :generate_code_to_guard_deprecated_access
   end
 end

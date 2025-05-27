@@ -1904,7 +1904,7 @@ module ActiveRecord
           hm_options = {}
           hm_options[:through] = middle_reflection.name
           hm_options[:source] = join_model.right_reflection.name
-          # hm_options[:_parent_reflection] = habtm_reflection
+          hm_options[:_habtm_reflection] = habtm_reflection
 
           [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
             hm_options[k] = options[k] if options.key?(k)

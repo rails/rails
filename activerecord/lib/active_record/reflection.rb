@@ -540,6 +540,8 @@ module ActiveRecord
           options[:query_constraints] = options.delete(:foreign_key)
         end
 
+        @deprecated = !!options[:deprecated]
+
         ensure_option_not_given_as_class!(:class_name)
       end
 
@@ -750,6 +752,10 @@ module ActiveRecord
 
       def extensions
         Array(options[:extend])
+      end
+
+      def deprecated?
+        @deprecated
       end
 
       private
@@ -990,6 +996,7 @@ module ActiveRecord
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
+        @deprecated = !!options[:deprecated]
 
         ensure_option_not_given_as_class!(:source_type)
       end
@@ -1211,9 +1218,38 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
+      def deprecated?
+        @deprecated
+      end
+
+      def deprecated_nested_reflections
+        @deprecated_nested_reflections ||= compute_deprecated_nested_reflections
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.actual_source_reflection
+        end
+
+        def compute_deprecated_nested_reflections
+          # This method may run before the association is instantiated, which is
+          # the point where reflections are checked for validity.
+          #
+          # If the through is invalid source_reflection could raise, for
+          # example, but such exception would not be useful for the user.
+          check_validity!
+
+          result = []
+          [through_reflection, source_reflection].each do |reflection|
+            result << reflection if reflection.deprecated?
+            # Both the `through` and the `source` reflection could be, in turn,
+            # a `through` reflection. In that case, we need to recurse. This can
+            # go an arbitrary number of levels down.
+            if reflection.through_reflection?
+              result.concat(reflection.deprecated_nested_reflections)
+            end
+          end
+          result
         end
 
       private
