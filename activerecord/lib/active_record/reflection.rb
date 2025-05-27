@@ -634,6 +634,7 @@ module ActiveRecord
           end
         end
 
+        options.freeze
         @validated = true
       end
 
@@ -1190,6 +1191,7 @@ module ActiveRecord
 
         check_validity_of_inverse!
 
+        options.freeze
         @validated = true
       end
 

@@ -708,6 +708,23 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  test "association reflection options are frozen after successful validation" do
+    reflection = ActiveRecord::Reflection.create(:has_many, :posts, nil, { dependent: :destroy }, Author)
+
+    assert_not_predicate reflection.options, :frozen?
+    reflection.check_validity!
+    assert_predicate reflection.options, :frozen?
+  end
+
+  test "through reflection options are frozen after successful validation" do
+    reflection = ActiveRecord::Reflection.create(:has_many, :comments, nil, { through: :posts }, Author)
+
+    assert_predicate reflection, :through_reflection?
+    assert_not_predicate reflection.options, :frozen?
+    reflection.check_validity!
+    assert_predicate reflection.options, :frozen?
+  end
+
   private
     def assert_reflection(klass, association, options)
       assert reflection = klass.reflect_on_association(association)
