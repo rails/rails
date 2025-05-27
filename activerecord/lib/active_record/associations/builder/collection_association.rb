@@ -60,6 +60,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name.to_s.singularize}_ids
+          #{generate_code_to_guard_deprecated_access(reflection)}
           association(:#{reflection.name}).ids_reader
         end
       CODE
@@ -70,6 +71,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name.to_s.singularize}_ids=(ids)
+          #{generate_code_to_guard_deprecated_access(reflection)}
           association(:#{reflection.name}).ids_writer(ids)
         end
       CODE
