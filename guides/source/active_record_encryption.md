@@ -94,58 +94,23 @@ end
 Author.find_by_email("tolkien@email.com")
 ```
 
-The `deterministic:` option generates initialization vectors in a deterministic way, meaning it will produce the same encrypted output given the same input value. This makes querying encrypted attributes possible, like the `email` above.
+The `deterministic:` option generates initialization vectors in a deterministic
+way, meaning it will produce the same encrypted output given the same input
+value. This makes querying encrypted attributes possible, like the `email`
+above.
 
-The `:deterministic` option allows for querying by trading off lesser security. The data is still encrypted but the determinism makes crypto-analysis easier. For this reason, non-deterministic encryption is recommended for all data unless you need to query by an attribute.
+The `:deterministic` option allows for querying by trading off lesser security.
+The data is still encrypted but the determinism makes crypto-analysis easier.
+For this reason, non-deterministic encryption is recommended for all data unless
+you need to query by an attribute.
 
-NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key and a random initialization vector. In deterministic mode, it also uses AES-GCM, but the initialization vector is generated as an HMAC-SHA-256 digest of the key and contents to encrypt.
+NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key
+and a random initialization vector. In deterministic mode, it also uses AES-GCM,
+but the initialization vector is generated as an HMAC-SHA-256 digest of the key
+and contents to encrypt.
 
-NOTE: You can disable deterministic encryption by omitting the `deterministic_key`.
-
-TODO: Edit
-### Ignoring Case
-
-You might need to ignore casing when querying deterministically encrypted data. Two approaches make accomplishing this easier:
-
-You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
-
-```ruby
-class Person
-  encrypts :email_address, deterministic: true, downcase: true
-end
-```
-
-When using `:downcase`, the original case is lost. In some situations, you might want to ignore the case only when querying while also storing the original case. For those situations, you can use the option `:ignore_case`. This requires you to add a new column named `original_<column_name>` to store the content with the case unchanged:
-
-```ruby
-class Label
-  encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
-end
-```
-
-TODO: more advanced, move to a later section?
-### Column Size and Storage Consideration
-
-Encryption requires extra space because the encrypted value will be larger than the original value (due to the Base64 encoding and the metadata stored along with the encrypted payloads).
-
-When using the built-in envelope encryption key provider, you can estimate the overhead to be around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
-
-There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
-
-In practice, this means:
-
-* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
-* When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
-* When encrypting long texts, you can ignore column size concerns.
-
-Some examples:
-
-| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
-| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
-| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
-| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
-| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
-| Arbitrary long text                               | text                 | text                              | negligible                    |
+NOTE: You can disable deterministic encryption by omitting the
+`deterministic_key`.
 
 TODO: find a place for this section
 ### Using the API
@@ -173,33 +138,30 @@ article.ciphertext_for(:title)
 
 ## Basic Usage
 
-### Action Text
+### Ignoring Case
 
-You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
+You might need to ignore case when querying deterministically encrypted data. Two approaches make accomplishing this easier:
+
+You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
 
 ```ruby
-class Message < ApplicationRecord
-  has_rich_text :content, encrypted: true
+class Person
+  encrypts :email_address, deterministic: true, downcase: true
 end
 ```
 
-NOTE: Passing individual encryption options to Action Text attributes is not supported. It will use non-deterministic encryption with the global encryption options configured.
-
-### Fixtures
-
-You can get Rails fixtures encrypted automatically by adding this option to your `test.rb`:
+When using `:downcase`, the original case is lost. In some situations, you might
+want to ignore the case only when querying while also storing the original case.
+For those situations, you can use the `:ignore_case` option. This requires you
+to add a new column named `original_<column_name>` to store the content with the
+case unchanged:
 
 ```ruby
-config.active_record.encryption.encrypt_fixtures = true
+class Label
+  encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
+end
 ```
 
-When enabled, all the encryptable attributes will be encrypted according to the encryption settings defined in the model.
-
-#### Action Text Fixtures
-
-To encrypt Action Text fixtures, you can place them in `fixtures/action_text/encrypted_rich_texts.yml`.
-
-DONE
 ### Serialized Attributes
 
 By default, Active Record Encryption will serialize values using the underlying type before encrypting them as long as the value is serializable as Strings. If the underlying type is not serializable as a String, you can use a custom [`message_serializer`](https://edgeapi.rubyonrails.org/classes/ActiveRecord/Encryption/MessageSerializer.html):
@@ -285,6 +247,33 @@ config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 
 NOTE: When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
 
+### Action Text
+
+You can encrypt Action Text attributes by passing `encrypted: true` in their declaration.
+
+```ruby
+class Message < ApplicationRecord
+  has_rich_text :content, encrypted: true
+end
+```
+
+NOTE: Passing individual encryption options to Action Text attributes is not supported. It will use non-deterministic encryption with the global encryption options configured.
+
+### Fixtures
+
+You can get Rails fixtures encrypted automatically by adding this option to your `test.rb`:
+
+```ruby
+config.active_record.encryption.encrypt_fixtures = true
+```
+
+When enabled, all the encryptable attributes will be encrypted according to the encryption settings defined in the model.
+
+#### Action Text Fixtures
+
+To encrypt Action Text fixtures, you can place them in `fixtures/action_text/encrypted_rich_texts.yml`.
+
+
 ### Encoding
 
 When encrypting strings non-deterministically, their original encoding is preserved automatically.
@@ -340,6 +329,30 @@ You can also configure the desired compression method globally:
 ```ruby
 config.active_record.encryption.compressor = ZstdCompressor
 ```
+
+TODO: more advanced, move to a later section?
+### Column Size and Storage Consideration
+
+Encryption requires extra space because the encrypted value will be larger than the original value (due to the Base64 encoding and the metadata stored along with the encrypted payloads).
+
+When using the built-in envelope encryption key provider, you can estimate the overhead to be around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+
+There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+
+In practice, this means:
+
+* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
+* When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting long texts, you can ignore column size concerns.
+
+Some examples:
+
+| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
+| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
+| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
+| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
+| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
+| Arbitrary long text                               | text                 | text                              | negligible                    |
 
 ## Migrating Existing Data
 
@@ -416,6 +429,74 @@ class Article
   encrypts :title, deterministic: { fixed: false }
 end
 ```
+
+## Encryption Contexts
+
+An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
+
+NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users should not have to care about them.
+
+The main components of encryption contexts are:
+
+* `encryptor`: exposes the internal API for encrypting and decrypting data.  It interacts with a `key_provider` to build encrypted messages and deal with their serialization. The encryption/decryption itself is done by the `cipher` and the serialization by `message_serializer`.
+* `cipher`: the encryption algorithm itself (AES 256 GCM)
+* `key_provider`: serves encryption and decryption keys.
+* `message_serializer`: serializes and deserializes encrypted payloads.
+
+WARNING: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
+
+### Global Encryption Context
+
+The global encryption context is the one used by default and is configured with other configuration properties in your `application.rb` or environment config files.
+
+```ruby
+config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
+config.active_record.encryption.encryptor = MyEncryptor.new
+```
+
+### Per-attribute Encryption Contexts
+
+You can override encryption context configuration by passing options in the attribute declaration:
+
+```ruby
+class Attribute
+  encrypts :title, encryptor: MyAttributeEncryptor.new
+end
+```
+
+### Encryption Context With a Block of Code
+
+You can set an encryption context for a given block of code using `with_encryption_context`:
+
+```ruby
+ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
+  # ...
+end
+```
+
+### Encryption Context to Disable Encryption
+
+You can run code without encryption:
+
+```ruby
+ActiveRecord::Encryption.without_encryption do
+  # ...
+end
+```
+
+This means that reading encrypted text will return the ciphertext, and saved content will be stored unencrypted.
+
+### Encryption Context to Protect Encrypted Data
+
+You can run code in a block without encryption but prevent overwriting encrypted content:
+
+```ruby
+ActiveRecord::Encryption.protecting_encrypted_data do
+  # ...
+end
+```
+
+This can be handy if you want to protect encrypted data while running arbitrary code against it (e.g. in a Rails console).
 
 ## Key Management
 
@@ -589,72 +670,3 @@ means it will only support the digest algorithm configured in `config.active_rec
 
 The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. Default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
 
-### Encryption Contexts
-
-An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
-
-NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users should not have to care about them.
-
-The main components of encryption contexts are:
-
-* `encryptor`: exposes the internal API for encrypting and decrypting data.  It interacts with a `key_provider` to build encrypted messages and deal with their serialization. The encryption/decryption itself is done by the `cipher` and the serialization by `message_serializer`.
-* `cipher`: the encryption algorithm itself (AES 256 GCM)
-* `key_provider`: serves encryption and decryption keys.
-* `message_serializer`: serializes and deserializes encrypted payloads (`Message`).
-
-NOTE: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
-
-#### Global Encryption Context
-
-The global encryption context is the one used by default and is configured as other configuration properties in your `application.rb` or environment config files.
-
-```ruby
-config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
-config.active_record.encryption.encryptor = MyEncryptor.new
-```
-
-#### Per-attribute Encryption Contexts
-
-You can override encryption context params by passing them in the attribute declaration:
-
-```ruby
-class Attribute
-  encrypts :title, encryptor: MyAttributeEncryptor.new
-end
-```
-
-#### Encryption Context When Running a Block of Code
-
-You can use `ActiveRecord::Encryption.with_encryption_context` to set an encryption context for a given block of code:
-
-```ruby
-ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-  # ...
-end
-```
-
-#### Built-in Encryption Contexts
-
-##### Disable Encryption
-
-You can run code without encryption:
-
-```ruby
-ActiveRecord::Encryption.without_encryption do
-  # ...
-end
-```
-
-This means that reading encrypted text will return the ciphertext, and saved content will be stored unencrypted.
-
-##### Protect Encrypted Data
-
-You can run code without encryption but prevent overwriting encrypted content:
-
-```ruby
-ActiveRecord::Encryption.protecting_encrypted_data do
-  # ...
-end
-```
-
-This can be handy if you want to protect encrypted data while still running arbitrary code against it (e.g. in a Rails console).
