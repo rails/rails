@@ -201,7 +201,7 @@ NOTE: If you want to ignore case, make sure to use `downcase` or `ignore_case` o
 
 In order to support unique indexes on deterministically encrypted columns, you need to make sure that their ciphertexts don't change.
 
-One thing Rails does to help is that, by default, deterministic attributes will use the oldest available encryption scheme when multiple encryption schemes are configured. 
+One thing Rails does to help is that, by default, deterministic attributes will use the oldest available encryption scheme when multiple encryption schemes are configured.
 
 ```ruby
 class Person
