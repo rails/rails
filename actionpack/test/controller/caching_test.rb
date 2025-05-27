@@ -414,7 +414,7 @@ class CollectionCacheTest < ActionController::TestCase
 
     get :index_ordered
     assert_equal 3, @controller.partial_rendered_times
-    assert_select ":root", "david, 1\n  david, 2\n  david, 3"
+    assert_select ":root", html: "<body><p>david, 1\n  david, 2\n  david, 3\n\n</p></body>"
   end
 
   def test_explicit_render_call_with_options

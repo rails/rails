@@ -520,6 +520,8 @@ module ActiveRecord
 
       def initialize(name, scope, options, active_record)
         super
+
+        @validated = false
         @type = -(options[:foreign_type]&.to_s || "#{options[:as]}_type") if options[:as]
         @foreign_type = -(options[:foreign_type]&.to_s || "#{name}_type") if options[:polymorphic]
         @join_table = nil
@@ -620,6 +622,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         check_validity_of_inverse!
 
         if !polymorphic? && (klass.composite_primary_key? || active_record.composite_primary_key?)
@@ -629,6 +633,8 @@ module ActiveRecord
             raise CompositePrimaryKeyMismatchError.new(self)
           end
         end
+
+        @validated = true
       end
 
       def check_eager_loadable!
@@ -979,6 +985,8 @@ module ActiveRecord
 
       def initialize(delegate_reflection)
         super()
+
+        @validated = false
         @delegate_reflection = delegate_reflection
         @klass = delegate_reflection.options[:anonymous_class]
         @source_reflection_name = delegate_reflection.options[:source]
@@ -1142,6 +1150,8 @@ module ActiveRecord
       end
 
       def check_validity!
+        return if @validated
+
         if through_reflection.nil?
           raise HasManyThroughAssociationNotFoundError.new(active_record, self)
         end
@@ -1179,6 +1189,8 @@ module ActiveRecord
         end
 
         check_validity_of_inverse!
+
+        @validated = true
       end
 
       def constraints
