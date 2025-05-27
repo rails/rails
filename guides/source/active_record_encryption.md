@@ -10,7 +10,7 @@ After reading this guide, you will know:
 * How to set up database encryption with Active Record.
 * How to migrate unencrypted data.
 * How to make different encryption schemes coexist.
-* How to use the API.
+* More about advance concepts like Encryption Contexts and Key Providers.
 
 --------------------------------------------------------------------------------
 
@@ -411,7 +411,7 @@ end
 
 ## Encryption Contexts
 
-An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can configure a custom context for a given attribute or when running a specific block of code.
+An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can also configure a custom context for a given attribute or when running a specific block of code.
 
 NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users should not have to care about them.
 
@@ -424,13 +424,25 @@ The main components of encryption contexts are:
 
 WARNING: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
 
-### Global Encryption Context
+### Built-In Encryption Context
 
 The global encryption context is the one used by default and is configured with other configuration properties in your `application.rb` or environment config files.
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
 config.active_record.encryption.encryptor = MyEncryptor.new
+```
+
+You can use [`with_encryption_context`](`https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context`) to override any of the properties of the encryption context.
+
+### Encryption Context With a Block of Code
+
+You can set an encryption context for a given block of code using `with_encryption_context`:
+
+```ruby
+ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
+  # ...
+end
 ```
 
 ### Per-attribute Encryption Contexts
@@ -440,16 +452,6 @@ You can override encryption context configuration by passing options in the attr
 ```ruby
 class Attribute
   encrypts :title, encryptor: MyAttributeEncryptor.new
-end
-```
-
-### Encryption Context With a Block of Code
-
-You can set an encryption context for a given block of code using `with_encryption_context`:
-
-```ruby
-ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-  # ...
 end
 ```
 
