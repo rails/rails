@@ -364,7 +364,7 @@ module ActiveRecord
             self.nested_attributes_options = nested_attributes_options
 
             type = (reflection.collection? ? :collection : :one_to_one)
-            generate_association_writer(association_name, type)
+            generate_association_writer(reflection)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
           end
@@ -383,11 +383,14 @@ module ActiveRecord
         # This redirects the attempts to write objects in an association through
         # the helper methods defined below. Makes it seem like the nested
         # associations are just regular associations.
-        def generate_association_writer(association_name, type)
+        def generate_association_writer(reflection)
+          type = (reflection.collection? ? :collection : :one_to_one)
+
           generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
-            silence_redefinition_of_method :#{association_name}_attributes=
-            def #{association_name}_attributes=(attributes)
-              assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
+            silence_redefinition_of_method :#{reflection.name}_attributes=
+            def #{reflection.name}_attributes=(attributes)
+              #{Associations::Deprecation.generate_code_to_guard_deprecated_access(reflection)}
+              assign_nested_attributes_for_#{type}_association(:#{reflection.name}, attributes)
             end
           eoruby
         end
