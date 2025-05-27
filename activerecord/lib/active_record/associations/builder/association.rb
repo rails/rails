@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
+      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints, :deprecated
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -66,8 +66,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
+    def self.internal_options(_options)
+      []
+    end
+
     def self.validate_options(options)
-      options.assert_valid_keys(valid_options(options))
+      internal_options = internal_options(options)
+      public_valid_options = valid_options(options) - internal_options
+      user_options = options.except(*internal_options)
+      user_options.assert_valid_keys(public_valid_options)
     end
 
     def self.define_extensions(model, name)
@@ -94,23 +101,22 @@ module ActiveRecord::Associations::Builder # :nodoc:
     # Post.first.comments and Post.first.comments= methods are defined by this method...
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
-      name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
+      define_readers(mixin, reflection)
+      define_writers(mixin, reflection)
     end
 
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}
-          association(:#{name}).reader
+        def #{reflection.name}
+          association(:#{reflection.name}).reader
         end
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}=(value)
-          association(:#{name}).writer(value)
+        def #{reflection.name}=(value)
+          association(:#{reflection.name}).writer(value)
         end
       CODE
     end
