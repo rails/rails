@@ -1835,13 +1835,26 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "allowed columns have attribute methods" do
     assert_respond_to AllowedDeveloper.new, :name
+    assert_respond_to AllowedDeveloper.new, :name=
+    assert_respond_to AllowedDeveloper.new, :name?
     assert_respond_to AllowedDeveloper.new, :salary
-    assert_respond_to AllowedDeveloper.new, :firm
+    assert_respond_to AllowedDeveloper.new, :salary=
+    assert_respond_to AllowedDeveloper.new, :salary?
+    assert_respond_to AllowedDeveloper.new, :firm_id
+    assert_respond_to AllowedDeveloper.new, :firm_id=
+    assert_respond_to AllowedDeveloper.new, :firm_id?
     assert_respond_to AllowedDeveloper.new, :mentor_id
+    assert_respond_to AllowedDeveloper.new, :mentor_id=
+    assert_respond_to AllowedDeveloper.new, :mentor_id?
   end
 
   test "not allowed columns have not attribute methods" do
     assert_not_respond_to AllowedDeveloper.new, :first_name
+    assert_not_respond_to AllowedDeveloper.new, :first_name=
+    assert_not_respond_to AllowedDeveloper.new, :first_name?
+    assert_not_respond_to AllowedDeveloper.new, :legacy_created_at
+    assert_not_respond_to AllowedDeveloper.new, :legacy_created_at=
+    assert_not_respond_to AllowedDeveloper.new, :legacy_created_at?
   end
 
   test "ignored columns are stored as an array of string" do

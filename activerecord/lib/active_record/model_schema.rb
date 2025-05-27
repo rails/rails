@@ -186,7 +186,7 @@ module ActiveRecord
 
       initialize_load_schema_monitor
 
-      DEFAULT_ALLOWED_COLUMNS = [primary_key 'created_at' 'updated_at'].freeze
+      DEFAULT_ALLOWED_COLUMNS = %w[created_at updated_at].freeze
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -381,7 +381,7 @@ module ActiveRecord
 
       def allowed_columns=(allowed_columns)
         check_model_columns(ignored_columns.present?)
-        self.ignored_columns = allowed_columns.present? ? self.column_names - (allowed_columns.map(&:to_s) | DEFAULT_ALLOWED_COLUMNS) : []
+        self.ignored_columns = allowed_columns.present? ? self.column_names - (allowed_columns.map(&:to_s) | default_allowed_columns) : []
         @is_allowed_columns = true
       end
 
@@ -645,6 +645,10 @@ module ActiveRecord
           end
 
           type
+        end
+
+        def default_allowed_columns
+          [primary_key.to_s, *DEFAULT_ALLOWED_COLUMNS]
         end
 
         def check_model_columns(columns_present)
