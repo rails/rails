@@ -15,6 +15,8 @@ require "models/pet"
 require "models/entry"
 require "models/message"
 require "models/cpk"
+require "models/car"
+require "support/deprecated_associations_test_helpers"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -1233,5 +1235,42 @@ class TestNestedAttributesForDelegatedType < ActiveRecord::TestCase
   def test_should_build_a_new_record_based_on_the_delegated_type
     assert_not_predicate @entry.entryable, :persisted?
     assert_equal "Hello world!", @entry.entryable.subject
+  end
+end
+
+class NestedAttributesForDeprecatedAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = Car
+    @car = Car.first
+    @tyre_attributes = {}
+    @bulb_attributes = { "name" => "name for deprecated nested attributes" }
+  end
+
+  test "has_many" do
+    assert_not_deprecated_association(:tyres) do
+      @car.tyres_attributes = [@tyre_attributes]
+    end
+
+    assert_deprecated_association(:deprecated_tyres) do
+      @car.deprecated_tyres_attributes = [@tyre_attributes]
+    end
+
+    assert @tyre_attributes <= @car.deprecated_tyres[0].attributes
+  end
+
+  test "has_one" do
+    assert_not_deprecated_association(:bulb) do
+      @car.bulb_attributes = @bulb_attributes
+    end
+
+    assert_deprecated_association(:deprecated_bulb) do
+      @car.deprecated_bulb_attributes = @bulb_attributes
+    end
+
+    assert @bulb_attributes <= @car.deprecated_bulb.attributes
   end
 end
