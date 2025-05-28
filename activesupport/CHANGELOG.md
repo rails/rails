@@ -201,4 +201,6 @@
 
     *Jonathan del Strother*
 
+*   Freeze instances of `ActiveSupport::CurrentAttributes` to prevent assignment of custom instance variables, which would cause global state to be leaked across requests.
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activesupport/CHANGELOG.md) for previous changes.
