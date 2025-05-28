@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "support/deprecated_associations_test_helpers"
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -3281,5 +3282,76 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  setup do
+    @model = Car
+    @car = Car.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:tyres) do
+      assert_empty @car.tyres
+    end
+
+    assert_deprecated_association(:deprecated_tyres) do
+      assert_empty @car.deprecated_tyres
+    end
+  end
+
+  test "<association>=" do
+    tyre = Tyre.new
+    assert_not_deprecated_association(:tyres) do
+      @car.tyres = [tyre]
+    end
+    assert_equal [tyre], @car.tyres
+
+    deprecated_tyre = Tyre.new
+    assert_deprecated_association(:deprecated_tyres) do
+      @car.deprecated_tyres = [deprecated_tyre]
+    end
+    assert_equal [deprecated_tyre], @car.deprecated_tyres
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:tyres) do
+      assert_empty @car.tyre_ids
+    end
+
+    assert_deprecated_association(:deprecated_tyres) do
+      assert_empty @car.deprecated_tyre_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    tyre = @car.tyres.create!
+
+    assert_not_deprecated_association(:tyres) do
+      @car.tyre_ids = [tyre.id]
+    end
+    assert_equal [tyre.id], @car.tyre_ids
+
+    assert_deprecated_association(:deprecated_tyres) do
+      @car.deprecated_tyre_ids = [tyre.id]
+    end
+    assert_equal [tyre.id], @car.deprecated_tyre_ids
+  end
+
+  test "destroy (not deprecated)" do
+    assert_not_deprecated_association(:tyres) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_tyres) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end

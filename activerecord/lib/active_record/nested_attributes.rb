@@ -363,7 +363,6 @@ module ActiveRecord
             nested_attributes_options[association_name.to_sym] = options
             self.nested_attributes_options = nested_attributes_options
 
-            type = (reflection.collection? ? :collection : :one_to_one)
             generate_association_writer(reflection)
           else
             raise ArgumentError, "No association found for name `#{association_name}'. Has it been defined yet?"
