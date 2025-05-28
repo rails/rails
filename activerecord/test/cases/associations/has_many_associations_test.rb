@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "support/deprecated_associations_test_helpers"
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -45,6 +44,7 @@ require "models/human"
 require "models/sharded"
 require "models/cpk"
 require "models/comment_overlapping_counter_cache"
+require "support/deprecated_associations_test_helpers"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -3288,6 +3288,8 @@ end
 class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 
+  fixtures :cars
+
   setup do
     @model = Car
     @car = Car.first
@@ -3295,35 +3297,34 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
 
   test "<association>" do
     assert_not_deprecated_association(:tyres) do
-      assert_empty @car.tyres
+      @car.tyres
     end
 
     assert_deprecated_association(:deprecated_tyres) do
-      assert_empty @car.deprecated_tyres
+      assert_equal @car.tyres, @car.deprecated_tyres
     end
   end
 
   test "<association>=" do
     tyre = Tyre.new
+
     assert_not_deprecated_association(:tyres) do
       @car.tyres = [tyre]
     end
-    assert_equal [tyre], @car.tyres
 
-    deprecated_tyre = Tyre.new
     assert_deprecated_association(:deprecated_tyres) do
-      @car.deprecated_tyres = [deprecated_tyre]
+      @car.deprecated_tyres = [tyre]
     end
-    assert_equal [deprecated_tyre], @car.deprecated_tyres
+    assert_equal [tyre], @car.deprecated_tyres
   end
 
   test "<singular_association>_ids" do
     assert_not_deprecated_association(:tyres) do
-      assert_empty @car.tyre_ids
+      @car.tyre_ids
     end
 
     assert_deprecated_association(:deprecated_tyres) do
-      assert_empty @car.deprecated_tyre_ids
+      assert_equal @car.tyre_ids, @car.deprecated_tyre_ids
     end
   end
 
@@ -3333,7 +3334,6 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_deprecated_association(:tyres) do
       @car.tyre_ids = [tyre.id]
     end
-    assert_equal [tyre.id], @car.tyre_ids
 
     assert_deprecated_association(:deprecated_tyres) do
       @car.deprecated_tyre_ids = [tyre.id]
