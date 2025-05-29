@@ -394,9 +394,9 @@ module ActiveRecord
         #
         # 💡 When to use +hstore+ vs +jsonb+?
         #
-        # Use +hstore+ when you need a simple, flat key-value store where both keys and values are strings.
-        # It’s lightweight and efficient for storing unstructured settings or metadata. If you require nested
-        # structures, typed values (e.g. numbers, booleans), or advanced querying capabilities, consider using
+        # Use +hstore+ for a simple, flat key-value store where both keys and values are strings.
+        # It’s lightweight and efficient for storing unstructured settings or metadata. If nested structures are
+        # required, typed values (e.g. numbers, booleans), or advanced querying capabilities, consider using
         # +jsonb+ instead.
 
         ##
