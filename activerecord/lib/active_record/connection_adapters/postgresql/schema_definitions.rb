@@ -273,7 +273,7 @@ module ActiveRecord
         #     end
         #   end
         #
-        # You can also create the enum and add it to an existing table:
+        # The enum can also be added it to an existing table:
         #
         #   # db/migrate/20230113024409_add_status_to_articles.rb
         #   def change
