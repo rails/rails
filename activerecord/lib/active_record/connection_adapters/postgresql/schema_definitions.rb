@@ -150,7 +150,7 @@ module ActiveRecord
         #
         #   t.binary :payload
         #
-        # You can assign binary data from a file like this:
+        # Binary data from a file can be assigned like this:
         #
         #   irb> data = File.read(Rails.root.join("tmp/output.pdf"))
         #   irb> Document.create(payload: data)
