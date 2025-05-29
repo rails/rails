@@ -989,7 +989,7 @@ module ActiveRecord
         #     t.unique_constraint [:position], deferrable: :immediate
         #   end
         #
-        # If you want to change an existing unique index to deferrable, you can
+        # When changing an existing unique index to deferrable,
         # use +:using_index+ to create deferrable unique constraints.
         #
         #   add_unique_constraint :items, deferrable: :deferred, using_index: "index_items_on_position"
