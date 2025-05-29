@@ -412,7 +412,7 @@ module ActiveRecord
         #     t.inet "ip_address"
         #   end
         #
-        # You can assign and query values as strings:
+        # Assigning and querying values as strings:
         #
         #   irb> device = Device.create(ip_address: "192.168.1.1")
         #   irb> device.ip_address.class
