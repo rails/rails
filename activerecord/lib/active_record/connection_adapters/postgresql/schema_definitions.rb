@@ -785,7 +785,7 @@ module ActiveRecord
         #   irb> device.id
         #   # => "814865cd-5a1d-4771-9306-4268f188fe9e"
         #
-        # You can also use UUIDs in references:
+        # UUIDs can also be used in references:
         #
         #   create_table :comments, id: :uuid do |t|
         #     t.references :post, type: :uuid, foreign_key: true
