@@ -213,7 +213,7 @@ In order for unique indexes to work, you will have to ensure that the encryption
 
 ### Filtering Params Named as Encrypted Columns
 
-Encrypted columns are configured to be automatically [filtered](action_controller_overview.html#parameters-filtering) in Rails logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
+Encrypted columns are configured to be automatically [filtered](configuring.html#config-filter-parameters) in Rails logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
 
 ```ruby
 # config/applicaiton.rb
@@ -377,7 +377,7 @@ Next, let's see how to configure previous encryption schemes.
 
 #### Global Previous Encryption Schemes
 
-You can add previous encryption schemes by adding them as list of properties using the `previous` config property in your `application.rb`:
+You can add previous encryption schemes by adding them as a list of properties using the `previous` config property in your `application.rb`:
 
 ```ruby
 config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
@@ -422,7 +422,7 @@ The main components of encryption contexts are:
 * `key_provider`: serves encryption and decryption keys.
 * `message_serializer`: serializes and deserializes encrypted payloads.
 
-WARNING: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
+WARNING: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A commonly supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
 
 ### Built-In Encryption Context
 
