@@ -104,7 +104,7 @@ module ActiveRecord
         #   irb> user.flags = "01010101"  # Valid bit string
         #   irb> user.save!
         #
-        # If you assign an integer, it will be converted to a bit string:
+        # When assigning an integer, it will be converted to a bit string:
         #
         #   irb> user = User.new
         #   irb> user.flags = 42  # Stored as "00101010"
