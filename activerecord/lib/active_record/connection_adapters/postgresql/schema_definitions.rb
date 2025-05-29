@@ -94,7 +94,7 @@ module ActiveRecord
         #
         #   t.bit_varying :settings
         #
-        # You can also specify the column type explicitly:
+        # The column type can also be specified explicitly:
         #
         #   t.column :flags, 'bit varying(16)'  # Up to 16 bits
         #
