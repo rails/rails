@@ -354,7 +354,7 @@ module ActiveRecord
         #
         # Adds an +hstore+ column for storing sets of key-value pairs.
         #
-        # PostgreSQL’s +hstore+ type allows you to store a dynamic set of string keys and values
+        # PostgreSQL’s +hstore+ type allows storing a dynamic set of string keys and values
         # in a single column. This is useful for flexible or semi-structured data such as user
         # preferences, metadata, or settings.
         #
