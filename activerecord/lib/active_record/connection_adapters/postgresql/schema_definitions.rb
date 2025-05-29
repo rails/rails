@@ -436,7 +436,7 @@ module ActiveRecord
         #     t.interval "duration"
         #   end
         #
-        # You can assign durations using ActiveSupport helpers:
+        # Durations can be assigned using ActiveSupport helpers:
         #
         #   irb> event = Event.create(duration: 3.days + 2.hours)
         #   irb> event.duration
