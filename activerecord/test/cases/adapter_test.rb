@@ -153,6 +153,23 @@ module ActiveRecord
       assert_not_empty result.columns
     end
 
+    test "#exec_query queries return an ActiveRecord::Result with affected rows" do
+      result = @connection.exec_query "INSERT INTO subscribers(nick, name) VALUES('me', 'me'), ('you', 'you')"
+      assert_equal 2, result.affected_rows
+
+      update_result = @connection.exec_query "UPDATE subscribers SET name = 'you' WHERE name = 'me'"
+      assert_equal 1, update_result.affected_rows
+
+      select_result = @connection.exec_query "SELECT * FROM subscribers"
+      assert_not_equal update_result.affected_rows, select_result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 2, result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 0, result.affected_rows
+    end
+
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_charset
         assert_not_nil @connection.charset

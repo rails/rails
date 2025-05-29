@@ -5,7 +5,7 @@ module Sharded
     self.table_name = :sharded_blog_posts
     query_constraints :blog_id, :id
 
-    belongs_to :parent, class_name: name, polymorphic: true
+    belongs_to :parent, polymorphic: true
     belongs_to :blog
     has_many :comments
     has_many :delete_comments, class_name: "Sharded::Comment", dependent: :delete_all

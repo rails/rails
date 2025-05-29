@@ -170,20 +170,20 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            if result.fields.empty?
-              result.clear
-              return ActiveRecord::Result.empty
+            ar_result = if result.fields.empty?
+              ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
+            else
+              fields = result.fields
+              types = Array.new(fields.size)
+              fields.size.times do |index|
+                ftype = result.ftype(index)
+                fmod  = result.fmod(index)
+                types[index] = get_oid_type(ftype, fmod, fields[index])
+              end
+
+              ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
             end
 
-            fields = result.fields
-            types = Array.new(fields.size)
-            fields.size.times do |index|
-              ftype = result.ftype(index)
-              fmod  = result.fmod(index)
-              types[index] = get_oid_type(ftype, fmod, fields[index])
-            end
-
-            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
             result.clear
             ar_result
           end

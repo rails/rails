@@ -1208,8 +1208,10 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies an association through which to perform the query. This can be any other type
-        #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
+        #   Specifies an association through which to perform the query.
+        #
+        #   This can be any other type of association, including other <tt>:through</tt> associations,
+        #   but it cannot be a polymorphic association. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection.
         #
@@ -1411,10 +1413,12 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-        #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
-        #   or #belongs_to association on the join model.
+        #   Specifies an association through which to perform the query.
+        #
+        #   The through association must be a +has_one+, <tt>has_one :through</tt>, or non-polymorphic +belongs_to+.
+        #   That is, a non-polymorphic singular association. Options for <tt>:class_name</tt>, <tt>:primary_key</tt>,
+        #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You can only
+        #   use a <tt>:through</tt> query through a #has_one or #belongs_to association on the join model.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
         #   and the records on the <tt>:through</tt> model will be automatically created and removed
@@ -1576,7 +1580,9 @@ module ActiveRecord
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
-        #   if the real class name is Person, you'll have to specify it with this option.
+        #   if the real class name is Person, you'll have to specify it with this option. +:class_name+
+        #   is not supported in polymorphic associations, since in that case the class name of the
+        #   associated record is stored in the type column.
         # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>

@@ -2,7 +2,8 @@
 
 # :markup: markdown
 
-require "cgi"
+require "cgi/escape"
+require "cgi/util" if RUBY_VERSION < "3.5"
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"

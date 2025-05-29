@@ -481,7 +481,7 @@ This can be handy if you want to protect encrypted data while running arbitrary 
 
 ## Key Management
 
-Key providers implement key management strategies. You can configure key providers globally, or on a per attribute basis.
+Key providers implement key management strategies. You can configure key providers globally or on a per-attribute basis.
 
 ### Built-in Key Providers
 
@@ -644,10 +644,9 @@ The digest algorithm used to derive keys. `OpenSSL::Digest::SHA256` by default.
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
-Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
+Supports decrypting data encrypted non-deterministically with a digest class SHA1. The default is false, which
 means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 #### `config.active_record.encryption.compressor`
 
-The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. Default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
-
+The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. The default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.

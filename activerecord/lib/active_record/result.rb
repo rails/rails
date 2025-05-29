@@ -29,6 +29,11 @@ module ActiveRecord
   #         ...
   #        ]
   #
+  #   # Get the number of rows affected by the query:
+  #   result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
+  #   result.affected_rows
+  #   # => 2
+  #
   #   # ActiveRecord::Result also includes Enumerable.
   #   result.each do |row|
   #     puts row['title'] + " " + row['body']
@@ -89,17 +94,17 @@ module ActiveRecord
       alias_method :to_hash, :to_h
     end
 
-    attr_reader :columns, :rows
+    attr_reader :columns, :rows, :affected_rows
 
-    def self.empty(async: false) # :nodoc:
+    def self.empty(async: false, affected_rows: nil) # :nodoc:
       if async
-        EMPTY_ASYNC
+        FutureResult.wrap(new(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_HASH, affected_rows: affected_rows)).freeze
       else
-        EMPTY
+        new(EMPTY_ARRAY, EMPTY_ARRAY, EMPTY_HASH, affected_rows: affected_rows).freeze
       end
     end
 
-    def initialize(columns, rows, column_types = nil)
+    def initialize(columns, rows, column_types = nil, affected_rows: nil)
       # We freeze the strings to prevent them getting duped when
       # used as keys in ActiveRecord::Base's @attributes hash
       @columns      = columns.each(&:-@).freeze
@@ -108,6 +113,7 @@ module ActiveRecord
       @column_types = column_types.freeze
       @types_hash   = nil
       @column_indexes = nil
+      @affected_rows = affected_rows
     end
 
     # Returns true if this result set includes the column named +name+
@@ -260,14 +266,8 @@ module ActiveRecord
         end
       end
 
-      empty_array = [].freeze
+      EMPTY_ARRAY = [].freeze
       EMPTY_HASH = {}.freeze
-      private_constant :EMPTY_HASH
-
-      EMPTY = new(empty_array, empty_array, EMPTY_HASH).freeze
-      private_constant :EMPTY
-
-      EMPTY_ASYNC = FutureResult.wrap(EMPTY).freeze
-      private_constant :EMPTY_ASYNC
+      private_constant :EMPTY_ARRAY, :EMPTY_HASH
   end
 end
