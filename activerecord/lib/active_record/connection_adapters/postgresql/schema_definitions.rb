@@ -425,7 +425,7 @@ module ActiveRecord
         # :method: interval
         # :call-seq: interval(*names, **options)
         #
-        # Adds an +interval+ column for storing durations of time. It represents
+        # Adds an +interval+ column for storing time duration. It represents
         # elapsed time (e.g., hours, days, months). In Ruby, this maps to
         # {ActiveSupport::Duration}[https://api.rubyonrails.org/classes/ActiveSupport/Duration.html]
         # objects.
