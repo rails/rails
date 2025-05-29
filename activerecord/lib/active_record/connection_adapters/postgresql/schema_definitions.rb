@@ -455,7 +455,7 @@ module ActiveRecord
         #
         #   t.int4range :range
         #
-        # You can assign values using Ruby ranges:
+        # Assign values using Ruby ranges:
         #
         #   record.range = 1...100
 
