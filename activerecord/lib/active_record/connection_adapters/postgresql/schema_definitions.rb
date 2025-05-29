@@ -139,7 +139,7 @@ module ActiveRecord
         # second the lower-left. The box spans the area between those two points on a 2D plane.
 
         ##
-        # :method: bytea
+        # :method: binary
         # :call-seq: binary(*names, **options)
         #
         # Adds a binary column mapped to PostgreSQL’s +bytea+ type.
