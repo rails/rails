@@ -55,7 +55,7 @@ module ActiveRecord
         #
         #   t.bigserial :event_id
         #
-        # You can also explicitly declare it as the primary key:
+        # The column can also be explicitly declared as the primary key:
         #
         #   create_table :events, id: false do |t|
         #     t.bigserial :id, primary_key: true
