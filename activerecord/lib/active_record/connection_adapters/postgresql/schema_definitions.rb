@@ -1000,7 +1000,7 @@ module ActiveRecord
         # Deferrable constraints are useful when performing multiple related inserts or updates that may temporarily violate
         # the constraint but are resolved by the end of the transaction.
         #
-        # You can read more about deferrable constraints in the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS).
+        # Read more about deferrable constraints in the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS).
         #
         # See {connection.add_unique_constraint}[rdoc-ref:SchemaStatements#add_unique_constraint]
         def unique_constraint(...)
