@@ -110,7 +110,7 @@ module ActiveRecord
         #   irb> user.flags = 42  # Stored as "00101010"
         #   irb> user.save!
         #
-        # If you assign a string that is not a valid bit string, it will raise an error:
+        # When assigning a string that is not a valid bit string, it will raise an error:
         #
         #   irb> user = User.new
         #   irb> user.flags = "invalid"  # Raises a PostgreSQL error
