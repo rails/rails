@@ -962,7 +962,7 @@ module ActiveRecord
         # Like foreign keys, exclusion constraints can be deferred by setting +:deferrable+ to either +:immediate+ or +:deferred+.
         # By default, +:deferrable+ is `false` and the constraint is always checked immediately.
         #
-        # You can read more about exclusion constraints in the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION).
+        # Read more about exclusion constraints in the [PostgreSQL documentation](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-EXCLUSION).
         #
         # See {connection.add_exclusion_constraint}[rdoc-ref:SchemaStatements#add_exclusion_constraint]
         def exclusion_constraint(...)
