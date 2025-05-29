@@ -358,7 +358,7 @@ module ActiveRecord
         # in a single column. This is useful for flexible or semi-structured data such as user
         # preferences, metadata, or settings.
         #
-        # You must enable the +hstore+ extension to use this type:
+        # Enable the +hstore+ extension to use this type:
         #
         #   enable_extension "hstore" unless extension_enabled?("hstore")
         #
