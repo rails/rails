@@ -771,13 +771,6 @@ module ActiveRecord
         # space and time. They're commonly used for primary keys or to reference
         # external systems.
         #
-        # On PostgreSQL, you may need to enable an extension to use UUIDs:
-        #
-        #   enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
-        #
-        # Use the {pgcrypto extension}[https://www.postgresql.org/docs/current/pgcrypto.html] for PostgreSQL >= 9.4.
-        # Use the {uuid-ossp extension}[https://www.postgresql.org/docs/current/uuid-ossp.html] for earlier versions.
-        #
         # When creating a table with a UUID primary key, gen_random_uuid() is used
         # as the default generator if no +:default+ option is specified:
         #
