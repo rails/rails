@@ -1,10 +1,20 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 class ActiveStorage::TransformJobTest < ActiveJob::TestCase
-  setup { @blob = create_file_blob }
+  setup do
+    @blob = create_file_blob
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+    ActiveStorage.variable_content_types = %w(image/jpeg image/png)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+  end
+
+  teardown do
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+  end
 
   test "creates variant" do
     transformations = { resize_to_limit: [100, 100] }
@@ -17,17 +27,21 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
   end
 
   test "creates variant for previewable file" do
-    @blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
-    transformations = { resize_to_limit: [100, 100] }
+    analyze_with("ImageAnalyzer::Vips") do
+      preview_with("PopplerPDFPreviewer") do
+        @blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+        transformations = { resize_to_limit: [100, 100] }
 
-    assert_changes -> { @blob.preview(transformations).send(:processed?) }, from: false, to: true do
-      perform_enqueued_jobs do
-        ActiveStorage::TransformJob.perform_later @blob, transformations
+        assert_changes -> { @blob.preview(transformations).send(:processed?) }, from: false, to: true do
+          perform_enqueued_jobs do
+            ActiveStorage::TransformJob.perform_later @blob, transformations
+          end
+          @blob.reload
+        end
+
+        assert @blob.preview(transformations).image.variant(transformations).send(:processed?)
       end
-      @blob.reload
     end
-
-    assert @blob.preview(transformations).image.variant(transformations).send(:processed?)
   end
 
   test "creates variant when untracked" do
