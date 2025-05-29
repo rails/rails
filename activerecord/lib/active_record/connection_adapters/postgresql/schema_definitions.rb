@@ -472,7 +472,7 @@ module ActiveRecord
         #
         #   t.int8range :usage_window
         #
-        # You can assign values using Ruby ranges:
+        # Assign values using Ruby ranges:
         #
         #   record.usage_window = 1_000_000..2_000_000
 
