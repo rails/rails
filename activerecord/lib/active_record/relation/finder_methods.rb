@@ -454,11 +454,72 @@ module ActiveRecord
         relation
       end
 
+      # Detect polymorphic associations from a list of associations
+      # Returns an array of association names that are polymorphic
+      def detect_polymorphic_associations(associations, model_class = model)
+        result = []
+
+        Array.wrap(associations).each do |association|
+          case association
+          when Symbol, String
+            reflection = model_class._reflect_on_association(association.to_sym)
+            if reflection && reflection.polymorphic?
+              result << association.to_sym
+            end
+          when Hash
+            association.each do |parent, children|
+              parent_reflection = model_class._reflect_on_association(parent.to_sym)
+              if parent_reflection
+                if parent_reflection.polymorphic?
+                  # Record parent if polymorphic (skip children)
+                  result << parent.to_sym
+                else
+                  # Process children recursively for non-polymorphic parent
+                  child_polymorphics = detect_polymorphic_associations(children, parent_reflection.klass)
+                  result.concat(child_polymorphics)
+                end
+              end
+            end
+          when Array
+            result.concat(detect_polymorphic_associations(association, model_class))
+          end
+        end
+
+        result.uniq
+      end
+
+      # Check if a polymorphic association can be preloaded (doesn't require JOIN)
+      def preloadable_polymorphic?(association_name)
+        joins_values.exclude?(association_name) &&
+        eager_load_values.exclude?(association_name) &&
+        references_values.exclude?(association_name.to_s) &&
+        !references_eager_loaded_tables?
+      end
+
       def apply_join_dependency(eager_loading: group_values.empty?)
+        # Polymorphic associations can't be eager loaded with JOINs.
+        # We need to separate them for preloading unless they require JOIN
+        # (e.g., when used with joins, eager_load, or references).
+
+        # Detect polymorphic associations
+        includes_polymorphic_values = detect_polymorphic_associations(includes_values)
+
+        # Extract preloadable polymorphic associations
+        preloadable_includes_polymorphic_values = includes_polymorphic_values.select do |poly_assoc|
+          preloadable_polymorphic?(poly_assoc)
+        end
+
+        # Identify associations to include in JOIN
+        associations_for_join = eager_load_values | (includes_values - preloadable_includes_polymorphic_values)
+
         join_dependency = construct_join_dependency(
-          eager_load_values | includes_values, Arel::Nodes::OuterJoin
+          associations_for_join, Arel::Nodes::OuterJoin
         )
+
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
+
+        # Add preloadable polymorphic associations to preload
+        relation = relation.preload(preloadable_includes_polymorphic_values) if preloadable_includes_polymorphic_values.any?
 
         if eager_loading && has_limit_or_offset? && !(
             using_limitable_reflections?(join_dependency.reflections) &&
