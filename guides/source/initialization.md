@@ -84,7 +84,7 @@ to require `rails/commands`. Let's look at what `rails/commands` is for.
 
 ### Requiring "rails/commands" from "bin/rails" Script
 
-The line `require "rails/commands"` in `bin/rails` loads the Rails command dispatcher. It parses your CLI arguments and routes the command to the correct sub-command like `server`, `console`, or `generate`. It's the entry point to all command-line interactions with a Rails app.
+The line `require "rails/commands"` in `bin/rails` loads the Rails command dispatcher. It parses your CLI arguments and routes the command to the correct sub-command like `server`, `console`, `generate`, etc. It's the entry point to all command-line interactions with a Rails app.
 
 In the case of `bin/rails server`, the `ARGV` array simply contains `server`
 which will be passed over:
@@ -109,7 +109,7 @@ Rails::Command.invoke command, ARGV
 ```
 
 If we had used `s` rather than `server`, Rails would have used the `aliases`
-defined here to find the matching command.
+defined here to find the matching command. Next, we see what the `require "rails/command"` does.
 
 #### `rails/command.rb`
 
@@ -119,6 +119,7 @@ namespace and executes the command if found.
 If Rails doesn't recognize the command, it hands the reins over to Rake to run a
 task of the same name.
 
+TODO: not sure if this whole `invoke` is needed, truncate
 ```ruby
 module Rails
   module Command
@@ -180,14 +181,12 @@ module Rails
 end
 ```
 
-This file will change into the Rails root directory (a path two directories up
-from `APP_PATH` which points at `config/application.rb`), but only if the
-`config.ru` file isn't found.
+The main line of interest in the above `perform` method is `require APP_PATH`. Recall that we initialized this constant in the `bin/rails` Ruby script, and it points to the `application.rb` file in the `config` directory.
 
 TODO: work on this transition from boot.rb to application.rb
-So far we have been following what happens in the `bin/rails` ruby script. The main line is when `config/boot.rb` is required, which sets up the Gems. Then, the `rails/commands` part figures out which command (e.g. `console`, `server`, `runner`) and takes appropriate action (including starting the server, but we'll come back to that later). All of this happens before Rails itself is even loaded.
+Zooming out: so far we have been following what happens in the `bin/rails` ruby script. The main line is when `config/boot.rb` is required, which sets up the Gems. Then, the `rails/commands` part figures out which command (e.g. `console`, `server`, `runner`) and takes appropriate action (including starting the server, but we'll come back to that later). All of this happens before Rails itself is even loaded.
 
-Now, let's jump out of `bin/rails` and follow the path where `config/application.rb` is required. This is the next important file in the Rails initialization process. This happens in the server command file above at the line `require APP_PATH`.
+Now, let's jump out of `bin/rails` and follow the path where `config/application.rb` is required. This is the next important file in the Rails initialization process.
 
 ### `config/application`
 
