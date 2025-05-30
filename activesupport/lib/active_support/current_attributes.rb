@@ -100,7 +100,7 @@ module ActiveSupport
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
-        current_instances[current_instances_key] ||= new
+        current_instances[current_instances_key] ||= new.freeze
       end
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
@@ -228,7 +228,7 @@ module ActiveSupport
     # Reset all attributes. Should be called before and after actions, when used as a per-request singleton.
     def reset
       run_callbacks :reset do
-        self.attributes = resolve_defaults
+        @attributes.replace(resolve_defaults)
       end
     end
 

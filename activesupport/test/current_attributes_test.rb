@@ -46,6 +46,10 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       hash
     end
 
+    def mutate
+      @mutated = true
+    end
+
     def respond_to_test; end
 
     def request
@@ -306,5 +310,11 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal [], current.method(:attr).parameters
     assert_equal [[:req, :value]], current.method(:attr=).parameters
+  end
+
+  test "cannot be mutated" do
+    assert_raises(FrozenError) do
+      Current.mutate
+    end
   end
 end
