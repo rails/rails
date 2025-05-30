@@ -126,7 +126,11 @@ module ActiveRecord
       # and inserts each record, +push+ and +concat+ behave identically.
       def concat(*records)
         records = records.flatten
-        if owner.new_record?
+        defer = reflection.options[:defer]
+        if defer
+          skip_strict_loading { load_target }
+          concat_records_in_memory(records)
+        elsif owner.new_record?
           skip_strict_loading { load_target }
           concat_records(records)
         else
@@ -242,8 +246,11 @@ module ActiveRecord
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch!(val) }
         original_target = skip_strict_loading { load_target }.dup
+        defer = reflection.options[:defer]
 
-        if owner.new_record?
+        if defer
+          replace_records_in_memory(other_array, original_target)
+        elsif owner.new_record?
           replace_records(other_array, original_target)
         else
           replace_common_records_in_memory(other_array, original_target)
@@ -425,6 +432,19 @@ module ActiveRecord
           end
 
           target
+        end
+
+        def replace_records_in_memory(new_target, original_target)
+          concat_records_in_memory(difference(new_target, original_target))
+          replace_common_records_in_memory(new_target, original_target)
+          difference(target, new_target).each(&:mark_for_deletion)
+        end
+
+        def concat_records_in_memory(records)
+          records.each do |record|
+            raise_on_type_mismatch!(record)
+            add_to_target(record)
+          end
         end
 
         def replace_common_records_in_memory(new_target, original_target)

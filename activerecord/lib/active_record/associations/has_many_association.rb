@@ -63,6 +63,18 @@ module ActiveRecord
         super
       end
 
+      def target_added_records
+        added = []
+        @target.each { |record| added << record if record.association(reflection.inverse_of.name).target_changed? }
+        added
+      end
+
+      def target_previously_added_records
+        added = []
+        @target.each { |record| added << record if record.association(reflection.inverse_of.name).target_previously_changed? }
+        added
+      end
+
       private
         # Returns the number of records in this collection.
         #

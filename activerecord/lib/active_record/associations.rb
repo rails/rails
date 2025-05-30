@@ -184,6 +184,8 @@ module ActiveRecord
       #   others.distinct                   |   X   |    X     |    X
       #   others.reset                      |   X   |    X     |    X
       #   others.reload                     |   X   |    X     |    X
+      #   others_added_records              |   X   |    X     |    X
+      #   others_previously_added_records   |   X   |    X     |    X
       #
       # === Overriding generated methods
       #
@@ -1042,7 +1044,7 @@ module ActiveRecord
         # [<tt>collection<<(object, ...)</tt>]
         #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
-        #   parent object, unless the parent object is a new record.
+        #   parent object, unless the parent object is a new record or <tt>:defer</tt> is set to <tt>true</tt>.
         #   This will also run validations and callbacks of associated object(s).
         # [<tt>collection.delete(object, ...)</tt>]
         #   Removes one or more objects from the collection by setting their foreign keys to +NULL+.
@@ -1098,6 +1100,10 @@ module ActiveRecord
         # [<tt>collection.reload</tt>]
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
+        # [<tt>collection_added_records</tt>]
+        #   Returns any records added to the association in memory only which will be persisted in the next save.
+        # [<tt>collection_previously_added_records</tt>]
+        #   Returns any records added to the association in the previous save.
         #
         # ==== Example
         #
@@ -1253,6 +1259,9 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
+        # [+:defer+]
+        #   If true, and <tt>:autosave</tt> is true, persist additions and removals to the collection when the parent object is saved,
+        #   instead of persisting them immediately.
         # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
@@ -1736,7 +1745,7 @@ module ActiveRecord
         #   Adds one or more objects to the collection by creating associations in the join table
         #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
-        #   parent object, unless the parent object is a new record.
+        #   parent object, unless the parent object is a new record or <tt>:defer</tt> is set to <tt>true</tt>.
         # [<tt>collection.delete(object, ...)</tt>]
         #   Removes one or more objects from the collection by removing their associations from the join table.
         #   This does not destroy the objects.
@@ -1772,6 +1781,10 @@ module ActiveRecord
         # [<tt>collection.reload</tt>]
         #   Returns a Relation of all of the associated objects, forcing a database read.
         #   An empty Relation is returned if none are found.
+        # [<tt>collection_added_records</tt>]
+        #   Returns any records added to the association in memory only which will be persisted in the next save.
+        # [<tt>collection_previously_added_records</tt>]
+        #   Returns any records added to the association in the previous save.
         #
         # ==== Example
         #
@@ -1863,6 +1876,9 @@ module ActiveRecord
         #
         #   Note that NestedAttributes::ClassMethods#accepts_nested_attributes_for sets
         #   <tt>:autosave</tt> to <tt>true</tt>.
+        # [+:defer+]
+        #   If true, and <tt>:autosave</tt> is true, persist additions and removals to the collection when the parent object is saved,
+        #   instead of persisting them immediately.
         # [+:strict_loading+]
         #   Enforces strict loading every time an associated record is loaded through this association.
         #
@@ -1903,7 +1919,7 @@ module ActiveRecord
           hm_options[:through] = middle_reflection.name
           hm_options[:source] = join_model.right_reflection.name
 
-          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
+          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :defer, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
             hm_options[k] = options[k] if options.key?(k)
           end
 

@@ -1,3 +1,7 @@
+*   Add option to defer persisting added/removed records on autosave collection associations. Add `marked_for_deletion`, a mirror of `marked_for_destruction` that calls `delete` instead of `destroy`.
+
+    *WelpThatWorked*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because

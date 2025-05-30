@@ -845,12 +845,12 @@ an empty Relation.
 ##### Assigning the Collection
 
 The `collection=(objects)` method makes the collection contain only the supplied
-objects, by adding and deleting as appropriate. The changes are persisted to the
-database.
+objects, by adding and deleting as appropriate. The changes are immediately persisted to the
+database unless `defer: true` is set.
 
 The `collection_singular_ids=(ids)` method makes the collection contain only the
 objects identified by the supplied primary key values, by adding and deleting as
-appropriate. The changes are persisted to the database.
+appropriate. The changes are immediately persisted to the database unless `defer: true` is set.
 
 ##### Querying the Collection
 
@@ -1340,12 +1340,11 @@ objects.
 ##### Assigning the Collection
 
 The `collection=` method makes the collection contain only the supplied objects,
-by adding and deleting as appropriate. The changes are persisted to the
-database.
+by adding and deleting as appropriate. The changes are immediately persisted to the database unless `defer: true` is set.
 
 The `collection_singular_ids=` method makes the collection contain only the
 objects identified by the supplied primary key values, by adding and deleting as
-appropriate. The changes are persisted to the database.
+appropriate. The changes are immediately persisted to the database unless `defer: true` is set.
 
 ##### Querying the Collection
 
