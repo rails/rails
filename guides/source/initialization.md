@@ -183,16 +183,15 @@ end
 
 The main line of interest in the above `perform` method is `require APP_PATH`. Recall that we initialized this constant in the `bin/rails` Ruby script, and it points to the `application.rb` file in the `config` directory.
 
-TODO: work on this transition from boot.rb to application.rb
-Zooming out: so far we have been following what happens in the `bin/rails` ruby script. The main line is when `config/boot.rb` is required, which sets up the Gems. Then, the `rails/commands` part figures out which command (e.g. `console`, `server`, `runner`) and takes appropriate action (including starting the server, but we'll come back to that later). All of this happens before Rails itself is even loaded.
+NOTE: Zooming out, so far we have been following what happens in the `bin/rails` ruby script. The main line is when `config/boot.rb` is required, which sets up the Gems. Then, the `rails/commands` part figures out which command (e.g. `console`, `server`, `runner`) and takes appropriate action (including starting the server, but we'll come back to that later). All of this happens before Rails itself is even loaded.
 
 Now, let's jump out of `bin/rails` and follow the path where `config/application.rb` is required. This is the next important file in the Rails initialization process.
 
 ### `config/application`
 
-When `require APP_PATH` is executed, `config/application.rb` is loaded (recall
-that `APP_PATH` is defined in `bin/rails`). This file exists in your application
-and it's free for you to change based on your needs.
+When `require APP_PATH` is executed, `config/application.rb` is loaded. This
+file is included with new Rails applications and it's available for you to
+update based on your application needs. The default `config/application` looks like this:
 
 ```ruby
 require_relative "boot"
@@ -224,13 +223,15 @@ module MyAmazingApp
 end
 ```
 
-At this point, the application is defined and configured but not initialized. The initialization happens from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
+TODO: transition to environment.rb?
+At this point, the application is defined and configured but *not initialized*. The initialization happens from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
 
 The Entry Point: `config/environment.rb`
 ---------------------------------------
 
-When running `bin/rails server` a Rack based application is run, which uses the `config.ru` file.
-The `require` line for `config/environment.rb` in `config.ru` is the first to run:
+When running `bin/rails server` a Rack based application is run, which uses the
+`config.ru` file. The `require` line for `config/environment.rb` in `config.ru`
+is the first to run:
 
 ```ruby
 # config.ru
