@@ -28,6 +28,7 @@ require "models/chat_message"
 require "models/default"
 require "models/post_with_prefetched_pk"
 require "models/pk_autopopulated_by_a_trigger_record"
+require "models/post_encrypted"
 
 class PersistenceTest < ActiveRecord::TestCase
   fixtures :topics, :companies, :developers, :accounts, :minimalistics, :authors, :author_addresses,
@@ -1644,6 +1645,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_nil record.id
     assert record.id > 0
   end if supports_insert_returning? && !current_adapter?(:SQLite3Adapter)
+
+  def test_enum_preserved_across_becomes
+    parrot = LiveParrot.create!(name: "Scipio", breed: "african")
+    dead_parrot = parrot.becomes!(DeadParrot)
+    dead_parrot.asian!
+
+    assert dead_parrot.asian?
+  end
+
+  def test_becomes_with_encrypted_attributes
+    encrypted_post = EncryptedPost.create!(title: "Encrypted Title", body: "Encrypted Body")
+    post = encrypted_post.becomes(Post)
+
+    assert_kind_of ActiveRecord::Encryption::EncryptedAttributeType, encrypted_post.class.attribute_types["title"]
+    assert_kind_of ActiveRecord::Encryption::EncryptedAttributeType, encrypted_post.class.attribute_types["body"]
+
+    assert_not_kind_of ActiveRecord::Encryption::EncryptedAttributeType, post.class.attribute_types["title"]
+    assert_not_kind_of ActiveRecord::Encryption::EncryptedAttributeType, post.class.attribute_types["body"]
+  end
 end
 
 class QueryConstraintsTest < ActiveRecord::TestCase
