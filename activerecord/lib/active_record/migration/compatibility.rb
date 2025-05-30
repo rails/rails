@@ -32,6 +32,10 @@ module ActiveRecord
       V8_1 = Current
 
       class V8_0 < V8_1
+        def remove_foreign_key(from_table, to_table = nil, **options)
+          options[:_skip_column_match] = true
+          super
+        end
       end
 
       class V7_2 < V8_0
