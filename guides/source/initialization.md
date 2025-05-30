@@ -5,7 +5,7 @@ The Rails Initialization Process
 ================================
 
 This guide explains the Rails initialization process. It is an in-depth guide
-that walks through internal method calls. It is recommended for developers
+that walks through some internal method calls. It is recommended for developers
 interested in exploring Rails source code.
 
 After reading this guide, you will know:
@@ -43,8 +43,8 @@ Let's start with what happens when we run `bin/rails server`. This section will 
 
 ### The `bin/rails` Script
 
-The `bin/rails` ruby script in the `bin` directory of your Rails application.
-This is what that file contains:
+The `bin/rails` Ruby script is in the `bin` directory of your Rails application.
+This file contains only three lines:
 
 ```ruby
 #!/usr/bin/env ruby
@@ -53,12 +53,12 @@ require_relative "../config/boot"
 require "rails/commands"
 ```
 
-Only 3 lines. The `APP_PATH` constant will be used later in `rails/commands`.The
+The `APP_PATH` constant will be used later in `rails/commands`. The
 second line requires the `boot.rb` file in the `config` directory in your Rails
 application. And the last line requires something called `rails/commands`.
-Let's see what both of those requires do next.
+Let's see what both of those `requires` do next.
 
-### require_relative "../config/boot" from "bin/rails"
+### Requiring "config/boot" from "bin/rails" Script
 
 The `config/boot.rb` file is responsible for loading Bundler and setting it up.
 The `boot.rb` file contains:
@@ -79,10 +79,10 @@ The second line, `require "bundler/setup"`, makes all gems in your `Gemfile` ava
 
 The last line in `boot.rb` is for performance, it speeds up boot time by caching expensive operations (This line is optional but recommended for performance, especially in development and test environments.)
 
-Once `config/boot.rb` has finished, the next line the `bin/rails` script is to
-require `rails/commands`. Let's look at what `rails/commands` is for.
+Once `config/boot.rb` has finished, the next line in the `bin/rails` script is
+to require `rails/commands`. Let's look at what `rails/commands` is for.
 
-### require "rails/commands" from "bin/rails"
+### Requiring "rails/commands" from "bin/rails" Script
 
 The line `require "rails/commands"` in `bin/rails` loads the Rails command dispatcher. It parses your CLI arguments and routes the command to the correct sub-command like `server`, `console`, or `generate`. It's the entry point to all command-line interactions with a Rails app.
 
