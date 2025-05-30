@@ -1,3 +1,50 @@
+*   Add comprehensive support for HTTP Cache-Control request directives according to RFC 9111.
+
+    Provides a `request.cache_control_directives` object that gives access to request cache directives:
+
+    ```ruby
+    # Boolean directives
+    request.cache_control_directives.only_if_cached?  # => true/false
+    request.cache_control_directives.no_cache?        # => true/false
+    request.cache_control_directives.no_store?        # => true/false
+    request.cache_control_directives.no_transform?    # => true/false
+
+    # Value directives
+    request.cache_control_directives.max_age          # => integer or nil
+    request.cache_control_directives.max_stale        # => integer or nil (or true for valueless max-stale)
+    request.cache_control_directives.min_fresh        # => integer or nil
+    request.cache_control_directives.stale_if_error   # => integer or nil
+
+    # Special helpers for max-stale
+    request.cache_control_directives.max_stale?         # => true if max-stale present (with or without value)
+    request.cache_control_directives.max_stale_unlimited? # => true only for valueless max-stale
+    ```
+
+    Example usage:
+
+    ```ruby
+    def show
+      if request.cache_control_directives.only_if_cached?
+        @article = Article.find_cached(params[:id])
+        return head(:gateway_timeout) if @article.nil?
+      else
+        @article = Article.find(params[:id])
+      end
+
+      render :show
+    end
+    ```
+
+    *egg528*
+
+*   Add assert_in_body/assert_not_in_body as the simplest way to check if a piece of text is in the response body.
+
+    *DHH*
+
+*   Include cookie name when calculating maximum allowed size.
+
+    *Hartley McGuire*
+
 *   Implement `must-understand` directive according to RFC 9111.
 
     The `must-understand` directive indicates that a cache must understand the semantics of the response status code, or discard the response. This directive is enforced to be used only with `no-store` to ensure proper cache behavior.

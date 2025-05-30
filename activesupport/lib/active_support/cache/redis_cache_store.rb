@@ -35,9 +35,6 @@ module ActiveSupport
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
-      # Keys are truncated with the Active Support digest if they exceed 1kB
-      MAX_KEY_BYTESIZE = 1024
-
       DEFAULT_REDIS_OPTIONS = {
         connect_timeout:    1,
         read_timeout:       1,
@@ -106,7 +103,6 @@ module ActiveSupport
           end
       end
 
-      attr_reader :max_key_bytesize
       attr_reader :redis
 
       # Creates a new Redis cache store.
@@ -169,7 +165,6 @@ module ActiveSupport
           @redis = self.class.build_redis(**redis_options)
         end
 
-        @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
 
         super(universal_options)
@@ -227,7 +222,7 @@ module ActiveSupport
             nodes.each do |node|
               begin
                 cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
-                node.del(*keys) unless keys.empty?
+                node.unlink(*keys) unless keys.empty?
               end until cursor == "0"
             end
           end
@@ -249,6 +244,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -276,6 +276,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
@@ -398,14 +403,16 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del(key) == 1 }
+            redis.then { |c| c.unlink(key) == 1 }
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
+          return 0 if entries.empty?
+
           failsafe :delete_multi_entries, returning: 0 do
-            redis.then { |c| c.del(entries) }
+            redis.then { |c| c.unlink(*entries) }
           end
         end
 
@@ -421,21 +428,6 @@ module ActiveSupport
                 write_entry key, entry, **options
               end
             end
-          end
-        end
-
-        # Truncate keys that exceed 1kB.
-        def normalize_key(key, options)
-          truncate_key super&.b
-        end
-
-        def truncate_key(key)
-          if key && key.bytesize > max_key_bytesize
-            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
-            truncate_at = max_key_bytesize - suffix.bytesize
-            "#{key.byteslice(0, truncate_at)}#{suffix}"
-          else
-            key
           end
         end
 

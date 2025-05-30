@@ -52,8 +52,8 @@ module ActiveRecord
       def test_load_async_has_many_association
         post = Post.first
 
-        defered_comments = post.comments.load_async
-        assert_predicate defered_comments, :scheduled?
+        deferred_comments = post.comments.load_async
+        assert_predicate deferred_comments, :scheduled?
 
         events = []
         callback = -> (event) do
@@ -62,7 +62,7 @@ module ActiveRecord
 
         wait_for_async_query
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          defered_comments.to_a
+          deferred_comments.to_a
         end
 
         assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
@@ -72,8 +72,8 @@ module ActiveRecord
       def test_load_async_has_many_through_association
         post = Post.first
 
-        defered_categories = post.scategories.load_async
-        assert_predicate defered_categories, :scheduled?
+        deferred_categories = post.scategories.load_async
+        assert_predicate deferred_categories, :scheduled?
 
         events = []
         callback = -> (event) do
@@ -82,7 +82,7 @@ module ActiveRecord
 
         wait_for_async_query
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
-          defered_categories.to_a
+          deferred_categories.to_a
         end
 
         assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }

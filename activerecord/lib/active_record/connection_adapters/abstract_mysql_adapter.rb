@@ -81,6 +81,10 @@ module ActiveRecord
 
           find_cmd_and_exec(ActiveRecord.database_cli[:mysql], *args)
         end
+
+        def native_database_types # :nodoc:
+          NATIVE_DATABASE_TYPES
+        end
       end
 
       def get_database_version # :nodoc:
@@ -194,10 +198,6 @@ module ActiveRecord
 
       def release_advisory_lock(lock_name) # :nodoc:
         query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
-      end
-
-      def native_database_types
-        NATIVE_DATABASE_TYPES
       end
 
       def index_algorithms

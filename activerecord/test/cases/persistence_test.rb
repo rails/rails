@@ -1680,7 +1680,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
   end
 
-  def test_child_keeps_parents_query_contraints_derived_from_composite_pk
+  def test_child_keeps_parents_query_constraints_derived_from_composite_pk
     assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 

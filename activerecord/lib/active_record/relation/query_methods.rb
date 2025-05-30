@@ -1591,8 +1591,12 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
-    def arel(aliases = nil) # :nodoc:
-      @arel ||= with_connection { |c| build_arel(c, aliases) }
+    def arel(conn = nil, aliases: nil) # :nodoc:
+      @arel ||= if conn
+        build_arel(conn, aliases)
+      else
+        with_connection { |c| build_arel(c, aliases) }
+      end
     end
 
     def construct_join_dependency(associations, join_type) # :nodoc:
@@ -1626,7 +1630,7 @@ module ActiveRecord
           elsif opts.include?("?")
             parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [model.sanitize_sql(rest.empty? ? opts : [opts, *rest])]
+            parts = [Arel.sql(model.sanitize_sql([opts, *rest]))]
           end
         when Hash
           opts = opts.transform_keys do |key|
@@ -1653,13 +1657,12 @@ module ActiveRecord
       end
       alias :build_having_clause :build_where_clause
 
-      def async!
+      def async! # :nodoc:
         @async = true
         self
       end
 
-    protected
-      def arel_columns(columns)
+      def arel_columns(columns) # :nodoc:
         columns.flat_map do |field|
           case field
           when Symbol, String

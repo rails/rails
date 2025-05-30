@@ -41,7 +41,6 @@ module ActiveSupport
 
       prepend Strategy::LocalCache
 
-      KEY_MAX_SIZE = 250
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
       # Creates a new Dalli::Client instance with specified addresses and options.
@@ -80,6 +79,7 @@ module ActiveSupport
         if options.key?(:cache_nils)
           options[:skip_nil] = !options.delete(:cache_nils)
         end
+        options[:max_key_size] ||= MAX_KEY_SIZE
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -126,6 +126,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -152,6 +157,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -209,26 +219,24 @@ module ActiveSupport
         def read_multi_entries(names, **options)
           keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
-          raw_values = begin
-            @data.with { |c| c.get_multi(keys_to_names.keys) }
-          rescue Dalli::UnmarshalError
-            {}
-          end
+          rescue_error_with({}) do
+            raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
 
-          values = {}
+            values = {}
 
-          raw_values.each do |key, value|
-            entry = deserialize_entry(value, raw: options[:raw])
+            raw_values.each do |key, value|
+              entry = deserialize_entry(value, raw: options[:raw])
 
-            unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
-              begin
-                values[keys_to_names[key]] = entry.value
-              rescue DeserializationError
+              unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+                begin
+                  values[keys_to_names[key]] = entry.value
+                rescue DeserializationError
+                end
               end
             end
-          end
 
-          values
+            values
+          end
         end
 
         # Delete an entry from the cache.
@@ -248,19 +256,12 @@ module ActiveSupport
         # before applying the regular expression to ensure we are escaping all
         # characters properly.
         def normalize_key(key, options)
-          key = super
+          key = expand_and_namespace_key(key, options)
           if key
             key = key.dup.force_encoding(Encoding::ASCII_8BIT)
             key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-
-            if key.size > KEY_MAX_SIZE
-              key_separator = ":hash:"
-              key_hash = ActiveSupport::Digest.hexdigest(key)
-              key_trim_size = KEY_MAX_SIZE - key_separator.size - key_hash.size
-              key = "#{key[0, key_trim_size]}#{key_separator}#{key_hash}"
-            end
           end
-          key
+          truncate_key(key)
         end
 
         def deserialize_entry(payload, raw: false, **)

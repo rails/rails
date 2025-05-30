@@ -1,3 +1,11 @@
+*   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
+
+    *TangRufus*
+
+*   Add --reset option to bin/setup which will call db:reset as part of the setup.
+
+    *DHH*
+
 *   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
     *Lovro Bikić*
@@ -53,7 +61,7 @@
 
 *   Update `rails new --minimal` option
 
-    Extend the `--minimal` flag to exlcude recently added features:
+    Extend the `--minimal` flag to exclude recently added features:
     `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
     *eelcoj*

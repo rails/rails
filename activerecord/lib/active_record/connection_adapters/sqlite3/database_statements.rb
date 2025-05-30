@@ -61,6 +61,14 @@ module ActiveRecord
           @previous_read_uncommitted = nil
         end
 
+        def default_insert_value(column) # :nodoc:
+          if column.default_function
+            Arel.sql(column.default_function)
+          else
+            column.default
+          end
+        end
+
         private
           def internal_begin_transaction(mode, isolation)
             if isolation
@@ -76,40 +84,39 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+            total_changes_before_query = raw_connection.total_changes
+            affected_rows = nil
+
             if batch
               raw_connection.execute_batch2(sql)
-            elsif prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
-              stmt.reset!
-              stmt.bind_params(type_casted_binds)
-
-              result = if stmt.column_count.zero? # No return
-                stmt.step
-                ActiveRecord::Result.empty
-              else
-                ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
-              end
             else
-              # Don't cache statements if they are not prepared.
-              stmt = raw_connection.prepare(sql)
+              stmt = if prepare
+                @statements[sql] ||= raw_connection.prepare(sql)
+                @statements[sql].reset!
+              else
+                # Don't cache statements if they are not prepared.
+                raw_connection.prepare(sql)
+              end
               begin
                 unless binds.nil? || binds.empty?
                   stmt.bind_params(type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
-                  ActiveRecord::Result.empty
+                  affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.empty(affected_rows: affected_rows)
                 else
-                  ActiveRecord::Result.new(stmt.columns, stmt.to_a, stmt.types.map { |t| type_map.lookup(t) })
+                  rows = stmt.to_a
+                  affected_rows = raw_connection.total_changes - total_changes_before_query
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
-                stmt.close
+                stmt.close unless prepare
               end
             end
-            @last_affected_rows = raw_connection.changes
             verified!
 
-            notification_payload[:affected_rows] = @last_affected_rows
+            notification_payload[:affected_rows] = affected_rows
             notification_payload[:row_count] = result&.length || 0
             result
           end
@@ -121,7 +128,7 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            @last_affected_rows
+            result.affected_rows
           end
 
           def execute_batch(statements, name = nil, **kwargs)
@@ -135,14 +142,6 @@ module ActiveRecord
 
           def returning_column_values(result)
             result.rows.first
-          end
-
-          def default_insert_value(column)
-            if column.default_function
-              Arel.sql(column.default_function)
-            else
-              column.default
-            end
           end
       end
     end

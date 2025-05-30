@@ -26,6 +26,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
 
@@ -1591,6 +1592,33 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_bang_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by!(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_on_a_collections_rollbacks_a_transaction_when_owner_is_not_persisted
+    car = BrokenCar.create(name: "Civic")
+    assert_not_predicate(car, :persisted?)
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      car.wheels.create_or_find_by!(size: 1500)
+    end
   end
 
   def test_create_or_find_by_with_block

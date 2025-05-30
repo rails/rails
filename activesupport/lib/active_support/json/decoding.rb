@@ -14,11 +14,13 @@ module ActiveSupport
     DATETIME_REGEX = /\A(?:\d{4}-\d{2}-\d{2}|\d{4}-\d{1,2}-\d{1,2}[T \t]+\d{1,2}:\d{2}:\d{2}(\.[0-9]*)?(([ \t]*)Z|[-+]\d{2}?(:\d{2})?)?)\z/
 
     class << self
-      # Parses a JSON string (JavaScript Object Notation) into a hash.
+      # Parses a JSON string (JavaScript Object Notation) into a Ruby object.
       # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
       #   => {"team" => "rails", "players" => "36"}
+      #   ActiveSupport::JSON.decode("2.39")
+      #   => 2.39
       def decode(json, options = {})
         data = ::JSON.parse(json, options)
 

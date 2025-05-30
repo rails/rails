@@ -2929,6 +2929,85 @@ module ApplicationTests
       assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
     end
 
+    test "config.active_record.use_legacy_signed_id_verifier is :generate_and_verify by default for new apps" do
+      app "development"
+
+      assert_equal :generate_and_verify, Rails.application.config.active_record.use_legacy_signed_id_verifier
+    end
+
+    test "Rails.application.message_verifiers['active_record/signed_id'] generates and verifies messages using legacy options when config.active_record.use_legacy_signed_id_verifier is :generate_and_verify" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
+        config.secret_key_base = "secret"
+      RUBY
+
+      app "development"
+
+      signed_id_verifier = Rails.application.message_verifiers["active_record/signed_id"]
+
+      secret = app.key_generator.generate_key("active_record/signed_id")
+      legacy_verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256", serializer: JSON, url_safe: true)
+
+      assert_equal "message", legacy_verifier.verify(signed_id_verifier.generate("message"))
+      assert_equal "message", signed_id_verifier.verify(legacy_verifier.generate("message"))
+    end
+
+    test "Rails.application.message_verifiers['active_record/signed_id'] verifies messages using legacy options when config.active_record.use_legacy_signed_id_verifier is :verify" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = :verify
+        config.secret_key_base = "secret"
+      RUBY
+
+      app "development"
+
+      signed_id_verifier = Rails.application.message_verifiers["active_record/signed_id"]
+
+      secret = app.key_generator.generate_key("active_record/signed_id")
+      legacy_verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256", serializer: JSON, url_safe: true)
+
+      assert_equal "message", signed_id_verifier.verify(legacy_verifier.generate("message"))
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        legacy_verifier.verify(signed_id_verifier.generate("message"))
+      end
+    end
+
+    test "Rails.application.message_verifiers['active_record/signed_id'] does not use legacy options when config.active_record.use_legacy_signed_id_verifier is false" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = false
+        config.secret_key_base = "secret"
+      RUBY
+
+      app "development"
+
+      signed_id_verifier = Rails.application.message_verifiers["active_record/signed_id"]
+
+      secret = app.key_generator.generate_key("active_record/signed_id")
+      legacy_verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256", serializer: JSON, url_safe: true)
+
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        signed_id_verifier.verify(legacy_verifier.generate("message"))
+      end
+      assert_raises ActiveSupport::MessageVerifier::InvalidSignature do
+        legacy_verifier.verify(signed_id_verifier.generate("message"))
+      end
+    end
+
+    test "raises when config.active_record.use_legacy_signed_id_verifier has invalid value" do
+      add_to_config <<-RUBY
+        config.active_record.use_legacy_signed_id_verifier = :invalid_option
+      RUBY
+
+      assert_raise(match: /config.active_record.use_legacy_signed_id_verifier/) do
+        app "development"
+      end
+    end
+
+    test "ActiveRecord.message_verifiers is Rails.application.message_verifiers" do
+      app "development"
+
+      assert_same Rails.application.message_verifiers, ActiveRecord.message_verifiers
+    end
+
     test "PostgresqlAdapter.decode_dates is true by default for new apps" do
       app_file "config/initializers/active_record.rb", <<~RUBY
         ActiveRecord::Base.establish_connection(adapter: "postgresql")
@@ -3123,6 +3202,20 @@ module ApplicationTests
       app "test"
 
       assert_equal 1234, ActiveSupport.test_parallelization_threshold
+    end
+
+    test "ActiveSupport.parallelize_test_databases can be configured via config.active_support.parallelize_test_databases" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_support.parallelize_test_databases = false
+        end
+      RUBY
+
+      app "test"
+
+      assert_not ActiveSupport.parallelize_test_databases
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do

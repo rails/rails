@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "cgi"
+require "cgi/escape"
+require "cgi/util" if RUBY_VERSION < "3.5"
 
 class Object
   # Alias of <tt>to_s</tt>.

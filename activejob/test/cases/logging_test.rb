@@ -284,6 +284,18 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_job_error_logging_backtrace_cleaner
+    perform_enqueued_jobs do
+      assert_raises(RescueJob::OtherError) do
+        RescueJob.perform_later "other"
+      end
+    end
+
+    assert_match(/rescue_job\.rb:\d+:in .*perform'/, @logger.messages)
+    assert_empty(@logger.messages.lines.grep(/minitest\//))
+    assert_empty(@logger.messages.lines.grep(/gems\//))
+  end
+
   def test_job_no_error_logging_on_rescuable_job
     perform_enqueued_jobs { RescueJob.perform_later "david" }
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*david/, @logger.messages)
@@ -295,6 +307,16 @@ class LoggingTest < ActiveSupport::TestCase
       perform_enqueued_jobs do
         RetryJob.perform_later "DefaultsError", 2
         assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
+      end
+    end
+
+    def test_retry_different_queue_logging
+      perform_enqueued_jobs do
+        perform_enqueued_jobs do
+          RetryJob.perform_later("HeavyError", 2)
+          assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(default\) in .*ms/, @logger.messages)
+        end
+        assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(low\) in .*ms/, @logger.messages)
       end
     end
   end

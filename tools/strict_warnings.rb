@@ -30,7 +30,8 @@ module RailsStrictWarnings # :nodoc:
 
     super
 
-    return unless message.include?(PROJECT_ROOT)
+    testpath = message[/test\/.*\.rb/]&.chomp || message
+    return unless message.include?(PROJECT_ROOT) || Pathname.new(testpath).exist?
     return if ALLOWED_WARNINGS.match?(message)
     return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["BUILDKITE"]
 
