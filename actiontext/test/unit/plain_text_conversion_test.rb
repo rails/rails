@@ -34,7 +34,7 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
   test "<ol> tags are separated by two new lines" do
     assert_converted_to(
       "Hello world!\n\n1. list1\n\n1. list2\n\nHow are you?",
-      "<p>Hello world!</p><ol><li>list1</li></ol><ol><li>list2</li></ol><p>How are you?</p>"
+      "<p>Hello world!</p><ol>\n<li>list1</li>\n</ol><ol>\n<li>list2</li>\n</ol><p>How are you?</p>"
     )
   end
 
@@ -120,7 +120,7 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
       "Hello world!\nHow are you?",
       ActionText::Fragment.wrap("<div>Hello world!</div><div></div>").tap do |fragment|
         node = fragment.source.children.last
-        1_000.times do
+        10_000.times do
           child = node.clone
           child.parent = node
           node = child
@@ -128,6 +128,14 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
         node.inner_html = "How are you?"
       end
     )
+  end
+
+  test "preserves the original tree" do
+    html = "<div>Hello <span>world!</span></div>"
+    fragment = ActionText::Fragment.wrap(html)
+    assert_no_changes -> { fragment.source.to_html } do
+      assert_equal "Hello world!", fragment.to_plain_text
+    end
   end
 
   test "preserves non-linebreak whitespace after text" do
