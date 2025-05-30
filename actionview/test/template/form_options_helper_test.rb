@@ -186,6 +186,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_array_options_for_select_with_horizontal_rules
+    assert_dom_equal(
+      "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\">USA</option>\n<option value=\"Sweden\">Sweden</option>\n<hr>",
+      options_for_select([ "<Denmark>", "USA", "Sweden", :horizontal_rule ])
+    )
+  end
+
   def test_array_options_for_select_with_custom_defined_selected
     assert_dom_equal(
       "<option selected=\"selected\" type=\"Coach\" value=\"1\">Richard Bandler</option>\n<option type=\"Coachee\" value=\"1\">Richard Bandler</option>",
@@ -274,6 +281,10 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"Dollar\">$</option>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>",
       options_for_select("$" => "Dollar", "<DKR>" => "<Kroner>").split("\n").join("\n")
+    )
+    assert_dom_equal(
+      "<option value=\"Dollar\">$</option>\n<hr>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<hr>",
+      options_for_select("$" => "Dollar", "Section 1" => :horizontal_rule, "<DKR>" => "<Kroner>", "Section 2" => :horizontal_rule).split("\n").join("\n")
     )
     assert_dom_equal(
       "<option value=\"Dollar\" selected=\"selected\">$</option>\n<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>",
