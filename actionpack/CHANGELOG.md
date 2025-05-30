@@ -1,3 +1,7 @@
+*   Add `render json` into `HealthController`.
+
+    *Francesco Loreti*
+
 *   Add comprehensive support for HTTP Cache-Control request directives according to RFC 9111.
 
     Provides a `request.cache_control_directives` object that gives access to request cache directives:
