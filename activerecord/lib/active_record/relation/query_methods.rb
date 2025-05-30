@@ -1635,10 +1635,10 @@ module ActiveRecord
         when Hash
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
-              key.map { |k| model.attribute_aliases[k.to_s] || k.to_s }
+              key.map { |k| model.querying_aliases[k.to_s] || k.to_s }
             else
               key = key.to_s
-              model.attribute_aliases[key] || key
+              model.querying_aliases[key] || key
             end
           end
           references = PredicateBuilder.references(opts)

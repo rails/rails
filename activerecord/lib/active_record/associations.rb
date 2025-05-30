@@ -1697,6 +1697,18 @@ module ActiveRecord
           Reflection.add_reflection(self, name, reflection)
         end
 
+        def alias_association(new_name, old_name)
+          new_name = new_name.to_s
+          old_name = old_name.to_s
+          existing_reflection = reflections[old_name]
+          raise ArgumentError, "Can't alias a non-existing `#{old_name}` association" unless existing_reflection
+          self.querying_aliases = querying_aliases.merge(new_name => old_name)
+
+          builder = Builder::Association.builder_for(existing_reflection.macro)
+          builder.define_association_methods(self, existing_reflection, as: new_name)
+          Reflection.add_reflection self, new_name, existing_reflection
+        end
+
         # Specifies a many-to-many relationship with another class. This associates two classes via an
         # intermediate join table. Unless the join table is explicitly specified as an option, it is
         # guessed using the lexical order of the class names. So a join between Developer and Project
