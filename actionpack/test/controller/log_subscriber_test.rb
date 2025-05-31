@@ -310,6 +310,18 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Redirected to [FILTERED]", logs[1]
   end
 
+  def test_verbose_redirect_logs
+    ActionDispatch.verbose_redirect_logs = true
+
+    get :redirector
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/↳/, logs[2])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+  end
+
   def test_send_data
     get :data_sender
     wait
