@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/project"
 require "models/company"
@@ -31,9 +32,12 @@ require "models/tree"
 require "models/node"
 require "models/club"
 require "models/cpk"
+require "models/person" # not used by this suite as of this writing, it is a workaround for https://github.com/rails/rails/issues/55133
+require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/minimal/for_deprecated_associations"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -1886,5 +1890,172 @@ class AsyncBelongsToAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  def modify_car_name_directly_in_the_database(car)
+    name = car.name
+    new_name = "#{name} edited"
+    DATS::Car.connection.execute("UPDATE cars SET name = '#{new_name}' WHERE id = #{car.id}")
+    new_name
+  end
+
+  setup do
+    @model = DATS::Bulb
+    @car = DATS::Car.first
+    @bulb = @car.create_bulb!(name: "for belongs_to deprecated test suite")
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_equal @car, @bulb.deprecated_car
+    end
+  end
+
+  test "<association>=" do
+    car = DATS::Car.new
+
+    assert_not_deprecated_association(:car) do
+      @bulb.car = car
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      @bulb.deprecated_car = car
+    end
+    assert_same car, @bulb.deprecated_car
+  end
+
+  test "reload_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reload_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+    assert_deprecated_association(:deprecated_car) do
+      assert_equal new_name, @bulb.reload_deprecated_car.name
+    end
+  end
+
+  test "reset_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.reset_car
+    end
+
+    deprecated_car = @bulb.deprecated_car # caches the associated object
+    new_name = modify_car_name_directly_in_the_database(deprecated_car)
+
+    assert_deprecated_association(:deprecated_car) do
+      @bulb.reset_deprecated_car
+    end
+
+    assert_equal new_name, @bulb.deprecated_car.name
+  end
+
+  test "build_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.build_car
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_instance_of DATS::Car, @bulb.build_deprecated_car
+    end
+  end
+
+  test "create_<association>" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_predicate @bulb.create_deprecated_car, :persisted?
+    end
+  end
+
+  test "create_<association>!" do
+    assert_not_deprecated_association(:car) do
+      @bulb.create_car!
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_predicate @bulb.create_deprecated_car!, :persisted?
+    end
+  end
+
+  test "<association>_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_not_predicate @bulb, :deprecated_car_changed?
+    end
+  end
+
+  test "<association>_previously_changed?" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car_previously_changed?
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert_predicate @bulb, :deprecated_car_previously_changed?
+    end
+  end
+
+  test "parent destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "parent destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on creation (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.touch
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert @bulb.touch
+    end
+  end
+
+  test "touch notifies on update" do
+    assert_not_deprecated_association(:car) do
+      @bulb.update(name: "#{@bulb.name} edited")
+    end
+
+    assert_deprecated_association(:deprecated_car) do
+      assert @bulb.update(name: "#{@bulb.name} again")
+    end
+  end
+
+  test "touch notifies on destroy (not deprecated)" do
+    assert_not_deprecated_association(:car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "touch notifies on destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_car) do
+      @bulb.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end
