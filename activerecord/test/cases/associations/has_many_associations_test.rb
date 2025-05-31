@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -44,7 +45,7 @@ require "models/human"
 require "models/sharded"
 require "models/cpk"
 require "models/comment_overlapping_counter_cache"
-require "support/deprecated_associations_test_helpers"
+require "models/minimal/for_deprecated_associations"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -3291,8 +3292,8 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :cars
 
   setup do
-    @model = Car
-    @car = Car.first
+    @model = DATS::Car
+    @car = @model.first
   end
 
   test "<association>" do
@@ -3306,7 +3307,7 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "<association>=" do
-    tyre = Tyre.new
+    tyre = DATS::Tyre.new
 
     assert_not_deprecated_association(:tyres) do
       @car.tyres = [tyre]
