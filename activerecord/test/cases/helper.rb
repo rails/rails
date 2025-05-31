@@ -42,6 +42,10 @@ ActiveRecord::Base.automatically_invert_plural_associations = true
 ActiveRecord.raise_on_assign_to_attr_readonly = true
 ActiveRecord.belongs_to_required_validates_foreign_key = false
 
+# Ensure that required finder order columns are present in the test suite until
+# this deprecated configuration is removed.
+ActiveRecord.raise_on_missing_required_finder_order_columns = true
+
 ActiveRecord::ConnectionAdapters.register("abstract", "ActiveRecord::ConnectionAdapters::AbstractAdapter", "active_record/connection_adapters/abstract_adapter")
 ActiveRecord::ConnectionAdapters.register("fake", "FakeActiveRecordAdapter", File.expand_path("../support/fake_adapter.rb", __dir__))
 
