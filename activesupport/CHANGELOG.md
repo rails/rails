@@ -1,3 +1,11 @@
+*   Provide more control for error context middleware in ErrorReporter.
+
+    The error context middleware can now insert, swap, and remove middleware
+    based on integer indexes and relative to other middleware in stack. This simplifies
+    managing apps with middleware from multiple sources (gems or the app).
+
+    *Sam Schmidt*
+
 *   Add public API for `before_fork_hook` in parallel testing.
 
     Introduces a public API for calling the before fork hooks implemented by parallel testing.

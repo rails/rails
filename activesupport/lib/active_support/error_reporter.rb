@@ -29,6 +29,7 @@ module ActiveSupport
     DEFAULT_RESCUE = [StandardError].freeze
 
     attr_accessor :logger, :debug_mode
+    attr_reader :context_middlewares
 
     UnexpectedError = Class.new(Exception)
 
@@ -295,12 +296,13 @@ module ActiveSupport
         error.backtrace.shift(count)
       end
 
-      class ErrorContextMiddlewareStack # :nodoc:
+      class ErrorContextMiddlewareStack
+        attr_reader :stack
+
         def initialize
           @stack = []
         end
 
-        # Add a middleware to the error context stack.
         def use(middleware)
           unless middleware.respond_to?(:call)
             raise ArgumentError, "Error context middleware must respond to #call"
@@ -309,10 +311,41 @@ module ActiveSupport
           @stack << middleware
         end
 
-        # Run all middlewares in the stack
         def execute(error, handled:, severity:, context:, source:)
           @stack.inject(context) { |c, middleware| middleware.call(error, context: c, handled:, severity:, source:) }
         end
+
+        def insert_at(index, middleware)
+          @stack.insert(index, middleware)
+        end
+
+        def insert_before(target_middleware_class, middleware)
+          index = index_of(target_middleware_class)
+          insert_at(index, middleware)
+        end
+
+        def insert_after(target_middleware_class, middleware)
+          index = index_of(target_middleware_class)
+          insert_at(index + 1, middleware)
+        end
+
+        def delete!(middleware_class)
+          @stack.delete_if { |m| m.class == middleware_class }
+        end
+
+        def swap(target_middleware_class, middleware)
+          index = index_of(target_middleware_class)
+          @stack[index] = middleware
+        end
+
+        private
+          def index_of(middleware_class)
+            i = @stack.index do |m|
+              m.class == middleware_class
+            end
+            raise "No such middleware found: #{middleware_class.inspect}" unless i
+            i
+          end
       end
   end
 end
