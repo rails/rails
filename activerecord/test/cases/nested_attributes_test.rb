@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/pirate"
 require "models/developer"
 require "models/ship"
@@ -16,7 +17,7 @@ require "models/entry"
 require "models/message"
 require "models/cpk"
 require "models/car"
-require "support/deprecated_associations_test_helpers"
+require "models/minimal/for_deprecated_associations"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase
@@ -1244,8 +1245,8 @@ class NestedAttributesForDeprecatedAssociationsTest < ActiveRecord::TestCase
   fixtures :cars
 
   setup do
-    @model = Car
-    @car = Car.first
+    @model = DATS::Car
+    @car = @model.first
     @tyre_attributes = {}
     @bulb_attributes = { "name" => "name for deprecated nested attributes" }
   end

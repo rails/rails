@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -22,7 +23,7 @@ require "models/parrot"
 require "models/cpk"
 require "models/room"
 require "models/user"
-require "support/deprecated_associations_test_helpers"
+require "models/minimal/for_deprecated_associations"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -1013,15 +1014,16 @@ class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   def modify_bulb_name_directly_in_the_database(bulb)
-    name = bulb.name
-    new_name = "#{name} edited"
-    Bulb.connection.execute("UPDATE bulbs SET name = '#{new_name}' WHERE id = #{bulb.id}")
+    new_name = "#{bulb.name} edited"
+    DATS::Bulb.connection.execute(<<~SQL)
+      UPDATE bulbs SET name = '#{new_name}' WHERE id = #{bulb.id}
+    SQL
     new_name
   end
 
   setup do
-    @model = Car
-    @car = Car.first
+    @model = DATS::Car
+    @car = @model.first
   end
 
   test "<association>" do
@@ -1037,7 +1039,7 @@ class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
   end
 
   test "<association>=" do
-    bulb = Bulb.new
+    bulb = DATS::Bulb.new
 
     assert_not_deprecated_association(:bulb) do
       @car.bulb = bulb
@@ -1086,7 +1088,7 @@ class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_deprecated_association(:deprecated_bulb) do
-      assert_instance_of Bulb, @car.build_deprecated_bulb
+      assert_instance_of DATS::Bulb, @car.build_deprecated_bulb
     end
   end
 
