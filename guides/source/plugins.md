@@ -389,6 +389,192 @@ NOTE: The use of `write_attribute` to write to the field in model is just one ex
 send("#{self.class.api_timestamp_field}=", timestamp)
 ```
 
+Advanced Integration: Using Railties
+-----------------------------------
+
+The plugin we've built so far works great for basic functionality. However, if your plugin needs to integrate more deeply with Rails' framework, you'll want to use a [Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html).
+
+A Railtie is required when your plugin needs to:
+
+* Add configuration options accessible via `Rails.application.config`
+* Automatically include modules in Rails classes without manual setup
+* Provide Rake tasks to the host application
+* Set up initializers that run during Rails boot
+* Add middleware to the application stack
+* Configure Rails generators
+* Subscribe to `ActiveSupport::Notifications`
+
+For simple plugins like ours that only extend core classes or add modules, a Railtie isn't necessary.
+
+### Configuration Options
+
+Let's say you want to make the default rate limit in your `to_throttled_response` method configurable. First, create a Railtie:
+
+```ruby
+# api_boost/lib/api_boost/railtie.rb
+
+module ApiBoost
+  class Railtie < Rails::Railtie
+    config.api_boost = ActiveSupport::OrderedOptions.new
+    config.api_boost.default_rate_limit = "60 requests per hour"
+
+    initializer "api_boost.configure" do |app|
+      ApiBoost.configuration = app.config.api_boost
+    end
+  end
+end
+```
+
+Add a configuration module to your plugin:
+
+```ruby
+# api_boost/lib/api_boost/configuration.rb
+
+module ApiBoost
+  mattr_accessor :configuration, default: nil
+
+  def self.configure
+    yield(configuration) if block_given?
+  end
+end
+```
+
+Update your core extension to use the configuration:
+
+```ruby
+# api_boost/lib/api_boost/core_ext.rb
+
+class String
+  def to_throttled_response(limit = nil)
+    default_limit = ApiBoost.configuration&.default_rate_limit || "60 requests per hour"
+    {
+      data: self,
+      rate_limit: limit || default_limit
+    }
+  end
+end
+```
+
+Require the new files in your main plugin file:
+
+```ruby
+# api_boost/lib/api_boost.rb
+
+require "api_boost/version"
+require "api_boost/configuration"
+require "api_boost/railtie"
+require "api_boost/core_ext"
+require "api_boost/acts_as_api_resource"
+
+module ApiBoost
+  # Your code goes here...
+end
+```
+
+Now applications using your plugin can configure it:
+
+```ruby
+# config/application.rb
+config.api_boost.default_rate_limit = "100 requests per hour"
+```
+
+### Automatic Module Inclusion
+
+Instead of requiring users to manually include `ActsAsApiResource` in their `ApplicationRecord`, you can use a Railtie to do it automatically:
+
+```ruby
+# api_boost/lib/api_boost/railtie.rb
+
+module ApiBoost
+  class Railtie < Rails::Railtie
+    config.api_boost = ActiveSupport::OrderedOptions.new
+    config.api_boost.default_rate_limit = "60 requests per hour"
+
+    initializer "api_boost.configure" do |app|
+      ApiBoost.configuration = app.config.api_boost
+    end
+
+    initializer "api_boost.active_record" do
+      ActiveSupport.on_load(:active_record) do
+        include ApiBoost::ActsAsApiResource
+      end
+    end
+  end
+end
+```
+
+The `ActiveSupport.on_load` hook ensures your module is included at the right time during Rails initialization, after ActiveRecord is fully loaded.
+
+### Rake Tasks
+
+To provide Rake tasks to applications using your plugin:
+
+```ruby
+# api_boost/lib/api_boost/railtie.rb
+
+module ApiBoost
+  class Railtie < Rails::Railtie
+    # ... existing configuration ...
+
+    rake_tasks do
+      load "tasks/api_boost_tasks.rake"
+    end
+  end
+end
+```
+
+Create the Rake task file:
+
+```ruby
+# api_boost/lib/tasks/api_boost_tasks.rake
+
+namespace :api_boost do
+  desc "Show API usage statistics"
+  task stats: :environment do
+    puts "API Boost Statistics:"
+    puts "Models using acts_as_api_resource: #{api_resource_models.count}"
+  end
+
+  def api_resource_models
+    ApplicationRecord.descendants.select do |model|
+      model.respond_to?(:api_timestamp_field)
+    end
+  end
+end
+```
+
+Applications using your plugin will now have access to `rails api_boost:stats`.
+
+### Testing the Railtie
+
+You can test that your Railtie works correctly in the dummy application:
+
+```ruby
+# api_boost/test/railtie_test.rb
+
+require "test_helper"
+
+class RailtieTest < ActiveSupport::TestCase
+  def test_configuration_is_available
+    assert_not_nil ApiBoost.configuration
+    assert_equal "60 requests per hour", ApiBoost.configuration.default_rate_limit
+  end
+
+  def test_acts_as_api_resource_is_automatically_included
+    # Test that ActsAsApiResource was automatically included
+    assert User.respond_to?(:acts_as_api_resource)
+    assert Product.respond_to?(:acts_as_api_resource)
+  end
+
+  def test_rake_tasks_are_loaded
+    Rails.application.load_tasks
+    assert Rake::Task.task_defined?("api_boost:stats")
+  end
+end
+```
+
+Railties provide a clean way to integrate your plugin with Rails' initialization process. For more details about how Rails initializes and the complete lifecycle, see the [Rails Initialization Process Guide](initialization.html).
+
 Testing Your Plugin
 -------------------
 
