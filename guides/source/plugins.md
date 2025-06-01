@@ -18,9 +18,9 @@ After reading this guide, you will know:
 What are Plugins?
 ------------------
 
-A Rails plugin is a gem that’s designed specifically to work inside a Rails
+A Rails plugin is a gem that's designed specifically to work inside a Rails
 application, often using `Railtie` or `Engine` to hook into the Rails boot
-process and extend the framework’s functionality.
+process and extend the framework's functionality.
 
 Plugins serve several purposes:
 
@@ -36,10 +36,7 @@ Currently, Rails plugins are built as gems, _gemified plugins_. They can be
 shared across different Rails applications using RubyGems and Bundler if
 desired.
 
-For the purpose of this guide pretend for a moment that you are an avid bird
-watcher. Your favorite bird is the Yaffle, and you want to create a plugin that
-allows other developers to share in the Yaffle goodness.
-
+For the purpose of this guide, imagine you're building APIs and want to create a plugin that adds common API functionality like request throttling, response caching, and automatic API documentation. You'll create a plugin called "ApiBoost" that can enhance any Rails API application.
 
 ### Generate a Gemified Plugin
 
@@ -49,7 +46,7 @@ to run integration tests using a dummy Rails application. Create your
 plugin with the command:
 
 ```bash
-$ rails plugin new yaffle
+$ rails plugin new api_boost
 ```
 
 See usage and options by asking for help:
@@ -61,13 +58,13 @@ $ rails plugin new --help
 Testing Your Newly Generated Plugin
 -----------------------------------
 
-Navigate to the directory that contains the plugin, and edit `yaffle.gemspec` to
+Navigate to the directory that contains the plugin, and edit `api_boost.gemspec` to
 replace any lines that have `TODO` values:
 
 ```ruby
 spec.homepage    = "http://example.com"
-spec.summary     = "Summary of Yaffle."
-spec.description = "Description of Yaffle."
+spec.summary     = "Summary of ApiBoost."
+spec.description = "Description of ApiBoost."
 
 ...
 
@@ -101,32 +98,34 @@ Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your Rails application.
 
-In this example you will add a method to String named `to_squawk`. To begin, create a new test file with a few assertions:
+In this example you will add a method to String named `to_throttled_response`. To begin, create a new test file with a few assertions:
 
 ```ruby
-# yaffle/test/core_ext_test.rb
+# api_boost/test/core_ext_test.rb
 
 require "test_helper"
 
 class CoreExtTest < ActiveSupport::TestCase
-  def test_to_squawk_prepends_the_word_squawk
-    assert_equal "squawk! Hello World", "Hello World".to_squawk
+  def test_to_throttled_response_adds_rate_limit_header
+    response_data = "Hello API"
+    expected = { data: "Hello API", rate_limit: "60 requests per hour" }
+    assert_equal expected, response_data.to_throttled_response
   end
 end
 ```
 
-Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_squawk` method:
+Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_throttled_response` method:
 
 ```bash
 $ bin/test
 E
 
 Error:
-CoreExtTest#test_to_squawk_prepends_the_word_squawk:
-NoMethodError: undefined method `to_squawk' for "Hello World":String
+CoreExtTest#test_to_throttled_response_adds_rate_limit_header:
+NoMethodError: undefined method `to_throttled_response' for "Hello API":String
 
 
-bin/test /path/to/yaffle/test/core_ext_test.rb:4
+bin/test /path/to/api_boost/test/core_ext_test.rb:4
 
 .
 
@@ -136,28 +135,31 @@ Finished in 0.003358s, 595.6483 runs/s, 297.8242 assertions/s.
 
 Great - now you are ready to start development.
 
-In `lib/yaffle.rb`, add `require "yaffle/core_ext"`:
+In `lib/api_boost.rb`, add `require "api_boost/core_ext"`:
 
 ```ruby
-# yaffle/lib/yaffle.rb
+# api_boost/lib/api_boost.rb
 
-require "yaffle/version"
-require "yaffle/railtie"
-require "yaffle/core_ext"
+require "api_boost/version"
+require "api_boost/railtie"
+require "api_boost/core_ext"
 
-module Yaffle
+module ApiBoost
   # Your code goes here...
 end
 ```
 
-Finally, create the `core_ext.rb` file and add the `to_squawk` method:
+Finally, create the `core_ext.rb` file and add the `to_throttled_response` method:
 
 ```ruby
-# yaffle/lib/yaffle/core_ext.rb
+# api_boost/lib/api_boost/core_ext.rb
 
 class String
-  def to_squawk
-    "squawk! #{self}".strip
+  def to_throttled_response(limit = "60 requests per hour")
+    {
+      data: self,
+      rate_limit: limit
+    }
   end
 end
 ```
@@ -170,72 +172,72 @@ $ bin/test
 2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and commence squawking:
+To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and test the API response formatting:
 
 ```irb
-irb> "Hello World".to_squawk
-=> "squawk! Hello World"
+irb> "Hello API".to_throttled_response
+=> {:data=>"Hello API", :rate_limit=>"60 requests per hour"}
 ```
 
 Add an "acts_as" Method to Active Record
 ----------------------------------------
 
 A common pattern in plugins is to add a method called `acts_as_something` to models. In this case, you
-want to write a method called `acts_as_yaffle` that adds a `squawk` method to your Active Record models.
+want to write a method called `acts_as_api_resource` that adds API-specific functionality to your Active Record models.
 
 To begin, set up your files so that you have:
 
 ```ruby
-# yaffle/test/acts_as_yaffle_test.rb
+# api_boost/test/acts_as_api_resource_test.rb
 
 require "test_helper"
 
-class ActsAsYaffleTest < ActiveSupport::TestCase
+class ActsAsApiResourceTest < ActiveSupport::TestCase
 end
 ```
 
 ```ruby
-# yaffle/lib/yaffle.rb
+# api_boost/lib/api_boost.rb
 
-require "yaffle/version"
-require "yaffle/railtie"
-require "yaffle/core_ext"
-require "yaffle/acts_as_yaffle"
+require "api_boost/version"
+require "api_boost/railtie"
+require "api_boost/core_ext"
+require "api_boost/acts_as_api_resource"
 
-module Yaffle
+module ApiBoost
   # Your code goes here...
 end
 ```
 
 ```ruby
-# yaffle/lib/yaffle/acts_as_yaffle.rb
+# api_boost/lib/api_boost/acts_as_api_resource.rb
 
-module Yaffle
-  module ActsAsYaffle
+module ApiBoost
+  module ActsAsApiResource
   end
 end
 ```
 
 ### Add a Class Method
 
-This plugin will expect that you've added a method to your model named `last_squawk`. However, the
-plugin users might have already defined a method on their model named `last_squawk` that they use
-for something else. This plugin will allow the name to be changed by adding a class method called `yaffle_text_field`.
+This plugin will expect that you've added a method to your model named `last_request_at`. However, the
+plugin users might have already defined a method on their model named `last_request_at` that they use
+for something else. This plugin will allow the name to be changed by adding a class method called `api_timestamp_field`.
 
 To start out, write a failing test that shows the behavior you'd like:
 
 ```ruby
-# yaffle/test/acts_as_yaffle_test.rb
+# api_boost/test/acts_as_api_resource_test.rb
 
 require "test_helper"
 
-class ActsAsYaffleTest < ActiveSupport::TestCase
-  def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
-    assert_equal "last_squawk", Hickwall.yaffle_text_field
+class ActsAsApiResourceTest < ActiveSupport::TestCase
+  def test_a_users_api_timestamp_field_should_be_last_request_at
+    assert_equal "last_request_at", User.api_timestamp_field
   end
 
-  def test_a_wickwalls_yaffle_text_field_should_be_last_tweet
-    assert_equal "last_tweet", Wickwall.yaffle_text_field
+  def test_a_products_api_timestamp_field_should_be_last_api_call
+    assert_equal "last_api_call", Product.api_timestamp_field
   end
 end
 ```
@@ -249,20 +251,20 @@ $ bin/test
 ..E
 
 Error:
-ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
-NameError: uninitialized constant ActsAsYaffleTest::Wickwall
+ActsAsApiResourceTest#test_a_products_api_timestamp_field_should_be_last_api_call:
+NameError: uninitialized constant ActsAsApiResourceTest::Product
 
 
-bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
+bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:8
 
 E
 
 Error:
-ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
-NameError: uninitialized constant ActsAsYaffleTest::Hickwall
+ActsAsApiResourceTest#test_a_users_api_timestamp_field_should_be_last_request_at:
+NameError: uninitialized constant ActsAsApiResourceTest::User
 
 
-bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
+bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:4
 
 
 
@@ -270,14 +272,14 @@ Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
 4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
-This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
+This tells us that we don't have the necessary models (User and Product) that we are trying to test.
 We can easily generate these models in our "dummy" Rails application by running the following commands from the
 `test/dummy` directory:
 
 ```bash
 $ cd test/dummy
-$ bin/rails generate model Hickwall last_squawk:string
-$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
+$ bin/rails generate model User last_request_at:datetime
+$ bin/rails generate model Product last_request_at:datetime last_api_call:datetime
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -288,36 +290,36 @@ $ cd test/dummy
 $ bin/rails db:migrate
 ```
 
-While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
-like yaffles.
+While you are here, change the User and Product models so that they know that they are supposed to act
+like API resources.
 
 ```ruby
-# test/dummy/app/models/hickwall.rb
+# test/dummy/app/models/user.rb
 
-class Hickwall < ApplicationRecord
-  acts_as_yaffle
+class User < ApplicationRecord
+  acts_as_api_resource
 end
 ```
 
 ```ruby
-# test/dummy/app/models/wickwall.rb
+# test/dummy/app/models/product.rb
 
-class Wickwall < ApplicationRecord
-  acts_as_yaffle yaffle_text_field: :last_tweet
+class Product < ApplicationRecord
+  acts_as_api_resource api_timestamp_field: :last_api_call
 end
 ```
 
-We will also add code to define the `acts_as_yaffle` method.
+We will also add code to define the `acts_as_api_resource` method.
 
 ```ruby
-# yaffle/lib/yaffle/acts_as_yaffle.rb
+# api_boost/lib/api_boost/acts_as_api_resource.rb
 
-module Yaffle
-  module ActsAsYaffle
+module ApiBoost
+  module ActsAsApiResource
     extend ActiveSupport::Concern
 
     class_methods do
-      def acts_as_yaffle(options = {})
+      def acts_as_api_resource(options = {})
       end
     end
   end
@@ -328,7 +330,7 @@ end
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
-  include Yaffle::ActsAsYaffle
+  include ApiBoost::ActsAsApiResource
 
   self.abstract_class = true
 end
@@ -343,20 +345,20 @@ $ bin/test
 .E
 
 Error:
-ActsAsYaffleTest#test_a_hickwalls_yaffle_text_field_should_be_last_squawk:
-NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974ebbe9d8>
+ActsAsApiResourceTest#test_a_users_api_timestamp_field_should_be_last_request_at:
+NoMethodError: undefined method `api_timestamp_field' for #<Class:0x0055974ebbe9d8>
 
 
-bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:4
+bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:4
 
 E
 
 Error:
-ActsAsYaffleTest#test_a_wickwalls_yaffle_text_field_should_be_last_tweet:
-NoMethodError: undefined method `yaffle_text_field' for #<Class:0x0055974eb8cfc8>
+ActsAsApiResourceTest#test_a_products_api_timestamp_field_should_be_last_api_call:
+NoMethodError: undefined method `api_timestamp_field' for #<Class:0x0055974eb8cfc8>
 
 
-bin/test /path/to/yaffle/test/acts_as_yaffle_test.rb:8
+bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:8
 
 .
 
@@ -364,18 +366,18 @@ Finished in 0.008263s, 484.0999 runs/s, 242.0500 assertions/s.
 4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
 ```
 
-Getting closer... Now we will implement the code of the `acts_as_yaffle` method to make the tests pass.
+Getting closer... Now we will implement the code of the `acts_as_api_resource` method to make the tests pass.
 
 ```ruby
-# yaffle/lib/yaffle/acts_as_yaffle.rb
+# api_boost/lib/api_boost/acts_as_api_resource.rb
 
-module Yaffle
-  module ActsAsYaffle
+module ApiBoost
+  module ActsAsApiResource
     extend ActiveSupport::Concern
 
     class_methods do
-      def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
+      def acts_as_api_resource(options = {})
+        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
       end
     end
   end
@@ -386,7 +388,7 @@ end
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
-  include Yaffle::ActsAsYaffle
+  include ApiBoost::ActsAsApiResource
 
   self.abstract_class = true
 end
@@ -402,57 +404,63 @@ $ bin/test
 
 ### Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record object that calls `acts_as_yaffle`. The 'squawk'
-method will simply set the value of one of the fields in the database.
+This plugin will add a method named 'track_api_request' to any Active Record object that calls `acts_as_api_resource`. The 'track_api_request'
+method will simply set the timestamp of when an API request was made to track usage patterns.
 
 To start out, write a failing test that shows the behavior you'd like:
 
 ```ruby
-# yaffle/test/acts_as_yaffle_test.rb
+# api_boost/test/acts_as_api_resource_test.rb
 require "test_helper"
 
-class ActsAsYaffleTest < ActiveSupport::TestCase
-  def test_a_hickwalls_yaffle_text_field_should_be_last_squawk
-    assert_equal "last_squawk", Hickwall.yaffle_text_field
+class ActsAsApiResourceTest < ActiveSupport::TestCase
+  def test_a_users_api_timestamp_field_should_be_last_request_at
+    assert_equal "last_request_at", User.api_timestamp_field
   end
 
-  def test_a_wickwalls_yaffle_text_field_should_be_last_tweet
-    assert_equal "last_tweet", Wickwall.yaffle_text_field
+  def test_a_products_api_timestamp_field_should_be_last_api_call
+    assert_equal "last_api_call", Product.api_timestamp_field
   end
 
-  def test_hickwalls_squawk_should_populate_last_squawk
-    hickwall = Hickwall.new
-    hickwall.squawk("Hello World")
-    assert_equal "squawk! Hello World", hickwall.last_squawk
+  def test_users_track_api_request_should_populate_last_request_at
+    user = User.new
+    freeze_time = Time.current
+    Time.stub(:current, freeze_time) do
+      user.track_api_request
+      assert_equal freeze_time.to_s, user.last_request_at.to_s
+    end
   end
 
-  def test_wickwalls_squawk_should_populate_last_tweet
-    wickwall = Wickwall.new
-    wickwall.squawk("Hello World")
-    assert_equal "squawk! Hello World", wickwall.last_tweet
+  def test_products_track_api_request_should_populate_last_api_call
+    product = Product.new
+    freeze_time = Time.current
+    Time.stub(:current, freeze_time) do
+      product.track_api_request
+      assert_equal freeze_time.to_s, product.last_api_call.to_s
+    end
   end
 end
 ```
 
-Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`squawk'",
-then update `acts_as_yaffle.rb` to look like this:
+Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`track_api_request'",
+then update `acts_as_api_resource.rb` to look like this:
 
 ```ruby
-# yaffle/lib/yaffle/acts_as_yaffle.rb
+# api_boost/lib/api_boost/acts_as_api_resource.rb
 
-module Yaffle
-  module ActsAsYaffle
+module ApiBoost
+  module ActsAsApiResource
     extend ActiveSupport::Concern
 
     included do
-      def squawk(string)
-        write_attribute(self.class.yaffle_text_field, string.to_squawk)
+      def track_api_request(timestamp = Time.current)
+        write_attribute(self.class.api_timestamp_field, timestamp)
       end
     end
 
     class_methods do
-      def acts_as_yaffle(options = {})
-        cattr_accessor :yaffle_text_field, default: (options[:yaffle_text_field] || :last_squawk).to_s
+      def acts_as_api_resource(options = {})
+        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
       end
     end
   end
@@ -463,7 +471,7 @@ end
 # test/dummy/app/models/application_record.rb
 
 class ApplicationRecord < ActiveRecord::Base
-  include Yaffle::ActsAsYaffle
+  include ApiBoost::ActsAsApiResource
 
   self.abstract_class = true
 end
@@ -480,7 +488,7 @@ $ bin/test
 NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
 
 ```ruby
-send("#{self.class.yaffle_text_field}=", string.to_squawk)
+send("#{self.class.api_timestamp_field}=", timestamp)
 ```
 
 Generators
@@ -492,11 +500,11 @@ the creation of generators can be found in the [Generators Guide](generators.htm
 Publishing Your Gem
 -------------------
 
-Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
+Gem plugins currently in development can easily be shared from any Git repository. To share the ApiBoost gem with others, simply
 commit the code to a Git repository (like GitHub) and add a line to the `Gemfile` of the application in question:
 
 ```ruby
-gem "yaffle", git: "https://github.com/rails/yaffle.git"
+gem "api_boost", git: "https://github.com/rails/api_boost.git"
 ```
 
 After running `bundle install`, your gem functionality will be available to the application.
@@ -509,13 +517,13 @@ Alternatively, you can benefit from Bundler's Rake tasks. You can see a full lis
 $ bundle exec rake -T
 
 $ bundle exec rake build
-# Build yaffle-0.1.0.gem into the pkg directory
+# Build api_boost-0.1.0.gem into the pkg directory
 
 $ bundle exec rake install
-# Build and install yaffle-0.1.0.gem into system gems
+# Build and install api_boost-0.1.0.gem into system gems
 
 $ bundle exec rake release
-# Create tag v0.1.0 and build and push yaffle-0.1.0.gem to Rubygems
+# Create tag v0.1.0 and build and push api_boost-0.1.0.gem to Rubygems
 ```
 
 For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
