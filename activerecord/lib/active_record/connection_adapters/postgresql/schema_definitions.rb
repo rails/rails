@@ -572,6 +572,8 @@ module ActiveRecord
         #   irb> Node.create(path: 'Top.Science.Astronomy')
         #
         # This stores a path in a tree-like label hierarchy.
+        #
+        # 🔗 See also: {PostgreSQL ltree documentation}[https://www.postgresql.org/docs/current/ltree.html]
 
         ##
         # :method: macaddr
