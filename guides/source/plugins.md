@@ -9,33 +9,37 @@ After reading this guide, you will know:
 * What Rails plugins are.
 * When to use a Rails plugin.
 * How to create a plugin from scratch.
+* How to extend core Ruby classes.
+* How to add methods to `ApplicationRecord`.
 * How to publish your plugin to RubyGems.
 
-Plugins provide:
-
-* A way for developers to share bleeding-edge ideas without hurting the stable code base.
-* A segmented architecture so that units of code can be fixed or updated on their own release schedule.
-* An outlet for the core developers so that they don't have to include every cool new feature under the sun.
-
-
-
-This guide describes how to build a test-driven plugin that will:
-
-* Extend core Ruby classes like Hash and String.
-* Add methods to `ApplicationRecord` in the tradition of the `acts_as` plugins.
-* Give you information about where to put generators in your plugin.
-
-For the purpose of this guide pretend for a moment that you are an avid bird watcher.
-Your favorite bird is the Yaffle, and you want to create a plugin that allows other developers to share in the Yaffle
-goodness.
-
 --------------------------------------------------------------------------------
+
+What are Plugins?
+------------------
+
+A Rails plugin is a gem that’s designed specifically to work inside a Rails
+application, often using `Railtie` or `Engine` to hook into the Rails boot
+process and extend the framework’s functionality.
+
+Plugins serve several purposes:
+
+* They offer a way for developers to experiment with new ideas without affecting the stability of the core codebase.
+* They support a modular architecture, allowing features to be maintained, updated, or released independently.
+* They give teams an outlet for introducing powerful features without needing to
+  include everything directly into the framework.
 
 Setup
 -----
 
-Currently, Rails plugins are built as gems, _gemified plugins_. They can be shared across
-different Rails applications using RubyGems and Bundler if desired.
+Currently, Rails plugins are built as gems, _gemified plugins_. They can be
+shared across different Rails applications using RubyGems and Bundler if
+desired.
+
+For the purpose of this guide pretend for a moment that you are an avid bird
+watcher. Your favorite bird is the Yaffle, and you want to create a plugin that
+allows other developers to share in the Yaffle goodness.
+
 
 ### Generate a Gemified Plugin
 
