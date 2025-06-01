@@ -6,6 +6,7 @@ The Basics of Creating Rails Plugins
 This guide is for developers who want to create a Rails plugin, in order to extend or modify the behavior of a Rails application.
 
 After reading this guide, you will know:
+
 * What Rails plugins are.
 * When to use a Rails plugin.
 * How to create a plugin from scratch.
@@ -29,21 +30,66 @@ Plugins serve several purposes:
 * They give teams an outlet for introducing powerful features without needing to
   include everything directly into the framework.
 
-Setup
------
+Generator Options
+------------------
 
 Currently, Rails plugins are built as gems, _gemified plugins_. They can be
 shared across different Rails applications using RubyGems and Bundler if
 desired.
 
+The `rails plugin new` command supports several options that determine what type of plugin structure is generated.
+
+The **Basic Plugin** (default) option creates a minimal plugin structure suitable for simple extensions like core class methods or utility functions.
+
+```bash
+$ rails plugin new api_boost
+```
+
+This is what we'll use in this guide.
+
+The **Full Plugin** (`--full`) option creates a more complete plugin structure that includes an `app` directory tree (models, views, controllers), a `config/routes.rb` file, and an Engine class at `lib/api_boost/engine.rb`.
+
+```bash
+$ rails plugin new api_boost --full
+```
+
+Use `--full` when your plugin needs its own models, controllers, or views but doesn't require namespace isolation.
+
+The **Mountable Engine** (`--mountable`) option creates a fully isolated, mountable engine that includes everything from `--full` plus:
+- Namespace isolation (`ApiBoost::` prefix for all classes)
+- Isolated routing (`ApiBoost::Engine.routes.draw`)
+- Asset manifest files
+- Namespaced ApplicationController and ApplicationHelper
+- Automatic mounting in the dummy app for testing
+
+```bash
+$ rails plugin new api_boost --mountable
+```
+
+Use `--mountable` when building a self-contained feature that could work as a separate application.
+
+For more information about engines, see the [Getting Started with Engines guide](engines.html).
+
+Below is some guidance on choosing the right option:
+
+- **Basic plugin**: Simple utilities, core class extensions, or small helper methods
+- **`--full` plugin**: Complex functionality that needs models/controllers but shares the host app's namespace
+- **`--mountable` engine**: Self-contained features like admin panels, blogs, or API modules
+
+See usage and options by asking for help:
+
+```bash
+$ rails plugin new --help
+```
+
+Setup
+------
+
 For the purpose of this guide, imagine you're building APIs and want to create a plugin that adds common API functionality like request throttling, response caching, and automatic API documentation. You'll create a plugin called "ApiBoost" that can enhance any Rails API application.
 
-### Generate a Gemified Plugin
+### Generate the Plugin
 
-Rails ships with a `rails plugin new` command which creates a
-skeleton for developing any kind of Rails extension with the ability
-to run integration tests using a dummy Rails application. Create your
-plugin with the command:
+Create a basic plugin with the command:
 
 ```bash
 $ rails plugin new api_boost
@@ -75,8 +121,6 @@ api_boost/
 └── README.md
 ```
 
-### Understanding the Generated Structure
-
 **The `lib` directory** contains your plugin's source code:
 - `lib/api_boost.rb` is the main entry point for your plugin
 - `lib/api_boost/` contains modules and classes for your plugin functionality
@@ -90,14 +134,8 @@ api_boost/
 
 **The gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and which files to include when packaging.
 
-See usage and options by asking for help:
 
-```bash
-$ rails plugin new --help
-```
-
-Setting Up Your Plugin
-----------------------
+### Set Up the Plugin
 
 Navigate to the directory that contains the plugin, and edit `api_boost.gemspec` to
 replace any lines that have `TODO` values:
