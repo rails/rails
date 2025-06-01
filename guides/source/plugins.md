@@ -55,8 +55,8 @@ See usage and options by asking for help:
 $ rails plugin new --help
 ```
 
-Testing Your Newly Generated Plugin
------------------------------------
+Setting Up Your Plugin
+----------------------
 
 Navigate to the directory that contains the plugin, and edit `api_boost.gemspec` to
 replace any lines that have `TODO` values:
@@ -98,42 +98,7 @@ Extending Core Classes
 
 This section will explain how to add a method to String that will be available anywhere in your Rails application.
 
-In this example you will add a method to String named `to_throttled_response`. To begin, create a new test file with a few assertions:
-
-```ruby
-# api_boost/test/core_ext_test.rb
-
-require "test_helper"
-
-class CoreExtTest < ActiveSupport::TestCase
-  def test_to_throttled_response_adds_rate_limit_header
-    response_data = "Hello API"
-    expected = { data: "Hello API", rate_limit: "60 requests per hour" }
-    assert_equal expected, response_data.to_throttled_response
-  end
-end
-```
-
-Run `bin/test` to run the test. This test should fail because we haven't implemented the `to_throttled_response` method:
-
-```bash
-$ bin/test
-E
-
-Error:
-CoreExtTest#test_to_throttled_response_adds_rate_limit_header:
-NoMethodError: undefined method `to_throttled_response' for "Hello API":String
-
-
-bin/test /path/to/api_boost/test/core_ext_test.rb:4
-
-.
-
-Finished in 0.003358s, 595.6483 runs/s, 297.8242 assertions/s.
-2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
-```
-
-Great - now you are ready to start development.
+In this example you will add a method to String named `to_throttled_response`.
 
 In `lib/api_boost.rb`, add `require "api_boost/core_ext"`:
 
@@ -149,7 +114,7 @@ module ApiBoost
 end
 ```
 
-Finally, create the `core_ext.rb` file and add the `to_throttled_response` method:
+Create the `core_ext.rb` file and add the `to_throttled_response` method:
 
 ```ruby
 # api_boost/lib/api_boost/core_ext.rb
@@ -164,19 +129,14 @@ class String
 end
 ```
 
-To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
-
-```bash
-$ bin/test
-...
-2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
-```
-
 To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and test the API response formatting:
 
 ```irb
 irb> "Hello API".to_throttled_response
 => {:data=>"Hello API", :rate_limit=>"60 requests per hour"}
+
+irb> "User data".to_throttled_response("100 requests per hour")
+=> {:data=>"User data", :rate_limit=>"100 requests per hour"}
 ```
 
 Add an "acts_as" Method to Active Record
@@ -186,15 +146,6 @@ A common pattern in plugins is to add a method called `acts_as_something` to mod
 want to write a method called `acts_as_api_resource` that adds API-specific functionality to your Active Record models.
 
 To begin, set up your files so that you have:
-
-```ruby
-# api_boost/test/acts_as_api_resource_test.rb
-
-require "test_helper"
-
-class ActsAsApiResourceTest < ActiveSupport::TestCase
-end
-```
 
 ```ruby
 # api_boost/lib/api_boost.rb
@@ -214,6 +165,13 @@ end
 
 module ApiBoost
   module ActsAsApiResource
+    extend ActiveSupport::Concern
+
+    class_methods do
+      def acts_as_api_resource(options = {})
+        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
+      end
+    end
   end
 end
 ```
@@ -224,74 +182,16 @@ This plugin will expect that you've added a method to your model named `last_req
 plugin users might have already defined a method on their model named `last_request_at` that they use
 for something else. This plugin will allow the name to be changed by adding a class method called `api_timestamp_field`.
 
-To start out, write a failing test that shows the behavior you'd like:
-
-```ruby
-# api_boost/test/acts_as_api_resource_test.rb
-
-require "test_helper"
-
-class ActsAsApiResourceTest < ActiveSupport::TestCase
-  def test_a_users_api_timestamp_field_should_be_last_request_at
-    assert_equal "last_request_at", User.api_timestamp_field
-  end
-
-  def test_a_products_api_timestamp_field_should_be_last_api_call
-    assert_equal "last_api_call", Product.api_timestamp_field
-  end
-end
-```
-
-When you run `bin/test`, you should see the following:
-
-```bash
-$ bin/test
-# Running:
-
-..E
-
-Error:
-ActsAsApiResourceTest#test_a_products_api_timestamp_field_should_be_last_api_call:
-NameError: uninitialized constant ActsAsApiResourceTest::Product
-
-
-bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:8
-
-E
-
-Error:
-ActsAsApiResourceTest#test_a_users_api_timestamp_field_should_be_last_request_at:
-NameError: uninitialized constant ActsAsApiResourceTest::User
-
-
-bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:4
-
-
-
-Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
-4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
-```
-
-This tells us that we don't have the necessary models (User and Product) that we are trying to test.
-We can easily generate these models in our "dummy" Rails application by running the following commands from the
-`test/dummy` directory:
+We need to generate some models in our "dummy" Rails application to test this functionality. Run the following commands from the `test/dummy` directory:
 
 ```bash
 $ cd test/dummy
 $ bin/rails generate model User last_request_at:datetime
 $ bin/rails generate model Product last_request_at:datetime last_api_call:datetime
-```
-
-Now you can create the necessary database tables in your testing database by navigating to your dummy app
-and migrating the database. First, run:
-
-```bash
-$ cd test/dummy
 $ bin/rails db:migrate
 ```
 
-While you are here, change the User and Product models so that they know that they are supposed to act
-like API resources.
+Now update the User and Product models so that they know that they are supposed to act like API resources:
 
 ```ruby
 # test/dummy/app/models/user.rb
@@ -309,22 +209,7 @@ class Product < ApplicationRecord
 end
 ```
 
-We will also add code to define the `acts_as_api_resource` method.
-
-```ruby
-# api_boost/lib/api_boost/acts_as_api_resource.rb
-
-module ApiBoost
-  module ActsAsApiResource
-    extend ActiveSupport::Concern
-
-    class_methods do
-      def acts_as_api_resource(options = {})
-      end
-    end
-  end
-end
-```
+We need to include our module in `ApplicationRecord`:
 
 ```ruby
 # test/dummy/app/models/application_record.rb
@@ -336,37 +221,22 @@ class ApplicationRecord < ActiveRecord::Base
 end
 ```
 
-You can then return to the root directory (`cd ../..`) of your plugin and rerun the tests using `bin/test`.
+Now you can test this functionality in the Rails console:
 
-```bash
-$ bin/test
-# Running:
+```irb
+irb> User.api_timestamp_field
+=> "last_request_at"
 
-.E
-
-Error:
-ActsAsApiResourceTest#test_a_users_api_timestamp_field_should_be_last_request_at:
-NoMethodError: undefined method `api_timestamp_field' for #<Class:0x0055974ebbe9d8>
-
-
-bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:4
-
-E
-
-Error:
-ActsAsApiResourceTest#test_a_products_api_timestamp_field_should_be_last_api_call:
-NoMethodError: undefined method `api_timestamp_field' for #<Class:0x0055974eb8cfc8>
-
-
-bin/test /path/to/api_boost/test/acts_as_api_resource_test.rb:8
-
-.
-
-Finished in 0.008263s, 484.0999 runs/s, 242.0500 assertions/s.
-4 runs, 2 assertions, 0 failures, 2 errors, 0 skips
+irb> Product.api_timestamp_field
+=> "last_api_call"
 ```
 
-Getting closer... Now we will implement the code of the `acts_as_api_resource` method to make the tests pass.
+### Add an Instance Method
+
+This plugin will add a method named 'track_api_request' to any Active Record object that calls `acts_as_api_resource`. The 'track_api_request'
+method will set the timestamp of when an API request was made to track usage patterns.
+
+Update `acts_as_api_resource.rb` to include the instance method:
 
 ```ruby
 # api_boost/lib/api_boost/acts_as_api_resource.rb
@@ -374,6 +244,12 @@ Getting closer... Now we will implement the code of the `acts_as_api_resource` m
 module ApiBoost
   module ActsAsApiResource
     extend ActiveSupport::Concern
+
+    included do
+      def track_api_request(timestamp = Time.current)
+        write_attribute(self.class.api_timestamp_field, timestamp)
+      end
+    end
 
     class_methods do
       def acts_as_api_resource(options = {})
@@ -384,33 +260,62 @@ module ApiBoost
 end
 ```
 
+Now you can test the functionality in the Rails console:
+
+```irb
+irb> user = User.new
+irb> user.track_api_request
+irb> user.last_request_at
+=> 2025-06-01 10:30:45 UTC
+
+irb> product = Product.new
+irb> product.track_api_request
+irb> product.last_api_call
+=> 2025-06-01 10:31:15 UTC
+```
+
+NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
+
 ```ruby
-# test/dummy/app/models/application_record.rb
+send("#{self.class.api_timestamp_field}=", timestamp)
+```
 
-class ApplicationRecord < ActiveRecord::Base
-  include ApiBoost::ActsAsApiResource
+Testing Your Plugin
+-------------------
 
-  self.abstract_class = true
+Now that your plugin is working, it's good practice to add tests. The Rails plugin generator created a test framework for you. Let's add tests for the functionality we just built.
+
+### Testing Core Extensions
+
+Create a test file for your core extensions:
+
+```ruby
+# api_boost/test/core_ext_test.rb
+
+require "test_helper"
+
+class CoreExtTest < ActiveSupport::TestCase
+  def test_to_throttled_response_adds_rate_limit_header
+    response_data = "Hello API"
+    expected = { data: "Hello API", rate_limit: "60 requests per hour" }
+    assert_equal expected, response_data.to_throttled_response
+  end
+
+  def test_to_throttled_response_with_custom_limit
+    response_data = "User data"
+    expected = { data: "User data", rate_limit: "100 requests per hour" }
+    assert_equal expected, response_data.to_throttled_response("100 requests per hour")
+  end
 end
 ```
 
-When you run `bin/test`, you should see the tests all pass:
+### Testing Acts As Methods
 
-```bash
-$ bin/test
-...
-4 runs, 4 assertions, 0 failures, 0 errors, 0 skips
-```
-
-### Add an Instance Method
-
-This plugin will add a method named 'track_api_request' to any Active Record object that calls `acts_as_api_resource`. The 'track_api_request'
-method will simply set the timestamp of when an API request was made to track usage patterns.
-
-To start out, write a failing test that shows the behavior you'd like:
+Create a test file for your ActsAs functionality:
 
 ```ruby
 # api_boost/test/acts_as_api_resource_test.rb
+
 require "test_helper"
 
 class ActsAsApiResourceTest < ActiveSupport::TestCase
@@ -442,53 +347,12 @@ class ActsAsApiResourceTest < ActiveSupport::TestCase
 end
 ```
 
-Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method \`track_api_request'",
-then update `acts_as_api_resource.rb` to look like this:
-
-```ruby
-# api_boost/lib/api_boost/acts_as_api_resource.rb
-
-module ApiBoost
-  module ActsAsApiResource
-    extend ActiveSupport::Concern
-
-    included do
-      def track_api_request(timestamp = Time.current)
-        write_attribute(self.class.api_timestamp_field, timestamp)
-      end
-    end
-
-    class_methods do
-      def acts_as_api_resource(options = {})
-        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
-      end
-    end
-  end
-end
-```
-
-```ruby
-# test/dummy/app/models/application_record.rb
-
-class ApplicationRecord < ActiveRecord::Base
-  include ApiBoost::ActsAsApiResource
-
-  self.abstract_class = true
-end
-```
-
-Run `bin/test` one final time, and you should see:
+Run your tests to make sure everything is working:
 
 ```bash
 $ bin/test
 ...
 6 runs, 6 assertions, 0 failures, 0 errors, 0 skips
-```
-
-NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
-
-```ruby
-send("#{self.class.api_timestamp_field}=", timestamp)
 ```
 
 Generators
