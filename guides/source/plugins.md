@@ -49,6 +49,45 @@ plugin with the command:
 $ rails plugin new api_boost
 ```
 
+This will create the ApiBoost plugin in a directory named `api_boost`. Let's examine what was generated:
+
+```
+api_boost/
+├── api_boost.gemspec
+├── Gemfile
+├── lib/
+│   ├── api_boost/
+│   │   └── version.rb
+│   ├── api_boost.rb
+│   └── tasks/
+│       └── api_boost_tasks.rake
+├── test/
+│   ├── dummy/
+│   │   ├── app/
+│   │   ├── bin/
+│   │   ├── config/
+│   │   ├── db/
+│   │   ├── public/
+│   │   └── ... (full Rails application)
+│   ├── integration/
+│   └── test_helper.rb
+├── MIT-LICENSE
+└── README.md
+```
+
+**The `lib` directory** contains your plugin's source code:
+- `lib/api_boost.rb` is the main entry point for your plugin
+- `lib/api_boost/` contains modules and classes for your plugin functionality
+- `lib/tasks/` contains any Rake tasks your plugin provides
+
+**The `test/dummy` directory** contains a complete Rails application that's used for testing your plugin. This dummy application:
+- Loads your plugin automatically through the Gemfile
+- Provides a Rails environment to test your plugin's integration
+- Includes generators, models, controllers, and views as needed for testing
+- Can be used interactively with `rails console` and `rails server`
+
+**The gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and which files to include when packaging.
+
 See usage and options by asking for help:
 
 ```bash
@@ -80,6 +119,8 @@ After that, set up your testing database by navigating to the `test/dummy` direc
 $ cd test/dummy
 $ bin/rails db:create
 ```
+
+The dummy application works just like any Rails application - you can generate models, run migrations, start the server, or open a console. This is where you'll test your plugin's functionality as you develop it.
 
 Once the database is created, return to the plugin's root directory (`cd ../..`).
 
@@ -132,12 +173,17 @@ end
 To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and test the API response formatting:
 
 ```irb
+$ cd test/dummy
+$ bin/rails console
+
 irb> "Hello API".to_throttled_response
 => {:data=>"Hello API", :rate_limit=>"60 requests per hour"}
 
 irb> "User data".to_throttled_response("100 requests per hour")
 => {:data=>"User data", :rate_limit=>"100 requests per hour"}
 ```
+
+The dummy application automatically loads your plugin, so any extensions you add are immediately available for testing.
 
 Add an "acts_as" Method to Active Record
 ----------------------------------------
