@@ -1175,8 +1175,8 @@ This is all taken care of by `revert`.
 ### Composite Types (PostgreSQL only)
 
 PostgreSQL supports [composite
-types](https://www.postgresql.org/docs/current/static/rowtypes.html), which lets
-you define structured types with multiple named fields, similar to a record or
+types](https://www.postgresql.org/docs/current/static/rowtypes.html), which let
+you define structured types with multiple named fields, similar to a
 struct. Rails does not currently provide first-class support for these types.
 When used, they are treated as plain text columns.
 
