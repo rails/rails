@@ -760,9 +760,38 @@ module ActiveRecord
         #
         #   t.tsvector :document
         #
-        # A tsvector value stores lexemes for efficient search.
+        # A +tsvector+ column stores lexemes used in full-text search, which can be
+        # indexed with a GIN index and queried using PostgreSQL's full-text search
+        # operators.
         #
-        #   irb> Article.create(document: "The quick brown fox jumps over the lazy dog")
+        # Basic usage with inline expression to show all documents matching 'cat & dog':
+        #
+        #   add_index :documents,
+        #     "to_tsvector('english', title || ' ' || body)",
+        #     using: :gin,
+        #     name: "documents_idx"
+        #
+        #   Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)", "cat & dog")
+        #
+        # Alternatively, starting with PostgreSQL 12.0, you can store the +tsvector+ as a
+        # generated (virtual) column:
+        #
+        #   create_table :documents do |t|
+        #     t.string :title
+        #     t.string :body
+        #
+        #     t.virtual :textsearchable_index_col,
+        #       type: :tsvector,
+        #       as: "to_tsvector('english', title || ' ' || body)",
+        #       stored: true
+        #   end
+        #
+        #   add_index :documents,
+        #     :textsearchable_index_col,
+        #     using: :gin,
+        #     name: "documents_idx"
+        #
+        #   Document.where("textsearchable_index_col @@ to_tsquery(?)", "cat & dog")
 
         ##
         # :method: uuid
