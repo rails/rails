@@ -1895,7 +1895,7 @@ can insert, update, or delete records through them under certain conditions.
 Imagine you're working with a legacy table like this:
 
 ```sh
-rails_pg_guide=# \d "TBL_ART"
+$ \d "TBL_ART"
                                         Table "public.TBL_ART"
    Column   |            Type             |                         Modifiers
 ------------+-----------------------------+------------------------------------------------------------
