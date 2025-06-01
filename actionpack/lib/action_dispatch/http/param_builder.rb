@@ -64,6 +64,7 @@ module ActionDispatch
     private
       def store_nested_param(params, name, v, depth, encoding_template = nil)
         raise ParamsTooDeepError if depth >= param_depth_limit
+        content_inside_bracket = /\A[\[\]]*([^\[\]]+)\]*/
 
         if !name
           # nil name, treat same as empty string (required by tests)
@@ -71,7 +72,7 @@ module ActionDispatch
         elsif depth == 0
           if ignore_leading_brackets || (ignore_leading_brackets.nil? && LEADING_BRACKETS_COMPAT)
             # Rack 2 compatible behavior, ignore leading brackets
-            if name =~ /\A[\[\]]*([^\[\]]+)\]*/
+            if name =~ content_inside_bracket
               k = $1
               after = $' || ""
 
@@ -102,6 +103,13 @@ module ActionDispatch
           # Hash nesting, use the part inside brackets as the key
           k = name[1, start - 1]
           after = name[start + 1, name.length]
+
+          if k.index("[") && LEADING_BRACKETS_COMPAT
+            ActionDispatch.deprecator.warn("The parameters #{name.inspect} is malformed and nested brackets will parse differently in Rails 8.2 or Rack 3.0.")
+            name =~ content_inside_bracket
+            k = $1
+            after = $'
+          end
         else
           # Probably malformed input, nested but not starting with [
           # treat full name as key for backwards compatibility.
@@ -133,6 +141,9 @@ module ActionDispatch
           end
         elsif after == "["
           params[name] = v
+        elsif after =~ /\A\]+\Z/ && LEADING_BRACKETS_COMPAT
+          # Malformed nested brackets. Backward compatibility support on Rack 2.
+          params[k] = v
         elsif after == "[]"
           params[k] ||= []
           raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
