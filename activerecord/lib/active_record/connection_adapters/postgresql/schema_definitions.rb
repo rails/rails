@@ -121,22 +121,23 @@ module ActiveRecord
         #
         # Adds a +box+ column for storing rectangular boxes in a 2D plane.
         #
-        # The +box+ type is backed by PostgreSQL and represents a rectangle defined
-        # by two opposite corner points (typically the upper right and lower left).
+        # The +box+ type is backed by PostgreSQL and represents a rectangle
+        # defined by two opposite corner points.
         #
         # Example:
         #
         #   t.box :bounds
         #
-        # Values can be assigned using PostgreSQL box syntax:
+        # Values can be assigned using PostgreSQL's box syntax:
         #
-        #   irb> Shape.create(bounds: '((1,1),(4,4))')
+        #   irb> Shape.create(bounds: '((4,4),(1,1))')
         #
-        # This creates a rectangular box with opposite corners at (1,1) and (4,4).
+        # This creates a rectangular box spanning the area between the points
+        # (4,4) and (1,1).
         #
-        # PostgreSQL treats the order of the points as irrelevant for storage, but
-        # typically the first point is considered the upper-right corner and the
-        # second the lower-left. The box spans the area between those two points on a 2D plane.
+        # PostgreSQL treats the order of the points as irrelevant for storage,
+        # but by convention, the first point is considered the upper-right
+        # corner and the second the lower-left.
 
         ##
         # :method: binary
