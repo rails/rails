@@ -1931,7 +1931,7 @@ execute <<-SQL
 SQL
 ```
 
-This creates a virtual table named articles, with Rails-style column names and
+This creates a virtual table named `articles`, with Rails-style column names and
 only includes non-archived records.
 
 #### Defining the Model
