@@ -1610,11 +1610,14 @@ instances.
 
 When the schema format is set to `:sql`, the database structure will be dumped
 using a tool specific to the database into `db/structure.sql`. For example, for
-PostgreSQL, the `pg_dump` utility is used.
+PostgreSQL, the
+[`pg_dump`](https://www.postgresql.org/docs/current/app-pgdump.html) utility is
+used.
 
-You can then use `ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags` to
-configure `pg_dump`. For example, to exclude comments from your structure dump,
-add this to an initializer:
+You can then use
+[`ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags`](https://api.rubyonrails.org/classes/ActiveRecord/Tasks/DatabaseTasks.html)
+to configure `pg_dump`. For example, to exclude comments from your structure
+dump, add this to an initializer:
 
 ```ruby
 ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
