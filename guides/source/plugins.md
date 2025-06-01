@@ -245,6 +245,8 @@ module ApiBoost
 end
 ```
 
+The code above uses `ActiveSupport::Concern` to simplify including modules with both class and instance methods. Methods in the `class_methods` block become class methods when the module is included. For more details, see the [ActiveSupport::Concern API documentation](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
+
 ### Add a Class Method
 
 This plugin will expect that you've added a method to your model named `last_request_at`. However, the
