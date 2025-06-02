@@ -29,7 +29,7 @@ module ActionDispatch
       def from_requirements(requirements)
         routes.find { |route| route.requirements == requirements }
       end
-      # :stopdoc:
+      # :enddoc:
 
       # Since the router holds references to many parts of the system like engines,
       # controllers and the application itself, inspecting the route set can actually
@@ -953,6 +953,5 @@ module ActionDispatch
         end
       end
     end
-    # :startdoc:
   end
 end
