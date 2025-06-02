@@ -1,3 +1,17 @@
+*   Always clear `CurrentAttribute` instances.
+
+    Previously `CurrentAttribute` instance would be reset at the end of requests.
+    Meaning its attributes would be re-initialized.
+
+    This is problematic because it assume these objects don't hold any state
+    other than their declared attribute, which isn't always the case, and
+    can lead to state leak across request.
+
+    Now `CurrentAttribute` instances are abandonned at the end of a request,
+    and a new instance is created at the start of the next request.
+
+    *Jean Boussier*, *Janko Marohnić*
+
 *   Add public API for `before_fork_hook` in parallel testing.
 
     Introduces a public API for calling the before fork hooks implemented by parallel testing.
