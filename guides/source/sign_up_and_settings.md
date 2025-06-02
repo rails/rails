@@ -163,9 +163,9 @@ end
 
 The `create` action assigns parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
 
-One last fix we need to make is restricting `SignUpsController` to unauthenticated users only. An authenticated user should not be able to create another account while they're logged in.
+Authenticated users can still access `SignUpsController` and create another account while they're logged in which can be confusing.
 
-Let's do that by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
+Let's fix this by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
 
 ```ruby#14-17
 module Authentication
