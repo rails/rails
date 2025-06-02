@@ -17,7 +17,7 @@ require "models/entry"
 require "models/message"
 require "models/cpk"
 require "models/car"
-require "models/minimal/for_deprecated_associations"
+require "models/dats"
 require "active_support/hash_with_indifferent_access"
 
 class TestNestedAttributesInGeneral < ActiveRecord::TestCase

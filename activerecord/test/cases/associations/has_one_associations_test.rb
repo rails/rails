@@ -23,7 +23,7 @@ require "models/parrot"
 require "models/cpk"
 require "models/room"
 require "models/user"
-require "models/minimal/for_deprecated_associations"
+require "models/dats"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
