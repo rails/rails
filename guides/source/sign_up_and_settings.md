@@ -30,7 +30,7 @@ We've already used the Rails authentication generator to allow users to login to
 
 ### Adding Names To Users
 
-One other feature we probably want for users is to collect their name on sign up. Let's start by adding `first_name` and `last_name` columns to the database.
+It's also a good idea to collect the user's name at sign up. This allows us to personalize their experience and address them directly in the application. Let's start by adding `first_name` and `last_name` columns to the database.
 
 In the terminal, create a migration with these columns:
 
@@ -44,7 +44,7 @@ Then migrate the database:
 $ rails db:migrate
 ```
 
-We can also add validations to require these name fields on every `User`. We'll also want to display the user's full name so let's add a method to combine `first_name` and `last_name` too.
+Let's also add a method to combine `first_name` and `last_name`, so that we can display the user's full name.
 
 Open `app/models/user.rb` and add the following:
 
@@ -79,7 +79,7 @@ resource :sign_up
 
 We're using a singular resource here because we want a singular route for `/sign_up`.
 
-This route directs requests to `app/controllers/sign_ups_controller.rb` so let's create that now.
+This route directs requests to `app/controllers/sign_ups_controller.rb` so let's create that controller file now.
 
 ```ruby
 class SignUpsController < ApplicationController
@@ -91,7 +91,7 @@ end
 
 We're using the `show` action to create a new `User` instance, which will be used to display the sign up form.
 
-Let's create the form next at `app/views/sign_ups/show.html.erb`:
+Let's create the form next. Create `app/views/sign_ups/show.html.erb` with the following code:
 
 ```erb
 <h1>Sign Up</h1>
@@ -163,7 +163,9 @@ end
 
 The `create` action assigns parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
 
-One last fix we need to make is restricting `SignUpsController` to unauthenticated users only. Let's do that by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
+One last fix we need to make is restricting `SignUpsController` to unauthenticated users only. An authenticated user should not be able to create another account while they're logged in.
+
+Let's do that by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
 
 ```ruby#14-17
 module Authentication
