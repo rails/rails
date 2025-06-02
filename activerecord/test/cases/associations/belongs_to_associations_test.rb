@@ -37,7 +37,7 @@ require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
-require "models/minimal/for_deprecated_associations"
+require "models/dats"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
