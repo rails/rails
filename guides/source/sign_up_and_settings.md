@@ -223,7 +223,7 @@ Now that users can login, let's create all the usual places that users would exp
 
 ### Using Namespaces
 
-The Rails authentication generator already created `app/controllers/passwords_controller.rb` and uses this controller for password resets. This means we need to use a different controller for editing passwords of authenticated users.
+The Rails authentication generator already created at `app/controllers/passwords_controller.rb` is the controller for password resets. This means we need to use a different controller for editing passwords of authenticated users.
 
 To prevent conflicts, we can use a feature called **namespaces**. A namespace organizes routes, controllers, and views into folders and helps prevent conflicts like our two passwords controllers.
 
@@ -237,13 +237,13 @@ namespace :settings do
 end
 ```
 
-This will generate a route for `/settings/password` for editing the current user's password and is separate from the password resets routes at `/password`.
+This will generate a route for `/settings/password` for editing the current user's password which is separate from the password resets routes at `/password`.
 
 ### Adding the Namespaced Passwords Controller & View
 
 Namespaces also move controllers into a matching module in Ruby. This controller will be in a `settings` folder to match the namespace.
 
-Let's create the controller at `app/controllers/settings/passwords_controller.rb` and start with the `show` action.
+Let's create the folder and controller at `app/controllers/settings/passwords_controller.rb` and start with the `show` action.
 
 ```ruby
 class Settings::PasswordsController < ApplicationController
@@ -252,7 +252,7 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
-Views also move to a `settings` folder so we can create `app/views/settings/passwords/show.html.erb` for this action.
+Views also move to a `settings` folder so let's create the folder and view at `app/views/settings/passwords/show.html.erb` for this action.
 
 ```erb
 <h1>Password</h1>
@@ -287,7 +287,7 @@ We've set the `url:` argument to ensure the form submits to our namespaced route
 
 ### Safely Updating Passwords
 
-Let's add the `update` action to the controller now.
+Let's add that `update` action to the controller now.
 
 ```ruby#5-17
 class Settings::PasswordsController < Settings::BaseController
@@ -309,7 +309,7 @@ class Settings::PasswordsController < Settings::BaseController
 end
 ```
 
-For security, we need to ensure that only the user is the only one who can update their password. The `has_secure_password` method in our `User` model provides this attribute. If `password_challenge` is not `nil`, it will validate the password challenge against the password in the database to confirm it matches.
+For security, we need to ensure that the user is the only one who can update their password. The `has_secure_password` method in our `User` model provides this attribute. If `password_challenge` is not `nil`, it will validate the password challenge against the password in the database to confirm it matches.
 
 A crafty attacker could try deleting the `password_challenge` field in the browser to bypass this validation. To ensure this validation always runs, we use `.with_defaults(password_challenge: "")` to set a default value even if the `password_challenge` parameter was missing.
 
