@@ -6,27 +6,42 @@ require "active_support/testing/stream"
 require "active_support/core_ext/object/with"
 require "support/test_logger"
 require "support/do_not_perform_enqueued_jobs"
-require "jobs/continuable_array_cursor_job"
-require "jobs/continuable_iterating_job"
-require "jobs/continuable_linear_job"
-require "jobs/continuable_deleting_job"
-require "jobs/continuable_duplicate_step_job"
-require "jobs/continuable_nested_steps_job"
-require "jobs/continuable_string_step_name_job"
-require "jobs/continuable_resume_wrong_step_job"
-require "jobs/continuable_nested_cursor_job"
 
 return unless adapter_is?(:test)
-
-class ContinuableJob < ActiveJob::Base
-  include ActiveJob::Continuable
-end
 
 class ActiveJob::TestContinuation < ActiveSupport::TestCase
   include ActiveJob::Continuation::TestHelper
   include ActiveSupport::Testing::Stream
   include DoNotPerformEnqueuedJobs
   include TestLoggerHelper
+
+  class ContinuableJob < ActiveJob::Base
+    include ActiveJob::Continuable
+  end
+
+  ContinuableIteratingRecord = Struct.new(:id, :name) do
+    cattr_accessor :records
+
+    def self.find_each(start: nil)
+      records.sort_by(&:id).each do |record|
+        next if start && record.id < start
+
+        yield record
+      end
+    end
+  end
+
+  class ContinuableIteratingJob < ContinuableJob
+    def perform(raise_when_cursor: nil)
+      step :rename do |step|
+        ContinuableIteratingRecord.find_each(start: step.cursor) do |record|
+          raise StandardError, "Cursor error" if raise_when_cursor && step.cursor == raise_when_cursor
+          record.name = "new_#{record.name}"
+          step.advance! from: record.id
+        end
+      end
+    end
+  end
 
   test "iterates" do
     ContinuableIteratingRecord.records = [ 123, 432, 6565, 3243, 234, 13, 22 ].map { |i| ContinuableIteratingRecord.new(i, "item_#{i}") }
@@ -58,6 +73,34 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal %w[ new_item_123 new_item_432 new_item_6565 new_item_3243 new_item_234 new_item_13 new_item_22 ], ContinuableIteratingRecord.records.map(&:name)
+  end
+
+  class ContinuableLinearJob < ContinuableJob
+    cattr_accessor :items
+
+    def perform
+      step :step_one
+      step :step_two
+      step :step_three
+      step :step_four
+    end
+
+    private
+      def step_one
+        items << "item1"
+      end
+
+      def step_two
+        items << "item2"
+      end
+
+      def step_three
+        items << "item3"
+      end
+
+      def step_four
+        items << "item4"
+      end
   end
 
   test "linear steps" do
@@ -97,6 +140,20 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal %w[ item1 item2 item3 item4 ], ContinuableLinearJob.items
   end
 
+  class ContinuableDeletingJob < ContinuableJob
+    cattr_accessor :items
+
+    def perform
+      step :delete do |step|
+        loop do
+          break if items.empty?
+          items.shift
+          step.checkpoint!
+        end
+      end
+    end
+  end
+
   test "does not retry jobs that error without updating the cursor" do
     ContinuableDeletingJob.items = 10.times.map { |i| "item_#{i}" }
     ContinuableDeletingJob.perform_later
@@ -110,6 +167,25 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal %w[ item_1 item_2 item_3 item_4 item_5 item_6 item_7 item_8 item_9 ], ContinuableDeletingJob.items
+  end
+
+  test "interrupts without cursors" do
+    ContinuableDeletingJob.items = 10.times.map { |i| "item_#{i}" }
+    ContinuableDeletingJob.perform_later
+
+    interrupt_job_during_step ContinuableDeletingJob, :delete do
+      assert_enqueued_jobs 1, only: ContinuableDeletingJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    assert_equal 9, ContinuableDeletingJob.items.count
+
+    assert_enqueued_jobs 0 do
+      perform_enqueued_jobs
+    end
+
+    assert_equal 0, ContinuableDeletingJob.items.count
   end
 
   test "saves progress when there is an error" do
@@ -163,13 +239,13 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_no_match "Resuming", @logger.messages
       assert_match(/Step 'step_one' started/, @logger.messages)
       assert_match(/Step 'step_one' completed/, @logger.messages)
-      assert_match(/Interrupted ContinuableLinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one'/, @logger.messages)
+      assert_match(/Interrupted ActiveJob::TestContinuation::ContinuableLinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one'/, @logger.messages)
     end
 
     perform_enqueued_jobs
 
     assert_match(/Step 'step_one' skipped/, @logger.messages)
-    assert_match(/Resuming ContinuableLinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one'/, @logger.messages)
+    assert_match(/Resuming ActiveJob::TestContinuation::ContinuableLinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one'/, @logger.messages)
     assert_match(/Step 'step_two' started/, @logger.messages)
     assert_match(/Step 'step_two' completed/, @logger.messages)
   end
@@ -183,32 +259,22 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_no_match "Resuming", @logger.messages
       assert_match(/Step 'rename' started/, @logger.messages)
       assert_match(/Step 'rename' interrupted at cursor '433'/, @logger.messages)
-      assert_match(/Interrupted ContinuableIteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433'/, @logger.messages)
+      assert_match(/Interrupted ActiveJob::TestContinuation::ContinuableIteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433'/, @logger.messages)
     end
 
     perform_enqueued_jobs
-    assert_match(/Resuming ContinuableIteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433'/, @logger.messages)
+    assert_match(/Resuming ActiveJob::TestContinuation::ContinuableIteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433'/, @logger.messages)
     assert_match(/Step 'rename' resumed from cursor '433'/, @logger.messages)
     assert_match(/Step 'rename' completed/, @logger.messages)
   end
 
-  test "interrupts without cursors" do
-    ContinuableDeletingJob.items = 10.times.map { |i| "item_#{i}" }
-    ContinuableDeletingJob.perform_later
-
-    interrupt_job_during_step ContinuableDeletingJob, :delete do
-      assert_enqueued_jobs 1, only: ContinuableDeletingJob do
-        perform_enqueued_jobs
+  class ContinuableDuplicateStepJob < ContinuableJob
+    def perform
+      step :duplicate do |step|
+      end
+      step :duplicate do |step|
       end
     end
-
-    assert_equal 9, ContinuableDeletingJob.items.count
-
-    assert_enqueued_jobs 0 do
-      perform_enqueued_jobs
-    end
-
-    assert_equal 0, ContinuableDeletingJob.items.count
   end
 
   test "duplicate steps raise an error" do
@@ -221,6 +287,19 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal "Step 'duplicate' has already been encountered", exception.message
   end
 
+  class ContinuableNestedStepsJob < ContinuableJob
+    def perform
+      step :outer_step do
+        # Not allowed!
+        step :inner_step do
+        end
+      end
+    end
+
+    private
+      def inner_step; end
+  end
+
   test "nested steps raise an error" do
     ContinuableNestedStepsJob.perform_later
 
@@ -231,6 +310,13 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal "Step 'inner_step' is nested inside step 'outer_step'", exception.message
   end
 
+  class ContinuableStringStepNameJob < ContinuableJob
+    def perform
+      step "string_step_name" do
+      end
+    end
+  end
+
   test "string named steps raise an error" do
     ContinuableStringStepNameJob.perform_later
 
@@ -239,6 +325,21 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal "Step 'string_step_name' must be a Symbol, found 'String'", exception.message
+  end
+
+  class ContinuableResumeWrongStepJob < ContinuableJob
+    def perform
+      if continuation.send(:started?)
+        step :unexpected do |step|
+        end
+      else
+        step :iterating, start: 0 do |step|
+          ((step.cursor || 1)..4).each do |i|
+            step.advance!
+          end
+        end
+      end
+    end
   end
 
   test "unexpected step on resumption raises an error" do
@@ -300,6 +401,24 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal 0, ContinuableDeletingJob.items.count
   end
 
+  class ContinuableNestedCursorJob < ContinuableJob
+    cattr_accessor :items
+
+    def perform
+      step :updating_sub_items, start: [ 0, 0 ] do |step|
+        items[step.cursor[0]..].each do |inner_items|
+          inner_items[step.cursor[1]..].each do |item|
+            items[step.cursor[0]][step.cursor[1]] = "new_#{item}"
+
+            step.set! [ step.cursor[0], step.cursor[1] + 1 ]
+          end
+
+          step.set! [ step.cursor[0] + 1, 0 ]
+        end
+      end
+    end
+  end
+
   test "nested cursor" do
     ContinuableNestedCursorJob.items = [
       3.times.map { |i| "subitem_0_#{i}" },
@@ -337,6 +456,19 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal [ %w[ new_subitem_0_0 new_subitem_0_1 new_subitem_0_2 ], %w[ new_subitem_1_0 ], %w[ new_subitem_2_0 new_subitem_2_1 ] ], ContinuableNestedCursorJob.items
+  end
+
+  class ContinuableArrayCursorJob < ContinuableJob
+    cattr_accessor :items, default: []
+
+    def perform(objects)
+      step :iterate_objects, start: 0 do |step|
+        objects[step.cursor..].each do |object|
+          items << object
+          step.advance!
+        end
+      end
+    end
   end
 
   test "iterates over array cursor" do
