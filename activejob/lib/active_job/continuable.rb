@@ -21,21 +21,18 @@ module ActiveJob
     end
 
     def step(step_name, start: nil, &block)
-      continuation.step(step_name, start: start) do |step|
-        if block_given?
-          block.call(step)
-        else
-          step_method = method(step_name)
+      unless block_given?
+        step_method = method(step_name)
 
-          raise ArgumentError, "Step method '#{step_name}' must accept 0 or 1 arguments" if step_method.arity > 1
+        raise ArgumentError, "Step method '#{step_name}' must accept 0 or 1 arguments" if step_method.arity > 1
 
-          if step_method.parameters.any? { |type, name| type == :key || type == :keyreq }
-            raise ArgumentError, "Step method '#{step_name}' must not accept keyword arguments"
-          end
-
-          step_method.arity == 0 ? step_method.call : step_method.call(step)
+        if step_method.parameters.any? { |type, name| type == :key || type == :keyreq }
+          raise ArgumentError, "Step method '#{step_name}' must not accept keyword arguments"
         end
+
+        block = step_method.arity == 0 ? -> (_) { step_method.call } : step_method
       end
+      continuation.step(step_name, start: start, &block)
     end
 
     def serialize
