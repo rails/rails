@@ -315,7 +315,7 @@ module ActiveJob
       end
 
       def instrument(event, payload = {})
-        job.send(:instrument, event, **payload)
+        job.instrument event, **payload
       end
   end
 end
