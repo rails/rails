@@ -18,6 +18,10 @@ require "jobs/continuable_nested_cursor_job"
 
 return unless adapter_is?(:test)
 
+class ContinuableJob < ActiveJob::Base
+  include ActiveJob::Continuable
+end
+
 class ActiveJob::TestContinuation < ActiveSupport::TestCase
   include ActiveJob::Continuation::TestHelper
   include ActiveSupport::Testing::Stream
@@ -249,6 +253,38 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal "Step 'unexpected' found, expected to resume from 'iterating'", exception.message
+  end
+
+  class ContinuableAdvancingJob < ContinuableJob
+    def perform(start_from, advance_from = nil)
+      step :test_step, start: start_from do |step|
+        step.advance! from: advance_from
+      end
+    end
+  end
+
+  test "cursor must implement succ to advance" do
+    perform_enqueued_jobs do
+      assert_raises ActiveJob::Continuation::UnadvanceableCursorError do
+        ContinuableAdvancingJob.perform_later(nil)
+      end
+
+      assert_raises ActiveJob::Continuation::UnadvanceableCursorError do
+        ContinuableAdvancingJob.perform_later(1.1)
+      end
+
+      assert_raises ActiveJob::Continuation::UnadvanceableCursorError do
+        ContinuableAdvancingJob.perform_later(nil, 1.1)
+      end
+
+      assert_nothing_raised do
+        ContinuableAdvancingJob.perform_later(1)
+      end
+
+      assert_nothing_raised do
+        ContinuableAdvancingJob.perform_later(nil, 1)
+      end
+    end
   end
 
   test "deserializes a job with no continuation" do
