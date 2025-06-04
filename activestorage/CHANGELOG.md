@@ -1,3 +1,11 @@
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an ActiveRecord object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
