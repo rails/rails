@@ -8,4 +8,18 @@
 
     *Sean Doyle*
 
+*   Add support for `locals` parameter in `ActionText::Content#to_s` method.
+
+    This allows passing local variables when rendering ActionText content.
+
+    ```ruby
+    # Before
+    content.to_s
+
+    # After
+    content.to_s(locals: { user: current_user })
+    ```
+
+    *Piotr Paweł Witek*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.
