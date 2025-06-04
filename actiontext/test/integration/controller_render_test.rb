@@ -57,4 +57,5 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     assert_select ".missing-attachable", text: "Missing person"
   end
+
 end

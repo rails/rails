@@ -232,6 +232,35 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_pattern { div => { content: "The body" } }
   end
 
+  test "renders with custom locals passed to attachment partials" do
+    # Test the ContentHelper directly
+    helper = Class.new do
+      include ActionText::ContentHelper
+      
+      attr_accessor :captured_locals, :prefix_partial_path_with_controller_namespace
+      
+      def render(**options)
+        @captured_locals = options[:locals]
+        "<div>rendered</div>"
+      end
+      
+      def sanitize_action_text_content(content)
+        content
+      end
+    end.new
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+    content = ActionText::Content.new(html)
+
+    custom_locals = { user_id: 123, theme: "dark" }
+    helper.render_action_text_content(content, locals: custom_locals)
+
+    # Check that custom locals were merged with in_gallery for regular attachments
+    expected_locals = custom_locals.merge(in_gallery: false)
+    assert_equal expected_locals, helper.captured_locals
+  end
+
   private
     def content_from_html(html)
       ActionText::Content.new(html).tap do |content|
