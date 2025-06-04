@@ -1,1 +1,1 @@
-<%= render_action_text_content(content) %>
+<%= render_action_text_content(content, attachment_locals: local_assigns.except(:content)) %>

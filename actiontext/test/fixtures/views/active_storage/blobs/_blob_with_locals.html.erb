@@ -1,0 +1,12 @@
+<div class="test-blob" data-filename="<%= blob.filename %>">
+  <span class="filename"><%= blob.filename %></span>
+  <% if local_assigns[:current_user] %>
+    <span class="current-user" data-user="<%= local_assigns[:current_user] %>">User: <%= local_assigns[:current_user] %></span>
+  <% end %>
+  <% if local_assigns[:in_gallery] %>
+    <span class="gallery-indicator">In Gallery</span>
+  <% end %>
+  <% if local_assigns[:custom_data] %>
+    <span class="custom-data" data-custom="<%= local_assigns[:custom_data] %>">Custom: <%= local_assigns[:custom_data] %></span>
+  <% end %>
+</div> 
