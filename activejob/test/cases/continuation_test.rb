@@ -133,6 +133,25 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal %w[ item1 item2 item3 item4 ], LinearJob.items
   end
 
+  test "does not checkpoint after the last step" do
+    LinearJob.items = []
+    LinearJob.perform_later
+
+    interrupt_job_after_step LinearJob, :step_three do
+      assert_enqueued_jobs 1, only: LinearJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    interrupt_job_after_step LinearJob, :step_four do
+      assert_enqueued_jobs 0, only: LinearJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    assert_equal %w[ item1 item2 item3 item4 ], LinearJob.items
+  end
+
   test "runs with perform_now" do
     LinearJob.items = []
     LinearJob.perform_now
@@ -356,6 +375,37 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal "Step 'unexpected' found, expected to resume from 'iterating'", exception.message
   end
 
+  class ChangedStepOrderJob < ContinuableJob
+    def perform
+      if continuation.send(:started?)
+        step :step_one do; end
+        step :step_two do; end
+        step :step_two_and_a_half do; end
+        step :step_three do; end
+        step :step_four do; end
+      else
+        step :step_one do; end
+        step :step_two do; end
+        step :step_three do; end
+        step :step_four do; end
+      end
+    end
+  end
+
+  test "steps not matching previously completed raises an error" do
+    ChangedStepOrderJob.perform_later
+
+    interrupt_job_after_step ChangedStepOrderJob, :step_three do
+      perform_enqueued_jobs
+    end
+
+    exception = assert_raises ActiveJob::Continuation::InvalidStepError do
+      perform_enqueued_jobs
+    end
+
+    assert_equal "Step 'step_two_and_a_half' found, expected to see 'step_three'", exception.message
+  end
+
   class AdvancingJob < ContinuableJob
     def perform(start_from, advance_from = nil)
       step :test_step, start: start_from do |step|
@@ -505,6 +555,100 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal objects, ArrayCursorJob.items
+  end
+
+  class LimitedResumesJob < ContinuableJob
+    self.max_resumptions = 2
+
+    def perform(iterations)
+      step :iterate, start: 0 do |step|
+        (step.cursor..iterations).each do |i|
+          step.advance!
+        end
+      end
+    end
+  end
+
+  test "limits resumes" do
+    LimitedResumesJob.perform_later(10)
+
+    interrupt_job_during_step LimitedResumesJob, :iterate, cursor: 1 do
+      assert_enqueued_jobs 1, only: LimitedResumesJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    interrupt_job_during_step LimitedResumesJob, :iterate, cursor: 2 do
+      assert_enqueued_jobs 1, only: LimitedResumesJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    interrupt_job_during_step LimitedResumesJob, :iterate, cursor: 3 do
+      assert_enqueued_jobs 0, only: LimitedResumesJob do
+        exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
+          perform_enqueued_jobs
+        end
+
+        assert_equal "Job was resumed a maximum of 2 times", exception.message
+      end
+    end
+  end
+
+  test "limits resumes due to errors" do
+    LimitedResumesJob.perform_later(10)
+
+    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 1) }) do
+      assert_enqueued_jobs 1, only: LimitedResumesJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 2) }) do
+      assert_enqueued_jobs 1, only: LimitedResumesJob do
+        perform_enqueued_jobs
+      end
+    end
+
+    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 3) }) do
+      assert_enqueued_jobs 0, only: LimitedResumesJob do
+        exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
+          perform_enqueued_jobs
+        end
+
+        assert_equal "Job was resumed a maximum of 2 times", exception.message
+      end
+    end
+  end
+
+  test "does not resume after an error" do
+    LimitedResumesJob.with(resume_errors_after_advancing: false) do
+      LimitedResumesJob.perform_later(10)
+
+      queue_adapter.with(stopping: ->() { raise StandardError, "boom" if during_step?(LimitedResumesJob, :iterate, cursor: 5) }) do
+        assert_enqueued_jobs 0, only: LimitedResumesJob do
+          exception = assert_raises StandardError do
+            perform_enqueued_jobs
+          end
+
+          assert_equal "boom", exception.message
+        end
+      end
+    end
+  end
+
+  test "resume options" do
+    LimitedResumesJob.with(resume_options: { queue: :other, wait: 8 }) do
+      freeze_time
+
+      LimitedResumesJob.perform_later(10)
+
+      interrupt_job_during_step LimitedResumesJob, :iterate, cursor: 1 do
+        assert_enqueued_with job: LimitedResumesJob, queue: :other, at: Time.now + 8.seconds do
+          perform_enqueued_jobs
+        end
+      end
+    end
   end
 
   private

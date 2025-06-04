@@ -164,35 +164,37 @@ module ActiveJob
 
     def step_started(event)
       job = event.payload[:job]
+      step = event.payload[:step]
       info do
-        "Step '#{event.payload[:step].name}' started #{job.class}"
+        if step.resumed?
+          "Step '#{step.name}' resumed from cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id})"
+        else
+          "Step '#{step.name}' started for #{job.class} (Job ID: #{job.job_id})"
+        end
       end
     end
     subscribe_log_level :step_started, :info
 
-    def step_interrupted(event)
+    def step(event)
       job = event.payload[:job]
-      info do
-        "Step '#{event.payload[:step].name}' interrupted at cursor '#{event.payload[:step].cursor}' #{job.class}"
-      end
-    end
-    subscribe_log_level :step_completed, :info
+      step = event.payload[:step]
+      ex = event.payload[:exception_object]
 
-    def step_resumed(event)
-      job = event.payload[:job]
-      info do
-        "Step '#{event.payload[:step].name}' resumed from cursor '#{event.payload[:step].cursor}' #{job.class}"
+      if event.payload[:interrupted]
+        info do
+          "Step '#{step.name}' interrupted at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      elsif ex
+        error do
+          "Error during step '#{step.name}' at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message})"
+        end
+      else
+        info do
+          "Step '#{step.name}' completed for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
       end
     end
-    subscribe_log_level :step_resumed, :info
-
-    def step_completed(event)
-      job = event.payload[:job]
-      info do
-        "Step '#{event.payload[:step].name}' completed #{job.class}"
-      end
-    end
-    subscribe_log_level :step_completed, :info
+    subscribe_log_level :step, :error
 
     private
       def queue_name(event)
