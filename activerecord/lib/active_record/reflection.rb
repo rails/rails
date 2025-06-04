@@ -1232,13 +1232,6 @@ module ActiveRecord
         end
 
         def compute_deprecated_nested_reflections
-          # This method may run before the association is instantiated, which is
-          # the point where reflections are checked for validity.
-          #
-          # If the through is invalid source_reflection could raise, for
-          # example, but such exception would not be useful for the user.
-          check_validity!
-
           result = []
           [through_reflection, source_reflection].each do |reflection|
             result << reflection if reflection.deprecated?
