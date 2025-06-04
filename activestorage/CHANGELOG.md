@@ -1,3 +1,11 @@
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    ActiveStorage::BaseController, including the option to inherit from
+    ActionController::API for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:
