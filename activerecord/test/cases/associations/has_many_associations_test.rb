@@ -477,6 +477,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal invoice.id, line_item.invoice_id
   end
 
+  def test_association_foreign_key_from_scope_is_accessible_in_attributes_from_user
+    invoice = Invoice.create
+
+    assert_nothing_raised do
+      line_items = invoice.line_items.where(amount: 42)
+
+      line_item = line_items.create(invoice_id: invoice.id + 1, amount: 1, raise_unless_invoice_present: true)
+      assert_equal invoice.id, line_item.invoice_id
+      assert_equal 1, line_item.amount
+
+      line_item = line_items.build(invoice_id: invoice.id + 1, amount: 2, raise_unless_invoice_present: true)
+      assert_equal invoice.id, line_item.invoice_id
+      assert_equal 2, line_item.amount
+
+      line_item = line_items.new(invoice_id: invoice.id + 1, amount: 3, raise_unless_invoice_present: true)
+      assert_equal invoice.id, line_item.invoice_id
+      assert_equal 3, line_item.amount
+    end
+  end
+
   class SpecialAuthor < ActiveRecord::Base
     self.table_name = "authors"
     has_many :books, class_name: "SpecialBook", foreign_key: :author_id
