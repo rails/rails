@@ -37,7 +37,7 @@ module ActiveJob
   #       end
   #
   #       step(:process_records) do |step|
-  #         @import.records.find_each(start: step.cursor)
+  #         @import.records.find_each(start: step.cursor) do |record|
   #           record.process
   #           step.advance! from: record.id
   #         end
@@ -48,7 +48,7 @@ module ActiveJob
   #     end
   #
   #     def reprocess_records(step)
-  #       @import.records.find_each(start: step.cursor)
+  #       @import.records.find_each(start: step.cursor) do |record|
   #         record.reprocess
   #         step.advance! from: record.id
   #       end
@@ -99,7 +99,7 @@ module ActiveJob
   # over a collection of records where IDs may not be contiguous.
   #
   #   step :process_records do |step|
-  #     import.records.find_each(start: step.cursor)
+  #     import.records.find_each(start: step.cursor) do |record|
   #       record.process
   #       step.advance! from: record.id
   #     end
