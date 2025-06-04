@@ -48,8 +48,14 @@ module ActiveJob
       # An UnadvanceableCursorError error will be raised if the cursor does not implement +succ+.
       def advance!(from: nil)
         from = cursor if from.nil?
-        raise UnadvanceableCursorError, "Cursor class '#{from.class}' does not implement succ, " unless from.respond_to?(:succ)
-        set! from.succ
+
+        begin
+          to = from.succ
+        rescue NoMethodError
+          raise UnadvanceableCursorError, "Cursor class '#{from.class}' does not implement 'succ'"
+        end
+
+        set! to
       end
 
       # Has this step been resumed from a previous job execution?
