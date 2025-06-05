@@ -15,12 +15,30 @@ module ActiveRecord::Associations::Builder # :nodoc:
   class Association # :nodoc:
     class << self
       attr_accessor :extensions
+      attr_accessor :macro
     end
     self.extensions = []
+
+    cattr_accessor :builders_registry
+    self.builders_registry = {}
 
     VALID_OPTIONS = [
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
     ].freeze # :nodoc:
+
+    def self.register_builder_for(macro) # :nodoc:
+      self.macro = macro
+      builders_registry[macro] = self
+    end
+
+    def self.builder_for(macro) # :nodoc:
+      builders_registry[macro]
+    end
+
+    def self.define_association_methods(model, reflection, as:) # :nodoc:
+      define_accessors(model, reflection, as: as)
+      define_change_tracking_methods(model, reflection, as: as)
+    end
 
     def self.build(model, name, scope, options, &block)
       if model.dangerous_attribute_method?(name)
@@ -30,10 +48,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-      define_accessors(model, reflection)
+      define_association_methods(model, reflection, as: reflection.name)
       define_callbacks(model, reflection)
       define_validations(model, reflection)
-      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -56,10 +73,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       else
         scope
       end
-    end
-
-    def self.macro
-      raise NotImplementedError
     end
 
     def self.valid_options(options)
@@ -92,24 +105,24 @@ module ActiveRecord::Associations::Builder # :nodoc:
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-    def self.define_accessors(model, reflection)
+    def self.define_accessors(model, reflection, as:)
       mixin = model.generated_association_methods
       name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
+      define_readers(mixin, name, as: as)
+      define_writers(mixin, name, as: as)
     end
 
-    def self.define_readers(mixin, name)
+    def self.define_readers(mixin, name, as:)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}
+        def #{as}
           association(:#{name}).reader
         end
       CODE
     end
 
-    def self.define_writers(mixin, name)
+    def self.define_writers(mixin, name, as:)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}=(value)
+        def #{as}=(value)
           association(:#{name}).writer(value)
         end
       CODE
@@ -119,7 +132,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       # noop
     end
 
-    def self.define_change_tracking_methods(model, reflection)
+    def self.define_change_tracking_methods(model, reflection, as:)
       # noop
     end
 
