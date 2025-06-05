@@ -26,8 +26,11 @@ module ActiveRecord
         end
 
         def virtual?
-          # We assume every generated column is virtual, no matter the concrete type
-          @generated.present?
+          @generated == "s" || @generated == "v"
+        end
+
+        def virtual_stored?
+          @generated == "s"
         end
 
         def has_default?
