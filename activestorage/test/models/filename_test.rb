@@ -46,6 +46,13 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
     assert_equal "evil-fdp.exe", ActiveStorage::Filename.new("evil\u{202E}fdp.exe").sanitized
   end
 
+  test "sanitize normalizes consecutive spaces" do
+    assert_equal "my file.txt", ActiveStorage::Filename.new("my  file.txt").sanitized
+    assert_equal "my file.txt", ActiveStorage::Filename.new("my   file.txt").sanitized
+    assert_equal "my file.txt", ActiveStorage::Filename.new("  my  file.txt  ").sanitized
+    assert_equal "file-with-tabs.txt", ActiveStorage::Filename.new("file\twith\ttabs.txt").sanitized
+  end
+
   test "compare case-insensitively" do
     assert_operator ActiveStorage::Filename.new("foobar.pdf"), :==, ActiveStorage::Filename.new("FooBar.PDF")
   end
