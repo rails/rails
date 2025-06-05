@@ -1,3 +1,10 @@
+*   Always return empty body for HEAD requests in `PublicExceptions` and
+    `DebugExceptions`.
+
+    This is required by `Rack::Lint` (per RFC9110).
+
+    *Hartley McGuire*
+
 *   Fix `url_for` to handle `:path_params` gracefully when it's not a `Hash`.
 
     Prevents various security scanners from causing exceptions.

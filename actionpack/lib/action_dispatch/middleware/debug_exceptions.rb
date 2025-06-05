@@ -65,7 +65,9 @@ module ActionDispatch
             content_type = Mime[:text]
           end
 
-          if api_request?(content_type)
+          if request.head?
+            render(wrapper.status_code, "", content_type)
+          elsif api_request?(content_type)
             render_for_api_request(content_type, wrapper)
           else
             render_for_browser_request(request, wrapper)

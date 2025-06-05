@@ -69,6 +69,32 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "", body
   end
 
+  test "rescue with no body for HEAD requests" do
+    head "/", env: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_equal "", body
+
+    head "/bad_params", env: { "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_equal "", body
+
+    head "/not_found", env: { "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_equal "", body
+
+    head "/method_not_allowed", env: { "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_equal "", body
+
+    head "/unknown_http_method", env: { "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_equal "", body
+
+    head "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => :all }
+    assert_response 406
+    assert_equal "", body
+  end
+
   test "localize rescue error page" do
     old_locale, I18n.locale = I18n.locale, :da
 
