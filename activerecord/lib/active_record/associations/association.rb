@@ -187,7 +187,13 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
-        @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
+        if (@stale_state && stale_target?) || find_target?
+          if violates_strict_loading?
+            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
+          end
+
+          @target = find_target(async: false)
+        end
 
         loaded! unless loaded?
         target
@@ -196,7 +202,13 @@ module ActiveRecord
       end
 
       def async_load_target # :nodoc:
-        @target = find_target(async: true) if (@stale_state && stale_target?) || find_target?
+        if (@stale_state && stale_target?) || find_target?
+          if violates_strict_loading?
+            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
+          end
+
+          @target = find_target(async: true)
+        end
 
         loaded! unless loaded?
         nil
@@ -246,10 +258,6 @@ module ActiveRecord
         end
 
         def find_target(async: false)
-          if violates_strict_loading?
-            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
-          end
-
           scope = self.scope
           if skip_statement_cache?(scope)
             if async

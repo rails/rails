@@ -271,6 +271,10 @@ module ActiveRecord
 
       def load_target
         if find_target?
+          if violates_strict_loading?
+            Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
+          end
+
           @target = merge_target_lists(find_target, target)
         end
 

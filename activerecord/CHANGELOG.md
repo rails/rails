@@ -1,3 +1,7 @@
+*   `strict_loading` is enforced on associations configured with joins disabled.
+
+    *Garrett Bjerkhoel*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
