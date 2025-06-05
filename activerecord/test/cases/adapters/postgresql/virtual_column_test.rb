@@ -68,7 +68,7 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       assert_equal "rails", VirtualColumn.take.lower_name
     end
 
-    if ActiveRecord::Base.lease_connection.database_version >= 180_000
+    if ActiveRecord::Base.lease_connection.database_version >= 18_00_00
       def test_change_table_as_stored_false
         @connection.change_table :virtual_columns do |t|
           t.virtual :reversed_name, type: :string, as: "REVERSE(name)", stored: false
