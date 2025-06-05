@@ -183,6 +183,15 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert boomer.closed, "Expected to close the response body"
   end
 
+  test "returns empty body on HEAD cascade pass" do
+    @app = DevelopmentApp
+
+    head "/pass"
+
+    assert_response 404
+    assert_equal "", body
+  end
+
   test "displays routes in a table when a RoutingError occurs" do
     @app = DevelopmentApp
     get "/pass", headers: { "action_dispatch.show_exceptions" => :all }

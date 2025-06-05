@@ -32,7 +32,11 @@ module ActionDispatch
       end
       body = { status: status, error: Rack::Utils::HTTP_STATUS_CODES.fetch(status, Rack::Utils::HTTP_STATUS_CODES[500]) }
 
-      render(status, content_type, body)
+      if env["action_dispatch.original_request_method"] == "HEAD"
+        render_format(status, content_type, "")
+      else
+        render(status, content_type, body)
+      end
     end
 
     private
