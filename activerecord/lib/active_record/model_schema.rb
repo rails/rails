@@ -185,6 +185,8 @@ module ActiveRecord
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
       initialize_load_schema_monitor
+
+      DEFAULT_ALLOWED_COLUMNS = %w[created_at updated_at].freeze
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -334,6 +336,12 @@ module ActiveRecord
         @ignored_columns || superclass.ignored_columns
       end
 
+      # The list of columns names the model should allow. Allowed columns are used to define
+      # attribute accessors, and are referenced in SQL queries.
+      def allowed_columns
+        column_names
+      end
+
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       #
@@ -366,8 +374,15 @@ module ActiveRecord
       #   user = Project.create!(name: "First Project")
       #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
+        check_model_columns(@is_allowed_columns)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
+      end
+
+      def allowed_columns=(allowed_columns)
+        check_model_columns(ignored_columns.present?)
+        self.ignored_columns = allowed_columns.present? ? self.column_names - (allowed_columns.map(&:to_s) | default_allowed_columns) : []
+        @is_allowed_columns = true
       end
 
       def sequence_name
@@ -630,6 +645,14 @@ module ActiveRecord
           end
 
           type
+        end
+
+        def default_allowed_columns
+          [primary_key.to_s, *DEFAULT_ALLOWED_COLUMNS]
+        end
+
+        def check_model_columns(columns_present)
+          raise ArgumentError, "You can not use both allowed_columns and ignored_columns in the same model." if columns_present
         end
     end
   end
