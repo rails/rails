@@ -574,6 +574,23 @@ module ActiveRecord
     end
     open_transactions
   end
+
+  def self.default_transaction_isolation_level=(isolation_level) # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation] = isolation_level
+  end
+
+  def self.default_transaction_isolation_level # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation]
+  end
+
+  # Sets a transaction isolation level for all connection pools within the block.
+  def self.with_transaction_isolation_level(isolation_level, &block)
+    original_level = self.default_transaction_isolation_level
+    self.default_transaction_isolation_level = isolation_level
+    yield
+  ensure
+    self.default_transaction_isolation_level = original_level
+  end
 end
 
 ActiveSupport.on_load(:active_record) do

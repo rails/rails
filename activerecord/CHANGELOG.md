@@ -1,3 +1,30 @@
+*   Add ability to change transaction isolation for all pools within a block.
+
+    This functionality is useful if your application needs to change the database
+    transaction isolation for a request or action.
+
+    Calling `ActiveRecord.with_transaction_isolation_level(level) {}` in an around filter or
+    middleware will set the transaction isolation for all pools accessed within the block,
+    but not for the pools that aren't.
+
+    This works with explicit and implicit transactions:
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.transaction do # opens a transaction explicitly
+        Tag.create!
+      end
+    end
+    ```
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.create! # opens a transaction implicitly
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
