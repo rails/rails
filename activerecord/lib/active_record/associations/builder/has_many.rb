@@ -14,14 +14,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       valid
     end
 
-    def self.internal_options(options)
-      if options[:through]
-        super + [:_habtm_reflection]
-      else
-        super
-      end
-    end
-
     def self.valid_dependent_options
       [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :destroy_async]
     end
