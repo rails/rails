@@ -1,3 +1,7 @@
+*   Fix tests for Sidekiq integration queueing.
+
+    *Ruy Rocha*
+
 *   Allow jobs to the interrupted and resumed with Continuations
 
     A job can use Continuations by including the `ActiveJob::Continuable`

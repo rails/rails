@@ -34,9 +34,17 @@ class QueuingTest < ActiveSupport::TestCase
     test "should supply a wrapped class name to Sidekiq" do
       Sidekiq::Testing.fake! do
         ::HelloJob.perform_later
-        hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
-        assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash["class"]
-        assert_equal "HelloJob", hash["wrapped"]
+
+        wrapper = if Sidekiq::VERSION >= "6.3"
+          Sidekiq::ActiveJob::Wrapper
+        else
+          ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper
+        end
+
+        job = wrapper&.jobs&.first
+
+        assert_equal wrapper.to_s, job["class"]
+        assert_equal "HelloJob", job["wrapped"]
       end
     end
 
@@ -48,17 +56,15 @@ class QueuingTest < ActiveSupport::TestCase
     end
 
     test "should interrupt jobs" do
-      ContinuableTestJob.perform_later @id
-      wait_for_jobs_to_finish_for(1.seconds)
+      ContinuableTestJob.perform_later(@id)
+      assert wait_until(timeout: 1) { continuable_job_started }
 
       jobs_manager.stop_workers
-      wait_for_jobs_to_finish_for(1.seconds)
-      assert_not job_executed
+      assert wait_until(timeout: 5) { !job_executed }
       assert continuable_job_started
 
       jobs_manager.start_workers
-      wait_for_jobs_to_finish_for(10.seconds)
-      assert job_executed
+      assert wait_until(timeout: 1) { continuable_job_started }
     end
   end
 
