@@ -260,6 +260,22 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
           assert_equal ["id", "id_for_type_change"], foreign_keys.map(&:primary_key).sort
         end
 
+        def test_remove_foreign_key_with_multiple_keys_between_tables
+          @connection.add_column :astronauts, :backup_rocket_id, :bigint
+
+          @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id
+          @connection.add_foreign_key :astronauts, :rockets, column: :backup_rocket_id
+
+          @connection.remove_foreign_key :astronauts, :rockets
+
+          foreign_keys = @connection.foreign_keys(:astronauts)
+          assert_equal 1, foreign_keys.size
+          assert_equal "backup_rocket_id", foreign_keys.first.column
+
+          @connection.remove_foreign_key :astronauts, :rockets, column: :backup_rocket_id
+          assert_empty @connection.foreign_keys(:astronauts)
+        end
+
         def test_add_foreign_key_with_non_standard_primary_key
           @connection.create_table :space_shuttles, id: false, force: true do |t|
             t.bigint :pk, primary_key: true
