@@ -190,7 +190,7 @@ in the database (e.g. password) for that user:
 ```ruby
 class SessionsController < ApplicationController
   def create
-    if user = User.authenticate_by(params.permit(:email_address, :password))
+    if user = User.authenticate_by(params.expect(:email_address, :password))
       start_new_session_for user
       redirect_to after_authentication_url
     else
