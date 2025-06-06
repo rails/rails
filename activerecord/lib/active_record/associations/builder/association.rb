@@ -66,15 +66,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 
-    def self.internal_options(_options)
-      []
-    end
-
     def self.validate_options(options)
-      internal_options = internal_options(options)
-      public_valid_options = valid_options(options) - internal_options
-      user_options = options.except(*internal_options)
-      user_options.assert_valid_keys(public_valid_options)
+      options.assert_valid_keys(valid_options(options))
     end
 
     def self.define_extensions(model, name)
