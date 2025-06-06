@@ -121,5 +121,21 @@ module ActiveRecord
 
       assert_equal([true, true], results)
     end
+
+    def test_connected_to_all_shards_sets_prevent_writes_if_role_is_reading
+      assert_not ShardedBase.current_preventing_writes
+
+      ShardedBase.connected_to_all_shards(role: :reading) do
+        assert ShardedBase.current_preventing_writes
+      end
+    end
+
+    def test_connected_to_all_shards_cannot_be_called_with_the_reading_role_and_prevent_writes_false
+      error = assert_raises ArgumentError do
+        ShardedBase.connected_to_all_shards(role: :reading, prevent_writes: false) { }
+      end
+
+      assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
+    end
   end
 end

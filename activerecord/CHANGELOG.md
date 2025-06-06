@@ -1,3 +1,9 @@
+*   Move the defaulting of `prevent_writes` to `true` when using the `reading` role into the parameters
+    of the role switching methods, and raise an `ArgumentError` if `prevent_writes: false` is provided
+    with the `reading` role.
+
+    *Joshua Young*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
