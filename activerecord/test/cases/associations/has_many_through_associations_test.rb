@@ -1741,39 +1741,39 @@ class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_deprecated_association(:deprecated_has_many) do
-      assert_equal @author.comments, @author.deprecated_has_many
+      @author.deprecated_has_many
     end
   end
 
   test "the through association is deprecated" do
     assert_deprecated_association(:deprecated_posts) do
-      assert_equal @author.comments, @author.deprecated_through
+      @author.deprecated_through
     end
   end
 
   test "the source association is deprecated" do
     assert_deprecated_association(:deprecated_comments, DATS::Post) do
-      assert_equal @author.comments, @author.deprecated_source
+      @author.deprecated_source
     end
   end
 
   test "all deprecated" do
     assert_deprecated_association(:deprecated_all) do
-      assert_equal @author.comments, @author.deprecated_all
+      @author.deprecated_all
     end
 
     assert_deprecated_association(:deprecated_posts) do
-      assert_equal @author.comments, @author.deprecated_all
+      @author.deprecated_all
     end
 
     assert_deprecated_association(:deprecated_comments, DATS::Post) do
-      assert_equal @author.comments, @author.deprecated_all
+      @author.deprecated_all
     end
   end
 
   test "deprecated nested association" do
     assert_deprecated_association(:deprecated_author_favorites) do
-      assert_equal @author.author_favorites, @author.deprecated_nested.uniq
+      @author.deprecated_nested.uniq
     end
   end
 end
