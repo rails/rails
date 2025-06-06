@@ -446,6 +446,15 @@
 
     *Matthew Draper*
 
+*   Support PostgreSQL DISTINCT ON queries
+
+    ```ruby
+    User.distinct_on(:name)
+    #=> SQL SELECT DISTINCT ON (name) * FROM users
+    ```
+
+    *Ali Ismayilov*
+
 *   Allow to reset cache counters for multiple records.
 
     ```
