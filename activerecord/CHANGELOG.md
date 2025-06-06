@@ -1,3 +1,19 @@
+*   Fix handling of expressions in array syntax for `add_index`.
+
+    This change allows passing expressions in array syntax for `add_index` method.
+    For example, `add_index :users, [ "lower(email)" ]` now works the same as
+    `add_index :users, "lower(email)"`.
+
+    ```ruby
+    # This now works properly:
+    add_index :users, [ "lower(email)" ]
+
+    # As does this:
+    add_index :users, [ "lower(email)", :status ]
+    ```
+
+    *Alexandre Camillo*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
