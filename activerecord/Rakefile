@@ -258,18 +258,34 @@ namespace :db do
   end
 
   namespace :postgresql do
+    config = ARTest.config["connections"]["postgresql"]
+    postgres_connection_arguments = lambda do |connection|
+      [
+        ("-h #{connection["host"]}" if connection["host"]),
+        ("-h #{connection["socket"]}" if connection["socket"]),
+        ("-U #{connection["username"]}" if connection["username"]),
+        ("-p #{connection["port"]}" if connection["port"]),
+      ].join(" ")
+    end
+    env_variables = lambda do |connection|
+      [
+        ("PGPASSWORD=#{connection["password"]}" if connection["password"]),
+      ].join(" ")
+    end
+    postgres_configs = ["arunit", "arunit2"].map { |db| config[db] }
+
     desc "Build the PostgreSQL test databases"
     task :build do
-      config = ARTest.config["connections"]["postgresql"]
-      %x( createdb -E UTF8 -T template0 #{config["arunit"]["database"]} --lc-collate en_US.UTF-8 )
-      %x( createdb -E UTF8 -T template0 #{config["arunit2"]["database"]} --lc-collate en_US.UTF-8 )
+      postgres_configs.each do |connection|
+        %x( #{env_variables[connection]} createdb -E UTF8 -T template0 #{connection["database"]} #{postgres_connection_arguments[connection]} --lc-collate en_US.UTF-8 )
+      end
     end
 
     desc "Drop the PostgreSQL test databases"
     task :drop do
-      config = ARTest.config["connections"]["postgresql"]
-      %x( dropdb --if-exists #{config["arunit"]["database"]} )
-      %x( dropdb --if-exists #{config["arunit2"]["database"]} )
+      postgres_configs.each do |connection|
+        %x( #{env_variables[connection]} dropdb --if-exists #{connection["database"]} #{postgres_connection_arguments[connection]} )
+      end
     end
 
     desc "Rebuild the PostgreSQL test databases"
