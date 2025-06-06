@@ -1048,15 +1048,8 @@ module ActiveRecord
 
     def method_missing(method, *arguments, &block)
       say_with_time "#{method}(#{format_arguments(arguments)})" do
-        unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            if method == :rename_table ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
-            end
-          end
-        end
+        normalize_arguments(method, arguments)
+
         return super unless execution_strategy.respond_to?(method)
         execution_strategy.send(method, *arguments, &block)
       end
@@ -1178,6 +1171,22 @@ module ActiveRecord
 
       def respond_to_missing?(method, include_private = false)
         execution_strategy.respond_to?(method, include_private) || super
+      end
+
+      METHODS_WITHOUT_TABLE_NAME = [:execute, :enable_extension, :disable_extension, :quote].freeze
+      private_constant :METHODS_WITHOUT_TABLE_NAME
+
+      def normalize_arguments(method, arguments)
+        # CommandRecorder records raw args inside revert;
+        # the real adapter normalizes them on replay.
+        return if reverting?
+
+        return if arguments.empty?
+        return if METHODS_WITHOUT_TABLE_NAME.include?(method)
+
+        arguments[0] = proper_table_name(arguments.first, table_name_options)
+        arguments[1] = proper_table_name(arguments.second, table_name_options) if method == :rename_table ||
+          (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
       end
   end
 
