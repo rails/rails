@@ -638,8 +638,27 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && !_order_columns.empty?
-          order(_order_columns.map { |column| table[column].asc })
+        if order_values.empty?
+          if !_order_columns.empty?
+            return order(_order_columns.map { |column| table[column].asc })
+          end
+
+          if ActiveRecord.raise_on_missing_required_finder_order_columns
+            raise MissingRequiredOrderError, <<~MSG.squish
+              Relation has no order values, and #{model} has no order columns to use as a default.
+              Set at least one of `implicit_order_column`, `query_constraints` or `primary_key` on
+              the model when no `order `is specified on the relation.
+            MSG
+          else
+            ActiveRecord.deprecator.warn(<<~MSG)
+              Calling order dependent finder methods (e.g. `#first`, `#second`) without `order` values on the relation,
+              and on a model (#{model}) that does not have any order columns (`implicit_order_column`, `query_constraints`,
+              or `primary_key`) to fall back on is deprecated and will raise `ActiveRecord::MissingRequiredOrderError`
+              in Rails 8.2.
+            MSG
+
+            self
+          end
         else
           self
         end
