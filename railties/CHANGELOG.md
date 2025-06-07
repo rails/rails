@@ -1,3 +1,7 @@
+*   Fix an issue that a RoutingError occurs when creating a scaffold with the force_plural option enabled.
+
+    *steiley*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
