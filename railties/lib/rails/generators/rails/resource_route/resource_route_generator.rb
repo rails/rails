@@ -17,7 +17,14 @@ module Rails
       def add_resource_route
         return if options[:actions].present?
         route "resources :#{file_name.pluralize}", namespace: regular_class_path
-      end
+
+        if uncountable?
+          route(<<~ROUTE, namespace: regular_class_path)
+                  get :#{file_name.pluralize}_index, to: '#{file_name.pluralize}#index'
+                  post :#{file_name.pluralize}_index, to: '#{file_name.pluralize}#create'
+                ROUTE
+        end
+      end 
     end
   end
 end
