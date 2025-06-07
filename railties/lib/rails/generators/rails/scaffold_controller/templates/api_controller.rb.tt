@@ -47,10 +47,11 @@ class <%= controller_class_name %>Controller < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def <%= "#{singular_table_name}_params" %>
+      <%- table_name = force_plural ? singular_table_name.pluralize : singular_table_name -%>
       <%- if attributes_names.empty? -%>
-      params.fetch(:<%= singular_table_name %>, {})
+      params.fetch(:<%= table_name %>, {})
       <%- else -%>
-      params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
+      params.expect(<%= table_name %>: [ <%= permitted_params %> ])
       <%- end -%>
     end
 end
