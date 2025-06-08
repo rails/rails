@@ -36,18 +36,6 @@ module TestCaseHelpers
     rescue Timeout::Error
     end
 
-    def wait_until(timeout: 10)
-      start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-      while Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time < timeout
-        return true if yield
-
-        sleep 0.1
-      end
-
-      false
-    end
-
     def job_file(id)
       Dummy::Application.root.join("tmp/#{id}")
     end
