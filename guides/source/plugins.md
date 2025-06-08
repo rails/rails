@@ -318,7 +318,7 @@ class Product < ApplicationRecord
 end
 ```
 
-We need to include our module in `ApplicationRecord`:
+We need to include our module in `ApplicationRecord` (later on we'll look at doing this automatically):
 
 ```ruby
 # test/dummy/app/models/application_record.rb
