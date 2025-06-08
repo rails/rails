@@ -5,9 +5,9 @@ Threading and Code Execution in Rails
 
 After reading this guide, you will know:
 
-* Where to find automatically concurrent code execution in Rails
+* Where to find concurrent code execution in Rails
 * How to integrate manual concurrency within Rails
-* How to wrap all application code using the Rails Executor
+* How to wrap application code using the Rails Executor
 * How to affect application reloading
 
 --------------------------------------------------------------------------------
@@ -19,9 +19,9 @@ Rails automatically allows various operations to be performed at the same time
 (concurrently) in order for an application to run more efficiently. In this
 section, we will explore some of the ways this happens behind the scenes.
 
-When using a threaded web server (such as Rails' default server, Puma) multiple
-HTTP requests will be served simultaneously as each request is given its own
-controller instance.
+When using a threaded web server (such as Rails' default server, Puma) requests
+will be served simultaneously as each request is given its own controller
+instance.
 
 Threaded Active Job adapters, including the built-in Async adapter, will
 likewise execute several jobs at the same time. Action Cable channels are
@@ -30,35 +30,36 @@ managed this way too.
 Asynchronous Active Record queries are also performed in the background,
 allowing other processes to run on the main thread.
 
-The above mechanisms all involve multiple threads, often managing work for a
-unique instance of some object (controller, job, channel), while sharing the
+The above mechanisms all involve multiple threads, each managing work for a
+unique instance of an object (controller, job, channel), while sharing the
 global process space (such as classes and their configurations, and global
-variables). As long as the code on each thread doesn't modify any of those
-shared things, the other threads are mostly irrelevant to it.
+variables). As long as the code on each thread doesn't modify anything shared,
+multiple threads can safely run concurrently.
 
-Rails' in-built concurrency will cover the day-to-day needs of many application
+Rails' in-built concurrency will cover the day-to-day needs of most application
 developers, and ensure applications remain generally performant.
 
-NOTE: You can read more about how to configure Rails' in-built concurrency in
-the [Framework Behavior](#framework-behavior) section.
+NOTE: You can read more about how to configure Rails' concurrency in the
+[Framework Behavior](#framework-behavior) section.
 
 ### `CurrentAttributes` and Threading
 
 The
 [`ActiveSupport::CurrentAttributes`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
-class is a special class in Rails that helps you manage temporary data for each
-request in your app, and helps make sure this data is available to the whole
-system. It keeps this data separate for every request (even if there are
-multiple threads running) and makes sure the data is cleaned up automatically
-when the request is done.
+class is a special class in Rails that helps you manage temporary,
+thread-specific data for each request in your app, and helps make sure this data
+is available to the whole system. It keeps this data separate for every request
+(even if there are multiple threads running) and makes sure the data is cleaned
+up automatically when the request is done.
 
 You can think of this class as a place to store data that you need to access
 anywhere in your app without having to pass it around in your code.
 
 To use the `Current` class to store data, first you need to create a file as
-below, with `attribute` values for the attributes and models whose values you
-would like to access throughout your application. You can also define a method
-(e.g the `user` method below) which, when called, will contain set values:
+shown in the example below, with `attribute` values for the attributes and
+models whose values you would like to access throughout your application. You
+can also define a method (e.g the `user` method below) which, when called, will
+contain set values:
 
 ```ruby
 # app/models/current.rb
@@ -99,7 +100,7 @@ end
 ```
 
 WARNING: It’s easy to put too many attributes in the `Current` class and tangle
-your model as a result. Current should only be used for a few, top-level
+your model as a result. `Current` should only be used for a few, top-level
 globals, like account, user, and request details.
 
 ### Isolated Execution State
@@ -109,8 +110,6 @@ provides you the option to define where Rails internal state should be stored
 while tasks are run. If you use a fiber-based server or job processor (e.g.
 [`falcon`](https://github.com/socketry/falcon)), you should set this value to
 `:fiber`, otherwise it is best to set it to `:thread`.
-
-### Going Futher
 
 The next section of this guide details advanced ways of wrapping code to ensure
 thread safety, and how extensions and applications with particular concurrency
@@ -126,18 +125,18 @@ The Rails Executor inherits from the
 The Executor separates application code from framework code by wrapping code
 that you've written and is necessary when threads are being used.
 
+#### Callbacks
+
 The Executor consists of two callbacks: `to_run` and `to_complete`. The `to_run`
 callback is called before the application code, and the `to_complete` callback
 is called after.
 
-#### Callbacks
-
 In a default Rails application, the Rails Executor callbacks are used to:
 
-* track which threads are in safe positions for autoloading and reloading
-* enable and disable the Active Record query cache
-* return acquired Active Record connections to the pool
-* constrain internal cache lifetimes
+* Track which threads are in safe positions for autoloading and reloading.
+* Enable and disable the Active Record query cache.
+* Return acquired Active Record connections to the pool.
+* Constrain internal cache lifetimes.
 
 #### Code Execution
 
@@ -168,8 +167,8 @@ end
 ```
 
 NOTE: The Concurrent Ruby gem uses a `ThreadPoolExecutor`, which it sometimes
-configures with an `executor` option. Despite the name, it is unrelated to the
-Rails Executor.
+configures with an `executor` option. Despite the name, it is _not_ related to
+the Rails Executor.
 
 If it's impractical to wrap the application code in a block (for example, the
 Rack API makes this problematic), you can also use the `run!` / `complete!`
@@ -197,9 +196,9 @@ autoloading a constant or unloading/reloading the application.
 
 #### Examples of Wrapped Application Code
 
-Any time your library or component needs to invoke code that will need to run in
-the application, this code should be wrapped to ensure thread safety and a
-consistent and clean runtime state.
+Any time your library or component needs to invoke code that will run in the
+application, the code should be wrapped to ensure thread safety and a consistent
+and clean runtime state.
 
 For example, you may be setting a `Current` user (using
 [`ActiveSupport::CurrentAttributes`](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)).
@@ -233,18 +232,26 @@ def enqueue_background_job(job_class, *args)
 end
 ```
 
-These are just a few of many possible other use cases, including rendering views
-or templates, broadcasting via [`Action Cable`](action_cable_overview.html) or
+These are just a few of many possible use cases, including rendering views or
+templates, broadcasting via [`Action Cable`](action_cable_overview.html) or
 using [`Rails.cache`](caching_with_rails.html).
 
 ### The Reloader
 
 Like the Executor, the
 [Reloader](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html) also
-wraps application code. If the Executor is not already active on the current
-thread, the Reloader will invoke it for you, so you only need to call one. This
-also guarantees that everything the Reloader does, including all its callback
-executions, occurs wrapped inside the Executor.
+wraps application code. The Reloader is only suitable where a long-running
+framework-level process repeatedly calls into application code, such as for a
+web server or job queue.
+
+NOTE: Rails automatically wraps web requests and Active Job workers, so you'll
+rarely need to invoke the Reloader for yourself. Always consider whether the
+Executor is a better fit for your use case.
+
+If the Executor is not already active on the current thread, the Reloader will
+invoke it for you, so you only need to call one. This also guarantees that
+everything the Reloader does, including all its callback executions, occurs
+wrapped inside the Executor.
 
 ```ruby
 Rails.application.reloader.wrap do
@@ -252,20 +259,14 @@ Rails.application.reloader.wrap do
 end
 ```
 
-NOTE: The Reloader is only suitable where a long-running framework-level process
-repeatedly calls into application code, such as for a web server or job queue.
-Rails automatically wraps web requests and Active Job workers, so you'll rarely
-need to invoke the Reloader for yourself. Always consider whether the Executor
-is a better fit for your use case.
-
 #### Callbacks
 
 Before entering the wrapped block, the Reloader will check whether the running
-application needs to be reloaded -- for example, because a model's source file
-has been modified. If it determines a reload is required, it will wait until
-it's safe, and then do so, before continuing. When the application is configured
-to always reload regardless of whether any changes are detected, the reload is
-instead performed at the end of the block.
+application needs to be reloaded (because a model's source file has been
+modified, for example). If it determines a reload is required, it will wait
+until it's safe, and then do so, before continuing. When the application is
+configured to always reload regardless of whether any changes are detected, the
+reload is instead performed at the end of the block.
 
 The Reloader also provides `to_run` and `to_complete` callbacks; they are
 invoked at the same points as those of the Executor, but only when the current
