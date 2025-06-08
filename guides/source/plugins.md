@@ -142,8 +142,8 @@ replace any lines that have `TODO` values:
 
 ```ruby
 spec.homepage    = "http://example.com"
-spec.summary     = "Summary of ApiBoost."
-spec.description = "Description of ApiBoost."
+spec.summary     = "Enhance your API endpoints"
+spec.description = "Adds common API functionality like request throttling, response caching, and automatic API documentation."
 
 ...
 
