@@ -17,7 +17,7 @@ After reading this guide, you will know:
 --------------------------------------------------------------------------------
 
 What are Plugins?
-------------------
+-----------------
 
 A Rails plugin is a gem that's designed specifically to work inside a Rails
 application, often using `Railtie` or `Engine` to hook into the Rails boot
