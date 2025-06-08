@@ -10,7 +10,7 @@ GIT
 
 GIT
   remote: https://github.com/ruyrocha/sidekiq.git
-  revision: 5007cb23b218ef9c5519eb5bd206e4b627055f1b
+  revision: 836e2b8dd01ba1c1870210d8049328235b01245d
   branch: hotfix/sidekiq-adapter
   specs:
     sidekiq (8.0.4)

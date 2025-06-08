@@ -18,21 +18,15 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter < AbstractAdapter
-      def initialize(*) # :nodoc:
-        @stopping = false
+      @stopping = false
 
-        Sidekiq.configure_server do |config|
-          config.on(:quiet) { @stopping = true }
-        end
+      callback = -> { @stopping = true }
 
-        Sidekiq.configure_client do |config|
-          config.on(:quiet) { @stopping = true }
-        end
-      end
+      Sidekiq.configure_client { |config| config.on(:quiet, &callback) }
+      Sidekiq.configure_server { |config| config.on(:quiet, &callback) }
 
-      delegate :enqueue, :enqueue_at, :enqueue_all, to: Sidekiq::ActiveJob::QueueAdapters::SidekiqAdapter
-
-      def enqueue_after_transaction_commit? = true
+      delegate :enqueue, :enqueue_at, :enqueue_all, :stopping?,
+        :enqueue_after_transaction_commit?, to: Sidekiq::ActiveJob::QueueAdapters::SidekiqAdapter
 
       JobWrapper = Sidekiq::ActiveJob::Wrapper
     end
