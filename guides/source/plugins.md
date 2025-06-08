@@ -33,7 +33,7 @@ Plugins serve several purposes:
 Generator Options
 ------------------
 
-Currently, Rails plugins are built as gems, _gemified plugins_. They can be
+Rails plugins are built as gems, _gemified plugins_. They can be
 shared across different Rails applications using RubyGems and Bundler if
 desired.
 
