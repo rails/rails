@@ -390,7 +390,7 @@ send("#{self.class.api_timestamp_field}=", timestamp)
 ```
 
 Advanced Integration: Using Railties
------------------------------------
+------------------------------------
 
 The plugin we've built so far works great for basic functionality. However, if your plugin needs to integrate more deeply with Rails' framework, you'll want to use a [Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html).
 
