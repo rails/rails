@@ -574,6 +574,33 @@ module ActiveRecord
     end
     open_transactions
   end
+
+  # Shortcut for switching logging to STDOUT.
+  #
+  # Calling it without block is identical to setting logger to +Logger.new(STDOUT)+
+  #
+  #   ActiveRecord.log_to_stdout
+  #   # Identical to ActiveRecord::Base.logger = Logger.new(STDOUT)
+  #
+  # Calling it with block will switch logging to STDOUT for the duration of block
+  # and restore it afterwards.
+  #
+  #   ActiveRecord.log_to_stdout do
+  #     # ...
+  #   end
+  def self.log_to_stdout
+    if block_given?
+      begin
+        original_logger = Base.logger
+        Base.logger = Logger.new(STDOUT)
+        yield
+      ensure
+        Base.logger = original_logger
+      end
+    else
+      Base.logger = Logger.new(STDOUT)
+    end
+  end
 end
 
 ActiveSupport.on_load(:active_record) do
