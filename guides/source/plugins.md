@@ -275,8 +275,8 @@ module ApiBoost
     extend ActiveSupport::Concern
 
     class_methods do
-      def acts_as_api_resource(options = {})
-        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
+      def acts_as_api_resource(api_timestamp_field: :last_request_at)
+        cattr_accessor :api_timestamp_field, default: api_timestamp_field.to_s
       end
     end
   end
