@@ -93,6 +93,26 @@ class ValidatesTest < ActiveModel::TestCase
     assert_predicate person, :valid?
   end
 
+  def test_validates_with_ignore_if_nil_alias
+    Person.validates :karma, length: { minimum: 20 }, ignore_if_nil: true
+    person = Person.new
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_with_allow_blank_shared_conditions
+    Person.validates :karma, length: { minimum: 20 }, email: true, allow_blank: true
+    person = Person.new
+    person.karma = ""
+    assert_predicate person, :valid?
+  end
+
+  def test_validates_with_ignore_if_blank_alias
+    Person.validates :karma, length: { minimum: 20 }, ignore_if_blank: true
+    person = Person.new
+    person.karma = ""
+    assert_predicate person, :valid?
+  end
+
   def test_validates_with_regexp
     Person.validates :karma, format: /positive|negative/
     person = Person.new

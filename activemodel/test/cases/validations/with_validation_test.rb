@@ -143,8 +143,24 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert_equal ["Value is "], topic.errors[:content]
   end
 
+  test "each validator skip nil values if :ignore_if_nil alias is set to true" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], ignore_if_nil: true)
+    topic = Topic.new content: ""
+    assert_predicate topic, :invalid?
+    assert_empty topic.errors[:title]
+    assert_equal ["Value is "], topic.errors[:content]
+  end
+
   test "each validator skip blank values if :allow_blank is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
+    topic = Topic.new content: ""
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
+  end
+
+  test "each validator skip blank values if :ignore_if_blank alias is set to true" do
+    Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], ignore_if_blank: true)
     topic = Topic.new content: ""
     assert_predicate topic, :valid?
     assert_empty topic.errors[:title]

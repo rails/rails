@@ -1,3 +1,9 @@
+*   Add `:ignore_if_nil` and `:ignore_if_blank` validation aliases.
+
+    They are aliases for the `:allow_nil` and `:allow_blank` validation options.
+
+    *Jerome Dalbert*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*

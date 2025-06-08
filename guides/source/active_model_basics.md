@@ -1448,8 +1448,10 @@ documentation](https://api.rubyonrails.org/classes/ActiveModel/Validations/Class
   return or evaluate to a `true` or `false` value.
 
 - `:allow_nil`: Skip the validation if the attribute is `nil`.
+  Also aliased as `:ignore_if_nil`.
 
 - `:allow_blank`: Skip the validation if the attribute is blank.
+  Also aliased as `:ignore_if_blank`.
 
 - `:strict`: If the `:strict` option is set to true, it will raise
   `ActiveModel::StrictValidationFailed` instead of adding the error. `:strict`
