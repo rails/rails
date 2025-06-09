@@ -1,3 +1,10 @@
+*   Always return empty body for HEAD requests in `PublicExceptions` and
+    `DebugExceptions`.
+
+    This is required by `Rack::Lint` (per RFC9110).
+
+    *Hartley McGuire*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   Improve `with_routing` test helper to not rebuild the middleware stack.
