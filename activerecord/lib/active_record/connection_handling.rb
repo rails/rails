@@ -133,7 +133,10 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
-    def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
+    #
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
+    def connected_to(role: nil, shard: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
       if self != Base && !abstract_class
         raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
       end
@@ -146,12 +149,16 @@ module ActiveRecord
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
 
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
+
       with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
-    # Connects a role and/or shard to the provided connection names. Optionally +prevent_writes+
-    # can be passed to block writes on a connection. +reading+ will automatically set
-    # +prevent_writes+ to true.
+    # Connects a role and optionally shard to the provided connection names.
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
     #
     # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
     #
@@ -162,14 +169,16 @@ module ActiveRecord
     #     Dinner.first # Read from meals replica
     #     Person.first # Read from primary writer
     #   end
-    def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
+    def connected_to_many(*classes, role:, shard: nil, prevent_writes: role == ActiveRecord.reading_role)
       classes = classes.flatten
 
       if self != Base || classes.include?(Base)
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
 
-      prevent_writes = true if role == ActiveRecord.reading_role
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
       yield
@@ -182,22 +191,27 @@ module ActiveRecord
     # results in an array.
     #
     # Optionally, +role+ and/or +prevent_writes+ can be passed which
-    # will be forwarded to each +connected_to+ call.
-    def connected_to_all_shards(role: nil, prevent_writes: false, &blk)
+    # will be forwarded to each +connected_to+ call. +prevent_writes+
+    # defaults to +true+ when using the +reading+ role.
+    def connected_to_all_shards(role: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
       shard_keys.map do |shard|
         connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
       end
     end
 
-    # Use a specified connection.
+    # Use a specified connection to a role and/or shard.
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
     #
     # This method is useful for ensuring that a specific connection is
     # being used. For example, when booting a console in readonly mode.
     #
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
-    def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
-      prevent_writes = true if role == ActiveRecord.reading_role
+    def connecting_to(role: default_role, shard: default_shard, prevent_writes: role == ActiveRecord.reading_role)
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
     end
@@ -236,9 +250,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role is the current connected role and/or
-    # current connected shard. If no shard is passed, the default will be
-    # used.
+    # Returns true if +role+ is the current connected role and if +shard+ is the
+    # current connected shard. If no shard is passed, the default will be used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
     #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
@@ -392,8 +405,6 @@ module ActiveRecord
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
-        prevent_writes = true if role == ActiveRecord.reading_role
-
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
         return_value = yield
         return_value.load if return_value.is_a? ActiveRecord::Relation
