@@ -1,3 +1,7 @@
+*   Introduce `alias_association` feature to allow defining an alias to an existing association.
+
+    *Nikita Vasilevsky*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because
