@@ -494,7 +494,7 @@
 
     *Kazuma Watanabe*
 
-*   Added supporting of allowed_columns
+*   Added supporting of permitted_columns
 
     *Anton Kandratski*
 
