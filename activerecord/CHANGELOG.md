@@ -1,3 +1,11 @@
+
+*   Exclude cascade deletes from affected_rows count
+    
+    This ensures that running `delete_all` on the SQLite3 adapter returns a 
+    count of only the directly deleted rows.
+
+    *Ruy Rocha*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because

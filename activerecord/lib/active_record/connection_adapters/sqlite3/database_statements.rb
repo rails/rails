@@ -84,40 +84,45 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            total_changes_before_query = raw_connection.total_changes
-            affected_rows = nil
-
             if batch
               raw_connection.execute_batch2(sql)
-            else
-              stmt = if prepare
-                @statements[sql] ||= raw_connection.prepare(sql)
-                @statements[sql].reset!
-              else
-                # Don't cache statements if they are not prepared.
-                raw_connection.prepare(sql)
-              end
-              begin
-                unless binds.nil? || binds.empty?
-                  stmt.bind_params(type_casted_binds)
-                end
-                result = if stmt.column_count.zero? # No return
-                  stmt.step
-                  affected_rows = raw_connection.total_changes - total_changes_before_query
-                  ActiveRecord::Result.empty(affected_rows: affected_rows)
-                else
-                  rows = stmt.to_a
-                  affected_rows = raw_connection.total_changes - total_changes_before_query
-                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
-                end
-              ensure
-                stmt.close unless prepare
-              end
+
+              notification_payload[:affected_rows] = nil
+              notification_payload[:row_count] = 0
+
+              return
             end
+
+            stmt = if prepare
+              @statements[sql] ||= raw_connection.prepare(sql)
+              @statements[sql].reset!
+            else
+              # Don't cache statements if they are not prepared.
+              raw_connection.prepare(sql)
+            end
+
+            begin
+              stmt.bind_params(type_casted_binds) unless binds.nil? || binds.empty?
+
+              affected_rows = write_query?(sql) ? raw_connection.changes : 0
+
+              result = if stmt.column_count.zero? # No return
+                stmt.step
+                affected_rows = raw_connection.changes if write_query?(sql)
+                ActiveRecord::Result.empty(affected_rows: affected_rows)
+              else
+                rows = stmt.to_a
+                ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
+              end
+            ensure
+              stmt.close unless prepare
+            end
+
             verified!
 
             notification_payload[:affected_rows] = affected_rows
-            notification_payload[:row_count] = result&.length || 0
+            notification_payload[:row_count] = result.length
+
             result
           end
 

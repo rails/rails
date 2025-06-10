@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/lesson"
 require "models/owner"
+require "models/student"
 require "tempfile"
 require "support/ddl_helper"
 
@@ -491,6 +493,13 @@ module ActiveRecord
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
         Owner.delete_all
+      end
+
+      def test_deleted_records_exclude_changes_from_cascading_deletes
+        student = Student.create(name: "Ruy Rocha")
+        lesson = Lesson.create(name: "Anything Possible")
+        student.lessons << lesson
+        assert_equal 1, Student.delete_all
       end
 
       def test_execute
