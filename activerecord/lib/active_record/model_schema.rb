@@ -181,12 +181,11 @@ module ActiveRecord
       self.protected_environments = ["production"]
 
       self.ignored_columns = [].freeze
+      self.permitted_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
       initialize_load_schema_monitor
-
-      DEFAULT_ALLOWED_COLUMNS = %w[created_at updated_at].freeze
     end
 
     # Derives the join table name for +first_table+ and +second_table+. The
@@ -333,13 +332,21 @@ module ActiveRecord
       # The list of columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       def ignored_columns
-        @ignored_columns || superclass.ignored_columns
+        return @ignored_columns if @ignored_columns
+        return superclass.ignored_columns if superclass.respond_to?(:ignored_columns)
+        return column_names - @permitted_columns if schema_loaded? && @permitted_columns.present?
+
+        []
       end
 
-      # The list of columns names the model should allow. Allowed columns are used to define
+      # The list of columns names the model should allow. Permitted columns are used to define
       # attribute accessors, and are referenced in SQL queries.
-      def allowed_columns
-        column_names
+      def permitted_columns
+        return @permitted_columns if @permitted_columns
+        return superclass.permitted_columns if superclass.respond_to?(:permitted_columns)
+        return column_names - @ignored_columns if schema_loaded? && @ignored_columns.present?
+
+        []
       end
 
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
@@ -374,15 +381,15 @@ module ActiveRecord
       #   user = Project.create!(name: "First Project")
       #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
-        check_model_columns(@is_allowed_columns)
+        check_model_columns(@permitted_columns.present?)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
       end
 
-      def allowed_columns=(allowed_columns)
-        check_model_columns(ignored_columns.present?)
-        self.ignored_columns = allowed_columns.present? ? self.column_names - (allowed_columns.map(&:to_s) | default_allowed_columns) : []
-        @is_allowed_columns = true
+      def permitted_columns=(columns)
+        check_model_columns(@ignored_columns.present?)
+        reload_schema_from_cache
+        @permitted_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -594,6 +601,7 @@ module ActiveRecord
           child_class.reload_schema_from_cache(false)
           child_class.class_eval do
             @ignored_columns = nil
+            @permitted_columns = nil
           end
         end
 
@@ -607,7 +615,11 @@ module ActiveRecord
           end
 
           columns_hash = schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          if permitted_columns.present?
+            columns_hash = columns_hash.slice(*permitted_columns)
+          elsif ignored_columns.present?
+            columns_hash = columns_hash.except(*ignored_columns)
+          end
           @columns_hash = columns_hash.freeze
 
           _default_attributes # Precompute to cache DB-dependent attribute types
@@ -647,12 +659,12 @@ module ActiveRecord
           type
         end
 
-        def default_allowed_columns
-          [primary_key.to_s, *DEFAULT_ALLOWED_COLUMNS]
+        def default_permitted_columns
+          [primary_key.to_s]
         end
 
         def check_model_columns(columns_present)
-          raise ArgumentError, "You can not use both allowed_columns and ignored_columns in the same model." if columns_present
+          raise ArgumentError, "You can not use both permitted_columns and ignored_columns in the same model." if columns_present
         end
     end
   end

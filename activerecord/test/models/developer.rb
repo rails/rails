@@ -381,8 +381,8 @@ class AuditRequiredDeveloper < ActiveRecord::Base
   has_many :required_audit_logs, class_name: "AuditLogRequired"
 end
 
-class AllowedDeveloper < ActiveRecord::Base
+class PermittedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
-  self.allowed_columns = %w[name salary firm_id mentor_id]
+  self.permitted_columns = %w[name salary firm_id mentor_id]
   has_many :required_audit_logs, class_name: "AuditLogRequired"
 end
