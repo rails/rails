@@ -40,6 +40,8 @@ module ActiveJob
 
       # Interrupt a job after a step.
       #
+      # Note that there's no checkpoint after the final step so it won't be interrupted.
+      #
       #  class MyJob < ApplicationJob
       #    include ActiveJob::Continuable
       #

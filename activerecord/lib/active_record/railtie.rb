@@ -278,6 +278,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.job_checkpoints" do
+      require "active_record/railties/job_checkpoints"
+      ActiveSupport.on_load(:active_job_continuable) do
+        prepend ActiveRecord::Railties::JobCheckpoints
+      end
+    end
+
     initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
         ActiveSupport::Reloader.before_class_unload do

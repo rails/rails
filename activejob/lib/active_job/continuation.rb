@@ -134,8 +134,8 @@ module ActiveJob
   # +queue_adapter.stopping?+. If it returns true, the job will raise an
   # ActiveJob::Continuation::Interrupt exception.
   #
-  # There is an automatic checkpoint at the end of each step. Within a step one is
-  # created when calling +set!+, +advance!+ or +checkpoint!+.
+  # There is an automatic checkpoint before the start of each step except for the first for
+  # each job execution. Within a step one is created when calling +set!+, +advance!+ or +checkpoint!+.
   #
   # Jobs are not automatically interrupted when the queue adapter is marked as stopping - they
   # will continue to run either until the next checkpoint, or when the process is stopped.
@@ -158,49 +158,57 @@ module ActiveJob
   # To mitigate this, the job will be automatically retried if it raises an error after it has made progress.
   # Making progress is defined as having completed a step or advanced the cursor within the current step.
   #
+  # === Configuration
+  #
+  # Continuable jobs have several configuration options:
+  # * :max_resumptions</tt> - The maximum number of times a job can be resumed. Defaults to +nil+ which means
+  #   unlimited resumptions.
+  # * <tt>:resume_options</tt> - Options to pass to +retry_job+ when resuming the job.
+  #   Defaults to +{ wait: 5.seconds }+.
+  #   See +ActiveJob::Exceptions#retry_job+ for available options.
+  # * <tt>:resume_errors_after_advancing</tt> - Whether to resume errors after advancing the continuation.
+  #   Defaults to +true+.
   class Continuation
     extend ActiveSupport::Autoload
 
     autoload :Step
+    autoload :Validation
 
     # Raised when a job is interrupted, allowing Active Job to requeue it.
     # This inherits from +Exception+ rather than +StandardError+, so it's not
     # caught by normal exception handling.
     class Interrupt < Exception; end
 
-    # Base error class for all Continuation errors.
+    # Base class for all Continuation errors.
     class Error < StandardError; end
 
     # Raised when a step is invalid.
     class InvalidStepError < Error; end
 
+    # Raised when there is an error with a checkpoint, such as open database transactions.
+    class CheckpointError < Error; end
+
     # Raised when attempting to advance a cursor that doesn't implement `succ`.
     class UnadvanceableCursorError < Error; end
 
-    # Raised when an error occurs after a job has made progress.
-    #
-    # The job will be automatically retried to ensure that the progress is serialized
-    # in the retried job.
-    class AfterAdvancingError < Error; end
+    # Raised when a job has reached its limit of the number of resumes.
+    # The limit is defined by the +max_resumes+ class attribute.
+    class ResumeLimitError < Error; end
 
-    def initialize(job, serialized_progress)
+    include Validation
+
+    def initialize(job, serialized_progress) # :nodoc:
       @job = job
       @completed = serialized_progress.fetch("completed", []).map(&:to_sym)
       @current = new_step(*serialized_progress["current"], resumed: true) if serialized_progress.key?("current")
-      @encountered_step_names = []
+      @encountered = []
       @advanced = false
       @running_step = false
     end
 
-    def continue(&block)
-      wrapping_errors_after_advancing do
-        instrument_job :resume if started?
-        block.call
-      end
-    end
-
-    def step(name, start:, &block)
+    def step(name, start:, &block) # :nodoc:
       validate_step!(name)
+      encountered << name
 
       if completed?(name)
         skip_step(name)
@@ -209,14 +217,14 @@ module ActiveJob
       end
     end
 
-    def to_h
+    def to_h # :nodoc:
       {
         "completed" => completed.map(&:to_s),
         "current" => current&.to_a
       }.compact
     end
 
-    def description
+    def description # :nodoc:
       if current
         current.description
       elsif completed.any?
@@ -226,36 +234,33 @@ module ActiveJob
       end
     end
 
-    private
-      attr_reader :job, :encountered_step_names, :completed, :current
+    def started?
+      completed.any? || current.present?
+    end
 
-      def advanced?
-        @advanced
-      end
+    def advanced?
+      @advanced
+    end
+
+    def instrumentation
+      { description: description,
+        completed_steps: completed,
+        current_step: current }
+    end
+
+    private
+      attr_reader :job, :encountered, :completed, :current
 
       def running_step?
         @running_step
-      end
-
-      def started?
-        completed.any? || current.present?
       end
 
       def completed?(name)
         completed.include?(name)
       end
 
-      def validate_step!(name)
-        raise InvalidStepError, "Step '#{name}' must be a Symbol, found '#{name.class}'" unless name.is_a?(Symbol)
-        raise InvalidStepError, "Step '#{name}' has already been encountered" if encountered_step_names.include?(name)
-        raise InvalidStepError, "Step '#{name}' is nested inside step '#{current.name}'" if running_step?
-        raise InvalidStepError, "Step '#{name}' found, expected to resume from '#{current.name}'" if current && current.name != name && !completed?(name)
-
-        encountered_step_names << name
-      end
-
       def new_step(*args, **options)
-        Step.new(*args, **options) { checkpoint! }
+        Step.new(*args, job: job, **options)
       end
 
       def skip_step(name)
@@ -273,49 +278,24 @@ module ActiveJob
         @completed << current.name
         @current = nil
         @advanced = true
-
-        checkpoint!
       ensure
         @running_step = false
         @advanced ||= current&.advanced?
       end
 
-      def interrupt!
-        instrument_job :interrupt
-        raise Interrupt, "Interrupted #{description}"
-      end
+      def instrumenting_step(step, &block)
+        instrument :step, step: step, interrupted: false do |payload|
+          instrument :step_started, step: step
 
-      def checkpoint!
-        interrupt! if job.queue_adapter.stopping?
-      end
-
-      def wrapping_errors_after_advancing(&block)
-        block.call
-      rescue StandardError => e
-        if !e.is_a?(Error) && advanced?
-          raise AfterAdvancingError, "Advanced job failed with error: #{e.message}"
-        else
+          block.call
+        rescue Interrupt
+          payload[:interrupted] = true
           raise
         end
       end
 
-      def instrumenting_step(step, &block)
-        instrument (step.resumed? ? :step_resumed : :step_started), step: step
-
-        block.call
-
-        instrument :step_completed, step: step
-      rescue Interrupt
-        instrument :step_interrupted, step: step
-        raise
-      end
-
-      def instrument_job(event)
-        instrument event, description: description, completed_steps: completed, current_step: current
-      end
-
-      def instrument(event, payload = {})
-        job.instrument event, **payload
+      def instrument(...)
+        job.instrument(...)
       end
   end
 end
