@@ -12,7 +12,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In-Built Concurrency in Rails
+Built-in Concurrency in Rails
 -----------------------------
 
 Rails automatically allows various operations to be performed at the same time
@@ -36,7 +36,7 @@ global process space (such as classes and their configurations, and global
 variables). As long as the code on each thread doesn't modify anything shared,
 multiple threads can safely run concurrently.
 
-Rails' in-built concurrency will cover the day-to-day needs of most application
+Rails' built-in concurrency will cover the day-to-day needs of most application
 developers, and ensure applications remain generally performant.
 
 NOTE: You can read more about how to configure Rails' concurrency in the
@@ -186,7 +186,7 @@ end
 NOTE: The Rails Executor is safely re-entrant; it can be called again if it is
 already running. In this case, the `wrap` method has no effect.
 
-#### Running
+#### Running Mode
 
 When called, the Rails Executor will put the current thread into `running` mode
 in the [Load Interlock](#load-interlock).
@@ -211,7 +211,7 @@ def log_with_user_context(message)
 end
 ```
 
-You may be triggering an ActiveRecord callback or lifecycle hook in an
+You may be triggering an Active Record callback or lifecycle hook in an
 application:
 
 ```ruby
@@ -385,7 +385,7 @@ block, and autoload knows when to upgrade to a `load` lock, and switch back to
 
 Other blocking operations performed inside the Executor block (which includes
 all application code), however, can needlessly retain the `running` lock. If
-another thread encounters a constant it must autoload, this can cause a
+another thread encounters a constant it must autoload, which can cause a
 deadlock.
 
 For example, assuming `User` is not yet loaded, the following will deadlock:
