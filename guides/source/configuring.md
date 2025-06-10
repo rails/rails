@@ -1488,7 +1488,7 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL comment
 `[ :application, :controller, :action, :job ]`. The available tags are: `:application`, `:controller`,
 `:namespaced_controller`, `:action`, `:job`, and `:source_location`.
 
-WARNING: Calculating the caller location via `:source_location` is a costly operation and should be used primarily in development (note, there is also a `config.active_record.verbose_query_logs` that serves the same purpose) or occasionally on production for debugging purposes.
+WARNING: Calculating the `:source_location` of a query can be slow, so you should consider its impact if using it in a production environment.
 
 #### `config.active_record.query_log_tags_format`
 
