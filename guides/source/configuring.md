@@ -1488,6 +1488,8 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL comment
 `[ :application, :controller, :action, :job ]`. The available tags are: `:application`, `:controller`,
 `:namespaced_controller`, `:action`, `:job`, and `:source_location`.
 
+WARNING: Calculating the `:source_location` of a query can be slow, so you should consider its impact if using it in a production environment.
+
 #### `config.active_record.query_log_tags_format`
 
 A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.
