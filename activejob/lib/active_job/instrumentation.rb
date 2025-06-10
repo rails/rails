@@ -30,8 +30,8 @@ module ActiveJob
       payload[:job] = self
       payload[:adapter] = queue_adapter
 
-      ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do
-        value = block.call if block
+      ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do |payload|
+        value = block.call(payload) if block
         payload[:aborted] = @_halted_callback_hook_called if defined?(@_halted_callback_hook_called)
         @_halted_callback_hook_called = nil
         value

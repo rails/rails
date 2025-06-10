@@ -11,15 +11,26 @@ module ActiveJob
   module Continuable
     extend ActiveSupport::Concern
 
-    CONTINUATION_KEY = "continuation"
-
     included do
-      retry_on Continuation::Interrupt, attempts: :unlimited
-      retry_on Continuation::AfterAdvancingError, attempts: :unlimited
+      class_attribute :max_resumptions, instance_writer: false
+      class_attribute :resume_options, instance_writer: false, default: { wait: 5.seconds }
+      class_attribute :resume_errors_after_advancing, instance_writer: false, default: true
 
       around_perform :continue
+
+      def initialize(...)
+        super(...)
+        self.resumptions = 0
+        self.continuation = Continuation.new(self, {})
+      end
     end
 
+    # The number of times the job has been resumed.
+    attr_accessor :resumptions
+
+    attr_accessor :continuation # :nodoc:
+
+    # Start a new continuation step
     def step(step_name, start: nil, &block)
       unless block_given?
         step_method = method(step_name)
@@ -32,25 +43,58 @@ module ActiveJob
 
         block = step_method.arity == 0 ? -> (_) { step_method.call } : step_method
       end
+      checkpoint! if continuation.advanced?
       continuation.step(step_name, start: start, &block)
     end
 
-    def serialize
-      super.merge(CONTINUATION_KEY => continuation.to_h)
+    def serialize # :nodoc:
+      super.merge("continuation" => continuation.to_h, "resumptions" => resumptions)
     end
 
-    def deserialize(job_data)
+    def deserialize(job_data) # :nodoc:
       super
-      @continuation = Continuation.new(self, job_data.fetch(CONTINUATION_KEY, {}))
+      self.continuation = Continuation.new(self, job_data.fetch("continuation", {}))
+      self.resumptions = job_data.fetch("resumptions", 0)
+    end
+
+    def checkpoint! # :nodoc:
+      interrupt! if queue_adapter.stopping?
     end
 
     private
-      def continuation
-        @continuation ||= Continuation.new(self, {})
+      def continue(&block)
+        if continuation.started?
+          self.resumptions += 1
+          instrument :resume, **continuation.instrumentation
+        end
+
+        block.call
+      rescue Continuation::Interrupt => e
+        resume_job(e)
+      rescue Continuation::Error
+        raise
+      rescue StandardError => e
+        if resume_errors_after_advancing? && continuation.advanced?
+          resume_job(exception: e)
+        else
+          raise
+        end
       end
 
-      def continue(&block)
-        continuation.continue(&block)
+      def resume_job(exception) # :nodoc:
+        executions_for(exception)
+        if max_resumptions.nil? || resumptions < max_resumptions
+          retry_job(**self.resume_options)
+        else
+          raise Continuation::ResumeLimitError, "Job was resumed a maximum of #{max_resumptions} times"
+        end
+      end
+
+      def interrupt! # :nodoc:
+        instrument :interrupt, **continuation.instrumentation
+        raise Continuation::Interrupt, "Interrupted #{continuation.description}"
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_job_continuable, Continuable)
 end
