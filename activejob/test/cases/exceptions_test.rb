@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "jobs/retries_job"
 require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
@@ -341,6 +342,13 @@ class ExceptionsTest < ActiveSupport::TestCase
       end
 
       assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
+    end
+
+    test "retrying a job when before_enqueue raised uses the same job object" do
+      job = RetriesJob.new
+      assert_nothing_raised do
+        job.enqueue
+      end
     end
 
     test "retrying a job reports error when report: true" do

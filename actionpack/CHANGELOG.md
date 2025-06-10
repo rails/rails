@@ -1,3 +1,10 @@
+*   Always return empty body for HEAD requests in `PublicExceptions` and
+    `DebugExceptions`.
+
+    This is required by `Rack::Lint` (per RFC9110).
+
+    *Hartley McGuire*
+
 *   Add comprehensive support for HTTP Cache-Control request directives according to RFC 9111.
 
     Provides a `request.cache_control_directives` object that gives access to request cache directives:

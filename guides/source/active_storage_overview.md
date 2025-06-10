@@ -693,8 +693,8 @@ require a higher level of protection consider implementing
 
 ### Redirect Mode
 
-To generate a permanent URL for a blob, you can pass the blob to the
-[`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
+To generate a permanent URL for a blob, you can pass the attachment or the blob to
+the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
 that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 

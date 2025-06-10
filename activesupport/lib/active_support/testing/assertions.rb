@@ -71,25 +71,29 @@ module ActiveSupport
       #     post :delete, params: { id: ... }
       #   end
       #
-      # An array of expressions can also be passed in and evaluated.
+      # An array of expressions can be passed in and evaluated.
       #
       #   assert_difference [ 'Article.count', 'Post.count' ], 2 do
       #     post :create, params: { article: {...} }
       #   end
       #
-      # A hash of expressions/numeric differences can also be passed in and evaluated.
+      # A hash of expressions/numeric differences can be passed in and evaluated.
       #
-      #   assert_difference ->{ Article.count } => 1, ->{ Notification.count } => 2 do
+      #   assert_difference({ 'Article.count' => 1, 'Notification.count' => 2 }) do
       #     post :create, params: { article: {...} }
       #   end
       #
-      # A lambda or a list of lambdas can be passed in and evaluated:
+      # A lambda, a list of lambdas or a hash of lambdas/numeric differences can be passed in and evaluated:
       #
       #   assert_difference ->{ Article.count }, 2 do
       #     post :create, params: { article: {...} }
       #   end
       #
       #   assert_difference [->{ Article.count }, ->{ Post.count }], 2 do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
+      #   assert_difference ->{ Article.count } => 1, ->{ Notification.count } => 2 do
       #     post :create, params: { article: {...} }
       #   end
       #

@@ -138,6 +138,62 @@ module ActiveJob
     end
     subscribe_log_level :discard, :error
 
+    def interrupt(event)
+      job = event.payload[:job]
+      info do
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :interrupt, :info
+
+    def resume(event)
+      job = event.payload[:job]
+      info do
+        "Resuming #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :resume, :info
+
+    def step_skipped(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' skipped #{job.class}"
+      end
+    end
+    subscribe_log_level :step_skipped, :info
+
+    def step_started(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' started #{job.class}"
+      end
+    end
+    subscribe_log_level :step_started, :info
+
+    def step_interrupted(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' interrupted at cursor '#{event.payload[:step].cursor}' #{job.class}"
+      end
+    end
+    subscribe_log_level :step_completed, :info
+
+    def step_resumed(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' resumed from cursor '#{event.payload[:step].cursor}' #{job.class}"
+      end
+    end
+    subscribe_log_level :step_resumed, :info
+
+    def step_completed(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' completed #{job.class}"
+      end
+    end
+    subscribe_log_level :step_completed, :info
+
     private
       def queue_name(event)
         ActiveJob.adapter_name(event.payload[:adapter]) + "(#{event.payload[:job].queue_name})"
