@@ -9,11 +9,11 @@ GIT
       rouge
 
 GIT
-  remote: https://github.com/ruyrocha/sidekiq.git
-  revision: 836e2b8dd01ba1c1870210d8049328235b01245d
-  branch: hotfix/sidekiq-adapter
+  remote: https://github.com/sidekiq/sidekiq.git
+  revision: c4deada77e1104c9fba96de66b778db72fe32d24
+  ref: c4deada
   specs:
-    sidekiq (8.0.4)
+    sidekiq (8.0.5)
       connection_pool (>= 2.5.0)
       json (>= 2.9.0)
       logger (>= 1.6.2)
