@@ -195,7 +195,7 @@ end
 
 The `extended_queries` configuration also allows combining encrypted and unencrypted data, and when configuring previous encryption schemes.
 
-NOTE: If you want to ignore case, make sure to use `downcase` or `ignore_case` option in the `encrypts` declaration. Using the `case_sensitive` option in the validation won't work.
+NOTE: If you want to ignore the case, make sure to use the `downcase` or `ignore_case` option in the `encrypts` declaration. Using the `case_sensitive` option in the validation won't work.
 
 #### Unique Indexes
 
@@ -258,7 +258,7 @@ To encrypt Action Text fixtures, you can place them in `fixtures/action_text/enc
 
 When encrypting strings non-deterministically, their original encoding is preserved automatically.
 
-For deterministic encryption, Rails stores the string encoding alongside the ciphertext. However, to ensure consistent encryption output—especially for querying or enforcing uniqueness—the library forces UTF-8 encoding by default. This avoids producing different ciphertexts for identical strings with different encodings.
+For deterministic encryption, Rails stores the string encoding alongside the ciphertext. However, to ensure consistent encryption output, especially for querying or enforcing uniqueness, the library forces UTF-8 encoding by default. This avoids producing different ciphertexts for identical strings with different encodings.
 
 You can customize this behavior. To change the default forced encoding:
 
@@ -274,7 +274,7 @@ config.active_record.encryption.forced_encoding_for_deterministic_encryption = n
 
 ### Compression
 
-The library compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads.
+Active Record Encryption compresses encrypted payloads by default. This can save up to 30% of the storage space for larger payloads.
 
 You can disable compression by setting `compress` option when encrypting attributes:
 
@@ -312,7 +312,7 @@ config.active_record.encryption.compressor = ZstdCompressor
 
 ### Using the API
 
-ActiveRecord encryption is meant to be used declaratively, but there is also an API for debugging or advance use cases.
+Active Record Encryption is meant to be used declaratively, but there is also an API for debugging or advance use cases.
 
 You can encrypt and decrypt all relevant attributes of an `article` model like this:
 
@@ -327,7 +327,7 @@ You can check whether a given attribute is encrypted:
 article.encrypted_attribute?(:title)
 ```
 
-You can read the `cipertext` for an attribute:
+You can read the `ciphertext` for an attribute:
 
 ```ruby
 article.ciphertext_for(:title)
@@ -357,9 +357,9 @@ This setup is intended only for migration periods during which both encrypted an
 
 ### Support for Previous Encryption Schemes
 
-Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you simply change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
+Changing encryption properties of attributes can break existing data. For example, imagine you want to make a deterministic attribute non-deterministic. If you change the declaration in the model, reading existing ciphertexts will fail because the encryption method is different now.
 
-To support these situations, you can specify previous encryption schemes be use globally or on a per-attribute basis.
+To support these situations, you can specify previous encryption schemes to be used globally or on a per-attribute basis.
 
 Once you configure the previous scheme, the following will be supported:
 
@@ -370,7 +370,7 @@ Once you configure the previous scheme, the following will be supported:
 You need to enable `extended_queries` configuration for this to work:
 
 ```ruby
- `config.active_record.encryption.extend_queries = true` to enable this.
+config.active_record.encryption.extend_queries = true
 ```
 
 Next, let's see how to configure previous encryption schemes.
@@ -385,7 +385,7 @@ config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.ne
 
 #### Per-attribute Previous Encryption Schemes
 
-Use `previous`option when declaring the encrypted attribute:
+Use the `previous` option when declaring the encrypted attribute:
 
 ```ruby
 class Article
@@ -411,14 +411,14 @@ end
 
 ## Encryption Contexts
 
-An encryption context defines the encryption components that are used in a given moment. There is a default encryption context based on your global configuration, but you can also configure a custom context for a given attribute or when running a specific block of code.
+An encryption context defines the encryption components that are used at a given moment. There is a default encryption context based on your global configuration, but you can also configure a custom context for a given attribute or when running a specific block of code.
 
 NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users should not have to care about them.
 
 The main components of encryption contexts are:
 
 * `encryptor`: exposes the internal API for encrypting and decrypting data.  It interacts with a `key_provider` to build encrypted messages and deal with their serialization. The encryption/decryption itself is done by the `cipher` and the serialization by `message_serializer`.
-* `cipher`: the encryption algorithm itself (AES 256 GCM)
+* `cipher`: the encryption algorithm itself (AES 256 GCM).
 * `key_provider`: serves encryption and decryption keys.
 * `message_serializer`: serializes and deserializes encrypted payloads.
 
