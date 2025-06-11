@@ -3,10 +3,12 @@
 module ActiveJob
   # = Active Job Continuable
   #
+  # The Continuable module provides the ability to track the progress of your
+  # jobs, and continue from where they left off if interrupted.
+  #
   # Mix ActiveJob::Continuable into your job to enable continuations.
   #
-  # See +ActiveJob::Continuation+ for usage. # The Continuable module provides the ability to track the progress of your jobs,
-  # and continue from where they left off if interrupted.
+  # See {ActiveJob::Continuation}[rdoc-ref:ActiveJob::Continuation] for usage.
   #
   module Continuable
     extend ActiveSupport::Concern

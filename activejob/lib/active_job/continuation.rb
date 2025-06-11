@@ -161,11 +161,11 @@ module ActiveJob
   # === Configuration
   #
   # Continuable jobs have several configuration options:
-  # * :max_resumptions</tt> - The maximum number of times a job can be resumed. Defaults to +nil+ which means
+  # * <tt>:max_resumptions</tt> - The maximum number of times a job can be resumed. Defaults to +nil+ which means
   #   unlimited resumptions.
   # * <tt>:resume_options</tt> - Options to pass to +retry_job+ when resuming the job.
-  #   Defaults to +{ wait: 5.seconds }+.
-  #   See +ActiveJob::Exceptions#retry_job+ for available options.
+  #   Defaults to <tt>{ wait: 5.seconds }</tt>.
+  #   See {ActiveJob::Exceptions#retry_job}[rdoc-ref:ActiveJob::Exceptions#retry_job] for available options.
   # * <tt>:resume_errors_after_advancing</tt> - Whether to resume errors after advancing the continuation.
   #   Defaults to +true+.
   class Continuation
