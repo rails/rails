@@ -22,10 +22,10 @@ Encrypting specific attributes at the application-level adds an additional secur
 
 Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in the Rails console. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
 
-NOTE: Encryption requires extra space because the encrypted value will be
-larger than the original value. This overhead is negligible at larger sizes. The
-library also uses compression by default, which can offer up to 30% storage
-savings over the unencrypted version for larger payloads.
+NOTE: Encryption requires extra space because the encrypted value will be larger
+than the original value. This overhead is negligible at larger sizes. Active
+Record Encryption also uses compression by default, which can offer up to 30%
+storage savings over the unencrypted version for larger payloads.
 
 ## Setup
 
@@ -57,7 +57,9 @@ config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTIO
 config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
 ```
 
-NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
+NOTE: These generated values are 32 bytes in length. If you generate these
+yourself, the minimum lengths you should use are 12 bytes for the primary key
+and 20 bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 
 Once the keys are generated and stored, you can start using Active Record Encryption by declaring attributes to be encrypted.
 
@@ -84,9 +86,11 @@ However, in the Rails console, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
+The value inserted is the encrypted text for `article.title`.
+
 ### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
 
-By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder.  However, it makes querying the database impossible.
+By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder. However, it also means that queries (such as `WHERE title = "Encrypt it all!"`) on encrypted values are not possible, since the same value can result in a different encrypted value that does not match the previously stored ciphertext.
 
 If you need to query the encrypted `email` field on the `Author` model below, you can use deterministic encryption:
 
@@ -109,13 +113,12 @@ The data is still encrypted but the determinism makes crypto-analysis easier.
 For this reason, non-deterministic encryption is recommended for all data unless
 you need to query by an attribute.
 
-NOTE: In non-deterministic mode, Active Record uses AES-GCM with a 256-bits key
-and a random initialization vector. In deterministic mode, it also uses AES-GCM,
-but the initialization vector is generated as an HMAC-SHA-256 digest of the key
-and contents to encrypt.
+NOTE: In non-deterministic mode, Active Record uses
+[AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)-[GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode)
+with a 256-bits key and a random initialization vector. In deterministic mode,
+it also uses AES-GCM, but the initialization vector is not random. It is generated as an a function of the key and the plaintext content ([HMAC](https://en.wikipedia.org/wiki/HMAC)-SHA-256 digest of the two).
 
-NOTE: You can disable deterministic encryption by omitting the
-`deterministic_key`.
+NOTE: If you do not define a `deterministic_key`, then you have effectively disabled deterministic encryption.
 
 ## Basic Usage
 
