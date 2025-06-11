@@ -10,19 +10,19 @@ After reading this guide, you will know:
 * How to set up database encryption with Active Record.
 * How to migrate unencrypted data.
 * How to make different encryption schemes coexist.
-* More about advance concepts like Encryption Contexts and Key Providers.
+* More about advanced concepts like Encryption Contexts and Key Providers.
 
 --------------------------------------------------------------------------------
 
-Active Record Encryption exists to protect sensitive information in your application, such as personally identifying information about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It enables transparent encryption and decryption of attributes when saving and retrieving data. The encryption layer sits between the application and the database.
+Active Record Encryption exists to protect sensitive information in your application, such as personally identifiable information (PII) about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It enables transparent encryption and decryption of attributes when saving and retrieving data. The encryption layer sits between the application and the database.
 
 ## Why Encrypt Data at the Application Level?
 
 Encrypting specific attributes at the application-level adds an additional security layer. For example, if someone gains access to your application logs or database backup, the encrypted data remains unreadable. It also helps avoid accidental exposure of sensitive information in your application console or logs.
 
-Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in Rails consoles. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
+Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in the Rails console. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
 
-NOTE: Encryption does requires extra space because the encrypted value will be
+NOTE: Encryption requires extra space because the encrypted value will be
 larger than the original value. This overhead is negligible at larger sizes. The
 library also uses compression by default, which can offer up to 30% storage
 savings over the unencrypted version for larger payloads.
@@ -63,7 +63,7 @@ Once the keys are generated and stored, you can start using Active Record Encryp
 
 ### Declare Encrypted Attributes
 
-The [`encrypts` method](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EncryptableRecord.html#method-i-encrypts) defines attribute to be encrypted at the model level. These are regular Active Record attributes backed by a column with the same name.
+The [`encrypts` method](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EncryptableRecord.html#method-i-encrypts) defines the attributes to be encrypted at the model level. These are regular Active Record attributes backed by a column with the same name.
 
 ```ruby
 class Article < ApplicationRecord
@@ -71,7 +71,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Active Record Encryption library will transparently encrypt these attributes before saving them to the database and will decrypt them upon retrieval. For example,
+Active Record Encryption will transparently encrypt these attributes before saving them to the database and will decrypt them upon retrieval. For example,
 
 ```ruby
 article = Article.create title: "Encrypt it all!"
@@ -88,7 +88,7 @@ INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"i
 
 By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder.  However, it makes querying the database impossible.
 
-If you need to able to query the encrypted `email` field on the `Author` model below, you can use deterministic encryption:
+If you need to query the encrypted `email` field on the `Author` model below, you can use deterministic encryption:
 
 ```ruby
 class Author < ApplicationRecord
@@ -121,7 +121,7 @@ NOTE: You can disable deterministic encryption by omitting the
 
 ### Ignoring Case
 
-You might need to ignore case when querying deterministically encrypted data. Two approaches make accomplishing this easier:
+You might need to ignore the case when querying deterministically encrypted data. Two approaches make accomplishing this easier:
 
 You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
 
@@ -155,7 +155,7 @@ end
 
 Attributes with structured types using the [`serialized`](https://api.rubyonrails.org/v8.0.2/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize) method are supported with encryption as well. The `serialized` method is used when you have an attribute that needs to be saved to the database as a serialized object (using `YAML`, `JSON` or such), and retrieved by deserializing into the same object.
 
-NOTE: When using serialized attributes for custom types, the declaration of the serialized attribute should go **before** the encryption declaration:
+WARNING: When using serialized attributes for custom types, the declaration of the serialized attribute should go **before** the encryption declaration:
 
 ```ruby
 # CORRECT
@@ -171,7 +171,7 @@ class Article < ApplicationRecord
 end
 ```
 
-### Unique Constraints With Encrypted Data
+### Unique Constraints with Encrypted Data
 
 Unique constraints are only supported with deterministically encrypted data.
 
