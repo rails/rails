@@ -435,7 +435,7 @@ config.active_record.encryption.encryptor = MyEncryptor.new
 
 You can use [`with_encryption_context`](`https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context`) to override any of the properties of the encryption context.
 
-### Encryption Context With a Block of Code
+### Encryption Context with a Block of Code
 
 You can set an encryption context for a given block of code using `with_encryption_context`:
 
@@ -487,7 +487,7 @@ Key providers implement key management strategies. You can configure key provide
 
 #### DerivedSecretKeyProvider
 
-The [`DerivedSecretKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/DerivedSecretKeyProvider.html) key provider serves keys derived from the provided passwords using PBKDF2. This is the key provider configured by default.
+The [`DerivedSecretKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/DerivedSecretKeyProvider.html) serves keys derived from the provided passwords using PBKDF2. This is the key provider configured by default.
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::DerivedSecretKeyProvider.new(["some passwords", "to derive keys from. ", "These should be in", "credentials"])
