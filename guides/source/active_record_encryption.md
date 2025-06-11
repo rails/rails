@@ -287,7 +287,7 @@ class Article < ApplicationRecord
 end
 ```
 
-You can also configure the algorithm used for the compression. The default compressor is `Zlib`. You can implement your own compressor by creating a class or module that responds to `deflate` and `inflate` methods. For example:
+You can also configure the algorithm used for the compression. The default compressor is [`Zlib`](https://en.wikipedia.org/wiki/Zlib). You can implement your own compressor by creating a class or module that responds to `deflate` and `inflate` methods. For example:
 
 ```ruby
 require "zstd-ruby"
@@ -416,7 +416,7 @@ end
 
 An encryption context defines the encryption components that are used at a given moment. There is a default encryption context based on your global configuration, but you can also configure a custom context for a given attribute or when running a specific block of code.
 
-NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users should not have to care about them.
+NOTE: Encryption contexts are a flexible but advanced configuration mechanism. Most users would not need to use them.
 
 The main components of encryption contexts are:
 
@@ -500,7 +500,7 @@ NOTE: By default, `active_record.encryption` configures a `DerivedSecretKeyProvi
 
 #### EnvelopeEncryptionKeyProvider
 
-The [`EnvelopeEncryptionKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EnvelopeEncryptionKeyProvider.html) implements a simple [envelope encryption](https://cloud.google.com/kms/docs/envelope-encryption) strategy, where the data is encrypted with a key, which in turn is also encrypted.
+The [`EnvelopeEncryptionKeyProvider`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/EnvelopeEncryptionKeyProvider.html) implements a simple [envelope encryption](https://en.wikipedia.org/wiki/Hybrid_cryptosystem#Envelope_encryption) strategy, where the data is encrypted with a key, which in turn is also encrypted.
 
 The `EnvelopeEncryptionKeyProvider` generates a random key for each data encryption operation. It stores the data-key with the data itself. Then, the data-key is also encrypted with a primary key defined in the credential `active_record.encryption.primary_key`.
 
@@ -563,7 +563,9 @@ Active Record will use the key passed to `encrypts` to encrypt and decrypt the `
 
 ### Rotating Keys
 
-Active Record Encryption can work with lists of keys to support implementing key rotation schemes. In the example below, the *last key* is used for encrypting new content and all keys are tried when decrypting content until one works.
+Active Record Encryption can work with lists of keys to support implementing key rotation schemes. The reason to rotate keys may be as part of your organization's security policy or if you suspect a key may be compromised.
+
+In the example below, the *last key* is used for encrypting new content and all keys are tried when decrypting content until one works.
 
 ```yml
 active_record_encryption:
