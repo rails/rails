@@ -202,9 +202,9 @@ NOTE: If you want to ignore the case, make sure to use the `downcase` or `ignore
 
 #### Unique Indexes
 
-In order to support unique indexes on deterministically encrypted columns, you need to make sure that their ciphertexts don't change.
+In order to support unique indexes on deterministically encrypted columns, it’s important to ensure that a given plaintext always produces the same ciphertext. This consistency is what makes indexing and querying possible.
 
-One thing Rails does to help is that, by default, deterministic attributes will use the oldest available encryption scheme when multiple encryption schemes are configured.
+One thing Rails does to help is that, by default, deterministic attributes will use the oldest available encryption scheme when multiple encryption schemes are configured. This means it will stick to the same key and settings that were originally used, so the ciphertext remains stable.
 
 ```ruby
 class Person
@@ -216,7 +216,7 @@ In order for unique indexes to work, you will have to ensure that the encryption
 
 ### Filtering Params Named as Encrypted Columns
 
-Encrypted columns are configured to be automatically [filtered](configuring.html#config-filter-parameters) in Rails logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
+Encrypted columns are configured to be automatically [filtered](configuring.html#config-filter-parameters) out of the Rails logs. So sensitive information, like encrypted emails or credit card numbers, isn't stored in your logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
 
 ```ruby
 # config/applicaiton.rb
