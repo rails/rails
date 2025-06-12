@@ -22,10 +22,10 @@ Encrypting specific attributes at the application-level adds an additional secur
 
 Most importantly, this feature lets you explicitly define what data is sensitive in your code. This enables precise access control throughout your application and any connected services. For example, you can use tools like [console1984](https://github.com/basecamp/console1984) to restrict decrypted data access in the Rails console. You can also take advantage of automatic [parameter filtering](#filtering-params-named-as-encrypted-columns) for encrypted fields.
 
-NOTE: Encryption requires extra space because the encrypted value will be larger
-than the original value. This overhead is negligible at larger sizes. Active
-Record Encryption also uses compression by default, which can offer up to 30%
-storage savings over the unencrypted version for larger payloads.
+NOTE: Encryption requires extra storage space because the encrypted value will
+be larger than the original value. This overhead is negligible at larger sizes.
+Active Record Encryption also uses compression by default, which can offer up to
+30% storage savings over the unencrypted version for larger payloads.
 
 ## Setup
 
@@ -49,9 +49,19 @@ active_record_encryption:
   key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
 ```
 
-These values can be stored by copying and pasting the generated values into your existing [Rails credentials](/security.html#custom-credentials). Alternatively, these values can be configured from other sources, such as environment variables:
+These values can be stored by copying and pasting the generated values into your existing [Rails credentials](/security.html#custom-credentials). Then, you can set the credentials in a config file:
 
 ```ruby
+# config/appication.rb
+config.active_record.encryption.primary_key = Rails.application.credentials.dig(:active_record_encryption, :primary_key)
+config.active_record.encryption.deterministic_key = Rails.application.credentials.dig(:active_record_encryption, :deterministic_key)
+config.active_record.encryption.key_derivation_salt = Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt)
+```
+
+Alternatively, these values can be configured from other sources, such as environment variables:
+
+```ruby
+# config/application.rb
 config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
 config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
 config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
@@ -88,7 +98,7 @@ However, in the Rails console, the executed SQL looks like this:
 INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
 ```
 
-The value inserted is the encrypted text for `article.title`.
+The value inserted is the encrypted value for the `title` attribute.
 
 ### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
 
