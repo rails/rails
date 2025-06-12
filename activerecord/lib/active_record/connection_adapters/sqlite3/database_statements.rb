@@ -103,11 +103,23 @@ module ActiveRecord
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
-                  affected_rows = raw_connection.total_changes - total_changes_before_query
+
+                  affected_rows = if (raw_connection.total_changes - total_changes_before_query) > 0
+                    raw_connection.changes
+                  else
+                    0
+                  end
+
                   ActiveRecord::Result.empty(affected_rows: affected_rows)
                 else
                   rows = stmt.to_a
-                  affected_rows = raw_connection.total_changes - total_changes_before_query
+
+                  affected_rows = if (raw_connection.total_changes - total_changes_before_query) > 0
+                    raw_connection.changes
+                  else
+                    0
+                  end
+
                   ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
