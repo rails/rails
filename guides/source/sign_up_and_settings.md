@@ -1646,9 +1646,10 @@ You can now access the Store settings in production with your account.
 What's Next
 -----------
 
-Your e-commerce store has come a long ways. Users can now sign up and manage their accounts and Admins can manage products and the users for their store.
+You did it! Your e-commerce store now supports user sign up, account management, and an admin area for managing products and users.
 
 Here are a few ideas to build on to this:
+
 - Add shareable wishlists
 - Write more tests to ensure the application works correctly
 - Add payments to buy products
