@@ -57,11 +57,11 @@ config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTIO
 config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
 ```
 
-NOTE: These generated values are 32 bytes in length. If you generate these
-yourself, the minimum lengths you should use are 12 bytes for the primary key
-and 20 bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
-
 WARNING: It's recommended to use Rails built-in credentials support to store keys. If you set them manually via configuration properties, make sure you don't commit them with your code (e.g. use environment variables).
+
+NOTE: The generated values are 32 bytes in length. If you generate these
+yourself, the recommended minimum length is 12 bytes for the primary key
+and 20 bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 
 Once the keys are generated and stored, you can start using Active Record Encryption by declaring attributes to be encrypted.
 
@@ -218,7 +218,9 @@ In order for unique indexes to work, you will have to ensure that the encryption
 
 ### Filtering Params Named as Encrypted Columns
 
-Encrypted columns are configured to be automatically [filtered](configuring.html#config-filter-parameters) out of the Rails logs. So sensitive information, like encrypted emails or credit card numbers, isn't stored in your logs. In case you need to disable filtering of encrypted parameters, you can use the following configuration:
+Encrypted columns are configured to be automatically [filtered](configuring.html#config-filter-parameters) out of the Rails logs. So sensitive information, like encrypted emails or credit card numbers, isn't stored in your logs. For example, if you are filtering the `email` field, you will see something like this in the logs: `Parameters: {"email"=>"[FILTERED]", ...}`
+
+In case you need to disable filtering of encrypted parameters, you can use the following configuration:
 
 ```ruby
 # config/applicaiton.rb
@@ -231,7 +233,7 @@ When filtering is enabled, if you want to exclude specific columns from automati
 config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 ```
 
-NOTE: When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `Person#name`, the filter parameter will be `person.name`.
+NOTE: When generating the filter parameter, Rails will use the model name as a prefix. E.g: For `User#email`, the filter parameter will be `user.email`.
 
 ### Action Text
 
