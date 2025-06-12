@@ -2,6 +2,8 @@
 
     The storage service should be able to implement any method for calculating and
     validating checksums.
+    Add default_chunk_size configuration option to control amount of data to be processed
+    at a time while calculating checksums in an ActiveStorage::Service class.
 
     *Matt Pasquini*
 
