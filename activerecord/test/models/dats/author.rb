@@ -5,7 +5,7 @@ class DATS::Author < ActiveRecord::Base
   has_many :posts, class_name: "DATS::Post", dependent: :destroy
   has_many :deprecated_posts, class_name: "DATS::Post", dependent: :destroy, deprecated: true
 
-  has_many :comments, through: :posts, class_name: "DATS::Comment"
+  has_many :comments, through: :posts, class_name: "DATS::Comment", source: :comments
 
   has_many :deprecated_has_many, through: :posts, class_name: "DATS::Comment", source: :comments, deprecated: true
   has_many :deprecated_through, through: :deprecated_posts, class_name: "DATS::Comment", source: :comments
