@@ -75,10 +75,12 @@ class PostgresqlBitStringTest < ActiveRecord::PostgreSQLTestCase
 
     record.a_bit = "11111111"
     record.a_bit_varying = "0xF"
+    record.another_bit_varying = "0x0010"
     record.save!
 
     assert record.reload
     assert_equal "11111111", record.a_bit
     assert_equal "1111", record.a_bit_varying
+    assert_equal "0000000000010000", record.another_bit_varying
   end
 end
