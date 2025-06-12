@@ -155,7 +155,9 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_remote
-    actual = form_tag({}, { remote: true })
+    actual = ActionView.deprecator.silence do
+      form_tag({}, { remote: true })
+    end
 
     expected = whole_form("http://www.example.com", remote: true)
     assert_dom_equal expected, actual
@@ -700,23 +702,63 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_empty_submit_tag_with_opt_out
-    ActionView::Base.automatically_disable_submit_tag = false
+    ActionView.deprecator.silence do
+      ActionView::Base.automatically_disable_submit_tag = false
+    end
     assert_dom_equal(
       %(<input name='commit' type="submit" value="Save" />),
       submit_tag("Save")
     )
   ensure
-    ActionView::Base.automatically_disable_submit_tag = true
+    ActionView.deprecator.silence do
+      ActionView::Base.automatically_disable_submit_tag = true
+    end
   end
 
   def test_empty_submit_tag_with_opt_out_and_explicit_disabling
-    ActionView::Base.automatically_disable_submit_tag = false
+    ActionView.deprecator.silence do
+      ActionView::Base.automatically_disable_submit_tag = false
+    end
     assert_dom_equal(
       %(<input name='commit' type="submit" value="Save" />),
       submit_tag("Save", data: { disable_with: false })
     )
   ensure
-    ActionView::Base.automatically_disable_submit_tag = true
+    ActionView.deprecator.silence do
+      ActionView::Base.automatically_disable_submit_tag = true
+    end
+  end
+
+  def test_automatically_disable_submit_tag_is_deprecated
+    old_value = ActionView::Base.automatically_disable_submit_tag
+
+    msg = <<~MSG.squish
+      `ActionView::Base.automatically_disable_submit_tag=` is deprecated and will be removed in Rails 8.2.
+      Please use `actionview-remote-form-helpers` gem instead.
+    MSG
+    assert_deprecated(msg, ActionView.deprecator) do
+      ActionView::Base.automatically_disable_submit_tag = nil
+    end
+  ensure
+    ActionView.deprecator.silence do
+      ActionView::Base.automatically_disable_submit_tag = old_value
+    end
+  end
+
+  def test_embed_authenticity_token_in_remote_forms_is_deprecated
+    old_value = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+
+    msg = <<~MSG.squish
+      `ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms=` is deprecated and will be removed in Rails 8.2.
+      Please use `actionview-remote-form-helpers` gem instead.
+    MSG
+    assert_deprecated(msg, ActionView.deprecator) do
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = nil
+    end
+  ensure
+    ActionView.deprecator.silence do
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = old_value
+    end
   end
 
   def test_submit_tag_having_data_disable_with_string
