@@ -2,6 +2,8 @@
 
 # DATS = Deprecated Associations Test Suite.
 class DATS::Post < ActiveRecord::Base
+  self.inheritance_column = nil
+
   belongs_to :author
 
   has_many :comments, class_name: "DATS::Comment"
