@@ -1740,8 +1740,8 @@ class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
       @author.comments
     end
 
-    assert_deprecated_association(:deprecated_has_many) do
-      @author.deprecated_has_many
+    assert_deprecated_association(:deprecated_has_many_through) do
+      @author.deprecated_has_many_through
     end
   end
 

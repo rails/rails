@@ -494,8 +494,8 @@ class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase
       @author.comment
     end
 
-    assert_deprecated_association(:deprecated_has_one) do
-      @author.deprecated_has_one
+    assert_deprecated_association(:deprecated_has_one_through) do
+      @author.deprecated_has_one_through
     end
   end
 

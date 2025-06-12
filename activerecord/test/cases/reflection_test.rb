@@ -33,6 +33,7 @@ require "models/sharded/comment"
 require "models/admin"
 require "models/admin/user"
 require "models/user"
+require "models/dats"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -714,5 +715,57 @@ class ReflectionTest < ActiveRecord::TestCase
       options.each do |method, value|
         assert_equal(value, reflection.public_send(method))
       end
+    end
+end
+
+
+class DeprecatedReflectionsTest < ActiveRecord::TestCase
+
+  test "has_many" do
+    assert_non_deprecated_reflection DATS::Author, :posts
+    assert_deprecated_reflection DATS::Author, :deprecated_posts
+  end
+
+  test "has_one" do
+    assert_non_deprecated_reflection DATS::Author, :post
+    assert_deprecated_reflection DATS::Author, :deprecated_post
+  end
+
+  test "has_many :through" do
+    assert_non_deprecated_reflection DATS::Author, :comments
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_many_through
+    assert_deprecated_reflection DATS::Author, :deprecated_all
+  end
+
+  test "has_one :through" do
+    assert_non_deprecated_reflection DATS::Author, :comment
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through1
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source1
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_one_through # it is through
+    assert_deprecated_reflection DATS::Author, :deprecated_all1 # it is through
+  end
+
+  test "belongs_to" do
+    assert_non_deprecated_reflection DATS::Bulb, :car
+    assert_deprecated_reflection DATS::Bulb, :deprecated_car
+  end
+
+  test "has_and_belongs_to_many" do
+    assert_non_deprecated_reflection DATS::Category, :posts
+    assert_deprecated_reflection DATS::Category, :deprecated_posts
+  end
+
+  private
+
+    def assert_non_deprecated_reflection(model, name)
+      assert_not_predicate model.reflect_on_association(name), :deprecated?
+    end
+
+    def assert_deprecated_reflection(model, name)
+      assert_predicate model.reflect_on_association(name), :deprecated?
     end
 end

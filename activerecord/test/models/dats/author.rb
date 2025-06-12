@@ -7,7 +7,7 @@ class DATS::Author < ActiveRecord::Base
 
   has_many :comments, through: :posts, class_name: "DATS::Comment", source: :comments
 
-  has_many :deprecated_has_many, through: :posts, class_name: "DATS::Comment", source: :comments, deprecated: true
+  has_many :deprecated_has_many_through, through: :posts, class_name: "DATS::Comment", source: :comments, deprecated: true
   has_many :deprecated_through, through: :deprecated_posts, class_name: "DATS::Comment", source: :comments
   has_many :deprecated_source, through: :posts, class_name: "DATS::Comment", source: :deprecated_comments
   has_many :deprecated_all, through: :deprecated_posts, class_name: "DATS::Comment", source: :deprecated_comments, deprecated: true
@@ -20,7 +20,7 @@ class DATS::Author < ActiveRecord::Base
   has_one :deprecated_post, class_name: "DATS::Post", deprecated: true
   has_one :comment, through: :post, class_name: "DATS::Comment", source: :comment
 
-  has_one :deprecated_has_one, through: :post, class_name: "DATS::Comment", source: :comment, deprecated: true
+  has_one :deprecated_has_one_through, through: :post, class_name: "DATS::Comment", source: :comment, deprecated: true
   has_one :deprecated_through1, through: :deprecated_post, class_name: "DATS::Comment", source: :comment
   has_one :deprecated_source1, through: :post, class_name: "DATS::Comment", source: :deprecated_comment
   has_one :deprecated_all1, through: :deprecated_post, class_name: "DATS::Comment", source: :deprecated_comment, deprecated: true
