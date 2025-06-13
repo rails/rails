@@ -101,8 +101,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_readers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).reader
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.reader
         end
       CODE
     end
@@ -110,8 +111,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_writers(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}=(value)
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).writer(value)
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.writer(value)
         end
       CODE
     end
@@ -168,13 +170,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    def self.generate_code_to_guard_deprecated_access(reflection)
-      ActiveRecord::Associations::Deprecation.generate_code_to_guard_deprecated_access(reflection)
-    end
-
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
       :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
-      :add_destroy_callbacks, :add_after_commit_jobs_callback, :generate_code_to_guard_deprecated_access
+      :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
 end

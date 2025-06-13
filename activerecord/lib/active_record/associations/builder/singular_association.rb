@@ -16,13 +16,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def reload_#{reflection.name}
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).force_reload_reader
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.force_reload_reader
         end
 
         def reset_#{reflection.name}
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).reset
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.reset
         end
       CODE
     end
@@ -31,18 +33,21 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_constructors(mixin, reflection)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def build_#{reflection.name}(*args, &block)
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).build(*args, &block)
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.build(*args, &block)
         end
 
         def create_#{reflection.name}(*args, &block)
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).create(*args, &block)
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.create(*args, &block)
         end
 
         def create_#{reflection.name}!(*args, &block)
-          #{generate_code_to_guard_deprecated_access(reflection)}
-          association(:#{reflection.name}).create!(*args, &block)
+          association = association(:#{reflection.name})
+          ActiveRecord::Associations::Deprecation.guard_association(association)
+          association.create!(*args, &block)
         end
       CODE
     end

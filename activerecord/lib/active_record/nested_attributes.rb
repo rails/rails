@@ -388,7 +388,8 @@ module ActiveRecord
           generated_association_methods.module_eval <<-eoruby, __FILE__, __LINE__ + 1
             silence_redefinition_of_method :#{reflection.name}_attributes=
             def #{reflection.name}_attributes=(attributes)
-              #{Associations::Deprecation.generate_code_to_guard_deprecated_access(reflection)}
+              association = association(:#{reflection.name})
+              ActiveRecord::Associations::Deprecation.guard_association(association)
               assign_nested_attributes_for_#{type}_association(:#{reflection.name}, attributes)
             end
           eoruby
