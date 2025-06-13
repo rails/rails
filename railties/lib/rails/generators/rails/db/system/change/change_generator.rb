@@ -12,7 +12,7 @@ module Rails
           include AppName
 
           BASE_PACKAGES = %w( curl libvips )
-          BUILD_PACKAGES = %w( build-essential git )
+          BUILD_PACKAGES = %w( gcc g++ make git )
 
           class_option :to, required: true,
             desc: "The database system to switch to."

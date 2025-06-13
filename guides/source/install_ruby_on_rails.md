@@ -57,7 +57,7 @@ Open Terminal and run the following commands:
 ```bash
 # Install dependencies with apt
 $ sudo apt update
-$ sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev
+$ sudo apt install gcc g++ make rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev
 
 # Install Mise version manager
 $ curl https://mise.run | sh
@@ -89,7 +89,7 @@ Then run the following commands:
 ```bash
 # Install dependencies with apt
 $ sudo apt update
-$ sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev
+$ sudo apt install gcc g++ make rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev
 
 # Install Mise version manager
 $ curl https://mise.run | sh
