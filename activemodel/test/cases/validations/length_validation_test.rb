@@ -19,8 +19,26 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new("title" => "abcde"), :valid?
   end
 
+  def test_validates_length_of_with_ignore_if_nil_alias
+    Topic.validates_length_of(:title, is: 5, ignore_if_nil: true)
+
+    assert_predicate Topic.new("title" => "ab"), :invalid?
+    assert_predicate Topic.new("title" => ""), :invalid?
+    assert_predicate Topic.new("title" => nil), :valid?
+    assert_predicate Topic.new("title" => "abcde"), :valid?
+  end
+
   def test_validates_length_of_with_allow_blank
     Topic.validates_length_of(:title, is: 5, allow_blank: true)
+
+    assert_predicate Topic.new("title" => "ab"), :invalid?
+    assert_predicate Topic.new("title" => ""), :valid?
+    assert_predicate Topic.new("title" => nil), :valid?
+    assert_predicate Topic.new("title" => "abcde"), :valid?
+  end
+
+  def test_validates_length_of_with_ignore_if_blank_alias
+    Topic.validates_length_of(:title, is: 5, ignore_if_blank: true)
 
     assert_predicate Topic.new("title" => "ab"), :invalid?
     assert_predicate Topic.new("title" => ""), :valid?

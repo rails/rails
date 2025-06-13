@@ -105,6 +105,14 @@ class InclusionValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new("title" => nil,  "content" => "abc"), :valid?
   end
 
+  def test_validates_inclusion_of_with_ignore_if_nil_alias
+    Topic.validates_inclusion_of(:title, in: %w( a b c d e f g ), ignore_if_nil: true)
+
+    assert_predicate Topic.new("title" => "a!", "content" => "abc"), :invalid?
+    assert_predicate Topic.new("title" => "",   "content" => "abc"), :invalid?
+    assert_predicate Topic.new("title" => nil,  "content" => "abc"), :valid?
+  end
+
   def test_validates_inclusion_of_with_formatted_message
     Topic.validates_inclusion_of(:title, in: %w( a b c d e f g ), message: "option %{value} is not in the list")
 
