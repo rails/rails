@@ -104,7 +104,7 @@ module ActiveRecord
                 result = if stmt.column_count.zero? # No return
                   stmt.step
 
-                  affected_rows = if (raw_connection.total_changes - total_changes_before_query) > 0
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
                     raw_connection.changes
                   else
                     0
@@ -114,7 +114,7 @@ module ActiveRecord
                 else
                   rows = stmt.to_a
 
-                  affected_rows = if (raw_connection.total_changes - total_changes_before_query) > 0
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
                     raw_connection.changes
                   else
                     0
