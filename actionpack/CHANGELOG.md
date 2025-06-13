@@ -385,4 +385,8 @@
 
     *Petrik de Heus*
 
+*   Omit `charset=utf-8` for `Content-Type: application/json`, per IANA spec (#55063) – @rebase-master
+
+    *Mansoor Khan*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionpack/CHANGELOG.md) for previous changes.
