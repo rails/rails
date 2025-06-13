@@ -13,3 +13,12 @@ mark:
 
 1:
   catchphrase: "#$LABEL pirate!"
+
+jack_sparrow:
+  catchphrase: You almost cacth $LABEL(titleize)
+
+henry_morgan:
+  catchphrase: $LABEL(dasherize.capitalize)-catchphrase
+
+henry_avery:
+  catchphrase: $LABEL()_treasure

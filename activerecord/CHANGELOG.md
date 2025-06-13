@@ -1,3 +1,16 @@
+*   Fixture label modifiers
+
+    Label on fixtures can be transformed using a chain of string methods:
+
+    ```yml
+    john_doe:
+        slug: $LABEL(titleize)                 # => "John Doe"
+        username: $LABEL(dasherize.capitalize) # => "John-doe"
+        raw_label: $LABEL()                    # => "john_doe" (same as $LABEL)
+    ```
+
+    *Jose Carlos Arenas*
+
 *   Add ability to change transaction isolation for all pools within a block.
 
     This functionality is useful if your application needs to change the database
