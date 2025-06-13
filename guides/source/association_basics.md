@@ -605,8 +605,16 @@ end
 ##### Saving Behavior of Associated Objects
 
 When you assign an object to a `has_one` association, that object is
-automatically saved to update its foreign key. Additionally, any object being
-replaced is also automatically saved, as its foreign key will change too.
+automatically saved to update its foreign key. If there is an existing
+associated object being replaced, the way the previous association is removed
+and saved depends on the `:dependent` option set on the association. For
+example, if `dependent: :destroy` is specified, the previous associated object
+will be destroyed by calling its `destroy` method. If `dependent: :delete` is
+specified, it will be deleted directly from the database. If no `:dependent`
+option is set, the foreign key on the previous associated object will be set to
+`NULL`. In all cases, the previous associated object is also saved as needed to
+reflect the change in association. This ensures that the removal of the
+previous association is handled according to your configuration.
 
 If either of these saves fails due to validation errors, the assignment
 statement returns `false`, and the assignment itself is canceled.
