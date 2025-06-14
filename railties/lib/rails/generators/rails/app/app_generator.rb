@@ -2,6 +2,7 @@
 
 require "rails/generators/app_base"
 require "rails/generators/rails/devcontainer/devcontainer_generator"
+require "rails/generators/rails/github/ci_generator"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -84,9 +85,19 @@ module Rails
     end
 
     def cifiles
-      empty_directory ".github/workflows"
-      template "github/ci.yml", ".github/workflows/ci.yml"
-      template "github/dependabot.yml", ".github/dependabot.yml"
+      cifiles_options = {
+        bun_version: dockerfile_bun_version,
+        ci_packages: ci_packages,
+        database: options[:database],
+        quiet: options[:quiet],
+        skip_brakeman: skip_brakeman?,
+        skip_rubocop: skip_rubocop?,
+        skip_test: options[:skip_test],
+        skip_system_test: options[:api] || options[:skip_system_test],
+        skip_importmap: !using_importmap?,
+        skip_bun: !using_bun?,
+      }
+      Rails::Generators::Github::CiGenerator.new([], cifiles_options).invoke_all
     end
 
     def rubocop

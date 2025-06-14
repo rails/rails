@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
+require "active_support/core_ext/string/inquiry"
 require "rails/generators"
 require "rails/generators/test_case"
 require "rails/generators/app_base"
@@ -103,6 +104,14 @@ module GeneratorsTestHelper
     File.write File.join(destination, "compose.yaml"), compose_yaml
   end
 
+  def copy_ci_files
+    destination = File.join(destination_root, ".github/workflows")
+    mkdir_p(destination)
+
+    ci_yml = File.read(File.expand_path("../fixtures/.github/workflows/ci.yml", __dir__))
+    File.write File.join(destination, "ci.yml"), ci_yml
+  end
+
   def copy_minimal_devcontainer_compose_file
     destination = File.join(destination_root, ".devcontainer")
     mkdir_p(destination)
@@ -128,6 +137,12 @@ module GeneratorsTestHelper
 
   def assert_compose_file
     assert_file ".devcontainer/compose.yaml" do |content|
+      yield YAML.load(content)
+    end
+  end
+
+  def assert_ci_file
+    assert_file ".github/workflows/ci.yml" do |content|
       yield YAML.load(content)
     end
   end
