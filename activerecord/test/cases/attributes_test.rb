@@ -357,9 +357,11 @@ module ActiveRecord
     end
 
     test "attributes do not require a connection is established" do
-      assert_not_called(ActiveRecord::Base, :lease_connection) do
-        Class.new(OverloadedType) do
-          attribute :foo, :string
+      ActiveRecord::Base.stub(:connection_db_config, -> { raise ActiveRecord::ConnectionNotDefined }) do
+        assert_nothing_raised do
+          Class.new(OverloadedType) do
+            attribute :foo, :string
+          end
         end
       end
     end

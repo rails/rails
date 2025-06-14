@@ -48,6 +48,8 @@ module ActiveRecord
 
       def adapter_name_from(model) # :nodoc:
         model.connection_db_config.adapter.to_sym
+      rescue ActiveRecord::ConnectionNotDefined
+        nil
       end
 
       private
