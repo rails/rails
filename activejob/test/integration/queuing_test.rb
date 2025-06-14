@@ -34,8 +34,8 @@ class QueuingTest < ActiveSupport::TestCase
     test "should supply a wrapped class name to Sidekiq" do
       Sidekiq::Testing.fake! do
         ::HelloJob.perform_later
-        hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
-        assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash["class"]
+        hash = Sidekiq::ActiveJob::Wrapper.jobs.first
+        assert_equal "Sidekiq::ActiveJob::Wrapper", hash["class"]
         assert_equal "HelloJob", hash["wrapped"]
       end
     end
