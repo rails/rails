@@ -359,6 +359,10 @@ module Rails
           if respond_to?(:action_controller)
             action_controller.escape_json_responses = false
           end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
