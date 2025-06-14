@@ -708,10 +708,9 @@ class ProcessImportJob < ApplicationJob
   end
 
   private
-
-  def finalize
-    @import.finalize
-  end
+    def finalize
+      @import.finalize
+    end
 end
 ```
 Each step runs sequentially. If the job is interrupted between steps, or within a
