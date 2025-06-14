@@ -673,13 +673,14 @@ number as more important.
 
 Job Continuations
 -----------------
+
 Jobs can be split into resumable steps using continuations. This is useful when
-a job may be interrupted - for example, during queue shutdown. When using 
-continuations, the job can resume from the last completed step, avoiding the 
+a job may be interrupted - for example, during queue shutdown. When using
+continuations, the job can resume from the last completed step, avoiding the
 need to restart from the beginning.
 
-To use continuations, include the `ActiveJob::Continuable` module. You can then 
-define each step using the `step` method inside the `perform` method. Each step can 
+To use continuations, include the `ActiveJob::Continuable` module. You can then
+define each step using the `step` method inside the `perform` method. Each step can
 be declared with a block or by referencing a method name.
 
 ```ruby
@@ -713,9 +714,10 @@ class ProcessImportJob < ApplicationJob
     end
 end
 ```
+
 Each step runs sequentially. If the job is interrupted between steps, or within a
-step that uses a cursor, the job resumes from the last recorded position. This 
-makes it easier to build long-running or multi-phase jobs that can safely pause 
+step that uses a cursor, the job resumes from the last recorded position. This
+makes it easier to build long-running or multi-phase jobs that can safely pause
 and resume without losing progress.
 For more details, see [ActiveJob::Continuable](https://edgeapi.rubyonrails.org/classes/ActiveJob/Continuation.html).
 
