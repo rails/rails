@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
@@ -2483,6 +2484,15 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `config.action_view.render_tracker`
+
+Configures the strategy for tracking dependencies between Action View templates.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:regex`             |
+| 8.1                   | `:ruby`              |
 
 ### Configuring Action Mailbox
 
