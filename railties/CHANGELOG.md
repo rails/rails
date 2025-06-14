@@ -1,3 +1,12 @@
+*   Fix an isuue that create and update occur ParameterMissing when creating a scaffold with the force_plural option enabled.
+
+    *steiley*
+
+
+*   Fix an issue that a RoutingError occurs when creating a scaffold with the force_plural option enabled.
+
+    *steiley*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*

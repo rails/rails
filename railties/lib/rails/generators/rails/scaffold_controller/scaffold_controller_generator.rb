@@ -51,6 +51,10 @@ module Rails
           attribute = attributes.find { |attr| attr.name == name }
           attribute&.attachments?
         end
+
+        def force_plural
+          options[:force_plural]
+        end
     end
   end
 end
