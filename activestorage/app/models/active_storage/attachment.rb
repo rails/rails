@@ -33,7 +33,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later, :transform_variants_later
+  after_create_commit :mirror_blob_later, :analyze_blob_later, :create_variants
   after_destroy_commit :purge_dependent_blob_later
 
   ##
@@ -131,20 +131,23 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       blob.mirror_later
     end
 
-    def transform_variants_later
-      preprocessed_variations = named_variants.filter_map { |_name, named_variant|
-        if named_variant.preprocessed?(record)
-          named_variant.transformations
-        end
-      }
+    def create_variants
+      return unless representable?
 
-      if blob.preview_image_needed_before_processing_variants? && preprocessed_variations.any?
-        blob.create_preview_image_later(preprocessed_variations)
-      else
-        preprocessed_variations.each do |transformations|
-          blob.preprocessed(transformations)
+      immediate_transformations = []
+      delayed_transformations = []
+
+      named_variants.each do |_name, named_variant|
+        case named_variant.generation(record)
+        when :immediate
+          immediate_transformations << named_variant.transformations
+        when :delayed
+          delayed_transformations << named_variant.transformations
         end
       end
+
+      ActiveStorage::CreateVariantsJob.perform_now(blob, transformations: immediate_transformations, generate: :immediate) if immediate_transformations.any?
+      ActiveStorage::CreateVariantsJob.perform_later(blob, transformations: delayed_transformations, generate: :delayed) if delayed_transformations.any?
     end
 
     def purge_dependent_blob_later
