@@ -1233,16 +1233,32 @@ module ActiveRecord
       self
     end
 
-    # Specifies locking settings (default to +true+). For more information
+    # Specifies locking settings (defaults to `"FOR UPDATE"`). For more information
     # on locking, please see ActiveRecord::Locking.
-    def lock(locks = true)
-      spawn.lock!(locks)
+    def lock(lock = (lock_not_given = "FOR UPDATE"))
+      unless lock_not_given || lock.is_a?(String)
+        ActiveRecord.deprecator.warn(<<~MSG)
+          Passing a non-`String` argument to `lock` is deprecated and will be removed in Rails 8.2.
+          Use `lock` without arguments, or with a custom lock statement to specify the lock type,
+          and `unscope_lock` to unspecify the lock.
+        MSG
+      end
+
+      spawn.lock!(lock)
     end
 
-    def lock!(locks = true) # :nodoc:
-      case locks
-      when String, TrueClass, NilClass
-        self.lock_value = locks || true
+    # Unspecifies locking settings. For more information on locking, please see
+    # ActiveRecord::Locking.
+    def unscope_lock
+      spawn.lock!(false)
+    end
+
+    def lock!(lock = "FOR UPDATE") # :nodoc:
+      case lock
+      when String
+        self.lock_value = lock
+      when TrueClass, NilClass
+        self.lock_value = "FOR UPDATE"
       else
         self.lock_value = false
       end
@@ -1300,14 +1316,26 @@ module ActiveRecord
     #   users = User.readonly
     #   users.first.save
     #   # => ActiveRecord::ReadOnlyRecord: User is marked as readonly
+    def readonly(value = (value_not_given = true))
+      unless value_not_given
+        ActiveRecord.deprecator.warn(<<~MSG)
+          Passing an argument to `readonly` is deprecated and will be removed in Rails 8.2.
+          Use `readonly` without arguments to mark as readonly, and `unscope_readonly`
+          to unmark as readonly.
+        MSG
+      end
+
+      spawn.readonly!(value)
+    end
+
+    # Unmark a relation as readonly. Attempting to update a record will no longer
+    # result in an error.
     #
-    # To make a readonly relation writable, pass +false+.
-    #
-    #   users.readonly(false)
+    #   users = User.readonly.unscope_readonly
     #   users.first.save
     #   # => true
-    def readonly(value = true)
-      spawn.readonly!(value)
+    def unscope_readonly
+      spawn.readonly!(false)
     end
 
     def readonly!(value = true) # :nodoc:
@@ -1321,8 +1349,26 @@ module ActiveRecord
     #   user = User.strict_loading.first
     #   user.comments.to_a
     #   # => ActiveRecord::StrictLoadingViolationError
-    def strict_loading(value = true)
+    def strict_loading(value = (value_not_given = true))
+      unless value_not_given
+        ActiveRecord.deprecator.warn(<<~MSG)
+          Passing an argument to `strict_loading` is deprecated and will be removed in Rails 8.2.
+          Use `strict_loading` without arguments to set strict_loading mode, and `unscope_strict_loading`
+          to unset strict_loading mode.
+        MSG
+      end
+
       spawn.strict_loading!(value)
+    end
+
+    # Unsets the returned relation from strict_loading mode. This will not raise
+    # an error if the record tries to lazily load an association.
+    #
+    #   user = User.strict_loading.unscope_strict_loading.first
+    #   user.comments.to_a
+    #   # => []
+    def unscope_strict_loading
+      spawn.strict_loading!(false)
     end
 
     def strict_loading!(value = true) # :nodoc:
@@ -1404,11 +1450,24 @@ module ActiveRecord
     #
     #   User.select(:name).distinct
     #   # Returns 1 record per distinct name
-    #
-    #   User.select(:name).distinct.distinct(false)
-    #   # You can also remove the uniqueness
-    def distinct(value = true)
+    def distinct(value = (value_not_given = true))
+      unless value_not_given
+        ActiveRecord.deprecator.warn(<<~MSG)
+          Passing an argument to `distinct` is deprecated and will be removed in Rails 8.2.
+          Use `distinct` without arguments to specify uniqueness, and `unscope_distinct`
+          to remove the uniqueness.
+        MSG
+      end
+
       spawn.distinct!(value)
+    end
+
+    # Removes the uniqueness constraint from the relation.
+    #
+    #   User.select(:name).distinct.unscope_distinct
+    #   # Returns all records, including duplicates
+    def unscope_distinct
+      spawn.distinct!(false)
     end
 
     # Like #distinct, but modifies relation in place.

@@ -80,18 +80,18 @@ class ReadOnlyTest < ActiveRecord::TestCase
   def test_find_with_readonly_option
     Developer.all.each { |d| assert_not d.readonly? }
     Developer.all.tap { |rel| assert_not rel.readonly? }
-    Developer.readonly(false).each { |d| assert_not d.readonly? }
-    Developer.readonly(true).each { |d| assert_predicate d, :readonly? }
+    Developer.unscope_readonly.each { |d| assert_not d.readonly? }
+    Developer.readonly.each { |d| assert_predicate d, :readonly? }
     Developer.readonly.each { |d| assert_predicate d, :readonly? }
     Developer.readonly.tap { |rel| assert_predicate rel, :readonly? }
   end
 
   def test_find_with_joins_option_does_not_imply_readonly
     Developer.joins("  ").each { |d| assert_not d.readonly? }
-    Developer.joins("  ").readonly(true).each { |d| assert_predicate d, :readonly? }
+    Developer.joins("  ").readonly.each { |d| assert_predicate d, :readonly? }
 
     Developer.joins(", projects").each { |d| assert_not d.readonly? }
-    Developer.joins(", projects").readonly(true).each { |d| assert_predicate d, :readonly? }
+    Developer.joins(", projects").readonly.each { |d| assert_predicate d, :readonly? }
   end
 
   def test_has_many_find_readonly
@@ -99,7 +99,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
     assert_not_empty post.comments
     assert_not post.comments.any?(&:readonly?)
     assert_not post.comments.to_a.any?(&:readonly?)
-    assert post.comments.readonly(true).all?(&:readonly?)
+    assert post.comments.readonly.all?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly
@@ -122,26 +122,26 @@ class ReadOnlyTest < ActiveRecord::TestCase
   def test_readonly_scoping
     Post.where("1=1").scoping do
       assert_not_predicate Post.find(1), :readonly?
-      assert_predicate Post.readonly(true).find(1), :readonly?
-      assert_not_predicate Post.readonly(false).find(1), :readonly?
+      assert_predicate Post.readonly.find(1), :readonly?
+      assert_not_predicate Post.unscope_readonly.find(1), :readonly?
     end
 
     Post.joins("   ").scoping do
       assert_not_predicate Post.find(1), :readonly?
       assert_predicate Post.readonly.find(1), :readonly?
-      assert_not_predicate Post.readonly(false).find(1), :readonly?
+      assert_not_predicate Post.unscope_readonly.find(1), :readonly?
     end
 
     Post.joins(", developers").scoping do
       assert_not_predicate Post.find(1), :readonly?
       assert_predicate Post.readonly.find(1), :readonly?
-      assert_not_predicate Post.readonly(false).find(1), :readonly?
+      assert_not_predicate Post.unscope_readonly.find(1), :readonly?
     end
 
-    Post.readonly(true).scoping do
+    Post.readonly.scoping do
       assert_predicate Post.find(1), :readonly?
       assert_predicate Post.readonly.find(1), :readonly?
-      assert_not_predicate Post.readonly(false).find(1), :readonly?
+      assert_not_predicate Post.unscope_readonly.find(1), :readonly?
     end
   end
 
