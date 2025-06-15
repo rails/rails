@@ -30,6 +30,30 @@ module ActionController
     included do
       class_attribute :_renderers, default: Set.new.freeze
       class_attribute :escape_json_responses, instance_accessor: false, default: true
+
+      redefine_method :escape_json_responses= do |value|
+        if value
+          ActionController.deprecator.warn(<<~MSG.squish)
+            Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+            Set it to `false`, or remove the config.
+          MSG
+        end
+        namespaced_name = :"__class_attr_escape_json_responses"
+        self.class.send(:"#{namespaced_name}=", value)
+      end
+
+      class << self
+        redefine_method :escape_json_responses= do |value|
+          if value
+            ActionController.deprecator.warn(<<~MSG.squish)
+              Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+              Set it to `false` or remove the config.
+            MSG
+          end
+          namespaced_name = :"__class_attr_escape_json_responses"
+          self.send(:"#{namespaced_name}=", value)
+        end
+      end
     end
 
     # Used in ActionController::Base and ActionController::API to include all

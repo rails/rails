@@ -356,7 +356,7 @@ module Rails
           # faster in these environments.
           self.yjit = !Rails.env.local?
 
-          if respond_to?(:action_controller)
+          ActionController.deprecator.silence do
             action_controller.escape_json_responses = false
           end
         else
