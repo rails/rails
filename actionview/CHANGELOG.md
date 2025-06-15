@@ -1,3 +1,7 @@
+*   Make `nonce: false` remove the nonce attribute from `javascript_tag`, `javascript_include_tag`, and `stylesheet_link_tag`.
+
+    *francktrouillez*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
