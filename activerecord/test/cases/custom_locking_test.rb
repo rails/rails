@@ -14,6 +14,13 @@ module ActiveRecord
           Person.all.merge!(lock: "LOCK IN SHARE MODE").find(1)
         end
       end
+
+      def test_custom_lock_with_unscope_lock
+        assert_no_match "SHARE MODE", Person.lock("LOCK IN SHARE MODE").unscope_lock.to_sql
+        assert_no_queries_match(/LOCK IN SHARE MODE/) do
+          Person.all.merge!(lock: "LOCK IN SHARE MODE").unscope_lock.find(1)
+        end
+      end
     end
   end
 end

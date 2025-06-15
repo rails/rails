@@ -13,11 +13,11 @@ module ActiveRecord
       :destroy, :destroy_all, :delete, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
       :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
-      :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
+      :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :unscope_lock, :readonly, :unscope_readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
-      :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
+      :having, :create_with, :distinct, :unscope_distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with, :with_recursive,
+      :pluck, :pick, :ids, :async_ids, :strict_loading, :unscope_strict_loading, :excluding, :without, :with, :with_recursive,
       :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
       :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
     ].freeze # :nodoc:
