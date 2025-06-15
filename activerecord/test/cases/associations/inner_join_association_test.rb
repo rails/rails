@@ -144,8 +144,8 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
-  def test_find_with_implicit_inner_joins_honors_readonly_false
-    authors = Author.joins(:posts).readonly(false).to_a
+  def test_find_with_implicit_inner_joins_honors_unscope_readonly
+    authors = Author.joins(:posts).unscope_readonly.to_a
     assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end

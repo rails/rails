@@ -1808,7 +1808,7 @@ You can also remove the uniqueness constraint:
 query = Customer.select(:last_name).distinct
 
 # Returns a list of all last_names, even if there are duplicates
-query.distinct(false)
+query.unscope_distinct
 ```
 
 Grouping Records
