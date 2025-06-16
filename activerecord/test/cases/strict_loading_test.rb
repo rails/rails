@@ -613,6 +613,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_does_not_raise_when_checking_if_new_record_included_in_eager_loaded_habtm_relation
+    Developer.first.projects << Project.first
+
+    developer = Developer.includes(:projects).strict_loading.first
+
+    assert_nothing_raised { developer.projects.include?(Project.new) }
+  end
+
   def test_strict_loading_violation_raises_by_default
     assert_equal :raise, ActiveRecord.action_on_strict_loading_violation
 
