@@ -259,10 +259,10 @@ module ActiveRecord
         klass = reflection.klass
         return false unless record.is_a?(klass)
 
-        if record.new_record?
-          include_in_memory?(record)
-        elsif loaded?
+        if loaded?
           target.include?(record)
+        elsif record.new_record?
+          include_in_memory?(record)
         else
           record_id = klass.composite_primary_key? ? klass.primary_key.zip(record.id).to_h : record.id
           scope.exists?(record_id)
