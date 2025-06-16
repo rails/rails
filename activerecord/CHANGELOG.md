@@ -1,3 +1,8 @@
+*   Fix checking whether an unpersisted record is `include?`d in a strictly
+    loaded `has_and_belongs_to_many` association.
+
+    *Hartley McGuire*
+
 *   `create_or_find_by` will now correctly rollback a transaction.
 
     When using `create_or_find_by`, raising a ActiveRecord::Rollback error
