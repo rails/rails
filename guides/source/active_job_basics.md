@@ -719,7 +719,7 @@ Each step runs sequentially. If the job is interrupted between steps, or within 
 step that uses a cursor, the job resumes from the last recorded position. This
 makes it easier to build long-running or multi-phase jobs that can safely pause
 and resume without losing progress.
-For more details, see [ActiveJob::Continuable](https://edgeapi.rubyonrails.org/classes/ActiveJob/Continuation.html).
+For more details, see [ActiveJob::Continuable](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
 
 Callbacks
 ---------
