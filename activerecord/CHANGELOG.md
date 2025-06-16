@@ -1,3 +1,8 @@
+*   Fix checking whether an unpersisted record is `include?`d in a strictly
+    loaded `has_and_belongs_to_many` association.
+
+    *Hartley McGuire*
+
 *   Add ability to change transaction isolation for all pools within a block.
 
     This functionality is useful if your application needs to change the database
