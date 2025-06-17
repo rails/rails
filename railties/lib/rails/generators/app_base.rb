@@ -540,20 +540,27 @@ module Rails
       end
 
       def dockerfile_yarn_version
-        using_node? and `yarn --version`[/\d+\.\d+\.\d+/]
-      rescue
-        "latest"
+        version = begin
+          `yarn --version`[/\d+\.\d+\.\d+/]
+        rescue
+          nil
+        end
+
+        version || "latest"
       end
 
       def yarn_through_corepack?
-        true if dockerfile_yarn_version == "latest"
-        dockerfile_yarn_version >= "2"
+        using_node? and "#{dockerfile_yarn_version}" >= "2"
       end
 
       def dockerfile_bun_version
-        using_bun? and `bun --version`[/\d+\.\d+\.\d+/]
-      rescue
-        BUN_VERSION
+        version = begin
+          `bun --version`[/\d+\.\d+\.\d+/]
+        rescue
+          nil
+        end
+
+        version || BUN_VERSION
       end
 
       def dockerfile_binfile_fixups
