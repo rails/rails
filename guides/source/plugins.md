@@ -362,6 +362,12 @@ module ApiBoost
 end
 ```
 
+NOTE: The use of `write_attribute` above to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you might prefer using `send`, which calls the setter method
+
+```ruby
+send("#{self.class.api_timestamp_field}=", timestamp)
+```
+
 Now you can test the functionality in the Rails console:
 
 ```irb
@@ -369,12 +375,6 @@ irb> product = Product.new
 irb> product.track_api_request
 irb> product.last_api_call
 => 2025-06-01 10:31:15 UTC
-```
-
-NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you might prefer using `send`, which calls the setter method
-
-```ruby
-send("#{self.class.api_timestamp_field}=", timestamp)
 ```
 
 Advanced Integration: Using Railties
