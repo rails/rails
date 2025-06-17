@@ -199,8 +199,7 @@ Patching](https://shopify.engineering/the-case-against-monkey-patching).
 The example below demonstrates the technique, but they should be used sparingly
 - consider whether it's the right approach for your specific use case.
 
-
-In this example you will add a method to String named `to_throttled_response`.
+In this example you will add a method to Integer named `requests_per_hour`.
 
 In `lib/api_boost.rb`, add `require "api_boost/core_ext"`:
 
@@ -216,17 +215,16 @@ module ApiBoost
 end
 ```
 
-Create the `core_ext.rb` file and add the `to_throttled_response` method:
+Create the `core_ext.rb` file and add a method to Integer to define a RateLimit that could define `10.requests_per_hour`, similar to `10.hours` that returns a Time.
 
 ```ruby
 # api_boost/lib/api_boost/core_ext.rb
 
-class String
-  def to_throttled_response(limit = "60 requests per hour")
-    {
-      data: self,
-      rate_limit: limit
-    }
+ApiBoost::RateLimit = Data.define(:requests, :per)
+
+class Integer
+  def requests_per_hour
+    ApiBoost::RateLimit.new(self, :hour)
   end
 end
 ```
@@ -237,11 +235,8 @@ To see this in action, change to the `test/dummy` directory, start `bin/rails co
 $ cd test/dummy
 $ bin/rails console
 
-irb> "Hello API".to_throttled_response
-=> {:data=>"Hello API", :rate_limit=>"60 requests per hour"}
-
-irb> "User data".to_throttled_response("100 requests per hour")
-=> {:data=>"User data", :rate_limit=>"100 requests per hour"}
+irb> 10.requests_per_hour
+=> #<struct ApiBoost::RateLimit requests=10, per=:hour>
 ```
 
 The dummy application automatically loads your plugin, so any extensions you add are immediately available for testing.
