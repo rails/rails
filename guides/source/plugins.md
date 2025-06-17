@@ -7,8 +7,7 @@ This guide is for developers who want to create a Rails plugin, in order to exte
 
 After reading this guide, you will know:
 
-* What Rails plugins are.
-* When to use a Rails plugin.
+* What Rails plugins are and when to use them.
 * How to create a plugin from scratch.
 * How to extend core Ruby classes.
 * How to add methods to `ApplicationRecord`.
@@ -19,9 +18,19 @@ After reading this guide, you will know:
 What are Plugins?
 -----------------
 
-A Rails plugin is a gem that's designed specifically to work inside a Rails
-application, often using `Railtie` or `Engine` to hook into the Rails boot
-process and extend the framework's functionality.
+
+A Rails plugin is a packaged extension that adds functionality to a Rails
+application. While all engines are plugins, not all plugins are engines. Plugins
+can be lightweight — such as monkey patches, custom rake tasks, or shared
+concerns — or more complex, like a full Rails engine. The main difference lies
+in scope: plugins are typically used for smaller customizations or shared
+behavior across apps, whereas engines provide more fully-featured components
+with their own routes, models, and views.
+
+At a technical level, a plugin is a Ruby gem that’s designed to work inside a
+Rails application. It often uses a `Railtie` or `Engine` to hook into the Rails
+boot process, allowing it to extend or modify the framework's behavior in a
+structured way.
 
 Plugins serve several purposes:
 
@@ -29,6 +38,7 @@ Plugins serve several purposes:
 * They support a modular architecture, allowing features to be maintained, updated, or released independently.
 * They give teams an outlet for introducing powerful features without needing to
   include everything directly into the framework.
+
 
 Generator Options
 ------------------
@@ -45,7 +55,7 @@ The **Basic Plugin** (default) option creates a minimal plugin structure suitabl
 $ rails plugin new api_boost
 ```
 
-This is what we'll use in this guide.
+This is what we'll use in this guide.  There other two options, `--full` and `--mountable`, which are covered in the [Rails Engines guide](engines.html).
 
 The **Full Plugin** (`--full`) option creates a more complete plugin structure that includes an `app` directory tree (models, views, controllers), a `config/routes.rb` file, and an Engine class at `lib/api_boost/engine.rb`.
 
@@ -380,7 +390,7 @@ irb> product.last_api_call
 Advanced Integration: Using Railties
 ------------------------------------
 
-The plugin we've built so far works great for basic functionality. However, if your plugin needs to integrate more deeply with Rails' framework, you'll want to use a [Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html).
+The plugin we've built so far works great for basic functionality. However, if the plugin needs to integrate more deeply with Rails' framework, you'll want to use a [Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html).
 
 A Railtie is required when your plugin needs to:
 
