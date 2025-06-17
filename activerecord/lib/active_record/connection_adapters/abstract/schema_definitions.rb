@@ -438,8 +438,21 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.integer :age
-      #   t.integer :scores, array: true, default: []
+      #   create_table :books do |t|
+      #     t.string  :title
+      #     t.integer :ratings, array: true, default: []
+      #   end
+      #
+      #   class Book < ApplicationRecord; end
+      #
+      # Query examples (PostgreSQL):
+      #
+      #   # Create a book with tags and ratings
+      #   Book.create title: "Brave New World",
+      #               ratings: [4, 5]
+      #
+      #   # Find books with 3 or more ratings
+      #   Book.where("array_length(ratings, 1) >= 3")
 
       ##
       # :method: json
