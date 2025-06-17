@@ -231,10 +231,12 @@ end
 
 To see this in action, change to the `test/dummy` directory, start `bin/rails console`, and test the API response formatting:
 
-```irb
+```bash
 $ cd test/dummy
 $ bin/rails console
+```
 
+```irb
 irb> 10.requests_per_hour
 => #<struct ApiBoost::RateLimit requests=10, per=:hour>
 ```
