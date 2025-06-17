@@ -3204,6 +3204,20 @@ module ApplicationTests
       assert_equal 1234, ActiveSupport.test_parallelization_threshold
     end
 
+    test "ActiveSupport.parallelize_test_databases can be configured via config.active_support.parallelize_test_databases" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/environments/test.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_support.parallelize_test_databases = false
+        end
+      RUBY
+
+      app "test"
+
+      assert_not ActiveSupport.parallelize_test_databases
+    end
+
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
       class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
 

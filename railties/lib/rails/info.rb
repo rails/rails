@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "cgi"
+require "cgi/escape"
+require "cgi/util" if RUBY_VERSION < "3.5"
 
 module Rails
   # This module helps build the runtime properties that are displayed in

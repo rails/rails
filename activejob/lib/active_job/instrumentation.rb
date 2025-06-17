@@ -26,22 +26,22 @@ module ActiveJob
       instrument(:perform) { super }
     end
 
+    def instrument(operation, payload = {}, &block) # :nodoc:
+      payload[:job] = self
+      payload[:adapter] = queue_adapter
+
+      ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do |payload|
+        value = block.call(payload) if block
+        payload[:aborted] = @_halted_callback_hook_called if defined?(@_halted_callback_hook_called)
+        @_halted_callback_hook_called = nil
+        value
+      end
+    end
+
     private
       def _perform_job
         instrument(:perform_start)
         super
-      end
-
-      def instrument(operation, payload = {}, &block)
-        payload[:job] = self
-        payload[:adapter] = queue_adapter
-
-        ActiveSupport::Notifications.instrument("#{operation}.active_job", payload) do
-          value = block.call if block
-          payload[:aborted] = @_halted_callback_hook_called if defined?(@_halted_callback_hook_called)
-          @_halted_callback_hook_called = nil
-          value
-        end
       end
 
       def halted_callback_hook(*)

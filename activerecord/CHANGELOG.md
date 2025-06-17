@@ -1,3 +1,69 @@
+*   Fix checking whether an unpersisted record is `include?`d in a strictly
+    loaded `has_and_belongs_to_many` association.
+
+    *Hartley McGuire*
+
+*   Add ability to change transaction isolation for all pools within a block.
+
+    This functionality is useful if your application needs to change the database
+    transaction isolation for a request or action.
+
+    Calling `ActiveRecord.with_transaction_isolation_level(level) {}` in an around filter or
+    middleware will set the transaction isolation for all pools accessed within the block,
+    but not for the pools that aren't.
+
+    This works with explicit and implicit transactions:
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.transaction do # opens a transaction explicitly
+        Tag.create!
+      end
+    end
+    ```
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.create! # opens a transaction implicitly
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   `:class_name` is now invalid in polymorphic `belongs_to` associations.
+
+    Reason is `:class_name` does not make sense in those associations because
+    the class name of target records is dynamic and stored in the type column.
+
+    Existing polymorphic associations setting this option can just delete it.
+    While it did not raise, it had no effect anyway.
+
+    *Xavier Noria*
+
+*   Add support for multiple databases to `db:migrate:reset`.
+
+    *Joé Dupuis*
+
+*   Add `affected_rows` to `ActiveRecord::Result`.
+
+    *Jenny Shen*
+
+*   Enable passing retryable SqlLiterals to `#where`.
+
+    *Hartley McGuire*
+
+*   Set default for primary keys in `insert_all`/`upsert_all`.
+
+    Previously in Postgres, updating and inserting new records in one upsert wasn't possible
+    due to null primary key values. `nil` primary key values passed into `insert_all`/`upsert_all`
+    are now implicitly set to the default insert value specified by adapter.
+
+    *Jenny Shen*
+
+*   Add a load hook `active_record_database_configurations` for `ActiveRecord::DatabaseConfigurations`
+
+    *Mike Dalessio*
+
 *   Use `TRUE` and `FALSE` for SQLite queries with boolean columns.
 
     *Hartley McGuire*

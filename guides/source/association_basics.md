@@ -953,7 +953,7 @@ object, use the `collection.build` method.
 A [`has_many :through`][`has_many`] association is often used to set up a
 many-to-many relationship with another model. This association indicates that
 the declaring model can be matched with zero or more instances of another model
-by proceeding _through_ a third model.
+by proceeding _through_ an intermediate "join" model.
 
 For example, consider a medical practice where patients make appointments to see
 physicians. The relevant association declarations could look like this:
@@ -978,6 +978,9 @@ end
 `has_many :through` establishes a many-to-many relationship between models,
 allowing instances of one model (Physician) to be associated with multiple
 instances of another model (Patient) through a third "join" model (Appointment).
+
+We call `Physician.appointments` and `Appointment.patient` the _through_ and
+_source_ associations of `Physician.patients`, respectively.
 
 ![has_many :through Association
 Diagram](images/association_basics/has_many_through.png)
@@ -1011,6 +1014,10 @@ In this migration the `physicians` and `patients` tables are created with a
 `name` column. The `appointments` table, which acts as the join table, is
 created with `physician_id` and `patient_id` columns, establishing the
 many-to-many relationship between `physicians` and `patients`.
+
+INFO: The through association can be any type of association, including other
+through associations, but it cannot be [polymorphic](#polymorphic-associations).
+Source associations can be polymorphic as long as you provide a source type.
 
 You could also consider using a [composite primary
 key](active_record_composite_primary_keys.html) for the join table in the
@@ -1122,6 +1129,9 @@ end
 This setup allows a `supplier` to directly access its `account_history` through
 its `account`.
 
+We call `Supplier.account` and `Account.account_history` the _through_ and
+_source_ associations of `Supplier.account_history`, respectively.
+
 ![has_one :through Association
 Diagram](images/association_basics/has_one_through.png)
 
@@ -1149,6 +1159,11 @@ class CreateAccountHistories < ActiveRecord::Migration[8.1]
   end
 end
 ```
+
+INFO: The through association must be a `has_one`, `has_one :through`, or
+non-polymorphic `belongs_to`. That is, a non-polymorphic singular association.
+On the other hand, source associations can be polymorphic as long as you provide
+a source type.
 
 ### `has_and_belongs_to_many`
 
@@ -2578,6 +2593,9 @@ class Book < ApplicationRecord
   belongs_to :author, class_name: "Patron"
 end
 ```
+
+This option is not supported in polymorphic associations, since in that case the
+class name of the associated record is stored in the type column.
 
 #### `:dependent`
 

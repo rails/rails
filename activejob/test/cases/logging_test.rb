@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
+require "support/test_logger"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
@@ -18,37 +19,7 @@ class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
   include ActiveSupport::LogSubscriber::TestHelper
   include ActiveSupport::Logger::Severity
-
-  class TestLogger < ActiveSupport::Logger
-    def initialize
-      @file = StringIO.new
-      super(@file)
-    end
-
-    def messages
-      @file.rewind
-      @file.read
-    end
-  end
-
-  def setup
-    super
-    JobBuffer.clear
-    @old_logger = ActiveJob::Base.logger
-    @logger = ActiveSupport::TaggedLogging.new(TestLogger.new)
-    set_logger @logger
-    ActiveJob::LogSubscriber.attach_to :active_job
-  end
-
-  def teardown
-    super
-    ActiveJob::LogSubscriber.log_subscribers.pop
-    set_logger @old_logger
-  end
-
-  def set_logger(logger)
-    ActiveJob::Base.logger = logger
-  end
+  include TestLoggerHelper
 
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
@@ -307,6 +278,16 @@ class LoggingTest < ActiveSupport::TestCase
       perform_enqueued_jobs do
         RetryJob.perform_later "DefaultsError", 2
         assert_match(/Retrying RetryJob \(Job ID: .*?\) after \d+ attempts in 3 seconds, due to a DefaultsError.*\./, @logger.messages)
+      end
+    end
+
+    def test_retry_different_queue_logging
+      perform_enqueued_jobs do
+        perform_enqueued_jobs do
+          RetryJob.perform_later("HeavyError", 2)
+          assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(default\) in .*ms/, @logger.messages)
+        end
+        assert_match(/Performed RetryJob \(Job ID: .*?\) from .+\(low\) in .*ms/, @logger.messages)
       end
     end
   end

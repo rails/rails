@@ -396,9 +396,13 @@ you'd prefer not to utilize it, you can skip Solid Cache:
 rails new app_name --skip-solid
 ```
 
-WARNING: Both Solid Cache and Solid Queue are bundled behind the `--skip-solid`
-flag. If you still want to use Solid Queue but not Solid Cache, you can enable
-Solid Queue by running `bin/rails app:enable-solid-queue`.
+WARNING: All parts of the Solid Trifecta (Solid Cache, Solid Queue and Solid
+Cable) are bundled behind the `--skip-solid` flag. If you still want to use
+Solid Queue and Solid Cable but not Solid Cache, you can install them
+separately by following [Solid Queue
+Installation](https://github.com/rails/solid_queue#installation) and
+[Solid Cable Installation](https://github.com/rails/solid_cable#installation)
+respectively.
 
 ### Configuring the Database
 

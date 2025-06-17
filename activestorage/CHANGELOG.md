@@ -1,3 +1,7 @@
+*   Direct upload progress accounts for server processing time.
+
+    *Jeremy Daer*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:

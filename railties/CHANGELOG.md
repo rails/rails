@@ -6,6 +6,10 @@
 
     *Shaun Russell*
 
+*   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
+
+    *TangRufus*
+
 *   Add --reset option to bin/setup which will call db:reset as part of the setup.
 
     *DHH*

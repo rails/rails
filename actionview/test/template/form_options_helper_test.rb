@@ -537,6 +537,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_class
+    assert_dom_equal(
+      "<select name=\"post[class]\" id=\"post_class\"><option value=\"Struct::Post\">Struct::Post</option></select>",
+      select(:post, :class, [Post])
+    )
+  end
+
   def test_select_without_multiple
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"></select>",
