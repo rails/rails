@@ -271,6 +271,7 @@ module ApiBoost
 
     class_methods do
       def acts_as_api_resource(api_timestamp_field: :last_request_at)
+        # Create a class-level setting that stores which field to use for the API timestamp.
         cattr_accessor :api_timestamp_field, default: api_timestamp_field.to_s
       end
     end
@@ -282,28 +283,19 @@ The code above uses `ActiveSupport::Concern` to simplify including modules with 
 
 ### Add a Class Method
 
-This plugin will expect that you've added a method to your model named `last_request_at`. However, the
-plugin users might have already defined a method on their model named `last_request_at` that they use
-for something else. This plugin will allow the name to be changed by adding a class method called `api_timestamp_field`.
+By default, this plugin expects your model to have a column named `last_request_at`. However, since that column name might already be used for something else, the plugin lets you customize it. You can override the default by passing a different column name with the `api_timestamp_field: option`. Internally, this value is stored in a class-level setting called `api_timestamp_field`, which the plugin uses when updating the timestamp.
 
-We need to generate some models in our "dummy" Rails application to test this functionality. Run the following commands from the `test/dummy` directory:
+For example, if you want to use `last_api_call` instead of `last_request_at` as the column name, you can do the following:
+
+First, generate some models in your "dummy" Rails application to test this functionality. Run the following commands from the `test/dummy` directory:
 
 ```bash
 $ cd test/dummy
-$ bin/rails generate model User last_request_at:datetime
 $ bin/rails generate model Product last_request_at:datetime last_api_call:datetime
 $ bin/rails db:migrate
 ```
 
-Now update the User and Product models so that they know that they are supposed to act like API resources:
-
-```ruby
-# test/dummy/app/models/user.rb
-
-class User < ApplicationRecord
-  acts_as_api_resource
-end
-```
+Now update the Product model so that it acts like an API resource:
 
 ```ruby
 # test/dummy/app/models/product.rb
@@ -313,7 +305,7 @@ class Product < ApplicationRecord
 end
 ```
 
-We need to include our module in `ApplicationRecord` (later on we'll look at doing this automatically):
+To make the plugin available to all models, include the module in `ApplicationRecord` (we'll look at doing this automatically later):
 
 ```ruby
 # test/dummy/app/models/application_record.rb
@@ -328,19 +320,15 @@ end
 Now you can test this functionality in the Rails console:
 
 ```irb
-irb> User.api_timestamp_field
-=> "last_request_at"
-
 irb> Product.api_timestamp_field
 => "last_api_call"
 ```
 
 ### Add an Instance Method
 
-This plugin will add a method named 'track_api_request' to any Active Record object that calls `acts_as_api_resource`. The 'track_api_request'
-method will set the timestamp of when an API request was made to track usage patterns.
+This plugin adds an instance method called `track_api_request` to any Active Record model that calls `acts_as_api_resource`. This method sets the value of the configured timestamp field to the current time (or a custom time if provided), allowing you to track when an API request was made.
 
-Update `acts_as_api_resource.rb` to include the instance method:
+To add this behavior, update `acts_as_api_resource.rb`:
 
 ```ruby
 # api_boost/lib/api_boost/acts_as_api_resource.rb
@@ -367,18 +355,13 @@ end
 Now you can test the functionality in the Rails console:
 
 ```irb
-irb> user = User.new
-irb> user.track_api_request
-irb> user.last_request_at
-=> 2025-06-01 10:30:45 UTC
-
 irb> product = Product.new
 irb> product.track_api_request
 irb> product.last_api_call
 => 2025-06-01 10:31:15 UTC
 ```
 
-NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you could also use:
+NOTE: The use of `write_attribute` to write to the field in model is just one example of how a plugin can interact with the model, and will not always be the right method to use. For example, you might prefer using `send`, which calls the setter method
 
 ```ruby
 send("#{self.class.api_timestamp_field}=", timestamp)
