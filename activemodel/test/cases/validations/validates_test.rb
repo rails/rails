@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/person"
 require "models/topic"
 require "models/person_with_validator"
-require "validators/namespace/email_validator"
+require "validators/namespaced/email_validator"
 
 class ValidatesTest < ActiveModel::TestCase
   setup :reset_callbacks
@@ -55,7 +55,7 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_namespaced_validator_class
-    Person.validates :karma, 'namespace/email': true
+    Person.validates :karma, 'namespaced/email': true
     person = Person.new
     person.valid?
     assert_equal ["is not an email"], person.errors[:karma]

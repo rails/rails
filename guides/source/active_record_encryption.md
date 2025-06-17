@@ -82,8 +82,8 @@ There is an important concern about string column sizes: in modern databases the
 
 In practice, this means:
 
-* When encrypting short texts written in western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
-* When encrypting short texts written in non-western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting short texts written in Western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
+* When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
 * When encrypting long texts, you can ignore column size concerns.
 
 Some examples:
@@ -147,7 +147,7 @@ To encrypt Action Text fixtures, you should place them in `fixtures/action_text/
 
 `active_record.encryption` will serialize values using the underlying type before encrypting them, but, unless using a custom `message_serializer`, *they must be serializable as strings*. Structured types like `serialized` are supported out of the box.
 
-If you need to support a custom type, the recommended way is using a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration:
+If you need to support a custom type, the recommended way is to use a [serialized attribute](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html). The declaration of the serialized attribute should go **before** the encryption declaration:
 
 ```ruby
 # CORRECT
@@ -188,7 +188,7 @@ end
 To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
 
 * Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
-* Queries with deterministically-encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
+* Queries with deterministically encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
 
 **This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
 
@@ -208,7 +208,7 @@ You can configure previous encryption schemes:
 
 #### Global Previous Encryption Schemes
 
-You can add previous encryption schemes by adding them as list of properties using the `previous` config property in your `application.rb`:
+You can add previous encryption schemes by adding them as a list of properties using the `previous` config property in your `application.rb`:
 
 ```ruby
 config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
@@ -254,7 +254,7 @@ NOTE: If you want to ignore case, make sure to use `downcase:` or `ignore_case:`
 
 #### Unique Indexes
 
-To support unique indexes on deterministically-encrypted columns, you need to ensure their ciphertext doesn't ever change.
+To support unique indexes on deterministically encrypted columns, you need to ensure their ciphertext doesn't ever change.
 
 To encourage this, deterministic attributes will always use the oldest available encryption scheme by default when multiple encryption schemes are configured. Otherwise, it's your job to ensure encryption properties don't change for these attributes, or the unique indexes won't work.
 
@@ -266,7 +266,7 @@ end
 
 ### Filtering Params Named as Encrypted Columns
 
-By default, encrypted columns are configured to be [automatically filtered in Rails logs](action_controller_overview.html#parameters-filtering). You can disable this behavior by adding the following to your `application.rb`:
+By default, encrypted columns are configured to be [automatically filtered in Rails logs](configuring.html#config-filter-parameters). You can disable this behavior by adding the following to your `application.rb`:
 
 ```ruby
 config.active_record.encryption.add_to_filter_parameters = false
@@ -336,7 +336,7 @@ config.active_record.encryption.compressor = ZstdCompressor
 
 ## Key Management
 
-Key providers implement key management strategies. You can configure key providers globally, or on a per attribute basis.
+Key providers implement key management strategies. You can configure key providers globally or on a per-attribute basis.
 
 ### Built-in Key Providers
 
@@ -464,7 +464,7 @@ article.decrypt # decrypt all the encryptable attributes
 article.ciphertext_for(:title)
 ```
 
-#### Check if Attribute is Encrypted or Not
+#### Check if the Attribute is Encrypted or Not
 
 ```ruby
 article.encrypted_attribute?(:title)
@@ -530,12 +530,12 @@ The digest algorithm used to derive keys. `OpenSSL::Digest::SHA256` by default.
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
-Supports decrypting data encrypted non-deterministically with a digest class SHA1. Default is false, which
+Supports decrypting data encrypted non-deterministically with a digest class SHA1. The default is false, which
 means it will only support the digest algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 #### `config.active_record.encryption.compressor`
 
-The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. Default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
+The compressor used to compress encrypted payloads. It should respond to `deflate` and `inflate`. The default is `Zlib`. You can find more information about compressors in the [Compression](#compression) section.
 
 ### Encryption Contexts
 
@@ -550,7 +550,7 @@ The main components of encryption contexts are:
 * `key_provider`: serves encryption and decryption keys.
 * `message_serializer`: serializes and deserializes encrypted payloads (`Message`).
 
-NOTE: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A common supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
+NOTE: If you decide to build your own `message_serializer`, it's important to use safe mechanisms that can't deserialize arbitrary objects. A commonly supported scenario is encrypting existing unencrypted data. An attacker can leverage this to enter a tampered payload before encryption takes place and perform RCE attacks. This means custom serializers should avoid `Marshal`, `YAML.load` (use `YAML.safe_load`  instead), or `JSON.load` (use `JSON.parse` instead).
 
 #### Global Encryption Context
 

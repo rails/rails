@@ -149,7 +149,6 @@ module ActiveRecord
           end
         end
 
-        @last_affected_rows = nil
         @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
 
@@ -564,6 +563,8 @@ module ActiveRecord
           # Binary columns
           when /x'(.*)'/
             [ $1 ].pack("H*")
+          when "TRUE", "FALSE"
+            default
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.

@@ -46,6 +46,9 @@ requests,
 so any unhandled errors raised in your app will automatically be reported to
 your error-reporting service via their subscribers.
 
+NOTE: For HTTP requests, errors present in `ActionDispatch::ExceptionWrapper.rescue_responses`
+are not reported as they do not result in server errors (500) and generally aren't bugs that need to be addressed.
+
 This means that third-party error-reporting libraries no longer need to insert a
 [Rack](rails_on_rack.html) middleware or do any monkey-patching to capture
 unhandled errors. Libraries that use [Active

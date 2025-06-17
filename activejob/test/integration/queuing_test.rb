@@ -46,6 +46,20 @@ class QueuingTest < ActiveSupport::TestCase
         assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
       end
     end
+
+    test "should interrupt jobs" do
+      ContinuableTestJob.perform_later @id
+      wait_for_jobs_to_finish_for(1.seconds)
+
+      jobs_manager.stop_workers
+      wait_for_jobs_to_finish_for(1.seconds)
+      assert_not job_executed
+      assert continuable_job_started
+
+      jobs_manager.start_workers
+      wait_for_jobs_to_finish_for(10.seconds)
+      assert job_executed
+    end
   end
 
   if adapter_is?(:delayed_job)

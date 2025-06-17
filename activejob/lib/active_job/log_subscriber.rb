@@ -138,6 +138,64 @@ module ActiveJob
     end
     subscribe_log_level :discard, :error
 
+    def interrupt(event)
+      job = event.payload[:job]
+      info do
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :interrupt, :info
+
+    def resume(event)
+      job = event.payload[:job]
+      info do
+        "Resuming #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :resume, :info
+
+    def step_skipped(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' skipped #{job.class}"
+      end
+    end
+    subscribe_log_level :step_skipped, :info
+
+    def step_started(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      info do
+        if step.resumed?
+          "Step '#{step.name}' resumed from cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id})"
+        else
+          "Step '#{step.name}' started for #{job.class} (Job ID: #{job.job_id})"
+        end
+      end
+    end
+    subscribe_log_level :step_started, :info
+
+    def step(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      ex = event.payload[:exception_object]
+
+      if event.payload[:interrupted]
+        info do
+          "Step '#{step.name}' interrupted at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      elsif ex
+        error do
+          "Error during step '#{step.name}' at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message})"
+        end
+      else
+        info do
+          "Step '#{step.name}' completed for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      end
+    end
+    subscribe_log_level :step, :error
+
     private
       def queue_name(event)
         ActiveJob.adapter_name(event.payload[:adapter]) + "(#{event.payload[:job].queue_name})"

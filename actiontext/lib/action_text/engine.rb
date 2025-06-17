@@ -8,6 +8,7 @@ require "active_record/railtie"
 require "active_storage/engine"
 
 require "action_text"
+require "action_text/trix"
 
 module ActionText
   class Engine < Rails::Engine
@@ -34,7 +35,7 @@ module ActionText
 
     initializer "action_text.asset" do
       if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( actiontext.js actiontext.esm.js trix.js trix.css )
+        Rails.application.config.assets.precompile += %w( actiontext.js actiontext.esm.js )
       end
     end
 

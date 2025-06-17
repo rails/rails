@@ -286,14 +286,6 @@
         will learn how to create your own engine and integrate it with a host
         application.
       work_in_progress: true
-    -
-      name: Rails Application Templates
-      url: rails_application_templates.html
-      description: >
-        Application templates are simple Ruby files containing DSL for adding
-        gems, initializers, etc. to your freshly created Rails project or an
-        existing Rails project.
-      work_in_progress: true
 
     -
       name: Threading and Code Execution in Rails

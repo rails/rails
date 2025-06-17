@@ -18,6 +18,18 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter < AbstractAdapter
+      def initialize(*) # :nodoc:
+        @stopping = false
+
+        Sidekiq.configure_server do |config|
+          config.on(:quiet) { @stopping = true }
+        end
+
+        Sidekiq.configure_client do |config|
+          config.on(:quiet) { @stopping = true }
+        end
+      end
+
       def enqueue(job) # :nodoc:
         job.provider_job_id = JobWrapper.set(
           wrapped: job.class,

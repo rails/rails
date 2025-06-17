@@ -1,3 +1,47 @@
+*   Allow jobs to the interrupted and resumed with Continuations
+
+    A job can use Continuations by including the `ActiveJob::Continuable`
+    concern. Continuations split jobs into steps. When the queuing system
+    is shutting down jobs can be interrupted and their progress saved.
+
+    ```ruby
+    class ProcessImportJob
+      include ActiveJob::Continuable
+
+      def perform(import_id)
+        @import = Import.find(import_id)
+
+        # block format
+        step :initialize do
+          @import.initialize
+        end
+
+        # step with cursor, the cursor is saved when the job is interrupted
+        step :process do |step|
+          @import.records.find_each(start: step.cursor) do |record|
+            record.process
+            step.advance! from: record.id
+          end
+        end
+
+        # method format
+        step :finalize
+
+        private
+          def finalize
+            @import.finalize
+          end
+      end
+    end
+    ```
+
+    *Donal McBreen*
+
+*   Defer invocation of ActiveJob enqueue callbacks until after commit when
+    `enqueue_after_transaction_commit` is enabled.
+
+    *Will Roever*
+
 *   Add `report:` option to `ActiveJob::Base#retry_on` and `#discard_on`
 
     When the `report:` option is passed, errors will be reported to the error reporter

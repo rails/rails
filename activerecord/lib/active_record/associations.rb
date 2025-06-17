@@ -1208,8 +1208,10 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies an association through which to perform the query. This can be any other type
-        #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
+        #   Specifies an association through which to perform the query.
+        #
+        #   This can be any other type of association, including other <tt>:through</tt> associations,
+        #   but it cannot be a polymorphic association. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection.
         #
@@ -1301,7 +1303,7 @@ module ActiveRecord
         #   has_many :comments, index_errors: :nested_attributes_order
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
         # Specifies a one-to-one association with another class. This method
@@ -1411,10 +1413,12 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-        #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
-        #   or #belongs_to association on the join model.
+        #   Specifies an association through which to perform the query.
+        #
+        #   The through association must be a +has_one+, <tt>has_one :through</tt>, or non-polymorphic +belongs_to+.
+        #   That is, a non-polymorphic singular association. Options for <tt>:class_name</tt>, <tt>:primary_key</tt>,
+        #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You can only
+        #   use a <tt>:through</tt> query through a #has_one or #belongs_to association on the join model.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
         #   and the records on the <tt>:through</tt> model will be automatically created and removed
@@ -1497,7 +1501,7 @@ module ActiveRecord
         #   has_one :employment_record_book, query_constraints: [:organization_id, :employee_id]
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
         # Specifies a one-to-one association with another class. This method
@@ -1576,7 +1580,9 @@ module ActiveRecord
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
-        #   if the real class name is Person, you'll have to specify it with this option.
+        #   if the real class name is Person, you'll have to specify it with this option. +:class_name+
+        #   is not supported in polymorphic associations, since in that case the class name of the
+        #   associated record is stored in the type column.
         # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
@@ -1688,7 +1694,7 @@ module ActiveRecord
         #   belongs_to :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
         # Specifies a many-to-many relationship with another class. This associates two classes via an
@@ -1870,17 +1876,17 @@ module ActiveRecord
         def has_and_belongs_to_many(name, scope = nil, **options, &extension)
           habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
-          builder = Builder::HasAndBelongsToMany.new name, self, options
+          builder = Builder::HasAndBelongsToMany.new(name, self, options)
 
           join_model = builder.through_model
 
-          const_set join_model.name, join_model
-          private_constant join_model.name
+          const_set(join_model.name, join_model)
+          private_constant(join_model.name)
 
-          middle_reflection = builder.middle_reflection join_model
+          middle_reflection = builder.middle_reflection(join_model)
 
-          Builder::HasMany.define_callbacks self, middle_reflection
-          Reflection.add_reflection self, middle_reflection.name, middle_reflection
+          Builder::HasMany.define_callbacks(self, middle_reflection)
+          Reflection.add_reflection(self, middle_reflection.name, middle_reflection)
           middle_reflection.parent_reflection = habtm_reflection
 
           include Module.new {
@@ -1898,7 +1904,7 @@ module ActiveRecord
           hm_options[:source] = join_model.right_reflection.name
 
           [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
-            hm_options[k] = options[k] if options.key? k
+            hm_options[k] = options[k] if options.key?(k)
           end
 
           has_many name, scope, **hm_options, &extension
