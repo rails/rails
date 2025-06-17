@@ -847,7 +847,7 @@ module ActiveRecord
       #
       # ====== Creating an index that includes additional columns
       #
-      #   add_index :accounts, :branch_id, include: [:party_id, :created_at]
+      #   add_index(:accounts, :branch_id, include: [:party_id, :created_at])
       #
       # generates:
       #
