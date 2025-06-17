@@ -339,6 +339,212 @@ module ActiveRecord
       #
       # See TableDefinition#column
 
+      ##
+      # :method: bigint
+      # :call-seq: bigint(*names, **options)
+      #
+      # Adds a +bigint+ column for storing large integer values.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of big integers.
+      #
+      # Example:
+      #
+      #   t.bigint :account_id
+      #   t.bigint :event_ids, array: true, default: []
+
+      ##
+      # :method: binary
+      # :call-seq: binary(*names, **options)
+      #
+      # Adds a +binary+ column for storing binary data such as files or blobs.
+      #
+      # Example:
+      #
+      #   t.binary :payload
+
+      ##
+      # :method: boolean
+      # :call-seq: boolean(*names, **options)
+      #
+      # Adds a +boolean+ column for storing true/false values.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of booleans.
+      #
+      # Example:
+      #
+      #   t.boolean :active
+      #   t.boolean :flags, array: true, default: []
+
+      ##
+      # :method: date
+      # :call-seq: date(*names, **options)
+      #
+      # Adds a +date+ column for storing calendar dates (year, month, day).
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of dates.
+      #
+      # Example:
+      #
+      #   t.date :published_on
+      #   t.date :holidays, array: true, default: []
+
+      ##
+      # :method: datetime
+      # :call-seq: datetime(*names, **options)
+      #
+      # Adds a +datetime+ column for storing precise date and time values.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of datetimes.
+      #
+      # Example:
+      #
+      #   t.datetime :posted_at
+      #   t.datetime :access_times, array: true
+
+      ##
+      # :method: decimal
+      # :call-seq: decimal(*names, **options)
+      #
+      # Adds a +decimal+ column for storing fixed-point numbers.
+      #
+      # Use the +:precision+ and +:scale+ options to control the number format.
+      # On PostgreSQL, you can also use +array: true+ to store decimal arrays.
+      #
+      # Example:
+      #
+      #   t.decimal :price, precision: 10, scale: 2
+      #   t.decimal :tax_rates, array: true
+
+      ##
+      # :method: float
+      # :call-seq: float(*names, **options)
+      #
+      # Adds a +float+ column for storing approximate decimal numbers.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of floats.
+      #
+      # Example:
+      #
+      #   t.float :rating
+      #   t.float :samples, array: true
+
+      ##
+      # :method: integer
+      # :call-seq: integer(*names, **options)
+      #
+      # Adds an +integer+ column for storing whole numbers.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of integers.
+      #
+      # Example:
+      #
+      #   t.integer :age
+      #   t.integer :scores, array: true, default: []
+
+      ##
+      # :method: json
+      # :call-seq: json(*names, **options)
+      #
+      # Adds a +json+ column for storing structured data in JSON format.
+      #
+      # Use this for unindexed, flexible key-value data. For indexed JSON support, prefer +jsonb+ on PostgreSQL.
+      #
+      # Example:
+      #
+      #   t.json :settings
+
+      ##
+      # :method: string
+      # :call-seq: string(*names, **options)
+      #
+      # Adds a +string+ column for storing short text values.
+      #
+      # You can limit the maximum length using the +:limit+ option.
+      # On PostgreSQL, you can also use +array: true+ to store string arrays.
+      #
+      # Example:
+      #
+      #   t.string :name, limit: 50
+      #   t.string :tags, array: true, default: []
+
+      ##
+      # :method: text
+      # :call-seq: text(*names, **options)
+      #
+      # Adds a +text+ column for storing longer, unbounded text data.
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store an array of text values.
+      #
+      # Example:
+      #
+      #   t.text :description
+      #   t.text :comments, array: true
+
+      ##
+      # :method: time
+      # :call-seq: time(*names, **options)
+      #
+      # Adds a +time+ column for storing time-of-day values (without date).
+      #
+      # On PostgreSQL, you can use the +array: true+ option to store time arrays.
+      #
+      # Example:
+      #
+      #   t.time :sunrise
+      #   t.time :schedule_slots, array: true
+
+      ##
+      # :method: timestamp
+      # :call-seq: timestamp(*names, **options)
+      #
+      # Adds a +timestamp+ column for storing date and time values.
+      #
+      # This is similar to +datetime+ and may be treated interchangeably on some databases.
+      # On PostgreSQL, you can use the +array: true+ option to store an array of timestamps.
+      #
+      # Example:
+      #
+      #   t.timestamp :created_at
+      #   t.timestamp :checkpoint_times, array: true
+
+      ##
+      # :method: virtual
+      # :call-seq: virtual(*names, **options)
+      #
+      # Adds a +virtual+ column to the table definition.
+      #
+      # Virtual columns are computed from an expression based on other columns. They do not
+      # accept user input directly and can optionally be marked as +stored+ depending on the
+      # database adapter.
+      #
+      # Use the +:as+ option to define the expression, and the +:stored+ option to persist the
+      # result. The +:type+ must also be specified.
+      #
+      # This method defines the column in the schema, but actual support depends on the
+      # database adapter:
+      #
+      # - PostgreSQL (12+): supports *stored* generated columns only.
+      # - MySQL (5.7+): supports both *virtual* and *stored* generated columns.
+      # - SQLite (3.31+): supports stored generated columns.
+      #
+      # Example:
+      #
+      #   # db/migrate/20250615000000_create_users.rb
+      #   create_table :users do |t|
+      #     t.string :first_name
+      #     t.string :last_name
+      #     t.virtual :full_name, type: :string, as: "first_name || ' ' || last_name", stored: true
+      #   end
+      #
+      #   # app/models/user.rb
+      #   class User < ApplicationRecord
+      #   end
+      #
+      #   # Usage
+      #   user = User.create(first_name: "Ada", last_name: "Lovelace")
+      #   User.last.full_name
+      #   # => "Ada Lovelace"
+
       define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
         :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 
