@@ -1,3 +1,7 @@
+*   Use ntuples to populate row_count instead of count for Postgres
+
+    *Jonathan Calvert*
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby

@@ -164,7 +164,7 @@ module ActiveRecord
 
             verified!
             handle_warnings(result)
-            notification_payload[:row_count] = result.count
+            notification_payload[:row_count] = result.ntuples
             result
           end
 
