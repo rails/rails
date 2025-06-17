@@ -34,8 +34,10 @@ structured way.
 
 Plugins serve several purposes:
 
-* They offer a way for developers to experiment with new ideas without affecting the stability of the core codebase.
-* They support a modular architecture, allowing features to be maintained, updated, or released independently.
+* They offer a way for developers to experiment with new ideas without affecting
+  the stability of the core codebase.
+* They support a modular architecture, allowing features to be maintained,
+  updated, or released independently.
 * They give teams an outlet for introducing powerful features without needing to
   include everything directly into the framework.
 
@@ -43,13 +45,12 @@ Plugins serve several purposes:
 Generator Options
 ------------------
 
-Rails plugins are built as gems, _gemified plugins_. They can be
-shared across different Rails applications using RubyGems and Bundler if
-desired.
+Rails plugins are built as gems. They can be shared across different Rails
+applications using RubyGems and Bundler if desired.
 
 The `rails plugin new` command supports several options that determine what type of plugin structure is generated.
 
-The **Basic Plugin** (default) option creates a minimal plugin structure suitable for simple extensions like core class methods or utility functions.
+The **Basic Plugin** (default), without any arguments, generates a minimal plugin structure suitable for simple extensions like core class methods or utility functions.
 
 ```bash
 $ rails plugin new api_boost
@@ -142,7 +143,7 @@ api_boost/
 - Includes generators, models, controllers, and views as needed for testing
 - Can be used interactively with `rails console` and `rails server`
 
-**The gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and which files to include when packaging.
+**The Gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and which files to include when packaging.
 
 
 ### Set Up the Plugin
@@ -170,7 +171,7 @@ $ cd test/dummy
 $ bin/rails db:create
 ```
 
-The dummy application works just like any Rails application - you can generate models, run migrations, start the server, or open a console. This is where you'll test your plugin's functionality as you develop it.
+The dummy application works just like any Rails application - you can generate models, run migrations, start the server, or open a console to test the plugin's functionality as you develop it.
 
 Once the database is created, return to the plugin's root directory (`cd ../..`).
 
