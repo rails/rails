@@ -249,6 +249,14 @@ Add an "acts_as" Method to Active Record
 A common pattern in plugins is to add a method called `acts_as_something` to models. In this case, you
 want to write a method called `acts_as_api_resource` that adds API-specific functionality to your Active Record models.
 
+Let’s say you’re building an API and you want to keep track of the last time a resource (like a `Product`) was accessed via that API. You might want to use that timestamp to:
+
+* throttle requests
+* show “last active” times in your admin panel
+* prioritize stale records for syncing
+
+Instead of writing this logic in every model, you can use a shared plugin. The `acts_as_api_resource` method adds this functionality to any model, letting you track API activity by updating a timestamp field.
+
 To begin, set up your files so that you have:
 
 ```ruby
