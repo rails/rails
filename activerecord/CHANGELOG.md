@@ -1,3 +1,7 @@
+*   Use ntuples to populate row_count instead of count for Postgres
+
+    *Jonathan Calvert*
+
 *   Fix checking whether an unpersisted record is `include?`d in a strictly
     loaded `has_and_belongs_to_many` association.
 
