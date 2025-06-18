@@ -349,8 +349,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.bigint :account_id
-      #   t.bigint :event_ids, array: true, default: []
+      #   create_table :subscriptions do |t|
+      #     t.bigint :account_id
+      #     t.bigint :event_ids, array: true, default: []
+      #   end
 
       ##
       # :method: binary
