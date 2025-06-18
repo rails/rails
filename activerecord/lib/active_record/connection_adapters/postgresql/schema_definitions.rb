@@ -77,7 +77,7 @@ module ActiveRecord
         #
         # When assigning values, use bit strings:
         #
-        #   irb> user = User.new
+        #   user = User.new
         #   user.settings = "01010101"  # This is a bit string
         #   user.save!
 
