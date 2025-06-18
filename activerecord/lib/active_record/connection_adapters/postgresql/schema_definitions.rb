@@ -100,7 +100,9 @@ module ActiveRecord
         #
         # The column type can also be specified explicitly:
         #
-        #   t.column :flags, 'bit varying(16)'  # Up to 16 bits
+        #   create_table :users do |t|
+        #     t.column :flags, 'bit varying(16)'  # Up to 16 bits
+        #   end
         #
         # When assigning values, use bit strings:
         #
