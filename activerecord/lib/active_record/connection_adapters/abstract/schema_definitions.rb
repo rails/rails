@@ -376,8 +376,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.boolean :active
-      #   t.boolean :flags, array: true, default: []
+      #   create_table :features do |t|
+      #     t.boolean :active
+      #     t.boolean :flags, array: true, default: []
+      #   end
 
       ##
       # :method: date
