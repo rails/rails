@@ -485,8 +485,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.string :name, limit: 50
-      #   t.string :tags, array: true, default: []
+      #   create_table :labels do |t|
+      #     t.string :name, limit: 50
+      #     t.string :tags, array: true, default: []
+      #   end
 
       ##
       # :method: text
