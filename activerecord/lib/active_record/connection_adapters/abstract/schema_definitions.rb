@@ -511,8 +511,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.time :sunrise
-      #   t.time :schedule_slots, array: true
+      #   create_table :lessons do |t|
+      #      t.time :sunrise
+      #      t.time :schedule_slots, array: true
+      #   end
 
       ##
       # :method: timestamp
