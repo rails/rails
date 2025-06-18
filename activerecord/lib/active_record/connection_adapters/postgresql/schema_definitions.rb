@@ -96,7 +96,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.bit_varying :settings
+        #   create_table :users do |t|
+        #     t.bit_varying :settings
+        #   end
         #
         # The column type can also be specified explicitly:
         #
