@@ -155,8 +155,8 @@ module ActiveRecord
         #
         # Binary data from a file can be assigned like this:
         #
-        #   irb> data = File.read(Rails.root.join("tmp/output.pdf"))
-        #   irb> Document.create(payload: data)
+        #   data = File.read(Rails.root.join("tmp/output.pdf"))
+        #   Document.create(payload: data)
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-binary.html]
 
