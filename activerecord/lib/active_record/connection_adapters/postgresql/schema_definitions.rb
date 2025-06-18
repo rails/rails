@@ -53,7 +53,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.bigserial :event_id
+        #   create_table :events do |t|
+        #     t.bigserial :event_id
+        #   end
         #
         # The column can also be explicitly declared as the primary key:
         #
