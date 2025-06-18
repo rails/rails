@@ -178,8 +178,8 @@ module ActiveRecord
         #
         # Values can be assigned using standard PostgreSQL CIDR syntax:
         #
-        #   irb> device = Device.create(network: '192.168.0.0/24')
-        #   irb> device.network
+        #   device = Device.create(network: '192.168.0.0/24')
+        #   device.network
         #   # => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
