@@ -192,7 +192,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.circle :bounds
+        #   create_table :circles do |t|
+        #     t.circle :bounds
+        #   end
         #
         # A circle value is stored as a center point and a radius. In SQL, the format is: CIRCLE '((x, y), r)'
         #
