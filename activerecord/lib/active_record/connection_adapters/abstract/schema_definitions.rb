@@ -418,8 +418,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.decimal :price, precision: 10, scale: 2
-      #   t.decimal :tax_rates, array: true
+      #   create_table :products do |t|
+      #     t.decimal :price, precision: 10, scale: 2
+      #     t.decimal :tax_rates, array: true
+      #   end
 
       ##
       # :method: float
