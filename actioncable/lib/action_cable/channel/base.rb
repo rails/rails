@@ -200,9 +200,14 @@ module ActionCable
       # cleanup with callbacks. This method is not intended to be called directly by
       # the user. Instead, override the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
+        @unsubscribed = true
         run_callbacks :unsubscribe do
           unsubscribed
         end
+      end
+
+      def unsubscribed? # :nodoc:
+        @unsubscribed
       end
 
       private
