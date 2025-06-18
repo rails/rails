@@ -498,8 +498,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.text :description
-      #   t.text :comments, array: true
+      #   create_table :reviews do |t|
+      #     t.text :description
+      #     t.text :comments, array: true
+      #   end
 
       ##
       # :method: time
