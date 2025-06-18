@@ -75,7 +75,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.column :settings, "bit(8)"  # Stores exactly 8 bits
+        #   create_table :users do |t|
+        #     t.column :settings, "bit(8)"  # Stores exactly 8 bits
+        #   end
         #
         # When assigning values, use bit strings:
         #
