@@ -149,7 +149,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.binary :payload
+        #   create_table :responses do |t|
+        #     t.binary :payload
+        #   end
         #
         # Binary data from a file can be assigned like this:
         #
