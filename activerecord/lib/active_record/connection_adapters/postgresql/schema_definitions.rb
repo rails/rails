@@ -116,8 +116,8 @@ module ActiveRecord
         #
         # When assigning a string that is not a valid bit string, it will raise an error:
         #
-        #   irb> user = User.new
-        #   irb> user.flags = "invalid"  # Raises a PostgreSQL error
+        #   user = User.new
+        #   user.flags = "invalid"  # Raises a PostgreSQL error
 
         ##
         # :method: box
