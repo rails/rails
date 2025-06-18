@@ -391,8 +391,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.date :published_on
-      #   t.date :holidays, array: true, default: []
+      #   create_table :schedules do |t|
+      #     t.date :published_on
+      #     t.date :holidays, array: true, default: []
+      #   end
 
       ##
       # :method: datetime
