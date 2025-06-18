@@ -134,7 +134,7 @@ module ActiveRecord
         #
         # Values can be assigned using PostgreSQL's box syntax:
         #
-        #   irb> Shape.create(bounds: '((4,4),(1,1))')
+        #   Shape.create(bounds: '((4,4),(1,1))')
         #
         # This creates a rectangular box spanning the area between the points
         # (4,4) and (1,1).
