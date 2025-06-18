@@ -4,9 +4,11 @@
 
 require "action_dispatch/routing/route_set"
 
+# :enddoc:
+
 module Rails
   class Engine
-    class LazyRouteSet < ActionDispatch::Routing::RouteSet # :nodoc:
+    class LazyRouteSet < ActionDispatch::Routing::RouteSet
       class NamedRouteCollection < ActionDispatch::Routing::RouteSet::NamedRouteCollection
         def route_defined?(name)
           Rails.application&.reload_routes_unless_loaded
