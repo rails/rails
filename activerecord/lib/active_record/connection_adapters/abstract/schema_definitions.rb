@@ -472,7 +472,9 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.json :settings
+      #   create_table :accounts do |t|
+      #     t.json :settings
+      #   end
 
       ##
       # :method: string
