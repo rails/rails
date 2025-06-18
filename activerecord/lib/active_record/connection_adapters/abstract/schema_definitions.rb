@@ -429,8 +429,10 @@ module ActiveRecord
       #
       # Example:
       #
-      #   t.float :rating
-      #   t.float :samples, array: true
+      #   create_table :reviews do |t|
+      #     t.float :rating
+      #     t.float :samples, array: true
+      #   end
 
       ##
       # :method: integer
