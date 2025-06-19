@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "minitest/mock"
 
 class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTest
@@ -43,7 +42,9 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
 
 
   test "forcing Content-Type to binary" do
-    get rails_storage_proxy_url(create_blob(content_type: "text/html"))
+    with_binary_content_types(%w(text/html)) do
+      get rails_storage_proxy_url(create_blob(content_type: "text/html"))
+    end
     assert_equal "application/octet-stream", response.headers["Content-Type"]
   end
 
