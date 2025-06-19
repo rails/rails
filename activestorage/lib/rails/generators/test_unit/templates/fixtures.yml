@@ -1,0 +1,4 @@
+# first_thumbnail_attachment:
+#   name: thumbnail
+#   record: first (Article)
+#   blob: first_thumbnail_blob
