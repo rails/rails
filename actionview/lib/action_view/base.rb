@@ -174,6 +174,23 @@ module ActionView # :nodoc:
 
     # Specify whether submit_tag should automatically disable on click
     cattr_accessor :automatically_disable_submit_tag, default: true
+    redefine_method :automatically_disable_submit_tag= do |value|
+      ActionView.deprecator.warn(<<~MSG.squish)
+        `ActionView::Base.automatically_disable_submit_tag=` is deprecated and will be removed in Rails 8.2.
+        Please use `actionview-remote-form-helpers` gem instead.
+      MSG
+      @@automatically_disable_submit_tag = value
+    end
+
+    class << self
+      redefine_method :automatically_disable_submit_tag= do |value|
+        ActionView.deprecator.warn(<<~MSG.squish)
+          `ActionView::Base.automatically_disable_submit_tag=` is deprecated and will be removed in Rails 8.2.
+          Please use `actionview-remote-form-helpers` gem instead.
+        MSG
+        @@automatically_disable_submit_tag = value
+      end
+    end
 
     # Annotate rendered view with file names
     cattr_accessor :annotate_rendered_view_with_filenames, default: false
