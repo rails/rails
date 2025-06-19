@@ -345,7 +345,8 @@ module ActiveRecord
       #
       # Adds a +bigint+ column for storing large integer values.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of big integers.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -372,7 +373,8 @@ module ActiveRecord
       #
       # Adds a +boolean+ column for storing true/false values.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of booleans.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -387,7 +389,8 @@ module ActiveRecord
       #
       # Adds a +date+ column for storing calendar dates (year, month, day).
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of dates.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -417,8 +420,9 @@ module ActiveRecord
       #
       # Adds a +decimal+ column for storing fixed-point numbers.
       #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       # Use the +:precision+ and +:scale+ options to control the number format.
-      # On PostgreSQL, you can also use +array: true+ to store decimal arrays.
       #
       # Example:
       #
@@ -433,7 +437,8 @@ module ActiveRecord
       #
       # Adds a +float+ column for storing approximate decimal numbers.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of floats.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -448,25 +453,11 @@ module ActiveRecord
       #
       # Adds an +integer+ column for storing whole numbers.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of integers.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
-      #
-      #   create_table :books do |t|
-      #     t.string  :title
-      #     t.integer :ratings, array: true, default: []
-      #   end
-      #
-      #   class Book < ApplicationRecord; end
-      #
-      # Query examples (PostgreSQL):
-      #
-      #   # Create a book with tags and ratings
-      #   Book.create title: "Brave New World",
-      #               ratings: [4, 5]
-      #
-      #   # Find books with 3 or more ratings
-      #   Book.where("array_length(ratings, 1) >= 3")
+      #   t.integer :ratings, array: true, default: []
 
       ##
       # :method: json
@@ -488,8 +479,10 @@ module ActiveRecord
       #
       # Adds a +string+ column for storing short text values.
       #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
+      #
       # You can limit the maximum length using the +:limit+ option.
-      # On PostgreSQL, you can also use +array: true+ to store string arrays.
       #
       # Example:
       #
@@ -504,7 +497,8 @@ module ActiveRecord
       #
       # Adds a +text+ column for storing longer, unbounded text data.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of text values.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -519,7 +513,8 @@ module ActiveRecord
       #
       # Adds a +time+ column for storing time-of-day values (without date).
       #
-      # On PostgreSQL, you can use the +array: true+ option to store time arrays.
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       #
       # Example:
       #
@@ -535,8 +530,9 @@ module ActiveRecord
       # Adds a +timestamp+ column for storing date and time values.
       #
       # This is similar to +datetime+ and may be treated interchangeably on some databases.
-      # On PostgreSQL, you can use the +array: true+ option to store an array of timestamps.
       #
+      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # for available options.
       # Example:
       #
       #   create_table :runs do |t|

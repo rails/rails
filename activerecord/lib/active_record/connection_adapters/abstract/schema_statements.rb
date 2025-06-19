@@ -575,6 +575,8 @@ module ActiveRecord
       # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
+      # * <tt>:array</tt> -
+      #   Specifies that the column is an array. This option is only supported by some databases like PostgreSQL.
       # * <tt>:comment</tt> -
       #   Specifies the comment for the column. This option is ignored by some backends.
       # * <tt>:collation</tt> -
