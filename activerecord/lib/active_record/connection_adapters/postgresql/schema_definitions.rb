@@ -262,10 +262,10 @@ module ActiveRecord
         #  event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
         #
         #  event.starts_at
-        #   # => Tue, 11 Feb 2014
+        #  # => Tue, 11 Feb 2014
         #
         #  event.ends_at
-        #   # => Thu, 13 Feb 2014
+        #  # => Thu, 13 Feb 2014
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
 
@@ -323,17 +323,17 @@ module ActiveRecord
         #
         #  article = Article.create
         #  article.status
-        #   # => "draft"
+        #  # => "draft"
         #
         #  article.status_published!
         #  article.status
         #   # => "published"
         #
         #  article.status_archived?
-        #   # => false
+        #  # => false
         #
         #  article.status = "deleted"
-        #   # => ArgumentError: 'deleted' is not a valid status
+        #  # => ArgumentError: 'deleted' is not a valid status
         #
         # To rename an enum type:
         #
@@ -402,7 +402,7 @@ module ActiveRecord
         #
         #  profile = Profile.first
         #  profile.settings
-        #   # => {"color"=>"blue", "resolution"=>"800x600"}
+        #  # => {"color"=>"blue", "resolution"=>"800x600"}
         #
         #  profile.settings = { "color" => "yellow", "resolution" => "1280x1024" }
         #  profile.save!
@@ -435,10 +435,10 @@ module ActiveRecord
         #
         #  device = Device.create(ip_address: "192.168.1.1")
         #  device.ip_address.class
-        #   # => IPAddr
+        #  # => IPAddr
         #
         #  device.ip_address
-        #   => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
+        #  # => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
 
         ##
         # :method: interval
@@ -459,7 +459,7 @@ module ActiveRecord
         #
         #  event = Event.create(duration: 3.days + 2.hours)
         #  event.duration
-        #   # => 3 days 2 hours
+        #  # => 3 days 2 hours
         #
 
         ##
@@ -533,7 +533,7 @@ module ActiveRecord
         #  Event.create(payload: { kind: "user_renamed", change: ["jack", "john"] })
         #  event = Event.first
         #  event.payload
-        #   # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
+        #  # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
         #
         # Query using PostgreSQL JSON operators:
         #
