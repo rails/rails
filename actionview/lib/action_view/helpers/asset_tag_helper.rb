@@ -139,6 +139,8 @@ module ActionView
           }.merge!(options)
           if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_scripts)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
@@ -229,6 +231,8 @@ module ActionView
           }.merge!(options)
           if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
 
           if apply_stylesheet_media_default && tag_options["media"].blank?
