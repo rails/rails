@@ -141,7 +141,7 @@ module ActiveJob
     def interrupt(event)
       job = event.payload[:job]
       info do
-        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]} (#{event.payload[:reason]})"
       end
     end
     subscribe_log_level :interrupt, :info
