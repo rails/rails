@@ -488,6 +488,30 @@ module ActiveRecord
           Object.send(:remove_const, :ReloadedRecord)
           ActiveRecord::Base.establish_connection :arunit
         end
+
+        def test_base_role_with_primary_abstract_class
+          Object.const_set(:ApplicationRecord, ApplicationRecord)
+
+          assert_predicate ApplicationRecord, :application_record_class?
+          assert_predicate ApplicationRecord, :primary_class?
+          assert_predicate ApplicationRecord, :abstract_class?
+
+          ApplicationRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          # Switch everything to reading
+          ActiveRecord::Base.connected_to(role: :reading) do
+            # Switch primary abstract class, and therefore ActiveRecord::Base, to writing
+            ApplicationRecord.connected_to(role: :writing) do
+              assert_equal :writing, ActiveRecord::Base.current_role
+              assert_equal :writing, ApplicationRecord.current_role
+            end
+          end
+        ensure
+          ApplicationRecord.remove_connection
+          ActiveRecord.application_record_class = nil
+          Object.send(:remove_const, :ApplicationRecord)
+          ActiveRecord::Base.establish_connection :arunit
+        end
       end
     end
   end
