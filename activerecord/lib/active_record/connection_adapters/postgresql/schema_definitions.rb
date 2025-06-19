@@ -251,7 +251,7 @@ module ActiveRecord
         #
         #  event = Event.first
         #  event.duration
-        #   # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
+        #  # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
         #
         # For all events on a given date:
         #
@@ -327,7 +327,7 @@ module ActiveRecord
         #
         #  article.status_published!
         #  article.status
-        #   # => "published"
+        #  # => "published"
         #
         #  article.status_archived?
         #  # => false
@@ -537,8 +537,6 @@ module ActiveRecord
         #
         # Query using PostgreSQL JSON operators:
         #
-        #   # -> returns a JSON object or array (as JSON)
-        #   # ->> returns a value as text
         #  Event.where("payload->>'kind' = ?", "user_renamed")
         #
         # 💡 Tip: Use +store_accessor+ to define typed accessors on +jsonb+ columns.
@@ -780,7 +778,9 @@ module ActiveRecord
         #
         # A tsrange value represents an unzoned time interval.
         #
-        #  Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
+        #  server = Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
+        #  server.maintenance_window
+        #  # => "2024-01-01 08:00:00.000000000 +0000..2024-01-01 12:00:00.000000000 +0000"
 
         ##
         # :method: tstzrange
@@ -796,7 +796,9 @@ module ActiveRecord
         #
         # A tstzrange value represents a time interval in UTC, aware of time zones.
         #
-        #  Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
+        #  campaign = Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
+        #  campaign.active_period
+        #  # => "2024-06-01 10:00:00.000000000 +0000..2024-06-01 18:00:00.000000000 +0000"
 
         ##
         # :method: tsvector
