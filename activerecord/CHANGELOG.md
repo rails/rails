@@ -862,19 +862,15 @@
 
     *Jason Nochlin*
 
-*   The fix ensures that the association is joined using the appropriate join type
-    (either inner join or left outer join) based on the existing joins in the scope.
-
-    This prevents unintentional overrides of existing join types and ensures consistency in the generated SQL queries.
+*   Fix an issue with `where.associated` losing the current join type scope.
 
     Example:
 
-
-
     ```ruby
-    # `associated` will use `LEFT JOIN` instead of using `JOIN`
     Post.left_joins(:author).where.associated(:author)
     ```
+
+    Previously, the `LEFT OUTER JOIN` would be lost and converted to an `INNER JOIN`.
 
     *Saleh Alhaddad*
 
