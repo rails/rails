@@ -134,7 +134,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.box :bounds
+        #   create_table :shapes do |t|
+        #     t.box :bounds
+        #   end
         #
         # Values can be assigned using PostgreSQL's box syntax:
         #
@@ -206,7 +208,7 @@ module ActiveRecord
         #
         # A circle value is stored as a center point and a radius. In SQL, the format is: CIRCLE '((x, y), r)'
         #
-        #   irb> Circle.create(bounds: '((1,1),2)')
+        #  Circle.create(bounds: '((1,1),2)')
         #
         # This creates a circle centered at (1,1) with a radius of 2.
 
@@ -221,7 +223,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.citext :email
+        #   create_table :users do |t|
+        #     t.citext :email
+        #   end
         #
         # This creates a column named +email+ that will treat values like "User@example.com"
         # and "user@example.com" as equal.
@@ -236,29 +240,31 @@ module ActiveRecord
         # This type is mapped to {Ruby Range}[https://docs.ruby-lang.org/en/master/Range.html] objects.
         #
         # Example:
-        #   t.daterange :duration
+        #   create_table :events do |t|
+        #     t.daterange :duration
+        #   end
         #
         # This creates a column named +duration+ that can store ranges like:
         #   '2024-01-01'..'2024-12-31'
         #
-        #   irb> Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
+        #  Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
         #
-        #   irb> event = Event.first
-        #   irb> event.duration
+        #  event = Event.first
+        #  event.duration
         #   # => Tue, 11 Feb 2014...Thu, 13 Feb 2014
         #
         # For all events on a given date:
         #
-        #   irb> Event.where("duration @> ?::date", Date.new(2014, 2, 12))
+        #  Event.where("duration @> ?::date", Date.new(2014, 2, 12))
         #
         # Working with range bounds:
         #
-        #   irb> event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
+        #  event = Event.select("lower(duration) AS starts_at").select("upper(duration) AS ends_at").first
         #
-        #   irb> event.starts_at
+        #  event.starts_at
         #   # => Tue, 11 Feb 2014
         #
-        #   irb> event.ends_at
+        #  event.ends_at
         #   # => Thu, 13 Feb 2014
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
@@ -315,18 +321,18 @@ module ActiveRecord
         #
         # Usage:
         #
-        #   irb> article = Article.create
-        #   irb> article.status
+        #  article = Article.create
+        #  article.status
         #   # => "draft"
         #
-        #   irb> article.status_published!
-        #   irb> article.status
+        #  article.status_published!
+        #  article.status
         #   # => "published"
         #
-        #   irb> article.status_archived?
+        #  article.status_archived?
         #   # => false
         #
-        #   irb> article.status = "deleted"
+        #  article.status = "deleted"
         #   # => ArgumentError: 'deleted' is not a valid status
         #
         # To rename an enum type:
@@ -394,14 +400,14 @@ module ActiveRecord
         #
         #   Profile.create(settings: { "color" => "blue", "resolution" => "800x600" })
         #
-        #   irb> profile = Profile.first
-        #   irb> profile.settings
+        #  profile = Profile.first
+        #  profile.settings
         #   # => {"color"=>"blue", "resolution"=>"800x600"}
         #
-        #   irb> profile.settings = { "color" => "yellow", "resolution" => "1280x1024" }
-        #   irb> profile.save!
+        #  profile.settings = { "color" => "yellow", "resolution" => "1280x1024" }
+        #  profile.save!
         #
-        #   irb> Profile.where("settings -> 'color' = ?", "yellow")
+        #  Profile.where("settings -> 'color' = ?", "yellow")
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
         #
@@ -427,11 +433,11 @@ module ActiveRecord
         #
         # Assigning and querying values as strings:
         #
-        #   irb> device = Device.create(ip_address: "192.168.1.1")
-        #   irb> device.ip_address.class
+        #  device = Device.create(ip_address: "192.168.1.1")
+        #  device.ip_address.class
         #   # => IPAddr
         #
-        #   irb> device.ip_address
+        #  device.ip_address
         #   => #<IPAddr: IPv4:192.168.1.12/255.255.255.255>
 
         ##
@@ -451,8 +457,8 @@ module ActiveRecord
         #
         # Durations can be assigned using ActiveSupport helpers:
         #
-        #   irb> event = Event.create(duration: 3.days + 2.hours)
-        #   irb> event.duration
+        #  event = Event.create(duration: 3.days + 2.hours)
+        #  event.duration
         #   # => 3 days 2 hours
         #
 
@@ -466,7 +472,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.int4range :range
+        #   create_table :records do |t|
+        #     t.int4range :range
+        #   end
         #
         # Assign values using Ruby ranges:
         #
@@ -483,7 +491,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.int8range :usage_window
+        #   create_table :records do |t|
+        #     t.int8range :usage_window
+        #   end
         #
         # Assign values using Ruby ranges:
         #
@@ -501,7 +511,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.jsonb :payload
+        #   create_table :events do |t|
+        #     t.jsonb :payload
+        #   end
         #
         # You can also use +json+ (text-based JSON) instead:
         #
@@ -518,16 +530,16 @@ module ActiveRecord
         #   class Event < ApplicationRecord
         #   end
         #
-        #   irb> Event.create(payload: { kind: "user_renamed", change: ["jack", "john"] })
-        #   irb> event = Event.first
-        #   irb> event.payload
+        #  Event.create(payload: { kind: "user_renamed", change: ["jack", "john"] })
+        #  event = Event.first
+        #  event.payload
         #   # => {"kind"=>"user_renamed", "change"=>["jack", "john"]}
         #
         # Query using PostgreSQL JSON operators:
         #
         #   # -> returns a JSON object or array (as JSON)
         #   # ->> returns a value as text
-        #   irb> Event.where("payload->>'kind' = ?", "user_renamed")
+        #  Event.where("payload->>'kind' = ?", "user_renamed")
         #
         # 💡 Tip: Use +store_accessor+ to define typed accessors on +jsonb+ columns.
         #
@@ -543,11 +555,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.line :edge
+        #   create_table :shapes do |t|
+        #     t.line :edge
+        #   end
         #
         # A line is defined by the general linear equation Ax + By + C = 0.
         #
-        #   irb> Shape.create(edge: '{1,2,3}')
+        #  Shape.create(edge: '{1,2,3}')
         #
         # This creates a line with A=1, B=2, and C=3.
 
@@ -560,11 +574,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.lseg :boundary
+        #   create_table :walls do |t|
+        #     t.lseg :boundary
+        #   end
         #
         # An +lseg+ value represents a straight segment between two points.
         #
-        #   irb> Wall.create(boundary: '[(0,0),(3,4)]')
+        #  Wall.create(boundary: '[(0,0),(3,4)]')
         #
         # This creates a line segment from (0,0) to (3,4).
 
@@ -576,12 +592,14 @@ module ActiveRecord
         #
         # Example:
         #
-        #   enable_extension "ltree"
-        #   t.ltree :path
+        #   enable_extension "ltree" unless extension_enabled?("ltree")
+        #   create_table :nodes do |t|
+        #     t.ltree :path
+        #   end
         #
         # An +ltree+ value represents a dot-separated path.
         #
-        #   irb> Node.create(path: 'Top.Science.Astronomy')
+        #  Node.create(path: 'Top.Science.Astronomy')
         #
         # This stores a path in a tree-like label hierarchy.
         #
@@ -595,15 +613,17 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.macaddr :address
+        #   create_table :devices do |t|
+        #     t.macaddr :address
+        #   end
         #
         # A MAC address value must be in standard colon-separated format.
         #
-        #   irb> Device.create(address: '32:01:16:6d:05:ef')
+        #  Device.create(address: '32:01:16:6d:05:ef')
         #
-        #   irb> device = Device.first
-        #   irb> device.address
-        #   # => "32:01:16:6d:05:ef"
+        #  device = Device.first
+        #  device.address
+        #  # => "32:01:16:6d:05:ef"
         #
         # 🔗 See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
 
@@ -619,7 +639,7 @@ module ActiveRecord
         #
         # A money value stores fixed-point currency, with locale-aware formatting.
         #
-        #   irb> Product.create(price: '19.99')
+        #  Product.create(price: '19.99')
 
         ##
         # :method: numrange
@@ -629,11 +649,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.numrange :acceptable_range
+        #   create_table :metrics do |t|
+        #     t.numrange :acceptable_range
+        #   end
         #
         # A +numrange+ value represents an arbitrary-precision numeric interval.
         #
-        #   irb> Metric.create(acceptable_range: 1.5..10.0)
+        #  Metric.create(acceptable_range: 1.5..10.0)
 
         ##
         # :method: oid
@@ -643,9 +665,11 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.oid :object_id
+        #   create_table :records do |t|
+        #     t.oid :object_id
+        #   end
         #
-        #   irb> Record.create(object_id: 12345)
+        #  Record.create(object_id: 12345)
 
         ##
         # :method: path
@@ -655,11 +679,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.path :trail
+        #   create_table :trails do |t|
+        #     t.path :trail
+        #   end
         #
         # A path value is a series of connected 2D points.
         #
-        #   irb> Trail.create(trail: '((0,0),(1,2),(2,4))')
+        #  Trail.create(trail: '((0,0),(1,2),(2,4))')
 
         ##
         # :method: point
@@ -669,11 +695,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.point :location
+        #   create_table :places do |t|
+        #     t.point :location
+        #   end
         #
         # A point is stored as a pair of x, y coordinates.
         #
-        #   irb> Place.create(location: '(3.5,4.5)')
+        #  Place.create(location: '(3.5,4.5)')
 
         ##
         # :method: polygon
@@ -683,11 +711,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.polygon :area
+        #   create_table :regions do |t|
+        #     t.polygon :area
+        #   end
         #
         # A polygon is defined by a sequence of at least three points.
         #
-        #   irb> Region.create(area: '((1,1),(2,3),(3,1))')
+        #  Region.create(area: '((1,1),(2,3),(3,1))')
 
         ##
         # :method: serial
@@ -697,11 +727,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.serial :legacy_id
+        #   create_table :records do |t|
+        #     t.serial :legacy_id
+        #   end
         #
         # Serial values automatically increment on insert.
         #
-        #   irb> Record.create # legacy_id will auto-increment
+        #  Record.create # legacy_id will auto-increment
 
         ##
         # :method: timestamptz
@@ -718,7 +750,7 @@ module ActiveRecord
         #
         # A +timestamptz+ value stores time in UTC with session-local zone conversion.
         #
-        #   irb> Submission.create(submitted_at: Time.now)
+        #  Submission.create(submitted_at: Time.now)
         #
         # Rails uses timestamp without time zone by default for datetime columns.
         # This can lead to confusion or bugs in apps dealing with multiple time zones.
@@ -742,11 +774,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.tsrange :maintenance_window
+        #   create_table :servers do |t|
+        #     t.tsrange :maintenance_window
+        #   end
         #
         # A tsrange value represents an unzoned time interval.
         #
-        #   irb> Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
+        #  Server.create(maintenance_window: Time.parse("2024-01-01 08:00")...Time.parse("2024-01-01 12:00"))
 
         ##
         # :method: tstzrange
@@ -756,11 +790,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.tstzrange :active_period
+        #   create_table :campaigns do |t|
+        #     t.tstzrange :active_period
+        #   end
         #
         # A tstzrange value represents a time interval in UTC, aware of time zones.
         #
-        #   irb> Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
+        #  Campaign.create(active_period: Time.zone.parse("2024-06-01 10:00")..Time.zone.parse("2024-06-01 18:00"))
 
         ##
         # :method: tsvector
@@ -770,7 +806,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.tsvector :document
+        #   create_table :documents do |t|
+        #     t.tsvector :document
+        #   end
         #
         # A +tsvector+ column stores lexemes used in full-text search, which can be
         # indexed with a GIN index and queried using PostgreSQL's full-text search
@@ -825,9 +863,9 @@ module ActiveRecord
         # If no +:default+ option is passed when creating a table with id: :uuid,
         # Rails assumes gen_random_uuid() as the default value.
         #
-        #   irb> device = Device.create
-        #   irb> device.id
-        #   # => "814865cd-5a1d-4771-9306-4268f188fe9e"
+        #  device = Device.create
+        #  device.id
+        #  # => "814865cd-5a1d-4771-9306-4268f188fe9e"
         #
         # UUIDs can also be used in references:
         #
@@ -837,11 +875,11 @@ module ActiveRecord
         #
         # To generate a model with UUID as the primary key:
         #
-        #   irb> rails generate model Device --primary-key-type=uuid kind:string
+        #  rails generate model Device --primary-key-type=uuid kind:string
         #
         # And for a foreign key referencing a UUID:
         #
-        #   irb> rails generate model Case device_id:uuid
+        #  rails generate model Case device_id:uuid
 
         ##
         # :method: xml
@@ -851,11 +889,13 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.xml :metadata
+        #   create_table :documents do |t|
+        #     t.xml :metadata
+        #   end
         #
         # XML values are stored as valid XML documents.
         #
-        #   irb> Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
+        # Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
 
         define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
           :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,

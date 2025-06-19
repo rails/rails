@@ -457,7 +457,10 @@ module ActiveRecord
       # for available options.
       #
       # Example:
-      #   t.integer :ratings, array: true, default: []
+      #
+      #   create_table :books do |t|
+      #     t.integer :ratings, array: true, default: []
+      #   end
 
       ##
       # :method: json
