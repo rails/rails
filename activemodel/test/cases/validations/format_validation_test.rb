@@ -34,6 +34,14 @@ class FormatValidationTest < ActiveModel::TestCase
     assert_predicate Topic.new("title" => "Validation macros rule!"), :valid?
   end
 
+  def test_validate_format_with_ignore_if_blank_alias
+    Topic.validates_format_of(:title, with: /\AValidation\smacros \w+!\z/, ignore_if_blank: true)
+    assert_predicate Topic.new("title" => "Shouldn't be valid"), :invalid?
+    assert_predicate Topic.new("title" => ""), :valid?
+    assert_predicate Topic.new("title" => nil), :valid?
+    assert_predicate Topic.new("title" => "Validation macros rule!"), :valid?
+  end
+
   # testing ticket #3142
   def test_validate_format_numeric
     Topic.validates_format_of(:title, :content, with: /\A[1-9][0-9]*\z/, message: "is bad data")
