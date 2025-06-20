@@ -33,7 +33,7 @@ module ActiveJob
     attr_accessor :continuation # :nodoc:
 
     # Start a new continuation step
-    def step(step_name, start: nil, &block)
+    def step(step_name, start: nil, isolated: false, &block)
       unless block_given?
         step_method = method(step_name)
 
@@ -46,7 +46,7 @@ module ActiveJob
         block = step_method.arity == 0 ? -> (_) { step_method.call } : step_method
       end
       checkpoint! if continuation.advanced?
-      continuation.step(step_name, start: start, &block)
+      continuation.step(step_name, start: start, isolated: isolated, &block)
     end
 
     def serialize # :nodoc:
@@ -60,7 +60,12 @@ module ActiveJob
     end
 
     def checkpoint! # :nodoc:
-      interrupt! if queue_adapter.stopping?
+      interrupt!(reason: :stopping) if queue_adapter.stopping?
+    end
+
+    def interrupt!(reason:) # :nodoc:
+      instrument :interrupt, reason: reason, **continuation.instrumentation
+      raise Continuation::Interrupt, "Interrupted #{continuation.description} (#{reason})"
     end
 
     private
@@ -90,11 +95,6 @@ module ActiveJob
         else
           raise Continuation::ResumeLimitError, "Job was resumed a maximum of #{max_resumptions} times"
         end
-      end
-
-      def interrupt! # :nodoc:
-        instrument :interrupt, **continuation.instrumentation
-        raise Continuation::Interrupt, "Interrupted #{continuation.description}"
       end
   end
 

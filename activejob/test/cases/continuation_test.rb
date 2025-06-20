@@ -258,7 +258,7 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_no_match "Resuming", @logger.messages
       assert_match(/Step 'step_one' started/, @logger.messages)
       assert_match(/Step 'step_one' completed/, @logger.messages)
-      assert_match(/Interrupted ActiveJob::TestContinuation::LinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one'/, @logger.messages)
+      assert_match(/Interrupted ActiveJob::TestContinuation::LinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one' \(stopping\)/, @logger.messages)
     end
 
     perform_enqueued_jobs
@@ -278,7 +278,7 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_no_match "Resuming", @logger.messages
       assert_match(/Step 'rename' started/, @logger.messages)
       assert_match(/Step 'rename' interrupted at cursor '433'/, @logger.messages)
-      assert_match(/Interrupted ActiveJob::TestContinuation::IteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433'/, @logger.messages)
+      assert_match(/Interrupted ActiveJob::TestContinuation::IteratingJob \(Job ID: [0-9a-f-]{36}\) at 'rename', cursor '433' \(stopping\)/, @logger.messages)
     end
 
     perform_enqueued_jobs
@@ -649,6 +649,73 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
         end
       end
     end
+  end
+
+  class IsolatedStepsJob < ContinuableJob
+    cattr_accessor :items, default: []
+
+    def perform(*isolated)
+      step :step_one, isolated: isolated.include?(:step_one) do |step|
+        items << "step_one"
+      end
+      step :step_two, isolated: isolated.include?(:step_two) do |step|
+        items << "step_two"
+      end
+      step :step_three, isolated: isolated.include?(:step_three) do |step|
+        items << "step_three"
+      end
+      step :step_four, isolated: isolated.include?(:step_four) do |step|
+        items << "step_four"
+      end
+    end
+  end
+
+  test "runs isolated step separately" do
+    IsolatedStepsJob.items = []
+    IsolatedStepsJob.perform_later(:step_three)
+
+    assert_enqueued_jobs 1, only: IsolatedStepsJob do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one", "step_two" ], IsolatedStepsJob.items
+
+    assert_enqueued_jobs 1 do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one", "step_two", "step_three" ], IsolatedStepsJob.items
+
+    assert_enqueued_jobs 0 do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
+    assert_match(/Interrupted ActiveJob::TestContinuation::IsolatedStepsJob \(Job ID: [0-9a-f-]{36}\) after 'step_two' \(isolating\)/, @logger.messages)
+    assert_match(/Interrupted ActiveJob::TestContinuation::IsolatedStepsJob \(Job ID: [0-9a-f-]{36}\) after 'step_three' \(isolating\)/, @logger.messages)
+  end
+
+  test "runs initial and final isolated steps separately" do
+    IsolatedStepsJob.items = []
+    IsolatedStepsJob.perform_later(:step_one, :step_four)
+
+    assert_enqueued_jobs 1, only: IsolatedStepsJob do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one" ], IsolatedStepsJob.items
+
+    assert_enqueued_jobs 1 do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one", "step_two", "step_three" ], IsolatedStepsJob.items
+
+    assert_enqueued_jobs 0 do
+      perform_enqueued_jobs
+    end
+
+    assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
   end
 
   private
