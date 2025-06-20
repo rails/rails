@@ -172,6 +172,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         config/environments/test.rb
         config/initializers
         config/initializers/cors.rb
+        config/initializers/debug.rb
         config/initializers/filter_parameter_logging.rb
         config/initializers/inflections.rb
         config/locales
