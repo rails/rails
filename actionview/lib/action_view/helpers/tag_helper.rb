@@ -453,29 +453,26 @@ module ActionView
       #
       # ==== Examples
       #
-      #   tag("br")
-      #   # => <br />
-      #
-      #   tag("br", nil, true)
+      #   tag.br
       #   # => <br>
       #
-      #   tag("input", type: 'text', disabled: true)
-      #   # => <input type="text" disabled="disabled" />
+      #   tag.input(type: "text", disabled: true)
+      #   # => <input type="text" disabled="disabled">
       #
-      #   tag("input", type: 'text', class: ["strong", "highlight"])
-      #   # => <input class="strong highlight" type="text" />
+      #   tag.input(type: "text", class: ["strong", "highlight"])
+      #   # => <input type="text" class="strong highlight">
       #
-      #   tag("img", src: "open & shut.png")
-      #   # => <img src="open &amp; shut.png" />
+      #   tag.img(src: "open & shut.png")
+      #   # => <img src="open &amp; shut.png">
       #
-      #   tag("img", { src: "open &amp; shut.png" }, false, false)
-      #   # => <img src="open &amp; shut.png" />
+      #   tag.img(src: "open &amp; shut.png", escape: false)
+      #   # => <img src="open &amp; shut.png">
       #
-      #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
-      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
+      #   tag.div(data: { name: "Stephen", city_state: %w(Chicago IL) })
+      #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
-      #   tag("div", class: { highlight: current_user.admin? })
-      #   # => <div class="highlight" />
+      #   tag.div(class: { highlight: current_user.admin? })
+      #   # => <div class="highlight"></div>
       def tag(name = nil, options = nil, open = false, escape = true)
         if name.nil?
           tag_builder
