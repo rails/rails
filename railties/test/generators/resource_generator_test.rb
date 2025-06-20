@@ -80,6 +80,7 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
     content = run_generator ["accounts", "--force-plural"]
     assert_file "app/models/accounts.rb", /class Accounts < ApplicationRecord/
     assert_file "test/models/accounts_test.rb", /class AccountsTest/
+    assert_file "config/routes.rb", /get :accounts_index, to: 'accounts#index'\n  post :accounts_index, to: 'accounts#create/
     assert_no_match(/\[WARNING\]/, content)
   end
 
