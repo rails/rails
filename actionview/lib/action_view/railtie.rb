@@ -78,8 +78,13 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      config.after_initialize do
+        ActionView.render_tracker = config.action_view.render_tracker
+      end
+
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
+          next if k == :render_tracker
           send "#{k}=", v
         end
       end
