@@ -10,6 +10,7 @@ class SuccessAdapter < ActionCable::SubscriptionAdapter::Base
   end
 
   def unsubscribe(channel, callback)
+    sleep ENV["UNSUBSCRIBE_SLEEP_TIME"].to_f if ENV["UNSUBSCRIBE_SLEEP_TIME"]
     subscriber_map[channel].delete(callback)
     subscriber_map.delete(channel) if subscriber_map[channel].empty?
     @@unsubscribe_called = { channel: channel, callback: callback }

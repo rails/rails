@@ -4,6 +4,7 @@ require "test_helper"
 require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
+require "concurrent/atomic/cyclic_barrier"
 
 module ActionCable::StreamTests
   class Connection < ActionCable::Connection::Base
@@ -278,6 +279,59 @@ module ActionCable::StreamTests
         assert_equal 1, subscribers[ChatChannel.broadcasting_for(Room.new(1))].size
         assert_equal 1, subscribers[ChatChannel.broadcasting_for(Room.new(2))].size
       end
+    end
+
+    test "concurrent unsubscribe_from_channel and stream_from do not raise RuntimeError" do
+      ENV["UNSUBSCRIBE_SLEEP_TIME"] = "0.0001" # Set a delay to increase the chance of concurrent execution
+      run_in_eventmachine do
+        connection = TestConnection.new
+        channel = ChatChannel.new connection, "{id: 1}", id: 1
+        channel.subscribe_to_channel
+
+        # Set up initial streams
+        channel.stream_from "room_one"
+        channel.stream_from "room_two"
+        wait_for_async
+
+        # Create barriers to synchronize thread execution
+        barrier = Concurrent::CyclicBarrier.new(2)
+
+        exception_caught = nil
+
+        # Thread 1: calls unsubscribe_from_channel
+        thread1 = Thread.new do
+          barrier.wait
+          # Add a small delay to increase the chance of concurrent execution
+          sleep 0.001
+          channel.unsubscribe_from_channel
+        rescue => e
+          exception_caught = e
+        ensure
+          barrier.wait
+        end
+
+        # Thread 2: calls stream_from during unsubscribe_from_channel iteration
+        thread2 = Thread.new do
+          barrier.wait
+          # Try to add streams while unsubscribe_from_channel is potentially iterating
+          10.times do |i|
+            channel.stream_from "concurrent_room_#{i}"
+            sleep 0.0001 # Small delay to interleave with unsubscribe_from_channel
+          end
+        rescue => e
+          exception_caught = e
+        ensure
+          barrier.wait
+        end
+
+        thread1.join
+        thread2.join
+
+        # Ensure no RuntimeError was raised during concurrent access
+        assert_nil exception_caught, "Concurrent unsubscribe_from_channel and stream_from should not raise RuntimeError: #{exception_caught}"
+      end
+    ensure
+      ENV.delete("UNSUBSCRIBE_SLEEP_TIME")
     end
 
     private
