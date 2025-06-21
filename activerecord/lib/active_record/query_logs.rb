@@ -153,11 +153,7 @@ module ActiveRecord
       end
 
       def query_source_location # :nodoc:
-        Thread.each_caller_location do |location|
-          frame = LogSubscriber.backtrace_cleaner.clean_frame(location)
-          return frame if frame
-        end
-        nil
+        LogSubscriber.backtrace_cleaner.first_clean_frame
       end
 
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }

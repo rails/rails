@@ -1,3 +1,9 @@
+*   The new method `ActiveSupport::BacktraceCleaner#first_clean_frame` returns
+    the first clean frame of the caller's backtrace, or `nil`. Useful when you
+    want to report the application-level location where something happened.
+
+    *Xavier Noria*
+
 *   Always clear `CurrentAttribute` instances.
 
     Previously `CurrentAttribute` instance would be reset at the end of requests.
