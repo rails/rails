@@ -1,3 +1,8 @@
+*   Add `dom_target` helper to create `dom_id`-like strings from an unlimited
+    number of objects.
+
+    *Ben Sheldon*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
