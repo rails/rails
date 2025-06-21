@@ -111,7 +111,10 @@ module ActiveSupport
       def start
         normalize_dirs!
         @dtw, @missing = [*@dtw, *@missing].partition(&:exist?)
-        @listener = @dtw.any? ? Listen.to(*@dtw, &method(:changed)) : nil
+        @listener = if @dtw.any?
+          changed = method(:changed)
+          Listen.to(*@dtw, &changed)
+        end
         @listener&.start
 
         # Wait for the listener to be ready to avoid race conditions
