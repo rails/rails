@@ -1,3 +1,7 @@
+*   Generate an initializer that configures `debug` and enables the `no_repeat` option when creating new applications.
+
+    *Joshua Young*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*

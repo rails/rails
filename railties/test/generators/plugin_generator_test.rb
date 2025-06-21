@@ -57,6 +57,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/config/environments/production.rb
   test/dummy/config/environments/test.rb
   test/dummy/config/initializers/content_security_policy.rb
+  test/dummy/config/initializers/debug.rb
   test/dummy/config/initializers/filter_parameter_logging.rb
   test/dummy/config/initializers/inflections.rb
   test/dummy/config/locales/en.yml
@@ -195,7 +196,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
         assert_no_match(/debug/, content)
       end
     else
-      assert_file "Gemfile", /# gem "debug"/
+      assert_file "Gemfile", /gem "debug"/
     end
   end
 
