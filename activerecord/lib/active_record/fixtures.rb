@@ -80,6 +80,8 @@ module ActiveRecord
   #
   # The testing environment will automatically load all the fixtures into the database before each
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
+  # During this deletion and insertion of fixtures before each test, the environment temporarily
+  # disables the database's referential integrity constraints.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by
   # using a special dynamic method, which has the same name as the model.
