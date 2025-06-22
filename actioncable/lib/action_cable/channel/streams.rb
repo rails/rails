@@ -88,6 +88,8 @@ module ActionCable
       # callback. Defaults to `coder: nil` which does no decoding, passes raw
       # messages.
       def stream_from(broadcasting, callback = nil, coder: nil, &block)
+        return if unsubscribed?
+
         broadcasting = String(broadcasting)
 
         # Don't send the confirmation until pubsub#subscribe is successful
