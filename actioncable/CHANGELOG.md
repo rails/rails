@@ -1,3 +1,7 @@
+*  Fixed a possible race condition in `stream_from`.
+
+  *OuYangJinTing*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   No changes.
