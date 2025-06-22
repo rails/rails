@@ -282,9 +282,11 @@ module ActionCable::StreamTests
     end
 
     test "concurrent unsubscribe_from_channel and stream_from do not raise RuntimeError" do
-      ENV["UNSUBSCRIBE_SLEEP_TIME"] = "0.0001" # Set a delay to increase the chance of concurrent execution
+      threads = []
       run_in_eventmachine do
         connection = TestConnection.new
+        connection.pubsub.unsubscribe_latency = 0.1
+
         channel = ChatChannel.new connection, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
@@ -309,6 +311,7 @@ module ActionCable::StreamTests
         ensure
           barrier.wait
         end
+        threads << thread1
 
         # Thread 2: calls stream_from during unsubscribe_from_channel iteration
         thread2 = Thread.new do
@@ -323,6 +326,7 @@ module ActionCable::StreamTests
         ensure
           barrier.wait
         end
+        threads << thread2
 
         thread1.join
         thread2.join
@@ -331,7 +335,7 @@ module ActionCable::StreamTests
         assert_nil exception_caught, "Concurrent unsubscribe_from_channel and stream_from should not raise RuntimeError: #{exception_caught}"
       end
     ensure
-      ENV.delete("UNSUBSCRIBE_SLEEP_TIME")
+      threads.each(&:kill)
     end
 
     private
