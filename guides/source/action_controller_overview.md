@@ -1182,7 +1182,7 @@ The Request and Response Objects
 Every controller has two methods, [`request`][] and [`response`][], which can be
 used to access the request and response objects associated with the
 current request cycle. The `request` method returns an instance of
-[`ActionDispatch::Request`][]. The [`response`][] method returns an an instance
+[`ActionDispatch::Request`][]. The [`response`][] method returns an instance
 of [`ActionDispatch::Response`][], an object representing what is going to be
 sent back to the client browser (e.g. from `render` or `redirect` in the
 controller action).
