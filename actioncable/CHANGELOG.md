@@ -1,3 +1,7 @@
+*   Fixed a possible race condition in `stream_from`.
+
+    *OuYangJinTing*
+
 *   Ensure the Postgresql adapter always use a dedicated connection even during system tests.
 
     Fix an issue with the Action Cable Postgresql adapter causing deadlock or various weird
