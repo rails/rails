@@ -1,3 +1,9 @@
+*   Fix Rails console to not override user defined IRB_NAME.
+
+    Only change the prompt name if it hasn't been customized in `.irbrc`.
+
+    *Jarrett Lusso*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   Fix Rails console to load routes.
