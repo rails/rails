@@ -181,7 +181,7 @@ The main difference is the content of the `config/database.yml` file. With the
 PostgreSQL option, it looks like this:
 
 ```yaml
-# PostgreSQL. Versions 9.3 and up are supported.
+# PostgreSQL. Versions 10.0 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg
