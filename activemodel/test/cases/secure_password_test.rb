@@ -104,6 +104,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
+  test "create a new user with validation, a spaces only password, and an incorrect password confirmation" do
+    @user.password = " "
+    @user.password_confirmation = "something else"
+    assert_not @user.valid?(:create), "user should be invalid"
+    assert_equal 1, @user.errors.count
+    assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
+  end
+
   test "resetting password to nil clears the password cache" do
     @user.password = "password"
     @user.password = nil
@@ -173,6 +181,14 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "updating an existing user with validation and an incorrect password confirmation" do
     @existing_user.password = "password"
+    @existing_user.password_confirmation = "something else"
+    assert_not @existing_user.valid?(:update), "user should be invalid"
+    assert_equal 1, @existing_user.errors.count
+    assert_equal ["doesn't match Password"], @existing_user.errors[:password_confirmation]
+  end
+
+  test "updating an existing user with validation, a spaces only password, and an incorrect password confirmation" do
+    @existing_user.password = " "
     @existing_user.password_confirmation = "something else"
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
