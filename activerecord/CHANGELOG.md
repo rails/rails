@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Implement support for deprecating associations:
 
     ```ruby
