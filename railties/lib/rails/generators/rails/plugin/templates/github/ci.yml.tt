@@ -33,7 +33,7 @@ jobs:
             rubocop-${{ runner.os }}-${{ env.RUBY_VERSION }}-${{ env.DEPENDENCIES_HASH }}-
 
       - name: Lint code for consistent style
-        run: bin/rubocop -f github
+        run: bin/rubocop --format github
 
 <% end -%>
 <% unless options[:skip_test] -%>
