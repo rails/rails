@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Move `LIMIT` validation from query generation to when `limit()` is called.
 
     *Hartley McGuire*, *Shuyang*
