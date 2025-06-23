@@ -23,6 +23,7 @@ module ActiveRecord
       def no_touching(&block)
         NoTouching.apply_to(self, &block)
       end
+      alias_method :cant_touch_this, :no_touching
     end
 
     class << self

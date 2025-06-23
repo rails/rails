@@ -216,6 +216,72 @@ class TimestampTest < ActiveRecord::TestCase
     end
   end
 
+  def test_touching_a_cant_touch_this_object
+    Developer.cant_touch_this do
+      assert_predicate @developer, :no_touching?
+      assert_not_predicate @owner, :no_touching?
+      @developer.touch
+    end
+
+    assert_not_predicate @developer, :no_touching?
+    assert_not_predicate @owner, :no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touching_related_objects_with_cant_touch_this
+    @owner = Owner.first
+    @previously_updated_at = @owner.updated_at
+
+    Owner.cant_touch_this do
+      @owner.pets.first.touch
+    end
+
+    assert_equal @previously_updated_at, @owner.updated_at
+  end
+
+  def test_global_cant_touch_this
+    ActiveRecord::Base.cant_touch_this do
+      assert_predicate @developer, :no_touching?
+      assert_predicate @owner, :no_touching?
+      @developer.touch
+    end
+
+    assert_not_predicate @developer, :no_touching?
+    assert_not_predicate @owner, :no_touching?
+    assert_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_cant_touch_this_threadsafe
+    Thread.new do
+      Developer.cant_touch_this do
+        assert_predicate @developer, :no_touching?
+
+        sleep(1)
+      end
+    end
+
+    assert_not_predicate @developer, :no_touching?
+  end
+
+  def test_cant_touch_this_with_callbacks
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "developers"
+
+      attr_accessor :after_touch_called
+
+      after_touch do |user|
+        user.after_touch_called = true
+      end
+    end
+
+    developer = klass.first
+
+    klass.cant_touch_this do
+      developer.touch
+      assert_not developer.after_touch_called
+    end
+  end
+
   def test_saving_an_unchanged_record_with_a_mutating_before_save_callback_updates_its_timestamp
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "developers"
