@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
 
     *Bengt-Ove Hollaender*
