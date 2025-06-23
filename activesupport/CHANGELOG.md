@@ -1,10 +1,18 @@
+*   The new method `ActiveSupport::BacktraceCleaner#first_clean_location`
+    returns the first clean location of the caller's call stack, or `nil`.
+    Locations are `Thread::Backtrace::Location` objects. Useful when you want to
+    report the application-level location where something happened as an object.
+
+    *Xavier Noria*
+
 *   FileUpdateChecker and EventedFileUpdateChecker ignore changes in Gem.path now.
 
     *Ermolaev Andrey*, *zzak*
 
 *   The new method `ActiveSupport::BacktraceCleaner#first_clean_frame` returns
     the first clean frame of the caller's backtrace, or `nil`. Useful when you
-    want to report the application-level location where something happened.
+    want to report the application-level frame where something happened as a
+    string.
 
     *Xavier Noria*
 
