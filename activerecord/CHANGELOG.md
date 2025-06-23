@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
 
     *Yasuo Honda*
