@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "pg", "~> 1.6"
+gem "pg", "~> 1.6.0.rc1"
 require "pg"
 
 require "active_support/core_ext/object/try"

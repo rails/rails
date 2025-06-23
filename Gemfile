@@ -157,7 +157,7 @@ platforms :ruby, :windows do
   gem "sqlite3", ">= 2.1"
 
   group :db do
-    gem "pg", "~> 1.6"
+    gem "pg", "~> 1.6.0.rc1"
     gem "mysql2", "~> 0.5"
     gem "trilogy", ">= 2.7.0"
   end

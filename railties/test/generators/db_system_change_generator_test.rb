@@ -43,7 +43,7 @@ module Rails
 
             assert_file("Gemfile") do |content|
               assert_match "# Use pg as the database for Active Record", content
-              assert_match 'gem "pg", "~> 1.6"', content
+              assert_match 'gem "pg", "~> 1.6.0.rc1"', content
             end
 
             assert_file("Dockerfile") do |content|
