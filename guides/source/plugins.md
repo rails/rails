@@ -572,7 +572,7 @@ class RailtieTest < ActiveSupport::TestCase
 end
 ```
 
-Railties provide a clean way to integrate your plugin with Rails' initialization process. For more details about how Rails initializes and the complete lifecycle, see the [Rails Initialization Process Guide](initialization.html).
+Railties provide a clean way to integrate your plugin with Rails' initialization process. For more details about the complete Rails initialization lifecycle, see the [Rails Initialization Process Guide](initialization.html).
 
 Testing Your Plugin
 -------------------
