@@ -56,7 +56,7 @@ The **Basic Plugin** (default), without any arguments, generates a minimal plugi
 $ rails plugin new api_boost
 ```
 
-This is what we'll use in this guide.  There other two options, `--full` and `--mountable`, which are covered in the [Rails Engines guide](engines.html).
+We'll use the basic plugin generator for this guide. There are two options, `--full` and `--mountable`, which are covered in the [Rails Engines guide](engines.html).
 
 The **Full Plugin** (`--full`) option creates a more complete plugin structure that includes an `app` directory tree (models, views, controllers), a `config/routes.rb` file, and an Engine class at `lib/api_boost/engine.rb`.
 
