@@ -85,6 +85,7 @@ doesn't require namespace isolation.
 
 The **Mountable Engine** (`--mountable`) option creates a fully isolated,
 mountable engine that includes everything from `--full` plus:
+
 - Namespace isolation (`ApiBoost::` prefix for all classes)
 - Isolated routing (`ApiBoost::Engine.routes.draw`)
 - Asset manifest files
@@ -160,12 +161,14 @@ api_boost/
 ```
 
 **The `lib` directory** contains your plugin's source code:
+
 - `lib/api_boost.rb` is the main entry point for your plugin
 - `lib/api_boost/` contains modules and classes for your plugin functionality
 - `lib/tasks/` contains any Rake tasks your plugin provides
 
 **The `test/dummy` directory** contains a complete Rails application that's used
 for testing your plugin. This dummy application:
+
 - Loads your plugin automatically through the Gemfile
 - Provides a Rails environment to test your plugin's integration
 - Includes generators, models, controllers, and views as needed for testing
@@ -227,23 +230,19 @@ anywhere in your Rails application.
 
 WARNING: Before proceeding, it's important to understand that extending core
 classes (like String, Array, Hash, etc.) should be used sparingly, if at all.
-Core class extensions can be brittle, dangerous, and are often
-unnecessary.<br></br> They can:</br>
-- Cause naming conflicts when multiple gems extend the same class with the same
-  method name</br>
-- Break unexpectedly when Ruby or Rails updates change core class behavior</br>
-- Make debugging difficult because it's not obvious where methods come from</br>
-- Create coupling issues between your plugin and other code<br></br> Better
-alternatives to consider:</br>
-- Create utility modules or helper classes instead</br>
-- Use composition over monkey patching</br>
-- Implement functionality as instance methods on your own classes<br></br> For
-more details on why core class extensions can be problematic, see [The Case
-Against Monkey
-Patching](https://shopify.engineering/the-case-against-monkey-patching).
-<br></br> That said, understanding how core class extensions work is valuable.
-The example below demonstrates the technique, but they should be used sparingly
-- consider whether it's the right approach for your specific use case.
+Core class extensions can be brittle, dangerous, and are often unnecessary.</br></br>
+Extending core classes can cause naming conflicts when multiple gems extend the
+same class with the same method name, break unexpectedly when Ruby or Rails
+updates change core class behavior, make debugging difficult because it's not
+obvious where methods come from, and create coupling issues between your plugin
+and other code. </br></br>Better alternatives to consider are to create utility
+modules or helper classes, use composition over monkey patching, or implement
+functionality as instance methods on your own classes.</br></br>
+For more details on why core class extensions can be problematic, see [The Case
+Against Monkey Patching](https://shopify.engineering/the-case-against-monkey-patching).
+That said, understanding how core class extensions work is valuable. The example
+below demonstrates the technique, but they should be used sparingly. Consider
+whether it's the right approach for your specific use case.
 
 In this example you will add a method to Integer named `requests_per_hour`.
 
