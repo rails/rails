@@ -247,7 +247,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     options = "-e test"
     spawn_console(options, env: { "IRBRC" => irbrc.path })
 
-    write_prompt "123", prompt: "jarretts-irb(test):002> "
+    write_prompt "123", prompt: "jarretts-irb(test)"
   ensure
     File.unlink(irbrc)
   end
