@@ -18,7 +18,6 @@ After reading this guide, you will know:
 What are Plugins?
 -----------------
 
-
 A Rails plugin is a packaged extension that adds functionality to a Rails
 application. While all engines are plugins, not all plugins are engines. Plugins
 can be lightweight — such as monkey patches, custom rake tasks, or shared
@@ -28,9 +27,18 @@ behavior across apps, whereas engines provide more fully-featured components
 with their own routes, models, and views.
 
 At a technical level, a plugin is a Ruby gem that’s designed to work inside a
-Rails application. It often uses a `Railtie` or `Engine` to hook into the Rails
-boot process, allowing it to extend or modify the framework's behavior in a
-structured way.
+Rails application. It often uses a
+[Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html) or
+[Engine](https://api.rubyonrails.org/classes/Rails/Engine.html) to hook into the
+Rails boot process, allowing it to extend or modify the framework's behavior in
+a structured way. A
+[Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html) is the most
+basic integration point for extending Rails — it’s typically used when your
+plugin needs to add configuration, rake tasks, or initializer code, but doesn’t
+expose any controllers, views, or models. An
+[Engine](https://api.rubyonrails.org/classes/Rails/Engine.html), on the other
+hand, is a more advanced type of plugin that behaves like a mini Rails
+application. It can include its own routes, controllers, views, and even assets.
 
 Plugins serve several purposes:
 
