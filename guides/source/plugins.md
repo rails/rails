@@ -304,7 +304,7 @@ The code above uses `ActiveSupport::Concern` to simplify including modules with 
 
 ### Add a Class Method
 
-By default, this plugin expects your model to have a column named `last_request_at`. However, since that column name might already be used for something else, the plugin lets you customize it. You can override the default by passing a different column name with the `api_timestamp_field: option`. Internally, this value is stored in a class-level setting called `api_timestamp_field`, which the plugin uses when updating the timestamp.
+By default, this plugin expects your model to have a column named `last_request_at`. However, since that column name might already be used for something else, the plugin lets you customize it. You can override the default by passing a different column name with the `api_timestamp_field:` option. Internally, this value is stored in a class-level setting called `api_timestamp_field`, which the plugin uses when updating the timestamp.
 
 For example, if you want to use `last_api_call` instead of `last_request_at` as the column name, you can do the following:
 
