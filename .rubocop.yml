@@ -376,9 +376,6 @@ Performance/RedundantStringChars:
 Performance/StringInclude:
   Enabled: true
 
-Minitest/AssertPredicate:
-  Enabled: true
-
 Minitest/AssertRaisesWithRegexpArgument:
   Enabled: true
 
