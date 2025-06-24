@@ -143,7 +143,7 @@ api_boost/
 - Includes generators, models, controllers, and views as needed for testing
 - Can be used interactively with `rails console` and `rails server`
 
-**The Gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and which files to include when packaging.
+**The Gemspec file** (`api_boost.gemspec`) defines your gem's metadata, dependencies, and the files to include when packaging.
 
 
 ### Set Up the Plugin
