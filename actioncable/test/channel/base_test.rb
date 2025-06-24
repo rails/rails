@@ -133,7 +133,7 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     assert_not @channel.unsubscribed?
 
     @channel.unsubscribe_from_channel
-    assert @channel.unsubscribed?
+    assert_predicate @channel, :unsubscribed?
   end
 
   test "connection identifiers" do
