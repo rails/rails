@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "singleton"
+
 module ActiveJob
   module Serializers
     # Base class for serializing and deserializing custom objects.

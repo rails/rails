@@ -6,6 +6,10 @@ module Mail
       address_list(header[:from])&.addresses&.first
     end
 
+    def reply_to_address
+      address_list(header[:reply_to])&.addresses&.first
+    end
+
     def recipients_addresses
       to_addresses + cc_addresses + bcc_addresses + x_original_to_addresses + x_forwarded_to_addresses
     end
@@ -32,7 +36,7 @@ module Mail
 
     private
       def address_list(obj)
-        if obj&.respond_to?(:element)
+        if obj.respond_to?(:element)
           # Mail 2.8+
           obj.element
         else

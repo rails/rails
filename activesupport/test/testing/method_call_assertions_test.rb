@@ -207,6 +207,6 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     end
 
     test_results = test_unit_class.new(:test_assert_changes).run
-    assert test_results.passed?
+    assert_predicate test_results, :passed?
   end
 end

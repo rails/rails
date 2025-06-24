@@ -5,6 +5,7 @@ require "jobs/hello_job"
 require "jobs/enqueue_error_job"
 require "jobs/multiple_kwargs_job"
 require "active_support/core_ext/numeric/time"
+require "minitest/mock"
 
 class QueuingTest < ActiveSupport::TestCase
   setup do
@@ -25,7 +26,7 @@ class QueuingTest < ActiveSupport::TestCase
     result = HelloJob.set(wait_until: 1.second.ago).perform_later "Jamie"
     assert result
   rescue NotImplementedError
-    skip
+    pass
   end
 
   test "job returned by enqueue has the arguments available" do
@@ -35,9 +36,9 @@ class QueuingTest < ActiveSupport::TestCase
 
   test "job returned by perform_at has the timestamp available" do
     job = HelloJob.set(wait_until: Time.utc(2014, 1, 1)).perform_later
-    assert_equal Time.utc(2014, 1, 1).to_f, job.scheduled_at
+    assert_equal Time.utc(2014, 1, 1), job.scheduled_at
   rescue NotImplementedError
-    skip
+    pass
   end
 
   test "job is yielded to block after enqueue with successfully_enqueued property set" do
@@ -46,6 +47,15 @@ class QueuingTest < ActiveSupport::TestCase
       assert_equal [ "John" ], job.arguments
       assert_equal true, job.successfully_enqueued?
       assert_nil job.enqueue_error
+    end
+  end
+
+  test "configured job is yielded to block after enqueue with successfully_enqueued property set" do
+    HelloJob.set(queue: :some_queue).perform_later "John" do |job|
+      assert_equal "John says hello", JobBuffer.last_value
+      assert_equal [ "John" ], job.arguments
+      assert_equal "some_queue", job.queue_name
+      assert_equal true, job.successfully_enqueued?
     end
   end
 
@@ -71,23 +81,26 @@ class QueuingTest < ActiveSupport::TestCase
     assert_equal ["Jamie says hello", "Job with argument1: John, argument2: 42"], JobBuffer.values.sort
   end
 
+  test "perform_all_later enqueues jobs with schedules" do
+    scheduled_job_1 = HelloJob.new("Scheduled 2014")
+    scheduled_job_1.set(wait_until: Time.utc(2014, 1, 1))
+
+    scheduled_job_2 = HelloJob.new("Scheduled 2015")
+    scheduled_job_2.scheduled_at = Time.utc(2015, 1, 1)
+
+    ActiveJob.perform_all_later(scheduled_job_1, scheduled_job_2)
+    assert_equal ["Scheduled 2014 says hello", "Scheduled 2015 says hello"], JobBuffer.values.sort
+  rescue NotImplementedError
+    pass
+  end
+
   test "perform_all_later instrumentation" do
     jobs = HelloJob.new("Jamie"), HelloJob.new("John")
-    called = false
 
-    subscriber = lambda do |*args|
-      called = true
-      event = ActiveSupport::Notifications::Event.new(*args)
-      payload = event.payload
-      assert payload[:adapter]
-      assert_equal jobs, payload[:jobs]
-      assert_equal 2, payload[:enqueued_count]
-    end
-
-    ActiveSupport::Notifications.subscribed(subscriber, "enqueue_all.active_job") do
+    notification = assert_notification("enqueue_all.active_job", jobs:, enqueued_count: 2) do
       ActiveJob.perform_all_later(jobs)
     end
 
-    assert called
+    assert notification.payload[:adapter]
   end
 end

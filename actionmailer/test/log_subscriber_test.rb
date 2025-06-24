@@ -13,9 +13,12 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     ActionMailer::LogSubscriber.attach_to :action_mailer
   end
 
-  class TestMailer < ActionMailer::Base
-    def receive(mail)
-      # Do nothing
+  class BogusDelivery
+    def initialize(*)
+    end
+
+    def deliver!(mail)
+      raise "failed"
     end
   end
 
@@ -49,5 +52,18 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     assert_match("Welcome", @logger.logged(:debug).second)
   ensure
     BaseMailer.deliveries.clear
+  end
+
+  def test_deliver_message_when_exception_happened
+    previous_delivery_method = BaseMailer.delivery_method
+    BaseMailer.delivery_method = BogusDelivery
+
+    assert_raises(RuntimeError) { BaseMailer.welcome(message_id: "123@abc").deliver_now }
+    wait
+
+    assert_equal(1, @logger.logged(:info).size)
+    assert_equal('Failed delivery of mail 123@abc error_class=RuntimeError error_message="failed"', @logger.logged(:info).first)
+  ensure
+    BaseMailer.delivery_method = previous_delivery_method
   end
 end

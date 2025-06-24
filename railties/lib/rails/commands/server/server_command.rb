@@ -3,7 +3,6 @@
 require "fileutils"
 require "action_dispatch"
 require "rails"
-require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 require "rails/command/environment_argument"
 require "rails/rackup/server"
@@ -81,12 +80,12 @@ module Rails
         console.level = Rails.logger.level
 
         unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
-          Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+          Rails.logger.broadcast_to(console)
         end
       end
 
       def use_puma?
-        server.to_s == "Rack::Handler::Puma"
+        server.to_s.end_with?("Handler::Puma")
       end
   end
 
@@ -94,9 +93,10 @@ module Rails
     class ServerCommand < Base # :nodoc:
       include EnvironmentArgument
 
+      RACK_HANDLER_GEMS = %w(cgi webrick scgi thin puma unicorn falcon)
       # Hard-coding a bunch of handlers here as we don't have a public way of
-      # querying them from the Rack::Handler registry.
-      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn falcon)
+      # querying them from the Rackup::Handler registry.
+      RACK_HANDLERS = RACK_HANDLER_GEMS + %w(fastcgi lsws)
       RECOMMENDED_SERVER = "puma"
 
       DEFAULT_PORT = 3000
@@ -114,7 +114,7 @@ module Rails
       class_option :using, aliases: "-u", type: :string,
         desc: "Specify the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string,
-        desc: "Specify the PID file - defaults to #{DEFAULT_PIDFILE}."
+        desc: "Specify the PID file. Defaults to #{DEFAULT_PIDFILE} in development."
       class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
         desc: "Specify whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
@@ -243,11 +243,13 @@ module Rails
         end
 
         def pid
-          File.expand_path(options[:pid] || ENV.fetch("PIDFILE", DEFAULT_PIDFILE))
+          default_pidfile = environment == "development" ? DEFAULT_PIDFILE : nil
+          pid = options[:pid] || ENV["PIDFILE"] || default_pidfile
+          File.expand_path(pid) if pid
         end
 
         def prepare_restart
-          FileUtils.rm_f(pid) if options[:restart]
+          FileUtils.rm_f(pid) if pid && options[:restart]
         end
 
         def rack_server_suggestion(server)
@@ -259,7 +261,7 @@ module Rails
 
               Run `#{executable} --help` for more options.
             MSG
-          elsif server.in?(RACK_SERVERS)
+          elsif server.in?(RACK_HANDLER_GEMS)
             <<~MSG
               Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
 
@@ -268,7 +270,7 @@ module Rails
               Run `#{executable} --help` for more options.
             MSG
           else
-            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_SERVERS)
+            error = CorrectableNameError.new("Could not find server '#{server}'.", server, RACK_HANDLERS)
             <<~MSG
               #{error.detailed_message}
               Run `#{executable} --help` for more options.

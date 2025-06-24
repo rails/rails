@@ -7,8 +7,17 @@ module ActiveRecord
     attr_reader :model, :connection, :inserts, :keys
     attr_reader :on_duplicate, :update_only, :returning, :unique_by, :update_sql
 
-    def initialize(model, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
-      @model, @connection, @inserts = model, model.connection, inserts.map(&:stringify_keys)
+    class << self
+      def execute(relation, ...)
+        relation.model.with_connection do |c|
+          new(relation, c, ...).execute
+        end.tap { relation.reset }
+      end
+    end
+
+    def initialize(relation, connection, inserts, on_duplicate:, update_only: nil, returning: nil, unique_by: nil, record_timestamps: nil)
+      @relation = relation
+      @model, @connection, @inserts = relation.model, connection, inserts.map(&:stringify_keys)
       @on_duplicate, @update_only, @returning, @unique_by = on_duplicate, update_only, returning, unique_by
       @record_timestamps = record_timestamps.nil? ? model.record_timestamps : record_timestamps
 
@@ -23,20 +32,16 @@ module ActiveRecord
         @keys = @inserts.first.keys
       end
 
-      configure_on_duplicate_update_logic
-
-      if model.scope_attributes?
-        @scope_attributes = model.scope_attributes
-        @keys |= @scope_attributes.keys
-      end
+      @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
+      @keys |= @scope_attributes.keys
       @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
 
       @unique_by = find_unique_index_for(@unique_by)
-      @on_duplicate = :skip if @on_duplicate == :update && updatable_columns.empty?
 
+      configure_on_duplicate_update_logic
       ensure_valid_options_for_connection!
     end
 
@@ -54,9 +59,8 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(connection.schema_cache.primary_keys(model.table_name))
+      Array(@model.schema_cache.primary_keys(model.table_name))
     end
-
 
     def skip_duplicates?
       on_duplicate == :skip
@@ -69,7 +73,7 @@ module ActiveRecord
     def map_key_with_value
       inserts.map do |attributes|
         attributes = attributes.stringify_keys
-        attributes.merge!(scope_attributes) if scope_attributes
+        attributes.merge!(@scope_attributes)
         attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
 
         verify_attributes(attributes)
@@ -93,8 +97,6 @@ module ActiveRecord
     end
 
     private
-      attr_reader :scope_attributes
-
       def has_attribute_aliases?(attributes)
         attributes.keys.any? { |attribute| model.attribute_alias?(attribute) }
       end
@@ -134,6 +136,8 @@ module ActiveRecord
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
           @on_duplicate = :update
+        elsif @on_duplicate == :update && updatable_columns.empty?
+          @on_duplicate = :skip
         end
       end
 
@@ -162,9 +166,8 @@ module ActiveRecord
       end
 
       def unique_indexes
-        connection.schema_cache.indexes(model.table_name).select(&:unique)
+        @model.schema_cache.indexes(model.table_name).select(&:unique)
       end
-
 
       def ensure_valid_options_for_connection!
         if returning && !connection.supports_insert_returning?
@@ -191,7 +194,7 @@ module ActiveRecord
 
 
       def readonly_columns
-        primary_keys + model.readonly_attributes.to_a
+        primary_keys + model.readonly_attributes
       end
 
       def unique_by_columns
@@ -221,7 +224,7 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :append_if_exist_keys_including_timestamps, :record_timestamps?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :append_if_exist_keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -235,8 +238,13 @@ module ActiveRecord
           types = extract_types_from_columns_on(model.table_name, keys: append_if_exist_keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
-            next value if Arel::Nodes::SqlLiteral === value
-            connection.with_yaml_fallback(types[key].serialize(value))
+            if Arel::Nodes::SqlLiteral === value
+              value
+            elsif primary_keys.include?(key) && value.nil?
+              connection.default_insert_value(column_from_key(key))
+            else
+              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            end
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
@@ -300,7 +308,7 @@ module ActiveRecord
           end
 
           def extract_types_from_columns_on(table_name, keys:)
-            columns = connection.schema_cache.columns_hash(table_name)
+            columns = @model.schema_cache.columns_hash(table_name)
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
@@ -318,6 +326,10 @@ module ActiveRecord
 
           def quote_column(column)
             connection.quote_column_name(column)
+          end
+
+          def column_from_key(key)
+            model.schema_cache.columns_hash(model.table_name)[key]
           end
       end
   end

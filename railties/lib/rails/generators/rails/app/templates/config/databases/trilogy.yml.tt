@@ -1,4 +1,4 @@
-# MySQL. Versions 5.5.8 and up are supported.
+# MySQL. Versions 5.6.4 and up are supported.
 #
 # Install the MySQL driver
 #   gem install trilogy
@@ -15,14 +15,13 @@ default: &default
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:
-<% if mysql_socket -%>
-  socket: <%= mysql_socket %>
-<% else -%>
-  host: localhost
-<% end -%>
+  host: <%%= ENV.fetch("DB_HOST") { "<%= database.host %>" } %>
 
 development:
   <<: *default
+<% if database.socket -%>
+  socket: <%= database.socket %>
+<% end -%>
   database: <%= app_name %>_development
 
 # Warning: The database defined as "test" will be erased and
@@ -30,6 +29,9 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+<% if database.socket -%>
+  socket: <%= database.socket %>
+<% end -%>
   database: <%= app_name %>_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
@@ -49,11 +51,42 @@ test:
 #   production:
 #     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
+<%- unless options.skip_solid? -%>
+# Connection URLs for non-primary databases can also be configured using
+# environment variables. The variable name is formed by concatenating the
+# connection name with `_DATABASE_URL`. For example:
+#
+#   CACHE_DATABASE_URL="trilogy://cacheuser:cachepass@localhost/cachedatabase"
+#
+<%- end -%>
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+<%- if options.skip_solid? -%>
 production:
   <<: *default
   database: <%= app_name %>_production
   username: <%= app_name %>
   password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+<%- else -%>
+production:
+  primary: &primary_production
+    <<: *default
+    database: <%= app_name %>_production
+    username: <%= app_name %>
+    password: <%%= ENV["<%= app_name.upcase %>_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: <%= app_name %>_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: <%= app_name %>_production_queue
+    migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_production
+    database: <%= app_name %>_production_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
+<%- end -%>

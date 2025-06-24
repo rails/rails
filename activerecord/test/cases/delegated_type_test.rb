@@ -24,6 +24,10 @@ class DelegatedTypeTest < ActiveRecord::TestCase
     end
   end
 
+  test "delegated types" do
+    assert_equal ["Message", "Comment"], Entry.entryable_types
+  end
+
   test "delegated class" do
     assert_equal Message, @entry_with_message.entryable_class
     assert_equal Comment, @entry_with_comment.entryable_class
@@ -37,33 +41,33 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
   test "delegated type name" do
     assert_equal "message", @entry_with_message.entryable_name
-    assert @entry_with_message.entryable_name.message?
+    assert_predicate @entry_with_message.entryable_name, :message?
 
     assert_equal "comment", @entry_with_comment.entryable_name
-    assert @entry_with_comment.entryable_name.comment?
+    assert_predicate @entry_with_comment.entryable_name, :comment?
   end
 
   test "delegated type predicates" do
-    assert @entry_with_message.message?
+    assert_predicate @entry_with_message, :message?
     assert_not @entry_with_message.comment?
 
-    assert @entry_with_comment.comment?
+    assert_predicate @entry_with_comment, :comment?
     assert_not @entry_with_comment.message?
   end
 
   test "delegated type predicates with custom foreign_type" do
-    assert @entry_with_post.post?
+    assert_predicate @entry_with_post, :post?
     assert_not @entry_with_message.post?
     assert_not @entry_with_comment.post?
   end
 
   test "scope" do
-    assert Entry.messages.first.message?
-    assert Entry.comments.first.comment?
+    assert_predicate Entry.messages.first, :message?
+    assert_predicate Entry.comments.first, :comment?
   end
 
   test "scope with custom foreign_type" do
-    assert Entry.posts.first.post?
+    assert_predicate Entry.posts.first, :post?
   end
 
   test "accessor" do
@@ -95,7 +99,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
   test "touch account" do
     previous_account_updated_at  = @entry_with_message.account.updated_at
     previous_entry_updated_at    = @entry_with_message.updated_at
-    previous_messsage_updated_at = @entry_with_message.entryable.updated_at
+    previous_message_updated_at  = @entry_with_message.entryable.updated_at
 
     travel 5.seconds do
       Recipient.create! message: @entry_with_message.entryable, email_address: "test@test.com"
@@ -103,7 +107,7 @@ class DelegatedTypeTest < ActiveRecord::TestCase
 
     assert_not_equal @entry_with_message.reload.account.updated_at, previous_account_updated_at
     assert_not_equal @entry_with_message.reload.updated_at, previous_entry_updated_at
-    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_messsage_updated_at
+    assert_not_equal @entry_with_message.reload.entryable.updated_at, previous_message_updated_at
   end
 
   test "builder method" do

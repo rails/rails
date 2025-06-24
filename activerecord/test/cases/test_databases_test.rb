@@ -14,9 +14,9 @@ class TestDatabasesTest < ActiveRecord::TestCase
       }
 
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-2"
+      expected_database = "#{base_db_config.database}_2"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
@@ -37,9 +37,9 @@ class TestDatabasesTest < ActiveRecord::TestCase
 
       idx = 42
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      expected_database = "#{base_db_config.database}-#{idx}"
+      expected_database = "#{base_db_config.database}_#{idx}"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
@@ -48,6 +48,32 @@ class TestDatabasesTest < ActiveRecord::TestCase
       # Updates the database configuration
       assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
     ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
+
+    def test_create_databases_skipped_if_parallelize_test_databases_is_false
+      parallelize_databases = ActiveSupport.parallelize_test_databases
+      ActiveSupport.parallelize_test_databases = false
+
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+        }
+      }
+
+      idx = 42
+      base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      expected_database = "#{base_db_config.database}"
+
+      ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
+
+      # In this case, there should be no updates
+      assert_equal expected_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+    ensure
+      ActiveSupport.parallelize_test_databases = parallelize_databases
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
@@ -65,7 +91,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       idx = 42
       base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
         assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }

@@ -12,15 +12,18 @@ module ActiveSupport
       parse_message_for_trace + super
     end
 
-    class BacktraceLocation < Struct.new(:path, :lineno, :to_s)
+    class BacktraceLocation < Struct.new(:path, :lineno, :to_s) # :nodoc:
       def spot(_)
       end
 
       def label
       end
+
+      def base_label
+      end
     end
 
-    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location)
+    class BacktraceLocationProxy < DelegateClass(Thread::Backtrace::Location) # :nodoc:
       def initialize(loc, ex)
         super(loc)
         @ex = ex
@@ -32,6 +35,8 @@ module ActiveSupport
     end
 
     def backtrace_locations
+      return nil if super.nil?
+
       parse_message_for_trace.map { |trace|
         file, line = trace.match(/^(.+?):(\d+).*$/, &:captures) || trace
         BacktraceLocation.new(file, line.to_i, trace)
@@ -43,7 +48,16 @@ module ActiveSupport
 
     private
       def parse_message_for_trace
-        __getobj__.to_s.split("\n")
+        if __getobj__.to_s.start_with?("(eval")
+          # If the exception is coming from a call to eval, we need to keep
+          # the path of the file in which eval was called to ensure we can
+          # return the right source fragment to show the location of the
+          # error
+          location = __getobj__.backtrace_locations[0]
+          ["#{location.path}:#{location.lineno}: #{__getobj__}"]
+        else
+          __getobj__.to_s.split("\n")
+        end
       end
   end
 end

@@ -14,17 +14,18 @@ module ActiveRecord
       end
 
       def type_for_attribute(attr_name)
-        schema_cache = connection.schema_cache
+        schema_cache = @klass.schema_cache
 
         if schema_cache.data_source_exists?(table_name)
           column = schema_cache.columns_hash(table_name)[attr_name.to_s]
-          type = connection.lookup_cast_type_from_column(column) if column
+          if column
+            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+            type = column.fetch_cast_type(@klass.lease_connection)
+          end
         end
 
         type || Type.default_value
       end
-
-      delegate :connection, to: :@klass, private: true
 
       private
         attr_reader :table_name

@@ -5,28 +5,27 @@
 # Like an ActiveStorage::Variant, but keeps detail about the variant in the database as an
 # ActiveStorage::VariantRecord. This is only used if +ActiveStorage.track_variants+ is enabled.
 class ActiveStorage::VariantWithRecord
+  include ActiveStorage::Blob::Servable
+
   attr_reader :blob, :variation
   delegate :service, to: :blob
+  delegate :content_type, to: :variation
 
   def initialize(blob, variation)
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation)
   end
 
   def processed
-    process
+    process unless processed?
     self
-  end
-
-  def process
-    transform_blob { |image| create_or_find_record(image: image) } unless processed?
-  end
-
-  def processed?
-    record.present?
   end
 
   def image
     record&.image
+  end
+
+  def filename
+    ActiveStorage::Filename.new "#{blob.filename.base}.#{variation.format.downcase}"
   end
 
   # Destroys record and deletes file from service.
@@ -37,6 +36,14 @@ class ActiveStorage::VariantWithRecord
   delegate :key, :url, :download, to: :image, allow_nil: true
 
   private
+    def processed?
+      record.present?
+    end
+
+    def process
+      transform_blob { |image| create_or_find_record(image: image) }
+    end
+
     def transform_blob
       blob.open do |input|
         variation.transform(input) do |output|

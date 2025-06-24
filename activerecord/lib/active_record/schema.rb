@@ -52,14 +52,16 @@ module ActiveRecord
       end
 
       def define(info, &block) # :nodoc:
-        instance_eval(&block)
+        connection_pool.with_connection do |connection|
+          instance_eval(&block)
 
-        connection.schema_migration.create_table
-        if info[:version].present?
-          connection.assume_migrated_upto_version(info[:version])
+          connection_pool.schema_migration.create_table
+          if info[:version].present?
+            connection.assume_migrated_upto_version(info[:version])
+          end
+
+          connection_pool.internal_metadata.create_table_and_set_flags(connection_pool.migration_context.current_environment)
         end
-
-        connection.internal_metadata.create_table_and_set_flags(connection.migration_context.current_environment)
       end
     end
 

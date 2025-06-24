@@ -12,6 +12,9 @@ require "models/tagging"
 require "models/tag"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/friendship"
+require "models/reference"
+require "models/job"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
@@ -43,7 +46,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     SQL
 
     expected = people(:susan)
-    assert_sql(/agents_people_2/i) do
+    assert_queries_match(/agents_people_2/i) do
       assert_equal [expected], Person.joins(:agents).joins(string_join)
     end
   end
@@ -54,7 +57,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     constraint = agents[:primary_contact_id].eq(agents_2[:id]).and(agents[:id].gt(agents_2[:id]))
 
     expected = people(:susan)
-    assert_sql(/agents_people_2/i) do
+    assert_queries_match(/agents_people_2/i) do
       assert_equal [expected], Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint)))
     end
   end
@@ -180,7 +183,7 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_conditions_on_reflection
     assert_not_empty posts(:welcome).comments
-    assert Post.joins(:nonexistent_comments).where(id: posts(:welcome).id).empty? # [sic!]
+    assert_predicate Post.joins(:nonexistent_comments).where(id: posts(:welcome).id), :empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
@@ -230,5 +233,12 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
     assert_not_empty blog_posts
     assert_equal(expected_comment.blog_post, blog_posts.first)
+  end
+
+  def test_inner_joins_includes_all_nested_associations
+    sql, = capture_sql { Friendship.joins(:friend_favorite_reference_job, :follower_favorite_reference_job).to_a }
+
+    assert_match %r(#{Regexp.escape(quote_table_name("friendships.friend_id"))}), sql
+    assert_match %r(#{Regexp.escape(quote_table_name("friendships.follower_id"))}), sql
   end
 end

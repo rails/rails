@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails-html-sanitizer"
 
 module ActionText
   module ContentHelper
-    mattr_accessor(:sanitizer) { Rails::Html::Sanitizer.safe_list_sanitizer.new }
-    mattr_accessor(:allowed_tags) { sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ] }
-    mattr_accessor(:allowed_attributes) { sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES }
+    mattr_accessor(:sanitizer, default: Rails::HTML4::Sanitizer.safe_list_sanitizer.new)
+    mattr_accessor(:allowed_tags)
+    mattr_accessor(:allowed_attributes)
     mattr_accessor(:scrubber)
 
     def render_action_text_content(content)
@@ -14,8 +16,22 @@ module ActionText
       sanitize_action_text_content(render_action_text_attachments(content))
     end
 
+    def sanitize_content_attachment(content_attachment)
+      sanitizer.sanitize(
+        content_attachment,
+        tags: sanitizer_allowed_tags,
+        attributes: sanitizer_allowed_attributes,
+        scrubber: scrubber,
+      )
+    end
+
     def sanitize_action_text_content(content)
-      sanitizer.sanitize(content.to_html, tags: allowed_tags, attributes: allowed_attributes, scrubber: scrubber).html_safe
+      sanitizer.sanitize(
+        content.to_html,
+        tags: sanitizer_allowed_tags,
+        attributes: sanitizer_allowed_attributes,
+        scrubber: scrubber,
+      ).html_safe
     end
 
     def render_action_text_attachments(content)
@@ -47,6 +63,14 @@ module ActionText
       end
 
       render(**options).chomp
+    end
+
+    def sanitizer_allowed_tags
+      allowed_tags || (sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ])
+    end
+
+    def sanitizer_allowed_attributes
+      allowed_attributes || (sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES)
     end
   end
 end

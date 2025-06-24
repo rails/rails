@@ -1,37 +1,15 @@
-*   Attachables now can override default attachment missing template.
+*   Attachment upload progress accounts for server processing time.
 
-    When rendering Action Text attachments where the underlying attachable model has
-    been removed, a fallback template is used. You now can override this template on
-    a per-model basis. For example, you could render a placeholder image for a file
-    attachment or the text "Deleted User" for a User attachment.
+    *Jeremy Daer*
 
-    *Matt Swanson*, *Joel Drapper*
+*   The Trix dependency is now satisfied by a gem, `action_text-trix`, rather than vendored
+    files. This allows applications to bump Trix versions independently of Rails
+    releases. Effectively this also upgrades Trix to `>= 2.1.15`.
 
-*   Update bundled Trix version from `1.3.1` to `2.0.4`.
+    *Mike Dalessio*
 
-    *Sarah Ridge*, *Sean Doyle*
-
-*   Apply `field_error_proc` to `rich_text_area` form fields.
-
-    *Kaíque Kandy Koga*
-
-*   Action Text attachment URLs rendered in a background job (a la Turbo
-    Streams) now use `Rails.application.default_url_options` and
-    `Rails.application.config.force_ssl` instead of `http://example.org`.
-
-    *Jonathan Hefner*
-
-*   Support `strict_loading:` option for `has_rich_text` declaration
+*   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
 
     *Sean Doyle*
 
-*   Update ContentAttachment so that it can encapsulate arbitrary HTML content in a document.
-
-    *Jamis Buck*
-
-*   Fix an issue that caused the content layout to render multiple times when a
-    rich_text field was updated.
-
-    *Jacob Herrington*
-
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actiontext/CHANGELOG.md) for previous changes.
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.

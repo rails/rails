@@ -11,7 +11,7 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("unsigned_types", force: true) do |t|
       t.integer :unsigned_integer, unsigned: true
       t.bigint  :unsigned_bigint,  unsigned: true
@@ -49,12 +49,21 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     @connection.change_table("unsigned_types") do |t|
       t.unsigned_integer :unsigned_integer_t
       t.unsigned_bigint  :unsigned_bigint_t
-      t.unsigned_float   :unsigned_float_t
-      t.unsigned_decimal :unsigned_decimal_t, precision: 10, scale: 2
     end
 
     @connection.columns("unsigned_types").select { |c| /^unsigned_/.match?(c.name) }.each do |column|
       assert_predicate column, :unsigned?
+    end
+  end
+
+  test "deprecate unsigned_float and unsigned_decimal" do
+    @connection.change_table("unsigned_types") do |t|
+      assert_deprecated(ActiveRecord.deprecator) do
+        t.unsigned_float :unsigned_float_t
+      end
+      assert_deprecated(ActiveRecord.deprecator) do
+        t.unsigned_decimal :unsigned_decimal_t
+      end
     end
   end
 

@@ -3,277 +3,318 @@
 require "fileutils"
 
 module FileUpdateCheckerSharedTests
-  def self.included(kls)
-    kls.class_eval do
-      extend ActiveSupport::Testing::Declarative
+  extend ActiveSupport::Testing::Declarative
+
+  def tmpdir
+    @tmpdir
+  end
 
-      def tmpdir
-        @tmpdir
-      end
+  def tmpfile(name)
+    File.join(tmpdir, name)
+  end
 
-      def tmpfile(name)
-        File.join(tmpdir, name)
-      end
+  def tmpfiles
+    @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map { |f| tmpfile(f) }
+  end
 
-      def tmpfiles
-        @tmpfiles ||= %w(foo.rb bar.rb baz.rb).map { |f| tmpfile(f) }
-      end
+  def run(*args)
+    capture_exceptions do
+      Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
+    end
+  end
 
-      def run(*args)
-        capture_exceptions do
-          Dir.mktmpdir(nil, __dir__) { |dir| @tmpdir = dir; super }
-        end
-      end
+  test "should not execute the block if no paths are given" do
+    silence_warnings { require "listen" }
+    i = 0
 
-      test "should not execute the block if no paths are given" do
-        silence_warnings { require "listen" }
-        i = 0
+    checker = new_checker { i += 1 }
 
-        checker = new_checker { i += 1 }
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
+  end
 
-        assert_not checker.execute_if_updated
-        assert_equal 0, i
-      end
+  test "should exclude files in gem path" do
+    fake_gem_dir = File.join(tmpdir, "gemdir")
+    FileUtils.mkdir_p(fake_gem_dir)
+    gem_file = File.join(fake_gem_dir, "foo.rb")
+    local_file = tmpfile("bar.rb")
+    touched = []
 
-      test "should not execute the block if no files change" do
-        i = 0
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([gem_file, local_file]) { touched << :called }
 
-        FileUtils.touch(tmpfiles)
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
 
-        checker = new_checker(tmpfiles) { i += 1 }
+      touched.clear
+      touch(gem_file)
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
+  end
 
-        assert_not checker.execute_if_updated
-        assert_equal 0, i
-      end
+  test "should exclude directories in gem path" do
+    local_dir = Dir.mktmpdir
+    fake_gem_dir = Dir.mktmpdir
+    local_file = File.join(local_dir, "foo.rb")
+    gem_file = File.join(fake_gem_dir, "bar.rb")
+    touched = []
 
-      test "should execute the block once when files are created" do
-        i = 0
+    Gem.stub(:path, [fake_gem_dir]) do
+      checker = new_checker([], { fake_gem_dir => [], local_dir => [] }) { touched << :called }
 
-        checker = new_checker(tmpfiles) { i += 1 }
+      touch(local_file)
+      assert checker.execute_if_updated
+      assert_equal [:called], touched
 
-        touch(tmpfiles)
+      touched.clear
+      touch(gem_file)
+      assert_not checker.execute_if_updated
+      assert_empty touched
+    end
+  ensure
+    FileUtils.remove_entry(local_dir)
+    FileUtils.remove_entry(fake_gem_dir)
+  end
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+  test "should not execute the block if no files change" do
+    i = 0
 
-      test "should execute the block once when files are modified" do
-        i = 0
+    FileUtils.touch(tmpfiles)
 
-        FileUtils.touch(tmpfiles)
+    checker = new_checker(tmpfiles) { i += 1 }
 
-        checker = new_checker(tmpfiles) { i += 1 }
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
+  end
 
-        touch(tmpfiles)
+  test "should execute the block once when files are created" do
+    i = 0
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+    checker = new_checker(tmpfiles) { i += 1 }
 
-      test "should execute the block once when files are deleted" do
-        i = 0
+    touch(tmpfiles)
 
-        FileUtils.touch(tmpfiles)
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        checker = new_checker(tmpfiles) { i += 1 }
+  test "should execute the block once when files are modified" do
+    i = 0
 
-        rm_f(tmpfiles)
+    FileUtils.touch(tmpfiles)
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+    checker = new_checker(tmpfiles) { i += 1 }
 
-      test "updated should become true when watched files are created" do
-        i = 0
+    touch(tmpfiles)
 
-        checker = new_checker(tmpfiles) { i += 1 }
-        assert_not_predicate checker, :updated?
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        touch(tmpfiles)
+  test "should execute the block once when files are deleted" do
+    i = 0
 
-        assert_predicate checker, :updated?
-      end
+    FileUtils.touch(tmpfiles)
 
-      test "updated should become true when watched files are modified" do
-        i = 0
+    checker = new_checker(tmpfiles) { i += 1 }
 
-        FileUtils.touch(tmpfiles)
+    rm_f(tmpfiles)
 
-        checker = new_checker(tmpfiles) { i += 1 }
-        assert_not_predicate checker, :updated?
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        touch(tmpfiles)
+  test "updated should become true when watched files are created" do
+    i = 0
 
-        assert_predicate checker, :updated?
-      end
+    checker = new_checker(tmpfiles) { i += 1 }
+    assert_not_predicate checker, :updated?
 
-      test "updated should become true when watched files are deleted" do
-        i = 0
+    touch(tmpfiles)
 
-        FileUtils.touch(tmpfiles)
+    assert_predicate checker, :updated?
+  end
 
-        checker = new_checker(tmpfiles) { i += 1 }
-        assert_not_predicate checker, :updated?
+  test "updated should become true when watched files are modified" do
+    i = 0
 
-        rm_f(tmpfiles)
+    FileUtils.touch(tmpfiles)
 
-        assert_predicate checker, :updated?
-      end
+    checker = new_checker(tmpfiles) { i += 1 }
+    assert_not_predicate checker, :updated?
 
-      test "should be robust to handle files with wrong modified time" do
-        i = 0
+    touch(tmpfiles)
 
-        FileUtils.touch(tmpfiles)
+    assert_predicate checker, :updated?
+  end
 
-        now  = Time.now
-        time = Time.mktime(now.year + 1, now.month, now.day) # wrong mtime from the future
-        File.utime(time, time, tmpfiles[0])
+  test "updated should become true when watched files are deleted" do
+    i = 0
 
-        checker = new_checker(tmpfiles) { i += 1 }
+    FileUtils.touch(tmpfiles)
 
-        touch(tmpfiles[1..-1])
+    checker = new_checker(tmpfiles) { i += 1 }
+    assert_not_predicate checker, :updated?
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+    rm_f(tmpfiles)
 
-      test "should return max_time for files with mtime = Time.at(0)" do
-        i = 0
+    assert_predicate checker, :updated?
+  end
 
-        FileUtils.touch(tmpfiles)
+  test "should be robust to handle files with wrong modified time" do
+    i = 0
 
-        time = Time.at(0) # wrong mtime from the future
-        File.utime(time, time, tmpfiles[0])
+    FileUtils.touch(tmpfiles)
 
-        checker = new_checker(tmpfiles) { i += 1 }
+    now  = Time.now
+    time = Time.mktime(now.year + 1, now.month, now.day) # wrong mtime from the future
+    File.utime(time, time, tmpfiles[0])
 
-        touch(tmpfiles[1..-1])
+    checker = new_checker(tmpfiles) { i += 1 }
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+    touch(tmpfiles[1..-1])
 
-      test "should cache updated result until execute" do
-        i = 0
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        checker = new_checker(tmpfiles) { i += 1 }
-        assert_not_predicate checker, :updated?
+  test "should return max_time for files with mtime = Time.at(0)" do
+    i = 0
 
-        touch(tmpfiles)
+    FileUtils.touch(tmpfiles)
 
-        assert_predicate checker, :updated?
-        checker.execute
-        assert_not_predicate checker, :updated?
-      end
+    time = Time.at(0) # wrong mtime from the future
+    File.utime(time, time, tmpfiles[0])
 
-      test "should execute the block if files change in a watched directory one extension" do
-        i = 0
+    checker = new_checker(tmpfiles) { i += 1 }
 
-        checker = new_checker([], tmpdir => :rb) { i += 1 }
+    touch(tmpfiles[1..-1])
 
-        touch(tmpfile("foo.rb"))
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+  test "should cache updated result until execute" do
+    i = 0
 
-      test "should execute the block if files change in a watched directory any extensions" do
-        i = 0
+    checker = new_checker(tmpfiles) { i += 1 }
+    assert_not_predicate checker, :updated?
 
-        checker = new_checker([], tmpdir => []) { i += 1 }
+    touch(tmpfiles)
 
-        touch(tmpfile("foo.rb"))
+    assert_predicate checker, :updated?
+    checker.execute
+    assert_not_predicate checker, :updated?
+  end
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+  test "should execute the block if files change in a watched directory one extension" do
+    i = 0
 
-      test "should execute the block if files change in a watched directory several extensions" do
-        i = 0
+    checker = new_checker([], tmpdir => :rb) { i += 1 }
 
-        checker = new_checker([], tmpdir => [:rb, :txt]) { i += 1 }
+    touch(tmpfile("foo.rb"))
 
-        touch(tmpfile("foo.rb"))
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
+  test "should execute the block if files change in a watched directory any extensions" do
+    i = 0
 
-        touch(tmpfile("foo.txt"))
+    checker = new_checker([], tmpdir => []) { i += 1 }
 
-        assert checker.execute_if_updated
-        assert_equal 2, i
-      end
+    touch(tmpfile("foo.rb"))
 
-      test "should not execute the block if the file extension is not watched" do
-        i = 0
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        checker = new_checker([], tmpdir => :txt) { i += 1 }
+  test "should execute the block if files change in a watched directory several extensions" do
+    i = 0
 
-        touch(tmpfile("foo.rb"))
+    checker = new_checker([], tmpdir => [:rb, :txt]) { i += 1 }
 
-        assert_not checker.execute_if_updated
-        assert_equal 0, i
-      end
+    touch(tmpfile("foo.rb"))
 
-      test "does not assume files exist on instantiation" do
-        i = 0
+    assert checker.execute_if_updated
+    assert_equal 1, i
 
-        non_existing = tmpfile("non_existing.rb")
-        checker = new_checker([non_existing]) { i += 1 }
+    touch(tmpfile("foo.txt"))
 
-        touch(non_existing)
+    assert checker.execute_if_updated
+    assert_equal 2, i
+  end
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+  test "should not execute the block if the file extension is not watched" do
+    i = 0
 
-      test "detects files in new subdirectories" do
-        i = 0
+    checker = new_checker([], tmpdir => :txt) { i += 1 }
 
-        checker = new_checker([], tmpdir => :rb) { i += 1 }
+    touch(tmpfile("foo.rb"))
 
-        subdir = tmpfile("subdir")
-        mkdir(subdir)
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
+  end
 
-        assert_not checker.execute_if_updated
-        assert_equal 0, i
+  test "does not assume files exist on instantiation" do
+    i = 0
 
-        touch(File.join(subdir, "nested.rb"))
+    non_existing = tmpfile("non_existing.rb")
+    checker = new_checker([non_existing]) { i += 1 }
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
-      end
+    touch(non_existing)
 
-      test "looked up extensions are inherited in subdirectories not listening to them" do
-        i = 0
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        subdir = tmpfile("subdir")
-        FileUtils.mkdir(subdir)
+  test "detects files in new subdirectories" do
+    i = 0
 
-        checker = new_checker([], tmpdir => :rb, subdir => :txt) { i += 1 }
+    checker = new_checker([], tmpdir => :rb) { i += 1 }
 
-        touch(tmpfile("new.txt"))
+    subdir = tmpfile("subdir")
+    mkdir(subdir)
 
-        assert_not checker.execute_if_updated
-        assert_equal 0, i
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
 
-        # subdir does not look for Ruby files, but its parent tmpdir does.
-        touch(File.join(subdir, "nested.rb"))
+    touch(File.join(subdir, "nested.rb"))
 
-        assert checker.execute_if_updated
-        assert_equal 1, i
+    assert checker.execute_if_updated
+    assert_equal 1, i
+  end
 
-        touch(File.join(subdir, "nested.txt"))
+  test "looked up extensions are inherited in subdirectories not listening to them" do
+    i = 0
 
-        assert checker.execute_if_updated
-        assert_equal 2, i
-      end
+    subdir = tmpfile("subdir")
+    FileUtils.mkdir(subdir)
 
-      test "initialize raises an ArgumentError if no block given" do
-        assert_raise ArgumentError do
-          new_checker([])
-        end
-      end
+    checker = new_checker([], tmpdir => :rb, subdir => :txt) { i += 1 }
+
+    touch(tmpfile("new.txt"))
+
+    assert_not checker.execute_if_updated
+    assert_equal 0, i
+
+    # subdir does not look for Ruby files, but its parent tmpdir does.
+    touch(File.join(subdir, "nested.rb"))
+
+    assert checker.execute_if_updated
+    assert_equal 1, i
+
+    touch(File.join(subdir, "nested.txt"))
+
+    assert checker.execute_if_updated
+    assert_equal 2, i
+  end
+
+  test "initialize raises an ArgumentError if no block given" do
+    assert_raise ArgumentError do
+      new_checker([])
     end
   end
 

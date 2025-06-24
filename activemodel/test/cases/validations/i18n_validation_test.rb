@@ -67,9 +67,9 @@ class I18nValidationTest < ActiveModel::TestCase
     })
 
     person = person_class.new
-    error = ActiveModel::Error.new(person, :gender, "can’t be blank")
+    error = ActiveModel::Error.new(person, :gender, "can't be blank")
     person.errors.import(error, attribute: "person[0].contacts.gender")
-    assert_equal ["Gender can’t be blank"], person.errors.full_messages
+    assert_equal ["Gender can't be blank"], person.errors.full_messages
   end
 
   def test_errors_full_messages_uses_attribute_format

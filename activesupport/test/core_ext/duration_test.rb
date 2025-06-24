@@ -738,15 +738,15 @@ class DurationTest < ActiveSupport::TestCase
     assert_not 12.minutes.variable?
     assert_not 12.hours.variable?
 
-    assert 12.days.variable?
-    assert 12.weeks.variable?
-    assert 12.months.variable?
-    assert 12.years.variable?
+    assert_predicate 12.days, :variable?
+    assert_predicate 12.weeks, :variable?
+    assert_predicate 12.months, :variable?
+    assert_predicate 12.years, :variable?
 
     assert_not (12.hours + 12.minutes).variable?
 
-    assert (12.hours + 1.day).variable?
-    assert (1.day + 12.hours).variable?
+    assert_predicate (12.hours + 1.day), :variable?
+    assert_predicate (1.day + 12.hours), :variable?
   end
 
   def test_duration_symmetry

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Autoloading and Reloading Constants
 ===================================
@@ -101,6 +101,49 @@ WARNING: You cannot autoload code in the autoload paths while the application bo
 
 The autoload paths are managed by the `Rails.autoloaders.main` autoloader.
 
+config.autoload_lib(ignore:)
+----------------------------
+
+By default, the `lib` directory does not belong to the autoload paths of applications or engines.
+
+The configuration method `config.autoload_lib` adds the `lib` directory to `config.autoload_paths` and `config.eager_load_paths`. It has to be invoked from `config/application.rb` or `config/environments/*.rb`, and it is not available for engines.
+
+Normally, `lib` has subdirectories that should not be managed by the autoloaders. Please, pass their name relative to `lib` in the required `ignore` keyword argument. For example:
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks))
+```
+
+Why? While `assets` and `tasks` share the `lib` directory with regular Ruby code, their contents are not meant to be reloaded or eager loaded.
+
+The `ignore` list should have all `lib` subdirectories that do not contain files with `.rb` extension, or that should not be reloaded or eager loaded. For example,
+
+```ruby
+config.autoload_lib(ignore: %w(assets tasks templates generators middleware))
+```
+
+`config.autoload_lib` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
+
+```ruby
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    lib = root.join("lib")
+
+    config.autoload_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.main.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
+
+    # ...
+  end
+end
+```
+
 config.autoload_once_paths
 --------------------------
 
@@ -156,17 +199,34 @@ INFO: Technically, you can autoload classes and modules managed by the `once` au
 
 The autoload once paths are managed by `Rails.autoloaders.once`.
 
-$LOAD_PATH{#load_path}
-----------
+config.autoload_lib_once(ignore:)
+---------------------------------
 
-Autoload paths are added to `$LOAD_PATH` by default. However, Zeitwerk uses absolute file names internally, and your application should not issue `require` calls for autoloadable files, so those directories are actually not needed there. You can opt out with this flag:
+The method `config.autoload_lib_once` is similar to `config.autoload_lib`, except that it adds `lib` to `config.autoload_once_paths` instead. It has to be invoked from `config/application.rb` or `config/environments/*.rb`, and it is not available for engines.
+
+By calling `config.autoload_lib_once`, classes and modules in `lib` can be autoloaded, even from application initializers, but won't be reloaded.
+
+`config.autoload_lib_once` is not available before 7.1, but you can still emulate it as long as the application uses Zeitwerk:
 
 ```ruby
-config.add_autoload_paths_to_load_path = false
+# config/application.rb
+module MyApp
+  class Application < Rails::Application
+    lib = root.join("lib")
+
+    config.autoload_once_paths << lib
+    config.eager_load_paths << lib
+
+    Rails.autoloaders.once.ignore(
+      lib.join("assets"),
+      lib.join("tasks"),
+      lib.join("generators")
+    )
+
+    # ...
+  end
+end
 ```
-
-That may speed up legitimate `require` calls a bit since there are fewer lookups. Also, if your application uses [Bootsnap](https://github.com/Shopify/bootsnap), that saves the library from building unnecessary indexes, leading to lower memory usage.
-
 
 Reloading
 ---------
@@ -308,7 +368,21 @@ That adds a module object to the ancestor chain of `ActiveRecord::Base`. Changes
 
 Corollary: Those classes or modules **cannot be reloadable**.
 
-The easiest way to refer to those classes or modules during boot is to have them defined in a directory which does not belong to the autoload paths. For instance, `lib` is an idiomatic choice. It does not belong to the autoload paths by default, but it does belong to `$LOAD_PATH`. Just perform a regular `require` to load it.
+An idiomatic way to organize these files is to put them in the `lib` directory and load them with `require` where needed. For example, if the application has custom middleware in `lib/middleware`, issue a regular `require` call before configuring it:
+
+```ruby
+require "middleware/my_middleware"
+config.middleware.use MyMiddleware
+```
+
+Additionally, if `lib` is in the autoload paths, configure the autoloader to ignore that subdirectory:
+
+```ruby
+# config/application.rb
+config.autoload_lib(ignore: %w(assets tasks ... middleware))
+```
+
+since you are loading those files yourself.
 
 As noted above, another option is to have the directory that defines them in the autoload once paths and autoload. Please check the [section about config.autoload_once_paths](#config-autoload-once-paths) for details.
 
@@ -532,8 +606,8 @@ When Rails boots, engine directories are added to the autoload paths, and from t
 
 For example, this application uses [Devise](https://github.com/heartcombo/devise):
 
-```
-% bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
+```bash
+$ bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
 [".../app/controllers",
  ".../app/controllers/concerns",
  ".../app/helpers",
@@ -561,8 +635,8 @@ Testing
 
 The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
 
-```
-% bin/rails zeitwerk:check
+```bash
+$ bin/rails zeitwerk:check
 Hold on, I am eager loading the application.
 All is good!
 ```

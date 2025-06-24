@@ -38,7 +38,7 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
-    def value
+    def value(&)
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
@@ -93,6 +93,14 @@ module ActiveModel
         with_value_from_user(value).with_type(type)
       else
         self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
+    end
+
+    def dup_or_share # :nodoc:
+      if @type.mutable?
+        dup
+      else
+        self # If the underlying type is immutable we can get away with not duping
       end
     end
 
@@ -153,7 +161,7 @@ module ActiveModel
       alias :assigned? :original_attribute
 
       def initialize_dup(other)
-        if defined?(@value) && @value.duplicable?
+        if @value&.duplicable?
           @value = @value.dup
         end
       end
@@ -178,11 +186,11 @@ module ActiveModel
         def forgetting_assignment
           # If this attribute was not persisted (with a `value_for_database`
           # that might differ from `value_before_type_cast`) and `value` has not
-          # changed in place, we can simply dup this attribute to avoid
-          # deserialize / cast / serialize calls from computing the new
+          # changed in place, we can use the existing `value_before_type_cast`
+          # to avoid deserialize / cast / serialize calls from computing the new
           # attribute's `value_before_type_cast`.
           if !defined?(@value_for_database) && !changed_in_place?
-            dup
+            with_value_from_database(value_before_type_cast)
           else
             super
           end

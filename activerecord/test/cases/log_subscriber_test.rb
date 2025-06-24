@@ -44,7 +44,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def setup
     @old_logger = ActiveRecord::Base.logger
     Developer.primary_key
-    ActiveRecord::Base.connection.materialize_transactions
+    ActiveRecord::Base.lease_connection.materialize_transactions
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end
@@ -204,7 +204,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     ActiveRecord.verbose_query_logs = true
 
     logger = TestDebugLogSubscriber.new
-    def logger.extract_query_source_location(*); nil; end
+    def logger.query_source_location; nil; end
 
     logger.sql(Event.new(0, sql: "hi mom!"))
     assert_equal 1, @logger.logged(:debug).size
@@ -247,7 +247,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 0, @logger.logged(:debug).size
   end
 
-  if ActiveRecord::Base.connection.prepared_statements
+  if ActiveRecord::Base.lease_connection.prepared_statements
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
       wait
@@ -263,7 +263,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     def test_binary_data_hash
       Binary.create(data: { a: 1 })
       wait
-      assert_match(/<7 bytes of binary data>/, @logger.logged(:debug).join)
+      assert_match(/<(6|7) bytes of binary data>/, @logger.logged(:debug).join)
     end
   end
 end

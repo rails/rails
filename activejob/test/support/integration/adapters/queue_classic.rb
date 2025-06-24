@@ -40,8 +40,8 @@ module QueueClassicJobsManager
     end
 
   rescue PG::ConnectionBad
-    puts "Cannot run integration tests for queue_classic. To be able to run integration tests for queue_classic you need to install and start postgresql.\n"
-    status = ENV["CI"] ? false : true
+    puts "Cannot run integration tests for QueueClassic. To be able to run integration tests for QueueClassic you need to install and start PostgreSQL.\n"
+    status = ENV["BUILDKITE"] ? false : true
     exit status
   end
 

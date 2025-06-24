@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_dispatch/http/mime_type"
 
 module AbstractController
@@ -7,10 +9,9 @@ module AbstractController
     def self.generate_method_for_mime(mime)
       sym = mime.is_a?(Symbol) ? mime : mime.to_sym
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        def #{sym}(*args, &block)
-          custom(Mime[:#{sym}], *args, &block)
+        def #{sym}(...)
+          custom(Mime[:#{sym}], ...)
         end
-        ruby2_keywords(:#{sym})
       RUBY
     end
 
@@ -23,7 +24,7 @@ module AbstractController
     end
 
   private
-    def method_missing(symbol, *args, &block)
+    def method_missing(symbol, ...)
       unless mime_constant = Mime[symbol]
         raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \
           "https://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. " \
@@ -34,11 +35,10 @@ module AbstractController
 
       if Mime::SET.include?(mime_constant)
         AbstractController::Collector.generate_method_for_mime(mime_constant)
-        public_send(symbol, *args, &block)
+        public_send(symbol, ...)
       else
         super
       end
     end
-    ruby2_keywords(:method_missing)
   end
 end

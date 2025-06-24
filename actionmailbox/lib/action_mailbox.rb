@@ -9,7 +9,7 @@ require "action_mailbox/deprecator"
 require "action_mailbox/mail_ext"
 
 # :markup: markdown
-# :include: actionmailbox/README.md
+# :include: ../README.md
 module ActionMailbox
   extend ActiveSupport::Autoload
 

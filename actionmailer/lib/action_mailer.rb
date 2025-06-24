@@ -35,7 +35,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
-# :include: actionmailer/README.rdoc
+# :include: ../README.rdoc
 module ActionMailer
   extend ::ActiveSupport::Autoload
 
@@ -56,6 +56,7 @@ module ActionMailer
   autoload :MessageDelivery
   autoload :MailDeliveryJob
   autoload :QueuedDelivery
+  autoload :FormBuilder
 
   def self.eager_load!
     super

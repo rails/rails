@@ -278,6 +278,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal false, GenericEnumerable.new([ 1, 2 ]).many? { |x| x > 1 }
     assert_equal true,  GenericEnumerable.new([ 1, 2, 2 ]).many? { |x| x > 1 }
     assert_equal true,  GenericEnumerable.new([ 1, 2, 3]).each_with_index.many? { |x, i| x == i + 1 }
+    assert_equal true,  GenericEnumerable.new([ [1, 2], [3, 4] ]).many? { |x| x.sum > 1 }
   end
 
   def test_many_iterates_only_on_what_is_needed
@@ -385,6 +386,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [[:opened, { price: 2, currency: :usd }], [:paid, { price: 1, currency: :eur }]], values.in_order_of(:first, [:opened, :paid])
   end
 
+  def test_in_order_of_with_filter_false
+    values = [ Payment.new(5), Payment.new(3), Payment.new(1) ]
+    assert_equal [ Payment.new(1), Payment.new(5), Payment.new(3) ], values.in_order_of(:price, [ 1, 5 ], filter: false)
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 
@@ -392,6 +398,7 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal 1, GenericEnumerable.new([1]).sole
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
   end
 
   def test_doesnt_bust_constant_cache
@@ -406,7 +413,5 @@ class EnumerableTests < ActiveSupport::TestCase
   private
     def constant_cache_invalidations
       RubyVM.stat(:constant_cache_invalidations)
-    rescue ArgumentError
-      RubyVM.stat(:global_constant_state) # RUBY_VERSION < "3.2"
     end
 end

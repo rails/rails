@@ -48,9 +48,19 @@ module ActiveRecord
         #     +dump+ method may return +nil+ to serialize the value as +NULL+.
         # * +type+ - Optional. What the type of the serialized object should be.
         #   * Attempting to serialize another type will raise an
-        #     <tt>ActiveRecord::SerializationTypeMismatch</tt> error.
+        #     ActiveRecord::SerializationTypeMismatch error.
         #   * If the column is +NULL+ or starting from a new record, the default value
         #     will set to +type.new+
+        # * +comparable+ - Specify whether the deserialized object is safely comparable
+        #   for the purpose of detecting changes. Defaults to +false+
+        #   When set to +false+ the old and new values will be compared by their serialized
+        #   representation (e.g. JSON or YAML), which can sometimes cause two objects that are
+        #   semantically equal to be considered different.
+        #   For instance two hashes with the same keys and values but a different order have a
+        #   different serialized representation, but are semantically equal once deserialized.
+        #   If set to +true+ the comparison will be done on the deserialized object.
+        #   This options should only be enabled if the +type+ is known to have
+        #   a proper <tt>==</tt> method that deeply compare the objects.
         # * +yaml+ - Optional. Yaml specific options. The allowed config is:
         #   * +:permitted_classes+ - +Array+ with the permitted classes.
         #   * +:unsafe_load+ - Unsafely load YAML blobs, allow YAML to load any class.
@@ -180,29 +190,7 @@ module ActiveRecord
         #     serialize :preferences, coder: Rot13JSON
         #   end
         #
-        def serialize(attr_name, class_name_or_coder = nil, coder: nil, type: Object, yaml: {}, **options)
-          unless class_name_or_coder.nil?
-            if class_name_or_coder == ::JSON || [:load, :dump].all? { |x| class_name_or_coder.respond_to?(x) }
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the coder as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the coder as a keyword argument:
-
-                  serialize #{attr_name.inspect}, coder: #{class_name_or_coder}
-              MSG
-              coder = class_name_or_coder
-            else
-              ActiveRecord.deprecator.warn(<<~MSG)
-                Passing the class as positional argument is deprecated and will be removed in Rails 7.2.
-
-                Please pass the class as a keyword argument:
-
-                  serialize #{attr_name.inspect}, type: #{class_name_or_coder.name}
-              MSG
-              type = class_name_or_coder
-            end
-          end
-
+        def serialize(attr_name, coder: nil, type: Object, comparable: false, yaml: {}, **options)
           coder ||= default_column_serializer
           unless coder
             raise ArgumentError, <<~MSG.squish
@@ -214,13 +202,15 @@ module ActiveRecord
 
           column_serializer = build_column_serializer(attr_name, coder, type, yaml)
 
-          attribute(attr_name, **options) do |cast_type|
+          attribute(attr_name, **options)
+
+          decorate_attributes([attr_name]) do |attr_name, cast_type|
             if type_incompatible_with_serialize?(cast_type, coder, type)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
 
             cast_type = cast_type.subtype if Type::Serialized === cast_type
-            Type::Serialized.new(cast_type, column_serializer)
+            Type::Serialized.new(cast_type, column_serializer, comparable: comparable)
           end
         end
 
@@ -229,7 +219,10 @@ module ActiveRecord
             # When ::JSON is used, force it to go through the Active Support JSON encoder
             # to ensure special objects (e.g. Active Record models) are dumped correctly
             # using the #as_json hook.
-            coder = Coders::JSON if coder == ::JSON
+
+            if coder == ::JSON || coder == Coders::JSON
+              coder = Coders::JSON.new
+            end
 
             if coder == ::YAML || coder == Coders::YAMLColumn
               Coders::YAMLColumn.new(attr_name, type, **(yaml || {}))

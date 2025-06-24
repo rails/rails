@@ -39,7 +39,6 @@ module ActiveRecord
   # {new_record?}[rdoc-ref:Persistence#new_record?].
   module Validations
     extend ActiveSupport::Concern
-    include ActiveModel::Validations
 
     # The validation process on save can be skipped by passing <tt>validate: false</tt>.
     # The validation context can be changed by passing <tt>context: context</tt>.
@@ -74,6 +73,10 @@ module ActiveRecord
     end
 
     alias_method :validate, :valid?
+
+    def custom_validation_context? # :nodoc:
+      validation_context && [:create, :update].exclude?(validation_context)
+    end
 
   private
     def default_validation_context

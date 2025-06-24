@@ -7,7 +7,7 @@ module ActiveRecord
     # = Database Selector \Middleware
     #
     # The DatabaseSelector Middleware provides a framework for automatically
-    # swapping from the primary to the replica database connection. Rails
+    # swapping from the primary to the replica database connection. \Rails
     # provides a basic framework to determine when to swap and allows for
     # applications to write custom strategy classes to override the default
     # behavior.
@@ -17,14 +17,14 @@ module ActiveRecord
     # resolver context class that sets a value that helps the resolver class
     # decide when to switch.
     #
-    # Rails default middleware uses the request's session to set a timestamp
+    # \Rails default middleware uses the request's session to set a timestamp
     # that informs the application when to read from a primary or read from a
     # replica.
     #
     # To use the DatabaseSelector in your application with default settings,
     # run the provided generator.
     #
-    #   bin/rails g active_record:multi_db
+    #   $ bin/rails g active_record:multi_db
     #
     # This will create a file named +config/initializers/multi_db.rb+ with the
     # following contents:

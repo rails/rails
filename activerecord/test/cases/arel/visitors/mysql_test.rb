@@ -6,7 +6,7 @@ module Arel
   module Visitors
     class MysqlTest < Arel::Spec
       before do
-        @visitor = MySQL.new Table.engine.connection
+        @visitor = MySQL.new Table.engine.lease_connection
       end
 
       def compile(node)
@@ -154,10 +154,49 @@ module Arel
       end
 
       describe "Nodes::Ordering" do
-        it "should no-op ascending nulls first" do
+        it "should handle nulls first" do
           test = Table.new(:users)[:first_name].asc.nulls_first
           _(compile(test)).must_be_like %{
-            "users"."first_name" ASC
+            "users"."first_name" IS NOT NULL, "users"."first_name" ASC
+          }
+        end
+
+        it "should handle nulls last" do
+          test = Table.new(:users)[:first_name].asc.nulls_last
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NULL, "users"."first_name" ASC
+          }
+        end
+
+        it "should handle nulls first reversed" do
+          test = Table.new(:users)[:first_name].asc.nulls_first.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NULL, "users"."first_name" DESC
+          }
+        end
+
+        it "should handle nulls last reversed" do
+          test = Table.new(:users)[:first_name].asc.nulls_last.reverse
+          _(compile(test)).must_be_like %{
+            "users"."first_name" IS NOT NULL, "users"."first_name" DESC
+          }
+        end
+      end
+
+      describe "Nodes::Cte" do
+        it "ignores MATERIALIZED modifiers" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
+          }
+        end
+
+        it "ignores NOT MATERIALIZED modifiers" do
+          cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+
+          _(compile(cte)).must_be_like %{
+            "foo" AS (SELECT * FROM "bar")
           }
         end
       end

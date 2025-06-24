@@ -177,9 +177,11 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
   end
 
   def test_string_constraint
-    with_routing do |set|
-      set.draw do
-        get "photos", to: "action_pack_assertions#nothing", constraints: { subdomain: "admin" }
+    assert_nothing_raised do
+      with_routing do |set|
+        set.draw do
+          get "photos", to: "action_pack_assertions#nothing", constraints: { subdomain: "admin" }
+        end
       end
     end
   end
@@ -493,6 +495,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     get :show
     assert_response 500
     assert_equal "Boom", response.body
+  end
+
+  def test_assert_in_body
+    post :raise_exception_on_get
+    assert_in_body "request method: POST"
+    assert_not_in_body "request method: GET"
   end
 end
 

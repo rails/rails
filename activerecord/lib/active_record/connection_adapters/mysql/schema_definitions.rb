@@ -5,6 +5,7 @@ module ActiveRecord
     module MySQL
       module ColumnMethods
         extend ActiveSupport::Concern
+        extend ConnectionAdapters::ColumnMethods::ClassMethods
 
         ##
         # :method: blob
@@ -42,18 +43,29 @@ module ActiveRecord
         # :method: unsigned_bigint
         # :call-seq: unsigned_bigint(*names, **options)
 
-        ##
-        # :method: unsigned_float
-        # :call-seq: unsigned_float(*names, **options)
+        define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
+          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
+          :unsigned_float, :unsigned_decimal
 
-        ##
-        # :method: unsigned_decimal
-        # :call-seq: unsigned_decimal(*names, **options)
+        deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
+      end
 
-        included do
-          define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
-            :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
-            :unsigned_float, :unsigned_decimal
+      # = Active Record MySQL Adapter \Index Definition
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
+        attr_accessor :enabled
+
+        def initialize(*args, **kwargs)
+          @enabled = kwargs.key?(:enabled) ? kwargs.delete(:enabled) : true
+          super
+        end
+
+        def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
+          super(columns, name:, unique:, valid:, include:, nulls_not_distinct:, **options) &&
+            (enabled.nil? || self.enabled == enabled)
+        end
+
+        def disabled?
+          !@enabled
         end
       end
 
@@ -106,6 +118,28 @@ module ActiveRecord
       # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+
+        # Enables an index to be used by query optimizers.
+        #
+        #   t.enable_index(:email)
+        #
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
+        #
+        # See {connection.enable_index}[rdoc-ref:SchemaStatements#enable_index]
+        def enable_index(index_name)
+          @base.enable_index(name, index_name)
+        end
+
+        # Disables an index not to be used by query optimizers.
+        #
+        #   t.disable_index(:email)
+        #
+        # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
+        #
+        # See {connection.disable_index}[rdoc-ref:SchemaStatements#disable_index]
+        def disable_index(index_name)
+          @base.disable_index(name, index_name)
+        end
       end
     end
   end

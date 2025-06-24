@@ -68,7 +68,7 @@ class Hash
   #
   # By default the root node is "hash", but that's configurable via the <tt>:root</tt> option.
   #
-  # The default XML builder is a fresh instance of <tt>Builder::XmlMarkup</tt>. You can
+  # The default XML builder is a fresh instance of +Builder::XmlMarkup+. You can
   # configure your own builder with the <tt>:builder</tt> option. The method also accepts
   # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
   def to_xml(options = {})

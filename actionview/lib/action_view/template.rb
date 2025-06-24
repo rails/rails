@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require "thread"
 require "delegate"
 
 module ActionView
-  # = Action View Template
+  # = Action View \Template
   class Template
     extend ActiveSupport::Autoload
 
@@ -13,11 +12,11 @@ module ActionView
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
-    # encoding issues in Rails. This is because the source for
+    # encoding issues in \Rails. This is because the source for
     # templates are usually read from disk, and Ruby (like most
     # encoding-aware programming languages) assumes that the
     # String retrieved through File IO is encoded in the
-    # <tt>default_external</tt> encoding. In Rails, the default
+    # <tt>default_external</tt> encoding. In \Rails, the default
     # <tt>default_external</tt> encoding is UTF-8.
     #
     # As a result, if a user saves their template as ISO-8859-1
@@ -36,13 +35,13 @@ module ActionView
     #    to the problem.
     # 2. The user can specify the encoding using Ruby-style
     #    encoding comments in any template engine. If such
-    #    a comment is supplied, Rails will apply that encoding
+    #    a comment is supplied, \Rails will apply that encoding
     #    to the resulting compiled source returned by the
     #    template handler.
     # 3. In all cases, we transcode the resulting String to
     #    the UTF-8.
     #
-    # This means that other parts of Rails can always assume
+    # This means that other parts of \Rails can always assume
     # that templates are encoded in UTF-8, even if the original
     # source of the template was not UTF-8.
     #
@@ -53,7 +52,7 @@ module ActionView
     # === Instructions for template handlers
     #
     # The easiest thing for you to do is to simply ignore
-    # encodings. Rails will hand you the template source
+    # encodings. \Rails will hand you the template source
     # as the default_internal (generally UTF-8), raising
     # an exception for the user before sending the template
     # to you if it could not determine the original encoding.
@@ -70,7 +69,7 @@ module ActionView
     # you may indicate that you will handle encodings yourself
     # by implementing <tt>handles_encoding?</tt> on your handler.
     #
-    # If you do, Rails will not try to encode the String
+    # If you do, \Rails will not try to encode the String
     # into the default_internal, passing you the unaltered
     # bytes tagged with the assumed encoding (from
     # default_external).
@@ -96,11 +95,72 @@ module ActionView
     #
     # Given this sub template rendering:
     #
-    #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+    #   <%= render "application/header", { headline: "Welcome", person: person } %>
     #
     # You can use +local_assigns+ in the sub templates to access the local variables:
     #
     #   local_assigns[:headline] # => "Welcome"
+    #
+    # Each key in +local_assigns+ is available as a partial-local variable:
+    #
+    #   local_assigns[:headline] # => "Welcome"
+    #   headline                 # => "Welcome"
+    #
+    # Since +local_assigns+ is a +Hash+, it's compatible with Ruby 3.1's pattern
+    # matching assignment operator:
+    #
+    #   local_assigns => { headline:, **options }
+    #   headline                 # => "Welcome"
+    #   options                  # => {}
+    #
+    # Pattern matching assignment also supports variable renaming:
+    #
+    #   local_assigns => { headline: title }
+    #   title                    # => "Welcome"
+    #
+    # If a template refers to a variable that isn't passed into the view as part
+    # of the <tt>locals: { ... }</tt> Hash, the template will raise an
+    # +ActionView::Template::Error+:
+    #
+    #   <%# => raises ActionView::Template::Error %>
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Since +local_assigns+ returns a +Hash+ instance, you can conditionally
+    # read a variable, then fall back to a default value when
+    # the key isn't part of the <tt>locals: { ... }</tt> options:
+    #
+    #   <% local_assigns.fetch(:alerts, []).each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Combining Ruby 3.1's pattern matching assignment with calls to
+    # +Hash#with_defaults+ enables compact partial-local variable
+    # assignments:
+    #
+    #   <% local_assigns.with_defaults(alerts: []) => { headline:, alerts: } %>
+    #
+    #   <h1><%= headline %></h1>
+    #
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # By default, templates will accept any <tt>locals</tt> as keyword arguments
+    # and make them available to <tt>local_assigns</tt>. To restrict what
+    # <tt>local_assigns</tt> a template will accept, add a <tt>locals:</tt> magic comment:
+    #
+    #   <%# locals: (headline:, alerts: []) %>
+    #
+    #   <h1><%= headline %></h1>
+    #
+    #   <% alerts.each do |alert| %>
+    #     <p><%= alert %></p>
+    #   <% end %>
+    #
+    # Read more about strict locals in {Action View Overview}[https://guides.rubyonrails.org/action_view_overview.html#strict-locals]
+    # in the guides.
 
     eager_autoload do
       autoload :Error
@@ -154,6 +214,7 @@ module ActionView
       @variant           = variant
       @compile_mutex     = Mutex.new
       @strict_locals     = NONE
+      @strict_local_keys = nil
       @type              = nil
     end
 
@@ -168,18 +229,28 @@ module ActionView
     end
 
     def spot(location) # :nodoc:
-      ast = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
-      node = find_node_by_id(ast, node_id)
+      found =
+        if RubyVM::InstructionSequence.compile("").to_a[4][:parser] == :prism
+          require "prism"
 
-      ErrorHighlight.spot(node)
+          if Prism::VERSION >= "1.0.0"
+            result = Prism.parse(compiled_source).value
+            result.breadth_first_search { |node| node.node_id == node_id }
+          end
+        else
+          node = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
+          find_node_by_id(node, node_id)
+        end
+
+      ErrorHighlight.spot(found) if found
     end
 
     # Translate an error location returned by ErrorHighlight to the correct
     # source location inside the template.
     def translate_location(backtrace_location, spot)
       if handler.respond_to?(:translate_location)
-        handler.translate_location(spot, backtrace_location, encode!)
+        handler.translate_location(spot, backtrace_location, encode!) || spot
       else
         spot
       end
@@ -197,14 +268,21 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, implicit_locals: [], add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
+
+        if strict_locals? && @strict_local_keys && !implicit_locals.empty?
+          locals_to_ignore = implicit_locals - @strict_local_keys
+          locals.except!(*locals_to_ignore)
+        end
+
         if buffer
           view._run(method_name, self, locals, buffer, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
           nil
         else
-          view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)&.to_s
+          result = view._run(method_name, self, locals, OutputBuffer.new, add_to_stack: add_to_stack, has_strict_locals: strict_locals?, &block)
+          result.is_a?(OutputBuffer) ? result.to_s : result
         end
       end
     rescue => e
@@ -236,7 +314,7 @@ module ActionView
     # the same as <tt>Encoding.default_external</tt>.
     #
     # The user can also specify the encoding via a comment on the first
-    # line of the template (# encoding: NAME-OF-ENCODING). This will work
+    # line of the template (<tt># encoding: NAME-OF-ENCODING</tt>). This will work
     # with any template engine, as we process out the encoding comment
     # before passing the source on to the template engine, leaving a
     # blank line in its stead.
@@ -278,7 +356,7 @@ module ActionView
 
     # This method is responsible for marking a template as having strict locals
     # which means the template can only accept the locals defined in a magic
-    # comment. For example, if your template acceps the locals +title+ and
+    # comment. For example, if your template accepts the locals +title+ and
     # +comment_count+, add the following to your template file:
     #
     #   <%# locals: (title: "Default title", comment_count: 0) %>
@@ -369,9 +447,13 @@ module ActionView
 
         method_arguments =
           if set_strict_locals
-            "output_buffer, #{set_strict_locals}"
+            if set_strict_locals.include?("&")
+              "local_assigns, output_buffer, #{set_strict_locals}"
+            else
+              "local_assigns, output_buffer, #{set_strict_locals}, &_"
+            end
           else
-            "local_assigns, output_buffer"
+            "local_assigns, output_buffer, &_"
           end
 
         # Make sure that the resulting String to be eval'd is in the
@@ -427,23 +509,33 @@ module ActionView
 
         return unless strict_locals?
 
+        parameters = mod.instance_method(method_name).parameters
+        parameters -= [[:req, :local_assigns], [:req, :output_buffer]]
+
         # Check compiled method parameters to ensure that only kwargs
         # were provided as strict locals, preventing `locals: (foo, *foo)` etc
         # and allowing `locals: (foo:)`.
+        non_kwarg_parameters = parameters.select do |parameter|
+          ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0])
+        end
 
-        non_kwarg_parameters =
-          (mod.instance_method(method_name).parameters - [[:req, :output_buffer]]).
-            select { |parameter| ![:keyreq, :key, :keyrest, :nokey].include?(parameter[0]) }
+        non_kwarg_parameters.pop if non_kwarg_parameters.last == %i(block _)
 
-        return unless non_kwarg_parameters.any?
+        unless non_kwarg_parameters.empty?
+          mod.undef_method(method_name)
 
-        mod.undef_method(method_name)
+          raise ArgumentError.new(
+            "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
+            "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
+            "Locals can only be set as keyword arguments."
+          )
+        end
 
-        raise ArgumentError.new(
-          "#{non_kwarg_parameters.map { |_, name| "`#{name}`" }.to_sentence} set as non-keyword " \
-          "#{'argument'.pluralize(non_kwarg_parameters.length)} for #{short_identifier}. " \
-          "Locals can only be set as keyword arguments."
-        )
+        unless parameters.any? { |type, _| type == :keyrest }
+          parameters.map!(&:last)
+          parameters.sort!
+          @strict_local_keys = parameters.freeze
+        end
       end
 
       def offset
@@ -463,12 +555,15 @@ module ActionView
         end
       end
 
+      RUBY_RESERVED_KEYWORDS = ::ActiveSupport::Delegation::RUBY_RESERVED_KEYWORDS
+      private_constant :RUBY_RESERVED_KEYWORDS
+
       def locals_code
         return "" if strict_locals?
 
         # Only locals with valid variable names get set directly. Others will
         # still be available in local_assigns.
-        locals = @locals - Module::RUBY_RESERVED_KEYWORDS
+        locals = @locals - RUBY_RESERVED_KEYWORDS
 
         locals = locals.grep(/\A(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 

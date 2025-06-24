@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails"
 require "action_cable"
 require "active_support/core_ext/hash/indifferent_access"
@@ -22,6 +24,12 @@ module ActionCable
 
     initializer "action_cable.logger" do
       ActiveSupport.on_load(:action_cable) { self.logger ||= ::Rails.logger }
+    end
+
+    initializer "action_cable.health_check_application" do
+      ActiveSupport.on_load(:action_cable) {
+        self.health_check_application = ->(env) { Rails::HealthController.action(:show).call(env) }
+      }
     end
 
     initializer "action_cable.asset" do
@@ -66,9 +74,9 @@ module ActionCable
       ActiveSupport.on_load(:action_cable) do
         ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
           app.executor.wrap(source: "application.action_cable") do
-            # If we took a while to get the lock, we may have been halted
-            # in the meantime. As we haven't started doing any real work
-            # yet, we should pretend that we never made it off the queue.
+            # If we took a while to get the lock, we may have been halted in the meantime.
+            # As we haven't started doing any real work yet, we should pretend that we never
+            # made it off the queue.
             unless stopping?
               inner.call
             end

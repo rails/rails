@@ -1,12 +1,20 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
 require "minitest"
 
 module Rails
   class TestUnitReporter < Minitest::StatisticsReporter
-    class_attribute :app_root
-    class_attribute :executable, default: "bin/rails test"
+    singleton_class.attr_accessor :app_root
+
+    @executable = "bin/rails test"
+    singleton_class.attr_accessor :executable
+
+    def prerecord(test_class, test_name)
+      super
+      if options[:verbose]
+        io.print "%s#%s = " % [test_class.name, test_name]
+      end
+    end
 
     def record(result)
       super
@@ -69,8 +77,7 @@ module Rails
       end
 
       def format_line(result)
-        klass = result.respond_to?(:klass) ? result.klass : result.class
-        "%s#%s = %.2f s = %s" % [klass, result.name, result.time, result.result_code]
+        "%.2f s = %s" % [result.time, result.result_code]
       end
 
       def format_rerun_snippet(result)
@@ -80,7 +87,7 @@ module Rails
           result.method(result.name).source_location
         end
 
-        "#{executable} #{relative_path_for(location)}:#{line}"
+        "#{self.class.executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root

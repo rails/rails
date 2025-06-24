@@ -21,7 +21,7 @@ end
 desc "Run mysql2, trilogy, sqlite, and postgresql tests by default"
 task default: :test
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 desc "Run mysql2, trilogy, sqlite, and postgresql tests"
 task :test do
@@ -45,6 +45,7 @@ namespace :test do
 
     t.warning = true
     t.verbose = true
+    t.options = "--profile" if ENV["CI"]
   end
 end
 
@@ -56,7 +57,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem oracle jdbcmysql jdbcpostgresql jdbcsqlite3 jdbcderby jdbch2 jdbchsqldb ).each do |adapter|
+%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem ).each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
@@ -67,10 +68,9 @@ end
       files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
 
       t.test_files = files
-
-      t.test_files = files
       t.warning = true
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -82,6 +82,7 @@ end
           t.test_files = FileList["test/activejob/*_test.rb"]
           t.warning = true
           t.verbose = true
+          t.options = "--profile" if ENV["CI"]
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -188,6 +189,7 @@ end
 
           t.warning = true
           t.verbose = true
+          t.options = "--profile" if ENV["CI"]
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -209,56 +211,46 @@ end
 
 namespace :db do
   namespace :mysql do
-    mysql2_config = ARTest.config["connections"]["mysql2"]
-    mysql2_connection_arguments = lambda do |connection_name|
-      mysql2_connection = mysql2_config[connection_name]
-      ["--user=#{mysql2_connection["username"]}", ("--password=#{mysql2_connection["password"]}" if mysql2_connection["password"]), ("--host=#{mysql2_connection["host"]}" if mysql2_connection["host"]), ("--socket=#{mysql2_connection["socket"]}" if mysql2_connection["socket"])].join(" ")
+    mysql_configs = ARTest.config["connections"]
+      .values_at("mysql2", "trilogy")
+      .flat_map { |connections| connections.values_at("arunit", "arunit2") }
+    mysql_connection_arguments = lambda do |connection, exclude_user_password: false|
+      connection = connection.except("username", "password") if exclude_user_password
+      [
+        ("--user=#{connection["username"]}" if connection["username"]),
+        ("--password=#{connection["password"]}" if connection["password"]),
+        ("--host=#{connection["host"]}" if connection["host"]),
+        ("--port=#{connection["port"]}" if connection["port"]),
+        ("--socket=#{connection["socket"]}" if connection["socket"])
+      ].join(" ")
     end
-
-    trilogy_config = ARTest.config["connections"]["trilogy"]
-    trilogy_connection_arguments = lambda do |connection_name|
-      trilogy_connection = trilogy_config[connection_name]
-      ["--user=#{trilogy_connection["username"]}", ("--password=#{trilogy_connection["password"]}" if trilogy_connection["password"]), ("--host=#{trilogy_connection["host"]}" if trilogy_connection["host"]), ("--socket=#{trilogy_connection["socket"]}" if trilogy_connection["socket"])].join(" ")
-    end
-
-    mysql_configs = [mysql2_config, trilogy_config]
 
     desc "Create the MySQL Rails User"
     task :build_user do
-      if ENV["MYSQL_CODESPACES"]
-        if ENV["MYSQL_SOCK"]
-          mysql_command = "sudo mysql -uroot -S #{ENV["MYSQL_SOCK"]} -e"
-        else
-          mysql_command = "sudo mysql -uroot -proot -e"
-        end
-      else
-        mysql_command = "mysql -uroot -e"
-      end
-
-      mysql_configs.each do |config|
-        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit"]["username"]}'@'localhost';" )
-        %x( #{mysql_command} "CREATE USER IF NOT EXISTS '#{config["arunit2"]["username"]}'@'localhost';" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit"]["database"]}.* to '#{config["arunit"]["username"]}'@'localhost'" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON #{config["arunit2"]["database"]}.* to '#{config["arunit2"]["username"]}'@'localhost'" )
-        %x( #{mysql_command} "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{config["arunit"]["username"]}'@'localhost';" )
+      mysql_configs.each do |connection|
+        mysql_command = [
+          "mysql -uroot",
+          ("-proot" if ENV["MYSQL_CODESPACES"]),
+          mysql_connection_arguments[connection, exclude_user_password: true],
+        ].join(" ")
+        %x( #{mysql_command} -e "CREATE USER IF NOT EXISTS '#{connection["username"]}'@'%';" )
+        %x( #{mysql_command} -e "GRANT ALL PRIVILEGES ON #{connection["database"]}.* to '#{connection["username"]}'@'%'" )
+        %x( #{mysql_command} -e "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{connection["username"]}'@'%';" )
       end
     end
 
     desc "Build the MySQL test databases"
     task build: ["db:mysql:build_user"] do
-      %x( mysql #{mysql2_connection_arguments["arunit"]} -e "create DATABASE IF NOT EXISTS #{mysql2_config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
-      %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "create DATABASE IF NOT EXISTS #{mysql2_config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
-      %x( mysql #{trilogy_connection_arguments["arunit"]} -e "create DATABASE IF NOT EXISTS #{trilogy_config["arunit"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
-      %x( mysql #{trilogy_connection_arguments["arunit2"]} -e "create DATABASE IF NOT EXISTS #{trilogy_config["arunit2"]["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      mysql_configs.each do |connection|
+        %x( mysql #{mysql_connection_arguments[connection]} -e "create DATABASE IF NOT EXISTS #{connection["database"]} DEFAULT CHARACTER SET utf8mb4" )
+      end
     end
 
     desc "Drop the MySQL test databases"
-    task :drop do
-      %x( mysql #{mysql2_connection_arguments["arunit"]} -e "drop database IF EXISTS #{mysql2_config["arunit"]["database"]}" )
-      %x( mysql #{mysql2_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{mysql2_config["arunit2"]["database"]}" )
-
-      %x( mysql #{trilogy_connection_arguments["arunit"]} -e "drop database IF EXISTS #{trilogy_config["arunit"]["database"]}" )
-      %x( mysql #{trilogy_connection_arguments["arunit2"]} -e "drop database IF EXISTS #{trilogy_config["arunit2"]["database"]}" )
+    task drop: ["db:mysql:build_user"] do
+      mysql_configs.each do |connection|
+        %x( mysql #{mysql_connection_arguments[connection]} -e "drop database IF EXISTS #{connection["database"]}" )
+      end
     end
 
     desc "Rebuild the MySQL test databases"

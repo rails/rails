@@ -50,6 +50,6 @@ class ActiveRecord::Encryption::KeyGeneratorTest < ActiveRecord::EncryptionTestC
                                                         .generate_key(ActiveRecord::Encryption.config.key_derivation_salt, length)
       assert_equal length, expected_derived_key.length
       ActiveRecord::Encryption.config.hash_digest_class = digest_class
-      assert_equal expected_derived_key, @generator.derive_key_from(secret, length: length)
+      assert_equal expected_derived_key, ActiveRecord::Encryption::KeyGenerator.new(hash_digest_class: digest_class).derive_key_from(secret, length: length)
     end
 end

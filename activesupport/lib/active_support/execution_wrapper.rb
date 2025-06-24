@@ -2,7 +2,6 @@
 
 require "active_support/error_reporter"
 require "active_support/callbacks"
-require "concurrent/hash"
 
 module ActiveSupport
   class ExecutionWrapper
@@ -90,7 +89,7 @@ module ActiveSupport
       instance = run!
       begin
         yield
-      rescue => error
+      rescue Exception => error
         error_reporter&.report(error, handled: false, source: source)
         raise
       ensure

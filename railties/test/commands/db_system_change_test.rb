@@ -25,9 +25,7 @@ class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
     assert_match <<~MSG.squish, output
       Invalid value for --to option.
       Supported preconfigurations are:
-      mysql, trilogy, postgresql, sqlite3,
-      oracle, sqlserver, jdbcmysql,
-      jdbcsqlite3, jdbcpostgresql, jdbc.
+      mysql, trilogy, postgresql, sqlite3, mariadb-mysql, mariadb-trilogy.
     MSG
   end
 
@@ -57,6 +55,14 @@ class Rails::Command::DbSystemChangeTest < ActiveSupport::TestCase
     output = `cd #{app_path}; bin/rails db:system:change --to=postgresql --force`
 
     assert_match "force  config/database.yml", output
+    assert_match "gsub  Gemfile", output
+  end
+
+  test "change works with no Dockerfile" do
+    remove_file("Dockerfile")
+
+    output = change_database(to: "sqlite3")
+
     assert_match "gsub  Gemfile", output
   end
 

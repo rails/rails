@@ -14,14 +14,14 @@ module Rails
       require_relative "credentials_command/diffing"
       include Diffing
 
-      desc "edit", "Open the decrypted credentials in `$EDITOR` for editing"
+      desc "edit", "Open the decrypted credentials in `$VISUAL` or `$EDITOR` for editing"
       def edit
         load_environment_config!
         load_generators
 
         if environment_specified?
-          @content_path = "config/credentials/#{environment}.yml.enc" unless config.key?(:content_path)
-          @key_path = "config/credentials/#{environment}.key" unless config.key?(:key_path)
+          @content_path = "config/credentials/#{environment}.yml.enc" unless config.overridden?(:content_path)
+          @key_path = "config/credentials/#{environment}.key" unless config.overridden?(:key_path)
         end
 
         ensure_encryption_key_has_been_added
@@ -128,7 +128,11 @@ module Rails
         end
 
         def extract_environment_from_path(path)
-          available_environments.find { |env| path.end_with?("#{env}.yml.enc") }
+          available_environments.find { |env| path.end_with?("#{env}.yml.enc") } || extract_custom_environment(path)
+        end
+
+        def extract_custom_environment(path)
+          path =~ %r{config/credentials/(.+)\.yml\.enc} && $1
         end
     end
   end

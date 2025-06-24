@@ -2,7 +2,7 @@
 
 require_relative "../helper"
 
-describe Arel::Nodes::DeleteStatement do
+class Arel::Nodes::DeleteStatementTest < Arel::Spec
   describe "#clone" do
     it "clones wheres" do
       statement = Arel::Nodes::DeleteStatement.new

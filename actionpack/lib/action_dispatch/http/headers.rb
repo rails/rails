@@ -1,28 +1,30 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Http
-    # = Action Dispatch HTTP \Headers
+    # # Action Dispatch HTTP Headers
     #
     # Provides access to the request's HTTP headers from the environment.
     #
-    #   env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
-    #   headers = ActionDispatch::Http::Headers.from_hash(env)
-    #   headers["Content-Type"] # => "text/plain"
-    #   headers["User-Agent"] # => "curl/7.43.0"
+    #     env     = { "CONTENT_TYPE" => "text/plain", "HTTP_USER_AGENT" => "curl/7.43.0" }
+    #     headers = ActionDispatch::Http::Headers.from_hash(env)
+    #     headers["Content-Type"] # => "text/plain"
+    #     headers["User-Agent"] # => "curl/7.43.0"
     #
     # Also note that when headers are mapped to CGI-like variables by the Rack
     # server, both dashes and underscores are converted to underscores. This
     # ambiguity cannot be resolved at this stage anymore. Both underscores and
     # dashes have to be interpreted as if they were originally sent as dashes.
     #
-    #   # GET / HTTP/1.1
-    #   # ...
-    #   # User-Agent: curl/7.43.0
-    #   # X_Custom_Header: token
+    #     # GET / HTTP/1.1
+    #     # ...
+    #     # User-Agent: curl/7.43.0
+    #     # X_Custom_Header: token
     #
-    #   headers["X_Custom_Header"] # => nil
-    #   headers["X-Custom-Header"] # => "token"
+    #     headers["X_Custom_Header"] # => nil
+    #     headers["X-Custom-Header"] # => "token"
     class Headers
       CGI_VARIABLES = Set.new(%W[
         AUTH_TYPE
@@ -67,7 +69,7 @@ module ActionDispatch
         @req.set_header env_name(key), value
       end
 
-      # Add a value to a multivalued header like +Vary+ or +Accept-Encoding+.
+      # Add a value to a multivalued header like `Vary` or `Accept-Encoding`.
       def add(key, value)
         @req.add_header env_name(key), value
       end
@@ -81,11 +83,10 @@ module ActionDispatch
 
       # Returns the value for the given key mapped to @env.
       #
-      # If the key is not found and an optional code block is not provided,
-      # raises a <tt>KeyError</tt> exception.
+      # If the key is not found and an optional code block is not provided, raises a
+      # `KeyError` exception.
       #
-      # If the code block is provided, then it will be run and
-      # its result returned.
+      # If the code block is provided, then it will be run and its result returned.
       def fetch(key, default = DEFAULT)
         @req.fetch_header(env_name(key)) do
           return default unless default == DEFAULT
@@ -99,16 +100,15 @@ module ActionDispatch
       end
 
       # Returns a new Http::Headers instance containing the contents of
-      # <tt>headers_or_env</tt> and the original instance.
+      # `headers_or_env` and the original instance.
       def merge(headers_or_env)
         headers = @req.dup.headers
         headers.merge!(headers_or_env)
         headers
       end
 
-      # Adds the contents of <tt>headers_or_env</tt> to original instance
-      # entries; duplicate keys are overwritten with the values from
-      # <tt>headers_or_env</tt>.
+      # Adds the contents of `headers_or_env` to original instance entries; duplicate
+      # keys are overwritten with the values from `headers_or_env`.
       def merge!(headers_or_env)
         headers_or_env.each do |key, value|
           @req.set_header env_name(key), value
@@ -118,8 +118,8 @@ module ActionDispatch
       def env; @req.env.dup; end
 
       private
-        # Converts an HTTP header name to an environment variable name if it is
-        # not contained within the headers hash.
+        # Converts an HTTP header name to an environment variable name if it is not
+        # contained within the headers hash.
         def env_name(key)
           key = key.to_s
           if HTTP_HEADER.match?(key)

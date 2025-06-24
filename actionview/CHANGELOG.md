@@ -1,280 +1,54 @@
-*   Add support for the HTML picture tag. It supports passing a String, an Array or a Block.
-    Supports passing properties directly to the img tag via the `:image` key.
-    Since the picture tag requires an img tag, the last element you provide will be used for the img tag.
-    For complete control over the picture tag, a block can be passed, which will populate the contents of the tag accordingly.
+*   Respect `html_options[:form]` when `collection_checkboxes` generates the
+    hidden `<input>`.
 
-    Can be used like this for a single source:
-    ```erb
-    <%= picture_tag("picture.webp") %>
-    ```
-    which will generate the following:
-    ```html
-    <picture>
-        <img src="/images/picture.webp" />
-    </picture>
-    ```
+    *Riccardo Odone*
 
-    For multiple sources:
-    ```erb
-    <%= picture_tag("picture.webp", "picture.png", :class => "mt-2", :image => { alt: "Image", class: "responsive-img" }) %>
-    ```
-    will generate:
-    ```html
-    <picture class="mt-2">
-        <source srcset="/images/picture.webp" />
-        <source srcset="/images/picture.png" />
-        <img alt="Image" class="responsive-img" src="/images/picture.png" />
-    </picture>
-    ```
+*   Layouts have access to local variables passed to `render`.
 
-    Full control via a block:
-    ```erb
-    <%= picture_tag(:class => "my-class") do %>
-        <%= tag(:source, :srcset => image_path("picture.webp")) %>
-        <%= tag(:source, :srcset => image_path("picture.png")) %>
-        <%= image_tag("picture.png", :alt => "Image") %>
-    <% end %>
-    ```
-    will generate:
-    ```html
-    <picture class="my-class">
-        <source srcset="/images/picture.webp" />
-        <source srcset="/images/picture.png" />
-        <img alt="Image" src="/images/picture.png" />
-    </picture>
-    ```
-
-    *Juan Pablo Balarini*
-
-*   Remove deprecated support to passing instance variables as locals to partials.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated constant `ActionView::Path`.
-
-    *Rafael Mendonça França*
-
-*   Guard `token_list` calls from escaping HTML too often
-
-    *Sean Doyle*
-
-*   `select` can now be called with a single hash containing options and some HTML options
-
-    Previously this would not work as expected:
-
-    ```erb
-    <%= select :post, :author, authors, required: true %>
-    ```
-
-    Instead you needed to do this:
-
-    ```erb
-    <%= select :post, :author, authors, {}, required: true %>
-    ```
-
-    Now, either form is accepted, for the following HTML attributes: `required`, `multiple`, `size`.
-
-    *Alex Ghiculescu*
-
-*   Datetime form helpers (`time_field`, `date_field`, `datetime_field`, `week_field`, `month_field`) now accept an instance of Time/Date/DateTime as `:value` option.
-
-    Before:
-    ```erb
-    <%= form.datetime_field :written_at, value: Time.current.strftime("%Y-%m-%dT%T") %>
-    ```
-
-    After:
-    ```erb
-    <%= form.datetime_field :written_at, value: Time.current %>
-    ```
-
-    *Andrey Samsonov*
-
-*   Choices of `select` can optionally contain html attributes as the last element
-    of the child arrays when using grouped/nested collections
-
-    ```erb
-    <%= form.select :foo, [["North America", [["United States","US"],["Canada","CA"]], { disabled: "disabled" }]] %>
-    # => <select><optgroup label="North America" disabled="disabled"><option value="US">United States</option><option value="CA">Canada</option></optgroup></select>
-    ```
-
-    *Chris Gunther*
-
-*   `check_box_tag` and `radio_button_tag` now accept `checked` as a keyword argument
-
-    This is to make the API more consistent with the `FormHelper` variants. You can now
-    provide `checked` as a positional or keyword argument:
-
-    ```erb
-    = check_box_tag "admin", "1", false
-    = check_box_tag "admin", "1", checked: false
-
-    = radio_button_tag 'favorite_color', 'maroon', false
-    = radio_button_tag 'favorite_color', 'maroon', checked: false
-    ```
-
-    *Alex Ghiculescu*
-
-*   Allow passing a class to `dom_id`.
-    You no longer need to call `new` when passing a class to `dom_id`.
-    This makes `dom_id` behave like `dom_class` in this regard.
-    Apart from saving a few keystrokes, it prevents Ruby from needing
-    to instantiate a whole new object just to generate a string.
-
-    Before:
-    ```ruby
-    dom_id(Post) # => NoMethodError: undefined method `to_key' for Post:Class
-    ```
-
-    After:
-    ```ruby
-    dom_id(Post) # => "new_post"
-    ```
-
-    *Goulven Champenois*
-
-*   Report `:locals` as part of the data returned by ActionView render instrumentation.
-
-    Before:
-    ```ruby
-    {
-    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
-    layout: "layouts/application"
-    }
-    ```
-
-    After:
-    ```ruby
-    {
-    identifier: "/Users/adam/projects/notifications/app/views/posts/index.html.erb",
-    layout: "layouts/application",
-    locals: {foo: "bar"}
-    }
-    ```
-
-    *Aaron Gough*
-
-*   Strip `break_sequence` at the end of `word_wrap`.
-
-    This fixes a bug where `word_wrap` didn't properly strip off break sequences that had printable characters.
-
-    For example, compare the outputs of this template:
-
-    ```erb
-    # <%= word_wrap("11 22\n33 44", line_width: 2, break_sequence: "\n# ") %>
-    ```
-
-    Before:
-
-    ```
-    # 11
-    # 22
-    #
-    # 33
-    # 44
-    #
-    ```
-
-    After:
-
-    ```
-    # 11
-    # 22
-    # 33
-    # 44
-    ```
-
-    *Max Chernyak*
-
-*   Allow templates to set strict `locals`.
-
-    By default, templates will accept any `locals` as keyword arguments. To define what `locals` a template accepts, add a `locals` magic comment:
-
-    ```erb
-    <%# locals: (message:) -%>
-    <%= message %>
-    ```
-
-    Default values can also be provided:
-
-    ```erb
-    <%# locals: (message: "Hello, world!") -%>
-    <%= message %>
-    ```
-
-    Or `locals` can be disabled entirely:
-
-    ```erb
-    <%# locals: () %>
-    ```
-
-    *Joel Hawksley*
-
-*   Add `include_seconds` option for `datetime_local_field`
-
-    This allows to omit seconds part in the input field, by passing `include_seconds: false`
-
-    *Wojciech Wnętrzak*
-
-*   Guard against `ActionView::Helpers::FormTagHelper#field_name` calls with nil
-    `object_name` arguments. For example:
-
-    ```erb
-    <%= fields do |f| %>
-      <%= f.field_name :body %>
-    <% end %>
-    ```
-
-    *Sean Doyle*
-
-*   Strings returned from `strip_tags` are correctly tagged `html_safe?`
-
-    Because these strings contain no HTML elements and the basic entities are escaped, they are safe
-    to be included as-is as PCDATA in HTML content. Tagging them as html-safe avoids double-escaping
-    entities when being concatenated to a SafeBuffer during rendering.
-
-    Fixes [rails/rails-html-sanitizer#124](https://github.com/rails/rails-html-sanitizer/issues/124)
+    This fixes #31680 which was a regression in Rails 5.1.
 
     *Mike Dalessio*
 
-*   Move `convert_to_model` call from `form_for` into `form_with`
+*   Argument errors related to strict locals in templates now raise an
+    `ActionView::StrictLocalsError`, and all other argument errors are reraised as-is.
 
-    Now that `form_for` is implemented in terms of `form_with`, remove the
-    `convert_to_model` call from `form_for`.
+    Previously, any `ArgumentError` raised during template rendering was swallowed during strict
+    local error handling, so that an `ArgumentError` unrelated to strict locals (e.g., a helper
+    method invoked with incorrect arguments) would be replaced by a similar `ArgumentError` with an
+    unrelated backtrace, making it difficult to debug templates.
 
-    *Sean Doyle*
+    Now, any `ArgumentError` unrelated to strict locals is reraised, preserving the original
+    backtrace for developers.
 
-*   Fix and add protections for XSS in `ActionView::Helpers` and `ERB::Util`.
+    Also note that `ActionView::StrictLocalsError` is a subclass of `ArgumentError`, so any existing
+    code that rescues `ArgumentError` will continue to work.
 
-    Escape dangerous characters in names of tags and names of attributes in the
-    tag helpers, following the XML specification. Rename the option
-    `:escape_attributes` to `:escape`, to simplify by applying the option to the
-    whole tag.
+    Fixes #52227.
 
-    *Álvaro Martín Fraguas*
+    *Mike Dalessio*
 
-*   Extend audio_tag and video_tag to accept Active Storage attachments.
+*   Improve error highlighting of multi-line methods in ERB templates or
+    templates where the error occurs within a do-end block.
 
-    Now it's possible to write
+    *Martin Emde*
 
-    ```ruby
-    audio_tag(user.audio_file)
-    video_tag(user.video_file)
-    ```
+*   Fix a crash in ERB template error highlighting when the error occurs on a
+    line in the compiled template that is past the end of the source template.
 
-    Instead of
+    *Martin Emde*
 
-    ```ruby
-    audio_tag(polymorphic_path(user.audio_file))
-    video_tag(polymorphic_path(user.video_file))
-    ```
+*   Improve reliability of ERB template error highlighting.
+    Fix infinite loops and crashes in highlighting and
+    improve tolerance for alternate ERB handlers.
 
-    `image_tag` already supported that, so this follows the same pattern.
+    *Martin Emde*
 
-    *Matheus Richard*
+*   Allow `hidden_field` and `hidden_field_tag` to accept a custom autocomplete value.
 
-*   Ensure models passed to `form_for` attempt to call `to_model`.
+    *brendon*
 
-    *Sean Doyle*
+*   Add a new configuration `content_security_policy_nonce_auto` for automatically adding a nonce to the tags affected by the directives specified by the `content_security_policy_nonce_directives` configuration option.
 
-Please check [7-0-stable](https://github.com/rails/rails/blob/7-0-stable/actionview/CHANGELOG.md) for previous changes.
+    *francktrouillez*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actionview/CHANGELOG.md) for previous changes.

@@ -45,5 +45,9 @@ module Arel # :nodoc: all
     def coalesce(*exprs)
       Nodes::NamedFunction.new "COALESCE", exprs
     end
+
+    def cast(name, type)
+      Nodes::NamedFunction.new "CAST", [name.as(type)]
+    end
   end
 end

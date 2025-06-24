@@ -13,7 +13,7 @@ module PostgresqlCompositeBehavior
   def setup
     super
 
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.transaction do
       @connection.execute <<~SQL
         CREATE TYPE full_address AS

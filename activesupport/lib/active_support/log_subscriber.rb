@@ -2,13 +2,14 @@
 
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/enumerable"
 require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
 module ActiveSupport
   # = Active Support Log \Subscriber
   #
-  # <tt>ActiveSupport::LogSubscriber</tt> is an object set to consume
+  # +ActiveSupport::LogSubscriber+ is an object set to consume
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
@@ -34,7 +35,7 @@ module ActiveSupport
   # (ActiveSupport::Notifications::Event) to the +sql+ method.
   #
   # Being an ActiveSupport::Notifications consumer,
-  # <tt>ActiveSupport::LogSubscriber</tt> exposes a simple interface to check if
+  # +ActiveSupport::LogSubscriber+ exposes a simple interface to check if
   # instrumented code raises an exception. It is common to log a different
   # message in case of an error, and this can be achieved by extending
   # the previous example:
@@ -56,15 +57,11 @@ module ActiveSupport
   #     end
   #   end
   #
-  # <tt>ActiveSupport::LogSubscriber</tt> also has some helpers to deal with
+  # +ActiveSupport::LogSubscriber+ also has some helpers to deal with
   # logging. For example, ActiveSupport::LogSubscriber.flush_all! will ensure
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.
   class LogSubscriber < Subscriber
-    # Embed in a String to clear all previous ANSI sequences.
-    CLEAR = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[0m", "CLEAR is deprecated! Use MODES[:clear] instead.", ActiveSupport.deprecator)
-    BOLD  = ActiveSupport::Deprecation::DeprecatedObjectProxy.new("\e[1m", "BOLD is deprecated! Use MODES[:bold] instead.", ActiveSupport.deprecator)
-
     # ANSI sequence modes
     MODES = {
       clear:     0,
@@ -85,6 +82,12 @@ module ActiveSupport
 
     mattr_accessor :colorize_logging, default: true
     class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
+
+    LEVEL_CHECKS = {
+      debug: -> (logger) { !logger.debug? },
+      info: -> (logger) { !logger.info? },
+      error: -> (logger) { !logger.error? },
+    }
 
     class << self
       def logger
@@ -122,7 +125,7 @@ module ActiveSupport
         end
 
         def subscribe_log_level(method, level)
-          self.log_levels = log_levels.merge(method => ::Logger.const_get(level.upcase))
+          self.log_levels = log_levels.merge(method => LEVEL_CHECKS.fetch(level))
           set_event_levels
         end
     end
@@ -137,7 +140,7 @@ module ActiveSupport
     end
 
     def silenced?(event)
-      logger.nil? || logger.level > @event_levels.fetch(event, Float::INFINITY)
+      logger.nil? || @event_levels[event]&.call(logger)
     end
 
     def call(event)
@@ -175,20 +178,14 @@ module ActiveSupport
     end
 
     def mode_from(options)
-      if options.is_a?(TrueClass) || options.is_a?(FalseClass)
-        ActiveSupport.deprecator.warn(<<~MSG.squish)
-          Bolding log text with a positional boolean is deprecated and will be removed
-          in Rails 7.2. Use an option hash instead (eg. `color("my text", :red, bold: true)`).
-        MSG
-        options = { bold: options }
-      end
-
       modes = MODES.values_at(*options.compact_blank.keys)
 
       "\e[#{modes.join(";")}m" if modes.any?
     end
 
     def log_exception(name, e)
+      ActiveSupport.error_reporter.report(e, source: name)
+
       if logger
         logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
       end

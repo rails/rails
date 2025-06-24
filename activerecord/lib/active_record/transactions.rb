@@ -13,7 +13,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -188,6 +188,27 @@ module ActiveRecord
     # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
+    # ==== NOTE: Callbacks are deduplicated per callback by filter.
+    #
+    # Trying to define multiple callbacks with the same filter will result in a single callback being run.
+    #
+    # For example:
+    #
+    #   after_commit :do_something
+    #   after_commit :do_something # only the last one will be called
+    #
+    # This applies to all variations of <tt>after_*_commit</tt> callbacks as well.
+    #
+    #   after_commit :do_something
+    #   after_create_commit :do_something
+    #   after_save_commit :do_something
+    #
+    # It is recommended to use the +on:+ option to specify when the callback should be run.
+    #
+    #   after_commit :do_something, on: [:create, :update]
+    #
+    # This is equivalent to using +after_create_commit+ and +after_update_commit+, but will not be deduplicated.
+    #
     # === Caveats
     #
     # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
@@ -198,18 +219,50 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.connection.transaction do                           # BEGIN
-    #     Model.connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.connection.create_table(...)                    # active_record_1 now automatically released
-    #     end                                                     # RELEASE SAVEPOINT active_record_1
-    #                                                             # ^^^^ BOOM! database error!
-    #   end
+    #   Model.transaction do                           # BEGIN
+    #     Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)   # active_record_1 now automatically released
+    #     end                                          # RELEASE SAVEPOINT active_record_1
+    #   end                                            # ^^^^ BOOM! database error!
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
-        connection.transaction(**options, &block)
+        with_connection do |connection|
+          connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+            connection.transaction(**options, &block)
+          end
+        end
+      end
+
+      # Makes all transactions the current pool use the isolation level initiated within the block.
+      def with_pool_transaction_isolation_level(isolation_level, &block)
+        if current_transaction.open?
+          raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
+        end
+
+        old_level = connection_pool.pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level = isolation_level
+        yield
+      ensure
+        connection_pool.pool_transaction_isolation_level = old_level
+      end
+
+      # Returns the default isolation level for the connection pool, set earlier by #with_pool_transaction_isolation_level.
+      def pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level
+      end
+
+      # Returns a representation of the current transaction state,
+      # which can be a top level transaction, a savepoint, or the absence of a transaction.
+      #
+      # An object is always returned, whether or not a transaction is currently active.
+      # To check if a transaction was opened, use <tt>current_transaction.open?</tt>.
+      #
+      # See the ActiveRecord::Transaction documentation for detailed behavior.
+      def current_transaction
+        connection_pool.active_connection&.current_transaction&.user_transaction || Transaction::NULL_TRANSACTION
       end
 
       def before_commit(*args, &block) # :nodoc:
@@ -264,6 +317,25 @@ module ActiveRecord
       def after_rollback(*args, &block)
         set_options_for_callbacks!(args, prepend_option)
         set_callback(:rollback, :after, *args, &block)
+      end
+
+      # Similar to ActiveSupport::Callbacks::ClassMethods#set_callback, but with
+      # support for options available on #after_commit and #after_rollback callbacks.
+      def set_callback(name, *filter_list, &block)
+        options = filter_list.extract_options!
+        filter_list << options
+
+        if name.in?([:commit, :rollback]) && options[:on]
+          fire_on = Array(options[:on])
+          assert_valid_transaction_action(fire_on)
+          options[:if] = [
+            -> { transaction_include_any_action?(fire_on) },
+            *options[:if]
+          ]
+        end
+
+
+        super(name, *filter_list, &block)
       end
 
       private
@@ -347,25 +419,29 @@ module ActiveRecord
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
-    # Executes +method+ within a transaction and captures its return value as a
-    # status flag. If the status is true the transaction is committed, otherwise
-    # a ROLLBACK is issued. In any case the status flag is returned.
+    # Executes a block within a transaction and captures its return value as a
+    # status flag. If the status is true, the transaction is committed,
+    # otherwise a ROLLBACK is issued. In any case, the status flag is returned.
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
     def with_transaction_returning_status
-      status = nil
-      connection = self.class.connection
-      ensure_finalize = !connection.transaction_open?
+      self.class.with_connection do |connection|
+        connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+          status = nil
+          ensure_finalize = !connection.transaction_open?
 
-      connection.transaction do
-        add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-        remember_transaction_record_state
+          connection.transaction do
+            add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+            remember_transaction_record_state
 
-        status = yield
-        raise ActiveRecord::Rollback unless status
+            status = yield
+            raise ActiveRecord::Rollback unless status
+          end
+          @_last_transaction_return_status = status
+          status
+        end
       end
-      status
     end
 
     def trigger_transactional_callbacks? # :nodoc:
@@ -379,6 +455,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end
@@ -457,7 +534,9 @@ module ActiveRecord
       # Add the record to the current transaction so that the #after_rollback and #after_commit
       # callbacks can be called.
       def add_to_transaction(ensure_finalize = true)
-        self.class.connection.add_transaction_record(self, ensure_finalize)
+        self.class.with_connection do |connection|
+          connection.add_transaction_record(self, ensure_finalize)
+        end
       end
 
       def has_transactional_callbacks?

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Working with JavaScript in Rails
 ================================
@@ -10,7 +10,7 @@ Rails.
 After reading this guide, you will know:
 
 * How to use Rails without the need for a Node.js, Yarn, or a JavaScript bundler.
-* How to create a new Rails application using import maps, esbuild, rollup, or webpack to bundle
+* How to create a new Rails application using import maps, Bun, esbuild, Rollup, or Webpack to bundle
   your JavaScript.
 * What Turbo is, and how to use it.
 * How to use the Turbo HTML helpers provided by Rails.
@@ -22,7 +22,7 @@ Import Maps
 
 [Import maps](https://github.com/rails/importmap-rails) let you import JavaScript modules using
 logical names that map to versioned files directly from the browser. Import maps are the default
-from Rails 7, allowing anyone to build modern JavaScript applications using most NPM packages
+from Rails 7, allowing anyone to build modern JavaScript applications using most npm packages
 without the need for transpiling or bundling.
 
 Applications using import maps do not need [Node.js](https://nodejs.org/en/) or
@@ -37,7 +37,7 @@ When using import maps, no separate build process is required, just start your s
 Importmap for Rails is automatically included in Rails 7+ for new applications, but you can also install it manually in existing applications:
 
 ```bash
-$ bin/bundle add importmap-rails
+$ bundle add importmap-rails
 ```
 
 Run the install task:
@@ -46,7 +46,7 @@ Run the install task:
 $ bin/rails importmap:install
 ```
 
-### Adding NPM Packages with importmap-rails
+### Adding npm Packages with importmap-rails
 
 To add new packages to your import map-powered application, run the `bin/importmap pin` command
 from your terminal:
@@ -62,21 +62,21 @@ import React from "react"
 import ReactDOM from "react-dom"
 ```
 
-Adding NPM Packages with JavaScript Bundlers
+Adding npm Packages with JavaScript Bundlers
 --------
 
 Import maps are the default for new Rails applications, but if you prefer traditional JavaScript
 bundling, you can create new Rails applications with your choice of
-[esbuild](https://esbuild.github.io/), [webpack](https://webpack.js.org/), or
-[rollup.js](https://rollupjs.org/guide/en/).
+[Bun](https://bun.sh), [esbuild](https://esbuild.github.io/),
+[Webpack](https://webpack.js.org/), or [Rollup.js](https://rollupjs.org/guide/en/).
 
-To use a bundler instead of import maps in a new Rails application, pass the `—javascript` or `-j`
+To use a bundler instead of import maps in a new Rails application, pass the `--javascript` or `-j`
 option to `rails new`:
 
 ```bash
-$ rails new my_new_app --javascript=webpack
+$ rails new my_new_app --javascript=bun
 OR
-$ rails new my_new_app -j webpack
+$ rails new my_new_app -j bun
 ```
 
 These bundling options each come with a simple configuration and integration with the asset
@@ -85,10 +85,29 @@ pipeline via the [jsbundling-rails](https://github.com/rails/jsbundling-rails) g
 When using a bundling option, use `bin/dev` to start the Rails server and build JavaScript for
 development.
 
-### Installing Node.js and Yarn
+### Installing a JavaScript Runtime
 
-If you are using a JavaScript bundler in your Rails application, Node.js and Yarn must be
-installed.
+If you are using esbuild, Rollup.js, or Webpack to bundle your JavaScript in
+your Rails application, Node.js and Yarn must be installed. If you are using
+Bun, then you just need to install Bun as it is both a JavaScript runtime and a bundler.
+
+#### Installing Bun
+
+Find the installation instructions at the [Bun website](https://bun.sh) and
+verify it’s installed correctly and in your path with the following command:
+
+```bash
+$ bun --version
+```
+
+The version of your Bun runtime should be printed out. If it says something
+like `1.0.0`, Bun has been installed correctly.
+
+If not, you may need to reinstall Bun in the current directory or restart your terminal.
+
+#### Installing Node.js and Yarn
+
+If you are using esbuild, Rollup.js, or Webpack you will need Node.js and Yarn.
 
 Find the installation instructions at the [Node.js website](https://nodejs.org/en/download/) and
 verify it’s installed correctly with the following command:
@@ -209,7 +228,7 @@ def create
 
   respond_to do |format|
     if @post.save
-      format.turbo_stream { render turbo_stream: turbo_stream.prepend('posts', partial: 'post') }
+      format.turbo_stream { render turbo_stream: turbo_stream.prepend("posts", partial: "post") }
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -221,11 +240,11 @@ Finally, Turbo Streams can be initiated from a model or a background job using b
 These broadcasts can be used to update content via a WebSocket connection to all users, keeping
 page content fresh and bringing your application to life.
 
-To broadcast a Turbo Stream from a model combine a model callback like this:
+To broadcast a Turbo Stream from a model, combine a model callback like this:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit { broadcast_append_to('posts') }
+  after_create_commit { broadcast_append_to("posts") }
 end
 ```
 
@@ -301,8 +320,8 @@ added to the form that the `button_to` helper renders internally:
 
 ### Ajax Requests
 
-When making non-GET requests from JavaScript the `X-CSRF-Token` header is required.
-Without this header requests won't be accepted by Rails.
+When making non-GET requests from JavaScript, the `X-CSRF-Token` header is required.
+Without this header, requests won't be accepted by Rails.
 
 NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSRF) attacks. Read more in the [security guide](security.html#cross-site-request-forgery-csrf).
 
@@ -310,7 +329,7 @@ NOTE: This token is required by Rails to prevent Cross-Site Request Forgery (CSR
 of adding the request headers that are required by Rails. Just
 import the `FetchRequest` class from the package and instantiate it
 passing the request method, url, options, then call `await request.perform()`
-and do what do you need with the response.
+and do what you need with the response.
 
 For example:
 

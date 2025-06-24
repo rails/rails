@@ -2,13 +2,13 @@
 
 require "rake/testtask"
 
-ACTIVEJOB_ADAPTERS = %w(async inline delayed_job queue_classic resque sidekiq sneakers sucker_punch backburner test)
+ACTIVEJOB_ADAPTERS = %w(async inline queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
 task default: :test
 task test: "test:default"
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 namespace :test do
   desc "Run all adapter tests"
@@ -36,18 +36,21 @@ namespace :test do
     Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
       t.description = "Run adapter tests for #{adapter}"
       t.libs << "test"
-      t.test_files = FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("delayed_job") && adapter != "delayed_job"
+      t.test_files = FileList["test/cases/**/*_test.rb"].reject { |x|
+        (x.include?("delayed_job") && adapter != "delayed_job") ||
+          (x.include?("async") && adapter != "async")
       }
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
     namespace :isolated do
       task adapter => "test:env:#{adapter}" do
-        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").reject {
-          |x| x.include?("delayed_job") && adapter != "delayed_job"
+        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").reject { |x|
+          (x.include?("delayed_job") && adapter != "delayed_job") ||
+            (x.include?("async") && adapter != "async")
         }.all? do |file|
           sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
         end || raise("Failures")
@@ -60,6 +63,7 @@ namespace :test do
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
         t.verbose = true
+        t.options = "--profile" if ENV["CI"]
         t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end

@@ -1,0 +1,199 @@
+/* ----------------------------------------------------------------------------
+// Rails Guides Redesign - Print Styles
+//
+// Created: 29 March 2024
+// Modified: 29 March 2024
+// ---------------------------------------------------------------------------- */
+
+@import 'vendor/include-media';
+
+@media print {
+  // remove screen UI stuff
+  *,
+  *::before,
+  *::after {
+    background: #fff !important;
+    color: #000 !important;
+    /* Black prints faster */
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  // Set Page layout
+  @page {
+    margin: 0.75in 0.25in;
+  }
+
+  @page:left{
+    @bottom-left {
+      content: "Page " counter(page) " of " counter(pages);
+    }
+  }
+
+  // Include link address with linked text
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  a:link, a:visited {
+    background: transparent;
+    font-weight: bold;
+    text-decoration: underline;
+
+    pre, code {
+      font-weight: normal !important;
+    }
+  }
+
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  /*
+   * Don't show links that are fragment identifiers,
+   * or use the `javascript:` pseudo protocol
+   */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    page-break-inside: avoid;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,h3,h4,h5,h6 {
+    page-break-after: avoid;
+  }
+
+  body.guide,
+  .wrapper,
+  header,
+  footer,
+  main,
+  #feature,
+  #column-side {
+    background: #fff;
+    color: #000;
+    position: static;
+    display: block;
+    float: none;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    text-indent: 0;
+    width: auto;
+  }
+
+  body.guide {
+    // Force backgrounds to print
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+    font-size: 10pt !important;
+    line-height: 1.4;
+    padding: 0 3%;
+
+    .wrapper {
+      max-width: unset !important;
+      padding-right: unset !important;
+    }
+
+    .hide,
+    nav {
+      display: none !important;
+    }
+
+    #feature #subCol {
+      display: block !important;
+
+      @include media('>desktop') {
+        display: block !important;
+        height: auto;
+        max-height: unset;
+        position: unset;
+        width: 100%;
+      }
+
+      ol.chapters {
+        height: auto;
+        max-height: unset;
+        overflow: hidden;
+      }
+    }
+
+    .interstitial {
+      background-repeat: no-repeat !important;
+      background-size: 36px 36px !important;
+      background-position: 10px 10px !important;
+
+      &.note {
+        background-image: url("../images/icon_task-list-pin.svg") !important;
+      }
+
+      &.work-in-progress,
+      &.todo {
+        background-image: url("../images/icon_construction-sign.svg") !important;
+      }
+
+      &.info {
+        background-image: url("../images/icon_bulb-1.svg") !important;
+      }
+
+      &.warning {
+        background-image: url("../images/icon_hand-stop.svg") !important;
+      }
+
+      &.question {
+        background-image: url("../images/icon_question-bubble.svg") !important;
+      }
+    }
+
+    .code  {
+      background-color: #FAF9F8 !important;
+
+      pre, span {
+        background-color: transparent !important;
+        border: none;
+        font-size: 9.5pt !important;
+      }
+
+      button {
+        display: none;
+      }
+    }
+
+    hr {
+      height: 1.5em;
+      background: url("../images/hr_rails.svg") center no-repeat !important;
+    }
+
+    code, pre {
+      font-size: 9.5pt !important;
+    }
+
+  } // body.guide
+}

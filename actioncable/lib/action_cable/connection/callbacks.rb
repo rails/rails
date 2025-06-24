@@ -1,29 +1,35 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/callbacks"
 
 module ActionCable
   module Connection
-    # = Action Cable \Connection \Callbacks
+    # # Action Cable Connection Callbacks
     #
-    # There are <tt>before_command</tt>, <tt>after_command</tt>, and <tt>around_command</tt> callbacks
-    # available to be invoked before, after or around every command received by a client respectively.
-    # The term "command" here refers to any interaction received by a client (subscribing, unsubscribing or performing actions):
+    # The [before_command](rdoc-ref:ClassMethods#before_command),
+    # [after_command](rdoc-ref:ClassMethods#after_command), and
+    # [around_command](rdoc-ref:ClassMethods#around_command) callbacks are invoked
+    # when sending commands to the client, such as when subscribing, unsubscribing,
+    # or performing an action.
     #
-    #    module ApplicationCable
-    #      class Connection < ActionCable::Connection::Base
-    #        identified_by :user
+    # #### Example
     #
-    #        around_command :set_current_account
+    #     module ApplicationCable
+    #       class Connection < ActionCable::Connection::Base
+    #         identified_by :user
     #
-    #        private
+    #         around_command :set_current_account
     #
-    #        def set_current_account
-    #          # Now all channels could use Current.account
-    #          Current.set(account: user.account) { yield }
-    #        end
-    #      end
-    #    end
+    #         private
+    #
+    #         def set_current_account
+    #           # Now all channels could use Current.account
+    #           Current.set(account: user.account) { yield }
+    #         end
+    #       end
+    #     end
     #
     module Callbacks
       extend  ActiveSupport::Concern

@@ -7,24 +7,15 @@ gem "mysql2", "~> 0.5"
 require "mysql2"
 
 module ActiveRecord
-  module ConnectionHandling # :nodoc:
-    def mysql2_adapter_class
-      ConnectionAdapters::Mysql2Adapter
-    end
-
-    # Establishes a connection to the database that's used by all Active Record objects.
-    def mysql2_connection(config)
-      mysql2_adapter_class.new(config)
-    end
-  end
-
   module ConnectionAdapters
     # = Active Record MySQL2 Adapter
     class Mysql2Adapter < AbstractMysqlAdapter
-      ER_BAD_DB_ERROR        = 1049
-      ER_ACCESS_DENIED_ERROR = 1045
-      ER_CONN_HOST_ERROR     = 2003
-      ER_UNKNOWN_HOST_ERROR  = 2005
+      ER_BAD_DB_ERROR           = 1049
+      ER_DBACCESS_DENIED_ERROR  = 1044
+      ER_ACCESS_DENIED_ERROR    = 1045
+      ER_UNKNOWN_STMT_HANDLER   = 1243
+      ER_CONN_HOST_ERROR        = 2003
+      ER_UNKNOWN_HOST_ERROR     = 2005
 
       ADAPTER_NAME = "Mysql2"
 
@@ -34,11 +25,12 @@ module ActiveRecord
         def new_client(config)
           ::Mysql2::Client.new(config)
         rescue ::Mysql2::Error => error
-          if error.error_number == ConnectionAdapters::Mysql2Adapter::ER_BAD_DB_ERROR
+          case error.error_number
+          when ER_BAD_DB_ERROR
             raise ActiveRecord::NoDatabaseError.db_error(config[:database])
-          elsif error.error_number == ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR
+          when ER_DBACCESS_DENIED_ERROR, ER_ACCESS_DENIED_ERROR
             raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
-          elsif [ConnectionAdapters::Mysql2Adapter::ER_CONN_HOST_ERROR, ConnectionAdapters::Mysql2Adapter::ER_UNKNOWN_HOST_ERROR].include?(error.error_number)
+          when ER_CONN_HOST_ERROR, ER_UNKNOWN_HOST_ERROR
             raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
@@ -64,6 +56,7 @@ module ActiveRecord
       def initialize(...)
         super
 
+        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
@@ -101,35 +94,27 @@ module ActiveRecord
 
       # HELPER METHODS ===========================================
 
-      def each_hash(result, &block) # :nodoc:
-        if block_given?
-          result.each(as: :hash, symbolize_keys: true, &block)
-        else
-          to_enum(:each_hash, result)
-        end
-      end
-
       def error_number(exception)
         exception.error_number if exception.respond_to?(:error_number)
-      end
-
-      #--
-      # QUOTING ==================================================
-      #++
-
-      # Quotes strings for use in SQL input.
-      def quote_string(string)
-        with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
-          connection.escape(string)
-        end
       end
 
       #--
       # CONNECTION MANAGEMENT ====================================
       #++
 
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
       def active?
-        !!@raw_connection&.ping
+        if connected?
+          @lock.synchronize do
+            if @raw_connection&.ping
+              verified!
+              true
+            end
+          end
+        end || false
       end
 
       alias :reset! :reconnect!
@@ -137,15 +122,19 @@ module ActiveRecord
       # Disconnects from the database if already connected.
       # Otherwise, this method does nothing.
       def disconnect!
-        super
-        @raw_connection&.close
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
+        end
       end
 
       def discard! # :nodoc:
-        super
-        @raw_connection&.automatic_close = false
-        @raw_connection = nil
+        @lock.synchronize do
+          super
+          @raw_connection&.automatic_close = false
+          @raw_connection = nil
+        end
       end
 
       private
@@ -155,12 +144,16 @@ module ActiveRecord
 
         def connect
           @raw_connection = self.class.new_client(@connection_parameters)
+        rescue ConnectionNotEstablished => ex
+          raise ex.set_pool(@pool)
         end
 
         def reconnect
-          @raw_connection&.close
-          @raw_connection = nil
-          connect
+          @lock.synchronize do
+            @raw_connection&.close
+            @raw_connection = nil
+            connect
+          end
         end
 
         def configure_connection
@@ -170,7 +163,7 @@ module ActiveRecord
         end
 
         def full_version
-          schema_cache.database_version.full_version_string
+          database_version.full_version_string
         end
 
         def get_full_version
@@ -179,12 +172,12 @@ module ActiveRecord
 
         def translate_exception(exception, message:, sql:, binds:)
           if exception.is_a?(::Mysql2::Error::TimeoutError) && !exception.error_number
-            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds)
+            ActiveRecord::AdapterTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.is_a?(::Mysql2::Error::ConnectionError)
             if exception.message.match?(/MySQL client is not connected/i)
-              ActiveRecord::ConnectionNotEstablished.new(exception)
+              ActiveRecord::ConnectionNotEstablished.new(exception, connection_pool: @pool)
             else
-              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds)
+              ActiveRecord::ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
             end
           else
             super
@@ -192,9 +185,6 @@ module ActiveRecord
         end
 
         def default_prepared_statements
-          ActiveRecord.deprecator.warn(<<-MSG.squish)
-            The default value of `prepared_statements` for the mysql2 adapter will be changed from +false+ to +true+ in Rails 7.2.
-          MSG
           false
         end
 

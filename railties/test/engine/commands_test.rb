@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "console_helpers"
 require "plugin_helpers"
+require "net/http"
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   include ConsoleHelpers
@@ -35,8 +36,8 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   if available_pty?
     def test_console_command_work_inside_engine
       primary, replica = PTY.open
-      cmd = "console --singleline"
-      spawn_command(cmd, replica)
+      cmd = "console"
+      spawn_command(cmd, replica, env: { "TERM" => "dumb" })
       assert_output(">", primary)
     ensure
       primary.puts "quit"
@@ -57,6 +58,25 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     ensure
       kill(pid)
     end
+
+    def test_server_command_broadcast_logs
+      primary, replica = PTY.open
+      pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
+      assert_output("Listening on", primary)
+
+      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
+        net.get("/")
+      end
+
+      in_plugin_context(plugin_path) do
+        logs = File.read("test/dummy/log/development.log")
+        assert_match("Processing by Rails::WelcomeController", logs)
+      end
+
+      assert_output("Processing by Rails::WelcomeController", primary)
+    ensure
+      kill(pid)
+    end
   end
 
   private
@@ -64,9 +84,9 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       "#{@destination_root}/bukkits"
     end
 
-    def spawn_command(command, fd)
+    def spawn_command(command, fd, env: {})
       in_plugin_context(plugin_path) do
-        Process.spawn("bin/rails #{command}", in: fd, out: fd, err: fd)
+        Process.spawn(env, "bin/rails #{command}", in: fd, out: fd, err: fd)
       end
     end
 

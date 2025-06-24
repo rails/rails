@@ -9,8 +9,8 @@ module SidekiqJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :sidekiq
     unless can_run?
-      puts "Cannot run integration tests for sidekiq. To be able to run integration tests for sidekiq you need to install and start redis.\n"
-      status = ENV["CI"] ? false : true
+      puts "Cannot run integration tests for Sidekiq. To be able to run integration tests for Sidekiq you need to install and start Redis.\n"
+      status = ENV["BUILDKITE"] ? false : true
       exit status
     end
   end
@@ -58,7 +58,7 @@ module SidekiqJobsManager
         config = Sidekiq.default_configuration
         config.queues = ["integration_tests"]
         config.concurrency = 1
-        config.average_scheduled_poll_interval = 0.5
+        config.average_scheduled_poll_interval = 0.1
         config.merge!(
           environment: "test",
           timeout: 1,
@@ -107,6 +107,7 @@ module SidekiqJobsManager
       Process.kill "TERM", @pid
       Process.wait @pid
     end
+    @pid = nil
   end
 
   def can_run?

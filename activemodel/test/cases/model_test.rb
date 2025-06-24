@@ -76,4 +76,12 @@ class ModelTest < ActiveModel::TestCase
       SimpleModel.new(hello: "world")
     end
   end
+
+  def test_load_hook_is_called
+    value = "not loaded"
+
+    ActiveSupport.on_load(:active_model) { value = "loaded" }
+
+    assert_equal "loaded", value
+  end
 end

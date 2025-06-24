@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 
 $:.unshift File.expand_path("lib", __dir__)
 
@@ -26,11 +26,17 @@ require "active_support/dependencies"
 require "active_model"
 require "zeitwerk"
 
+require_relative "support/rack_parsing_override"
+
+ActiveSupport::Cache.format_version = 7.1
+
 module Rails
   class << self
     def env
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
+
+    def application; end
 
     def root; end
   end
@@ -89,15 +95,23 @@ module ActiveSupport
 end
 
 class RoutedRackApp
+  class Config < Struct.new(:middleware)
+  end
+
   attr_reader :routes
 
   def initialize(routes, &blk)
     @routes = routes
-    @stack = ActionDispatch::MiddlewareStack.new(&blk).build(@routes)
+    @stack = ActionDispatch::MiddlewareStack.new(&blk)
+    @app = @stack.build(@routes)
   end
 
   def call(env)
-    @stack.call(env)
+    @app.call(env)
+  end
+
+  def config
+    Config.new(@stack)
   end
 end
 
@@ -146,19 +160,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   def self.stub_controllers(config = ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)
     yield DeadEndRoutes.new(config)
-  end
-
-  def with_routing(&block)
-    temporary_routes = ActionDispatch::Routing::RouteSet.new
-    old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
-    old_routes = SharedTestRoutes
-    silence_warnings { Object.const_set(:SharedTestRoutes, temporary_routes) }
-
-    yield temporary_routes
-  ensure
-    self.class.app = old_app
-    remove!
-    silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
   end
 
   def with_autoload_path(path)
@@ -360,12 +361,6 @@ require "active_support/testing/method_call_assertions"
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
-
-  private
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
 end
 
 module CookieAssertions
@@ -381,6 +376,7 @@ module CookieAssertions
       key.downcase!
 
       if value
+        value.downcase!
         attributes[key] = value
       else
         attributes[key] = true
@@ -416,6 +412,35 @@ module CookieAssertions
     end
 
     cookies
+  end
+
+  def assert_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}', found cookies: #{cookies.keys.join(', ')}"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      assert cookie.key?(key), "No attribute '#{key}' found for cookie '#{name}'"
+      assert_equal value, cookie[key]
+    end
+  end
+
+  def assert_not_set_cookie_attributes(name, attributes, header = @response.headers["Set-Cookie"])
+    cookies = parse_set_cookies_headers(header)
+    attributes = parse_set_cookie_attributes(attributes) if attributes.is_a?(String)
+
+    assert cookies.key?(name), "No cookie found with the name '#{name}'"
+    cookie = cookies[name]
+
+    attributes.each do |key, value|
+      if value == true
+        assert_nil cookie[key]
+      else
+        assert_not_equal value, cookie[key]
+      end
+    end
   end
 
   def assert_set_cookie_header(expected, header = @response.headers["Set-Cookie"])
@@ -488,22 +513,6 @@ module HeadersAssertions
     header = normalized_join_header(header)
     assert_equal header, expected
   end
-end
-
-class DrivenByRackTest < ActionDispatch::SystemTestCase
-  driven_by :rack_test
-end
-
-class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :chrome
-end
-
-class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome
-end
-
-class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_firefox
 end
 
 require_relative "../../tools/test_common"

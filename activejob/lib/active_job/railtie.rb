@@ -25,9 +25,36 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.enqueue_after_transaction_commit" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:active_record) do
+          ActiveJob::Base.include EnqueueAfterTransactionCommit
+
+          if app.config.active_job.key?(:enqueue_after_transaction_commit)
+            ActiveJob.deprecator.warn(<<~MSG.squish)
+              `config.active_job.enqueue_after_transaction_commit` is deprecated and will be removed in Rails 8.1.
+              This configuration can still be set on individual jobs using `self.enqueue_after_transaction_commit=`,
+              but due the nature of this behavior, it is not recommended to be set globally.
+            MSG
+
+            value = case app.config.active_job.enqueue_after_transaction_commit
+            when :always
+              true
+            when :never
+              false
+            else
+              false
+            end
+
+            ActiveJob::Base.enqueue_after_transaction_commit = value
+          end
+        end
+      end
+    end
+
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
-      options.queue_adapter ||= :async
+      options.queue_adapter ||= (Rails.env.test? ? :test : :async)
 
       config.after_initialize do
         options.each do |k, v|
@@ -42,7 +69,8 @@ module ActiveJob
         # Configs used in other initializers
         options = options.except(
           :log_query_tags_around_perform,
-          :custom_serializers
+          :custom_serializers,
+          :enqueue_after_transaction_commit
         )
 
         options.each do |k, v|
@@ -79,7 +107,9 @@ module ActiveJob
         app.config.active_record.query_log_tags |= [:job]
 
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::QueryLogs.taggings[:job] = ->(context) { context[:job].class.name if context[:job] }
+          ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
+            job: ->(context) { context[:job].class.name if context[:job] }
+          )
         end
       end
     end

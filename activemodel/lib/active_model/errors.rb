@@ -3,10 +3,8 @@
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
-require "active_support/core_ext/string/filters"
 require "active_model/error"
 require "active_model/nested_error"
-require "forwardable"
 
 module ActiveModel
   # = Active \Model \Errors
@@ -62,8 +60,7 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    extend Forwardable
-
+    ##
     # :method: each
     #
     # :call-seq: each(&block)
@@ -75,7 +72,32 @@ module ActiveModel
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
     #                                       options={:count=>3}>
     #   end
-    def_delegators :@errors, :each, :clear, :empty?, :size, :uniq!
+
+    ##
+    # :method: clear
+    #
+    # :call-seq: clear
+    #
+    # Clears all errors. Clearing the errors does not, however, make the model
+    # valid. The next time the validations are run (for example, via
+    # ActiveRecord::Validations#valid?), the errors collection will be filled
+    # again if any validations fail.
+
+    ##
+    # :method: empty?
+    #
+    # :call-seq: empty?
+    #
+    # Returns true if there are no errors.
+
+    ##
+    # :method: size
+    #
+    # :call-seq: size
+    #
+    # Returns number of errors.
+
+    delegate :each, :clear, :empty?, :size, :uniq!, to: :@errors
 
     # The actual array of +Error+ objects
     # This method is aliased to <tt>objects</tt>.
@@ -285,7 +307,7 @@ module ActiveModel
     #
     #   person.errors.add(:name, :blank)
     #   person.errors.messages
-    #   # => {:name=>["can’t be blank"]}
+    #   # => {:name=>["can't be blank"]}
     #
     #   person.errors.add(:name, :too_long, count: 25)
     #   person.errors.messages
@@ -333,7 +355,7 @@ module ActiveModel
     #
     #   person.errors.add :name, :blank
     #   person.errors.added? :name, :blank           # => true
-    #   person.errors.added? :name, "can’t be blank" # => true
+    #   person.errors.added? :name, "can't be blank" # => true
     #
     # If the error requires options, then it returns +true+ with
     # the correct options, or +false+ with incorrect or missing options.
@@ -386,7 +408,7 @@ module ActiveModel
     #
     #   person = Person.create(address: '123 First St.')
     #   person.errors.full_messages
-    #   # => ["Name is too short (minimum is 5 characters)", "Name can’t be blank", "Email can’t be blank"]
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank", "Email can't be blank"]
     def full_messages
       @errors.map(&:full_message)
     end
@@ -401,7 +423,7 @@ module ActiveModel
     #
     #   person = Person.create()
     #   person.errors.full_messages_for(:name)
-    #   # => ["Name is too short (minimum is 5 characters)", "Name can’t be blank"]
+    #   # => ["Name is too short (minimum is 5 characters)", "Name can't be blank"]
     def full_messages_for(attribute)
       where(attribute).map(&:full_message).freeze
     end
@@ -415,7 +437,7 @@ module ActiveModel
     #
     #   person = Person.create()
     #   person.errors.messages_for(:name)
-    #   # => ["is too short (minimum is 5 characters)", "can’t be blank"]
+    #   # => ["is too short (minimum is 5 characters)", "can't be blank"]
     def messages_for(attribute)
       where(attribute).map(&:message)
     end
@@ -472,7 +494,7 @@ module ActiveModel
       end
   end
 
-  # = Active \Model \Validator
+  # = Active \Model \StrictValidationFailed
   #
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
@@ -488,7 +510,7 @@ module ActiveModel
   #   person = Person.new
   #   person.name = nil
   #   person.valid?
-  #   # => ActiveModel::StrictValidationFailed: Name can’t be blank
+  #   # => ActiveModel::StrictValidationFailed: Name can't be blank
   class StrictValidationFailed < StandardError
   end
 

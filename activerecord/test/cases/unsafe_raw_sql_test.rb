@@ -74,8 +74,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: allows quoted table and column names" do
     ids_expected = Post.order(Arel.sql("title")).pluck(:id)
 
-    quoted_title = Post.connection.quote_table_name("posts.title")
-    ids = Post.order(quoted_title).pluck(:id)
+    ids = Post.order(quote_table_name("posts.title")).pluck(:id)
 
     assert_equal ids_expected, ids
   end
@@ -172,7 +171,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
       "Mysql2" => "utf8mb4_bin",
       "Trilogy" => "utf8mb4_bin",
       "SQLite" => "binary"
-    }[ActiveRecord::Base.connection.adapter_name]
+    }[ActiveRecord::Base.lease_connection.adapter_name]
 
     ids_expected = Post.order(Arel.sql(%Q'author_id, title COLLATE "#{collation_name}" DESC')).pluck(:id)
 
@@ -189,7 +188,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids
   end
 
-  test "order: logs deprecation warning for unrecognized column" do
+  test "order: disallows dangerous query method" do
     e = assert_raises(ActiveRecord::UnknownAttributeReference) do
       Post.order("REPLACE(title, 'misc', 'zzzz')")
     end
@@ -256,8 +255,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "pluck: allows quoted table and column names" do
     titles_expected = Post.pluck(Arel.sql("title"))
 
-    quoted_title = Post.connection.quote_table_name("posts.title")
-    titles = Post.pluck(quoted_title)
+    titles = Post.pluck(quote_table_name("posts.title"))
 
     assert_equal titles_expected, titles
   end
@@ -295,7 +293,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal excepted_values, values
   end
 
-  test "pluck: logs deprecation warning" do
+  test "pluck: disallows dangerous query method" do
     e = assert_raises(ActiveRecord::UnknownAttributeReference) do
       Post.includes(:comments).pluck(:title, "REPLACE(title, 'misc', 'zzzz')")
     end

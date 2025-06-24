@@ -9,12 +9,6 @@ module Arel
     end
 
     it "should create join nodes" do
-      join = @relation.create_string_join "foo"
-      assert_kind_of Arel::Nodes::StringJoin, join
-      assert_equal "foo", join.left
-    end
-
-    it "should create join nodes" do
       join = @relation.create_join "foo", "bar"
       assert_kind_of Arel::Nodes::InnerJoin, join
       assert_equal "foo", join.left
@@ -195,19 +189,15 @@ module Arel
 
     describe "equality" do
       it "is equal with equal ivars" do
-        relation1 = Table.new(:users)
-        relation1.table_alias = "zomg"
-        relation2 = Table.new(:users)
-        relation2.table_alias = "zomg"
+        relation1 = Table.new(:users, as: "zomg")
+        relation2 = Table.new(:users, as: "zomg")
         array = [relation1, relation2]
         assert_equal 1, array.uniq.size
       end
 
       it "is not equal with different ivars" do
-        relation1 = Table.new(:users)
-        relation1.table_alias = "zomg"
-        relation2 = Table.new(:users)
-        relation2.table_alias = "zomg2"
+        relation1 = Table.new(:users, as: "zomg")
+        relation2 = Table.new(:users, as: "zomg2")
         array = [relation1, relation2]
         assert_equal 2, array.uniq.size
       end

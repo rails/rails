@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 4.1 Release Notes
 ===============================
@@ -66,7 +66,7 @@ Spring is running:
 ```
 
 Have a look at the
-[Spring README](https://github.com/rails/spring/blob/master/README.md) to
+[Spring README](https://github.com/rails/spring/blob/main/README.md) to
 see all available features.
 
 See the [Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#spring)
@@ -338,7 +338,7 @@ for detailed changes.
   array. ([Pull Request](https://github.com/rails/rails/pull/9599))
 
 * Added `session#fetch` method fetch behaves similarly to
-  [Hash#fetch](https://www.ruby-doc.org/core-1.9.3/Hash.html#method-i-fetch),
+  [Hash#fetch](https://docs.ruby-lang.org/en/master/Hash.html#method-i-fetch),
   with the exception that the returned value is always saved into the
   session. ([Pull Request](https://github.com/rails/rails/pull/12692))
 
@@ -507,7 +507,7 @@ for detailed changes.
 
 * Calling `update_attributes` will now throw an `ArgumentError` whenever it
   gets a `nil` argument. More specifically, it will throw an error if the
-  argument that it gets passed does not respond to to
+  argument that it gets passed does not respond to
   `stringify_keys`. ([Pull Request](https://github.com/rails/rails/pull/9860))
 
 * `CollectionAssociation#first`/`#last` (e.g. `has_many`) use a `LIMIT`ed

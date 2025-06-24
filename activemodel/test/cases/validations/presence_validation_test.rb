@@ -18,14 +18,14 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     t = Topic.new
     assert_predicate t, :invalid?
-    assert_equal ["can’t be blank"], t.errors[:title]
-    assert_equal ["can’t be blank"], t.errors[:content]
+    assert_equal ["can't be blank"], t.errors[:title]
+    assert_equal ["can't be blank"], t.errors[:content]
 
     t.title = "something"
     t.content = "   "
 
     assert_predicate t, :invalid?
-    assert_equal ["can’t be blank"], t.errors[:content]
+    assert_equal ["can't be blank"], t.errors[:content]
 
     t.content = "like stuff"
 
@@ -36,8 +36,8 @@ class PresenceValidationTest < ActiveModel::TestCase
     Topic.validates_presence_of %w(title content)
     t = Topic.new
     assert_predicate t, :invalid?
-    assert_equal ["can’t be blank"], t.errors[:title]
-    assert_equal ["can’t be blank"], t.errors[:content]
+    assert_equal ["can't be blank"], t.errors[:title]
+    assert_equal ["can't be blank"], t.errors[:content]
   end
 
   def test_validates_acceptance_of_with_custom_error_using_quotes
@@ -53,7 +53,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     p = Person.new
     assert_predicate p, :invalid?
 
-    assert_equal ["can’t be blank"], p.errors[:karma]
+    assert_equal ["can't be blank"], p.errors[:karma]
 
     p.karma = "Cold"
     assert_predicate p, :valid?
@@ -65,7 +65,7 @@ class PresenceValidationTest < ActiveModel::TestCase
     p = CustomReader.new
     assert_predicate p, :invalid?
 
-    assert_equal ["can’t be blank"], p.errors[:karma]
+    assert_equal ["can't be blank"], p.errors[:karma]
 
     p[:karma] = "Cold"
     assert_predicate p, :valid?
@@ -79,11 +79,11 @@ class PresenceValidationTest < ActiveModel::TestCase
 
     t.title = ""
     assert_predicate t, :invalid?
-    assert_equal ["can’t be blank"], t.errors[:title]
+    assert_equal ["can't be blank"], t.errors[:title]
 
     t.title = "  "
     assert_predicate t, :invalid?
-    assert_equal ["can’t be blank"], t.errors[:title]
+    assert_equal ["can't be blank"], t.errors[:title]
 
     t.title = nil
     assert_predicate t, :valid?

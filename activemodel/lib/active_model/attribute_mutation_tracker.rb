@@ -5,7 +5,7 @@ require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
   class AttributeMutationTracker # :nodoc:
-    OPTION_NOT_GIVEN = Object.new
+    OPTION_NOT_GIVEN = Object.new.freeze
 
     def initialize(attributes)
       @attributes = attributes
@@ -16,17 +16,17 @@ module ActiveModel
     end
 
     def changed_values
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if changed?(attr_name)
-          result[attr_name] = original_value(attr_name)
+          result.store(attr_name, original_value(attr_name), convert_value: false)
         end
       end
     end
 
     def changes
-      attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
+      attr_names.each_with_object(ActiveSupport::HashWithIndifferentAccess.new) do |attr_name, result|
         if change = change_to_attribute(attr_name)
-          result.merge!(attr_name => change)
+          result.store(attr_name, change, convert_value: false)
         end
       end
     end

@@ -32,8 +32,11 @@ module ActiveRecord
 
       def instrument(name, payload = {}, &block)
         event = @instrumenter.new_event(name, payload)
-        @events << event
-        event.record(&block)
+        begin
+          event.record(&block)
+        ensure
+          @events << event
+        end
       end
 
       def flush
@@ -46,6 +49,15 @@ module ActiveRecord
     end
 
     Canceled = Class.new(ActiveRecordError)
+
+    def self.wrap(result)
+      case result
+      when self, Complete
+        result
+      else
+        Complete.new(result)
+      end
+    end
 
     delegate :empty?, :to_a, to: :result
 
@@ -88,17 +100,21 @@ module ActiveRecord
     def execute_or_skip
       return unless pending?
 
-      @pool.with_connection do |connection|
-        return unless @mutex.try_lock
-        begin
-          if pending?
-            @event_buffer = EventBuffer.new(self, @instrumenter)
-            connection.with_instrumenter(@event_buffer) do
+      @session.synchronize do
+        return unless pending?
+
+        @pool.with_connection do |connection|
+          return unless @mutex.try_lock
+          begin
+            if pending?
+              @event_buffer = EventBuffer.new(self, @instrumenter)
+              ActiveSupport::IsolatedExecutionState[:active_record_instrumenter] = @event_buffer
+
               execute_query(connection, async: true)
             end
+          ensure
+            @mutex.unlock
           end
-        ensure
-          @mutex.unlock
         end
       end
     end
@@ -130,7 +146,9 @@ module ActiveRecord
           start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond)
           @mutex.synchronize do
             if pending?
-              execute_query(@pool.connection)
+              @pool.with_connection do |connection|
+                execute_query(connection)
+              end
             else
               @lock_wait = (Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_millisecond) - start)
             end
@@ -149,7 +167,7 @@ module ActiveRecord
       end
 
       def exec_query(connection, *args, **kwargs)
-        connection.internal_exec_query(*args, **kwargs)
+        connection.raw_exec_query(*args, **kwargs)
       end
 
       class SelectAll < FutureResult # :nodoc:

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Support Instrumentation
 ==============================
@@ -11,7 +11,6 @@ After reading this guide, you will know:
 
 * What instrumentation can provide.
 * How to add a subscriber to a hook.
-* How to view timings from instrumentation in your browser.
 * The hooks inside the Rails framework for instrumentation.
 * How to build a custom instrumentation implementation.
 
@@ -29,10 +28,25 @@ You are even able to [create your own events](#creating-custom-events) inside yo
 Subscribing to an Event
 -----------------------
 
-Subscribing to an event is easy. Use [`ActiveSupport::Notifications.subscribe`][] with a block to
-listen to any notification.
+Use [`ActiveSupport::Notifications.subscribe`][] with a block to listen to any notification. Depending on the amount of
+arguments the block takes, you will receive different data.
 
-The block receives the following arguments:
+The first way to subscribe to an event is to use a block with a single argument. The argument will be an instance of
+[`ActiveSupport::Notifications::Event`][].
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  event.name        # => "process_action.action_controller"
+  event.duration    # => 10 (in milliseconds)
+  event.allocations # => 1826
+  event.payload     # => {:extra=>information}
+
+  Rails.logger.info "#{event} Received!"
+end
+```
+
+If you don't need all the data recorded by an Event object, you can also specify a
+block that takes the following five arguments:
 
 * Name of the event
 * Time when it started
@@ -41,45 +55,19 @@ The block receives the following arguments:
 * The payload for the event
 
 ```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
   # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
+  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received! (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
 end
 ```
 
 If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time, then use [`ActiveSupport::Notifications.monotonic_subscribe`][]. The given block would receive the same arguments as above, but the `started` and `finished` will have values with an accurate monotonic time instead of wall-clock time.
 
 ```ruby
-ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
   # your own custom stuff
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received (started: 1560978.425334, finished: 1560979.429234)
-end
-```
-
-Defining all those block arguments each time can be tedious. You can easily create an [`ActiveSupport::Notifications::Event`][]
-from block arguments like this:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |*args|
-  event = ActiveSupport::Notifications::Event.new(*args)
-
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
-end
-```
-
-You may also pass a block that accepts only one argument, and it will receive an event object:
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  event.name      # => "process_action.action_controller"
-  event.duration  # => 10 (in milliseconds)
-  event.payload   # => {:extra=>information}
-
-  Rails.logger.info "#{event} Received!"
+  duration = finished - started # 1560979.429234 - 1560978.425334
+  Rails.logger.info "#{name} Received! (duration: #{duration})" # process_action.action_controller Received! (duration: 1.0039)
 end
 ```
 
@@ -87,7 +75,7 @@ You may also subscribe to events matching a regular expression. This enables you
 multiple events at once. Here's how to subscribe to everything from `ActionController`:
 
 ```ruby
-ActiveSupport::Notifications.subscribe(/action_controller/) do |*args|
+ActiveSupport::Notifications.subscribe(/action_controller/) do |event|
   # inspect all ActionController events
 end
 ```
@@ -95,17 +83,6 @@ end
 [`ActiveSupport::Notifications::Event`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html
 [`ActiveSupport::Notifications.monotonic_subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe
 [`ActiveSupport::Notifications.subscribe`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe
-
-View Timings from Instrumentation in Your Browser
--------------------------------------------------
-
-Rails implements the [Server Timing](https://www.w3.org/TR/server-timing/) standard to make timing information available in the web browser. To enable, edit your environment configuration (usually `development.rb` as this is most-used in development) to include the following:
-
-```ruby
-  config.server_timing = true
-```
-
-Once configured (including restarting your server), you can go to the Developer Tools pane of your browser, then select Network and reload your page. You can then select any request to your Rails server, and will see server timings in the timings tab. For an example of doing this, see the [Firefox Documentation](https://firefox-source-docs.mozilla.org/devtools-user/network_monitor/request_details/index.html#server-timing).
 
 Rails Framework Hooks
 ---------------------
@@ -120,6 +97,7 @@ Within the Ruby on Rails framework, there are a number of hooks provided for com
 | ------------- | --------------------------------------------------------- |
 | `:controller` | The controller name                                       |
 | `:action`     | The action                                                |
+| `:request`    | The [`ActionDispatch::Request`][] object                  |
 | `:params`     | Hash of request parameters without any filtered parameter |
 | `:headers`    | Request headers                                           |
 | `:format`     | html/js/json/xml etc                                      |
@@ -219,7 +197,23 @@ Additional keys may be added by the caller.
 | `:keys`       | The unpermitted keys                                                          |
 | `:context`    | Hash with the following keys: `:controller`, `:action`, `:params`, `:request` |
 
-### Action Controller — Caching
+#### `send_stream.action_controller`
+
+| Key            | Value                                    |
+| -------------- | ---------------------------------------- |
+| `:filename`    | The filename                             |
+| `:type`        | HTTP content type                        |
+| `:disposition` | HTTP content disposition                 |
+
+```ruby
+{
+  filename: "subscribers.csv",
+  type: "text/csv",
+  disposition: "attachment"
+}
+```
+
+### Action Controller: Caching
 
 #### `write_fragment.action_controller`
 
@@ -361,15 +355,20 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 
 #### `sql.active_record`
 
-| Key                  | Value                                    |
-| -------------------- | ---------------------------------------- |
-| `:sql`               | SQL statement                            |
-| `:name`              | Name of the operation                    |
-| `:connection`        | Connection object                        |
-| `:binds`             | Bind parameters                          |
-| `:type_casted_binds` | Typecasted bind parameters               |
-| `:statement_name`    | SQL Statement name                       |
-| `:cached`            | `true` is added when cached queries used |
+| Key                  | Value                                                  |
+| -------------------- | ------------------------------------------------------ |
+| `:sql`               | SQL statement                                          |
+| `:name`              | Name of the operation                                  |
+| `:binds`             | Bind parameters                                        |
+| `:type_casted_binds` | Typecasted bind parameters                             |
+| `:async`             | `true` if query is loaded asynchronously               |
+| `:allow_retry`       | `true` if the query can be automatically retried       |
+| `:connection`        | Connection object                                      |
+| `:transaction`       | Current transaction, if any                            |
+| `:affected_rows`     | Number of rows affected by the query                   |
+| `:row_count`         | Number of rows returned by the query                   |
+| `:cached`            | `true` is added when result comes from the query cache |
+| `:statement_name`    | SQL Statement name (Postgres only)                     |
 
 Adapters may add their own data as well.
 
@@ -377,12 +376,19 @@ Adapters may add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
-  statement_name: nil
+  async: false,
+  allow_retry: true,
+  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
+  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
+  affected_rows: 0
+  row_count: 5,
+  statement_name: nil,
 }
 ```
+
+If the query is not executed in the context of a transaction, `:transaction` is `nil`.
 
 #### `strict_loading_violation.active_record`
 
@@ -408,6 +414,67 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
   class_name: "User"
 }
 ```
+
+#### `start_transaction.active_record`
+
+This event is emitted when a transaction has been started.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:transaction`       | Transaction object                                   |
+| `:connection`        | Connection object                                    |
+
+Please, note that Active Record does not create the actual database transaction
+until needed:
+
+```ruby
+ActiveRecord::Base.transaction do
+  # We are inside the block, but no event has been triggered yet.
+
+  # The following line makes Active Record start the transaction.
+  User.count # Event fired here.
+end
+```
+
+Remember that ordinary nested calls do not create new transactions:
+
+```ruby
+ActiveRecord::Base.transaction do |t1|
+  User.count # Fires an event for t1.
+  ActiveRecord::Base.transaction do |t2|
+    # The next line fires no event for t2, because the only
+    # real database transaction in this example is t1.
+    User.first.touch
+  end
+end
+```
+
+However, if `requires_new: true` is passed, you get an event for the nested
+transaction too. This might be a savepoint under the hood:
+
+```ruby
+ActiveRecord::Base.transaction do |t1|
+  User.count # Fires an event for t1.
+  ActiveRecord::Base.transaction(requires_new: true) do |t2|
+    User.first.touch # Fires an event for t2.
+  end
+end
+```
+
+#### `transaction.active_record`
+
+This event is emitted when a database transaction finishes. The state of the
+transaction can be found in the `:outcome` key.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:transaction`       | Transaction object                                   |
+| `:outcome`           | `:commit`, `:rollback`, `:restart`, or `:incomplete` |
+| `:connection`        | Connection object                                    |
+
+In practice, you cannot do much with the transaction object, but it may still be
+helpful for tracing database activity. For example, by tracking
+`transaction.uuid`.
 
 ### Action Mailer
 
@@ -455,7 +522,7 @@ This event is only emitted when [`config.active_record.action_on_strict_loading_
 }
 ```
 
-### Active Support — Caching
+### Active Support: Caching
 
 #### `cache_read.active_support`
 
@@ -537,9 +604,6 @@ Cache stores may add their own data as well.
 
 #### `cache_increment.active_support`
 
-This event is only emitted when using [`MemCacheStore`][ActiveSupport::Cache::MemCacheStore]
-or [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore].
-
 | Key       | Value                   |
 | --------- | ----------------------- |
 | `:key`    | Key used in the store   |
@@ -555,8 +619,6 @@ or [`RedisCacheStore`][ActiveSupport::Cache::RedisCacheStore].
 ```
 
 #### `cache_decrement.active_support`
-
-This event is only emitted when using the Memcached or Redis cache stores.
 
 | Key       | Value                   |
 | --------- | ----------------------- |
@@ -665,7 +727,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#fetch_multi]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch_multi
 
-### Active Support — Messages
+### Active Support: Messages
 
 #### `message_serializer_fallback.active_support`
 
@@ -802,7 +864,7 @@ This event is only emitted when using [`MemoryStore`][ActiveSupport::Cache::Memo
 | ------------ | ------------------------------ |
 | `:analyzer`  | Name of analyzer e.g., ffprobe |
 
-### Active Storage — Storage Service
+### Active Storage: Storage Service
 
 #### `service_upload.active_storage`
 
@@ -919,7 +981,7 @@ This event is only emitted when using the Google Cloud Storage service.
 Exceptions
 ----------
 
-If an exception happens during any instrumentation the payload will include
+If an exception happens during any instrumentation, the payload will include
 information about it.
 
 | Key                 | Value                                                          |

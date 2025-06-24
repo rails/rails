@@ -47,7 +47,7 @@ module ActiveRecord
           end
 
           if scope.order_values.empty? && ordered
-            split_scope = DisableJoinsAssociationRelation.create(scope.klass, key, join_ids)
+            split_scope = DisableJoinsAssociationRelation.create(scope.model, key, join_ids)
             split_scope.where_clause += scope.where_clause
             split_scope
           else

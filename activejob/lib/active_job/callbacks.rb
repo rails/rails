@@ -15,9 +15,6 @@ module ActiveJob
   # * <tt>before_perform</tt>
   # * <tt>around_perform</tt>
   # * <tt>after_perform</tt>
-  #
-  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
-  #
   module Callbacks
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
@@ -132,7 +129,8 @@ module ActiveJob
       #     queue_as :default
       #
       #     after_enqueue do |job|
-      #       $statsd.increment "enqueue-video-job.success"
+      #       result = job.successfully_enqueued? ? "success" : "failure"
+      #       $statsd.increment "enqueue-video-job.#{result}"
       #     end
       #
       #     def perform(video_id)

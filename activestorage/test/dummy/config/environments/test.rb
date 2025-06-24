@@ -18,7 +18,6 @@ Rails.application.configure do
   config.eager_load = ENV["CI"].present?
 
   # Configure public file server for tests with Cache-Control for performance.
-  config.public_file_server.enabled = true
   config.public_file_server.headers = {
     "Cache-Control" => "public, max-age=#{1.hour.to_i}"
   }
@@ -29,7 +28,7 @@ Rails.application.configure do
   config.cache_store = :null_store
 
   # Raise exceptions instead of rendering exception templates.
-  config.action_dispatch.show_exceptions = false
+  config.action_dispatch.show_exceptions = :rescuable
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
@@ -38,14 +37,15 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   SERVICE_CONFIGURATIONS = begin
-    ActiveSupport::ConfigurationFile.parse(File.expand_path("service/configurations.yml", __dir__)).deep_symbolize_keys
+    config_file = Rails.root.join("../service/configurations.yml")
+    ActiveSupport::ConfigurationFile.parse(config_file, symbolize_names: true)
   rescue Errno::ENOENT
-    puts "Missing service configuration file in test/service/configurations.yml"
+    puts "Missing service configuration file in #{config_file}"
     {}
   end
   # Azure service tests are currently failing on the main branch.
   # We temporarily disable them while we get things working again.
-  if ENV["CI"]
+  if ENV["BUILDKITE"]
     SERVICE_CONFIGURATIONS.delete(:azure)
     SERVICE_CONFIGURATIONS.delete(:azure_public)
   end

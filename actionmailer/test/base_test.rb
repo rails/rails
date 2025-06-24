@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "set"
 
 require "action_dispatch"
 require "active_support/time"
@@ -332,7 +331,7 @@ class BaseTest < ActiveSupport::TestCase
         mail body: "yay", from: "welcome@example.com", to: "to@example.com"
 
         unless attachments.map(&:filename) == ["invoice.pdf"]
-          raise Minitest::Assertion, "Should allow access to attachments"
+          flunk("Should allow access to attachments")
         end
       end
     end
@@ -832,8 +831,8 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "proc default values can have arity of 1 where arg is a mailer instance" do
-    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s, "complex_value")
-    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s, "complex_value")
+    assert_equal("complex_value", ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s)
+    assert_equal("complex_value", ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s)
   end
 
   test "proc default values with fixed arity of 0 can be called" do
@@ -964,35 +963,23 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "notification for process" do
-    events = []
-    ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
+    expected_payload = { mailer: "BaseMailer", action: :welcome, args: [{ body: "Hello there" }] }
+
+    assert_notifications_count("process.action_mailer", 1) do
+      assert_notification("process.action_mailer", expected_payload) do
+        BaseMailer.welcome(body: "Hello there").deliver_now
+      end
     end
-
-    BaseMailer.welcome(body: "Hello there").deliver_now
-
-    assert_equal 1, events.length
-    assert_equal "process.action_mailer", events[0].name
-    assert_equal "BaseMailer", events[0].payload[:mailer]
-    assert_equal :welcome, events[0].payload[:action]
-    assert_equal [{ body: "Hello there" }], events[0].payload[:args]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "process.action_mailer"
   end
 
   test "notification for deliver" do
-    events = []
-    ActiveSupport::Notifications.subscribe("deliver.action_mailer") do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
+    assert_notifications_count("deliver.action_mailer", 1) do
+      notification = assert_notification("deliver.action_mailer") do
+        BaseMailer.welcome(body: "Hello there").deliver_now
+      end
+
+      assert_not_nil notification.payload[:message_id]
     end
-
-    BaseMailer.welcome(body: "Hello there").deliver_now
-
-    assert_equal 1, events.length
-    assert_equal "deliver.action_mailer", events[0].name
-    assert_not_nil events[0].payload[:message_id]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "deliver.action_mailer"
   end
 
   private
@@ -1127,6 +1114,24 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
     end
     assert_not_called(MySecondInterceptor, :previewing_email, returns: mail) do
       BaseMailerPreview.call(:welcome)
+    end
+  end
+end
+
+class PreviewTest < ActiveSupport::TestCase
+  class A < ActionMailer::Preview; end
+
+  module B
+    class A < ActionMailer::Preview; end
+    class C < ActionMailer::Preview; end
+  end
+
+  class C < ActionMailer::Preview; end
+
+  test "all() returns mailers in alphabetical order" do
+    ActionMailer::Preview.stub(:descendants, [C, A, B::C, B::A]) do
+      mailers = ActionMailer::Preview.all
+      assert_equal [A, B::A, B::C, C], mailers
     end
   end
 end

@@ -22,14 +22,16 @@ class Parrot < ActiveRecord::Base
   end
 
   def self.delete_all(*)
-    connection.delete("DELETE FROM parrots_pirates")
-    connection.delete("DELETE FROM parrots_treasures")
+    with_connection do |c|
+      c.delete("DELETE FROM parrots_pirates")
+      c.delete("DELETE FROM parrots_treasures")
+    end
     super
   end
 end
 
 class LiveParrot < Parrot
-  enum breed: { african: 0, australian: 1 }
+  enum :breed, { african: 0, australian: 1 }
 end
 
 class DeadParrot < Parrot

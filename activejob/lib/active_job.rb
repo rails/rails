@@ -30,12 +30,18 @@ require "active_job/deprecator"
 require "global_id"
 
 # :markup: markdown
-# :include: activejob/README.md
+# :include: ../README.md
 module ActiveJob
   extend ActiveSupport::Autoload
 
   autoload :Base
   autoload :QueueAdapters
+  autoload :Arguments
+  autoload :DeserializationError, "active_job/arguments"
+  autoload :SerializationError, "active_job/arguments"
+  autoload :UnknownJobClassError, "active_job/core"
+  autoload :EnqueueAfterTransactionCommit
+  autoload :Continuation
 
   eager_autoload do
     autoload :Serializers
@@ -46,15 +52,7 @@ module ActiveJob
   autoload :TestHelper
 
   ##
-  # :singleton-method:
-  # If false, Rails will preserve the legacy serialization of BigDecimal job arguments as Strings.
-  # If true, Rails will use the new BigDecimalSerializer to (de)serialize BigDecimal losslessly.
-  # Legacy serialization will be removed in Rails 7.2, along with this config.
-  singleton_class.attr_accessor :use_big_decimal_serializer
-  self.use_big_decimal_serializer = false
-
-  ##
-  # :singleton-method:
+  # :singleton-method: verbose_enqueue_logs
   #
   # Specifies if the methods calling background job enqueue should be logged below
   # their relevant enqueue log lines. Defaults to false.

@@ -102,12 +102,12 @@ module ActiveSupport
           raise_parsing_error("is empty duration") if parts.empty?
 
           # Mixing any of Y, M, D with W is invalid.
-          if parts.key?(:weeks) && (parts.keys & DATE_COMPONENTS).any?
+          if parts.key?(:weeks) && parts.keys.intersect?(DATE_COMPONENTS)
             raise_parsing_error("mixing weeks with other date parts not allowed")
           end
 
           # Specifying an empty T part is invalid.
-          if mode == :time && (parts.keys & TIME_COMPONENTS).empty?
+          if mode == :time && !parts.keys.intersect?(TIME_COMPONENTS)
             raise_parsing_error("time part marker is present but time part is empty")
           end
 

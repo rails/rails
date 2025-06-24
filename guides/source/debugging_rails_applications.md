@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Debugging Rails Applications
 ============================
@@ -107,20 +107,12 @@ It can also be useful to save information to log files at runtime. Rails maintai
 
 ### What is the Logger?
 
-Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may also be substituted.
-
-You can specify an alternative logger in `config/application.rb` or any other environment file, for example:
+Rails makes use of the `ActiveSupport::Logger` class to write log information. Other loggers, such as `Log4r`, may be substituted:
 
 ```ruby
+# config/environments/production.rb
 config.logger = Logger.new(STDOUT)
 config.logger = Log4r::Logger.new("Application Log")
-```
-
-Or in the `Initializer` section, add _any_ of the following
-
-```ruby
-Rails.logger = Logger.new(STDOUT)
-Rails.logger = Log4r::Logger.new("Application Log")
 ```
 
 TIP: By default, each log is created under `Rails.root/log/` and the log file is named after the environment in which the application is running.
@@ -134,11 +126,11 @@ method.
 
 The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`,
 and `:unknown`, corresponding to the log level numbers from 0 up to 5,
-respectively. To change the default log level, use
+respectively. To change the default log level:
 
 ```ruby
-config.log_level = :warn # In any environment initializer, or
-Rails.logger.level = 0 # at any time
+# config/environments/production.rb
+config.log_level = :warn
 ```
 
 This is useful when you want to log under development or staging without flooding your production log with unnecessary information.
@@ -178,7 +170,7 @@ class ArticlesController < ApplicationController
 
   private
     def article_params
-      params.require(:article).permit(:title, :body, :published)
+      params.expect(article: [:title, :body, :published])
     end
 end
 ```
@@ -208,7 +200,7 @@ Adding extra logging like this makes it easy to search for unexpected or unusual
 
 When looking at database query output in logs, it may not be immediately clear why multiple database queries are triggered when a single method is called:
 
-```
+```irb
 irb(main):001:0> Article.pamplemousse
   Article Load (0.4ms)  SELECT "articles".* FROM "articles"
   Comment Load (0.2ms)  SELECT "comments".* FROM "comments" WHERE "comments"."article_id" = ?  [["article_id", 1]]
@@ -217,9 +209,9 @@ irb(main):001:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-After running `ActiveRecord.verbose_query_logs = true` in the `bin/rails console` session to enable verbose query logs and running the method again, it becomes obvious what single line of code is generating all these discrete database calls:
+After enabling `verbose_query_logs` we can see additional information for each query:
 
-```
+```irb
 irb(main):003:0> Article.pamplemousse
   Article Load (0.2ms)  SELECT "articles".* FROM "articles"
   ↳ app/models/article.rb:5
@@ -232,9 +224,11 @@ irb(main):003:0> Article.pamplemousse
 => #<Comment id: 2, author: "1", body: "Well, actually...", article_id: 1, created_at: "2018-10-19 00:56:10", updated_at: "2018-10-19 00:56:10">
 ```
 
-Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call. This can help you identify and address performance problems caused by N+1 queries: single database queries that generates multiple additional queries.
+Below each database statement you can see arrows pointing to the specific source filename (and line number) of the method that resulted in a database call e.g. `↳ app/models/article.rb:5`.
 
-Verbose query logs are enabled by default in the development environment logs after Rails 5.2.
+This can help you identify and address performance problems caused by N+1 queries: i.e. single database queries that generate multiple additional queries.
+
+Verbose query logs are [enabled by default](configuring.html#config-active-record-verbose-query-logs) in the development environment logs.
 
 WARNING: We recommend against using this setting in production environments. It relies on Ruby's `Kernel#caller` method which tends to allocate a lot of memory in order to generate stacktraces of method calls. Use query log tags (see below) instead.
 
@@ -242,13 +236,19 @@ WARNING: We recommend against using this setting in production environments. It 
 
 Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.
 
-It is enabled by default in development. To enable in other environments, add in `application.rb` or any environment initializer:
+Verbose enqueue logs are [enabled by default](/7_1_release_notes.html#active-job-notable-changes) in the development environment logs.
 
-```rb
+```ruby
+# config/environments/development.rb
 config.active_job.verbose_enqueue_logs = true
 ```
 
-As verbose query logs, it is not recommended for use in production environments.
+```irb
+# bin/rails console
+ActiveJob.verbose_enqueue_logs = true
+```
+
+WARNING: We recommend against using this setting in production environments.
 
 SQL Query Comments
 ------------------
@@ -258,11 +258,11 @@ trace troublesome queries back to the area of the application that generated the
 logging slow queries (e.g. [MySQL](https://dev.mysql.com/doc/refman/en/slow-query-log.html), [PostgreSQL](https://www.postgresql.org/docs/current/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT)),
 viewing currently running queries, or for end-to-end tracing tools.
 
-To enable, add in `application.rb` or any environment initializer:
-
-```rb
+```ruby
 config.active_record.query_log_tags_enabled = true
 ```
+
+NOTE: Enabling Query tags automatically disables prepared statements, because it makes most queries unique.
 
 By default the name of the application, the name and action of the controller, or the name of the job are logged. The
 default format is [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/). For example:
@@ -349,7 +349,7 @@ By default, a debugging session will start after the `debug` library is required
 
 To enter the debugging session, you can use `binding.break` and its aliases: `binding.b` and `debugger`. The following examples will use `debugger`:
 
-```rb
+```ruby
 class PostsController < ApplicationController
   before_action :set_post, only: %i[ show edit update destroy ]
 
@@ -364,7 +364,7 @@ end
 
 Once your app evaluates the debugging statement, it'll enter the debugging session:
 
-```rb
+```ruby
 Processing by PostsController#index as HTML
 [2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
      2|   before_action :set_post, only: %i[ show edit update destroy ]
@@ -378,7 +378,7 @@ Processing by PostsController#index as HTML
     10|   # GET /posts/1 or /posts/1.json
     11|   def show
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
-  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
   # and 72 frames (use `bt' command for all frames)
 (rdbg)
 ```
@@ -389,7 +389,7 @@ You can exit the debugging session at any time and continue your application exe
 
 After entering the debugging session, you can type in Ruby code as if you are in a Rails console or IRB.
 
-```rb
+```ruby
 (rdbg) @posts    # ruby
 []
 (rdbg) self
@@ -399,7 +399,7 @@ After entering the debugging session, you can type in Ruby code as if you are in
 
 You can also use the `p` or `pp` command to evaluate Ruby expressions, which is useful when a variable name conflicts with a debugger command.
 
-```rb
+```ruby
 (rdbg) p headers    # command
 => {"X-Frame-Options"=>"SAMEORIGIN", "X-XSS-Protection"=>"1; mode=block", "X-Content-Type-Options"=>"nosniff", "X-Download-Options"=>"noopen", "X-Permitted-Cross-Domain-Policies"=>"none", "Referrer-Policy"=>"strict-origin-when-cross-origin"}
 (rdbg) pp headers    # command
@@ -422,7 +422,7 @@ Besides direct evaluation, the debugger also helps you collect a rich amount of 
 
 `info` provides an overview of the values of local and instance variables that are visible from the current frame.
 
-```rb
+```ruby
 (rdbg) info    # command
 %self = #<PostsController:0x0000000000af78>
 @_action_has_layout = true
@@ -442,16 +442,16 @@ Besides direct evaluation, the debugger also helps you collect a rich amount of 
 
 When used without any options, `backtrace` lists all the frames on the stack:
 
-```rb
+```ruby
 =>#0    PostsController#index at ~/projects/rails-guide-example/app/controllers/posts_controller.rb:7
-  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
-  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/base.rb:214
-  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/action_controller/metal/rendering.rb:53
-  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.1.0.alpha/lib/abstract_controller/callbacks.rb:221
-  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:118
-  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/rendering.rb:20
-  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-7.1.0.alpha/lib/action_text/engine.rb:69
-  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-7.1.0.alpha/lib/active_support/callbacks.rb:127
+  #1    ActionController::BasicImplicitRender#send_action(method="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-2.0.alpha/lib/action_controller/metal/basic_implicit_render.rb:6
+  #2    AbstractController::Base#process_action(method_name="index", args=[]) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.1.0.alpha/lib/abstract_controller/base.rb:214
+  #3    ActionController::Rendering#process_action(#arg_rest=nil) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.1.0.alpha/lib/action_controller/metal/rendering.rb:53
+  #4    block in process_action at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-8.1.0.alpha/lib/abstract_controller/callbacks.rb:221
+  #5    block in run_callbacks at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-8.1.0.alpha/lib/active_support/callbacks.rb:118
+  #6    ActionText::Rendering::ClassMethods#with_renderer(renderer=#<PostsController:0x0000000000af78>) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-8.1.0.alpha/lib/action_text/rendering.rb:20
+  #7    block {|controller=#<PostsController:0x0000000000af78>, action=#<Proc:0x00007fd91985f1c0 /Users/st0012/...|} in <class:Engine> (4 levels) at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actiontext-8.1.0.alpha/lib/action_text/engine.rb:69
+  #8    [C] BasicObject#instance_exec at ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activesupport-8.1.0.alpha/lib/active_support/callbacks.rb:127
   ..... and more
 ```
 
@@ -482,7 +482,7 @@ It is also possible to use these options together: `backtrace [num] /pattern/`.
 - Class variables
 - Methods & their sources
 
-```rb
+```ruby
 ActiveSupport::Configurable#methods: config
 AbstractController::Base#methods:
   action_methods  action_name  action_name=  available_action?  controller_path  inspect
@@ -505,7 +505,7 @@ instance variables:
   @_action_has_layout  @_action_name    @_config  @_lookup_context                      @_request
   @_response           @_response_body  @_routes  @marked_for_same_origin_verification  @posts
   @rendered_format
-class variables: @@raise_on_missing_translations  @@raise_on_open_redirects
+class variables: @@raise_on_open_redirects
 ```
 
 ### Breakpoints
@@ -531,7 +531,7 @@ And to remove them, you can use:
 
 **Set a breakpoint on a specified line number - e.g. `b 28`**
 
-```rb
+```ruby
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
     20|   end
     21|
@@ -550,7 +550,7 @@ And to remove them, you can use:
 #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controllers/posts_controller.rb:28 (line)
 ```
 
-```rb
+```ruby
 (rdbg) c    # continue command
 [23, 32] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
     23|   def create
@@ -572,7 +572,7 @@ Stop by #0  BP - Line  /Users/st0012/projects/rails-guide-example/app/controller
 
 Set a breakpoint on a given method call - e.g. `b @post.save`.
 
-```rb
+```ruby
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
     20|   end
     21|
@@ -592,7 +592,7 @@ Set a breakpoint on a given method call - e.g. `b @post.save`.
 
 ```
 
-```rb
+```ruby
 (rdbg) c    # continue command
 [39, 48] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/suppressor.rb
     39|         SuppressorRegistry.suppressed[name] = previous_state
@@ -616,7 +616,7 @@ Stop by #0  BP - Method  @post.save at /Users/st0012/.rbenv/versions/3.0.1/lib/r
 
 Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`.
 
-```rb
+```ruby
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
     20|   end
     21|
@@ -635,7 +635,7 @@ Stop when an exception is raised - e.g. `catch ActiveRecord::RecordInvalid`.
 #1  BP - Catch  "ActiveRecord::RecordInvalid"
 ```
 
-```rb
+```ruby
 (rdbg) c    # continue command
 [75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
     75|     def default_validation_context
@@ -659,7 +659,7 @@ Stop by #1  BP - Catch  "ActiveRecord::RecordInvalid"
 
 Stop when the instance variable is changed - e.g. `watch @_response_body`.
 
-```rb
+```ruby
 [20, 29] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
     20|   end
     21|
@@ -678,7 +678,7 @@ Stop when the instance variable is changed - e.g. `watch @_response_body`.
 #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body =
 ```
 
-```rb
+```ruby
 (rdbg) c    # continue command
 [173, 182] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/actionpack-7.0.0.alpha2/lib/action_controller/metal.rb
    173|       body = [body] unless body.nil? || body.respond_to?(:each)
@@ -704,17 +704,17 @@ Stop by #0  BP - Watch  #<PostsController:0x00007fce69ca5320> @_response_body = 
 In addition to different types of breakpoints, you can also specify options to achieve more advanced debugging workflows. Currently, the debugger supports 4 options:
 
 - `do: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression and continue the program:
-  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames
+  - `break Foo#bar do: bt` - when `Foo#bar` is called, print the stack frames.
 - `pre: <cmd or expr>` - when the breakpoint is triggered, execute the given command/expression before stopping:
   - `break Foo#bar pre: info` - when `Foo#bar` is called, print its surrounding variables before stopping.
 - `if: <expr>` - the breakpoint only stops if the result of `<expr`> is true:
-  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true
+  - `break Post#save if: params[:debug]` - stops at `Post#save` if `params[:debug]` is also true.
 - `path: <path_regexp>` - the breakpoint only stops if the event that triggers it (e.g. a method call) happens from the given path:
-  - `break Post#save if: app/services/a_service` - stops at `Post#save` if the method call happens at a method matches Ruby regexp `/app\/services\/a_service/`.
+  - `break Post#save path: app/services/a_service` - stops at `Post#save` if the method call happens at a path that includes `app/services/a_service`.
 
 Please also note that the first 3 options: `do:`, `pre:` and `if:` are also available for the debug statements we mentioned earlier. For example:
 
-```rb
+```ruby
 [2, 11] in ~/projects/rails-guide-example/app/controllers/posts_controller.rb
      2|   before_action :set_post, only: %i[ show edit update destroy ]
      3|
@@ -748,7 +748,7 @@ Please also note that the first 3 options: `do:`, `pre:` and `if:` are also avai
 
 With those options, you can script your debugging workflow in one line like:
 
-```rb
+```ruby
 def create
   debugger(do: "catch ActiveRecord::RecordInvalid do: bt 10")
   # ...
@@ -757,7 +757,7 @@ end
 
 And then the debugger will run the scripted command and insert the catch breakpoint
 
-```rb
+```ruby
 (rdbg:binding.break) catch ActiveRecord::RecordInvalid do: bt 10
 #0  BP - Catch  "ActiveRecord::RecordInvalid"
 [75, 84] in ~/.rbenv/versions/3.0.1/lib/ruby/gems/3.0.0/gems/activerecord-7.0.0.alpha2/lib/active_record/validations.rb
@@ -778,7 +778,7 @@ And then the debugger will run the scripted command and insert the catch breakpo
 
 Once the catch breakpoint is triggered, it'll print the stack frames
 
-```rb
+```ruby
 Stop by #0  BP - Catch  "ActiveRecord::RecordInvalid"
 
 (rdbg:catch) bt 10
@@ -866,7 +866,7 @@ extension in the interpreter calls `malloc()` but doesn't properly call
 `free()`, this memory won't be available until the app terminates.
 
 For further information on how to install Valgrind and use with Ruby, refer to
-[Valgrind and Ruby](https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
+[Valgrind and Ruby](https://web.archive.org/web/20230518081626/https://blog.evanweaver.com/2008/02/05/valgrind-and-ruby/)
 by Evan Weaver.
 
 ### Find a Memory Leak

@@ -27,7 +27,7 @@ class ValidationsContextTest < ActiveModel::TestCase
   test "with a class that adds errors on create and validating a new model with no arguments" do
     Topic.validates_with(ValidatorThatAddsErrors, on: :create)
     topic = Topic.new
-    assert topic.valid?, "Validation doesn't run on valid? if 'on' is set to create"
+    assert_predicate topic, :valid?, "Validation doesn't run on valid? if 'on' is set to create"
   end
 
   test "with a class that adds errors on update and validating a new model" do
@@ -47,7 +47,7 @@ class ValidationsContextTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorThatAddsErrors, on: [:context1, :context2])
 
     topic = Topic.new
-    assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
+    assert_predicate topic, :valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
 
     assert topic.invalid?(:context1), "Validation did not run on context1 when 'on' is set to context1 and context2"
     assert_includes topic.errors[:base], ERROR_MESSAGE
@@ -61,7 +61,7 @@ class ValidationsContextTest < ActiveModel::TestCase
     Topic.validates_with(AnotherValidatorThatAddsErrors, on: :context2)
 
     topic = Topic.new
-    assert topic.valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
+    assert_predicate topic, :valid?, "Validation ran with no context given when 'on' is set to context1 and context2"
 
     assert topic.invalid?([:context1, :context2]), "Validation did not run on context1 when 'on' is set to context1 and context2"
     assert_includes topic.errors[:base], ERROR_MESSAGE

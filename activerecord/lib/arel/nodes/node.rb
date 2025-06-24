@@ -127,7 +127,7 @@ module Arel # :nodoc: all
       # Factory method to create a Nodes::Grouping node that has an Nodes::Or
       # node as a child.
       def or(right)
-        Nodes::Grouping.new Nodes::Or.new(self, right)
+        Nodes::Grouping.new Nodes::Or.new([self, right])
       end
 
       ###
@@ -147,11 +147,12 @@ module Arel # :nodoc: all
       # Maybe we should just use `Table.engine`?  :'(
       def to_sql(engine = Table.engine)
         collector = Arel::Collectors::SQLString.new
-        collector = engine.connection.visitor.accept self, collector
-        collector.value
+        engine.with_connection do |connection|
+          connection.visitor.accept(self, collector).value
+        end
       end
 
-      def fetch_attribute
+      def fetch_attribute(&)
       end
 
       def equality?; false; end

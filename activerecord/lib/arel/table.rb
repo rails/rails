@@ -8,16 +8,13 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_accessor :name, :table_alias
+    attr_accessor :name
+    attr_reader :table_alias
 
     def initialize(name, as: nil, klass: nil, type_caster: klass&.type_caster)
-      @name =
-        case name
-        when Symbol then name.to_s
-        else
-          name
-        end
+      name = name.name if name.is_a?(Symbol)
 
+      @name = name
       @klass = klass
       @type_caster = type_caster
 
@@ -83,7 +80,7 @@ module Arel # :nodoc: all
     end
 
     def [](name, table = self)
-      name = name.to_s if name.is_a?(Symbol)
+      name = name.name if name.is_a?(Symbol)
       name = @klass.attribute_aliases[name] || name if @klass
       Attribute.new(table, name)
     end

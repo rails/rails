@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-gem "minitest" # make sure we get the gem, not stdlib
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"
+require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
 require "active_support/testing/deprecation"
@@ -15,6 +15,7 @@ require "active_support/testing/constant_stubbing"
 require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
 require "active_support/testing/parallelize_executor"
+require "active_support/testing/notification_assertions"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -51,8 +52,8 @@ module ActiveSupport
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
-      #   test-database-0
-      #   test-database-1
+      #   test-database_0
+      #   test-database_1
       #
       # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
@@ -78,16 +79,45 @@ module ActiveSupport
       # Because parallelization presents an overhead, it is only enabled when the
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
-        workers = Concurrent.physical_processor_count if workers == :number_of_processors
-        workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
+      #
+      # If you want to skip Rails default creation of one database per process in favor of
+      # writing your own implementation, you can set +parallelize_databases+, or configure it
+      # via +config.active_support.parallelize_test_databases+.
+      #
+      #   parallelize(workers: :number_of_processors, parallelize_databases: false)
+      #
+      # Note that your test suite may deadlock if you attempt to use only one database
+      # with multiple processes.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases)
+        case
+        when ENV["PARALLEL_WORKERS"]
+          workers = ENV["PARALLEL_WORKERS"].to_i
+        when workers == :number_of_processors
+          workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
+        end
 
-        return if workers <= 1
+        if with == :processes
+          ActiveSupport.parallelize_test_databases = parallelize_databases
+        end
 
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your +test_helper.rb+ add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_before_fork do
+      #       # run this before fork
+      #     end
+      #   end
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #
@@ -120,14 +150,35 @@ module ActiveSupport
       def parallelize_teardown(&block)
         ActiveSupport::Testing::Parallelization.run_cleanup_hook(&block)
       end
+
+      # :singleton-method: fixture_paths
+      #
+      # Returns the ActiveRecord::FixtureSet collection.
+      #
+      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
+
+      # :singleton-method: fixture_paths=
+      #
+      # :call-seq:
+      #   fixture_paths=(fixture_paths)
+      #
+      # Sets the given path to the fixture set.
+      #
+      # Can also append multiple paths.
+      #
+      #   ActiveSupport::TestCase.fixture_paths << "component1/test/fixtures"
+      #
+      # In your +test_helper.rb+ you must have <tt>require "rails/test_help"</tt>.
     end
 
     alias_method :method_name, :name
 
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
+    prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing
     include ActiveSupport::Testing::TimeHelpers

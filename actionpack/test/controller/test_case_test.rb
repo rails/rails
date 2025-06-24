@@ -53,6 +53,11 @@ class TestCaseTest < ActionController::TestCase
       render plain: request.body.read
     end
 
+    def render_body_encoding
+      request.body.rewind
+      render plain: request.body.read.encoding.name
+    end
+
     def test_params
       render plain: ::JSON.dump(params.to_unsafe_h)
     end
@@ -259,7 +264,7 @@ class TestCaseTest < ActionController::TestCase
 
     post :test_params, params: { foo: klass.new }
 
-    assert_equal JSON.parse(@response.body)["foo"], "bar"
+    assert_equal "bar", JSON.parse(@response.body)["foo"]
   end
 
   def test_body_stream
@@ -268,6 +273,14 @@ class TestCaseTest < ActionController::TestCase
     post :render_body, params: params.dup
 
     assert_equal params.to_query, @response.body
+  end
+
+  def test_body_stream_is_binary
+    params = Hash[:page, { name: "page name" }, "some key", 123]
+
+    post :render_body_encoding, params: params.dup
+
+    assert_equal Encoding::BINARY.name, @response.body
   end
 
   def test_document_body_and_params_with_post
@@ -605,6 +618,20 @@ class TestCaseTest < ActionController::TestCase
     parsed_env = ActiveSupport::JSON.decode(@response.body)
     assert_equal "http://example.com/about", parsed_env["HTTP_REFERER"]
     assert_equal "application/json", parsed_env["CONTENT_TYPE"]
+  end
+
+  test "blank Content-Type header" do
+    @request.headers["Content-Type"] = ""
+    assert_raises(ActionDispatch::Http::MimeNegotiation::InvalidType) do
+      get :test_headers
+    end
+  end
+
+  test "nil Content-Type header with post request" do
+    @request.headers["Content-Type"] = nil
+    assert_raises(match: /Unknown Content-Type/) do
+      post :render_body
+    end
   end
 
   def test_using_as_json_sets_request_content_type_to_json
@@ -1139,7 +1166,7 @@ module EngineControllerTests
 
     def test_engine_controller_route
       get :index
-      assert_equal @response.body, "bar"
+      assert_equal "bar", @response.body
     end
   end
 
@@ -1152,7 +1179,7 @@ module EngineControllerTests
 
     def test_engine_controller_route
       get :index
-      assert_equal @response.body, "bar"
+      assert_equal "bar", @response.body
     end
   end
 end

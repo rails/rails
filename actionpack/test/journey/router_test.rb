@@ -110,11 +110,11 @@ module ActionDispatch
         assert_no_match(/missing required keys: \[\]/, error.message)
       end
 
-      def test_X_Cascade
+      def test_x_cascade
         get "/messages(.:format)", to: "foo#bar"
         resp = router.serve(rails_env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/lol"))
         assert_equal ["Not Found"], resp.last
-        assert_equal "pass", resp[1]["X-Cascade"]
+        assert_equal "pass", resp[1][Constants::X_CASCADE]
         assert_equal 404, resp.first
       end
 
@@ -147,10 +147,16 @@ module ActionDispatch
 
         env = rails_env "PATH_INFO" => "/foo/bar"
 
-        router.recognize(env) { |*_| }
+        recognized = false
 
-        assert_equal "/foo", env.env["SCRIPT_NAME"]
-        assert_equal "/bar", env.env["PATH_INFO"]
+        router.recognize(env) do |*_|
+          assert_equal "/foo", env.env["SCRIPT_NAME"]
+          assert_equal "/bar", env.env["PATH_INFO"]
+
+          recognized = true
+        end
+
+        assert recognized
       end
 
       def test_bound_regexp_keeps_path_info
@@ -219,7 +225,7 @@ module ActionDispatch
       def test_generate_slash
         params = [ [:controller, "tasks"],
                    [:action, "show"] ]
-        get "/", Hash[params]
+        get "/", **Hash[params]
 
         path, _ = _generate(nil, Hash[params], {})
         assert_equal "/", path
@@ -494,19 +500,19 @@ module ActionDispatch
           end
           path = @route_set.path_for(options, route_name)
           uri = URI.parse path
-          params = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+          params = ActionDispatch::ParamBuilder.from_query_string(uri.query).symbolize_keys
           [uri.path, params]
         end
 
-        def get(*args)
+        def get(...)
           ActionDispatch.deprecator.silence do
-            mapper.get(*args)
+            mapper.get(...)
           end
         end
 
-        def match(*args)
+        def match(...)
           ActionDispatch.deprecator.silence do
-            mapper.match(*args)
+            mapper.match(...)
           end
         end
 

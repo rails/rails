@@ -44,6 +44,13 @@
     content: "\00a0"; // &nbsp;
   }
 
+  th {
+    font-weight: inherit;
+    color: #7f7f7f;
+    text-align: right;
+    white-space: nowrap;
+  }
+
   iframe {
     border: 0;
     width: 100%;
@@ -54,14 +61,14 @@
 <body>
 <header>
   <dl>
-    <% if @email.respond_to?(:smtp_envelope_from) && Array(@email.from) != Array(@email.smtp_envelope_from) %>
+    <% if Array(@email.from) != Array(@email.smtp_envelope_from) %>
       <dt>SMTP-From:</dt>
       <dd id="smtp_from"><%= @email.smtp_envelope_from %></dd>
     <% end %>
 
-    <% if @email.respond_to?(:smtp_envelope_to) && @email.to != @email.smtp_envelope_to %>
+    <% if Set[*@email.to, *@email.cc, *@email.bcc] != Set[*@email.smtp_envelope_to] %>
       <dt>SMTP-To:</dt>
-      <dd id="smtp_to"><%= @email.smtp_envelope_to %></dd>
+      <dd id="smtp_to"><%= @email.smtp_envelope_to.join(", ") %></dd>
     <% end %>
 
     <dt>From:</dt>
@@ -86,17 +93,21 @@
     <% end %>
 
     <dt>Date:</dt>
-    <dd id="date"><%= Time.current.rfc2822 %></dd>
+    <dd id="date"><%= @email.header['date'] || Time.current.rfc2822 %></dd>
 
     <dt>Subject:</dt>
     <dd><strong id="subject"><%= @email.subject %></strong></dd>
 
-    <% unless @email.attachments.nil? || @email.attachments.empty? %>
+    <% if @attachments.any? || @inline_attachments.any? %>
       <dt>Attachments:</dt>
       <dd>
-        <% @email.attachments.each do |a| %>
-          <% filename = a.respond_to?(:original_filename) ? a.original_filename : a.filename %>
-          <%= link_to filename, "data:application/octet-stream;charset=utf-8;base64,#{Base64.encode64(a.body.to_s)}", download: filename %>
+        <% @attachments.each do |filename, attachment| %>
+          <%= link_to filename, attachment_url(attachment), download: filename %>
+        <% end %>
+
+        <% if @inline_attachments.any? %>
+          (Inline: <% @inline_attachments.each do |filename, attachment| %>
+            <%= link_to filename, attachment_url(attachment), download: filename %><% end %>)
         <% end %>
       </dd>
     <% end %>
@@ -134,7 +145,7 @@
           <table>
           <% @email.header_fields.each do |field| %>
             <tr>
-              <td align="right" style="color: #7f7f7f"><%= field.name %>:</td>
+              <th><%= field.name %>:</th>
               <td><%= field.value %></td>
             </tr>
           <% end %>

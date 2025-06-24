@@ -117,25 +117,6 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal expected, translate(:"translations.missing", year: "2015", scope: %i(scoped))
   end
 
-  def test_raises_missing_translation_message_with_raise_config_option
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = true
-
-    assert_raise(I18n::MissingTranslationData) do
-      translate("translations.missing")
-    end
-  ensure
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = false
-  end
-
-  def test_raise_arg_overrides_raise_config_option
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = true
-
-    expected = "translation missing: en.translations.missing"
-    assert_equal expected, translate(:"translations.missing", raise: false)
-  ensure
-    ActionView::Helpers::TranslationHelper.raise_on_missing_translations = false
-  end
-
   def test_raises_missing_translation_message_with_raise_option
     assert_raise(I18n::MissingTranslationData) do
       translate(:"translations.missing", raise: true)
@@ -189,6 +170,28 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_default_lookup_scoped_by_partial
     assert_equal "Foo", view.render(template: "translations/templates/default").strip
+  end
+
+  def test_missing_translation_reported_to_i18n_exception_handler
+    previous_handler = I18n.exception_handler
+
+    calls = []
+    I18n.exception_handler = ->(*args) { calls << args }
+    view.render(template: "translations/templates/missing")
+
+    first_call = calls.first
+    assert_not_nil first_call
+    exception = first_call.first
+    assert_instance_of I18n::MissingTranslation, exception
+    assert_equal "translations.templates.missing.missing", exception.key
+
+    assert_equal 1, calls.size
+
+    assert_nothing_raised do
+      previous_handler.call(*first_call)
+    end
+  ensure
+    I18n.exception_handler = previous_handler
   end
 
   def test_missing_translation_scoped_by_partial

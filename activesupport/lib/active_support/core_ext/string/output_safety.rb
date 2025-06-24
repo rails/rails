@@ -77,10 +77,6 @@ module ActiveSupport # :nodoc:
       @html_safe = other.html_safe?
     end
 
-    def clone_empty
-      self[0, 0]
-    end
-
     def concat(value)
       unless value.nil?
         super(implicit_html_escape_interpolated_argument(value))
@@ -141,6 +137,10 @@ module ActiveSupport # :nodoc:
 
     def to_s
       self
+    end
+
+    def as_json(*)
+      to_str
     end
 
     def to_param

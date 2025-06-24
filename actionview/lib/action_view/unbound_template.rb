@@ -26,15 +26,15 @@ module ActionView
           # while holding the lock.
           template = (@templates[normalized_locals] ||= build_template(normalized_locals))
 
-          # This may have already been assigned, but we've already de-dup'd so
-          # reassignment is fine.
-          @templates[locals.dup] = template
-
           if template.strict_locals?
             # Under strict locals, we only need one template.
             # This replaces the @templates Concurrent::Map with a hash which
             # returns this template for every key.
             @templates = Hash.new(template).freeze
+          else
+            # This may have already been assigned, but we've already de-dup'd so
+            # reassignment is fine.
+            @templates[locals.dup] = template
           end
         end
       end

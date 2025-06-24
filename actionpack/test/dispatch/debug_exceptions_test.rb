@@ -45,14 +45,25 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
 
     def raise_nested_exceptions
-      raise "First error"
-    rescue
-      begin
-        raise "Second error"
-      rescue
-        raise "Third error"
-      end
+      raise_nested_exceptions_third
     end
+
+    def raise_nested_exceptions_first
+      raise "First error"
+    end
+
+    def raise_nested_exceptions_second
+      raise_nested_exceptions_first
+    rescue
+      raise "Second error"
+    end
+
+    def raise_nested_exceptions_third
+      raise_nested_exceptions_second
+    rescue
+      raise "Third error"
+    end
+
 
     def call(env)
       env["action_dispatch.show_detailed_exceptions"] = @detailed
@@ -61,7 +72,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       case req.path
       when "/pass"
-        [404, { "X-Cascade" => "pass" }, self]
+        [404, { ActionDispatch::Constants::X_CASCADE => "pass" }, self]
       when "/not_found"
         controller = SimpleController.new
         raise AbstractController::ActionNotFound.new(nil, controller, :ello)
@@ -125,48 +136,65 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def self.build_app(app, *args)
+    Rack::Lint.new(
+      ActionDispatch::DebugExceptions.new(
+        Rack::Lint.new(app), *args,
+      ),
+    )
+  end
+
   Interceptor = proc { |request, exception| request.set_header("int", exception) }
   BadInterceptor = proc { |request, exception| raise "bad" }
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
-  ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
-  DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
-  InterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [Interceptor])
-  BadInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
-  ApiApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :api)
+  ProductionApp  = build_app(Boomer.new(false), RoutesApp)
+  DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
+  InterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [Interceptor])
+  BadInterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
+  ApiApp = build_app(Boomer.new(true), RoutesApp, :api)
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
     assert_raise RuntimeError do
-      get "/", headers: { "action_dispatch.show_exceptions" => true }
+      get "/", headers: { "action_dispatch.show_exceptions" => :all }
     end
   end
 
   test "skip diagnosis if not showing exceptions" do
     @app = DevelopmentApp
     assert_raise RuntimeError do
-      get "/", headers: { "action_dispatch.show_exceptions" => false }
+      get "/", headers: { "action_dispatch.show_exceptions" => :none }
     end
   end
 
   test "raise an exception on cascade pass" do
     @app = ProductionApp
     assert_raise ActionController::RoutingError do
-      get "/pass", headers: { "action_dispatch.show_exceptions" => true }
+      get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     end
   end
 
   test "closes the response body on cascade pass" do
     boomer = Boomer.new(false)
-    @app = ActionDispatch::DebugExceptions.new(boomer)
+    @app = self.class.build_app(boomer)
     assert_raise ActionController::RoutingError do
-      get "/pass", headers: { "action_dispatch.show_exceptions" => true }
+      get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     end
     assert boomer.closed, "Expected to close the response body"
   end
 
+  test "returns empty body on HEAD cascade pass" do
+    @app = DevelopmentApp
+
+    head "/pass"
+
+    assert_response 404
+    assert_equal "", body
+  end
+
   test "displays routes in a table when a RoutingError occurs" do
     @app = DevelopmentApp
-    get "/pass", headers: { "action_dispatch.show_exceptions" => true }
+    get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
     routing_table = body[/route_table.*<.table>/m]
     assert_match "/:controller(/:action)(.:format)", routing_table
     assert_match ":controller#:action", routing_table
@@ -176,7 +204,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "displays request and response info when a RoutingError occurs" do
     @app = DevelopmentApp
 
-    get "/pass", headers: { "action_dispatch.show_exceptions" => true }
+    get "/pass", headers: { "action_dispatch.show_exceptions" => :all }
 
     assert_select "h2", /Request/
     assert_select "h2", /Response/
@@ -185,37 +213,37 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with diagnostics message" do
     @app = DevelopmentApp
 
-    get "/", headers: { "action_dispatch.show_exceptions" => true }
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
     assert_match(/<body>/, body)
     assert_match(/puke/, body)
 
-    get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
+    get "/not_found", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_match(/<body>/, body)
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
-    get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => true }
+    get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_match(/<body>/, body)
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => true }
+    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 405
     assert_match(/<body>/, body)
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
-    get "/bad_request", headers: { "action_dispatch.show_exceptions" => true }
+    get "/bad_request", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 400
     assert_match(/<body>/, body)
     assert_match(/ActionController::BadRequest/, body)
 
-    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
+    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 400
     assert_match(/<body>/, body)
     assert_match(/ActionController::ParameterMissing/, body)
 
-    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => :all }
     assert_response 406
     assert_match(/<body>/, body)
     assert_match(/ActionDispatch::Http::MimeNegotiation::InvalidType/, body)
@@ -223,7 +251,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "rescue with text error for xhr request" do
     @app = DevelopmentApp
-    xhr_request_env = { "action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+    xhr_request_env = { "action_dispatch.show_exceptions" => :all, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
 
     get "/", headers: xhr_request_env
     assert_response 500
@@ -274,44 +302,44 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with JSON error for JSON API request" do
     @app = ApiApp
 
-    get "/", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 500
     assert_no_match(/<header>/, body)
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/RuntimeError: puke/, body)
 
-    get "/not_found", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/not_found", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 404
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/#{AbstractController::ActionNotFound.name}/, body)
 
-    get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/method_not_allowed", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::MethodNotAllowed/, body)
 
-    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/unknown_http_method", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 405
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::UnknownHttpMethod/, body)
 
-    get "/bad_request", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/bad_request", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 400
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::BadRequest/, body)
 
-    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }, as: :json
+    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 400
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
     assert_match(/ActionController::ParameterMissing/, body)
 
-    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => true }, as: :json
+    get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => :all }, as: :json
     assert_response 406
     assert_no_match(/<body>/, body)
     assert_equal "application/json", response.media_type
@@ -321,12 +349,12 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with suggestions" do
     @app = DevelopmentApp
 
-    get "/not_found", headers: { "action_dispatch.show_exceptions" => true }
+    get "/not_found", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_select("b", /Did you mean\?/)
     assert_select("li", "hello")
 
-    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => true }
+    get "/parameter_missing", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 400
     assert_select("b", /Did you mean\?/)
     assert_select("li", "valid_param_key")
@@ -335,7 +363,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with HTML format for HTML API request" do
     @app = ApiApp
 
-    get "/index.html", headers: { "action_dispatch.show_exceptions" => true }
+    get "/index.html", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
     assert_match(/<header>/, body)
     assert_match(/<body>/, body)
@@ -346,7 +374,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "rescue with XML format for XML API requests" do
     @app = ApiApp
 
-    get "/index.xml", headers: { "action_dispatch.show_exceptions" => true }
+    get "/index.xml", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
     assert_equal "application/xml", response.media_type
     assert_match(/RuntimeError: puke/, body)
@@ -360,7 +388,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     @app = ApiApp
 
-    get "/index", headers: { "action_dispatch.show_exceptions" => true }, as: :wibble
+    get "/index", headers: { "action_dispatch.show_exceptions" => :all }, as: :wibble
     assert_response 500
     assert_equal "application/json", response.media_type
     assert_match(/RuntimeError: puke/, body)
@@ -372,16 +400,17 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "does not show filtered parameters" do
     @app = DevelopmentApp
 
-    get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => true,
+    get "/", params: { "foo" => "bar" }, headers: { "action_dispatch.show_exceptions" => :all,
       "action_dispatch.parameter_filter" => [:foo] }
     assert_response 500
-    assert_match("&quot;foo&quot;=&gt;&quot;[FILTERED]&quot;", body)
+
+    assert_match(CGI.escape_html({ "foo" => "[FILTERED]" }.inspect[1..-2]), body)
   end
 
   test "show registered original exception if the last exception is TemplateError" do
     @app = DevelopmentApp
 
-    get "/not_found_original_exception", headers: { "action_dispatch.show_exceptions" => true }
+    get "/not_found_original_exception", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 404
     assert_match %r{AbstractController::ActionNotFound}, body
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
@@ -390,7 +419,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "show the last exception and cause even when the cause is mapped to resque_responses" do
     @app = DevelopmentApp
 
-    get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => true }
+    get "/cause_mapped_to_rescue_responses", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
     assert_match %r{ActionController::ParameterMissing}, body
     assert_match %r{NameError}, body
@@ -399,7 +428,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "named URLs missing keys raise 500 level error" do
     @app = DevelopmentApp
 
-    get "/missing_keys", headers: { "action_dispatch.show_exceptions" => true }
+    get "/missing_keys", headers: { "action_dispatch.show_exceptions" => :all }
     assert_response 500
 
     assert_match(/ActionController::UrlGenerationError/, body)
@@ -408,7 +437,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "show the controller name in the diagnostics template when controller name is present" do
     @app = DevelopmentApp
     get("/runtime_error", headers: {
-      "action_dispatch.show_exceptions" => true,
+      "action_dispatch.show_exceptions" => :all,
       "action_dispatch.request.parameters" => {
         "action" => "show",
         "id" => "unknown",
@@ -431,7 +460,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     }
 
     get("/runtime_error", headers: {
-      "action_dispatch.show_exceptions" => true,
+      "action_dispatch.show_exceptions" => :all,
       "action_dispatch.request.parameters" => {
         "action" => "show",
         "controller" => "featured_tile"
@@ -445,14 +474,27 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "sets the HTTP charset parameter" do
     @app = DevelopmentApp
 
-    get "/", headers: { "action_dispatch.show_exceptions" => true }
-    assert_equal "text/html; charset=utf-8", response.headers["Content-Type"]
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_equal "text/html; charset=utf-8", response.headers["content-type"]
   end
 
   test "uses logger from env" do
     @app = DevelopmentApp
     output = StringIO.new
-    get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => Logger.new(output) }
+    get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => Logger.new(output) }
+    assert_match(/puke/, output.rewind && output.read)
+  end
+
+  test "logs at configured log level" do
+    @app = DevelopmentApp
+    output = StringIO.new
+    logger = Logger.new(output)
+    logger.level = Logger::WARN
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger, "action_dispatch.debug_exception_log_level" => Logger::INFO }
+    assert_no_match(/puke/, output.rewind && output.read)
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger, "action_dispatch.debug_exception_log_level" => Logger::ERROR }
     assert_match(/puke/, output.rewind && output.read)
   end
 
@@ -463,7 +505,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     _old, ActionView::Base.logger = ActionView::Base.logger, logger
     begin
-      get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
+      get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger }
     ensure
       ActionView::Base.logger = _old
     end
@@ -487,7 +529,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     _old, ActionView::Base.logger = ActionView::Base.logger, logger
     begin
       assert_nothing_raised do
-        get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.logger" => logger }
+        get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.logger" => logger }
       end
     ensure
       ActionView::Base.logger = _old
@@ -501,7 +543,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
 
     backtrace_cleaner.stub :clean, ["passed backtrace cleaner"] do
-      get "/", headers: { "action_dispatch.show_exceptions" => true, "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
+      get "/", headers: { "action_dispatch.show_exceptions" => :all, "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
       assert_match(/passed backtrace cleaner/, body)
     end
   end
@@ -513,7 +555,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions"   => true,
+    env = { "action_dispatch.show_exceptions"   => :all,
             "action_dispatch.logger"            => Logger.new(output),
             "action_dispatch.backtrace_cleaner" => backtrace_cleaner }
 
@@ -528,7 +570,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner = ActiveSupport::BacktraceCleaner.new
     backtrace_cleaner.add_silencer { true }
 
-    env = { "action_dispatch.show_exceptions"       => true,
+    env = { "action_dispatch.show_exceptions"       => :all,
             "action_dispatch.logger"                => Logger.new(output),
             "action_dispatch.log_rescued_responses" => true,
             "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
@@ -551,7 +593,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     backtrace_cleaner.add_silencer { true }
 
     env = { "Accept" => "text/html,*",
-            "action_dispatch.show_exceptions"       => true,
+            "action_dispatch.show_exceptions"       => :all,
             "action_dispatch.logger"                => Logger.new(output),
             "action_dispatch.log_rescued_responses" => true,
             "action_dispatch.backtrace_cleaner"     => backtrace_cleaner }
@@ -571,7 +613,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     output = StringIO.new
 
-    env = { "action_dispatch.show_exceptions"       => true,
+    env = { "action_dispatch.show_exceptions"       => :all,
             "action_dispatch.logger"                => Logger.new(output),
             "action_dispatch.log_rescued_responses" => false }
 
@@ -585,13 +627,102 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     output = StringIO.new
 
-    env = { "action_dispatch.show_exceptions"       => true,
+    env = { "action_dispatch.show_exceptions"       => :all,
             "action_dispatch.logger"                => Logger.new(output),
             "action_dispatch.log_rescued_responses" => true }
 
     get "/parameter_missing", headers: env
     assert_response 400
     assert_not_empty (output.rewind && output.read).lines
+  end
+
+  test "logs exception causes" do
+    @app = DevelopmentApp
+
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions"       => :all,
+            "action_dispatch.logger"                => Logger.new(output),
+            "action_dispatch.log_rescued_responses" => true }
+
+    get "/nested_exceptions", headers: env
+    assert_response 500
+    log = output.rewind && output.read
+
+    # Splitting into paragraphs to be easier to see difference/error when there is one
+    paragraphs = log.split(/\n\s*\n/)
+
+    assert_includes(paragraphs[0], <<~MSG.strip)
+      RuntimeError (Third error)
+      Caused by: RuntimeError (Second error)
+      Caused by: RuntimeError (First error)
+    MSG
+
+    assert_includes(paragraphs[1], <<~MSG.strip)
+      Information for: RuntimeError (Third error):
+    MSG
+
+    if RUBY_VERSION >= "3.4"
+      # Changes to the format of exception backtraces
+      # https://bugs.ruby-lang.org/issues/16495 (use single quote instead of backtrace)
+      # https://bugs.ruby-lang.org/issues/20275 (don't have entry for rescue in)
+      # And probably more, they now show the class too
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in '.*raise_nested_exceptions_first'
+        .*in '.*raise_nested_exceptions_second'
+        .*in '.*raise_nested_exceptions_third'
+        .*in '.*raise_nested_exceptions'
+      REGEX
+    else
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[2]
+        \\A.*in `rescue in raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+      assert_includes(paragraphs[3], <<~MSG.strip)
+        Information for cause: RuntimeError (Second error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[4]
+        \\A.*in `rescue in raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+
+
+      assert_includes(paragraphs[5], <<~MSG.strip)
+        Information for cause: RuntimeError (First error):
+      MSG
+
+      assert_match Regexp.new(<<~REGEX.strip), paragraphs[6]
+        \\A.*in `raise_nested_exceptions_first'
+        .*in `raise_nested_exceptions_second'
+        .*in `raise_nested_exceptions_third'
+        .*in `raise_nested_exceptions'
+      REGEX
+    end
   end
 
   test "display backtrace when error type is SyntaxError" do
@@ -601,7 +732,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
   end
 
@@ -628,7 +759,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#Application-Trace-0" do
-      assert_select "code", /syntax error, unexpected/
+      assert_select "code", /syntax error, unexpected|syntax errors found/
     end
     assert_match %r{Showing <i>.*test/dispatch/debug_exceptions_test.rb</i>}, body
   end
@@ -661,7 +792,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
       # assert application trace refers to line that calls method_that_raises is first
       assert_select "#Application-Trace-0" do
-        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in `call}
+        assert_select "code a:first", %r{test/dispatch/debug_exceptions_test\.rb:\d+:in .*call}
       end
 
       # assert framework trace that threw the error is first
@@ -673,7 +804,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "invoke interceptors before rendering" do
     @app = InterceptedApp
-    get "/intercepted_error", headers: { "action_dispatch.show_exceptions" => true }
+    get "/intercepted_error", headers: { "action_dispatch.show_exceptions" => :all }
 
     assert_equal InterceptedErrorInstance, request.get_header("int")
   end
@@ -681,7 +812,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   test "bad interceptors doesn't debug exceptions" do
     @app = BadInterceptedApp
 
-    get "/puke", headers: { "action_dispatch.show_exceptions" => true }
+    get "/puke", headers: { "action_dispatch.show_exceptions" => :all }
 
     assert_response 500
     assert_match(/puke/, body)
@@ -707,19 +838,32 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         assert_select "pre .line.active", /raise "Third error"/
       end
 
-      # assert application trace refers to line that raises the last exception
-      assert_select "#Application-Trace-0" do
-        assert_select "code a:first", %r{in `rescue in rescue in raise_nested_exceptions'}
-      end
+      if RUBY_VERSION >= "3.4"
+        # Possible Ruby 3.4-dev bug: https://bugs.ruby-lang.org/issues/19117#note-45
+        # assert application trace refers to line that raises the last exception
+        assert_select "#Application-Trace-0" do
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_third'}
+        end
 
-      # assert the second application trace refers to the line that raises the second exception
-      assert_select "#Application-Trace-1" do
-        assert_select "code a:first", %r{in `rescue in raise_nested_exceptions'}
+        # assert the second application trace refers to the line that raises the second exception
+        assert_select "#Application-Trace-1" do
+          assert_select "code a:first", %r{in '.*raise_nested_exceptions_second'}
+        end
+      else
+        # assert application trace refers to line that raises the last exception
+        assert_select "#Application-Trace-0" do
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_third'}
+        end
+
+        # assert the second application trace refers to the line that raises the second exception
+        assert_select "#Application-Trace-1" do
+          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_second'}
+        end
       end
 
       # assert the third application trace refers to the line that raises the first exception
       assert_select "#Application-Trace-2" do
-        assert_select "code a:first", %r{in `raise_nested_exceptions'}
+        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions_first'}
       end
     end
   end
@@ -752,7 +896,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   test "debug exceptions app shows diagnostics when malformed query parameters are provided by XHR" do
     @app = DevelopmentApp
-    xhr_request_env = { "action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+    xhr_request_env = { "action_dispatch.show_exceptions" => :all, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
 
     get "/bad_request?x[y]=1&x[y][][w]=2", headers: xhr_request_env
 
@@ -770,6 +914,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
-    assert_select "#container code", /undefined local variable or method `string”'/
+    assert_select "#container code", /undefined local variable or method ['`]string”'/
   end
 end

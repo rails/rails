@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../../tools/strict_warnings"
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.
@@ -15,12 +15,6 @@ require "active_support/core_ext/integer/time"
 
 class ActiveModel::TestCase < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
-
-  private
-    # Skips the current run on JRuby using Minitest::Assertions#skip
-    def jruby_skip(message = "")
-      skip message if defined?(JRUBY_VERSION)
-    end
 end
 
 require_relative "../../../tools/test_common"

@@ -7,8 +7,8 @@ module ActiveModel
     class BooleanTest < ActiveModel::TestCase
       def test_type_cast_boolean
         type = Type::Boolean.new
-        assert_predicate type.cast(""), :nil?
-        assert_predicate type.cast(nil), :nil?
+        assert_nil type.cast("")
+        assert_nil type.cast(nil)
 
         assert type.cast(true)
         assert type.cast(1)

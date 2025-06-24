@@ -46,7 +46,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
-    assert_respond_to h, :except
     assert_respond_to h, :except!
   end
 
@@ -401,10 +400,6 @@ class HashExtTest < ActiveSupport::TestCase
     original = { a: "x", b: "y", c: 10 }
     expected = { a: "x", b: "y" }
 
-    # Should return a new hash without the given keys.
-    assert_equal expected, original.except(:c)
-    assert_not_equal expected, original
-
     # Should replace the hash without the given keys.
     assert_equal expected, original.except!(:c)
     assert_equal expected, original
@@ -414,8 +409,6 @@ class HashExtTest < ActiveSupport::TestCase
     original = { a: "x", b: "y", c: 10 }
     expected = { a: "x" }
 
-    assert_equal expected, original.except(:b, :c)
-
     assert_equal expected, original.except!(:b, :c)
     assert_equal expected, original
   end
@@ -423,16 +416,7 @@ class HashExtTest < ActiveSupport::TestCase
   def test_except_with_original_frozen
     original = { a: "x", b: "y" }
     original.freeze
-    assert_nothing_raised { original.except(:a) }
-
     assert_raise(FrozenError) { original.except!(:a) }
-  end
-
-  def test_except_does_not_delete_values_in_original
-    original = { a: "x", b: "y" }
-    assert_not_called(original, :delete) do
-      original.except(:a)
-    end
   end
 end
 

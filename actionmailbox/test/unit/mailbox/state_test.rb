@@ -33,19 +33,19 @@ class ActionMailbox::Base::StateTest < ActiveSupport::TestCase
 
   test "successful mailbox processing leaves inbound email in delivered state" do
     SuccessfulMailbox.receive @inbound_email
-    assert @inbound_email.delivered?
+    assert_predicate @inbound_email, :delivered?
     assert_equal "I was processed", $processed
   end
 
   test "unsuccessful mailbox processing leaves inbound email in failed state" do
     UnsuccessfulMailbox.receive @inbound_email
-    assert @inbound_email.failed?
+    assert_predicate @inbound_email, :failed?
     assert_equal :failure, $processed
   end
 
   test "bounced inbound emails are not delivered" do
     BouncingMailbox.receive @inbound_email
-    assert @inbound_email.bounced?
+    assert_predicate @inbound_email, :bounced?
     assert_equal :bounced, $processed
   end
 end

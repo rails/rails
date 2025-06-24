@@ -84,14 +84,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
     Mentor.create!
     klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
 
-    create_sql = capture_sql { klass.create!(name: "Steve") }.first
+    create_sql = capture_sql { klass.create!(name: "Steve") }.second
 
     assert_match(/mentor_id/, create_sql)
     assert_match(/firm_id/, create_sql)
 
     developer = klass.find_by!(name: "Steve")
 
-    update_sql = capture_sql { developer.update(name: "Stephen") }.first
+    update_sql = capture_sql { developer.update(name: "Stephen") }.second
 
     assert_no_match(/mentor_id/, update_sql)
     assert_match(/firm_id/, update_sql)
@@ -99,14 +99,14 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_default_scope_runs_on_create
     Mentor.create!
-    create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.first
+    create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.second
 
     assert_match(/mentor_id/, create_sql)
   end
 
   def test_default_scope_with_all_queries_runs_on_create
     Mentor.create!
-    create_sql = capture_sql { DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen") }.first
+    create_sql = capture_sql { DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen") }.second
 
     assert_match(/mentor_id/, create_sql)
   end
@@ -151,7 +151,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scope_with_all_queries_runs_on_update
     Mentor.create!
     dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
-    update_sql = capture_sql { dev.update!(name: "Not Eileen") }.first
+    update_sql = capture_sql { dev.update!(name: "Not Eileen") }.second
 
     assert_match(/mentor_id/, update_sql)
   end
@@ -197,7 +197,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_default_scope_with_all_queries_runs_on_destroy
     Mentor.create!
     dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
-    destroy_sql = capture_sql { dev.destroy }.first
+    destroy_sql = capture_sql { dev.destroy }.second
 
     assert_match(/mentor_id/, destroy_sql)
   end
@@ -705,11 +705,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
-    vegetarian_pattern = /#{Regexp.escape(Lion.connection.quote_table_name("lions.is_vegetarian"))}/i
-    gender_pattern     = /#{Regexp.escape(Lion.connection.quote_table_name("lions.gender"))}/i
-
-    assert_match vegetarian_pattern, Lion.all.to_sql
-    assert_match gender_pattern, Lion.female.to_sql
+    assert_match %r/#{Regexp.escape(quote_table_name("lions.is_vegetarian"))}/i, Lion.all.to_sql
+    assert_match %r/#{Regexp.escape(quote_table_name("lions.gender"))}/i, Lion.female.to_sql
   end
 end
 
@@ -721,7 +718,7 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       2.times do
         Thread.new {
           assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
-          DeveloperOrderedBySalary.connection.close
+          DeveloperOrderedBySalary.lease_connection.close
         }.join
       end
     end
@@ -738,13 +735,13 @@ class DefaultScopingWithThreadTest < ActiveRecord::TestCase
       threads << Thread.new do
         Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
+        ThreadsafeDeveloper.lease_connection.close
       end
       threads << Thread.new do
         Thread.current[:default_scope_delay] = -> { barrier_2.wait }
         barrier_1.wait
         assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
+        ThreadsafeDeveloper.lease_connection.close
       end
       threads.each(&:join)
     ensure

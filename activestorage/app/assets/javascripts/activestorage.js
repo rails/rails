@@ -662,7 +662,7 @@
       }));
     }
     uploadRequestDidProgress(event) {
-      const progress = event.loaded / event.total * 100;
+      const progress = event.loaded / event.total * 90;
       if (progress) {
         this.dispatch("progress", {
           progress: progress
@@ -697,6 +697,42 @@
         xhr: xhr
       });
       xhr.upload.addEventListener("progress", (event => this.uploadRequestDidProgress(event)));
+      xhr.upload.addEventListener("loadend", (() => {
+        this.simulateResponseProgress(xhr);
+      }));
+    }
+    simulateResponseProgress(xhr) {
+      let progress = 90;
+      const startTime = Date.now();
+      const updateProgress = () => {
+        const elapsed = Date.now() - startTime;
+        const estimatedResponseTime = this.estimateResponseTime();
+        const responseProgress = Math.min(elapsed / estimatedResponseTime, 1);
+        progress = 90 + responseProgress * 9;
+        this.dispatch("progress", {
+          progress: progress
+        });
+        if (xhr.readyState !== XMLHttpRequest.DONE && progress < 99) {
+          requestAnimationFrame(updateProgress);
+        }
+      };
+      xhr.addEventListener("loadend", (() => {
+        this.dispatch("progress", {
+          progress: 100
+        });
+      }));
+      requestAnimationFrame(updateProgress);
+    }
+    estimateResponseTime() {
+      const fileSize = this.file.size;
+      const MB = 1024 * 1024;
+      if (fileSize < MB) {
+        return 1e3;
+      } else if (fileSize < 10 * MB) {
+        return 2e3;
+      } else {
+        return 3e3 + fileSize / MB * 50;
+      }
     }
   }
   const inputSelector = "input[type=file][data-direct-upload-url]:not([disabled])";
@@ -754,9 +790,9 @@
     }
   }
   function didClick(event) {
-    const {target: target} = event;
-    if ((target.tagName == "INPUT" || target.tagName == "BUTTON") && target.type == "submit" && target.form) {
-      submitButtonsByForm.set(target.form, target);
+    const button = event.target.closest("button, input");
+    if (button && button.type === "submit" && button.form) {
+      submitButtonsByForm.set(button.form, button);
     }
   }
   function didSubmitForm(event) {
@@ -822,6 +858,7 @@
   exports.DirectUpload = DirectUpload;
   exports.DirectUploadController = DirectUploadController;
   exports.DirectUploadsController = DirectUploadsController;
+  exports.dispatchEvent = dispatchEvent;
   exports.start = start;
   Object.defineProperty(exports, "__esModule", {
     value: true

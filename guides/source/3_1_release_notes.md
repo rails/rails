@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 3.1 Release Notes
 ===============================
@@ -37,18 +37,18 @@ The following changes are meant for upgrading your application to Rails 3.1.3, t
 Make the following changes to your `Gemfile`.
 
 ```ruby
-gem 'rails', '= 3.1.3'
-gem 'mysql2'
+gem "rails", "= 3.1.3"
+gem "mysql2"
 
 # Needed for the new asset pipeline
 group :assets do
-  gem 'sass-rails',   "~> 3.1.5"
-  gem 'coffee-rails', "~> 3.1.1"
-  gem 'uglifier',     ">= 1.0.3"
+  gem "sass-rails",   "~> 3.1.5"
+  gem "coffee-rails", "~> 3.1.1"
+  gem "uglifier",     ">= 1.0.3"
 end
 
 # jQuery is the default JavaScript library in Rails 3.1
-gem 'jquery-rails'
+gem "jquery-rails"
 ```
 
 #### config/application.rb

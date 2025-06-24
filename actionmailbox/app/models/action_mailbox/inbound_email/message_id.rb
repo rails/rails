@@ -5,7 +5,7 @@
 # web request.
 #
 # If an inbound email does not, against the rfc822 mandate, specify a Message-ID, one will be generated
-# using the approach from <tt>Mail::MessageIdField</tt>.
+# using the approach from +Mail::MessageIdField+.
 module ActionMailbox::InboundEmail::MessageId
   extend ActiveSupport::Concern
 

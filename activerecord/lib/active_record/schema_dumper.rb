@@ -41,8 +41,10 @@ module ActiveRecord
     cattr_accessor :unique_ignore_pattern, default: /^uniq_rails_[0-9a-f]{10}$/
 
     class << self
-      def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
-        connection.create_schema_dumper(generate_options(config)).dump(stream)
+      def dump(pool = ActiveRecord::Base.connection_pool, stream = $stdout, config = ActiveRecord::Base)
+        pool.with_connection do |connection|
+          connection.create_schema_dumper(generate_options(config)).dump(stream)
+        end
         stream
       end
 
@@ -57,9 +59,11 @@ module ActiveRecord
 
     def dump(stream)
       header(stream)
+      schemas(stream)
       extensions(stream)
       types(stream)
       tables(stream)
+      virtual_tables(stream)
       trailer(stream)
       stream
     end
@@ -69,7 +73,7 @@ module ActiveRecord
 
       def initialize(connection, options = {})
         @connection = connection
-        @version = connection.migration_context.current_version rescue nil
+        @version = connection.pool.migration_context.current_version rescue nil
         @options = options
         @ignore_tables = [
           ActiveRecord::Base.schema_migrations_table_name,
@@ -119,18 +123,35 @@ module ActiveRecord
       def types(stream)
       end
 
+      # schemas are only supported by PostgreSQL
+      def schemas(stream)
+      end
+
+      # virtual tables are only supported by SQLite
+      def virtual_tables(stream)
+      end
+
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
-        sorted_tables.each do |table_name|
-          table(table_name, stream) unless ignored?(table_name)
+        not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
+
+        not_ignored_tables.each_with_index do |table_name, index|
+          table(table_name, stream)
+          stream.puts if index < not_ignored_tables.count - 1
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
-        if @connection.use_foreign_keys?
-          sorted_tables.each do |tbl|
-            foreign_keys(tbl, stream) unless ignored?(tbl)
+        if @connection.supports_foreign_keys?
+          foreign_keys_stream = StringIO.new
+          not_ignored_tables.each do |tbl|
+            foreign_keys(tbl, foreign_keys_stream)
           end
+
+          foreign_keys_string = foreign_keys_stream.string
+          stream.puts if foreign_keys_string.length > 0
+
+          stream.print foreign_keys_string
         end
       end
 
@@ -171,7 +192,7 @@ module ActiveRecord
           tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
-          columns.each do |column|
+          columns.sort_by(&:name).each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
 
@@ -186,12 +207,16 @@ module ActiveRecord
           end
 
           indexes_in_create(table, tbl)
-          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          remaining = check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
-          unique_keys_in_create(table, tbl) if @connection.supports_unique_keys?
+          unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
-          tbl.puts
+
+          if remaining
+            tbl.puts
+            tbl.print remaining.string
+          end
 
           stream.print tbl.string
         rescue => e
@@ -224,10 +249,10 @@ module ActiveRecord
             indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
           end
 
-          if @connection.supports_unique_keys? && (unique_keys = @connection.unique_keys(table)).any?
-            unique_key_names = unique_keys.collect(&:name)
+          if @connection.supports_unique_constraints? && (unique_constraints = @connection.unique_constraints(table)).any?
+            unique_constraint_names = unique_constraints.collect(&:name)
 
-            indexes = indexes.reject { |index| unique_key_names.include?(index.name) }
+            indexes = indexes.reject { |index| unique_constraint_names.include?(index.name) }
           end
 
           index_statements = indexes.map do |index|
@@ -249,40 +274,55 @@ module ActiveRecord
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "include: #{index.include.inspect}" if index.include
+        index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
         index_parts
       end
 
       def check_constraints_in_create(table, stream)
         if (check_constraints = @connection.check_constraints(table)).any?
-          add_check_constraint_statements = check_constraints.map do |check_constraint|
-            parts = [
-              "t.check_constraint #{check_constraint.expression.inspect}"
-            ]
+          check_valid, check_invalid = check_constraints.partition { |chk| chk.validate? }
 
-            if check_constraint.export_name_on_schema_dump?
-              parts << "name: #{check_constraint.name.inspect}"
+          unless check_valid.empty?
+            check_constraint_statements = check_valid.map do |check|
+              "    t.check_constraint #{check_parts(check).join(', ')}"
             end
 
-            parts << "validate: #{check_constraint.validate?.inspect}" unless check_constraint.validate?
-
-            "    #{parts.join(', ')}"
+            stream.puts check_constraint_statements.sort.join("\n")
           end
 
-          stream.puts add_check_constraint_statements.sort.join("\n")
+          unless check_invalid.empty?
+            remaining = StringIO.new
+            table_name = remove_prefix_and_suffix(table).inspect
+
+            add_check_constraint_statements = check_invalid.map do |check|
+              "  add_check_constraint #{([table_name] + check_parts(check)).join(', ')}"
+            end
+
+            remaining.puts add_check_constraint_statements.sort.join("\n")
+            remaining
+          end
         end
+      end
+
+      def check_parts(check)
+        check_parts = [ check.expression.inspect ]
+        check_parts << "name: #{check.name.inspect}" if check.export_name_on_schema_dump?
+        check_parts << "validate: #{check.validate?.inspect}" unless check.validate?
+        check_parts
       end
 
       def foreign_keys(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
+              remove_prefix_and_suffix(foreign_key.from_table).inspect,
               remove_prefix_and_suffix(foreign_key.to_table).inspect,
             ]
 
-            if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table)
+            if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table, "id")
               parts << "column: #{foreign_key.column.inspect}"
             end
 
@@ -290,16 +330,13 @@ module ActiveRecord
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.export_name_on_schema_dump?
-              parts << "name: #{foreign_key.name.inspect}"
-            end
-
+            parts << "name: #{foreign_key.name.inspect}" if foreign_key.export_name_on_schema_dump?
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
 
-            "  #{parts.join(', ')}"
+            "  add_foreign_key #{parts.join(', ')}"
           end
 
           stream.puts add_foreign_key_statements.sort.join("\n")

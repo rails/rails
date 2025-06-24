@@ -28,23 +28,32 @@ class Object
   end
 end
 
-class Method
-  # Methods are not duplicable:
-  #
-  #   method(:puts).duplicable? # => false
-  #   method(:puts).dup         # => TypeError: allocator undefined for Method
-  def duplicable?
-    false
-  end
+methods_are_duplicable = begin
+  Object.instance_method(:duplicable?).dup
+  true
+rescue TypeError
+  false
 end
 
-class UnboundMethod
-  # Unbound methods are not duplicable:
-  #
-  #   method(:puts).unbind.duplicable? # => false
-  #   method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
-  def duplicable?
-    false
+unless methods_are_duplicable
+  class Method
+    # Methods are not duplicable:
+    #
+    #   method(:puts).duplicable? # => false
+    #   method(:puts).dup         # => TypeError: allocator undefined for Method
+    def duplicable?
+      false
+    end
+  end
+
+  class UnboundMethod
+    # Unbound methods are not duplicable:
+    #
+    #   method(:puts).unbind.duplicable? # => false
+    #   method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
+    def duplicable?
+      false
+    end
   end
 end
 

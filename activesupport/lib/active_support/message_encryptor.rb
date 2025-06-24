@@ -27,7 +27,7 @@ module ActiveSupport
   #   crypt.decrypt_and_verify(encrypted_data)                                    # => "my secret data"
   #
   # The +decrypt_and_verify+ method will raise an
-  # <tt>ActiveSupport::MessageEncryptor::InvalidMessage</tt> exception if the data
+  # +ActiveSupport::MessageEncryptor::InvalidMessage+ exception if the data
   # provided cannot be decrypted or verified.
   #
   #   crypt.decrypt_and_verify('not encrypted data') # => ActiveSupport::MessageEncryptor::InvalidMessage
@@ -259,6 +259,10 @@ module ActiveSupport
 
     def read_message(message, **options) # :nodoc:
       deserialize_with_metadata(decrypt(verify(message)), **options)
+    end
+
+    def inspect # :nodoc:
+      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
     end
 
     private

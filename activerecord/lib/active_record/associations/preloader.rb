@@ -75,15 +75,16 @@ module ActiveRecord
       #   for an Author.
       # - an Array which specifies multiple association names. This array
       #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>
-      #   allows this method to preload an author's avatar as well as all of his
+      #   allows this method to preload an author's avatar as well as all of their
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
       #   example, specifying <tt>{ author: :avatar }</tt> will preload a
       #   book's author, as well as that author's avatar.
       #
-      # +:associations+ has the same format as the +:include+ method in
-      # <tt>ActiveRecord::QueryMethods</tt>. So +associations+ could look like this:
+      # +:associations+ has the same format as the arguments to
+      # ActiveRecord::QueryMethods#includes. So +associations+ could look like
+      # this:
       #
       #   :books
       #   [ :books, :author ]

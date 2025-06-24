@@ -6,6 +6,6 @@ module Sharded
     self.table_name = :sharded_blog_posts
     query_constraints :blog_id, :revision, :id
 
-    has_many :comments, primary_key: [:blog_id, :id], query_constraints: [:blog_id, :blog_post_id]
+    has_many :comments, primary_key: [:blog_id, :id], foreign_key: [:blog_id, :blog_post_id]
   end
 end

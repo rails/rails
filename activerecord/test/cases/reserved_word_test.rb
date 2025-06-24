@@ -28,7 +28,7 @@ class ReservedWordTest < ActiveRecord::TestCase
   end
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :select, force: true
     @connection.create_table :distinct, force: true
     @connection.create_table :distinct_select, id: false, force: true do |t|

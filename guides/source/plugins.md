@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 The Basics of Creating Rails Plugins
 ====================================
@@ -67,6 +67,15 @@ spec.metadata["changelog_uri"] = "http://example.com"
 ```
 
 Then run the `bundle install` command.
+
+After that, set up your testing database by navigating to the `test/dummy` directory and running the following command:
+
+```bash
+$ cd test/dummy
+$ bin/rails db:create
+```
+
+Once the database is created, return to the plugin's root directory (`cd ../..`).
 
 Now you can run the tests using the `bin/test` command, and you should see:
 
@@ -146,7 +155,7 @@ end
 
 To test that your method does what it says it does, run the unit tests with `bin/test` from your plugin directory.
 
-```
+```bash
 $ bin/test
 ...
 2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
@@ -524,6 +533,6 @@ $ bundle exec rake rdoc
 
 ### References
 
-* [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
+* [Developing a RubyGem using Bundler](https://bundler.io/guides/creating_gem.html)
 * [Using .gemspecs as Intended](https://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
 * [Gemspec Reference](https://guides.rubygems.org/specification-reference/)

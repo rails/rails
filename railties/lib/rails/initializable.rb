@@ -9,23 +9,15 @@ module Rails
     end
 
     class Initializer
-      attr_reader :name, :block
+      attr_reader :name, :block, :before, :after
 
-      def initialize(name, context, options, &block)
-        options[:group] ||= :default
-        @name, @context, @options, @block = name, context, options, block
-      end
-
-      def before
-        @options[:before]
-      end
-
-      def after
-        @options[:after]
+      def initialize(name, context, before:, after:, group: nil, &block)
+        @group = group || :default
+        @name, @before, @after, @context, @block = name, before, after, context, block
       end
 
       def belongs_to?(group)
-        @options[:group] == group || @options[:group] == :all
+        @group == group || @group == :all
       end
 
       def run(*args)
@@ -34,7 +26,7 @@ module Rails
 
       def bind(context)
         return self if @context
-        Initializer.new(@name, context, @options, &block)
+        Initializer.new(@name, context, before:, after:, group: @group, &block)
       end
 
       def context_class
@@ -42,16 +34,66 @@ module Rails
       end
     end
 
-    class Collection < Array
+    class Collection
+      include Enumerable
       include TSort
+
+      delegate_missing_to :@collection
+
+      def initialize(initializers = nil)
+        @order = Hash.new { |hash, key| hash[key] = Set.new }
+        @resolve = Hash.new { |hash, key| hash[key] = Set.new }
+        @collection = []
+        concat(initializers) if initializers
+      end
+
+      def to_a
+        @collection
+      end
+
+      def last
+        @collection.last
+      end
+
+      def each(&block)
+        @collection.each(&block)
+      end
 
       alias :tsort_each_node :each
       def tsort_each_child(initializer, &block)
-        select { |i| i.before == initializer.name || i.name == initializer.after }.each(&block)
+        @order[initializer.name].each do |name|
+          @resolve[name].each(&block)
+        end
       end
 
       def +(other)
-        Collection.new(to_a + other.to_a)
+        dup.concat(other.to_a)
+      end
+
+      def <<(initializer)
+        @collection << initializer
+        @order[initializer.before] << initializer.name if initializer.before
+        @order[initializer.name] << initializer.after if initializer.after
+        @resolve[initializer.name] << initializer
+        self
+      end
+
+      def push(*initializers)
+        initializers.each(&method(:<<))
+        self
+      end
+
+      alias_method(:append, :push)
+
+      def concat(*initializer_collections)
+        initializer_collections.each do |initializers|
+          initializers.each(&method(:<<))
+        end
+        self
+      end
+
+      def has?(name)
+        @resolve.key?(name)
       end
     end
 
@@ -87,8 +129,10 @@ module Rails
 
       def initializer(name, opts = {}, &blk)
         raise ArgumentError, "A block must be passed when defining an initializer" unless blk
-        opts[:after] ||= initializers.last.name unless initializers.empty? || initializers.find { |i| i.name == opts[:before] }
-        initializers << Initializer.new(name, nil, opts, &blk)
+        opts[:after] ||= initializers.last&.name unless initializers.has?(opts[:before])
+        initializers << Initializer.new(
+          name, nil, before: opts[:before], after: opts[:after], group: opts[:group], &blk
+        )
       end
     end
   end

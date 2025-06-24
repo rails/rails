@@ -28,7 +28,7 @@ require "active_support/rails"
 require "action_view/version"
 require "action_view/deprecator"
 
-# :include: actionview/README.rdoc
+# :include: ../README.rdoc
 module ActionView
   extend ActiveSupport::Autoload
 
@@ -81,6 +81,7 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :StrictLocalsError
       autoload :TemplateError
       autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError

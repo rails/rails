@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/user"
+require "models/pilot"
 require "models/visitor"
 
 class SecurePasswordTest < ActiveModel::TestCase
@@ -12,6 +13,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     @user = User.new
     @visitor = Visitor.new
+    @pilot = Pilot.new
 
     # Simulate loading an existing user from the DB
     @existing_user = User.new
@@ -52,14 +54,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = ""
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["can’t be blank"], @user.errors[:password]
+    assert_equal ["can't be blank"], @user.errors[:password]
   end
 
   test "create a new user with validation and a nil password" do
     @user.password = nil
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["can’t be blank"], @user.errors[:password]
+    assert_equal ["can't be blank"], @user.errors[:password]
   end
 
   test "create a new user with validation and password length greater than 72 characters" do
@@ -85,7 +87,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = ""
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["doesn’t match Password"], @user.errors[:password_confirmation]
+    assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
   test "create a new user with validation and a nil password confirmation" do
@@ -99,7 +101,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password_confirmation = "something else"
     assert_not @user.valid?(:create), "user should be invalid"
     assert_equal 1, @user.errors.count
-    assert_equal ["doesn’t match Password"], @user.errors[:password_confirmation]
+    assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
   test "resetting password to nil clears the password cache" do
@@ -144,7 +146,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password = nil
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["can’t be blank"], @existing_user.errors[:password]
+    assert_equal ["can't be blank"], @existing_user.errors[:password]
   end
 
   test "updating an existing user with validation and password length greater than 72" do
@@ -160,7 +162,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password_confirmation = ""
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["doesn’t match Password"], @existing_user.errors[:password_confirmation]
+    assert_equal ["doesn't match Password"], @existing_user.errors[:password_confirmation]
   end
 
   test "updating an existing user with validation and a nil password confirmation" do
@@ -174,7 +176,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password_confirmation = "something else"
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["doesn’t match Password"], @existing_user.errors[:password_confirmation]
+    assert_equal ["doesn't match Password"], @existing_user.errors[:password_confirmation]
   end
 
   test "updating an existing user with validation and a correct password challenge" do
@@ -222,14 +224,14 @@ class SecurePasswordTest < ActiveModel::TestCase
     @existing_user.password_digest = ""
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["can’t be blank"], @existing_user.errors[:password]
+    assert_equal ["can't be blank"], @existing_user.errors[:password]
   end
 
   test "updating an existing user with validation and a nil password digest" do
     @existing_user.password_digest = nil
     assert_not @existing_user.valid?(:update), "user should be invalid"
     assert_equal 1, @existing_user.errors.count
-    assert_equal ["can’t be blank"], @existing_user.errors[:password]
+    assert_equal ["can't be blank"], @existing_user.errors[:password]
   end
 
   test "setting a blank password should not change an existing password" do
@@ -313,5 +315,13 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
+  end
+
+  test "password reset token" do
+    assert_not @person.respond_to? :password_reset_token
+    assert_equal "password_reset-token-900", @pilot.password_reset_token
+
+    assert_equal "finding-for-password_reset-by-999", Pilot.find_by_password_reset_token("999")
+    assert_equal "finding-for-password_reset-by-999!", Pilot.find_by_password_reset_token!("999")
   end
 end

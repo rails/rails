@@ -11,25 +11,35 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_sanitize_sql_array_handles_string_interpolation
-    quoted_bambi = ActiveRecord::Base.connection.quote_string("Bambi")
+    quoted_bambi = ActiveRecord::Base.lease_connection.quote_string("Bambi")
     assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi"])
-    assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi".mb_chars])
-    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote_string("Bambi\nand\nThumper")
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi".mb_chars])
+    end
+
+    quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote_string("Bambi\nand\nThumper")
     assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper"])
-    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper".mb_chars])
+
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper".mb_chars])
+    end
   end
 
   def test_sanitize_sql_array_handles_bind_variables
-    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi"])
-    assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi".mb_chars])
-    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi".mb_chars])
+    end
+    quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper"])
-    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper".mb_chars])
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper".mb_chars])
+    end
   end
 
   def test_sanitize_sql_array_handles_named_bind_variables
-    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
+    quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
     assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=:name", name: "Bambi"])
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "name=#{quoted_bambi} AND id='1'", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
@@ -37,7 +47,7 @@ class SanitizeTest < ActiveRecord::TestCase
       assert_equal "name=#{quoted_bambi} AND id=1", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
     end
 
-    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=:name", name: "Bambi\nand\nThumper"])
     assert_equal "name=#{quoted_bambi_and_thumper} AND name2=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=:name AND name2=:name", name: "Bambi\nand\nThumper"])
   end
@@ -91,11 +101,21 @@ class SanitizeTest < ActiveRecord::TestCase
       }
     end
 
-    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+    query = if searchable_post.lease_connection.prepared_statements
+      if current_adapter?(:PostgreSQLAdapter)
+        /title LIKE \$1/
+      else
+        /title LIKE \?/
+      end
+    else
+      /LIKE '20!% !_reduction!_!!'/
+    end
+
+    assert_queries_match(query) do
       searchable_post.search_as_method("20% _reduction_!").to_a
     end
 
-    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+    assert_queries_match(query) do
       searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
@@ -148,7 +168,7 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_bind_enumerable
-    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
+    quoted_abc = %(#{ActiveRecord::Base.lease_connection.quote('a')},#{ActiveRecord::Base.lease_connection.quote('b')},#{ActiveRecord::Base.lease_connection.quote('c')})
 
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'1','2','3'", bind("?", [1, 2, 3])
@@ -180,14 +200,14 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_bind_empty_enumerable
-    quoted_nil = ActiveRecord::Base.connection.quote(nil)
+    quoted_nil = ActiveRecord::Base.lease_connection.quote(nil)
     assert_equal quoted_nil, bind("?", [])
     assert_equal " in (#{quoted_nil})", bind(" in (?)", [])
     assert_equal "foo in (#{quoted_nil})", bind("foo in (?)", [])
   end
 
   def test_bind_range
-    quoted_abc = %(#{ActiveRecord::Base.connection.quote('a')},#{ActiveRecord::Base.connection.quote('b')},#{ActiveRecord::Base.connection.quote('c')})
+    quoted_abc = %(#{ActiveRecord::Base.lease_connection.quote('a')},#{ActiveRecord::Base.lease_connection.quote('b')},#{ActiveRecord::Base.lease_connection.quote('c')})
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       assert_equal "'0'", bind("?", 0..0)
       assert_equal "'1','2','3'", bind("?", 1..3)
@@ -199,37 +219,51 @@ class SanitizeTest < ActiveRecord::TestCase
   end
 
   def test_bind_empty_range
-    quoted_nil = ActiveRecord::Base.connection.quote(nil)
+    quoted_nil = ActiveRecord::Base.lease_connection.quote(nil)
     assert_equal quoted_nil, bind("?", 0...0)
     assert_equal quoted_nil, bind("?", "a"..."a")
   end
 
   def test_bind_empty_string
-    quoted_empty = ActiveRecord::Base.connection.quote("")
+    quoted_empty = ActiveRecord::Base.lease_connection.quote("")
     assert_equal quoted_empty, bind("?", "")
   end
 
   def test_bind_chars
-    quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
-    quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
+    quoted_bambi = ActiveRecord::Base.lease_connection.quote("Bambi")
+    quoted_bambi_and_thumper = ActiveRecord::Base.lease_connection.quote("Bambi\nand\nThumper")
     assert_equal "name=#{quoted_bambi}", bind("name=?", "Bambi")
     assert_equal "name=#{quoted_bambi_and_thumper}", bind("name=?", "Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi}", bind("name=?", "Bambi".mb_chars)
-    assert_equal "name=#{quoted_bambi_and_thumper}", bind("name=?", "Bambi\nand\nThumper".mb_chars)
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name=#{quoted_bambi}", bind("name=?", "Bambi".mb_chars)
+    end
+
+    assert_deprecated ActiveSupport.deprecator do
+      assert_equal "name=#{quoted_bambi_and_thumper}", bind("name=?", "Bambi\nand\nThumper".mb_chars)
+    end
   end
 
   def test_named_bind_with_postgresql_type_casts
     l = Proc.new { bind(":a::integer '2009-01-01'::date", a: "10") }
     assert_nothing_raised(&l)
-    assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
+    assert_equal "#{ActiveRecord::Base.lease_connection.quote('10')}::integer '2009-01-01'::date", l.call
+  end
+
+  def test_named_bind_with_literal_colons
+    assert_equal "TO_TIMESTAMP('2017/08/02 10:59:00', 'YYYY/MM/DD HH12:MI:SS')", bind("TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12\\:MI\\:SS')", date: "2017/08/02 10:59:00")
+    assert_raise(ActiveRecord::PreparedStatementInvalid) { bind "TO_TIMESTAMP(:date, 'YYYY/MM/DD HH12:MI:SS')", date: "2017/08/02 10:59:00" }
   end
 
   private
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
-        ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
+        ActiveRecord::Base.with_connection do |c|
+          ActiveRecord::Base.send(:replace_named_bind_variables, c, statement, vars.first)
+        end
       else
-        ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
+        ActiveRecord::Base.with_connection do |c|
+          ActiveRecord::Base.send(:replace_bind_variables, c, statement, vars)
+        end
       end
     end
 end

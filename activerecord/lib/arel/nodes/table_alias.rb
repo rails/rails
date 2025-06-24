@@ -26,6 +26,10 @@ module Arel # :nodoc: all
       def able_to_type_cast?
         relation.respond_to?(:able_to_type_cast?) && relation.able_to_type_cast?
       end
+
+      def to_cte
+        Arel::Nodes::Cte.new(name, relation)
+      end
     end
   end
 end

@@ -10,7 +10,7 @@ module ActiveModel
       include ResolveValue
 
       def check_validity!
-        unless (options.keys & COMPARE_CHECKS.keys).any?
+        unless options.keys.intersect?(COMPARE_CHECKS.keys)
           raise ArgumentError, "Expected one of :greater_than, :greater_than_or_equal_to, "\
           ":equal_to, :less_than, :less_than_or_equal_to, or :other_than option to be supplied."
         end

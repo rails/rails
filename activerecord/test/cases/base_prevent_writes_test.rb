@@ -51,15 +51,15 @@ class BasePreventWritesTest < ActiveRecord::TestCase
       Bird.create!(name: "Bluejay")
 
       ActiveRecord::Base.while_preventing_writes do
-        assert_queries(2) { Bird.where(name: "Bluejay").explain }
+        assert_queries_count(2) { Bird.where(name: "Bluejay").explain.inspect }
       end
     end
 
     test "an empty transaction does not raise if preventing writes" do
       ActiveRecord::Base.while_preventing_writes do
-        assert_queries(2, ignore_none: true) do
+        assert_queries_count(2, include_schema: true) do
           Bird.transaction do
-            ActiveRecord::Base.connection.materialize_transactions
+            ActiveRecord::Base.lease_connection.materialize_transactions
           end
         end
       end
@@ -68,8 +68,8 @@ class BasePreventWritesTest < ActiveRecord::TestCase
     test "preventing writes applies to all connections in block" do
       ActiveRecord::Base.while_preventing_writes do
         conn1_error = assert_raises ActiveRecord::ReadOnlyError do
-          assert_equal ActiveRecord::Base.connection, Bird.connection
-          assert_not_equal ARUnit2Model.connection, Bird.connection
+          assert_equal ActiveRecord::Base.lease_connection, Bird.lease_connection
+          assert_not_equal ARUnit2Model.lease_connection, Bird.lease_connection
           Bird.create!(name: "Bluejay")
         end
 
@@ -78,8 +78,8 @@ class BasePreventWritesTest < ActiveRecord::TestCase
 
       ActiveRecord::Base.while_preventing_writes do
         conn2_error = assert_raises ActiveRecord::ReadOnlyError do
-          assert_not_equal ActiveRecord::Base.connection, Professor.connection
-          assert_equal ARUnit2Model.connection, Professor.connection
+          assert_not_equal ActiveRecord::Base.lease_connection, Professor.lease_connection
+          assert_equal ARUnit2Model.lease_connection, Professor.lease_connection
           Professor.create!(name: "Professor Bluejay")
         end
 

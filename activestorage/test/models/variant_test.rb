@@ -114,6 +114,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 8, image.height
   end
 
+  test "resized variation of WEBP blob" do
+    blob = create_file_blob(filename: "valley.webp")
+    variant = blob.variant(resize_to_limit: [50, 50]).processed
+    assert_match(/valley\.webp/, variant.url)
+
+    image = read_image(variant)
+    assert_equal "WEBP", image.type
+    assert_equal 50, image.width
+    assert_includes [33, 34], image.height
+  end
+
   test "optimized variation of GIF blob" do
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 
@@ -147,7 +158,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variation of invariable blob" do
-    assert_raises ActiveStorage::InvariableError do
+    assert_raises ActiveStorage::InvariableError, match: /blob with ID=\d+ and content_type=application\/pdf/ do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize_to_limit: [100, 100])
     end
   end
@@ -284,11 +295,21 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
   private
     def process_variants_with(processor)
-      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, processor
+      previous_transformer = ActiveStorage.variant_transformer
+      ActiveStorage.variant_transformer =
+        case processor
+        when :vips
+          ActiveStorage::Transformers::Vips
+        when :mini_magick
+          ActiveStorage::Transformers::ImageMagick
+        else
+          raise "#{processor.inspect} is not a valid image transformer"
+        end
+
       yield
     rescue LoadError
-      ENV["CI"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
+      ENV["BUILDKITE"] ? raise : skip("Variant processor #{processor.inspect} is not installed")
     ensure
-      ActiveStorage.variant_processor = previous_processor
+      ActiveStorage.variant_transformer = previous_transformer
     end
 end

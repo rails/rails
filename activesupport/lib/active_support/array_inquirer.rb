@@ -39,7 +39,7 @@ module ActiveSupport
         name.end_with?("?") || super
       end
 
-      def method_missing(name, *args)
+      def method_missing(name, ...)
         if name.end_with?("?")
           any?(name[0..-2])
         else

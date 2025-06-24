@@ -232,7 +232,7 @@ module Arel # :nodoc: all
       def grouping_any(method_id, others, *extras)
         nodes = others.map { |expr| send(method_id, expr, *extras) }
         Nodes::Grouping.new nodes.inject { |memo, node|
-          Nodes::Or.new(memo, node)
+          Nodes::Or.new([memo, node])
         }
       end
 

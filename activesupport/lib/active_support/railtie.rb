@@ -44,10 +44,10 @@ module ActiveSupport
       app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
     end
 
-    initializer "active_support.reset_all_current_attributes_instances" do |app|
+    initializer "active_support.clear_all_current_attributes_instances" do |app|
       app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
-      app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+      app.executor.to_run              { ActiveSupport::CurrentAttributes.clear_all }
+      app.executor.to_complete         { ActiveSupport::CurrentAttributes.clear_all }
 
       ActiveSupport.on_load(:active_support_test_case) do
         if app.config.active_support.executor_around_test_case
@@ -89,10 +89,15 @@ module ActiveSupport
       begin
         TZInfo::DataSource.get
       rescue TZInfo::DataSourceNotFound => e
-        raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
+        raise e.exception('tzinfo-data is not present. Please add gem "tzinfo-data" to your Gemfile and run bundle install')
       end
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
+      config.eager_load_namespaces << TZInfo
+    end
+
+    initializer "active_support.to_time_preserves_timezone" do |app|
+      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
     end
 
     # Sets the default week start
@@ -117,16 +122,8 @@ module ActiveSupport
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
-        if k == "disable_to_s_conversion"
-          ActiveSupport.deprecator.warn("config.active_support.disable_to_s_conversion is deprecated and will be removed in Rails 7.2.")
-        elsif k == "remove_deprecated_time_with_zone_name"
-          ActiveSupport.deprecator.warn("config.active_support.remove_deprecated_time_with_zone_name is deprecated and will be removed in Rails 7.2.")
-        elsif k == "use_rfc4122_namespaced_uuids"
-          ActiveSupport.deprecator.warn("config.active_support.use_rfc4122_namespaced_uuids is deprecated and will be removed in Rails 7.2.")
-        else
-          k = "#{k}="
-          ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
-        end
+        k = "#{k}="
+        ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
       end
     end
 

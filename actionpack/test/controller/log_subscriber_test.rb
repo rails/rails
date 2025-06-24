@@ -32,6 +32,14 @@ module Another
       redirect_to "http://secret.foo.bar/"
     end
 
+    def filterable_redirector_with_params
+      redirect_to "http://secret.foo.bar?username=repinel&password=1234"
+    end
+
+    def filterable_redirector_bad_uri
+      redirect_to " s:/invalid-string0uri"
+    end
+
     def data_sender
       send_data "cool data", filename: "file.txt"
     end
@@ -165,7 +173,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
   end
 
   def test_multiple_process_with_parameters
@@ -175,8 +183,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 6, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
-    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
+    assert_equal "Parameters: #{{ "id" => "20" }}", logs[4]
   end
 
   def test_process_action_with_wrapped_parameters
@@ -185,7 +193,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match '"person"=>{"name"=>"jose"}', logs[1]
+    assert_match({ "person" => { "name" => "jose" } }.inspect[1..-2], logs[1])
   end
 
   def test_process_action_with_view_runtime
@@ -234,9 +242,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     params = logs[1]
-    assert_match(/"amount"=>"\[FILTERED\]"/, params)
-    assert_match(/"lifo"=>"\[FILTERED\]"/, params)
-    assert_match(/"step"=>"1"/, params)
+    assert_match({ "amount" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "lifo" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "step" => "1" }.inspect[1..-2], params)
   end
 
   def test_redirect_to
@@ -260,6 +268,42 @@ class ACLogSubscriberTest < ActionController::TestCase
   def test_filter_redirect_url_by_regexp
     @request.env["action_dispatch.redirect_filter"] = [/secret\.foo.+/]
     get :filterable_redirector
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_does_not_filter_redirect_params_by_default
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=1234", logs[1]
+  end
+
+  def test_filter_redirect_params_by_string
+    @request.env["action_dispatch.parameter_filter"] = ["password"]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_params_by_regexp
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+    get :filterable_redirector_with_params
+    wait
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
+  def test_filter_redirect_bad_uri
+    @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
+
+    get :filterable_redirector_bad_uri
     wait
 
     assert_equal 3, logs.size

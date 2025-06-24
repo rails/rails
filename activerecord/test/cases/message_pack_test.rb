@@ -9,6 +9,8 @@ require "active_support/message_pack"
 require "active_record/message_pack"
 
 class ActiveRecordMessagePackTest < ActiveRecord::TestCase
+  fixtures :posts, :comments, :authors, :author_addresses
+
   test "enshrines type IDs" do
     expected = {
       119 => ActiveModel::Type::Binary::Data,

@@ -57,6 +57,6 @@ class MessagesController < ActionController::Base
 
     # Only allow a trusted parameter list through.
     def message_params
-      params.require(:message).permit(:subject, :content)
+      params.expect(message: [:subject, :content])
     end
 end

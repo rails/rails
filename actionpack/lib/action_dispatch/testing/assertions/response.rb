@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 module ActionDispatch
   module Assertions
-    # A small suite of assertions that test responses from \Rails applications.
+    # A small suite of assertions that test responses from Rails applications.
     module ResponseAssertions
       RESPONSE_PREDICATES = { # :nodoc:
         success:  :successful?,
@@ -13,20 +15,21 @@ module ActionDispatch
 
       # Asserts that the response is one of the following types:
       #
-      # * <tt>:success</tt>   - Status code was in the 200-299 range
-      # * <tt>:redirect</tt>  - Status code was in the 300-399 range
-      # * <tt>:missing</tt>   - Status code was 404
-      # * <tt>:error</tt>     - Status code was in the 500-599 range
+      # *   `:success`   - Status code was in the 200-299 range
+      # *   `:redirect`  - Status code was in the 300-399 range
+      # *   `:missing`   - Status code was 404
+      # *   `:error`     - Status code was in the 500-599 range
       #
-      # You can also pass an explicit status number like <tt>assert_response(501)</tt>
-      # or its symbolic equivalent <tt>assert_response(:not_implemented)</tt>.
-      # See +Rack::Utils::SYMBOL_TO_STATUS_CODE+ for a full list.
       #
-      #   # Asserts that the response was a redirection
-      #   assert_response :redirect
+      # You can also pass an explicit status number like `assert_response(501)` or its
+      # symbolic equivalent `assert_response(:not_implemented)`. See
+      # `Rack::Utils::SYMBOL_TO_STATUS_CODE` for a full list.
       #
-      #   # Asserts that the response code was status code 401 (unauthorized)
-      #   assert_response 401
+      #     # Asserts that the response was a redirection
+      #     assert_response :redirect
+      #
+      #     # Asserts that the response code was status code 401 (unauthorized)
+      #     assert_response 401
       def assert_response(type, message = nil)
         message ||= generate_response_message(type)
 
@@ -39,21 +42,21 @@ module ActionDispatch
 
       # Asserts that the response is a redirect to a URL matching the given options.
       #
-      #   # Asserts that the redirection was to the "index" action on the WeblogController
-      #   assert_redirected_to controller: "weblog", action: "index"
+      #     # Asserts that the redirection was to the "index" action on the WeblogController
+      #     assert_redirected_to controller: "weblog", action: "index"
       #
-      #   # Asserts that the redirection was to the named route login_url
-      #   assert_redirected_to login_url
+      #     # Asserts that the redirection was to the named route login_url
+      #     assert_redirected_to login_url
       #
-      #   # Asserts that the redirection was to the URL for @customer
-      #   assert_redirected_to @customer
+      #     # Asserts that the redirection was to the URL for @customer
+      #     assert_redirected_to @customer
       #
-      #   # Asserts that the redirection matches the regular expression
-      #   assert_redirected_to %r(\Ahttp://example.org)
+      #     # Asserts that the redirection matches the regular expression
+      #     assert_redirected_to %r(\Ahttp://example.org)
       #
-      #   # Asserts that the redirection has the HTTP status code 301 (Moved
-      #   # Permanently).
-      #   assert_redirected_to "/some/path", status: :moved_permanently
+      #     # Asserts that the redirection has the HTTP status code 301 (Moved
+      #     # Permanently).
+      #     assert_redirected_to "/some/path", status: :moved_permanently
       def assert_redirected_to(url_options = {}, options = {}, message = nil)
         options, message = {}, options unless options.is_a?(Hash)
 
@@ -66,6 +69,20 @@ module ActionDispatch
 
         message ||= "Expected response to be a redirect to <#{redirect_expected}> but was a redirect to <#{redirect_is}>"
         assert_operator redirect_expected, :===, redirect_is, message
+      end
+
+      # Asserts that the given +text+ is present somewhere in the response body.
+      #
+      #     assert_in_body fixture(:name).description
+      def assert_in_body(text)
+        assert_match(/#{Regexp.escape(text)}/, @response.body)
+      end
+
+      # Asserts that the given +text+ is not present anywhere in the response body.
+      #
+      #     assert_not_in_body fixture(:name).description
+      def assert_not_in_body(text)
+        assert_no_match(/#{Regexp.escape(text)}/, @response.body)
       end
 
       private
@@ -84,13 +101,23 @@ module ActionDispatch
         end
 
         def generate_response_message(expected, actual = @response.response_code)
-          (+"Expected response to be a <#{code_with_name(expected)}>,"\
-          " but was a <#{code_with_name(actual)}>").concat(location_if_redirected).concat(response_body_if_short)
+          lambda do
+            (+"Expected response to be a <#{code_with_name(expected)}>,"\
+             " but was a <#{code_with_name(actual)}>").
+              concat(location_if_redirected).
+              concat(exception_if_present).
+              concat(response_body_if_short)
+          end
         end
 
         def response_body_if_short
           return "" if @response.body.size > 500
           "\nResponse body: #{@response.body}"
+        end
+
+        def exception_if_present
+          return "" unless ex = @request&.env&.[]("action_dispatch.exception")
+          "\n\nException while processing request: #{Minitest::UnexpectedError.new(ex).message}\n"
         end
 
         def location_if_redirected

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 7.0 Release Notes
 ===============================
@@ -96,6 +96,7 @@ Please refer to the [Changelog][action-view] for detailed changes.
     #=>   <input type="hidden" name="_method" value="post" autocomplete="off" />
     # After
     #=>   <input type="hidden" name="_method" value="patch" autocomplete="off" />
+    ```
 
 Action Mailer
 -------------

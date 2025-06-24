@@ -94,14 +94,24 @@ module ActiveRecord
         :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
       end
 
-      # Returns the class descending directly from ActiveRecord::Base, or
-      # an abstract class, if any, in the inheritance hierarchy.
+      # Returns the first class in the inheritance hierarchy that descends from either an
+      # abstract class or from <tt>ActiveRecord::Base</tt>.
       #
-      # If A extends ActiveRecord::Base, A.base_class will return A. If B descends from A
-      # through some arbitrarily deep hierarchy, B.base_class will return A.
+      # Consider the following behaviour:
       #
-      # If B < A and C < B and if A is an abstract_class then both B.base_class
-      # and C.base_class would return B as the answer since A is an abstract_class.
+      #   class ApplicationRecord < ActiveRecord::Base
+      #     self.abstract_class = true
+      #   end
+      #   class Shape < ApplicationRecord
+      #     self.abstract_class = true
+      #   end
+      #   Polygon = Class.new(Shape)
+      #   Square = Class.new(Polygon)
+      #
+      #   ApplicationRecord.base_class # => ApplicationRecord
+      #   Shape.base_class # => Shape
+      #   Polygon.base_class # => Polygon
+      #   Square.base_class # => Polygon
       attr_reader :base_class
 
       # Returns whether the class is a base class.
@@ -155,7 +165,7 @@ module ActiveRecord
 
       # Returns whether this class is an abstract class or not.
       def abstract_class?
-        defined?(@abstract_class) && @abstract_class == true
+        @abstract_class == true
       end
 
       # Sets the application record class for Active Record
@@ -192,7 +202,9 @@ module ActiveRecord
           "The single-table inheritance mechanism failed to locate the subclass: '#{type_name}'. " \
           "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " \
           "Please rename this column if you didn't intend it to be used for storing the inheritance class " \
-          "or overwrite #{name}.inheritance_column to use another column for that information."
+          "or overwrite #{name}.inheritance_column to use another column for that information. " \
+          "If you wish to disable single-table inheritance for #{name} set " \
+          "#{name}.inheritance_column to nil"
       end
 
       # Returns the value to be stored in the polymorphic type column for Polymorphic Associations.

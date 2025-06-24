@@ -7,6 +7,7 @@ require "pathname"
 require "uri/generic"
 require "msgpack/bigint"
 require "active_support/hash_with_indifferent_access"
+require "active_support/core_ext/string/output_safety"
 require "active_support/time"
 
 module ActiveSupport
@@ -86,8 +87,9 @@ module ActiveSupport
           unpacker: URI.method(:parse)
 
         registry.register_type 14, IPAddr,
-          packer: :to_s,
-          unpacker: :new
+          packer: method(:write_ipaddr),
+          unpacker: method(:read_ipaddr),
+          recursive: true
 
         registry.register_type 15, Pathname,
           packer: :to_s,
@@ -101,6 +103,10 @@ module ActiveSupport
           packer: method(:write_hash_with_indifferent_access),
           unpacker: method(:read_hash_with_indifferent_access),
           recursive: true
+
+        registry.register_type 18, ActiveSupport::SafeBuffer,
+          packer: :to_s,
+          unpacker: :new
       end
 
       def install_unregistered_type_error(registry)
@@ -219,6 +225,18 @@ module ActiveSupport
 
       def read_set(unpacker)
         Set.new(unpacker.read)
+      end
+
+      def write_ipaddr(ipaddr, packer)
+        if ipaddr.prefix < 32 || (ipaddr.ipv6? && ipaddr.prefix < 128)
+          packer.write("#{ipaddr}/#{ipaddr.prefix}")
+        else
+          packer.write(ipaddr.to_s)
+        end
+      end
+
+      def read_ipaddr(unpacker)
+        IPAddr.new(unpacker.read)
       end
 
       def write_hash_with_indifferent_access(hwia, packer)

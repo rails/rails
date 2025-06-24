@@ -23,6 +23,7 @@ module ActiveRecord
         db_path = db_config.database
         file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
         FileUtils.rm(file)
+        FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
       end
@@ -49,9 +50,9 @@ module ActiveRecord
         if ignore_tables.any?
           ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")
-          args << "SELECT sql FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
+          args << "SELECT sql || ';' FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
         else
-          args << ".schema"
+          args << ".schema --nosys"
         end
         run_cmd("sqlite3", args, filename)
       end
@@ -65,11 +66,12 @@ module ActiveRecord
         attr_reader :db_config, :root
 
         def connection
-          ActiveRecord::Base.connection
+          ActiveRecord::Base.lease_connection
         end
 
         def establish_connection(config = db_config)
           ActiveRecord::Base.establish_connection(config)
+          connection.connect!
         end
 
         def run_cmd(cmd, args, out)

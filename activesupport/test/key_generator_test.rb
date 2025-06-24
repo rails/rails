@@ -59,6 +59,10 @@ else
       assert_raises(ArgumentError) { ActiveSupport::KeyGenerator.hash_digest_class = InvalidDigest }
       assert_raises(ArgumentError) { ActiveSupport::KeyGenerator.hash_digest_class = InvalidDigest.new }
     end
+
+    test "inspect does not show secrets" do
+      assert_match(/\A#<ActiveSupport::KeyGenerator:0x[0-9a-f]+>\z/, @generator.inspect)
+    end
   end
 
   class CachingKeyGeneratorTest < ActiveSupport::TestCase

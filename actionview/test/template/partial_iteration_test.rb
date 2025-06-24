@@ -12,7 +12,7 @@ class PartialIterationTest < ActiveSupport::TestCase
 
   def test_first_is_true_when_current_is_at_the_first_index
     iteration = ActionView::PartialIteration.new 3
-    assert iteration.first?, "first when current is 0"
+    assert_predicate iteration, :first?, "first when current is 0"
   end
 
   def test_first_is_false_unless_current_is_at_the_first_index
@@ -25,7 +25,7 @@ class PartialIterationTest < ActiveSupport::TestCase
     iteration = ActionView::PartialIteration.new 3
     iteration.iterate!
     iteration.iterate!
-    assert iteration.last?, "last when current is 2"
+    assert_predicate iteration, :last?, "last when current is 2"
   end
 
   def test_last_is_false_unless_current_is_at_the_last_index

@@ -233,7 +233,7 @@ module ActiveRecord # :nodoc:
   #
   # Connections are usually created through
   # {ActiveRecord::Base.establish_connection}[rdoc-ref:ConnectionHandling#establish_connection] and retrieved
-  # by ActiveRecord::Base.connection. All classes inheriting from ActiveRecord::Base will use this
+  # by ActiveRecord::Base.lease_connection. All classes inheriting from ActiveRecord::Base will use this
   # connection. But you can also set a class-specific connection. For example, if Course is an
   # ActiveRecord::Base, but resides in a different database, you can just say <tt>Course.establish_connection</tt>
   # and Course and all of its subclasses will use this connection instead.
@@ -280,7 +280,7 @@ module ActiveRecord # :nodoc:
   # So it's possible to assign a logger to the class through <tt>Base.logger=</tt> which will then be used by all
   # instances in the current object space.
   class Base
-    extend ActiveModel::Naming
+    include ActiveModel::API
 
     extend ActiveSupport::Benchmarkable
     extend ActiveSupport::DescendantsTracker
@@ -304,7 +304,6 @@ module ActiveRecord # :nodoc:
     include Scoping
     include Sanitization
     include AttributeAssignment
-    include ActiveModel::Conversion
     include Integration
     include Validations
     include CounterCache
@@ -329,8 +328,9 @@ module ActiveRecord # :nodoc:
     include TokenFor
     include SignedId
     include Suppressor
-    include Normalization
     include Marshalling::Methods
+
+    self.param_delimiter = "_"
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)

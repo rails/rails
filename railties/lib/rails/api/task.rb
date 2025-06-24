@@ -146,8 +146,6 @@ module Rails
       end
 
       def configure_rdoc_files
-        rdoc_files.include(api_main)
-
         RDOC_FILES.each do |component, cfg|
           cdr = component_root_dir(component)
 
@@ -162,8 +160,9 @@ module Rails
 
         # Only generate documentation for files that have been
         # changed since the API was generated.
-        if Dir.exist?(api_dir) && !ENV["ALL"]
-          last_generation = DateTime.rfc2822(File.open("#{api_dir}/created.rid", &:readline))
+        timestamp_path = "#{api_dir}/created.rid"
+        if File.exist?(timestamp_path) && !File.zero?(timestamp_path) && !ENV["ALL"]
+          last_generation = DateTime.rfc2822(File.open(timestamp_path, &:readline))
 
           rdoc_files.keep_if do |file|
             File.mtime(file).to_datetime > last_generation
@@ -172,6 +171,9 @@ module Rails
           # Nothing to do
           exit(0) if rdoc_files.empty?
         end
+
+        # This must come after the mtime comparison to ensure the main page is not excluded.
+        rdoc_files.include(api_main)
       end
 
       # These variables are used by the sdoc template

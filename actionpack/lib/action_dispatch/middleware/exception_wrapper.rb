@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/syntax_error_proxy"
 require "active_support/core_ext/thread/backtrace/location"
@@ -174,6 +176,21 @@ module ActionDispatch
       Rack::Utils.status_code(@@rescue_responses[class_name])
     end
 
+    def show?(request)
+      # We're treating `nil` as "unset", and we want the default setting to be `:all`.
+      # This logic should be extracted to `env_config` and calculated once.
+      config = request.get_header("action_dispatch.show_exceptions")
+
+      case config
+      when :none
+        false
+      when :rescuable
+        rescue_response?
+      else
+        true
+      end
+    end
+
     def rescue_response?
       @@rescue_responses.key?(exception.class.name)
     end
@@ -182,14 +199,6 @@ module ActionDispatch
       backtrace.map do |trace|
         extract_source(trace)
       end
-    end
-
-    def error_highlight_available?
-      # ErrorHighlight.spot with backtrace_location keyword is available since error_highlight 0.4.0
-      unless defined?(@@error_highlight_available)
-        @@error_highlight_available = defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
-      end
-      @@error_highlight_available
     end
 
     def trace_to_show
@@ -221,14 +230,14 @@ module ActionDispatch
     end
 
     private
-      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location)
+      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
           super(location)
           @template = template
         end
 
         def spot(exc)
-          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location)
+          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
             location = @template.spot(__getobj__)
           else
             location = super
@@ -252,8 +261,13 @@ module ActionDispatch
         end
 
         (@exception.backtrace_locations || []).map do |loc|
-          if built_methods.key?(loc.label.to_s)
-            SourceMapLocation.new(loc, built_methods[loc.label.to_s])
+          if built_methods.key?(loc.base_label)
+            thread_backtrace_location = if loc.respond_to?(:__getobj__)
+              loc.__getobj__
+            else
+              loc
+            end
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.base_label])
           else
             loc
           end

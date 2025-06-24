@@ -19,6 +19,7 @@ module ActiveRecord
           t.column :content, :text
           t.column :remind_at, :datetime
           t.column :place_id, :integer
+          t.column :parent_id, :bigint
         end
       end
     end
@@ -153,6 +154,14 @@ module ActiveRecord
       end
     end
 
+    class DropTableMigration < SilentMigration
+      def change
+        drop_table("horses") do |t|
+          t.string :name
+        end
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration::Current
       def self.up
         create_table("horses") do |t|
@@ -220,6 +229,24 @@ module ActiveRecord
       end
     end
 
+    class RevertUniqueConstraintWithInvalidOption < SilentMigration
+      def change
+        add_unique_constraint :horses, :place_id, invalid: :option
+      end
+    end
+
+    class RevertForeignKeyWithInvalidOption < SilentMigration
+      def change
+        add_foreign_key :horses, :horses, column: :parent_id, invalid: :option
+      end
+    end
+
+    class RevertCheckConstraintWithInvalidOption < SilentMigration
+      def change
+        add_check_constraint :horses, "place_id > 0", invalid: :option
+      end
+    end
+
     self.use_transactional_tests = false
 
     setup do
@@ -228,8 +255,8 @@ module ActiveRecord
 
     teardown do
       %w[horses new_horses].each do |table|
-        if ActiveRecord::Base.connection.table_exists?(table)
-          ActiveRecord::Base.connection.drop_table(table)
+        if ActiveRecord::Base.lease_connection.table_exists?(table)
+          ActiveRecord::Base.lease_connection.drop_table(table)
         end
       end
       ActiveRecord::Migration.verbose = @verbose_was
@@ -356,7 +383,7 @@ module ActiveRecord
       assert_equal "Sekitoba", Horse.new.name
     end
 
-    if ActiveRecord::Base.connection.supports_comments?
+    if ActiveRecord::Base.lease_connection.supports_comments?
       def test_migrate_revert_change_column_comment
         migration1 = ChangeColumnComment1.new
         migration1.migrate(:up)
@@ -374,7 +401,7 @@ module ActiveRecord
       end
 
       def test_migrate_revert_change_table_comment
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::Base.lease_connection
         migration1 = ChangeTableComment1.new
         migration1.migrate(:up)
         assert_equal "Sekitoba", connection.table_comment("horses")
@@ -390,32 +417,47 @@ module ActiveRecord
 
     if current_adapter?(:PostgreSQLAdapter)
       def test_migrate_enable_and_disable_extension
+        connection = Horse.lease_connection
         migration1 = InvertibleMigration.new
         migration2 = DisableExtension1.new
         migration3 = DisableExtension2.new
 
-        assert_equal true, Horse.connection.extension_available?("hstore")
+        assert_equal true, connection.extension_available?("hstore")
 
         migration1.migrate(:up)
         migration2.migrate(:up)
-        assert_equal true, Horse.connection.extension_enabled?("hstore")
+        assert_equal true, connection.extension_enabled?("hstore")
 
         migration3.migrate(:up)
-        assert_equal false, Horse.connection.extension_enabled?("hstore")
+        assert_equal false, connection.extension_enabled?("hstore")
 
         migration3.migrate(:down)
-        assert_equal true, Horse.connection.extension_enabled?("hstore")
+        assert_equal true, connection.extension_enabled?("hstore")
 
         migration2.migrate(:down)
-        assert_equal false, Horse.connection.extension_enabled?("hstore")
+        assert_equal false, connection.extension_enabled?("hstore")
       ensure
-        enable_extension!("hstore", ActiveRecord::Base.connection)
+        enable_extension!("hstore", ActiveRecord::Base.lease_connection)
       end
+    end
+
+    def test_migrate_revert_drop_table
+      connection = ActiveRecord::Base.lease_connection
+      migration1 = InvertibleMigration.new
+      migration1.migrate(:up)
+      assert connection.table_exists?("horses")
+
+      migration2 = DropTableMigration.new
+      migration2.migrate(:up)
+      assert_not connection.table_exists?("horses")
+
+      migration2.migrate(:down)
+      assert connection.table_exists?("horses")
     end
 
     def test_revert_order
       block = Proc.new { |t| t.string :name }
-      recorder = ActiveRecord::Migration::CommandRecorder.new(ActiveRecord::Base.connection)
+      recorder = ActiveRecord::Migration::CommandRecorder.new(ActiveRecord::Base.lease_connection)
       recorder.instance_eval do
         create_table("apples", &block)
         revert do
@@ -439,24 +481,24 @@ module ActiveRecord
 
     def test_legacy_up
       LegacyMigration.migrate :up
-      assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist"
+      assert ActiveRecord::Base.lease_connection.table_exists?("horses"), "horses should exist"
     end
 
     def test_legacy_down
       LegacyMigration.migrate :up
       LegacyMigration.migrate :down
-      assert_not ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
+      assert_not ActiveRecord::Base.lease_connection.table_exists?("horses"), "horses should not exist"
     end
 
     def test_up
       LegacyMigration.up
-      assert ActiveRecord::Base.connection.table_exists?("horses"), "horses should exist"
+      assert ActiveRecord::Base.lease_connection.table_exists?("horses"), "horses should exist"
     end
 
     def test_down
       LegacyMigration.up
       LegacyMigration.down
-      assert_not ActiveRecord::Base.connection.table_exists?("horses"), "horses should not exist"
+      assert_not ActiveRecord::Base.lease_connection.table_exists?("horses"), "horses should not exist"
     end
 
     def test_migrate_down_with_table_name_prefix
@@ -465,7 +507,7 @@ module ActiveRecord
       migration = InvertibleMigration.new
       migration.migrate(:up)
       assert_nothing_raised { migration.migrate(:down) }
-      assert_not ActiveRecord::Base.connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
+      assert_not ActiveRecord::Base.lease_connection.table_exists?("p_horses_s"), "p_horses_s should not exist"
     ensure
       ActiveRecord::Base.table_name_prefix = ActiveRecord::Base.table_name_suffix = ""
     end
@@ -474,17 +516,19 @@ module ActiveRecord
       migration = RevertCustomForeignKeyTable.new
       InvertibleMigration.migrate(:up)
       migration.migrate(:up)
+      assert ActiveRecord::Base.lease_connection.column_exists?(:horses, :owner_id)
       migration.migrate(:down)
+      assert_not ActiveRecord::Base.lease_connection.column_exists?(:horses, :owner_id)
     end
 
     # MySQL 5.7 and Oracle do not allow to create duplicate indexes on the same columns
-    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :OracleAdapter)
+    unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_migrate_revert_add_index_with_name
         RevertNamedIndexMigration1.new.migrate(:up)
         RevertNamedIndexMigration2.new.migrate(:up)
         RevertNamedIndexMigration2.new.migrate(:down)
 
-        connection = ActiveRecord::Base.connection
+        connection = ActiveRecord::Base.lease_connection
         assert connection.index_exists?(:horses, :content),
                "index on content should exist"
         assert_not connection.index_exists?(:horses, :content, name: "horses_index_named"),
@@ -496,7 +540,7 @@ module ActiveRecord
       InvertibleMigration.new.migrate(:up)
       RevertNonNamedExpressionIndexMigration.new.migrate(:up)
 
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
       assert connection.index_exists?(:horses, [:remind_at, :place_id]),
              "index on remind_at and place_id should exist"
 
@@ -519,9 +563,46 @@ module ActiveRecord
       assert_equal 0, horse2.oldie # created after migration
 
       UpOnlyMigration.new.migrate(:down) # should be no error
-      connection = ActiveRecord::Base.connection
+      connection = ActiveRecord::Base.lease_connection
       assert_not connection.column_exists?(:horses, :oldie)
       Horse.reset_column_information
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_unique_constraints?
+      def test_migrate_revert_add_unique_constraint_with_invalid_option
+        InvertibleMigration.new.migrate(:up)
+        RevertUniqueConstraintWithInvalidOption.new.migrate(:up)
+
+        connection = ActiveRecord::Base.lease_connection
+        assert_equal 1, connection.unique_constraints(:horses).count
+
+        RevertUniqueConstraintWithInvalidOption.new.migrate(:down)
+        assert_empty connection.unique_constraints(:horses)
+      end
+    end
+
+    def test_migrate_revert_add_foreign_key_with_invalid_option
+      InvertibleMigration.new.migrate(:up)
+      RevertForeignKeyWithInvalidOption.new.migrate(:up)
+
+      connection = ActiveRecord::Base.lease_connection
+      assert_equal 1, connection.foreign_keys(:horses).count
+
+      RevertForeignKeyWithInvalidOption.new.migrate(:down)
+      assert_empty connection.foreign_keys(:horses)
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_check_constraints?
+      def test_migrate_revert_add_check_constraint_with_invalid_option
+        InvertibleMigration.new.migrate(:up)
+        RevertCheckConstraintWithInvalidOption.new.migrate(:up)
+
+        connection = ActiveRecord::Base.lease_connection
+        assert_equal 1, connection.check_constraints(:horses).count
+
+        RevertCheckConstraintWithInvalidOption.new.migrate(:down)
+        assert_empty connection.check_constraints(:horses)
+      end
     end
   end
 end

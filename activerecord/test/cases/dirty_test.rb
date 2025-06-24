@@ -362,7 +362,7 @@ class DirtyTest < ActiveRecord::TestCase
     old_updated_on = 1.hour.ago.beginning_of_day
 
     with_partial_writes Pirate, false do
-      assert_queries(2) { 2.times { pirate.save! } }
+      assert_queries_count(6) { 2.times { pirate.save! } }
       Pirate.where(id: pirate.id).update_all(updated_on: old_updated_on)
     end
 
@@ -370,7 +370,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert_no_queries { 2.times { pirate.save! } }
       assert_equal old_updated_on, pirate.reload.updated_on
 
-      assert_queries(1) { pirate.catchphrase = "bar"; pirate.save! }
+      assert_queries_count(3) { pirate.catchphrase = "bar"; pirate.save! }
       assert_not_equal old_updated_on, pirate.reload.updated_on
     end
   end
@@ -379,7 +379,7 @@ class DirtyTest < ActiveRecord::TestCase
     person = Person.new(first_name: "foo")
 
     with_partial_writes Person, false do
-      assert_queries(2) { 2.times { person.save! } }
+      assert_queries_count(6) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
 
@@ -389,7 +389,7 @@ class DirtyTest < ActiveRecord::TestCase
       assert_no_queries { 2.times { person.save! } }
       assert_equal old_lock_version, person.reload.lock_version
 
-      assert_queries(1) { person.first_name = "bar"; person.save! }
+      assert_queries_count(3) { person.first_name = "bar"; person.save! }
       assert_not_equal old_lock_version, person.reload.lock_version
     end
   end
@@ -608,19 +608,18 @@ class DirtyTest < ActiveRecord::TestCase
 
   class Testings < ActiveRecord::Base; end
   def test_field_named_field
-    ActiveRecord::Base.connection.create_table :testings do |t|
+    ActiveRecord::Base.lease_connection.create_table :testings do |t|
       t.string :field
     end
     assert_nothing_raised do
       Testings.new.attributes
     end
   ensure
-    ActiveRecord::Base.connection.drop_table :testings rescue nil
+    ActiveRecord::Base.lease_connection.drop_table :testings rescue nil
     ActiveRecord::Base.clear_cache!
   end
 
   def test_datetime_attribute_can_be_updated_with_fractional_seconds
-    skip "Fractional seconds are not supported" unless supports_datetime_with_precision?
     in_time_zone "Paris" do
       target = Class.new(ActiveRecord::Base)
       target.table_name = "topics"
@@ -630,7 +629,7 @@ class DirtyTest < ActiveRecord::TestCase
       topic = target.create(written_on: written_on)
       topic.written_on += 0.3
 
-      assert topic.written_on_changed?, "Fractional second update not detected"
+      assert_predicate topic, :written_on_changed?, "Fractional second update not detected"
     end
   end
 
@@ -645,11 +644,11 @@ class DirtyTest < ActiveRecord::TestCase
   test "partial insert" do
     with_partial_writes Person do
       jon = nil
-      assert_sql(/first_name/i) do
-        jon = Person.create! first_name: "Jon"
+      assert_no_queries_match(/followers_count/) do
+        assert_queries_match(/first_name/) do
+          jon = Person.create! first_name: "Jon"
+        end
       end
-
-      assert ActiveRecord::SQLCounter.log_all.none? { |sql| sql.include?("followers_count") }
 
       jon.reload
       assert_equal "Jon", jon.first_name
@@ -946,13 +945,11 @@ class DirtyTest < ActiveRecord::TestCase
       aircraft = Aircraft.new(name: "Boeing")
       assert_equal "Boeing", aircraft.name
 
-      time_before_saving = Time.now
       aircraft.save!
-      time_after_saving = Time.now
       aircraft.reload
 
       assert_equal "Boeing", aircraft.name
-      assert_includes time_before_saving - 1..time_after_saving + 1, aircraft.manufactured_at
+      assert_in_delta Time.now, aircraft.manufactured_at, 1.1
     end
   end
 
@@ -969,6 +966,20 @@ class DirtyTest < ActiveRecord::TestCase
 
       assert_equal "Boeing2", aircraft.name
       assert_equal manufactured_at.utc.strftime("%Y-%m-%d %H:%M:%S"), aircraft.manufactured_at.strftime("%Y-%m-%d %H:%M:%S")
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
+    test "partial insert off with changed composite identity primary key attribute" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "cpk_postgresql_identity_table"
+      end
+
+      with_partial_writes(klass, false) do
+        record = klass.create!(another_id: 10)
+        assert_equal 10, record.another_id
+        assert_not_nil record.id
+      end
     end
   end
 

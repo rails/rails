@@ -122,7 +122,7 @@ module ApplicationTests
     def test_runner_detects_bad_script_name
       output = rails("runner", "iuiqwiourowe", allow_failure: true)
       assert_not_predicate $?, :success?
-      assert_match "undefined local variable or method `iuiqwiourowe' for", output
+      assert_match(/undefined local variable or method [`']iuiqwiourowe' for/, output)
     end
 
     def test_environment_with_rails_env
@@ -147,6 +147,15 @@ module ApplicationTests
       MODEL
 
       assert_match "42", rails("runner", "puts Task.count")
+    end
+
+    def test_works_with_database_url
+      db_name = use_postgresql
+      previous_url = ENV["DATABASE_URL"]
+      ENV["DATABASE_URL"] = "postgres://localhost/#{db_name}"
+      assert_equal "1", rails("runner", "print 1")
+    ensure
+      ENV["DATABASE_URL"] = previous_url
     end
   end
 end

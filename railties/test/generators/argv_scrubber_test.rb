@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
 require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/generators/rails/app/app_generator"
@@ -103,6 +102,23 @@ module Rails
         }.new ["new", "--rc=#{file.path}"]
         args = scrubber.prepare!
         assert_equal ["--hello", "--world"], args
+      ensure
+        file.close
+        file.unlink
+      end
+
+      def test_rc_lines_with_comments
+        file = Tempfile.new "myrcfile"
+        file.puts "--hello # --world"
+        file.puts "--love"
+        file.puts "# --hate"
+        file.flush
+
+        scrubber = Class.new(ARGVScrubber) {
+          define_method(:puts) { |msg| }
+        }.new ["new", "--rc=#{file.path}"]
+        args = scrubber.prepare!
+        assert_equal ["--hello", "--love"], args
       ensure
         file.close
         file.unlink

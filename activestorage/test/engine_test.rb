@@ -25,4 +25,8 @@ class ActiveStorage::EngineTest < ActiveSupport::TestCase
   test "image/bmp is a default content type" do
     assert_includes ActiveStorage.variable_content_types, "image/bmp"
   end
+
+  test "true is the default touch_attachment_records value" do
+    assert_equal true, ActiveStorage.touch_attachment_records
+  end
 end

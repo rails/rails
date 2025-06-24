@@ -42,7 +42,7 @@ module ActiveRecord
         date:        { name: "date" },
         binary:      { name: "blob" },
         blob:        { name: "blob" },
-        boolean:     { name: "tinyint", limit: 1 },
+        boolean:     { name: "boolean" },
         json:        { name: "json" },
       }
 
@@ -79,7 +79,11 @@ module ActiveRecord
 
           args << config.database
 
-          find_cmd_and_exec(["mysql", "mysql5"], *args)
+          find_cmd_and_exec(ActiveRecord.database_cli[:mysql], *args)
+        end
+
+        def native_database_types # :nodoc:
+          NATIVE_DATABASE_TYPES
         end
       end
 
@@ -98,7 +102,7 @@ module ActiveRecord
       end
 
       def supports_index_sort_order?
-        !mariadb? && database_version >= "8.0.1"
+        mariadb? ? database_version >= "10.8.1" : database_version >= "8.0.1"
       end
 
       def supports_expression_index?
@@ -138,7 +142,7 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
-        mariadb? || database_version >= "5.6.4"
+        true
       end
 
       def supports_virtual_columns?
@@ -170,16 +174,30 @@ module ActiveRecord
         true
       end
 
+      def supports_insert_returning?
+        mariadb? && database_version >= "10.5.0"
+      end
+
+      def return_value_after_insert?(column) # :nodoc:
+        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+      end
+
+      # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.
+      # See https://mariadb.com/kb/en/ignored-indexes/ for more details on the MariaDB feature.
+      def supports_disabling_indexes?
+        if mariadb?
+          database_version >= "10.6.0"
+        else
+          database_version >= "8.0.0"
+        end
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
         query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
-      end
-
-      def native_database_types
-        NATIVE_DATABASE_TYPES
       end
 
       def index_algorithms
@@ -192,12 +210,6 @@ module ActiveRecord
       end
 
       # HELPER METHODS ===========================================
-
-      # The two drivers have slightly different ways of yielding hashes of results, so
-      # this method must be implemented to provide a uniform interface.
-      def each_hash(result) # :nodoc:
-        raise NotImplementedError
-      end
 
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
@@ -214,7 +226,7 @@ module ActiveRecord
           update("SET FOREIGN_KEY_CHECKS = 0")
           yield
         ensure
-          update("SET FOREIGN_KEY_CHECKS = #{old}")
+          update("SET FOREIGN_KEY_CHECKS = #{old}") if active?
         end
       end
 
@@ -222,24 +234,19 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      # Mysql2Adapter doesn't have to free a result after using it, but we use this method
-      # to write stuff in an abstract way without concerning ourselves about whether it
-      # needs to be explicitly freed or not.
-      def execute_and_free(sql, name = nil, async: false) # :nodoc:
-        sql = transform_query(sql)
-        check_if_write_query(sql)
-
-        mark_transaction_written_if_write(sql)
-        yield raw_execute(sql, name, async: async)
-      end
-
       def begin_db_transaction # :nodoc:
         internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        internal_execute("SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
-        begin_db_transaction
+        # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
+        # So we don't need to implement #reset_isolation_level
+        execute_batch(
+          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+          "TRANSACTION",
+          allow_retry: true,
+          materialize_transactions: false,
+        )
       end
 
       def commit_db_transaction # :nodoc:
@@ -336,10 +343,10 @@ module ActiveRecord
         schema_cache.clear_data_source_cache!(table_name.to_s)
         schema_cache.clear_data_source_cache!(new_name.to_s)
         execute "RENAME TABLE #{quote_table_name(table_name)} TO #{quote_table_name(new_name)}"
-        rename_table_indexes(table_name, new_name)
+        rename_table_indexes(table_name, new_name, **options)
       end
 
-      # Drops a table from the database.
+      # Drops a table or tables from the database.
       #
       # [<tt>:force</tt>]
       #   Set to +:cascade+ to drop dependent objects as well.
@@ -353,10 +360,10 @@ module ActiveRecord
       #
       # Although this command ignores most +options+ and the block if one is given,
       # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by create_table.
-      def drop_table(table_name, **options)
-        schema_cache.clear_data_source_cache!(table_name.to_s)
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(table_name)}#{' CASCADE' if options[:force] == :cascade}"
+      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      def drop_table(*table_names, **options)
+        table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
+        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -410,7 +417,11 @@ module ActiveRecord
         type ||= column.sql_type
 
         unless options.key?(:default)
-          options[:default] = column.default
+          options[:default] = if column.default_function
+            -> { column.default_function }
+          else
+            column.default
+          end
         end
 
         unless options.key?(:null)
@@ -456,6 +467,24 @@ module ActiveRecord
         CreateIndexDefinition.new(index, algorithm)
       end
 
+      def enable_index(table_name, index_name) # :nodoc:
+        raise NotImplementedError unless supports_disabling_indexes?
+
+        query = <<~SQL
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
+        SQL
+        execute(query)
+      end
+
+      def disable_index(table_name, index_name) # :nodoc:
+        raise NotImplementedError unless supports_disabling_indexes?
+
+        query = <<~SQL
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "IGNORED" : "INVISIBLE"}
+        SQL
+        execute(query)
+      end
+
       def add_sql_comment!(sql, comment) # :nodoc:
         sql << " COMMENT #{quote(comment)}" if comment.present?
         sql
@@ -466,11 +495,13 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
+        # MySQL returns 1 row for each column of composite foreign keys.
         fk_info = internal_exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
                  fk.constraint_name AS 'name',
+                 fk.ordinal_position AS 'position',
                  rc.update_rule AS 'on_update',
                  rc.delete_rule AS 'on_delete'
           FROM information_schema.referential_constraints rc
@@ -483,15 +514,22 @@ module ActiveRecord
             AND rc.table_name = #{scope[:name]}
         SQL
 
-        fk_info.map do |row|
+        grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
+        grouped_fk.map do |group|
+          row = group.first
           options = {
-            column: unquote_identifier(row["column"]),
             name: row["name"],
-            primary_key: row["primary_key"]
+            on_update: extract_foreign_key_action(row["on_update"]),
+            on_delete: extract_foreign_key_action(row["on_delete"])
           }
 
-          options[:on_update] = extract_foreign_key_action(row["on_update"])
-          options[:on_delete] = extract_foreign_key_action(row["on_delete"])
+          if group.one?
+            options[:column] = unquote_identifier(row["column"])
+            options[:primary_key] = row["primary_key"]
+          else
+            options[:column] = group.map { |row| unquote_identifier(row["column"]) }
+            options[:primary_key] = group.map { |row| row["primary_key"] }
+          end
 
           ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
         end
@@ -522,6 +560,13 @@ module ActiveRecord
             expression = row["expression"]
             expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
             expression = strip_whitespace_characters(expression)
+
+            unless mariadb?
+              # MySQL returns check constraints expression in an already escaped form.
+              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
+              expression = expression.gsub("\\'", "'")
+            end
+
             CheckConstraintDefinition.new(table_name, expression, options)
           end
         else
@@ -560,7 +605,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA")
+        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -619,27 +664,65 @@ module ActiveRecord
       end
 
       def build_insert_sql(insert) # :nodoc:
-        sql = +"INSERT #{insert.into} #{insert.values_list}"
+        # Can use any column as it will be assigned to itself.
+        no_op_column = quote_column_name(insert.keys.first) if insert.keys.first
 
-        if insert.skip_duplicates?
-          no_op_column = quote_column_name(insert.keys.first)
-          sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
-        elsif insert.update_duplicates?
-          sql << " ON DUPLICATE KEY UPDATE "
-          if insert.raw_update_sql?
-            sql << insert.raw_update_sql
-          else
-            sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
-            sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+        # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
+        # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
+        if supports_insert_raw_alias_syntax?
+          quoted_table_name = insert.model.quoted_table_name
+          values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
+          sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
+
+          if insert.skip_duplicates?
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{quoted_table_name}.#{no_op_column}"
+            end
+          elsif insert.update_duplicates?
+            if insert.raw_update_sql?
+              sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
+            else
+              sql << " ON DUPLICATE KEY UPDATE "
+              sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+              sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
+            end
+          end
+        else
+          sql = +"INSERT #{insert.into} #{insert.values_list}"
+
+          if insert.skip_duplicates?
+            if no_op_column
+              sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{no_op_column}"
+            end
+          elsif insert.update_duplicates?
+            sql << " ON DUPLICATE KEY UPDATE "
+            if insert.raw_update_sql?
+              sql << insert.raw_update_sql
+            else
+              sql << insert.touch_model_timestamps_unless { |column| "#{column}<=>VALUES(#{column})" }
+              sql << insert.updatable_columns.map { |column| "#{column}=VALUES(#{column})" }.join(",")
+            end
           end
         end
 
+        sql << " RETURNING #{insert.returning}" if insert.returning
         sql
       end
 
       def check_version # :nodoc:
-        if database_version < "5.5.8"
-          raise "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.5.8."
+        if database_version < "5.6.4"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
+        end
+      end
+
+      #--
+      # QUOTING ==================================================
+      #++
+
+      # Quotes strings for use in SQL input.
+      def quote_string(string)
+        with_raw_connection(allow_retry: true, materialize_transactions: false) do |connection|
+          connection.escape(string)
         end
       end
 
@@ -677,12 +760,12 @@ module ActiveRecord
             m.alias_type %r(bit)i,  "binary"
           end
 
-          def register_integer_type(mapping, key, **options)
+          def register_integer_type(mapping, key, limit:)
             mapping.register_type(key) do |sql_type|
               if /\bunsigned\b/.match?(sql_type)
-                Type::UnsignedInteger.new(**options)
+                Type::UnsignedInteger.new(limit: limit)
               else
-                Type::Integer.new(**options)
+                Type::Integer.new(limit: limit)
               end
             end
           end
@@ -701,9 +784,7 @@ module ActiveRecord
 
       private
         def strip_whitespace_characters(expression)
-          expression = expression.gsub(/\\n|\\\\/, "")
-          expression = expression.gsub(/\s{2,}/, " ")
-          expression
+          expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
 
         def extended_type_map_key
@@ -714,13 +795,16 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(sql)
+        def handle_warnings(_initial_result, sql)
           return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
-          @affected_rows_before_warnings = @raw_connection.affected_rows
+          warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
+          result = [
+            ["Warning", nil, "Query had warning_count=#{warning_count} but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."],
+          ] if result.count == 0
           result.each do |level, code, message|
-            warning = SQLWarning.new(message, code, level, sql)
+            warning = SQLWarning.new(message, code, level, sql, @pool)
             next if warning_ignored?(warning)
 
             ActiveRecord.db_warnings_action.call(warning)
@@ -731,15 +815,11 @@ module ActiveRecord
           warning.level == "Note" || super
         end
 
-        # Make sure we carry over any changes to ActiveRecord.default_timezone that have been
-        # made since we established the connection
-        def sync_timezone_changes(raw_connection)
-        end
-
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
         ER_DUP_ENTRY            = 1062
+        ER_SERVER_SHUTDOWN      = 1053
         ER_NOT_NULL_VIOLATION   = 1048
         ER_NO_REFERENCED_ROW    = 1216
         ER_ROW_IS_REFERENCED    = 1217
@@ -764,40 +844,40 @@ module ActiveRecord
           case error_number(exception)
           when nil
             if exception.message.match?(/MySQL client is not connected/i)
-              ConnectionNotEstablished.new(exception)
+              ConnectionNotEstablished.new(exception, connection_pool: @pool)
             else
               super
             end
-          when ER_CONNECTION_KILLED, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
-            ConnectionFailed.new(message, sql: sql, binds: binds)
+          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+            ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
-            DatabaseAlreadyExists.new(message, sql: sql, binds: binds)
+            DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DUP_ENTRY
-            RecordNotUnique.new(message, sql: sql, binds: binds)
+            RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NO_REFERENCED_ROW, ER_ROW_IS_REFERENCED, ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
-            InvalidForeignKey.new(message, sql: sql, binds: binds)
+            InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_ADD_FOREIGN, ER_FK_INCOMPATIBLE_COLUMNS
-            mismatched_foreign_key(message, sql: sql, binds: binds)
+            mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CANNOT_CREATE_TABLE
             if message.include?("errno: 150")
-              mismatched_foreign_key(message, sql: sql, binds: binds)
+              mismatched_foreign_key(message, sql: sql, binds: binds, connection_pool: @pool)
             else
               super
             end
           when ER_DATA_TOO_LONG
-            ValueTooLong.new(message, sql: sql, binds: binds)
+            ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_OUT_OF_RANGE
-            RangeError.new(message, sql: sql, binds: binds)
+            RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
-            NotNullViolation.new(message, sql: sql, binds: binds)
+            NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
-            Deadlocked.new(message, sql: sql, binds: binds)
+            Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT
-            LockWaitTimeout.new(message, sql: sql, binds: binds)
+            LockWaitTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_TIMEOUT, ER_FILSORT_ABORT
-            StatementTimeout.new(message, sql: sql, binds: binds)
+            StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_QUERY_INTERRUPTED
-            QueryCanceled.new(message, sql: sql, binds: binds)
+            QueryCanceled.new(message, sql: sql, binds: binds, connection_pool: @pool)
           else
             super
           end
@@ -837,6 +917,10 @@ module ActiveRecord
           "DROP INDEX #{quote_column_name(index_name)}"
         end
 
+        def supports_insert_raw_alias_syntax?
+          !mariadb? && database_version >= "8.0.19"
+        end
+
         def supports_rename_index?
           if mariadb?
             database_version >= "10.5.2"
@@ -854,6 +938,7 @@ module ActiveRecord
         end
 
         def configure_connection
+          super
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.
@@ -899,13 +984,11 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          internal_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}")
+          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
-            each_hash(result)
-          end
+          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
         end
 
         def create_table_info(table_name) # :nodoc:
@@ -943,11 +1026,12 @@ module ActiveRecord
           options
         end
 
-        def mismatched_foreign_key(message, sql:, binds:)
+        def mismatched_foreign_key(message, sql:, binds:, connection_pool:)
           options = {
             message: message,
             sql: sql,
             binds: binds,
+            connection_pool: connection_pool
           }
 
           if sql
@@ -960,7 +1044,11 @@ module ActiveRecord
         end
 
         def version_string(full_version_string)
-          full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
+          if full_version_string && matches = full_version_string.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)
+            matches[1]
+          else
+            raise DatabaseVersionError, "Unable to parse MySQL version from #{full_version_string.inspect}"
+          end
         end
     end
   end

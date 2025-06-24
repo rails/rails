@@ -117,7 +117,7 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         options[:database] ||= db_config.database
       end
-      conn = ActiveRecord::Base.sqlite3_connection(options)
+      conn = ActiveRecord::ConnectionAdapters::SQLite3Adapter.new(options)
 
       yield(conn)
     ensure

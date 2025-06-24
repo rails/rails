@@ -8,8 +8,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.valid_options(options)
       valid = super + [:polymorphic, :counter_cache, :optional, :default]
-      valid += [:foreign_type] if options[:polymorphic]
-      valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
+      valid << :class_name unless options[:polymorphic]
+      valid << :foreign_type if options[:polymorphic]
+      valid << :ensuring_owner_was if options[:dependent] == :destroy_async
       valid
     end
 
@@ -37,7 +38,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
       }
 
       klass = reflection.class_name.safe_constantize
-      klass._counter_cache_columns << cache_column if klass && klass.respond_to?(:_counter_cache_columns)
+      klass._counter_cache_columns |= [cache_column] if klass && klass.respond_to?(:_counter_cache_columns)
+      model.counter_cached_association_names |= [reflection.name]
     end
 
     def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:

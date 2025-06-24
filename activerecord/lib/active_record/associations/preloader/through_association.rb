@@ -9,9 +9,7 @@ module ActiveRecord
         end
 
         def records_by_owner
-          return @records_by_owner if defined?(@records_by_owner)
-
-          @records_by_owner = owners.each_with_object({}) do |owner, result|
+          @records_by_owner ||= owners.each_with_object({}) do |owner, result|
             if loaded?(owner)
               result[owner] = target_for(owner)
               next

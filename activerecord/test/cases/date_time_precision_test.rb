@@ -5,13 +5,14 @@ require "support/schema_dumping_helper"
 
 class DateTimePrecisionTest < ActiveRecord::TestCase
   if supports_datetime_with_precision?
+    include InTimeZone
     include SchemaDumpingHelper
     self.use_transactional_tests = false
 
     class Foo < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       Foo.reset_column_information
     end
 
@@ -211,6 +212,19 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
           assert_equal date, Foo.create!(happened_at: date).happened_at
         end
       end
+
+      def test_writing_a_time_with_zone_attribute_timestamptz
+        with_postgresql_datetime_type(:timestamptz) do
+          @connection.create_table(:foos, force: true) do |t|
+            t.datetime :happened_at
+          end
+
+          in_time_zone("Pacific Time (US & Canada)") do
+            time = Time.zone.now
+            assert_equal time.zone, Foo.new(happened_at: time).happened_at.zone
+          end
+        end
+      end
     end
 
     def test_schema_dump_with_default_precision_is_not_dumped
@@ -231,7 +245,7 @@ class DateTimePrecisionTest < ActiveRecord::TestCase
       assert_match %r{t\.datetime\s+"updated_at",\s+precision: nil,\s+null: false$}, output
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :SQLServerAdapter)
+    if current_adapter?(:PostgreSQLAdapter)
       def test_datetime_precision_with_zero_should_be_dumped
         @connection.create_table(:foos, force: true) do |t|
           t.timestamps precision: 0

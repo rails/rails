@@ -6,27 +6,6 @@ module ActiveRecord
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
-    def self.runtime=(value)
-      ActiveRecord.deprecator.warn(<<-MSG.squish)
-        ActiveRecord::LogSubscriber.runtime= is deprecated and will be removed in Rails 7.2.
-      MSG
-      ActiveRecord::RuntimeRegistry.sql_runtime = value
-    end
-
-    def self.runtime
-      ActiveRecord.deprecator.warn(<<-MSG.squish)
-        ActiveRecord::LogSubscriber.runtime is deprecated and will be removed in Rails 7.2.
-      MSG
-      ActiveRecord::RuntimeRegistry.sql_runtime
-    end
-
-    def self.reset_runtime
-      ActiveRecord.deprecator.warn(<<-MSG.squish)
-        ActiveRecord::LogSubscriber.reset_runtime is deprecated and will be removed in Rails 7.2.
-      MSG
-      ActiveRecord::RuntimeRegistry.reset
-    end
-
     def strict_loading_violation(event)
       debug do
         owner = event.payload[:owner]
@@ -140,15 +119,15 @@ module ActiveRecord
       end
 
       def log_query_source
-        source = extract_query_source_location(caller)
+        source = query_source_location
 
         if source
           logger.debug("  ↳ #{source}")
         end
       end
 
-      def extract_query_source_location(locations)
-        backtrace_cleaner.clean(locations.lazy).first
+      def query_source_location
+        backtrace_cleaner.first_clean_frame
       end
 
       def filter(name, value)

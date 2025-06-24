@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "delegate"
 require "io/console/size"
 
@@ -66,8 +68,8 @@ module ActionDispatch
 
     ##
     # This class is just used for displaying route information when someone
-    # executes `bin/rails routes` or looks at the RoutingError page.
-    # People should not use this class.
+    # executes `bin/rails routes` or looks at the RoutingError page. People should
+    # not use this class.
     class RoutesInspector # :nodoc:
       def initialize(routes)
         @engines = {}
@@ -99,7 +101,7 @@ module ActionDispatch
             { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter[:grep]
             grep_pattern = Regexp.new(filter[:grep])
-            path = URI::DEFAULT_PARSER.escape(filter[:grep])
+            path = URI::RFC2396_PARSER.escape(filter[:grep])
             normalized_path = ("/" + path).squeeze("/")
 
             {
@@ -287,7 +289,7 @@ module ActionDispatch
       end
 
       def section_title(title)
-        @buffer << %(<tr><th colspan="4">#{title}</th></tr>)
+        @buffer << %(<tr><th colspan="5">#{title}</th></tr>)
       end
 
       def section(routes)

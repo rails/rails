@@ -95,16 +95,17 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_emails_returns_the_emails_that_were_sent_if_a_block_is_given
+  def test_capture_emails
     assert_nothing_raised do
-      email = assert_emails 1 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
       end
+      email = emails.first
       assert_instance_of Mail::Message, email
       assert_equal "Hello, Earth", email.body.to_s
       assert_equal "Hi!", email.subject
 
-      emails = assert_emails 2 do
+      emails = capture_emails do
         TestHelperMailer.test.deliver_now
         TestHelperMailer.test.deliver_now
       end
@@ -431,7 +432,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
 
   def test_assert_enqueued_email_with_with_parameterized_args
     assert_nothing_raised do
-      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: { all: "good" } do
         silence_stream($stdout) do
           TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
         end
@@ -483,8 +484,8 @@ class TestHelperMailerTest < ActionMailer::TestCase
     assert_nothing_raised do
       silence_stream($stdout) do
         TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
-        assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" }
       end
+      assert_enqueued_email_with TestHelperMailer, :test_parameter_args, params: { all: "good" }
     end
   end
 
@@ -617,5 +618,19 @@ class AnotherTestHelperMailerTest < ActionMailer::TestCase
   def test_setup_shouldnt_conflict_with_mailer_setup
     assert_kind_of Mail::Message, @expected
     assert_equal "a value", @test_var
+  end
+end
+
+class AdapterIsNotTestAdapterTest < ActionMailer::TestCase
+  def queue_adapter_for_test
+    ActiveJob::QueueAdapters::InlineAdapter.new
+  end
+
+  def test_can_send_email_using_any_active_job_adapter
+    assert_nothing_raised do
+      assert_emails 1 do
+        TestHelperMailer.test.deliver_now
+      end
+    end
   end
 end

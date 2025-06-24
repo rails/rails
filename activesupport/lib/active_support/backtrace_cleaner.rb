@@ -17,11 +17,12 @@ module ActiveSupport
   # can focus on the rest.
   #
   #   bc = ActiveSupport::BacktraceCleaner.new
-  #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
+  #   root = "#{Rails.root}/"
+  #   bc.add_filter   { |line| line.delete_prefix(root) } # strip the Rails.root prefix
   #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup
   #
-  # To reconfigure an existing BacktraceCleaner (like the default one in Rails)
+  # To reconfigure an existing BacktraceCleaner (like the default one in \Rails)
   # and show as much data as possible, you can always call
   # BacktraceCleaner#remove_silencers!, which will restore the
   # backtrace to a pristine state. If you need to reconfigure an existing
@@ -33,6 +34,7 @@ module ActiveSupport
   class BacktraceCleaner
     def initialize
       @filters, @silencers = [], []
+      add_core_silencer
       add_gem_filter
       add_gem_silencer
       add_stdlib_silencer
@@ -54,11 +56,88 @@ module ActiveSupport
     end
     alias :filter :clean
 
+    # Returns the frame with all filters applied.
+    # returns +nil+ if the frame was silenced.
+    def clean_frame(frame, kind = :silent)
+      frame = frame.to_s
+      @filters.each do |f|
+        frame = f.call(frame.to_s)
+      end
+
+      case kind
+      when :silent
+        frame unless @silencers.any? { |s| s.call(frame) }
+      when :noise
+        frame if @silencers.any? { |s| s.call(frame) }
+      else
+        frame
+      end
+    end
+
+    # Thread.each_caller_location does not accept a start in Ruby < 3.4.
+    if Thread.method(:each_caller_location).arity == 0
+      # Returns the first clean frame of the caller's backtrace, or +nil+.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+    else
+      # Returns the first clean frame of the caller's backtrace, or +nil+.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+    end
+
+    # Thread.each_caller_location does not accept a start in Ruby < 3.4.
+    if Thread.method(:each_caller_location).arity == 0
+      # Returns the first clean location of the caller's call stack, or +nil+.
+      #
+      # Locations are Thread::Backtrace::Location objects.
+      def first_clean_location(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          return location if clean_frame(location, kind)
+        end
+      end
+    else
+      # Returns the first clean location of the caller's call stack, or +nil+.
+      #
+      # Locations are Thread::Backtrace::Location objects.
+      def first_clean_location(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          return location if clean_frame(location, kind)
+        end
+      end
+    end
+
     # Adds a filter from the block provided. Each line in the backtrace will be
     # mapped against this filter.
     #
-    #   # Will turn "/my/rails/root/app/models/person.rb" into "/app/models/person.rb"
-    #   backtrace_cleaner.add_filter { |line| line.gsub(Rails.root.to_s, '') }
+    #   # Will turn "/my/rails/root/app/models/person.rb" into "app/models/person.rb"
+    #   root = "#{Rails.root}/"
+    #   backtrace_cleaner.add_filter { |line| line.delete_prefix(root) }
     def add_filter(&block)
       @filters << block
     end
@@ -89,6 +168,11 @@ module ActiveSupport
     private
       FORMATTED_GEMS_PATTERN = /\A[^\/]+ \([\w.]+\) /
 
+      def initialize_copy(_other)
+        @filters = @filters.dup
+        @silencers = @silencers.dup
+      end
+
       def add_gem_filter
         gems_paths = (Gem.path | [Gem.default_dir]).map { |p| Regexp.escape(p) }
         return if gems_paths.empty?
@@ -96,6 +180,10 @@ module ActiveSupport
         gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
         add_filter { |line| line.sub(gems_regexp, gems_result) }
+      end
+
+      def add_core_silencer
+        add_silencer { |line| line.include?("<internal:") }
       end
 
       def add_gem_silencer

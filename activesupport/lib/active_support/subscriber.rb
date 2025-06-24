@@ -5,7 +5,7 @@ require "active_support/notifications"
 module ActiveSupport
   # = Active Support \Subscriber
   #
-  # <tt>ActiveSupport::Subscriber</tt> is an object set to consume
+  # +ActiveSupport::Subscriber+ is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
@@ -67,6 +67,7 @@ module ActiveSupport
 
       # Adds event subscribers for all new methods added to the class.
       def method_added(event)
+        super
         # Only public methods are added as subscribers, and only if a notifier
         # has been set up. This means that subscribers will only be set up for
         # classes that call #attach_to.

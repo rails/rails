@@ -1,38 +1,49 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby
+// For format details, see https://containers.dev/implementors/json_reference/.
 {
-	"name": "Ruby",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": "..",
-		"args": {
-			// Update 'VARIANT' to pick a Ruby version: 3, 3.0, 2, 2.7, 2.6
-			"VARIANT": "3",
-			// Options
-			"NODE_VERSION": "lts/*"
-		}
-	},
+	"name": "Rails project development",
+	"dockerComposeFile": "compose.yaml",
+	"service": "rails",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
+	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1": {
 			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "latest"
+		},
+		"ghcr.io/rails/devcontainer/features/postgres-client:1.1.1": {
+			"version": "17"
 		}
 	},
 
-	// Set *default* container specific settings.json values on container create.
-	"settings": {},
-
-	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [
-		"rebornix.Ruby"
-	],
+	"containerEnv": {
+		"PGHOST": "postgres",
+		"PGUSER": "postgres",
+		"PGPASSWORD": "postgres",
+		"MYSQL_HOST": "mysql",
+		"REDIS_URL": "redis://redis/0",
+		"MEMCACHE_SERVERS": "memcached:11211"
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	// This can be used to network with other containers or the host.
+	// "forwardPorts": [3000, 5432],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": ".devcontainer/boot.sh",
 
-	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"Shopify.ruby-lsp"
+			]
+		}
+	}
+
+	// Uncomment to connect as root instead. More info: https://containers.dev/implementors/json_reference/#remoteUser.
+	// "remoteUser": "root"
 }

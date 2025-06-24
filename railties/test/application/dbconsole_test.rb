@@ -35,7 +35,7 @@ module ApplicationTests
 
       primary, replica = PTY.open
       spawn_dbconsole(replica)
-      assert_output("sqlite>", primary)
+      assert_output("sqlite>", primary, 100)
     ensure
       primary.puts ".exit"
     end
@@ -58,7 +58,7 @@ module ApplicationTests
 
       primary, replica = PTY.open
       spawn_dbconsole(replica, "-e production")
-      assert_output("sqlite>", primary)
+      assert_output("sqlite>", primary, 100)
 
       primary.puts "pragma database_list;"
       assert_output("production.sqlite3", primary)

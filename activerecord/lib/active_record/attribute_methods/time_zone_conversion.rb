@@ -28,8 +28,12 @@ module ActiveRecord
           elsif value.respond_to?(:infinite?) && value.infinite?
             value
           else
-            map_avoiding_infinite_recursion(super) { |v| cast(v) }
+            map(super) { |v| cast(v) }
           end
+        end
+
+        def ==(other)
+          other.is_a?(self.class) && __getobj__ == other.__getobj__
         end
 
         private
@@ -41,22 +45,12 @@ module ActiveRecord
             elsif value.respond_to?(:infinite?) && value.infinite?
               value
             else
-              map_avoiding_infinite_recursion(value) { |v| convert_time_to_time_zone(v) }
+              map(value) { |v| convert_time_to_time_zone(v) }
             end
           end
 
           def set_time_zone_without_conversion(value)
             ::Time.zone.local_to_utc(value).try(:in_time_zone) if value
-          end
-
-          def map_avoiding_infinite_recursion(value)
-            map(value) do |v|
-              if value.equal?(v)
-                nil
-              else
-                yield(v)
-              end
-            end
           end
       end
 
@@ -69,14 +63,15 @@ module ActiveRecord
       end
 
       module ClassMethods # :nodoc:
-        def define_attribute(name, cast_type, **)
-          if create_time_zone_conversion_attribute?(name, cast_type)
-            cast_type = TimeZoneConverter.new(cast_type)
-          end
-          super
-        end
-
         private
+          def hook_attribute_type(name, cast_type)
+            if create_time_zone_conversion_attribute?(name, cast_type)
+              cast_type = TimeZoneConverter.new(cast_type)
+            end
+
+            super
+          end
+
           def create_time_zone_conversion_attribute?(name, cast_type)
             enabled_for_column = time_zone_aware_attributes &&
               !skip_time_zone_conversion_for_attributes.include?(name.to_sym)

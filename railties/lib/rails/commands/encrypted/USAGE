@@ -16,7 +16,7 @@ Examples:
 
         <%= executable(:edit) %> config/encrypted_file.yml.enc
 
-    This opens a temporary file in `$EDITOR` with the decrypted contents for editing.
+    This opens a temporary file in `$VISUAL` or `$EDITOR` with the decrypted contents for editing.
 
     To print the decrypted contents of an encrypted file use:
 

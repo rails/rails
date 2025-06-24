@@ -33,6 +33,10 @@ module ActiveRecord
         JSON.dump message_to_json(message)
       end
 
+      def binary?
+        false
+      end
+
       private
         def parse_message(data, level)
           validate_message_data_format(data, level)

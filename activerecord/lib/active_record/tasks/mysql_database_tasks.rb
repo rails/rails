@@ -3,8 +3,6 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class MySQLDatabaseTasks # :nodoc:
-      ER_DB_CREATE_EXISTS = 1007
-
       def self.using_database_configurations?
         true
       end
@@ -28,6 +26,7 @@ module ActiveRecord
       def purge
         establish_connection(configuration_hash_without_database)
         connection.recreate_database(db_config.database, creation_options)
+        establish_connection
       end
 
       def charset
@@ -70,7 +69,7 @@ module ActiveRecord
         attr_reader :db_config, :configuration_hash
 
         def connection
-          ActiveRecord::Base.connection
+          ActiveRecord::Base.lease_connection
         end
 
         def establish_connection(config = db_config)

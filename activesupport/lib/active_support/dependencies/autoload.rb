@@ -8,7 +8,7 @@ module ActiveSupport
   # Autoload and eager load conveniences for your library.
   #
   # This module allows you to define autoloads based on
-  # Rails conventions (i.e. no need to define the path
+  # \Rails conventions (i.e. no need to define the path
   # it is automatically guessed based on the filename)
   # and also define a set of constants that needs to be
   # eager loaded:
@@ -27,18 +27,6 @@ module ActiveSupport
   #
   #   MyLib.eager_load!
   module Autoload
-    def self.extended(base) # :nodoc:
-      if RUBY_VERSION < "3"
-        base.class_eval do
-          @_autoloads = nil
-          @_under_path = nil
-          @_at_path = nil
-          @_eager_autoload = false
-          @_eagerloaded_constants = nil
-        end
-      end
-    end
-
     def autoload(const_name, path = @_at_path)
       unless path
         full = [name, @_under_path, const_name.to_s].compact.join("::")

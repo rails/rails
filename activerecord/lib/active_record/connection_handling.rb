@@ -39,7 +39,7 @@ module ActiveRecord
     #   )
     #
     # In case {ActiveRecord::Base.configurations}[rdoc-ref:Core.configurations]
-    # is set (Rails automatically loads the contents of config/database.yml into it),
+    # is set (\Rails automatically loads the contents of config/database.yml into it),
     # a symbol can also be given as argument, representing a key in the
     # configuration hash:
     #
@@ -87,12 +87,13 @@ module ActiveRecord
 
       connections = []
 
-      database.each do |role, database_key|
-        db_config = resolve_config_for_connection(database_key)
+      @shard_keys = shards.keys
 
-        self.connection_class = true
-        connections << connection_handler.establish_connection(db_config, owner_name: self, role: role)
+      if shards.empty?
+        shards[:default] = database
       end
+
+      self.default_shard = shards.keys.first
 
       shards.each do |shard, database_keys|
         database_keys.each do |role, database_key|
@@ -176,6 +177,18 @@ module ActiveRecord
       connected_to_stack.pop
     end
 
+    # Passes the block to +connected_to+ for every +shard+ the
+    # model is configured to connect to (if any), and returns the
+    # results in an array.
+    #
+    # Optionally, +role+ and/or +prevent_writes+ can be passed which
+    # will be forwarded to each +connected_to+ call.
+    def connected_to_all_shards(role: nil, prevent_writes: false, &blk)
+      shard_keys.map do |shard|
+        connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
+      end
+    end
+
     # Use a specified connection.
     #
     # This method is useful for ensuring that a specific connection is
@@ -244,22 +257,64 @@ module ActiveRecord
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
       connection_handler.each_connection_pool do |pool|
-        pool.connection.clear_query_cache if pool.active_connection?
+        pool.clear_query_cache
       end
     end
 
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
+    # The connection will remain leased for the entire duration of the request
+    # or job, or until +#release_connection+ is called.
+    def lease_connection
+      connection_pool.lease_connection
+    end
+
+    # Soft deprecated. Use +#with_connection+ or +#lease_connection+ instead.
     def connection
-      retrieve_connection
+      pool = connection_pool
+      if pool.permanent_lease?
+        case ActiveRecord.permanent_connection_checkout
+        when :deprecated
+          ActiveRecord.deprecator.warn <<~MESSAGE
+            Called deprecated `ActiveRecord::Base.connection` method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        when :disallowed
+          raise ActiveRecordError, <<~MESSAGE
+            Called deprecated `ActiveRecord::Base.connection` method.
+
+            Either use `with_connection` or `lease_connection`.
+          MESSAGE
+        end
+        pool.lease_connection
+      else
+        pool.active_connection
+      end
+    end
+
+    # Return the currently leased connection into the pool
+    def release_connection
+      connection_pool.release_connection
+    end
+
+    # Checkouts a connection from the pool, yield it and then check it back in.
+    # If a connection was already leased via #lease_connection or a parent call to
+    # #with_connection, that same connection is yieled.
+    # If #lease_connection is called inside the block, the connection won't be checked
+    # back in.
+    # If #connection is called inside the block, the connection won't be checked back in
+    # unless the +prevent_permanent_checkout+ argument is set to +true+.
+    def with_connection(prevent_permanent_checkout: false, &block)
+      connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
     end
 
     attr_writer :connection_specification_name
 
-    # Return the connection specification name from the current class or its parent.
+    # Returns the connection specification name from the current class or its parent.
     def connection_specification_name
-      if !defined?(@connection_specification_name) || @connection_specification_name.nil?
+      if @connection_specification_name.nil?
         return self == Base ? Base.name : superclass.connection_specification_name
       end
       @connection_specification_name
@@ -280,8 +335,12 @@ module ActiveRecord
       connection_pool.db_config
     end
 
+    def adapter_class # :nodoc:
+      connection_pool.db_config.adapter_class
+    end
+
     def connection_pool
-      connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_shard) || raise(ConnectionNotEstablished)
+      connection_handler.retrieve_connection_pool(connection_specification_name, role: current_role, shard: current_shard, strict: true)
     end
 
     def retrieve_connection
@@ -293,8 +352,9 @@ module ActiveRecord
       connection_handler.connected?(connection_specification_name, role: current_role, shard: current_shard)
     end
 
-    def remove_connection(name = nil)
-      name ||= @connection_specification_name if defined?(@connection_specification_name)
+    def remove_connection
+      name = @connection_specification_name if defined?(@connection_specification_name)
+
       # if removing a connection that has a pool, we reset the
       # connection_specification_name so it will use the parent
       # pool.
@@ -305,39 +365,23 @@ module ActiveRecord
       connection_handler.remove_connection_pool(name, role: current_role, shard: current_shard)
     end
 
+    def schema_cache # :nodoc:
+      connection_pool.schema_cache
+    end
+
     def clear_cache! # :nodoc:
-      connection.schema_cache.clear!
+      connection_pool.schema_cache.clear!
     end
 
-    def clear_active_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_active_connections!(role)
+    def shard_keys
+      connection_class_for_self.instance_variable_get(:@shard_keys) || []
     end
 
-    def clear_reloadable_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_reloadable_connections!(role)
-    end
-
-    def clear_all_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.clear_all_connections!(role)
-    end
-
-    def flush_idle_connections!(role = nil)
-      deprecation_for_delegation(__method__)
-      connection_handler.flush_idle_connections!(role)
+    def sharded?
+      shard_keys.any?
     end
 
     private
-      def deprecation_for_delegation(method)
-        ActiveRecord.deprecator.warn(<<-MSG.squish)
-          Calling `ActiveRecord::Base.#{method} is deprecated. Please
-          call the method directly on the connection handler; for
-          example: `ActiveRecord::Base.connection_handler.#{method}`.
-        MSG
-      end
-
       def resolve_config_for_connection(config_or_env)
         raise "Anonymous class is not allowed." unless name
 

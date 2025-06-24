@@ -6,7 +6,6 @@ require "rails/app_loader"
 # the rest of this script is not run.
 Rails::AppLoader.exec_app
 
-require "rails/ruby_version_check"
 Signal.trap("INT") { puts; exit(1) }
 
 require "rails/command"

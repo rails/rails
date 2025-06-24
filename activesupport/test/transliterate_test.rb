@@ -110,7 +110,7 @@ class TransliterateTest < ActiveSupport::TestCase
   def test_transliterate_returns_a_copy_of_ascii_strings
     string = "Test String".dup
     assert_not string.frozen?
-    assert string.ascii_only?
+    assert_predicate string, :ascii_only?
     assert_not_equal string.object_id, ActiveSupport::Inflector.transliterate(string).object_id
   end
 end

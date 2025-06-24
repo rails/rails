@@ -4,6 +4,7 @@ require_relative "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require "active_support/core_ext/securerandom"
 require_relative "messages/message_codec_tests"
 
 class MessageVerifierTest < ActiveSupport::TestCase
@@ -81,6 +82,25 @@ class MessageVerifierTest < ActiveSupport::TestCase
       "Unable to assert that the message payload is unpadded, because it does not require padding"
   end
 
+  test "URL-safe and URL-unsafe can decode each other messages" do
+    safe_verifier = ActiveSupport::MessageVerifier.new(@secret, url_safe: true, serializer: JSON)
+    unsafe_verifier = ActiveSupport::MessageVerifier.new(@secret, url_safe: false, serializer: JSON)
+
+    data = "??"
+
+    assert_equal safe_verifier.generate(data), safe_verifier.generate(data)
+    assert_not_equal safe_verifier.generate(data), unsafe_verifier.generate(data)
+
+    assert_equal data, unsafe_verifier.verify(safe_verifier.generate(data))
+    assert_equal data, safe_verifier.verify(unsafe_verifier.generate(data))
+
+    50.times do
+      data = SecureRandom.base58(Random.rand(10..50))
+      assert_equal data, unsafe_verifier.verify(safe_verifier.generate(data))
+      assert_equal data, safe_verifier.verify(unsafe_verifier.generate(data))
+    end
+  end
+
   def test_alternative_serialization_method
     prev = ActiveSupport.use_standard_json_time_format
     ActiveSupport.use_standard_json_time_format = true
@@ -107,6 +127,10 @@ class MessageVerifierTest < ActiveSupport::TestCase
       ActiveSupport::MessageVerifier.new(nil)
     end
     assert_equal "Secret should not be nil.", exception.message
+  end
+
+  test "inspect does not show secrets" do
+    assert_match(/\A#<ActiveSupport::MessageVerifier:0x[0-9a-f]+>\z/, @verifier.inspect)
   end
 
   private

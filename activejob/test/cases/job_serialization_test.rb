@@ -38,6 +38,17 @@ class JobSerializationTest < ActiveSupport::TestCase
     assert_equal h2.serialize, h3.serialize
   end
 
+  test "deserialize raises a specific exception on unknown `job_class`" do
+    payload = HelloJob.new.serialize
+
+    # Simulate the job class being missing, for example during rolling deploys when
+    # the server enqueues a new job but the job processor hasn't been restarted yet.
+    payload["job_class"] = "IDontExist"
+    assert_raises(ActiveJob::UnknownJobClassError) do
+      HelloJob.deserialize(payload)
+    end
+  end
+
   test "deserialize sets locale" do
     job = HelloJob.new
     job.deserialize "locale" => "es"
@@ -65,13 +76,31 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "serializes enqueued_at with full precision" do
+  test "serializes and deserializes enqueued_at with full precision" do
     freeze_time
 
     serialized = HelloJob.new.serialize
     assert_kind_of String, serialized["enqueued_at"]
 
     enqueued_at = HelloJob.deserialize(serialized).enqueued_at
-    assert_equal Time.now.utc, Time.iso8601(enqueued_at)
+    assert_kind_of Time, enqueued_at
+    assert_equal Time.now.utc, enqueued_at
+  end
+
+  test "serializes and deserializes scheduled_at as Time" do
+    freeze_time
+    current_time = Time.now
+
+    job = HelloJob.new
+    job.scheduled_at = current_time
+    serialized_job = job.serialize
+    assert_kind_of String, serialized_job["enqueued_at"]
+    assert_equal current_time.utc.iso8601(9), serialized_job["enqueued_at"]
+
+    deserialized_job = HelloJob.new
+    deserialized_job.deserialize(serialized_job)
+    assert_equal current_time, deserialized_job.scheduled_at
+
+    assert_equal job.serialize, deserialized_job.serialize
   end
 end

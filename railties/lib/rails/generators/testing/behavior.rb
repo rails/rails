@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/testing/stream"
-require "active_support/concern"
 require "rails/generators"
 
 module Rails
@@ -65,11 +62,15 @@ module Rails
         # You can provide a configuration hash as second argument. This method returns the output
         # printed by the generator.
         def run_generator(args = default_arguments, config = {})
-          capture(:stdout) do
-            args += ["--skip-bundle"] unless args.include?("--no-skip-bundle") || args.include?("--dev")
-            args += ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap") || args.include?("--skip-bootsnap")
+          args += ["--skip-bundle"] unless args.include?("--no-skip-bundle") || args.include?("--dev")
+          args += ["--skip-bootsnap"] unless args.include?("--no-skip-bootsnap") || args.include?("--skip-bootsnap")
 
+          if ENV["RAILS_LOG_TO_STDOUT"] == "true"
             generator_class.start(args, config.reverse_merge(destination_root: destination_root))
+          else
+            capture(:stdout) do
+              generator_class.start(args, config.reverse_merge(destination_root: destination_root))
+            end
           end
         end
 
@@ -107,9 +108,6 @@ module Rails
             Dir.glob("#{dirname}/[0-9]*_*.rb").grep(/\d+_#{file_name}.rb$/).first
           end
       end
-
-      include ActiveSupport::Deprecation::DeprecatedConstantAccessor
-      deprecate_constant "Behaviour", "Rails::Generators::Testing::Behavior", deprecator: Rails.deprecator
     end
   end
 end

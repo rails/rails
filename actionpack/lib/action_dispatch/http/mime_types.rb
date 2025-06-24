@@ -3,6 +3,8 @@
 # Build list of Mime types for HTTP responses
 # https://www.iana.org/assignments/media-types/
 
+# :markup: markdown
+
 Mime::Type.register "text/html", :html, %w( application/xhtml+xml ), %w( xhtml )
 Mime::Type.register "text/plain", :text, [], %w(txt)
 Mime::Type.register "text/javascript", :js, %w( application/javascript application/x-javascript )
@@ -18,6 +20,7 @@ Mime::Type.register "image/gif", :gif, [], %w(gif)
 Mime::Type.register "image/bmp", :bmp, [], %w(bmp)
 Mime::Type.register "image/tiff", :tiff, [], %w(tif tiff)
 Mime::Type.register "image/svg+xml", :svg
+Mime::Type.register "image/webp", :webp, [], %w(webp)
 
 Mime::Type.register "video/mpeg", :mpeg, [], %w(mpg mpeg mpe)
 

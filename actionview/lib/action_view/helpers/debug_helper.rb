@@ -6,7 +6,7 @@ module ActionView
   module Helpers # :nodoc:
     # = Action View Debug \Helpers
     #
-    # Provides a set of methods for making it easier to debug Rails objects.
+    # Provides a set of methods for making it easier to debug \Rails objects.
     module DebugHelper
       include TagHelper
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "pathname"
-require "tmpdir"
+require "tempfile"
 require "active_support/message_encryptor"
 
 module ActiveSupport
@@ -69,7 +69,7 @@ module ActiveSupport
     #   decrypted or verified.
     def read
       if !key.nil? && content_path.exist?
-        decrypt content_path.binread
+        decrypt content_path.binread.strip
       else
         raise MissingContentError, content_path
       end
@@ -87,17 +87,16 @@ module ActiveSupport
 
     private
       def writing(contents)
-        tmp_file = "#{Process.pid}.#{content_path.basename.to_s.chomp('.enc')}"
-        tmp_path = Pathname.new File.join(Dir.tmpdir, tmp_file)
-        tmp_path.binwrite contents
+        Tempfile.create(["", "-" + content_path.basename.to_s.chomp(".enc")]) do |tmp_file|
+          tmp_path = Pathname.new(tmp_file)
+          tmp_path.binwrite contents
 
-        yield tmp_path
+          yield tmp_path
 
-        updated_contents = tmp_path.binread
+          updated_contents = tmp_path.binread
 
-        write(updated_contents) if updated_contents != contents
-      ensure
-        FileUtils.rm(tmp_path) if tmp_path&.exist?
+          write(updated_contents) if updated_contents != contents
+        end
       end
 
 

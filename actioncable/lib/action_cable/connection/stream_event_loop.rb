@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "nio"
 
 module ActionCable
@@ -66,6 +68,7 @@ module ActionCable
             @nio ||= NIO::Selector.new
 
             @executor ||= Concurrent::ThreadPoolExecutor.new(
+              name: "ActionCable-streamer",
               min_threads: 1,
               max_threads: 10,
               max_queue: 0,
@@ -116,9 +119,8 @@ module ActionCable
                   stream.receive incoming
                 end
               rescue
-                # We expect one of EOFError or Errno::ECONNRESET in
-                # normal operation (when the client goes away). But if
-                # anything else goes wrong, this is still the best way
+                # We expect one of EOFError or Errno::ECONNRESET in normal operation (when the
+                # client goes away). But if anything else goes wrong, this is still the best way
                 # to handle it.
                 begin
                   stream.close

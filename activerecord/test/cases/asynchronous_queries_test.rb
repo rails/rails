@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "support/connection_helper"
 require "models/post"
 
 module AsynchronousQueriesSharedTests
   def test_async_select_failure
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     if in_memory_db?
       assert_raises ActiveRecord::StatementInvalid do
         @connection.select_all "SELECT * FROM does_not_exists", async: true
@@ -19,13 +16,9 @@ module AsynchronousQueriesSharedTests
         future_result.result
       end
     end
-  ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
   end
 
   def test_async_query_from_transaction
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     assert_nothing_raised do
       @connection.select_all "SELECT * FROM posts", async: true
     end
@@ -37,20 +30,15 @@ module AsynchronousQueriesSharedTests
         end
       end
     end
-  ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
   end
 
   def test_async_query_cache
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
-
     @connection.enable_query_cache!
 
     @connection.select_all "SELECT * FROM posts"
     result = @connection.select_all "SELECT * FROM posts", async: true
-    assert_equal ActiveRecord::Result, result.class
+    assert_equal ActiveRecord::FutureResult::Complete, result.class
   ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     @connection.disable_query_cache!
   end
 
@@ -99,11 +87,10 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
   include AsynchronousQueriesSharedTests
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
   end
 
   def test_async_select_all
-    ActiveRecord::Base.asynchronous_queries_tracker.start_session
     status = {}
 
     subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
@@ -125,23 +112,24 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     assert_kind_of ActiveRecord::Result, future_result.result
     assert_equal @connection.supports_concurrent_connections?, status[:async]
   ensure
-    ActiveRecord::Base.asynchronous_queries_tracker.finalize_session
     ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
   end
 end
 
 class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
-  self.use_transactional_tests = true
-
   include AsynchronousQueriesSharedTests
 
   def setup
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.materialize_transactions
   end
 end
 
 class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
+  def teardown
+    clean_up_connection_handler
+  end
+
   def test_null_configuration_uses_a_single_null_executor_by_default
     old_value = ActiveRecord.async_query_executor
     ActiveRecord.async_query_executor = nil
@@ -160,7 +148,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
 
     assert_equal 2, handler.connection_pool_list(:all).count
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -193,7 +180,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -230,7 +216,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.global_executor_concurrency = old_concurrency
     ActiveRecord.async_query_executor = old_value
     ActiveRecord.instance_variable_set(:@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
@@ -284,7 +269,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -319,7 +303,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 end

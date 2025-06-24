@@ -6,8 +6,37 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_accessor :middleware, :javascript_path
+      attr_accessor :middleware, :javascript_path, :route_set_class, :default_scope
       attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
+
+      # An array of custom autoload paths to be added to the ones defined
+      # automatically by Rails. These won't be eager loaded, unless you push
+      # them to +eager_load_paths+ too, which is recommended.
+      #
+      # This collection is empty by default, it accepts strings and +Pathname+
+      # objects.
+      #
+      # If you'd like to add +lib+ to it, please see +autoload_lib+.
+      attr_reader :autoload_paths
+
+      # An array of custom autoload once paths. These won't be eager loaded
+      # unless you push them to +eager_load_paths+ too, which is recommended.
+      #
+      # This collection is empty by default, it accepts strings and +Pathname+
+      # objects.
+      #
+      # If you'd like to add +lib+ to it, please see +autoload_lib_once+.
+      attr_reader :autoload_once_paths
+
+      # An array of custom eager load paths to be added to the ones defined
+      # automatically by Rails. Anything in this collection is considered to be
+      # an autoload path regardless of whether it was added to +autoload_paths+.
+      #
+      # This collection is empty by default, it accepts strings and +Pathname+
+      # objects.
+      #
+      # If you'd like to add +lib+ to it, please see +autoload_lib+.
+      attr_reader :eager_load_paths
 
       def initialize(root = nil)
         super()
@@ -15,6 +44,12 @@ module Rails
         @generators = app_generators.dup
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
         @javascript_path = "javascript"
+        @route_set_class = ActionDispatch::Routing::RouteSet
+        @default_scope = nil
+
+        @autoload_paths = []
+        @autoload_once_paths = []
+        @eager_load_paths = []
       end
 
       # Holds generators configuration:
@@ -50,6 +85,9 @@ module Rails
           paths.add "app/mailers",         eager_load: true
           paths.add "app/views"
 
+          # If you add more lib subdirectories here that should not be managed
+          # by the main autoloader, please update the config.autoload_lib call
+          # in the template that generates config/application.rb accordingly.
           paths.add "lib",                 load_path: true
           paths.add "lib/assets",          glob: "*"
           paths.add "lib/tasks",           glob: "**/*.rake"
@@ -78,16 +116,22 @@ module Rails
         @root = paths.path = Pathname.new(value).expand_path
       end
 
-      def eager_load_paths
-        @eager_load_paths ||= paths.eager_load
+      # Private method that adds custom autoload paths to the ones defined by
+      # +paths+.
+      def all_autoload_paths # :nodoc:
+        autoload_paths + paths.autoload_paths
       end
 
-      def autoload_once_paths
-        @autoload_once_paths ||= paths.autoload_once
+      # Private method that adds custom autoload once paths to the ones defined
+      # by +paths+.
+      def all_autoload_once_paths # :nodoc:
+        autoload_once_paths + paths.autoload_once
       end
 
-      def autoload_paths
-        @autoload_paths ||= paths.autoload_paths
+      # Private method that adds custom eager load paths to the ones defined by
+      # +paths+.
+      def all_eager_load_paths # :nodoc:
+        eager_load_paths + paths.eager_load
       end
     end
   end

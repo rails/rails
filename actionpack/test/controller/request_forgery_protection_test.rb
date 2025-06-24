@@ -675,7 +675,7 @@ module RequestForgeryProtectionTests
 
   def test_should_not_raise_error_if_token_is_not_a_string
     assert_blocked do
-      patch :index, params: { custom_authenticity_token: { foo: "bar" } }
+      patch :index, params: { custom_authenticity_token: 1 }, as: :json
     end
   end
 
@@ -1112,6 +1112,71 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_handles_empty_path_as_request_path
+    get :index, params: { form_path: "" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
+  def test_handles_relative_paths
+    get :index, params: { form_path: "post_one" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
+  def test_handles_relative_paths_with_dot
+    get :index, params: { form_path: "./post_one" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
+  def test_handles_query_string
+    get :index, params: { form_path: "./post_one?a=b" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
+  def test_handles_fragment
+    get :index, params: { form_path: "./post_one#a" }
+
+    form_token = assert_presence_and_fetch_form_csrf_token
+
+    # This is required because PATH_INFO isn't reset between requests.
+    @request.env["PATH_INFO"] = "/per_form_tokens/post_one"
+    assert_nothing_raised do
+      post :post_one, params: { custom_authenticity_token: form_token }
+    end
+    assert_response :success
+  end
+
   def test_ignores_origin_during_generation
     get :index, params: { form_path: "https://example.com/per_form_tokens/post_one/" }
 
@@ -1238,7 +1303,7 @@ class CookieCsrfTokenStorageStrategyControllerTest < ActionController::TestCase
 
   def test_csrf_token_cookie_has_same_site_lax
     get :cookie
-    assert_match "SameSite=Lax", @response.headers["Set-Cookie"]
+    assert_set_cookie_attributes("csrf_token", "SameSite=Lax")
   end
 
   include CookieAssertions

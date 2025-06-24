@@ -360,6 +360,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
       "/:controller(/:action(/:id))(.:format)",
       controller.request.route_uri_pattern
     )
+
+    assert_equal(
+      "/:controller(/:action(/:id))(.:format)",
+      controller.request.get_header("action_dispatch.route_uri_pattern")
+    )
   end
 
   def test_route_with_colon_first
@@ -503,9 +508,11 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
   end
 
   def test_named_route_without_hash
-    rs.draw do
-      ActionDispatch.deprecator.silence do
-        get ":controller/:action/:id", as: "normal"
+    assert_nothing_raised do
+      rs.draw do
+        ActionDispatch.deprecator.silence do
+          get ":controller/:action/:id", as: "normal"
+        end
       end
     end
   end
@@ -1689,12 +1696,12 @@ class RouteSetTest < ActiveSupport::TestCase
     set.draw do
       get "page/:name" => "pages#show", :constraints => lambda { |request|
         name_param = request.params[:name]
-        return true
+        true
       }
     end
     assert_equal({ controller: "pages", action: "show", name: "mypage" },
       set.recognize_path("http://subdomain.example.org/page/mypage"))
-    assert_equal(name_param, "mypage")
+    assert_equal("mypage", name_param)
   end
 
   def test_route_requirement_recognize_with_ignore_case
@@ -2172,11 +2179,11 @@ class RackMountIntegrationTests < ActiveSupport::TestCase
   end
 
   def test_unicode_path
-    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::DEFAULT_PARSER.escape("こんにちは/世界"), method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::RFC2396_PARSER.escape("こんにちは/世界"), method: :get))
   end
 
   def test_downcased_unicode_path
-    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::DEFAULT_PARSER.escape("こんにちは/世界").downcase, method: :get))
+    assert_equal({ controller: "news", action: "index" }, @routes.recognize_path(URI::RFC2396_PARSER.escape("こんにちは/世界").downcase, method: :get))
   end
 
   private

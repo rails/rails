@@ -93,8 +93,8 @@ module Enumerable
   def many?
     cnt = 0
     if block_given?
-      any? do |element, *args|
-        cnt += 1 if yield element, *args
+      any? do |*args|
+        cnt += 1 if yield(*args)
         cnt > 1
       end
     else
@@ -192,22 +192,39 @@ module Enumerable
   #   # => [ Person.find(1), Person.find(5), Person.find(3) ]
   #
   # If the +series+ include keys that have no corresponding element in the Enumerable, these are ignored.
-  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result.
-  def in_order_of(key, series)
-    group_by(&key).values_at(*series).flatten(1).compact
+  # If the Enumerable has additional elements that aren't named in the +series+, these are not included in the result, unless
+  # the +filter+ option is set to +false+.
+  def in_order_of(key, series, filter: true)
+    if filter
+      group_by(&key).values_at(*series).flatten(1).compact
+    else
+      sort_by { |v| series.index(v.public_send(key)) || series.size }.compact
+    end
   end
 
   # Returns the sole item in the enumerable. If there are no items, or more
-  # than one item, raises +Enumerable::SoleItemExpectedError+.
+  # than one item, raises Enumerable::SoleItemExpectedError.
   #
   #   ["x"].sole          # => "x"
   #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   def sole
-    case count
-    when 1   then return first # rubocop:disable Style/RedundantReturn
-    when 0   then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "no item found"
-    when 2.. then raise ActiveSupport::EnumerableCoreExt::SoleItemExpectedError, "multiple items found"
+    result = nil
+    found = false
+
+    each do |element|
+      if found
+        raise SoleItemExpectedError, "multiple items found"
+      end
+
+      result = element
+      found = true
+    end
+
+    if found
+      result
+    else
+      raise SoleItemExpectedError, "no item found"
     end
   end
 end

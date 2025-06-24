@@ -19,6 +19,10 @@ module ActiveRecord
       def encrypted?(text)
         false
       end
+
+      def binary?
+        false
+      end
     end
   end
 end

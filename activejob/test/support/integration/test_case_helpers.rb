@@ -27,10 +27,6 @@ module TestCaseHelpers
       jobs_manager.clear_jobs
     end
 
-    def adapter_is?(*adapter_class_symbols)
-      adapter_class_symbols.map(&:to_s).include? ActiveJob::Base.queue_adapter_name
-    end
-
     def wait_for_jobs_to_finish_for(seconds = 60)
       Timeout.timeout(seconds) do
         while !job_executed do
@@ -46,6 +42,10 @@ module TestCaseHelpers
 
     def job_executed(id = @id)
       job_file(id).exist?
+    end
+
+    def continuable_job_started(id = @id)
+      job_file("#{id}.started").exist?
     end
 
     def job_data(id)

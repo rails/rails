@@ -26,12 +26,17 @@ module ActiveSupport
   class ErrorReporter
     SEVERITIES = %i(error warning info)
     DEFAULT_SOURCE = "application"
+    DEFAULT_RESCUE = [StandardError].freeze
 
-    attr_accessor :logger
+    attr_accessor :logger, :debug_mode
+
+    UnexpectedError = Class.new(Exception)
 
     def initialize(*subscribers, logger: nil)
       @subscribers = subscribers.flatten
       @logger = logger
+      @debug_mode = false
+      @context_middlewares = ErrorContextMiddlewareStack.new
     end
 
     # Evaluates the given block, reporting and swallowing any unhandled error.
@@ -72,7 +77,7 @@ module ActiveSupport
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
     def handle(*error_classes, severity: :warning, context: {}, fallback: nil, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
+      error_classes = DEFAULT_RESCUE if error_classes.empty?
       yield
     rescue *error_classes => error
       report(error, handled: true, severity: severity, context: context, source: source)
@@ -108,11 +113,45 @@ module ActiveSupport
     #   source of the error. Subscribers can use this value to ignore certain
     #   errors. Defaults to <tt>"application"</tt>.
     def record(*error_classes, severity: :error, context: {}, source: DEFAULT_SOURCE)
-      error_classes = [StandardError] if error_classes.blank?
+      error_classes = DEFAULT_RESCUE if error_classes.empty?
       yield
     rescue *error_classes => error
       report(error, handled: false, severity: severity, context: context, source: source)
       raise
+    end
+
+    # Either report the given error when in production, or raise it when in development or test.
+    #
+    # When called in production, after the error is reported, this method will return
+    # nil and execution will continue.
+    #
+    # When called in development, the original error is wrapped in a different error class to ensure
+    # it's not being rescued higher in the stack and will be surfaced to the developer.
+    #
+    # This method is intended for reporting violated assertions about preconditions, or similar
+    # cases that can and should be gracefully handled in production, but that aren't supposed to happen.
+    #
+    # The error can be either an exception instance or a String.
+    #
+    #   example:
+    #
+    #     def edit
+    #       if published?
+    #         Rails.error.unexpected("[BUG] Attempting to edit a published article, that shouldn't be possible")
+    #         return false
+    #       end
+    #       # ...
+    #     end
+    #
+    def unexpected(error, severity: :warning, context: {}, source: DEFAULT_SOURCE)
+      error = RuntimeError.new(error) if error.is_a?(String)
+
+      if @debug_mode
+        ensure_backtrace(error)
+        raise UnexpectedError, "#{error.class.name}: #{error.message}", error.backtrace, cause: error
+      else
+        report(error, handled: true, severity: severity, context: context, source: source)
+      end
     end
 
     # Register a new error subscriber. The subscriber must respond to
@@ -164,19 +203,51 @@ module ActiveSupport
       ActiveSupport::ExecutionContext.set(...)
     end
 
+    # Add a middleware to modify the error context before it is sent to subscribers.
+    #
+    # Middleware is added to a stack of callables run on an error's execution context
+    # before passing to subscribers. Allows creation of entries in error context that
+    # are shared by all subscribers.
+    #
+    # A context middleware receives the same parameters as #report.
+    # It must return a hash - the middleware stack returns the hash after it has
+    # run through all middlewares. A middleware can mutate or replace the hash.
+    #
+    #   Rails.error.add_middleware(-> (error, context) { context.merge({ foo: :bar }) })
+    #
+    def add_middleware(middleware)
+      @context_middlewares.use(middleware)
+    end
+
     # Report an error directly to subscribers. You can use this method when the
     # block-based #handle and #record methods are not suitable.
     #
     #   Rails.error.report(error)
     #
+    # The +error+ argument must be an instance of Exception.
+    #
+    #   Rails.error.report(Exception.new("Something went wrong"))
+    #
+    # Otherwise you can use #unexpected to report an error which does accept a
+    # string argument.
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       return if error.instance_variable_defined?(:@__rails_error_reported)
+      raise ArgumentError, "Reported error must be an Exception, got: #{error.inspect}" unless error.is_a?(Exception)
+
+      ensure_backtrace(error)
 
       unless SEVERITIES.include?(severity)
         raise ArgumentError, "severity must be one of #{SEVERITIES.map(&:inspect).join(", ")}, got: #{severity.inspect}"
       end
 
-      full_context = ActiveSupport::ExecutionContext.to_h.merge(context)
+      full_context = @context_middlewares.execute(
+        error,
+        context: ActiveSupport::ExecutionContext.to_h.merge(context || {}),
+        handled:,
+        severity:,
+        source:
+      )
+
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
@@ -193,11 +264,55 @@ module ActiveSupport
         end
       end
 
-      unless error.frozen?
-        error.instance_variable_set(:@__rails_error_reported, true)
+      while error
+        unless error.frozen?
+          error.instance_variable_set(:@__rails_error_reported, true)
+        end
+        error = error.cause
       end
 
       nil
     end
+
+    private
+      def ensure_backtrace(error)
+        return if error.frozen? # re-raising won't add a backtrace or set the cause
+        return unless error.backtrace.nil?
+
+        begin
+          # As of Ruby 3.4, we could use Exception#set_backtrace to set the backtrace,
+          # but there's nothing like Exception#set_cause. Raising+rescuing is the only way to set the cause.
+          raise error
+        rescue error.class => error
+        end
+
+        count = 0
+        while error.backtrace_locations.first&.path == __FILE__
+          count += 1
+          error.backtrace_locations.shift
+        end
+
+        error.backtrace.shift(count)
+      end
+
+      class ErrorContextMiddlewareStack # :nodoc:
+        def initialize
+          @stack = []
+        end
+
+        # Add a middleware to the error context stack.
+        def use(middleware)
+          unless middleware.respond_to?(:call)
+            raise ArgumentError, "Error context middleware must respond to #call"
+          end
+
+          @stack << middleware
+        end
+
+        # Run all middlewares in the stack
+        def execute(error, handled:, severity:, context:, source:)
+          @stack.inject(context) { |c, middleware| middleware.call(error, context: c, handled:, severity:, source:) }
+        end
+      end
   end
 end

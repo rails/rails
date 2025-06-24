@@ -5,17 +5,37 @@ require "rouge"
 # Add more common shell commands
 Rouge::Lexers::Shell::BUILTINS << "|bin/rails|brew|bundle|gem|git|node|rails|rake|ruby|sqlite3|yarn"
 
+# Register an IRB lexer for Rails 7.2+ console prompts like "store(dev)>"
+class Rouge::Lexers::GuidesIRBLexer < Rouge::Lexers::IRBLexer
+  tag "irb"
+
+  def prompt_regex
+    %r(
+      ^.*?
+      (
+        (irb|pry|\w+\(\w+\)).*?[>"*] |
+        [>"*]>
+      )
+    )x
+  end
+end
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML  # :nodoc:
+      APPLICATION_FILEPATH_REGEXP = /(app|config|db|lib|test)\//
+      ERB_FILEPATH_REGEXP = /^<%# #{APPLICATION_FILEPATH_REGEXP}.* %>/o
+      RUBY_FILEPATH_REGEXP = /^# #{APPLICATION_FILEPATH_REGEXP}/o
+
       cattr_accessor :edge, :version
 
       def block_code(code, language)
-        formatter = Rouge::Formatters::HTML.new
+        language, lines = split_language_highlights(language)
+        formatter = Rouge::Formatters::HTMLLineHighlighter.new(Rouge::Formatters::HTML.new, highlight_lines: lines)
         lexer = ::Rouge::Lexer.find_fancy(lexer_language(language))
         formatted_code = formatter.format(lexer.lex(code))
         <<~HTML
-          <div class="code_container">
+          <div class="interstitial code">
           <pre><code class="highlight #{lexer_language(language)}">#{formatted_code}</code></pre>
           <button class="clipboard-button" data-clipboard-text="#{clipboard_content(code, language)}">Copy</button>
           </div>
@@ -78,16 +98,30 @@ module RailsGuides
         end
 
         def clipboard_content(code, language)
+          # Remove prompt and results of commands.
           prompt_regexp =
             case language
             when "bash"
               /^\$ /
             when "irb"
-              /^irb.*?> /
+              /^(irb.*?|\w+\(\w+\))> /
             end
 
           if prompt_regexp
             code = code.lines.grep(prompt_regexp).join.gsub(prompt_regexp, "")
+          end
+
+          # Remove comments that reference an application file.
+          filepath_regexp =
+            case language
+            when "erb", "html+erb"
+              ERB_FILEPATH_REGEXP
+            when "ruby", "yaml", "yml"
+              RUBY_FILEPATH_REGEXP
+            end
+
+          if filepath_regexp
+            code = code.lines.grep_v(filepath_regexp).join
           end
 
           ERB::Util.html_escape(code)
@@ -112,7 +146,7 @@ module RailsGuides
               else
                 $1.downcase
               end
-            %(<div class="#{css_class}"><p>#{$2.strip}</p></div>)
+            %(<div class="interstitial #{css_class}"><p>#{$2.strip}</p></div>)
           end
         end
 
@@ -141,6 +175,21 @@ module RailsGuides
           else
             url.sub(/(?<=\.org)/, "/#{version}")
           end
+        end
+
+        # Parses "ruby#3,5-6,10" into ["ruby", [3,5,6,10]] for highlighting line numbers in code blocks
+        def split_language_highlights(language)
+          return [nil, []] unless language
+
+          language, lines = language.split("#", 2)
+          lines = lines.to_s.split(",").flat_map { parse_range(_1) }
+
+          [language, lines]
+        end
+
+        def parse_range(range)
+          first, last = range.split("-", 2).map(&:to_i)
+          Range.new(first, last || first).to_a
         end
     end
   end

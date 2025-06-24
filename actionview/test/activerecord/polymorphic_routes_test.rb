@@ -213,7 +213,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
         @series.save
         polymorphic_url([nil, @series])
       end
-      assert_match(/undefined method `series_url'/, exception.message)
+      assert_match(/undefined method [`']series_url'/, exception.message)
     end
   end
 

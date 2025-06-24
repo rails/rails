@@ -9,6 +9,14 @@ require "active_support/testing/parallelization/worker"
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
+      @@before_fork_hooks = []
+
+      def self.before_fork_hook(&blk)
+        @@before_fork_hooks << blk
+      end
+
+      cattr_reader :before_fork_hooks
+
       @@after_fork_hooks = []
 
       def self.after_fork_hook(&blk)
@@ -32,7 +40,12 @@ module ActiveSupport
         @url = DRb.start_service("drbunix:", @queue_server).uri
       end
 
+      def before_fork
+        Parallelization.before_fork_hooks.each(&:call)
+      end
+
       def start
+        before_fork
         @worker_pool = @worker_count.times.map do |worker|
           Worker.new(worker, @url).start
         end

@@ -26,6 +26,13 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "foobar", string
   end
 
+  def test_capture_with_keyword_arguments
+    string = @av.capture("foo", b: "bar") do |a, b:|
+      a + b
+    end
+    assert_equal "foobar", string
+  end
+
   def test_capture_returns_nil_if_the_returned_value_is_not_a_string
     assert_nil @av.capture { 1 }
   end
@@ -228,6 +235,16 @@ class CaptureHelperTest < ActionView::TestCase
   def test_with_output_buffer_does_not_assume_there_is_an_output_buffer
     assert_predicate @av.output_buffer, :empty?
     assert_equal "", @av.with_output_buffer { }.to_s
+  end
+
+  def test_ignore_the_block_return_if_its_the_buffer
+    @av.output_buffer << "something"
+    string = @av.capture do
+      @av.output_buffer << "foo"
+      @av.output_buffer << "bar"
+      @av.output_buffer
+    end
+    assert_equal "foobar", string
   end
 
   def alt_encoding(output_buffer)

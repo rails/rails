@@ -6,7 +6,7 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNumber < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table("postgresql_numbers", force: true) do |t|
       t.column "single", "REAL"
       t.column "double", "DOUBLE PRECISION"
@@ -33,7 +33,7 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 123456.789, first.double
     assert_equal(-::Float::INFINITY, second.single)
     assert_equal ::Float::INFINITY, second.double
-    assert third.double.nan?, "Expected #{third.double} to be NaN"
+    assert_predicate third.double, :nan?, "Expected #{third.double} to be NaN"
   end
 
   def test_update
@@ -47,5 +47,21 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
     record.reload
     assert_equal new_single, record.single
     assert_equal new_double, record.double
+  end
+
+  def test_reassigning_infinity_does_not_mark_record_as_changed
+    record = PostgresqlNumber.create!(single: Float::INFINITY, double: -Float::INFINITY)
+    record.reload
+    record.single = Float::INFINITY
+    record.double = -Float::INFINITY
+    assert_not_predicate record, :changed?
+  end
+
+  def test_reassigning_nan_does_not_mark_record_as_changed
+    record = PostgresqlNumber.create!(single: Float::NAN, double: Float::NAN)
+    record.reload
+    record.single = Float::NAN
+    record.double = Float::NAN
+    assert_not_predicate record, :changed?
   end
 end

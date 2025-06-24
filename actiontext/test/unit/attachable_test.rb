@@ -40,4 +40,13 @@ class ActionText::AttachableTest < ActiveSupport::TestCase
 
     assert_equal attributes, attachable.as_json
   end
+
+  test "attachable_sgid is included in as_json when only option is nil or includes attachable_sgid" do
+    attachable = ActiveStorage::Blob.create_after_unfurling!(io: StringIO.new("test"), filename: "test.txt", key: 123)
+
+    assert_equal({ "id" => attachable.id }, attachable.as_json(only: :id))
+    assert_equal({ "id" => attachable.id }, attachable.as_json(only: [:id]))
+    assert_equal(attachable.as_json.except("attachable_sgid"), attachable.as_json(except: :attachable_sgid))
+    assert_equal(attachable.as_json.except("attachable_sgid"), attachable.as_json(except: [:attachable_sgid]))
+  end
 end

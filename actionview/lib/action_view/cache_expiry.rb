@@ -10,16 +10,17 @@ module ActionView
         @watcher = nil
         @previous_change = false
 
-        rebuild_watcher
-
         ActionView::PathRegistry.file_system_resolver_hooks << method(:rebuild_watcher)
       end
 
       def updated?
+        build_watcher unless @watcher
         @previous_change || @watcher.updated?
       end
 
       def execute
+        return unless @watcher
+
         watcher = nil
         @mutex.synchronize do
           @previous_change = false
@@ -33,7 +34,7 @@ module ActionView
           ActionView::LookupContext::DetailsKey.clear
         end
 
-        def rebuild_watcher
+        def build_watcher
           @mutex.synchronize do
             old_watcher = @watcher
 
@@ -49,6 +50,11 @@ module ActionView
               @previous_change ||= old_watcher&.updated?
             end
           end
+        end
+
+        def rebuild_watcher
+          return unless @watcher
+          build_watcher
         end
 
         def dirs_to_watch

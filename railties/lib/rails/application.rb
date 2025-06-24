@@ -2,15 +2,13 @@
 
 require "yaml"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
-require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
+require "active_support/parameter_filter"
 require "rails/engine"
-require "rails/secrets"
 require "rails/autoloaders"
 
 module Rails
@@ -71,6 +69,8 @@ module Rails
       def inherited(base)
         super
         Rails.app_class = base
+        # lib has to be added to $LOAD_PATH unconditionally, even if it's in the
+        # autoload paths and config.add_autoload_paths_to_load_path is false.
         add_lib_to_load_path!(find_root(base.called_from))
         ActiveSupport.run_load_hooks(:before_configuration, base)
       end
@@ -102,7 +102,7 @@ module Rails
     delegate :default_url_options, :default_url_options=, to: :routes
 
     INITIAL_VARIABLES = [:config, :railties, :routes_reloader, :reloaders,
-                         :routes, :helpers, :app_env_config, :secrets] # :nodoc:
+                         :routes, :helpers, :app_env_config] # :nodoc:
 
     def initialize(initial_variable_values = {}, &block)
       super()
@@ -133,6 +133,13 @@ module Rails
       @initialized
     end
 
+    # Returns the dasherized application name.
+    #
+    #   MyApp::Application.new.name => "my-app"
+    def name
+      self.class.name.underscore.dasherize.delete_suffix("/application")
+    end
+
     def run_load_hooks! # :nodoc:
       return self if @ran_load_hooks
       @ran_load_hooks = true
@@ -149,7 +156,15 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      routes_reloader.reload!
+      if routes_reloader.execute_unless_loaded
+        routes_reloader.loaded = false
+      else
+        routes_reloader.reload!
+      end
+    end
+
+    def reload_routes_unless_loaded # :nodoc:
+      initialized? && routes_reloader.execute_unless_loaded
     end
 
     # Returns a key generator (ActiveSupport::CachingKeyGenerator) for a
@@ -206,17 +221,20 @@ module Rails
     # It is recommended not to use the same verifier for different things, so you can get different
     # verifiers passing the +verifier_name+ argument.
     #
+    # For instance, +ActiveStorage::Blob.signed_id_verifier+ is implemented using this feature, which assures that
+    # the IDs strings haven't been tampered with and are safe to use in a finder.
+    #
+    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #
     # ==== Parameters
     #
     # * +verifier_name+ - the name of the message verifier.
     #
     # ==== Examples
     #
-    #     message = Rails.application.message_verifier('sensitive_data').generate('my sensible data')
-    #     Rails.application.message_verifier('sensitive_data').verify(message)
-    #     # => 'my sensible data'
-    #
-    # See the ActiveSupport::MessageVerifier documentation for more information.
+    #     message = Rails.application.message_verifier('my_purpose').generate('data to sign against tampering')
+    #     Rails.application.message_verifier('my_purpose').verify(message)
+    #     # => 'data to sign against tampering'
     def message_verifier(verifier_name)
       message_verifiers[verifier_name]
     end
@@ -231,9 +249,8 @@ module Rails
       end
     end
 
-    # Convenience for loading config/foo.yml for the current Rails env.
-    #
-    # Examples:
+    # Convenience for loading config/foo.yml for the current \Rails env.
+    # Example:
     #
     #     # config/exception_notification.yml:
     #     production:
@@ -244,13 +261,15 @@ module Rails
     #       url: http://localhost:3001
     #       namespace: my_app_development
     #
+    # <code></code>
+    #
     #     # config/environments/production.rb
     #     Rails.application.configure do
     #       config.middleware.use ExceptionNotifier, config_for(:exception_notification)
     #     end
     #
-    #     # You can also store configurations in a shared section which will be
-    #     # merged with the environment configuration
+    # You can also store configurations in a shared section which will be merged
+    # with the environment configuration
     #
     #     # config/example.yml
     #     shared:
@@ -262,6 +281,8 @@ module Rails
     #       foo:
     #         bar:
     #           qux: 2
+    #
+    # <code></code>
     #
     #     # development environment
     #     Rails.application.config_for(:example)[:foo][:bar]
@@ -293,7 +314,7 @@ module Rails
       end
     end
 
-    # Stores some of the Rails initial environment parameters which
+    # Stores some of the \Rails initial environment parameters which
     # will be used by middlewares and engines to configure themselves.
     def env_config
       @app_env_config ||= super.merge(
@@ -303,6 +324,7 @@ module Rails
           "action_dispatch.show_exceptions" => config.action_dispatch.show_exceptions,
           "action_dispatch.show_detailed_exceptions" => config.consider_all_requests_local,
           "action_dispatch.log_rescued_responses" => config.action_dispatch.log_rescued_responses,
+          "action_dispatch.debug_exception_log_level" => ActiveSupport::Logger.const_get(config.action_dispatch.debug_exception_log_level.to_s.upcase),
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
@@ -385,7 +407,7 @@ module Rails
     # Rails application, you will need to add lib to $LOAD_PATH on your own in case
     # you need to load files in lib/ during the application configuration as well.
     def self.add_lib_to_load_path!(root) # :nodoc:
-      path = File.join root, "lib"
+      path = File.join(root, "lib")
       if File.exist?(path) && !$LOAD_PATH.include?(path)
         $LOAD_PATH.unshift(path)
       end
@@ -406,8 +428,8 @@ module Rails
     def watchable_args # :nodoc:
       files, dirs = config.watchable_files.dup, config.watchable_dirs.dup
 
-      ActiveSupport::Dependencies.autoload_paths.each do |path|
-        File.file?(path) ? files << path.to_s : dirs[path.to_s] = [:rb]
+      Rails.autoloaders.main.dirs.each do |path|
+        dirs[path] = [:rb]
       end
 
       [files, dirs]
@@ -433,47 +455,29 @@ module Rails
     end
 
     attr_writer :config
-
-    def secrets
-      @secrets ||= begin
-        secrets = ActiveSupport::OrderedOptions.new
-        files = config.paths["config/secrets"].existent
-        files = files.reject { |path| path.end_with?(".enc") } unless config.read_encrypted_secrets
-        secrets.merge! Rails::Secrets.parse(files, env: Rails.env)
-
-        # Fallback to config.secret_key_base if secrets.secret_key_base isn't set
-        secrets.secret_key_base ||= config.secret_key_base
-
-        secrets
-      end
-    end
-
-    attr_writer :secrets, :credentials
+    attr_writer :credentials
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
     # including the ones that sign and encrypt cookies.
     #
-    # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/development_secret.txt</tt>.
+    # We look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>, then in
+    # +credentials.secret_key_base+. For most applications, the correct place
+    # to store it is in the encrypted credentials file.
     #
-    # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
-    # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
-    # production as part of a build step that otherwise does not need access to the production secrets.
+    # In development and test, if the secret_key_base is still empty, it is
+    # randomly generated and stored in a temporary file in
+    # <tt>tmp/local_secret.txt</tt>.
+    #
+    # Generating a random secret_key_base and storing it in
+    # <tt>tmp/local_secret.txt</tt> can also be triggered by setting
+    # <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt>. This is useful when precompiling
+    # assets for production as part of a build step that otherwise does not
+    # need access to the production secrets.
     #
     # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
-    #
-    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
-    # then +credentials.secret_key_base+, and finally +secrets.secret_key_base+. For most applications,
-    # the correct place to store it is in the encrypted credentials file.
     def secret_key_base
-      if Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
-        secrets.secret_key_base ||= generate_development_secret
-      else
-        validate_secret_key_base(
-          ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
-        )
-      end
+      config.secret_key_base
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -610,7 +614,7 @@ module Rails
     end
 
     def railties_initializers(current) # :nodoc:
-      initializers = []
+      initializers = Initializable::Collection.new
       ordered_railties.reverse.flatten.each do |r|
         if r == self
           initializers += current
@@ -626,38 +630,12 @@ module Rails
       default_stack.build_stack
     end
 
-    def validate_secret_key_base(secret_key_base)
-      if secret_key_base.is_a?(String) && secret_key_base.present?
-        secret_key_base
-      elsif secret_key_base
-        raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
-      else
-        raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
-      end
-    end
-
     def ensure_generator_templates_added
       configured_paths = config.generators.templates
       configured_paths.unshift(*(paths["lib/templates"].existent - configured_paths))
     end
 
     private
-      def generate_development_secret
-        if secrets.secret_key_base.nil?
-          key_file = Rails.root.join("tmp/development_secret.txt")
-
-          if !File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
-          end
-
-          secrets.secret_key_base = File.binread(key_file)
-        end
-
-        secrets.secret_key_base
-      end
-
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath

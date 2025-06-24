@@ -45,9 +45,9 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   def test_has_many_distinct_through_count
     author = authors(:mary)
     assert_not_predicate authors(:mary).unique_categorized_posts, :loaded?
-    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count }
-    assert_queries(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
-    assert_queries(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
+    assert_queries_count(1) { assert_equal 1, author.unique_categorized_posts.count }
+    assert_queries_count(1) { assert_equal 1, author.unique_categorized_posts.count(:title) }
+    assert_queries_count(1) { assert_equal 0, author.unique_categorized_posts.where(title: nil).count(:title) }
     assert_not_predicate authors(:mary).unique_categorized_posts, :loaded?
   end
 
@@ -345,11 +345,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     error = assert_raise(ActiveRecord::HasManyThroughAssociationNotFoundError) {
       authors(:david).nothings
     }
-    if error.respond_to?(:detailed_message)
-      assert_match "Did you mean?", error.detailed_message
-    else
-      assert_match "Did you mean?", error.message
-    end
+    assert_match "Did you mean?", error.detailed_message
   end
 
   def test_has_many_through_join_model_with_conditions
@@ -478,7 +474,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_tag = Tag.new(name: "new")
 
     saved_post.tags << new_tag
-    assert new_tag.persisted? # consistent with habtm!
+    assert_predicate new_tag, :persisted? # consistent with habtm!
     assert_predicate saved_post, :persisted?
     assert_includes saved_post.tags, new_tag
 
@@ -732,7 +728,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
 
     david.reload
     assert_not_predicate david.categories, :loaded?
-    assert_queries(1) do
+    assert_queries_count(1) do
       assert_includes david.categories, category
     end
     assert_not_predicate david.categories, :loaded?
@@ -774,6 +770,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
+  end
+
+  def test_eager_association_with_scope_with_string_joins
+    assert_nothing_raised do
+      Post.joins(:very_special_comment_with_string_joins).first
+    end
   end
 
   private

@@ -6,7 +6,6 @@ require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
-require "thread"
 
 module ActiveSupport
   # = Active Support \Callbacks
@@ -67,7 +66,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false, default: {}
+      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze
@@ -150,7 +149,7 @@ module ActiveSupport
       def halted_callback_hook(filter, name)
       end
 
-      module Conditionals # :nodoc:
+      module Conditionals # :nodoc: all
         class Value
           def initialize(&block)
             @block = block
@@ -159,128 +158,76 @@ module ActiveSupport
         end
       end
 
-      module Filters
+      module Filters # :nodoc: all
         Environment = Struct.new(:target, :halted, :value)
 
         class Before
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config, filter, name)
+          def initialize(user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
-
-            if user_conditions.any?
-              halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
-            else
-              halting(callback_sequence, user_callback, halted_lambda, filter, name)
-            end
+            @user_callback, @user_conditions, @halted_lambda, @filter, @name = user_callback, user_conditions, halted_lambda, filter, name
+            freeze
           end
+          attr_reader :user_callback, :user_conditions, :halted_lambda, :filter, :name
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions, halted_lambda, filter, name)
-            callback_sequence.before do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
+          def call(env)
+            target = env.target
+            value  = env.value
+            halted = env.halted
 
-              if !halted && user_conditions.all? { |c| c.call(target, value) }
-                result_lambda = -> { user_callback.call target, value }
-                env.halted = halted_lambda.call(target, result_lambda)
-                if env.halted
-                  target.send :halted_callback_hook, filter, name
-                end
+            if !halted && user_conditions.all? { |c| c.call(target, value) }
+              result_lambda = -> { user_callback.call target, value }
+              env.halted = halted_lambda.call(target, result_lambda)
+              if env.halted
+                target.send :halted_callback_hook, filter, name
               end
-
-              env
             end
+
+            env
           end
-          private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback, halted_lambda, filter, name)
-            callback_sequence.before do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
-
-              unless halted
-                result_lambda = -> { user_callback.call target, value }
-                env.halted = halted_lambda.call(target, result_lambda)
-                if env.halted
-                  target.send :halted_callback_hook, filter, name
-                end
-              end
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.before(self)
           end
-          private_class_method :halting
         end
 
         class After
-          def self.build(callback_sequence, user_callback, user_conditions, chain_config)
-            if chain_config[:skip_after_callbacks_if_terminated]
-              if user_conditions.any?
-                halting_and_conditional(callback_sequence, user_callback, user_conditions)
-              else
-                halting(callback_sequence, user_callback)
-              end
-            else
-              if user_conditions.any?
-                conditional callback_sequence, user_callback, user_conditions
-              else
-                simple callback_sequence, user_callback
-              end
-            end
+          attr_reader :user_callback, :user_conditions, :halting
+          def initialize(user_callback, user_conditions, chain_config)
+            halting = chain_config[:skip_after_callbacks_if_terminated]
+            @user_callback, @user_conditions, @halting = user_callback, user_conditions, halting
+            freeze
           end
 
-          def self.halting_and_conditional(callback_sequence, user_callback, user_conditions)
-            callback_sequence.after do |env|
-              target = env.target
-              value  = env.value
-              halted = env.halted
+          def call(env)
+            target = env.target
+            value  = env.value
+            halted = env.halted
 
-              if !halted && user_conditions.all? { |c| c.call(target, value) }
-                user_callback.call target, value
-              end
-
-              env
+            if (!halted || !@halting) && user_conditions.all? { |c| c.call(target, value) }
+              user_callback.call target, value
             end
+
+            env
           end
-          private_class_method :halting_and_conditional
 
-          def self.halting(callback_sequence, user_callback)
-            callback_sequence.after do |env|
-              unless env.halted
-                user_callback.call env.target, env.value
-              end
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.after(self)
           end
-          private_class_method :halting
+        end
 
-          def self.conditional(callback_sequence, user_callback, user_conditions)
-            callback_sequence.after do |env|
-              target = env.target
-              value  = env.value
-
-              if user_conditions.all? { |c| c.call(target, value) }
-                user_callback.call target, value
-              end
-
-              env
-            end
+        class Around
+          def initialize(user_callback, user_conditions)
+            @user_callback, @user_conditions = user_callback, user_conditions
+            freeze
           end
-          private_class_method :conditional
 
-          def self.simple(callback_sequence, user_callback)
-            callback_sequence.after do |env|
-              user_callback.call env.target, env.value
-
-              env
-            end
+          def apply(callback_sequence)
+            callback_sequence.around(@user_callback, @user_conditions)
           end
-          private_class_method :simple
         end
       end
 
-      class Callback # :nodoc:#
+      class Callback # :nodoc:
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
             raise ArgumentError, <<-MSG.squish
@@ -302,6 +249,8 @@ module ActiveSupport
           @filter  = filter
           @if      = check_conditionals(options[:if])
           @unless  = check_conditionals(options[:unless])
+
+          compiled
         end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
@@ -329,19 +278,26 @@ module ActiveSupport
           end
         end
 
+        def compiled
+          @compiled ||=
+            begin
+              user_conditions = conditions_lambdas
+              user_callback = CallTemplate.build(@filter, self)
+
+              case kind
+              when :before
+                Filters::Before.new(user_callback.make_lambda, user_conditions, chain_config, @filter, name)
+              when :after
+                Filters::After.new(user_callback.make_lambda, user_conditions, chain_config)
+              when :around
+                Filters::Around.new(user_callback, user_conditions)
+              end
+            end
+        end
+
         # Wraps code with filter
         def apply(callback_sequence)
-          user_conditions = conditions_lambdas
-          user_callback = CallTemplate.build(@filter, self)
-
-          case kind
-          when :before
-            Filters::Before.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config, @filter, name)
-          when :after
-            Filters::After.build(callback_sequence, user_callback.make_lambda, user_conditions, chain_config)
-          when :around
-            callback_sequence.around(user_callback, user_conditions)
-          end
+          compiled.apply(callback_sequence)
         end
 
         def current_scopes
@@ -368,14 +324,16 @@ module ActiveSupport
           end
 
           def conditions_lambdas
-            @if.map { |c| CallTemplate.build(c, self).make_lambda } +
+            conditions =
+              @if.map { |c| CallTemplate.build(c, self).make_lambda } +
               @unless.map { |c| CallTemplate.build(c, self).inverted_lambda }
+            conditions.empty? ? EMPTY_ARRAY : conditions
           end
       end
 
       # A future invocation of user-supplied code (either as a callback,
       # or a condition filter).
-      module CallTemplate # :nodoc:
+      module CallTemplate # :nodoc: all
         class MethodCall
           def initialize(method)
             @method_name = method
@@ -540,9 +498,10 @@ module ActiveSupport
           when Conditionals::Value
             ProcCall.new(filter)
           when ::Proc
-            if filter.arity > 1
+            case filter.arity
+            when 2
               InstanceExec2.new(filter)
-            elsif filter.arity > 0
+            when 1, -2
               InstanceExec1.new(filter)
             else
               InstanceExec0.new(filter)
@@ -562,16 +521,18 @@ module ActiveSupport
           @call_template = call_template
           @user_conditions = user_conditions
 
-          @before = []
-          @after = []
+          @before = nil
+          @after = nil
         end
 
-        def before(&before)
+        def before(before)
+          @before ||= []
           @before.unshift(before)
           self
         end
 
-        def after(&after)
+        def after(after)
+          @after ||= []
           @after.push(after)
           self
         end
@@ -595,11 +556,11 @@ module ActiveSupport
         end
 
         def invoke_before(arg)
-          @before.each { |b| b.call(arg) }
+          @before&.each { |b| b.call(arg) }
         end
 
         def invoke_after(arg)
-          @after.each { |a| a.call(arg) }
+          @after&.each { |a| a.call(arg) }
         end
       end
 
@@ -743,7 +704,7 @@ module ActiveSupport
         #
         # The callback can be specified as a symbol naming an instance method; as a
         # proc, lambda, or block; or as an object that responds to a certain method
-        # determined by the <tt>:scope</tt> argument to +define_callbacks+.
+        # determined by the <tt>:scope</tt> argument to #define_callbacks.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -787,9 +748,12 @@ module ActiveSupport
           end
         end
 
-        # Skip a previously set callback. Like +set_callback+, <tt>:if</tt> or
+        # Skip a previously set callback. Like #set_callback, <tt>:if</tt> or
         # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
+        #
+        # Note: this example uses +PersonRecord+ and +#saving_message+, which you
+        # can see defined here[rdoc-ref:ActiveSupport::Callbacks]
         #
         #   class Writer < PersonRecord
         #     attr_accessor :age
@@ -933,7 +897,7 @@ module ActiveSupport
         # <tt>!</tt>, <tt>?</tt> or <tt>=</tt>.
         #
         # Calling +define_callbacks+ multiple times with the same +names+ will
-        # overwrite previous callbacks registered with +set_callback+.
+        # overwrite previous callbacks registered with #set_callback.
         def define_callbacks(*names)
           options = names.extract_options!
 
@@ -970,7 +934,10 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            unless singleton_class.method_defined?(:__callbacks, false)
+            # HACK: We're making assumption on how `class_attribute` is implemented
+            # to save constantly duping the callback hash. If this desync with class_attribute
+            # we'll lose the optimization, but won't cause an actual behavior bug.
+            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
               self.__callbacks = __callbacks.dup
             end
             self.__callbacks[name.to_sym] = callbacks

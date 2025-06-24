@@ -207,6 +207,22 @@ class SendFileTest < ActionController::TestCase
     assert_equal file_data, response.body
   end
 
+  def test_send_file_instrumentation
+    @controller.options = { disposition: :inline }
+
+    assert_notification("send_file.action_controller", path: __FILE__, disposition: :inline) do
+      process("file")
+    end
+  end
+
+  def test_send_data_instrumentation
+    @controller.options = { content_type: "application/x-ruby" }
+
+    assert_notification("send_data.action_controller", content_type: "application/x-ruby") do
+      process("data")
+    end
+  end
+
   %w(file data).each do |method|
     define_method "test_send_#{method}_status" do
       @controller.options = { stream: false, status: 500 }

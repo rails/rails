@@ -16,7 +16,7 @@ module ActiveRecord
     #
     # The CollectionAssociation class provides common methods to the collections
     # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
-    # the +:through association+ option.
+    # the <tt>:through association</tt> option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
@@ -28,6 +28,8 @@ module ActiveRecord
     # If you need to work on all current children, new and existing records,
     # +load_target+ and the +loaded+ flag are your friends.
     class CollectionAssociation < Association # :nodoc:
+      attr_accessor :nested_attributes_target
+
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
         ensure_klass_exists!
@@ -48,11 +50,11 @@ module ActiveRecord
       # Implements the ids reader method, e.g. foo.item_ids for Foo.has_many :items
       def ids_reader
         if loaded?
-          target.pluck(reflection.association_primary_key)
+          target.pluck(*reflection.association_primary_key)
         elsif !target.empty?
-          load_target.pluck(reflection.association_primary_key)
+          load_target.pluck(*reflection.association_primary_key)
         else
-          @association_ids ||= scope.pluck(reflection.association_primary_key)
+          @association_ids ||= scope.pluck(*reflection.association_primary_key)
         end
       end
 
@@ -61,22 +63,20 @@ module ActiveRecord
         primary_key = reflection.association_primary_key
         pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).compact_blank
-        ids.map! { |i| pk_type.cast(i) }
+        ids.map! { |id| pk_type.cast(id) }
 
         records = if klass.composite_primary_key?
-          query_records = ids.map { |values_set| klass.where(primary_key.zip(values_set).to_h) }.inject(&:or)
-
-          query_records.index_by do |r|
-            primary_key.map { |pk| r.public_send(pk) }
+          klass.where(primary_key => ids).index_by do |record|
+            primary_key.map { |primary_key| record._read_attribute(primary_key) }
           end
         else
-          klass.where(primary_key => ids).index_by do |r|
-            r.public_send(primary_key)
+          klass.where(primary_key => ids).index_by do |record|
+            record._read_attribute(primary_key)
           end
         end.values_at(*ids).compact
 
         if records.size != ids.size
-          found_ids = records.map { |record| record.public_send(primary_key) }
+          found_ids = records.map { |record| record._read_attribute(primary_key) }
           not_found_ids = ids - found_ids
           klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key, not_found_ids)
         else
@@ -87,14 +87,14 @@ module ActiveRecord
       def reset
         super
         @target = []
-        @replaced_or_added_targets = Set.new
+        @replaced_or_added_targets = Set.new.compare_by_identity
         @association_ids = nil
       end
 
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          model = scope.klass
+          model = scope.model
 
           if args_flatten.blank?
             error_message = "Couldn't find #{model.name} without an ID"
@@ -230,7 +230,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids || reflection.has_cached_counter?
+        if loaded? || @association_ids || reflection.has_active_cached_counter?
           size.zero?
         else
           target.empty? && !scope.exists?
@@ -256,14 +256,16 @@ module ActiveRecord
       end
 
       def include?(record)
-        if record.is_a?(reflection.klass)
-          if record.new_record?
-            include_in_memory?(record)
-          else
-            loaded? ? target.include?(record) : scope.exists?(record.id)
-          end
+        klass = reflection.klass
+        return false unless record.is_a?(klass)
+
+        if loaded?
+          target.include?(record)
+        elsif record.new_record?
+          include_in_memory?(record)
         else
-          false
+          record_id = klass.composite_primary_key? ? klass.primary_key.zip(record.id).to_h : record.id
+          scope.exists?(record_id)
         end
       end
 
@@ -305,10 +307,14 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
-          owner.strict_loading? ||
+          (owner.strict_loading? && owner.strict_loading_all?) ||
           reflection.strict_loading? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }
+      end
+
+      def collection?
+        true
       end
 
       private

@@ -126,6 +126,9 @@ module ActiveSupport
         listener = Listener.new
         notifier.subscribe nil, BadFinishListener.new
         notifier.subscribe nil, BadFinishListener.new
+        notifier.subscribe(nil) { |*args| raise "foo" }
+        notifier.subscribe(nil) { |obj| raise "foo" }
+        notifier.subscribe(nil, monotonic: true) { |obj| raise "foo" }
         notifier.subscribe nil, listener
 
         notifier.start  "hello", 1, {}
@@ -133,11 +136,13 @@ module ActiveSupport
         error = assert_raises InstrumentationSubscriberError do
           notifier.finish  "world", 1, {}
         end
+        assert_equal 5, error.exceptions.count
         assert_instance_of BadListenerException, error.cause
 
         error = assert_raises InstrumentationSubscriberError do
           notifier.finish  "hello", 1, {}
         end
+        assert_equal 5, error.exceptions.count
         assert_instance_of BadListenerException, error.cause
 
         assert_equal 4, listener.events.length

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :enddoc:
+
 module ActiveRecord
   module Associations
     class Preloader
@@ -15,11 +17,12 @@ module ActiveRecord
           def eql?(other)
             association_key_name == other.association_key_name &&
               scope.table_name == other.scope.table_name &&
+              scope.model.connection_specification_name == other.scope.model.connection_specification_name &&
               scope.values_for_queries == other.scope.values_for_queries
           end
 
           def hash
-            [association_key_name, scope.table_name, scope.values_for_queries].hash
+            [association_key_name, scope.model.table_name, scope.model.connection_specification_name, scope.values_for_queries].hash
           end
 
           def records_for(loaders)
@@ -36,9 +39,18 @@ module ActiveRecord
           end
 
           def load_records_for_keys(keys, &block)
+            return [] if keys.empty?
+
             if association_key_name.is_a?(Array)
-              or_scope = keys.map { |values_set| scope.klass.where(association_key_name.zip(values_set).to_h) }.inject(&:or)
-              scope.merge(or_scope)
+              query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
+
+              keys.each_with_object(query_constraints) do |values_set, constraints|
+                association_key_name.zip(values_set).each do |key_name, value|
+                  constraints[key_name] << value
+                end
+              end
+
+              scope.where(query_constraints)
             else
               scope.where(association_key_name => keys)
             end.load(&block)
@@ -236,7 +248,8 @@ module ActiveRecord
             association = owner.association(reflection.name)
 
             if reflection.collection?
-              association.target = records
+              not_persisted_records = association.target.reject(&:persisted?)
+              association.target = records + not_persisted_records
             else
               association.target = records.first
             end

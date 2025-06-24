@@ -5,7 +5,7 @@ class ActiveStorage::AnalyzeJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:analysis] }
 
   discard_on ActiveRecord::RecordNotFound
-  retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :exponentially_longer
+  retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
   def perform(blob)
     blob.analyze

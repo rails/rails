@@ -71,7 +71,7 @@ export function createWebSocketURL(url) {
     const a = document.createElement("a")
     a.href = url
     // Fix populating Location properties in IE. Otherwise, protocol will be blank.
-    a.href = a.href
+    a.href = a.href // eslint-disable-line
     a.protocol = a.protocol.replace("http", "ws")
     return a.href
   } else {

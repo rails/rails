@@ -4,12 +4,13 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
-task :package
+ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.pattern = "test/**/*_test.rb"
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
 end
 
 namespace :test do

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 gem "pg", "~> 1.1"
 require "pg"
 require "openssl"
@@ -33,18 +35,17 @@ module ActionCable
       end
 
       def with_subscriptions_connection(&block) # :nodoc:
-        ar_conn = ActiveRecord::Base.connection_pool.checkout.tap do |conn|
-          # Action Cable is taking ownership over this database connection, and
-          # will perform the necessary cleanup tasks
-          ActiveRecord::Base.connection_pool.remove(conn)
-        end
+        # Action Cable is taking ownership over this database connection, and will
+        # perform the necessary cleanup tasks.
+        # We purposedly avoid #checkout to not end up with a pinned connection
+        ar_conn = ActiveRecord::Base.connection_pool.new_connection
         pg_conn = ar_conn.raw_connection
 
         verify!(pg_conn)
         pg_conn.exec("SET application_name = #{pg_conn.escape_identifier(identifier)}")
         yield pg_conn
       ensure
-        ar_conn.disconnect!
+        ar_conn&.disconnect!
       end
 
       def with_broadcast_connection(&block) # :nodoc:

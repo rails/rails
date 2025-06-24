@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/filters"
 require "active_support/log_subscriber"
 
 module ActiveJob
@@ -9,7 +8,7 @@ module ActiveJob
 
     def enqueue(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
@@ -29,7 +28,7 @@ module ActiveJob
 
     def enqueue_at(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      ex = event.payload[:exception_object] || job.enqueue_error
 
       if ex
         error do
@@ -51,7 +50,7 @@ module ActiveJob
       info do
         jobs = event.payload[:jobs]
         adapter = event.payload[:adapter]
-        enqueued_count = event.payload[:enqueued_count]
+        enqueued_count = event.payload[:enqueued_count].to_i
 
         if enqueued_count == jobs.size
           enqueued_jobs_message(adapter, jobs)
@@ -77,7 +76,9 @@ module ActiveJob
     def perform_start(event)
       info do
         job = event.payload[:job]
-        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} enqueued at #{job.enqueued_at}" + args_info(job)
+        enqueue_info = job.enqueued_at.present? ? " enqueued at #{job.enqueued_at.utc.iso8601(9)}" : ""
+
+        "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + enqueue_info + args_info(job)
       end
     end
     subscribe_log_level :perform_start, :info
@@ -86,8 +87,9 @@ module ActiveJob
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
+        cleaned_backtrace = backtrace_cleaner.clean(ex.backtrace)
         error do
-          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(cleaned_backtrace).join("\n")
         end
       elsif event.payload[:aborted]
         error do
@@ -124,7 +126,7 @@ module ActiveJob
         "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
-    subscribe_log_level :enqueue_retry, :error
+    subscribe_log_level :retry_stopped, :error
 
     def discard(event)
       job = event.payload[:job]
@@ -135,6 +137,64 @@ module ActiveJob
       end
     end
     subscribe_log_level :discard, :error
+
+    def interrupt(event)
+      job = event.payload[:job]
+      info do
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :interrupt, :info
+
+    def resume(event)
+      job = event.payload[:job]
+      info do
+        "Resuming #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :resume, :info
+
+    def step_skipped(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' skipped #{job.class}"
+      end
+    end
+    subscribe_log_level :step_skipped, :info
+
+    def step_started(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      info do
+        if step.resumed?
+          "Step '#{step.name}' resumed from cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id})"
+        else
+          "Step '#{step.name}' started for #{job.class} (Job ID: #{job.job_id})"
+        end
+      end
+    end
+    subscribe_log_level :step_started, :info
+
+    def step(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      ex = event.payload[:exception_object]
+
+      if event.payload[:interrupted]
+        info do
+          "Step '#{step.name}' interrupted at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      elsif ex
+        error do
+          "Error during step '#{step.name}' at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message})"
+        end
+      else
+        info do
+          "Step '#{step.name}' completed for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      end
+    end
+    subscribe_log_level :step, :error
 
     private
       def queue_name(event)
@@ -188,15 +248,15 @@ module ActiveJob
       end
 
       def log_enqueue_source
-        source = extract_enqueue_source_location(caller)
+        source = enqueue_source_location
 
         if source
           logger.info("↳ #{source}")
         end
       end
 
-      def extract_enqueue_source_location(locations)
-        backtrace_cleaner.clean(locations.lazy).first
+      def enqueue_source_location
+        backtrace_cleaner.first_clean_frame
       end
 
       def enqueued_jobs_message(adapter, enqueued_jobs)

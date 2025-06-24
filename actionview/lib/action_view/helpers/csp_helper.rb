@@ -11,7 +11,7 @@ module ActionView
       #     <%= csp_meta_tag %>
       #   </head>
       #
-      # This is used by the Rails UJS helper to create dynamically
+      # This is used by the \Rails UJS helper to create dynamically
       # loaded inline <script> elements.
       #
       def csp_meta_tag(**options)

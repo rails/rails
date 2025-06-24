@@ -4,6 +4,62 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module Quoting
+        extend ActiveSupport::Concern
+
+        QUOTED_COLUMN_NAMES = Concurrent::Map.new # :nodoc:
+        QUOTED_TABLE_NAMES = Concurrent::Map.new # :nodoc:
+
+        module ClassMethods # :nodoc:
+          def column_name_matcher
+            /
+              \A
+              (
+                (?:
+                  # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+                  ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
+                )
+                (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          def column_name_with_order_matcher
+            /
+              \A
+              (
+                (?:
+                  # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
+                  ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
+                )
+                (?:\s+COLLATE\s+"\w+")?
+                (?:\s+ASC|\s+DESC)?
+                (?:\s+NULLS\s+(?:FIRST|LAST))?
+              )
+              (?:\s*,\s*\g<1>)*
+              \z
+            /ix
+          end
+
+          # Quotes column names for use in SQL queries.
+          def quote_column_name(name) # :nodoc:
+            QUOTED_COLUMN_NAMES[name] ||= PG::Connection.quote_ident(name.to_s).freeze
+          end
+
+          # Checks the following cases:
+          #
+          # - table_name
+          # - "table.name"
+          # - schema_name.table_name
+          # - schema_name."table.name"
+          # - "schema.name".table_name
+          # - "schema.name"."table.name"
+          def quote_table_name(name) # :nodoc:
+            QUOTED_TABLE_NAMES[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
+          end
+        end
+
         class IntegerOutOf64BitRange < StandardError
           def initialize(msg)
             super(msg)
@@ -74,30 +130,13 @@ module ActiveRecord
           end
         end
 
-        # Checks the following cases:
-        #
-        # - table_name
-        # - "table.name"
-        # - schema_name.table_name
-        # - schema_name."table.name"
-        # - "schema.name".table_name
-        # - "schema.name"."table.name"
-        def quote_table_name(name) # :nodoc:
-          self.class.quoted_table_names[name] ||= Utils.extract_schema_qualified_name(name.to_s).quoted.freeze
-        end
-
-        # Quotes schema names for use in SQL queries.
-        def quote_schema_name(name)
-          PG::Connection.quote_ident(name)
-        end
-
         def quote_table_name_for_assignment(table, attr)
           quote_column_name(attr)
         end
 
-        # Quotes column names for use in SQL queries.
-        def quote_column_name(name) # :nodoc:
-          self.class.quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
+        # Quotes schema names for use in SQL queries.
+        def quote_schema_name(schema_name)
+          quote_column_name(schema_name)
         end
 
         # Quote date/time values for use in SQL input.
@@ -114,14 +153,15 @@ module ActiveRecord
           "'#{escape_bytea(value.to_s)}'"
         end
 
+        # `column` may be either an instance of Column or ColumnDefinition.
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
           elsif column.type == :uuid && value.is_a?(String) && value.include?("()")
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
-            type = lookup_cast_type_from_column(column)
-            quote(type.serialize(value))
+            # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+            quote(column.fetch_cast_type(self).serialize(value))
           else
             super
           end
@@ -140,58 +180,19 @@ module ActiveRecord
             encode_array(value)
           when Range
             encode_range(value)
+          when Rational
+            value.to_f
           else
             super
           end
         end
 
-        def lookup_cast_type_from_column(column) # :nodoc:
-          type_map.lookup(column.oid, column.fmod, column.sql_type)
+        # TODO: Make this method private after we release 8.1.
+        def lookup_cast_type(sql_type) # :nodoc:
+          super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
         end
-
-        def column_name_matcher
-          COLUMN_NAME
-        end
-
-        def column_name_with_order_matcher
-          COLUMN_NAME_WITH_ORDER
-        end
-
-        COLUMN_NAME = /
-          \A
-          (
-            (?:
-              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
-            )
-            (?:(?:\s+AS)?\s+(?:\w+|"\w+"))?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        COLUMN_NAME_WITH_ORDER = /
-          \A
-          (
-            (?:
-              # "schema_name"."table_name"."column_name"::type_name | function(one or no argument)::type_name
-              ((?:\w+\.|"\w+"\.){,2}(?:\w+|"\w+")(?:::\w+)? | \w+\((?:|\g<2>)\)(?:::\w+)?)
-            )
-            (?:\s+COLLATE\s+"\w+")?
-            (?:\s+ASC|\s+DESC)?
-            (?:\s+NULLS\s+(?:FIRST|LAST))?
-          )
-          (?:\s*,\s*\g<1>)*
-          \z
-        /ix
-
-        private_constant :COLUMN_NAME, :COLUMN_NAME_WITH_ORDER
 
         private
-          def lookup_cast_type(sql_type)
-            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
-          end
-
           def encode_array(array_data)
             encoder = array_data.encoder
             values = type_cast_array(array_data.values)

@@ -10,12 +10,10 @@ module ActiveRecord
     class NonExistentTable < ActiveRecord::Base
     end
 
-    fixtures :comments
-
     def setup
       super
       @subscriber = SQLSubscriber.new
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.materialize_transactions
       @subscription = ActiveSupport::Notifications.subscribe("sql.active_record", @subscriber)
     end
@@ -26,19 +24,19 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.encoding
       end
     end
 
     def test_collation
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.collation
       end
     end
 
     def test_ctype
-      assert_queries(1, ignore_none: true) do
+      assert_queries_count(1, include_schema: true) do
         assert_not_nil @connection.ctype
       end
     end
@@ -55,8 +53,10 @@ module ActiveRecord
       NonExistentTable.establish_connection(params)
 
       # Verify the connection param has been applied.
-      expect = NonExistentTable.connection.query("show geqo").first.first
+      expect = NonExistentTable.lease_connection.query("show geqo").first.first
       assert_equal "off", expect
+    ensure
+      NonExistentTable.remove_connection
     end
 
     def test_reset
@@ -126,15 +126,26 @@ module ActiveRecord
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
-    if ActiveRecord::Base.connection.prepared_statements
+    if ActiveRecord::Base.lease_connection.prepared_statements
       def test_statement_key_is_logged
         bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
         @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
-        name = @subscriber.payloads.last[:statement_name]
-        assert name
+
+        payload = @subscriber.payloads.find { |p| p[:sql] == "SELECT $1::integer" }
+        name = payload[:statement_name]
+        assert_not_nil name
+
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
         plan = res.column_types["QUERY PLAN"].deserialize res.rows.first.first
         assert_operator plan.length, :>, 0
+      end
+    end
+
+    def test_prepare_false_with_binds
+      @connection.stub(:prepared_statements, false) do
+        bind = Relation::QueryAttribute.new(nil, 42, Type::Value.new)
+        result = @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: false)
+        assert_equal [[42]], result.rows
       end
     end
 
@@ -145,43 +156,47 @@ module ActiveRecord
       assert_predicate @connection, :active?
     ensure
       # Repair all fixture connections so other tests won't break.
-      @fixture_connections.each(&:verify!)
+      @fixture_connection_pools.each { |p| p.lease_connection.verify! }
     end
 
     def test_set_session_variable_true
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: true }))
-        set_true = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
-        assert_equal set_true.rows, [["on"]]
+        set_true = ActiveRecord::Base.lease_connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        assert_equal [["on"]], set_true.rows
       end
     end
 
     def test_set_session_variable_false
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: false }))
-        set_false = ActiveRecord::Base.connection.exec_query "SHOW DEBUG_PRINT_PLAN"
-        assert_equal set_false.rows, [["off"]]
+        set_false = ActiveRecord::Base.lease_connection.exec_query "SHOW DEBUG_PRINT_PLAN"
+        assert_equal [["off"]], set_false.rows
       end
     end
 
     def test_set_session_variable_nil
       run_without_connection do |orig_connection|
         # This should be a no-op that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: nil }))
+        end
       end
     end
 
     def test_set_session_variable_default
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
-        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        assert_nothing_raised do
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+        end
       end
     end
 
     def test_set_session_timezone
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
-        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
+        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.query_value("SHOW TIME ZONE")
       end
     end
 
@@ -213,7 +228,7 @@ module ActiveRecord
       fake_lock_id = 2940075057017742022
       with_warning_suppression do
         released_non_existent_lock = @connection.release_advisory_lock(fake_lock_id)
-        assert_equal released_non_existent_lock, false,
+        assert_equal false, released_non_existent_lock,
           "expected release_advisory_lock to return false when there was no lock to release"
       end
     end

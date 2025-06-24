@@ -20,7 +20,7 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     host! "loocalhoost"
     get message_path(message, format: :json)
-    content = Nokogiri::HTML::DocumentFragment.parse(response.parsed_body["content"])
+    content = ActionText.html_document_fragment_class.parse(response.parsed_body["content"])
     assert_select content, "img:match('src', ?)", %r"//loocalhoost/.+/racecar"
   end
 

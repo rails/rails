@@ -14,10 +14,10 @@ class DefaultTest < ActiveRecord::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if current_adapter?(:PostgreSQLAdapter) || current_adapter?(:SQLite3Adapter)
     def test_multiline_default_text
       record = Default.new
-      # older postgres versions represent the default with escapes ("\\012" for a newline)
+      # older PostgreSQL versions represent the default with escapes ("\\012" for a newline)
       assert("--- []\n\n" == record.multiline_default || "--- []\\012\\012" == record.multiline_default)
     end
   end
@@ -27,7 +27,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   class DefaultNumber < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :default_numbers do |t|
       t.integer :positive_integer, default: 7
       t.integer :negative_integer, default: -5
@@ -42,19 +42,19 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_positive_integer
     record = DefaultNumber.new
     assert_equal 7, record.positive_integer
-    assert_equal "7", record.positive_integer_before_type_cast
+    assert_equal 7, record.positive_integer_before_type_cast
   end
 
   def test_default_negative_integer
     record = DefaultNumber.new
     assert_equal (-5), record.negative_integer
-    assert_equal "-5", record.negative_integer_before_type_cast
+    assert_equal (-5), record.negative_integer_before_type_cast
   end
 
   def test_default_decimal_number
     record = DefaultNumber.new
     assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal "2.78", record.decimal_number_before_type_cast
+    assert_equal BigDecimal("2.78"), record.decimal_number_before_type_cast
   end
 end
 
@@ -62,7 +62,7 @@ class DefaultStringsTest < ActiveRecord::TestCase
   class DefaultString < ActiveRecord::Base; end
 
   setup do
-    @connection = ActiveRecord::Base.connection
+    @connection = ActiveRecord::Base.lease_connection
     @connection.create_table :default_strings do |t|
       t.string :string_col, default: "Smith"
       t.string :string_col_with_quotes, default: "O'Connor"
@@ -88,7 +88,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
     class DefaultBinary < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :default_binaries do |t|
         t.binary :varbinary_col, null: false, limit: 64, default: "varbinary_default"
         t.binary :varbinary_col_hex_looking, null: false, limit: 64, default: "0xDEADBEEF"
@@ -100,7 +100,7 @@ class DefaultBinaryTest < ActiveRecord::TestCase
       assert_equal "varbinary_default", DefaultBinary.new.varbinary_col
     end
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.connection.mariadb?
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && !ActiveRecord::Base.lease_connection.mariadb?
       def test_default_binary_string
         assert_equal "binary_default", DefaultBinary.new.binary_col
       end
@@ -121,7 +121,7 @@ class DefaultTextTest < ActiveRecord::TestCase
     class DefaultText < ActiveRecord::Base; end
 
     setup do
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :default_texts do |t|
         t.text :text_col, default: "Smith"
         t.text :text_col_with_quotes, default: "O'Connor"
@@ -149,17 +149,19 @@ class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      if ActiveRecord::Base.connection.database_version >= 100000
+      if ActiveRecord::Base.lease_connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "now\(\)" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "now\(\)" }/, output
       end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
       assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
-      assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
     end
   end
 end
@@ -171,45 +173,48 @@ class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     if supports_default_expression?
       test "schema dump includes default expression" do
         output = dump_table_schema("defaults")
-        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(uuid\(\)\)" }/i, output
+        assert_match %r/t\.binary\s+"uuid",\s+limit: 36,\s+default: -> { "\(?uuid\(\)\)?" }/i, output
+      end
+
+      test "schema dump includes default expression with single quotes reflected correctly" do
+        output = dump_table_schema("defaults")
+        assert_match %r/t\.string\s+"char2_concatenated",\s+default: -> { "\(?concat\(`char2`,(_utf8mb4)?'-'\)\)?" }/i, output
       end
     end
 
-    if supports_datetime_with_precision?
-      test "schema dump datetime includes default expression" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"modified_datetime",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
-      end
+    test "schema dump datetime includes default expression" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"modified_datetime",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+    end
 
-      test "schema dump datetime includes precise default expression" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump datetime includes precise default expression" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"precise_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump datetime includes precise default expression with on update" do
-        output = dump_table_schema("datetime_defaults")
-        assert_match %r/t\.datetime\s+"updated_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump datetime includes precise default expression with on update" do
+      output = dump_table_schema("datetime_defaults")
+      assert_match %r/t\.datetime\s+"updated_datetime",\s+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp includes default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
-      end
+    test "schema dump timestamp includes default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+    end
 
-      test "schema dump timestamp includes precise default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump timestamp includes precise default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp includes precise default expression with on update" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
-      end
+    test "schema dump timestamp includes precise default expression with on update" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"updated_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\) ON UPDATE CURRENT_TIMESTAMP\(6\)" }/i, output
+    end
 
-      test "schema dump timestamp without default expression" do
-        output = dump_table_schema("timestamp_defaults")
-        assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
-      end
+    test "schema dump timestamp without default expression" do
+      output = dump_table_schema("timestamp_defaults")
+      assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
     end
   end
 end
@@ -285,7 +290,7 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     def with_mysql_not_null_table
       klass = Class.new(ActiveRecord::Base)
       klass.table_name = "test_mysql_not_null_defaults"
-      klass.connection.create_table klass.table_name do |t|
+      klass.lease_connection.create_table klass.table_name do |t|
         t.integer :non_null_integer, null: false
         t.string  :non_null_string,  null: false
         t.text    :non_null_text,    null: false
@@ -294,7 +299,7 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
 
       yield klass
     ensure
-      klass.connection.drop_table(klass.table_name) rescue nil
+      klass.lease_connection.drop_table(klass.table_name) rescue nil
     end
   end
 end
@@ -309,7 +314,7 @@ class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
       assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "random\(\)" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\)\)" }/, output
     end
   end
 end

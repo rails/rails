@@ -10,7 +10,7 @@ module ActiveSupport
   # keys. The default inflections for pluralization, singularization, and
   # uncountable words are kept in inflections.rb.
   #
-  # The Rails core team has stated patches for the inflections library will not
+  # The \Rails core team has stated patches for the inflections library will not
   # be accepted in order to avoid breaking legacy applications which may be
   # relying on errant inflections. If you discover an incorrect inflection and
   # require it for your application or wish to define rules for languages other
@@ -139,7 +139,7 @@ module ActiveSupport
 
       result.tr!("_", " ")
       result.lstrip!
-      unless keep_id_suffix
+      if !keep_id_suffix && lower_case_and_underscored_word&.end_with?("_id")
         result.delete_suffix!(" id")
       end
 
@@ -164,7 +164,7 @@ module ActiveSupport
     #   upcase_first('w')                 # => "W"
     #   upcase_first('')                  # => ""
     def upcase_first(string)
-      string.length > 0 ? string[0].upcase.concat(string[1..-1]) : ""
+      string.length > 0 ? string[0].upcase.concat(string[1..-1]) : +""
     end
 
     # Converts the first character in the string to lowercase.
@@ -173,18 +173,16 @@ module ActiveSupport
     #   downcase_first('I')                          # => "i"
     #   downcase_first('')                           # => ""
     def downcase_first(string)
-      string.length > 0 ? string[0].downcase.concat(string[1..-1]) : ""
+      string.length > 0 ? string[0].downcase.concat(string[1..-1]) : +""
     end
 
     # Capitalizes all the words and replaces some characters in the string to
     # create a nicer looking title. +titleize+ is meant for creating pretty
-    # output. It is not used in the Rails internals.
+    # output. It is not used in the \Rails internals.
     #
     # The trailing '_id','Id'.. can be kept and capitalized by setting the
     # optional parameter +keep_id_suffix+ to true.
     # By default, this parameter is false.
-    #
-    # +titleize+ is also aliased as +titlecase+.
     #
     #   titleize('man from the boondocks')                       # => "Man From The Boondocks"
     #   titleize('x-men: the last stand')                        # => "X Men: The Last Stand"
@@ -197,7 +195,7 @@ module ActiveSupport
       end
     end
 
-    # Creates the name of a table like Rails does for models to table names.
+    # Creates the name of a table like \Rails does for models to table names.
     # This method uses the #pluralize method on the last word in the string.
     #
     #   tableize('RawScaledScorer') # => "raw_scaled_scorers"
@@ -207,7 +205,7 @@ module ActiveSupport
       pluralize(underscore(class_name))
     end
 
-    # Creates a class name from a plural table name like Rails does for table
+    # Creates a class name from a plural table name like \Rails does for table
     # names to models. Note that this returns a string and not a Class. (To
     # convert to an actual class follow +classify+ with #constantize.)
     #

@@ -1,0 +1,57 @@
+services:
+  rails:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    depends_on:
+      - postgres
+      - mysql
+      - redis
+      - memcached
+
+    environment:
+      MYSQL_CODESPACES: "1"
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+
+  mysql:
+    image: mysql:latest
+    restart: unless-stopped
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  redis:
+    image: valkey/valkey:8
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  memcached:
+    image: memcached:latest
+    restart: unless-stopped
+    command: ["-m", "1024"]
+
+volumes:
+  postgres-data:
+  mysql-data:
+  redis-data:

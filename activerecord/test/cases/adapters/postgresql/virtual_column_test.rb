@@ -3,17 +3,15 @@
 require "cases/helper"
 require "support/schema_dumping_helper"
 
-if ActiveRecord::Base.connection.supports_virtual_columns?
+if ActiveRecord::Base.lease_connection.supports_virtual_columns?
   class PostgresqlVirtualColumnTest < ActiveRecord::PostgreSQLTestCase
     include SchemaDumpingHelper
-
-    self.use_transactional_tests = false
 
     class VirtualColumn < ActiveRecord::Base
     end
 
     def setup
-      @connection = ActiveRecord::Base.connection
+      @connection = ActiveRecord::Base.lease_connection
       @connection.create_table :virtual_columns, force: true do |t|
         t.string  :name
         t.virtual :upper_name,  type: :string,  as: "UPPER(name)", stored: true
@@ -84,7 +82,8 @@ if ActiveRecord::Base.connection.supports_virtual_columns?
     end
 
     def test_build_fixture_sql
-      ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns)
+      fixtures = ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, :virtual_columns).first
+      assert_equal 2, fixtures.size
     end
   end
 end

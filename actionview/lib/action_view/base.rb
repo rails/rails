@@ -44,9 +44,9 @@ module ActionView # :nodoc:
   # Using sub templates allows you to sidestep tedious replication and extract common display structures in shared templates. The
   # classic example is the use of a header and footer (even though the Action Pack-way would be to use Layouts):
   #
-  #   <%= render "shared/header" %>
+  #   <%= render "application/header" %>
   #   Something really specific and terrific
-  #   <%= render "shared/footer" %>
+  #   <%= render "application/footer" %>
   #
   # As you see, we use the output embeddings for the render methods. The render call itself will just return a string holding the
   # result of the rendering. The output embedding writes it to the current template.
@@ -55,7 +55,7 @@ module ActionView # :nodoc:
   # variables defined using the regular embedding tags. Like this:
   #
   #   <% @page_title = "A Wonderful Hello" %>
-  #   <%= render "shared/header" %>
+  #   <%= render "application/header" %>
   #
   # Now the header can pick up on the <tt>@page_title</tt> variable and use it for outputting a title tag:
   #
@@ -65,9 +65,9 @@ module ActionView # :nodoc:
   #
   # You can pass local variables to sub templates by using a hash with the variable names as keys and the objects as values:
   #
-  #   <%= render "shared/header", { headline: "Welcome", person: person } %>
+  #   <%= render "application/header", { headline: "Welcome", person: person } %>
   #
-  # These can now be accessed in <tt>shared/header</tt> with:
+  # These can now be accessed in <tt>application/header</tt> with:
   #
   #   Headline: <%= headline %>
   #   First name: <%= person.first_name %>
@@ -80,10 +80,27 @@ module ActionView # :nodoc:
   # This is useful in cases where you aren't sure if the local variable has been assigned. Alternatively, you could also use
   # <tt>defined? headline</tt> to first check if the variable has been assigned before using it.
   #
+  # By default, templates will accept any <tt>locals</tt> as keyword arguments. To restrict what <tt>locals</tt> a template accepts, add a <tt>locals:</tt> magic comment:
+  #
+  #   <%# locals: (headline:) %>
+  #
+  #   Headline: <%= headline %>
+  #
+  # In cases where the local variables are optional, declare the keyword argument with a default value:
+  #
+  #   <%# locals: (headline: nil) %>
+  #
+  #   <% unless headline.nil? %>
+  #   Headline: <%= headline %>
+  #   <% end %>
+  #
+  # Read more about strict locals in {Action View Overview}[https://guides.rubyonrails.org/action_view_overview.html#strict-locals]
+  # in the guides.
+  #
   # === Template caching
   #
-  # By default, Rails will compile each template to a method in order to render it. When you alter a template,
-  # Rails will check the file's modification time and recompile it in development mode.
+  # By default, \Rails will compile each template to a method in order to render it. When you alter a template,
+  # \Rails will check the file's modification time and recompile it in development mode.
   #
   # == Builder
   #
@@ -136,8 +153,7 @@ module ActionView # :nodoc:
   #     end
   #   end
   #
-  # For more information on Builder please consult the {source
-  # code}[https://github.com/jimweirich/builder].
+  # For more information on Builder please consult the {source code}[https://github.com/rails/builder].
   class Base
     include Helpers, ::ERB::Util, Context
 
@@ -226,8 +242,6 @@ module ActionView # :nodoc:
     # :startdoc:
 
     def initialize(lookup_context, assigns, controller) # :nodoc:
-      @_config = ActiveSupport::InheritableOptions.new
-
       @lookup_context = lookup_context
 
       @view_renderer = ActionView::Renderer.new @lookup_context
@@ -249,16 +263,14 @@ module ActionView # :nodoc:
 
       if has_strict_locals
         begin
-          public_send(method, buffer, **locals, &block)
+          public_send(method, locals, buffer, **locals, &block)
         rescue ArgumentError => argument_error
-          raise(
-            ArgumentError,
-            argument_error.
-              message.
-                gsub("unknown keyword:", "unknown local:").
-                gsub("missing keyword:", "missing local:").
-                gsub("no keywords accepted", "no locals accepted")
-          )
+          public_send_line = __LINE__ - 2
+          frame = argument_error.backtrace_locations[1]
+          if frame.path == __FILE__ && frame.lineno == public_send_line
+            raise StrictLocalsError.new(argument_error, @current_template)
+          end
+          raise
         end
       else
         public_send(method, locals, buffer, &block)

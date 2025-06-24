@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "rails"
 require "action_controller/railtie"
 require "active_record/railtie"
 require "active_storage/engine"
 
 require "action_text"
+require "action_text/trix"
 
 module ActionText
   class Engine < Rails::Engine
@@ -32,7 +35,7 @@ module ActionText
 
     initializer "action_text.asset" do
       if Rails.application.config.respond_to?(:assets)
-        Rails.application.config.assets.precompile += %w( actiontext.js trix.js trix.css )
+        Rails.application.config.assets.precompile += %w( actiontext.js actiontext.esm.js )
       end
     end
 
@@ -81,6 +84,12 @@ module ActionText
 
     initializer "action_text.configure" do |app|
       ActionText::Attachment.tag_name = app.config.action_text.attachment_tag_name
+    end
+
+    config.after_initialize do |app|
+      if klass = app.config.action_text.sanitizer_vendor
+        ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
+      end
     end
   end
 end

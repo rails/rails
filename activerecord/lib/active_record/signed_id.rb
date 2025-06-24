@@ -6,11 +6,37 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
+      class_attribute :_signed_id_verifier, instance_accessor: false, instance_predicate: false
+
       ##
       # :singleton-method:
-      # Set the secret used for the signed id verifier instance when using Active Record outside of Rails.
-      # Within Rails, this is automatically set using the Rails application key generator.
+      # Set the secret used for the signed id verifier instance when using Active Record outside of \Rails.
+      # Within \Rails, this is automatically set using the \Rails application key generator.
       class_attribute :signed_id_verifier_secret, instance_writer: false
+      module DeprecateSignedIdVerifierSecret
+        def signed_id_verifier_secret=(secret)
+          ActiveRecord.deprecator.warn(<<~MSG)
+            ActiveRecord::Base.signed_id_verifier_secret is deprecated and will be removed in the future.
+
+            If the secret is model-specific, set Model.signed_id_verifier instead.
+
+            Otherwise, configure Rails.application.message_verifiers (or ActiveRecord.message_verifiers) with the secret.
+          MSG
+
+          super
+        end
+      end
+      singleton_class.prepend DeprecateSignedIdVerifierSecret
+    end
+
+    module RelationMethods # :nodoc:
+      def find_signed(...)
+        scoping { model.find_signed(...) }
+      end
+
+      def find_signed!(...)
+        scoping { model.find_signed!(...) }
+      end
     end
 
     module ClassMethods
@@ -39,10 +65,11 @@ module ActiveRecord
       #
       #   travel_back
       #   User.find_signed signed_id, purpose: :password_reset # => User.first
-      def find_signed(signed_id, purpose: nil)
+      def find_signed(signed_id, purpose: nil, on_rotation: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
-        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose))
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verified(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find_by primary_key => id
         end
       end
@@ -59,33 +86,45 @@ module ActiveRecord
       #   signed_id = User.first.signed_id
       #   User.first.destroy
       #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
-      def find_signed!(signed_id, purpose: nil)
-        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose))
+      def find_signed!(signed_id, purpose: nil, on_rotation: nil)
+        options = { on_rotation: on_rotation }.compact
+        if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
           find(id)
         end
       end
 
-      # The verifier instance that all signed ids are generated and verified from. By default, it'll be initialized
-      # with the class-level +signed_id_verifier_secret+, which within Rails comes from the
-      # Rails.application.key_generator. By default, it's SHA256 for the digest and JSON for the serialization.
       def signed_id_verifier
-        @signed_id_verifier ||= begin
-          secret = signed_id_verifier_secret
-          secret = secret.call if secret.respond_to?(:call)
+        if signed_id_verifier_secret
+          @signed_id_verifier ||= begin
+            secret = signed_id_verifier_secret
+            secret = secret.call if secret.respond_to?(:call)
 
-          if secret.nil?
-            raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed ids"
-          else
-            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON
+            if secret.nil?
+              raise ArgumentError, "You must set ActiveRecord::Base.signed_id_verifier_secret to use signed IDs"
+            end
+
+            ActiveSupport::MessageVerifier.new secret, digest: "SHA256", serializer: JSON, url_safe: true
           end
+        else
+          return _signed_id_verifier if _signed_id_verifier
+
+          if ActiveRecord.message_verifiers.nil?
+            raise "You must set ActiveRecord.message_verifiers to use signed IDs"
+          end
+
+          ActiveRecord.message_verifiers["active_record/signed_id"]
         end
       end
 
       # Allows you to pass in a custom verifier used for the signed ids. This also allows you to use different
       # verifiers for different classes. This is also helpful if you need to rotate keys, as you can prepare
-      # your custom verifier for that in advance. See +ActiveSupport::MessageVerifier+ for details.
+      # your custom verifier for that in advance. See ActiveSupport::MessageVerifier for details.
       def signed_id_verifier=(verifier)
-        @signed_id_verifier = verifier
+        if signed_id_verifier_secret
+          @signed_id_verifier = verifier
+        else
+          self._signed_id_verifier = verifier
+        end
       end
 
       # :nodoc:
@@ -96,7 +135,16 @@ module ActiveRecord
 
 
     # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
+    #
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
+    # However, as with any message signed with a +ActiveSupport::MessageVerifier+,
+    # {the signed id is not encrypted}[link:classes/ActiveSupport/MessageVerifier.html#class-ActiveSupport::MessageVerifier-label-Signing+is+not+encryption].
+    # It's just encoded and protected against tampering.
+    #
+    # This means that the ID can be decoded by anyone; however, if tampered with (so to point to a different ID),
+    # the cryptographic signature will no longer match, and the signed id will be considered invalid and return nil
+    # when passed to +find_signed+ (or raise with +find_signed!+).
+    #
     # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
     # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
     # record. If a purpose is set, this too must match.

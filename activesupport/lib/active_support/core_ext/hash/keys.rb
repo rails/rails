@@ -8,13 +8,13 @@ class Hash
   #   hash.stringify_keys
   #   # => {"name"=>"Rob", "age"=>"28"}
   def stringify_keys
-    transform_keys(&:to_s)
+    transform_keys { |k| Symbol === k ? k.name : k.to_s }
   end
 
   # Destructively converts all keys to strings. Same as
   # +stringify_keys+, but modifies +self+.
   def stringify_keys!
-    transform_keys!(&:to_s)
+    transform_keys! { |k| Symbol === k ? k.name : k.to_s }
   end
 
   # Returns a new hash with all keys converted to symbols, as long as
@@ -82,14 +82,14 @@ class Hash
   #   hash.deep_stringify_keys
   #   # => {"person"=>{"name"=>"Rob", "age"=>"28"}}
   def deep_stringify_keys
-    deep_transform_keys(&:to_s)
+    deep_transform_keys { |k| Symbol === k ? k.name : k.to_s }
   end
 
   # Destructively converts all keys to strings.
   # This includes the keys from the root hash and from all
   # nested hashes and arrays.
   def deep_stringify_keys!
-    deep_transform_keys!(&:to_s)
+    deep_transform_keys! { |k| Symbol === k ? k.name : k.to_s }
   end
 
   # Returns a new hash with all keys converted to symbols, as long as

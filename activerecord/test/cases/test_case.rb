@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../../tools/strict_warnings"
 require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
+require "active_record/testing/query_assertions"
 require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
@@ -20,6 +21,7 @@ module ActiveRecord
   class TestCase < ActiveSupport::TestCase # :nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
+    include ActiveRecord::Assertions::QueryAssertions
     include ActiveRecord::TestFixtures
     include ActiveRecord::ValidationsRepairHelper
     include AdapterHelper
@@ -31,49 +33,96 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
-    def create_fixtures(*fixture_set_names, &block)
-      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names, &block)
+    def after_teardown
+      super
+      check_connection_leaks
     end
 
-    def teardown
-      SQLCounter.clear_log
-    end
+    def check_connection_leaks
+      return if in_memory_db?
 
-    def capture_sql
-      ActiveRecord::Base.connection.materialize_transactions
-      SQLCounter.clear_log
-      yield
-      SQLCounter.log.dup
-    end
+      # Make sure tests didn't leave a connection owned by some background thread
+      # which could lead to some slow wait in a subsequent thread.
+      leaked_conn = []
+      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+        # Ensure all in flights tasks are completed.
+        # Otherwise they may still hold a connection.
+        if pool.async_executor
+          if pool.async_executor.scheduled_task_count != pool.async_executor.completed_task_count
+            pool.connections.each do |conn|
+              if conn.in_use? && conn.owner != Fiber.current && conn.owner != Thread.current
+                if conn.owner.respond_to?(:join)
+                  conn.owner&.join(0.5)
+                end
+              end
+            end
+          end
+        end
 
-    def assert_sql(*patterns_to_match, &block)
-      _assert_nothing_raised_or_warn("assert_sql") { capture_sql(&block) }
-
-      failed_patterns = []
-      patterns_to_match.each do |pattern|
-        failed_patterns << pattern unless SQLCounter.log_all.any? { |sql| pattern === sql }
+        pool.reap
+        pool.connections.each do |conn|
+          if conn.in_use?
+            if conn.owner != Fiber.current && conn.owner != Thread.current
+              leaked_conn << [conn.owner, conn.owner.backtrace]
+              conn.owner&.kill
+            end
+            conn.steal!
+            pool.checkin(conn)
+          end
+        end
       end
-      assert failed_patterns.empty?, "Query pattern(s) #{failed_patterns.map(&:inspect).join(', ')} not found.#{SQLCounter.log.size == 0 ? '' : "\nQueries:\n#{SQLCounter.log.join("\n")}"}"
-    end
 
-    def assert_queries(num = 1, options = {}, &block)
-      ignore_none = options.fetch(:ignore_none) { num == :any }
-      ActiveRecord::Base.connection.materialize_transactions
-      SQLCounter.clear_log
-      x = _assert_nothing_raised_or_warn("assert_queries", &block)
-      the_log = ignore_none ? SQLCounter.log_all : SQLCounter.log
-      if num == :any
-        assert_operator the_log.size, :>=, 1, "1 or more queries expected, but none were executed."
-      else
-        mesg = "#{the_log.size} instead of #{num} queries were executed.#{the_log.size == 0 ? '' : "\nQueries:\n#{the_log.join("\n")}"}"
-        assert_equal num, the_log.size, mesg
+      if leaked_conn.size > 0
+        puts "Found #{leaked_conn.size} leaked connections"
+        leaked_conn.each do |owner, backtrace|
+          puts "owner: #{owner}"
+          puts "backtrace:\n#{backtrace}"
+          puts
+        end
+        raise "Found #{leaked_conn.size} leaked connection after #{self.class.name}##{name}"
       end
-      x
     end
 
-    def assert_no_queries(options = {}, &block)
-      options.reverse_merge! ignore_none: true
-      assert_queries(0, options, &block)
+    def create_fixtures(*fixture_set_names)
+      ActiveRecord::FixtureSet.create_fixtures(ActiveRecord::TestCase.fixture_paths, fixture_set_names, fixture_class_names)
+    end
+
+    def capture_sql(include_schema: false)
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        yield
+        if include_schema
+          counter.log_all
+        else
+          counter.log
+        end
+      end
+    end
+
+    def capture_sql_and_binds
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        yield
+        counter.log_full
+      end
+    end
+
+    # Redefine existing assertion method to explicitly not materialize transactions.
+    def assert_queries_match(match, count: nil, include_schema: false, &block)
+      counter = SQLCounter.new
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") do
+        result = _assert_nothing_raised_or_warn("assert_queries_match", &block)
+        queries = include_schema ? counter.log_all : counter.log
+        matched_queries = queries.select { |query| match === query }
+
+        if count
+          assert_equal count, matched_queries.size, "#{matched_queries.size} instead of #{count} queries were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+        else
+          assert_operator matched_queries.size, :>=, 1, "1 or more queries expected, but none were executed.#{queries.empty? ? '' : "\nQueries:\n#{queries.join("\n")}"}"
+        end
+
+        result
+      end
     end
 
     def assert_column(model, column_name, msg = nil)
@@ -92,9 +141,6 @@ module ActiveRecord
       yield
     ensure
       model.has_many_inversing = old
-      if model != ActiveRecord::Base && !old
-        model.singleton_class.remove_method(:has_many_inversing) # reset the class_attribute
-      end
     end
 
     def with_automatic_scope_inversing(*reflections)
@@ -121,13 +167,13 @@ module ActiveRecord
       ActiveRecord.db_warnings_action = action
       ActiveRecord.db_warnings_ignore = warnings_to_ignore
 
-      ActiveRecord::Base.connection.disconnect! # Disconnect from the db so that we reconfigure the connection
+      ActiveRecord::Base.lease_connection.disconnect! # Disconnect from the db so that we reconfigure the connection
 
       yield
     ensure
       ActiveRecord.db_warnings_action = @original_db_warnings_action
       ActiveRecord.db_warnings_ignore = original_db_warnings_ignore
-      ActiveRecord::Base.connection.disconnect!
+      ActiveRecord::Base.lease_connection.disconnect!
     end
 
     def reset_callbacks(klass, kind)
@@ -235,10 +281,17 @@ module ActiveRecord
       handler = ActiveRecord::Base.connection_handler
       handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
         pool_manager.role_names.each do |role_name|
-          next if role_name == ActiveRecord::Base.default_role
+          next if role_name == ActiveRecord::Base.default_role &&
+                  # TODO: Remove this helper when `remove_connection` for different shards is fixed.
+                  # See https://github.com/rails/rails/pull/49382.
+                  ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(owner)
           pool_manager.remove_role(role_name)
         end
       end
+    end
+
+    def quote_table_name(name)
+      ActiveRecord::Base.adapter_class.quote_table_name(name)
     end
 
     # Connect to the database
@@ -255,7 +308,7 @@ module ActiveRecord
 
   class AbstractMysqlTestCase < TestCase
     def self.run(*args)
-      super if current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+      super if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     end
   end
 
@@ -271,29 +324,9 @@ module ActiveRecord
     end
   end
 
-
   class SQLite3TestCase < TestCase
     def self.run(*args)
       super if current_adapter?(:SQLite3Adapter)
     end
   end
-
-  class SQLCounter
-    class << self
-      attr_accessor :ignored_sql, :log, :log_all
-      def clear_log; self.log = []; self.log_all = []; end
-    end
-
-    clear_log
-
-    def call(name, start, finish, message_id, values)
-      return if values[:cached]
-
-      sql = values[:sql]
-      self.class.log_all << sql
-      self.class.log << sql unless ["SCHEMA", "TRANSACTION"].include? values[:name]
-    end
-  end
-
-  ActiveSupport::Notifications.subscribe("sql.active_record", SQLCounter.new)
 end

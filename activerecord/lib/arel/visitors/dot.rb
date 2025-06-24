@@ -34,7 +34,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Function(o)
           visit_edge o, "expressions"
           visit_edge o, "distinct"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_Unary(o)
@@ -108,14 +107,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Extract(o)
           visit_edge o, "expressions"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_NamedFunction(o)
           visit_edge o, "name"
           visit_edge o, "expressions"
           visit_edge o, "distinct"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_InsertStatement(o)
@@ -191,6 +188,7 @@ module Arel # :nodoc: all
           end
         end
         alias :visit_Arel_Nodes_And :visit__children
+        alias :visit_Arel_Nodes_Or :visit__children
         alias :visit_Arel_Nodes_With :visit__children
 
         def visit_String(o)

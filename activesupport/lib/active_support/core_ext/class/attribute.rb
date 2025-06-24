@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/redefine_method"
+require "active_support/class_attribute"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -83,32 +84,37 @@ class Class
   #
   #   class_attribute :settings, default: {}
   def class_attribute(*attrs, instance_accessor: true,
-    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil)
-
+    instance_reader: instance_accessor, instance_writer: instance_accessor, instance_predicate: true, default: nil
+  )
     class_methods, methods = [], []
     attrs.each do |name|
       unless name.is_a?(Symbol) || name.is_a?(String)
         raise TypeError, "#{name.inspect} is not a symbol nor a string"
       end
 
-      class_methods << <<~RUBY # In case the method exists and is not public
-        silence_redefinition_of_method def #{name}
-        end
-      RUBY
+      name = name.to_sym
+      namespaced_name = :"__class_attr_#{name}"
+      ::ActiveSupport::ClassAttribute.redefine(self, name, namespaced_name, default)
 
-      methods << <<~RUBY if instance_reader
-        silence_redefinition_of_method def #{name}
-          defined?(@#{name}) ? @#{name} : self.class.#{name}
-        end
-      RUBY
+      delegators = [
+        "def #{name}; #{namespaced_name}; end",
+        "def #{name}=(value); self.#{namespaced_name} = value; end",
+      ]
 
-      class_methods << <<~RUBY
-        silence_redefinition_of_method def #{name}=(value)
-          redefine_method(:#{name}) { value } if singleton_class?
-          redefine_singleton_method(:#{name}) { value }
-          value
-        end
-      RUBY
+      class_methods.concat(delegators)
+      if singleton_class?
+        methods.concat(delegators)
+      else
+        methods << <<~RUBY if instance_reader
+          silence_redefinition_of_method def #{name}
+            if defined?(@#{name})
+              @#{name}
+            else
+              self.class.#{name}
+            end
+          end
+        RUBY
+      end
 
       methods << <<~RUBY if instance_writer
         silence_redefinition_of_method(:#{name}=)
@@ -125,7 +131,5 @@ class Class
 
     location = caller_locations(1, 1).first
     class_eval(["class << self", *class_methods, "end", *methods].join(";").tr("\n", ";"), location.path, location.lineno)
-
-    attrs.each { |name| public_send("#{name}=", default) }
   end
 end

@@ -18,33 +18,34 @@ require "active_support/core_ext/module/delegation"
 #   # preloads blobs and variant records (if using `ActiveStorage.track_variants`)
 #   User.first.avatars.with_all_variant_records
 class ActiveStorage::Attachment < ActiveStorage::Record
-  self.table_name = "active_storage_attachments"
-
   ##
-  # :method: record
+  # :method:
   #
   # Returns the associated record.
-  belongs_to :record, polymorphic: true, touch: true
+  belongs_to :record, polymorphic: true, touch: ActiveStorage.touch_attachment_records
 
   ##
-  # :method: blob
+  # :method:
   #
-  # Returns the associated <tt>ActiveStorage::Blob</tt>.
-  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true
+  # Returns the associated ActiveStorage::Blob.
+  belongs_to :blob, class_name: "ActiveStorage::Blob", autosave: true, inverse_of: :attachments
 
   delegate_missing_to :blob
   delegate :signed_id, to: :blob
 
-  after_create_commit :mirror_blob_later, :analyze_blob_later
+  after_create_commit :mirror_blob_later, :analyze_blob_later, :transform_variants_later
   after_destroy_commit :purge_dependent_blob_later
 
   ##
-  # :singleton-method: with_all_variant_records
+  # :singleton-method:
   #
   # Eager load all variant records on an attachment at once.
   #
   #   User.first.avatars.with_all_variant_records
-  scope :with_all_variant_records, -> { includes(blob: { variant_records: { image_attachment: :blob } }) }
+  scope :with_all_variant_records, -> { includes(blob: {
+    variant_records: { image_attachment: :blob },
+    preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
+  }) }
 
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
@@ -130,6 +131,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       blob.mirror_later
     end
 
+    def transform_variants_later
+      preprocessed_variations = named_variants.filter_map { |_name, named_variant|
+        if named_variant.preprocessed?(record)
+          named_variant.transformations
+        end
+      }
+
+      if blob.preview_image_needed_before_processing_variants? && preprocessed_variations.any?
+        blob.create_preview_image_later(preprocessed_variations)
+      else
+        preprocessed_variations.each do |transformations|
+          blob.preprocessed(transformations)
+        end
+      end
+    end
+
     def purge_dependent_blob_later
       blob&.purge_later if dependent == :purge_later
     end
@@ -138,18 +155,18 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       record.attachment_reflections[name]&.options&.fetch(:dependent, nil)
     end
 
-    def variants
-      record.attachment_reflections[name]&.variants
+    def named_variants
+      record.attachment_reflections[name]&.named_variants || {}
     end
 
     def transformations_by_name(transformations)
       case transformations
       when Symbol
         variant_name = transformations
-        variants.fetch(variant_name) do
+        named_variants.fetch(variant_name) do
           record_model_name = record.to_model.model_name.name
           raise ArgumentError, "Cannot find variant :#{variant_name} for #{record_model_name}##{name}"
-        end
+        end.transformations
       else
         transformations
       end

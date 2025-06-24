@@ -79,15 +79,15 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   bin/rails generate controller Account --test-framework=test_unit
+      #   $ bin/rails generate controller Account --test-framework=test_unit
       #
       # The controller generator will then try to invoke the following generators:
       #
       #   "rails:test_unit", "test_unit:controller", "test_unit"
       #
       # Notice that "rails:generators:test_unit" could be loaded as well, what
-      # Rails looks for is the first and last parts of the namespace. This is what
-      # allows any test framework to hook into Rails as long as it provides any
+      # \Rails looks for is the first and last parts of the namespace. This is what
+      # allows any test framework to hook into \Rails as long as it provides any
       # of the hooks above.
       #
       # ==== Options
@@ -134,11 +134,11 @@ module Rails
       # All hooks come with switches for user interface. If you do not want
       # to use any test framework, you can do:
       #
-      #   bin/rails generate controller Account --skip-test-framework
+      #   $ bin/rails generate controller Account --skip-test-framework
       #
       # Or similarly:
       #
-      #   bin/rails generate controller Account --no-test-framework
+      #   $ bin/rails generate controller Account --no-test-framework
       #
       # ==== Boolean hooks
       #
@@ -150,7 +150,7 @@ module Rails
       #
       # Then, if you want webrat to be invoked, just supply:
       #
-      #   bin/rails generate controller Account --webrat
+      #   $ bin/rails generate controller Account --webrat
       #
       # The hooks lookup is similar as above:
       #
@@ -222,7 +222,7 @@ module Rails
       end
 
       # Returns the default source root for a given generator. This is used internally
-      # by rails to set its generators source root. If you want to customize your source
+      # by Rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
       def self.default_source_root
         return unless base_name && generator_name
@@ -325,7 +325,7 @@ module Rails
           @namespaced_path ||= namespace_dirs.join("/")
         end
 
-        # Use Rails default banner.
+        # Use \Rails default banner.
         def self.banner # :doc:
           "bin/rails generate #{namespace.delete_prefix("rails:")} #{arguments.map(&:usage).join(' ')} [options]".gsub(/\s+/, " ")
         end

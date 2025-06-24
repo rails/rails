@@ -7,7 +7,7 @@ module ActiveRecord
     class PostgreSQLAdapter
       class QuotingTest < ActiveRecord::PostgreSQLTestCase
         def setup
-          @conn = ActiveRecord::Base.connection
+          @conn = ActiveRecord::Base.lease_connection
           @raise_int_wider_than_64bit = ActiveRecord.raise_int_wider_than_64bit
         end
 
@@ -29,6 +29,18 @@ module ActiveRecord
           assert_equal "'Infinity'", @conn.quote(infinity)
         end
 
+        def test_quote_integer
+          assert_equal "42", @conn.quote(42)
+        end
+
+        def test_quote_big_decimal
+          assert_equal "4.2", @conn.quote(BigDecimal("4.2"))
+        end
+
+        def test_quote_rational
+          assert_equal "3/4", @conn.quote(Rational(3, 4))
+        end
+
         def test_quote_range
           range = "1,2]'; SELECT * FROM users; --".."a"
           type = OID::Range.new(Type::Integer.new, :int8range)
@@ -44,6 +56,25 @@ module ActiveRecord
         def test_quote_table_name_with_spaces
           value = "user posts"
           assert_equal "\"user posts\"", @conn.quote_table_name(value)
+        end
+
+        def test_quote_string
+          assert_equal "''", @conn.quote_string("'")
+        end
+
+        def test_quote_column_name
+          [@conn, @conn.class].each do |adapter|
+            assert_equal '"foo"', adapter.quote_column_name("foo")
+            assert_equal '"hel""lo"', adapter.quote_column_name(%{hel"lo})
+          end
+        end
+
+        def test_quote_table_name
+          [@conn, @conn.class].each do |adapter|
+            assert_equal '"foo"', adapter.quote_table_name("foo")
+            assert_equal '"foo"."bar"', adapter.quote_table_name("foo.bar")
+            assert_equal '"hel""lo.wol\\d"', adapter.quote_column_name('hel"lo.wol\\d')
+          end
         end
 
         def test_raise_when_int_is_wider_than_64bit

@@ -6,7 +6,7 @@ module LoadSchemaHelper
     original_stdout = $stdout
     $stdout = StringIO.new
 
-    adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+    adapter_name = ActiveRecord::Base.lease_connection.adapter_name.downcase
     adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
     load SCHEMA_ROOT + "/schema.rb"

@@ -1,0 +1,103 @@
+// ----------------------------------------------------------------------------
+// Containers
+//
+// These are interstitial elements used throughout the guides, providing help,
+// context, more info, or warnings to readers. 
+// ----------------------------------------------------------------------------
+
+/* Same bottom margin for special boxes than for regular paragraphs, this way
+intermediate whitespace looks uniform. */
+
+.interstitial,
+dl dd .interstitial {
+  display: flex;
+  align-items: center;
+  background-repeat: no-repeat;
+  background-size: 36px 36px;
+  border-radius: $base-border-radius;
+  border: 2px solid $gray-500;
+  border-style: solid !important;
+  border-width: 2px !important;
+  min-height: calc(36px + 1.5em);
+  margin: 2em auto;
+  padding: 0.75em !important;
+  position: relative;
+
+  // Padding and spacing for LTR vs RTL language defaults
+  :where(html[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
+  :where(html[dir="rtl"]) & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
+
+  /* Remove bottom margin of paragraphs in special boxes, otherwise they get a
+  spurious blank area below with the box background. */
+  p {
+    margin-bottom: 0.75em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &.code {
+    border: none !important;
+    background-color: $gray-900;
+    min-height: auto; // remove if icon is restored
+    padding-left: 1em !important; // remove if icon is restored
+    direction: ltr !important;
+    text-align: left !important;
+
+    pre {
+      margin: 0;
+      overflow: visible; // allows for the blue highlight to be seen
+    }
+
+    button.clipboard-button {
+      color: $gray-100;
+      cursor: pointer;
+      background-color: $gray-700;
+      border: 1px solid $gray-500;
+      border-radius: 4px;
+      font-size: 0.75em;
+      padding: 0.25em 0.5em !important;
+      position: absolute;
+        bottom: 10px;
+        right: 10px;
+      text-transform: uppercase;
+      width: auto;
+    } // button.clipboard-button
+  } // &.code
+
+  &.note {
+    border-color: $note;
+    background-color: $note-bkgnd;
+    background-image: url("../images/icon_task-list-pin.svg");
+  }
+
+  &.work-in-progress,
+  &.todo {
+    border-color: $note;
+    background-color: $note-bkgnd;
+    background-image: url("../images/icon_construction-sign.svg");
+  }
+
+  &.info {
+    border-color: $tip;
+    background-color: $tip-bkgnd;
+    background-image: url("../images/icon_bulb-1.svg");
+  }
+
+  &.warning {
+    border-color: $stop;
+    background-color: $stop-bkgnd;
+    background-image: url("../images/icon_hand-stop.svg");
+  }
+
+  &.question {
+    border-color: $gray-500;
+    background-color: $gray-200;
+    background-image: url("../images/icon_question-bubble.svg");
+  }
+
+  &.kindle {
+    padding-top: 1em !important;
+  }
+} // .interstitial

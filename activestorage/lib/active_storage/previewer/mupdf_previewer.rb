@@ -4,7 +4,11 @@ module ActiveStorage
   class Previewer::MuPDFPreviewer < Previewer
     class << self
       def accept?(blob)
-        blob.content_type == "application/pdf" && mutool_exists?
+        pdf?(blob.content_type) && mutool_exists?
+      end
+
+      def pdf?(content_type)
+        Marcel::Magic.child? content_type, "application/pdf"
       end
 
       def mutool_path
@@ -12,7 +16,7 @@ module ActiveStorage
       end
 
       def mutool_exists?
-        return @mutool_exists if defined?(@mutool_exists) && !@mutool_exists.nil?
+        return @mutool_exists unless @mutool_exists.nil?
 
         system mutool_path, out: File::NULL, err: File::NULL
 

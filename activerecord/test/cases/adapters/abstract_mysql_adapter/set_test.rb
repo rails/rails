@@ -10,7 +10,7 @@ class SetTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def setup
-    SetTest.connection.create_table :set_tests, id: false, force: true do |t|
+    SetTest.lease_connection.create_table :set_tests, id: false, force: true do |t|
       t.column :set_column, "set('text','blob','tiny','medium','long','unsigned','bigint')"
     end
   end

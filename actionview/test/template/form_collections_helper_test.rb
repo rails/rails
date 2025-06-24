@@ -13,8 +13,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
     @rendered = collection_radio_buttons(*args, &block)
   end
 
-  def with_collection_check_boxes(*args, &block)
-    @rendered = collection_check_boxes(*args, &block)
+  def with_collection_checkboxes(*args, &block)
+    @rendered = collection_checkboxes(*args, &block)
   end
 
   # COLLECTION RADIO BUTTONS
@@ -252,7 +252,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
   # COLLECTION CHECK BOXES
   test "collection check boxes accepts a collection and generate a series of checkboxes for value method" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name
 
     assert_select 'input#user_category_ids_1[type=checkbox][value="1"]'
     assert_select 'input#user_category_ids_2[type=checkbox][value="2"]'
@@ -260,62 +260,69 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes generates only one hidden field for the entire collection, to ensure something will be sent back to the server when posting an empty collection" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name
 
     assert_select "input[type=hidden][name='user[category_ids][]'][value=''][autocomplete='off']", count: 1
   end
 
   test "collection check boxes generates a hidden field using the given :name in :html_options" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name, {}, { name: "user[other_category_ids][]" }
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, {}, { name: "user[other_category_ids][]" }
 
     assert_select "input[type=hidden][name='user[other_category_ids][]'][value=''][autocomplete='off']", count: 1
   end
 
+  test "collection check boxes generates a hidden field using the given :form in :html_options" do
+    collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, {}, { form: "my_form" }
+
+    assert_select "input[type=hidden][value=''][autocomplete='off'][form='my_form']", count: 1
+  end
+
   test "collection check boxes generates a hidden field with index if it was provided" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name, index: 322
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, index: 322
 
     assert_select "input[type=hidden][name='user[322][category_ids][]'][value=''][autocomplete='off']", count: 1
   end
 
   test "collection check boxes does not generate a hidden field if include_hidden option is false" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name, include_hidden: false
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, include_hidden: false
 
     assert_select "input[type=hidden][name='user[category_ids][]'][value='']", count: 0
   end
 
   test "collection check boxes does not generate a hidden field if include_hidden option is false with key as string" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name, "include_hidden" => false
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, "include_hidden" => false
 
     assert_select "input[type=hidden][name='user[category_ids][]'][value='']", count: 0
   end
 
   test "collection check boxes accepts a collection and generate a series of checkboxes with labels for label method" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name
 
     assert_select "label[for=user_category_ids_1]", "Category 1"
     assert_select "label[for=user_category_ids_2]", "Category 2"
   end
 
   test "collection check boxes handles camelized collection values for labels correctly" do
-    with_collection_check_boxes :user, :active, ["Yes", "No"], :to_s, :to_s
+    with_collection_checkboxes :user, :active, ["Yes", "No"], :to_s, :to_s
 
     assert_select "label[for=user_active_yes]", "Yes"
     assert_select "label[for=user_active_no]", "No"
   end
 
   test "collection check box should sanitize collection values for labels correctly" do
-    with_collection_check_boxes :user, :name, ["$0.99", "$1.99"], :to_s, :to_s
+    with_collection_checkboxes :user, :name, ["$0.99", "$1.99"], :to_s, :to_s
     assert_select "label[for=user_name_0_99]", "$0.99"
     assert_select "label[for=user_name_1_99]", "$1.99"
   end
 
   test "collection check boxes correctly builds unique DOM IDs for float values" do
-    with_collection_check_boxes :user, :name, [1.0, 10], :to_s, :to_s
+    with_collection_checkboxes :user, :name, [1.0, 10], :to_s, :to_s
     assert_select "label[for=user_name_1_0]", "1.0"
     assert_select "label[for=user_name_10]", "10"
     assert_select 'input#user_name_1_0[type=checkbox][value="1.0"]'
@@ -323,7 +330,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection check boxes generates labels for non-English values correctly" do
-    with_collection_check_boxes :user, :title, ["Господин", "Госпожа"], :to_s, :to_s
+    with_collection_checkboxes :user, :title, ["Господин", "Госпожа"], :to_s, :to_s
 
     assert_select "input[type=checkbox]#user_title_господин"
     assert_select "label[for=user_title_господин]", "Господин"
@@ -331,7 +338,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts HTML options as the last element of array" do
     collection = [[1, "Category 1", { class: "foo" }], [2, "Category 2", { class: "bar" }]]
-    with_collection_check_boxes :user, :active, collection, :first, :second
+    with_collection_checkboxes :user, :active, collection, :first, :second
 
     assert_select 'input[type=checkbox][value="1"].foo'
     assert_select 'input[type=checkbox][value="2"].bar'
@@ -339,7 +346,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes propagates input id to the label for attribute" do
     collection = [[1, "Category 1", { id: "foo" }], [2, "Category 2", { id: "bar" }]]
-    with_collection_check_boxes :user, :active, collection, :first, :second
+    with_collection_checkboxes :user, :active, collection, :first, :second
 
     assert_select 'input[type=checkbox][value="1"]#foo'
     assert_select 'input[type=checkbox][value="2"]#bar'
@@ -350,17 +357,17 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes sets the label class defined inside the block" do
     collection = [[1, "Category 1", { class: "foo" }], [2, "Category 2", { class: "bar" }]]
-    with_collection_check_boxes :user, :active, collection, :second, :first do |b|
-      b.label(class: "collection_check_boxes")
+    with_collection_checkboxes :user, :active, collection, :second, :first do |b|
+      b.label(class: "collection_checkboxes")
     end
 
-    assert_select "label.collection_check_boxes[for=user_active_category_1]"
-    assert_select "label.collection_check_boxes[for=user_active_category_2]"
+    assert_select "label.collection_checkboxes[for=user_active_category_1]"
+    assert_select "label.collection_checkboxes[for=user_active_category_2]"
   end
 
   test "collection check boxes does not include the input class in the respective label" do
     collection = [[1, "Category 1", { class: "foo" }], [2, "Category 2", { class: "bar" }]]
-    with_collection_check_boxes :user, :active, collection, :second, :first
+    with_collection_checkboxes :user, :active, collection, :second, :first
 
     assert_no_select "label.foo[for=user_active_category_1]"
     assert_no_select "label.bar[for=user_active_category_2]"
@@ -368,7 +375,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts selected values as :checked option" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, checked: [1, 3]
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, checked: [1, 3]
 
     assert_select 'input[type=checkbox][value="1"][checked=checked]'
     assert_select 'input[type=checkbox][value="3"][checked=checked]'
@@ -377,7 +384,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts selected string values as :checked option" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, checked: ["1", "3"]
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, checked: ["1", "3"]
 
     assert_select 'input[type=checkbox][value="1"][checked=checked]'
     assert_select 'input[type=checkbox][value="3"][checked=checked]'
@@ -386,7 +393,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts a single checked value" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, checked: 3
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, checked: 3
 
     assert_select 'input[type=checkbox][value="3"][checked=checked]'
     assert_no_select 'input[type=checkbox][value="1"][checked=checked]'
@@ -398,7 +405,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
     collection = (1..3).map { |i| [i, "Category #{i}"] }
 
     @rendered = fields_for(:user, user) do |p|
-      p.collection_check_boxes :category_ids, collection, :first, :last, checked: [1, 3]
+      p.collection_checkboxes :category_ids, collection, :first, :last, checked: [1, 3]
     end
 
     assert_select 'input[type=checkbox][value="1"][checked=checked]'
@@ -408,7 +415,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts multiple disabled items" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, disabled: [1, 3]
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, disabled: [1, 3]
 
     assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
     assert_select 'input[type=checkbox][value="3"][disabled=disabled]'
@@ -417,7 +424,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts single disabled item" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, disabled: 1
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, disabled: 1
 
     assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
     assert_no_select 'input[type=checkbox][value="3"][disabled=disabled]'
@@ -426,7 +433,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts a proc to disabled items" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, disabled: proc { |i| i.first == 1 }
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, disabled: proc { |i| i.first == 1 }
 
     assert_select 'input[type=checkbox][value="1"][disabled=disabled]'
     assert_no_select 'input[type=checkbox][value="3"][disabled=disabled]'
@@ -435,7 +442,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts multiple readonly items" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, readonly: [1, 3]
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, readonly: [1, 3]
 
     assert_select 'input[type=checkbox][value="1"][readonly=readonly]'
     assert_select 'input[type=checkbox][value="3"][readonly=readonly]'
@@ -444,7 +451,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts single readonly item" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, readonly: 1
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, readonly: 1
 
     assert_select 'input[type=checkbox][value="1"][readonly=readonly]'
     assert_no_select 'input[type=checkbox][value="3"][readonly=readonly]'
@@ -453,7 +460,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts a proc to readonly items" do
     collection = (1..3).map { |i| [i, "Category #{i}"] }
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, readonly: proc { |i| i.first == 1 }
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, readonly: proc { |i| i.first == 1 }
 
     assert_select 'input[type=checkbox][value="1"][readonly=readonly]'
     assert_no_select 'input[type=checkbox][value="3"][readonly=readonly]'
@@ -462,7 +469,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts HTML options" do
     collection = [[1, "Category 1"], [2, "Category 2"]]
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, {}, { class: "check" }
+    with_collection_checkboxes :user, :category_ids, collection, :first, :last, {}, { class: "check" }
 
     assert_select 'input.check[type=checkbox][value="1"]'
     assert_select 'input.check[type=checkbox][value="2"]'
@@ -471,7 +478,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
   test "collection check boxes with fields for" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
     @rendered = fields_for(:post) do |p|
-      p.collection_check_boxes :category_ids, collection, :id, :name
+      p.collection_checkboxes :category_ids, collection, :id, :name
     end
 
     assert_select 'input#post_category_ids_1[type=checkbox][value="1"]'
@@ -482,15 +489,15 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection check boxes does not wrap input inside the label" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s
 
     assert_select "input[type=checkbox] + label"
     assert_no_select "label input"
   end
 
   test "collection check boxes accepts a block to render the label as check box wrapper" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label { b.check_box }
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label { b.checkbox }
     end
 
     assert_select "label[for=user_active_true] > input#user_active_true[type=checkbox]"
@@ -498,8 +505,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection check boxes accepts a block to change the order of label and check box" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label + b.check_box
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label + b.checkbox
     end
 
     assert_select "label[for=user_active_true] + input#user_active_true[type=checkbox]"
@@ -507,17 +514,17 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection check boxes with block helpers accept extra HTML options" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: "check_box") + b.check_box(class: "check_box")
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(class: "checkbox") + b.checkbox(class: "checkbox")
     end
 
-    assert_select "label.check_box[for=user_active_true] + input#user_active_true.check_box[type=checkbox]"
-    assert_select "label.check_box[for=user_active_false] + input#user_active_false.check_box[type=checkbox]"
+    assert_select "label.checkbox[for=user_active_true] + input#user_active_true.checkbox[type=checkbox]"
+    assert_select "label.checkbox[for=user_active_false] + input#user_active_false.checkbox[type=checkbox]"
   end
 
   test "collection check boxes with block helpers allows access to current text and value" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label("data-value": b.value) { b.check_box + b.text }
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label("data-value": b.value) { b.checkbox + b.text }
     end
 
     assert_select "label[for=user_active_true][data-value=true]", "true" do
@@ -529,8 +536,8 @@ class FormCollectionsHelperTest < ActionView::TestCase
   end
 
   test "collection check boxes with block helpers allows access to the current object item in the collection to access extra properties" do
-    with_collection_check_boxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: b.object) { b.check_box + b.text }
+    with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
+      b.label(class: b.object) { b.checkbox + b.text }
     end
 
     assert_select "label.true[for=user_active_true]", "true" do

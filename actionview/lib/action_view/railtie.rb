@@ -47,6 +47,12 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      if klass = app.config.action_view.delete(:sanitizer_vendor)
+        ActionView::Helpers::SanitizeHelper.sanitizer_vendor = klass
+      end
+    end
+
+    config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
         ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
@@ -63,6 +69,12 @@ module ActionView
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
       ActionView::Helpers::AssetTagHelper.preload_links_header = app.config.action_view.delete(:preload_links_header)
       ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default = app.config.action_view.delete(:apply_stylesheet_media_default)
+    end
+
+    config.after_initialize do |app|
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["style-src", "style-src-elem", "style-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
+      ActionView::Helpers::JavaScriptHelper.auto_include_nonce = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
     end
 
     config.after_initialize do |app|
@@ -110,7 +122,6 @@ module ActionView
         view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
 
         app.reloaders << view_reloader
-        view_reloader.execute
         app.reloader.to_run do
           require_unload_lock!
           view_reloader.execute
