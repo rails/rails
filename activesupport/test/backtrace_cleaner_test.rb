@@ -136,3 +136,99 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
     assert_equal backtrace, @bc.clean(backtrace)
   end
 end
+
+class BacktraceCleanerFirstCleanFrameTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+  end
+
+  def invoke_first_clean_frame_defaults
+    -> do
+      @bc.first_clean_frame.tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  def invoke_first_clean_frame(kind = :silent)
+    -> do
+      @bc.first_clean_frame(kind).tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  test "returns the first clean frame (defaults)" do
+    result = invoke_first_clean_frame_defaults
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame_defaults[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:silent)" do
+    result = invoke_first_clean_frame(:silent)
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:noise)" do
+    @bc.add_silencer { true }
+    result = invoke_first_clean_frame(:noise)
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:any)" do
+    result = invoke_first_clean_frame(:any) # fallback of the case statement
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns nil if there is no clean frame" do
+    @bc.add_silencer { true }
+    assert_nil invoke_first_clean_frame_defaults
+  end
+end
+
+class BacktraceCleanerFirstCleanLocationTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+  end
+
+  def invoke_first_clean_location_defaults
+    -> do
+      @bc.first_clean_location.tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  def invoke_first_clean_location(kind = :silent)
+    -> do
+      @bc.first_clean_location(kind).tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  test "returns the first clean location (defaults)" do
+    location = invoke_first_clean_location_defaults
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:silent)" do
+    location = invoke_first_clean_location(:silent)
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:noise)" do
+    @bc.add_silencer { true }
+    location = invoke_first_clean_location(:noise)
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:any)" do
+    location = invoke_first_clean_location(:any) # fallback of the case statement
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns nil if there is no clean location" do
+    @bc.add_silencer { true }
+    assert_nil invoke_first_clean_location_defaults
+  end
+end
