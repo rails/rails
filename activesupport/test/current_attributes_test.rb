@@ -178,6 +178,20 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     end
   end
 
+  test "set and restore attributes when the block clears" do
+    Current.world = "world/1"
+    Current.account = "account/1"
+
+    Current.set(world: "world/2", account: "account/2") do
+      assert_equal "world/2", Current.world
+      assert_equal "account/2", Current.account
+      ActiveSupport::CurrentAttributes.clear_all
+    end
+
+    assert_equal "world/1", Current.world
+    assert_equal "account/1", Current.account
+  end
+
   test "using keyword arguments" do
     Current.set_world_and_account(world: "world/1", account: "account/1")
 

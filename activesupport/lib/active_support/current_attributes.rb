@@ -151,7 +151,21 @@ module ActiveSupport
       end
       alias_method :after_reset, :resets
 
-      delegate :set, :reset, to: :instance
+      delegate :reset, to: :instance
+
+      # Expose one or more attributes within a block. Old values are returned after the block concludes.
+      # Example demonstrating the common use of needing to set Current attributes outside the request-cycle:
+      #
+      #   class Chat::PublicationJob < ApplicationJob
+      #     def perform(attributes, room_number, creator)
+      #       Current.set(person: creator) do
+      #         Chat::Publisher.publish(attributes: attributes, room_number: room_number)
+      #       end
+      #     end
+      #   end
+      def set(attributes, &block)
+        with(**attributes, &block)
+      end
 
       def clear_all # :nodoc:
         current_instances.each_value(&:reset)
@@ -207,16 +221,10 @@ module ActiveSupport
       @attributes.dup
     end
 
-    # Expose one or more attributes within a block. Old values are returned after the block concludes.
-    # Example demonstrating the common use of needing to set Current attributes outside the request-cycle:
-    #
-    #   class Chat::PublicationJob < ApplicationJob
-    #     def perform(attributes, room_number, creator)
-    #       Current.set(person: creator) do
-    #         Chat::Publisher.publish(attributes: attributes, room_number: room_number)
-    #       end
-    #     end
-    #   end
+    # Keeping this for backward compatibility,
+    # but calling `#set` on the instance of a `CurrentAttributes` class
+    # can produce unexpected results.
+    # You should use the class method instead.
     def set(attributes, &block)
       with(**attributes, &block)
     end
