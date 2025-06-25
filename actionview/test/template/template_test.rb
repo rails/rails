@@ -246,7 +246,7 @@ class TestERBTemplate < ActiveSupport::TestCase
       render
     end
 
-    assert_match(/in ['`]hello'/, error.backtrace.first)
+    assert_match(/in ['`].*hello'/, error.backtrace.first)
     assert_instance_of ArgumentError, error.cause
   end
 
