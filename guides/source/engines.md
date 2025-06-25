@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
-Getting Started with Engines
-============================
+Rails Engines Overview
+======================
 
 In this guide you will learn about engines and how they can be used to provide
 additional functionality to their host applications through a clean and very
