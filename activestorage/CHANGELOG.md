@@ -1,3 +1,7 @@
+*   `ActiveStorage::Current.url_options[:script_name]` is set before Active Storage controller actions.
+
+    *Mike Dalessio*
+
 *   Direct upload progress accounts for server processing time.
 
     *Jeremy Daer*

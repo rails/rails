@@ -9,7 +9,12 @@ module ActiveStorage::SetCurrent
 
   included do
     before_action do
-      ActiveStorage::Current.url_options = { protocol: request.protocol, host: request.host, port: request.port }
+      ActiveStorage::Current.url_options = {
+        protocol: request.protocol,
+        host: request.host,
+        port: request.port,
+        script_name: request.script_name
+      }
     end
   end
 end

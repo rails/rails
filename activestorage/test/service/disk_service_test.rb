@@ -28,6 +28,22 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "url_for_direct_upload uses script_name if set" do
+    original_url_options = Rails.application.routes.default_url_options.dup
+    Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001, script_name: "/foo")
+
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = Digest::MD5.base64digest(data)
+
+    begin
+      assert_match(/^https:\/\/example.com\/foo\/rails\/active_storage\/disk\/.*$/,
+        @service.url_for_direct_upload(key, expires_in: 5.minutes, content_type: "text/plain", content_length: data.size, checksum: checksum))
+    ensure
+      Rails.application.routes.default_url_options = original_url_options
+    end
+  end
+
   test "URL generation" do
     original_url_options = Rails.application.routes.default_url_options.dup
     Rails.application.routes.default_url_options.merge!(protocol: "http", host: "test.example.com", port: 3001)
