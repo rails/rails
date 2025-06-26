@@ -3,10 +3,10 @@
 require "active_record/explain_registry"
 
 module ActiveRecord
-  module Explain
+  module Explain # :nodoc:
     # Executes the block with the collect flag enabled. Queries are collected
     # asynchronously by the subscriber and returned.
-    def collecting_queries_for_explain # :nodoc:
+    def collecting_queries_for_explain
       ExplainRegistry.collect = true
       yield
       ExplainRegistry.queries
@@ -16,7 +16,7 @@ module ActiveRecord
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
-    def exec_explain(queries, options = []) # :nodoc:
+    def exec_explain(queries, options = [])
       str = with_connection do |c|
         queries.map do |sql, binds|
           msg = +"#{build_explain_clause(c, options)} #{sql}"

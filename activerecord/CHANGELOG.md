@@ -1,3 +1,29 @@
+*   Enhance `ActiveRecord::Relation#to_sql` to support calculation and finder methods.
+
+    `#to_sql` now returns a proxy object that supports calling calculation methods
+    (`count`, `sum`, `average`, `maximum`, `minimum`, `calculate`) and finder methods
+    (`first`, `last`, `take`, `find`, `find_by`, `exists?`, `pick`, `pluck`, `ids`)
+    to return the SQL string for the final query without executing it.
+
+    ```ruby
+    User.where(active: true).to_sql.count
+    # => "SELECT COUNT(*) FROM \"users\" WHERE \"users\".\"active\" = 1"
+
+    User.joins(:posts).to_sql.pluck(:name, :email)
+    # => "SELECT \"users\".\"name\", \"users\".\"email\" FROM \"users\" INNER JOIN \"posts\" ON \"posts\".\"user_id\" = \"users\".\"id\""
+
+    User.where(role: 'admin').to_sql.exists?
+    # => "SELECT 1 AS one FROM \"users\" WHERE \"users\".\"role\" = 'admin' LIMIT 1"
+    ```
+
+    Backward compatibility is maintained through method delegation - existing code
+    that expects `#to_sql` to return a string continues to work unchanged.
+
+    Additionally, `ActiveRecord::Relation#explain` now supports the same calculation
+    and finder methods for consistency.
+
+    *Joshua Young*
+
 *   Move `LIMIT` validation from query generation to when `limit()` is called.
 
     *Hartley McGuire*, *Shuyang*
