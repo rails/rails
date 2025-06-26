@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/execution_context"
 require "active_support/core_ext/object/with"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
@@ -154,8 +155,10 @@ module ActiveSupport
       delegate :set, :reset, to: :instance
 
       def clear_all # :nodoc:
-        current_instances.each_value(&:reset)
-        current_instances.clear
+        if instances = current_instances
+          instances.values.each(&:reset)
+          instances.clear
+        end
       end
 
       private
@@ -164,7 +167,7 @@ module ActiveSupport
         end
 
         def current_instances
-          IsolatedExecutionState[:current_attributes_instances] ||= {}
+          ExecutionContext.current_attributes_instances
         end
 
         def current_instances_key

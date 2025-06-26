@@ -1,3 +1,21 @@
+*   Improve `CurrentAttribute` and `ExecutionContext` state managment in test cases.
+
+    Previously these two global state would be entirely cleared out whenever calling
+    into code that is wrapped by the Rails executor, typically Action Controller or
+    Active Job helpers:
+
+    ```ruby
+    test "#index works" do
+      CurrentUser.id = 42
+      get :index
+      CurrentUser.id == nil
+    end
+    ```
+
+    Now re-entering the executor properly save and restore that state.
+
+    *Jean Boussier*
+
 *   The new method `ActiveSupport::BacktraceCleaner#first_clean_location`
     returns the first clean location of the caller's call stack, or `nil`.
     Locations are `Thread::Backtrace::Location` objects. Useful when you want to
