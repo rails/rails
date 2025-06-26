@@ -357,6 +357,19 @@ module ActiveRecord
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
         @filter_attributes = filter_attributes
+
+        # Sync filter_attributes to filter_parameters
+        if defined?(Rails.application) && Rails.application.config.respond_to?(:filter_parameters)
+          Rails.application.config.filter_parameters = [
+            *Rails.application.config.filter_parameters, *filter_attributes
+          ].uniq
+          Rails.application.send(:filter_parameters)
+
+          # Ensure cache gets regenerated with new filter_parameters
+          if Rails.application.instance_variable_defined?(:@app_env_config)
+            Rails.application.instance_variable_set(:@app_env_config, nil)
+          end
+        end
       end
 
       def inspection_filter # :nodoc:
