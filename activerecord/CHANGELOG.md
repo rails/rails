@@ -1,3 +1,8 @@
+*   Ensure anything added to `filter_attributes` also gets added to `filter_parameters`
+    so sensitive information is not leaked.
+
+    *Jill Klang*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
