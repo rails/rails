@@ -39,18 +39,24 @@ module ActiveSupport
     end
 
     initializer "active_support.reset_execution_context" do |app|
-      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
-    end
+      app.reloader.before_class_unload do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.clear
+      end
 
-    initializer "active_support.clear_all_current_attributes_instances" do |app|
-      app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_run              { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_complete         { ActiveSupport::CurrentAttributes.clear_all }
+      app.executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      app.executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+      end
 
       ActiveSupport.on_load(:active_support_test_case) do
         if app.config.active_support.executor_around_test_case
+          ActiveSupport::ExecutionContext.nestable = true
+
           require "active_support/executor/test_helper"
           include ActiveSupport::Executor::TestHelper
         else
