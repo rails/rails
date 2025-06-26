@@ -34,8 +34,9 @@ module ActiveRecord
         return nil if condition.blank?
 
         case condition
-        when Array; sanitize_sql_array(condition)
-        else        condition
+        when Array;      sanitize_sql_array(condition)
+        when ToSQLProxy; condition.to_s
+        else             condition
         end
       end
       alias :sanitize_sql :sanitize_sql_for_conditions
