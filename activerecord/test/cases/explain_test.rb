@@ -35,13 +35,20 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       end
     end
 
+    def test_relation_explain_with_calculate
+      expected_query = capture_sql {
+        Car.calculate(:count, :id)
+      }.first
+      message = Car.all.explain.calculate(:count, :id)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
     def test_relation_explain_with_average
       expected_query = capture_sql {
         Car.average(:id)
       }.first
       message = Car.all.explain.average(:id)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_count
@@ -49,8 +56,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.count
       }.first
       message = Car.all.explain.count
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_count_and_argument
@@ -58,8 +64,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.count(:id)
       }.first
       message = Car.all.explain.count(:id)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_minimum
@@ -67,8 +72,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.minimum(:id)
       }.first
       message = Car.all.explain.minimum(:id)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_maximum
@@ -76,8 +80,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.maximum(:id)
       }.first
       message = Car.all.explain.maximum(:id)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_sum
@@ -85,8 +88,23 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.sum(:id)
       }.first
       message = Car.all.explain.sum(:id)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_exists
+      expected_query = capture_sql {
+        Car.all.exists?
+      }.first
+      message = Car.all.explain.exists?
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_exists_with_argument
+      expected_query = capture_sql {
+        Car.all.exists?(name: "JoshMobile")
+      }.first
+      message = Car.all.explain.exists?(name: "JoshMobile")
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_first
@@ -94,8 +112,15 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.all.first
       }.first
       message = Car.all.explain.first
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query.sub(/LIMIT.*/, ""), message)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_first_with_argument
+      expected_query = capture_sql {
+        Car.all.first(5)
+      }.first
+      message = Car.all.explain.first(5)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_last
@@ -103,8 +128,39 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.all.last
       }.first
       message = Car.all.explain.last
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query.sub(/LIMIT.*/, ""), message)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_last_with_argument
+      expected_query = capture_sql {
+        Car.all.last(5)
+      }.first
+      message = Car.all.explain.last(5)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_take
+      expected_query = capture_sql {
+        Car.all.take
+      }.first
+      message = Car.all.explain.take
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_take_with_argument
+      expected_query = capture_sql {
+        Car.all.take(5)
+      }.first
+      message = Car.all.explain.take(5)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_pick
+      expected_query = capture_sql {
+        Car.all.pick(:id, :name)
+      }.first
+      message = Car.all.explain.pick(:id, :name)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_pluck
@@ -112,8 +168,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.all.pluck
       }.first
       message = Car.all.explain.pluck
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_relation_explain_with_pluck_with_args
@@ -121,8 +176,31 @@ if ActiveRecord::Base.lease_connection.supports_explain?
         Car.all.pluck(:id, :name)
       }.first
       message = Car.all.explain.pluck(:id, :name)
-      assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_ids
+      expected_query = capture_sql {
+        Car.all.ids
+      }.first
+      message = Car.all.explain.ids
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_find
+      expected_query = capture_sql {
+        Car.all.find(1)
+      }.first
+      message = Car.all.explain.find(1)
+      assert_match(normalize_expected_sql(expected_query), message)
+    end
+
+    def test_relation_explain_with_find_by
+      expected_query = capture_sql {
+        Car.all.find_by(id: 1)
+      }.first
+      message = Car.all.explain.find_by(id: 1)
+      assert_match(normalize_expected_sql(expected_query), message)
     end
 
     def test_exec_explain_with_no_binds
@@ -175,6 +253,19 @@ if ActiveRecord::Base.lease_connection.supports_explain?
 
       def bind_param(name, value)
         ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
+      end
+
+      def normalize_expected_sql(expected_sql)
+        if current_adapter?(:Mysql2Adapter) && ActiveRecord::Base.lease_connection.prepared_statements
+          # Convert ? placeholders to regex patterns that match actual values
+          # EXPLAIN queries show actual values, not placeholders
+          pattern = Regexp.escape(expected_sql)
+          pattern = pattern.gsub(/=\\ \\?/, "=\\ (?:\\d+|'[^']*')")
+          pattern = pattern.gsub(/LIMIT\\ \\?/, "LIMIT\\ \\d+")
+          Regexp.new("#{expected_explain_clause} #{pattern}")
+        else
+          "#{expected_explain_clause} #{expected_sql}"
+        end
       end
 
       def expected_explain_clause
