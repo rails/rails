@@ -2559,7 +2559,7 @@ described in the initial examples above.
 
 ### Deferrable Foreign Keys
 
-By default, relational databases, like PostgreSQL, enforce foreign key
+By default, relational databases enforce foreign key
 constraints immediately after each statement within a transaction. This ensures
 that every inserted or updated row maintains referential integrity, and prevents
 you from creating records that reference other records that haven't yet been
