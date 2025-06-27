@@ -245,7 +245,7 @@ module ActiveRecord
         #   end
         #
         # This creates a column named +duration+ that can store ranges like:
-        #   '2024-01-01'..'2024-12-31'
+        # '2024-01-01'..'2024-12-31'
         #
         #  Event.create(duration: Date.new(2014, 2, 11)..Date.new(2014, 2, 12))
         #
