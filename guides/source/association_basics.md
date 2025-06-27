@@ -2565,7 +2565,7 @@ that every inserted or updated row maintains referential integrity, and prevents
 you from creating records that reference other records that haven't yet been
 persisted.
 
-However, PostgreSQL supports a feature called [deferrable
+However, some databases support a feature called [deferrable
 constraints](https://www.postgresql.org/docs/current/sql-set-constraints.html),
 which allows constraint checks to be deferred until the end of a transaction.
 This is especially useful when you're working with circular dependencies between
