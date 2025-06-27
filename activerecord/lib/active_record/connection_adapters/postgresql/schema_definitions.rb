@@ -344,7 +344,7 @@ module ActiveRecord
         # To add new values to an enum:
         #
         #   def up
-        #     add_enum_value :article_state, "archived"                     # Appends at end
+        #     add_enum_value :article_state, "archived"  # Appends at end by default
         #     add_enum_value :article_state, "in review", before: "published"
         #     add_enum_value :article_state, "approved", after: "in review"
         #     add_enum_value :article_state, "rejected", if_not_exists: true
