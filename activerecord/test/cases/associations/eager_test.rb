@@ -1385,6 +1385,40 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal [developers(:david)], project.developers_named_david_with_hash_conditions
   end
 
+  def test_preloading_with_alias_attribute_foreign_key
+    # ── concrete Comment replacement ──────────────────────────────────────
+    Object.const_set("AliasedComment", Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+
+      # foreign key is parent_id ➜ really writes into post_id column
+      alias_attribute :parent_id, :post_id
+      belongs_to :post, class_name: "AliasedPost", foreign_key: :parent_id
+    end)
+
+    # ── concrete Post replacement ─────────────────────────────────────────
+    Object.const_set("AliasedPost", Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      has_many :aliased_comments,
+               class_name:  "AliasedComment",
+               foreign_key: :parent_id
+    end)
+
+    post = AliasedPost.create!(title: "Aliased Post", body: "some body")
+    AliasedComment.create!(body: "Comment 1", parent_id: post.id, post_id: post.id)
+
+    ActiveRecord::Base.connection.query_cache.clear
+
+    loaded_post = AliasedPost.where(id: post.id)
+                             .preload(:aliased_comments).first
+
+    assert_equal 1, loaded_post.aliased_comments.size
+    assert_equal "Comment 1", loaded_post.aliased_comments.first.body
+  ensure
+    # tidy up the constants so other tests aren’t polluted
+    Object.send(:remove_const, "AliasedPost")    if Object.const_defined?("AliasedPost")
+    Object.send(:remove_const, "AliasedComment") if Object.const_defined?("AliasedComment")
+  end
+
   test "scoping with a circular preload" do
     assert_equal Comment.find(1), Comment.preload(post: :comments).scoping { Comment.find(1) }
   end
