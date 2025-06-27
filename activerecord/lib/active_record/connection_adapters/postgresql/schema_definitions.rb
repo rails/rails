@@ -897,7 +897,7 @@ module ActiveRecord
         #
         # XML values are stored as valid XML documents.
         #
-        # Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
+        #   Document.create(metadata: '<note><to>User</to><body>Hello</body></note>')
 
         define_column_methods :bigserial, :bit, :bit_varying, :cidr, :citext, :daterange,
           :hstore, :inet, :interval, :int4range, :int8range, :jsonb, :ltree, :macaddr,
