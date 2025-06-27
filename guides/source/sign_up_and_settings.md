@@ -311,9 +311,9 @@ class Settings::PasswordsController < Settings::BaseController
 end
 ```
 
-For security, we need to ensure that the user is the only one who can update their password. The `has_secure_password` method in our `User` model provides this attribute. If `password_challenge` is not `nil`, it will validate the password challenge against the password in the database to confirm it matches.
+For security, we need to ensure that the user is the only one who can update their password. The `has_secure_password` method in our `User` model provides this attribute. If `password_challenge` is present, it will validate the password challenge against the user's current password in the database to confirm it matches.
 
-A crafty attacker could try deleting the `password_challenge` field in the browser to bypass this validation. To ensure this validation always runs, we use `.with_defaults(password_challenge: "")` to set a default value even if the `password_challenge` parameter was missing.
+A malicious user could try deleting the `password_challenge` field in the browser to bypass this validation. To prevent this and ensure the validation always runs, we use `.with_defaults(password_challenge: "")` to set a default value even if the `password_challenge` parameter is missing.
 
 You can now visit http://localhost:3000/settings/password to update your password.
 
@@ -341,7 +341,7 @@ To learn more, check out the [I18n Guide])https://guides.rubyonrails.org/i18n.ht
 Editing User Profiles
 ---------------------
 
-Next, let's add a page for editing the user's profile like their first and last name.
+Next, let's add a page so user's can edit their profile, like updating their first and last name.
 
 ### Profile Routes & Controller
 
@@ -500,9 +500,9 @@ We need to modify the application layout to render the content from the nested l
 
 This allows the application controller to be used normally with `yield` or it can be a parent layout if `content_for(:content)` is used in a nested layout.
 
-We now have two separate `<nav>` tags so we need to update the selector for our existing CSS so it doesn't conflict.
+We now have two separate `<nav>` tags, so we need to update our existing CSS selectors to avoid conflicts.
 
-Add the the `.navbar` class to these selectors.
+To do this, add the the `.navbar` class to these selectors.
 
 ```css#1,11
 nav.navbar {
@@ -646,9 +646,9 @@ $ rails db:migrate
 
 ### Email Routes & Controller
 
-Next we can add a route under the `:settings` namespace in `config/routes.rb`
+Next we can add an email route under the `:settings` namespace in `config/routes.rb`.
 
-```ruby#2
+```ruby#3
 namespace :settings do
   resource :account, only: [ :show, :destroy ]
   resource :email, only: [ :show, :update ]
@@ -659,7 +659,7 @@ namespace :settings do
 end
 ```
 
-Then we'll create `app/controllers/settings/emails_controller.rb` to display this
+Then we'll create `app/controllers/settings/emails_controller.rb` to display this.
 
 ```ruby
 class Settings::EmailsController < Settings::BaseController
@@ -764,7 +764,7 @@ class User < ApplicationRecord
 end
 ```
 
-This adds a token generator we can use for email confirmations. It encodes the unconfirmed email in the token so the token expires if the unconfirmed email changes or the expiration date lapses.
+This adds a token generator we can use for email confirmations. The token encodes the unconfirmed email, so it becomes invalid if the email changes or the token expires.
 
 Let's update `app/mailers/user_mailer.rb` to generate a new token for the email:
 
@@ -827,7 +827,7 @@ class Email::ConfirmationsController < ApplicationController
 end
 ```
 
-We want to confirm the email address whether the user is authenticated or not, so this controller allows unauthenticated access. Then we use the `find_by_token_for` method to validate the token and look up the matching `User` record. If successful, we update the user's email and reset `unconfirmed_email` to `nil` with the `confirm_email` method we added earlier. If the token isn't valid, the `user` variable will be `nil` so we can display an alert message in that case.
+We want to confirm the email address whether the user is authenticated or not, so this controller allows unauthenticated access. We use the `find_by_token_for` method to validate the token and look up the matching `User` record. If successful, we call the `confirm_email` method to update the user's email and reset `unconfirmed_email` to `nil`. If the token isn't valid, the `user` variable will be `nil`, and we will display an alert message.
 
 Separating Admins & Users
 -------------------------
@@ -854,7 +854,7 @@ A `User` with `admin` set to `true` should be able to add and remove products an
 
 We need to be very careful that `admin` is not editable by any malicious users. This is easy enough by keeping the `:admin` attribute out of any permitted parameters list.
 
-Optionally,we can mark the admin attribute as readonly for added security. This will tell Rails to raise an error anytime the admin attribute is changed. It can still be set when creating a record, but provides an additional layer of security. You may want to skip this if you'll be changing the admin flag for users often but in our e-commerce store it
+Optionally, we can mark the admin attribute as readonly for added security. This will tell Rails to raise an error anytime the admin attribute is changed. It can still be set when creating a record, but provides an additional layer of security against unauthorized changes. You may want to skip this if you'll be changing the admin flag for users often but in our e-commerce store, it's a useful safeguard.
 
 We can add `attr_readonly` in our model to protect the attribute from updates.
 
@@ -1146,7 +1146,7 @@ First, let's add the namespaced route for products to `config/routes.rb`:
   end
 ```
 
-Then to the settings layout sidebar navigation:
+And then update the settings layout sidebar navigation:
 
 ```erb#12
 <%= content_for :content do %>
@@ -1653,3 +1653,5 @@ Here are a few ideas to build on to this:
 - Add shareable wishlists
 - Write more tests to ensure the application works correctly
 - Add payments to buy products
+
+Happy building!
