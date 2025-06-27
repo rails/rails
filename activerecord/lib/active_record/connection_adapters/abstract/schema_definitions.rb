@@ -405,8 +405,6 @@ module ActiveRecord
       #
       # Adds a +datetime+ column for storing precise date and time values.
       #
-      # On PostgreSQL, you can use the +array: true+ option to store an array of datetimes.
-      #
       # Example:
       #
       #   create_table :posts do |t|
