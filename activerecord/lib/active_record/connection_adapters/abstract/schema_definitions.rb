@@ -513,7 +513,6 @@ module ActiveRecord
       #
       #   create_table :lessons do |t|
       #      t.time :sunrise
-      #      t.time :schedule_slots, array: true
       #   end
 
       ##
