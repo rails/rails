@@ -108,7 +108,9 @@ module ActiveSupport
     if Thread.method(:each_caller_location).arity == 0
       # Returns the first clean location of the caller's call stack, or +nil+.
       #
-      # Locations are Thread::Backtrace::Location objects.
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their +path+ attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
       def first_clean_location(kind = :silent)
         caller_location_skipped = false
 
@@ -124,7 +126,9 @@ module ActiveSupport
     else
       # Returns the first clean location of the caller's call stack, or +nil+.
       #
-      # Locations are Thread::Backtrace::Location objects.
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their +path+ attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
       def first_clean_location(kind = :silent)
         Thread.each_caller_location(2) do |location|
           return location if clean_frame(location, kind)
