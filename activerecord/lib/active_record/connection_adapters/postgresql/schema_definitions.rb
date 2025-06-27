@@ -862,8 +862,8 @@ module ActiveRecord
         #     t.string :kind
         #   end
         #
-        # If no +:default+ option is passed when creating a table with id: :uuid,
-        # Rails assumes gen_random_uuid() as the default value.
+        # If no +:default+ option is passed when creating a table with <tt>id: :uuid</tt>,
+        # Rails assumes <tt>gen_random_uuid()</tt> as the default value.
         #
         #  device = Device.create
         #  device.id
