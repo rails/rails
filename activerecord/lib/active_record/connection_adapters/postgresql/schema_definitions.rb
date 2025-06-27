@@ -178,7 +178,7 @@ module ActiveRecord
         #
         # The +cidr+ stands for Classless Inter-Domain Routing.
         # It is used to store IP addresses along with their subnet masks, such as '192.168.0.0/24'.
-        # The +cidr+ type is mapped to Ruby [IPAddr](https://docs.ruby-lang.org/en/master/IPAddr.html).
+        # The +cidr+ type is mapped to Ruby {IPAddr}[https://docs.ruby-lang.org/en/master/IPAddr.html].
         #
         # Example:
         #
