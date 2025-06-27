@@ -877,11 +877,11 @@ module ActiveRecord
         #
         # To generate a model with UUID as the primary key:
         #
-        #  rails generate model Device --primary-key-type=uuid kind:string
+        #  $ bin/rails generate model Device --primary-key-type=uuid kind:string
         #
         # And for a foreign key referencing a UUID:
         #
-        #  rails generate model Case device_id:uuid
+        #  $ bin/rails generate model Case device_id:uuid
 
         ##
         # :method: xml
