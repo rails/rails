@@ -57,7 +57,7 @@
     other than their declared attribute, which isn't always the case, and
     can lead to state leak across request.
 
-    Now `CurrentAttribute` instances are abandonned at the end of a request,
+    Now `CurrentAttribute` instances are abandoned at the end of a request,
     and a new instance is created at the start of the next request.
 
     *Jean Boussier*, *Janko Marohnić*
