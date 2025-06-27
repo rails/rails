@@ -498,7 +498,6 @@ module ActiveRecord
       #
       #   create_table :reviews do |t|
       #     t.text :description
-      #     t.text :comments, array: true
       #   end
 
       ##
