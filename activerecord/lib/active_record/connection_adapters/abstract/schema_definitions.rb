@@ -529,7 +529,6 @@ module ActiveRecord
       #
       #   create_table :runs do |t|
       #     t.timestamp :created_at
-      #     t.timestamp :checkpoint_times, array: true
       #   end
 
       ##
