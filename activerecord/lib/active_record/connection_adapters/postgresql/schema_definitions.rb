@@ -206,7 +206,7 @@ module ActiveRecord
         #     t.circle :bounds
         #   end
         #
-        # A circle value is stored as a center point and a radius. In SQL, the format is: CIRCLE '((x, y), r)'
+        # A circle value is stored as a center point and a radius. In SQL, the format is: <tt>CIRCLE '((x, y), r)'</tt>
         #
         #  Circle.create(bounds: '((1,1),2)')
         #
