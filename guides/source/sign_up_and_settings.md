@@ -6,6 +6,7 @@ Sign Up and Settings
 This guide covers adding Sign Up and Settings to the store e-commerce application in the [Getting Started Guide](getting_started.html)). We will use the final code from that guide as a starting place.
 
 After reading this guide, you will know how to:
+
 * Add user Sign Up
 * Rate limit controller actions
 * Create a nested layout
