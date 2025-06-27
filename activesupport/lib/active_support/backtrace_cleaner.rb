@@ -56,6 +56,18 @@ module ActiveSupport
     end
     alias :filter :clean
 
+    # Given an array of Thread::Backtrace::Location objects, returns an array
+    # with the clean ones:
+    #
+    #     clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    #
+    # Filters and silencers receive strings as usual. However, the +path+
+    # attributes of the locations in the returned array are the original,
+    # unfiltered ones, since locations are immutable.
+    def clean_locations(locations, kind = :silent)
+      locations.select { |location| clean_frame(location, kind) }
+    end
+
     # Returns the frame with all filters applied.
     # returns +nil+ if the frame was silenced.
     def clean_frame(frame, kind = :silent)
