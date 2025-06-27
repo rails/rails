@@ -1,3 +1,17 @@
+*   Given an array of `Thread::Backtrace::Location` objects, the new method
+    `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
+    clean ones:
+
+    ```ruby
+    clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    ```
+
+    Filters and silencers receive strings as usual. However, the `path`
+    attributes of the locations in the returned array are the original,
+    unfiltered ones, since locations are immutable.
+
+    *Xavier Noria*
+
 *   Improve `CurrentAttribute` and `ExecutionContext` state managment in test cases.
 
     Previously these two global state would be entirely cleared out whenever calling
