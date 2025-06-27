@@ -42,7 +42,21 @@ developers, and ensure applications remain generally performant.
 NOTE: You can read more about how to configure Rails' concurrency in the
 [Framework Behavior](#framework-behavior) section.
 
-### `CurrentAttributes` and Threading
+
+### Isolated Execution State
+
+The `active_support.isolation_level` value in your `configuration.rb` file
+provides you the option to define where Rails' internal state should be stored
+while tasks are run. If you use a fiber-based server or job processor (e.g.
+[`falcon`](https://github.com/socketry/falcon)), you should set this value to
+`:fiber`, otherwise it is best to set it to `:thread`.
+
+Later sections of this guide detail advanced ways of wrapping code to ensure
+thread safety, and how extensions and applications with particular concurrency
+requirements, such as library maintainers, should do this.
+
+Storing Thread-specific Data
+----------------------------
 
 The
 [`ActiveSupport::CurrentAttributes`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
@@ -55,7 +69,7 @@ up automatically when the request is done.
 You can think of this class as a place to store data that you need to access
 anywhere in your app without having to pass it around in your code.
 
-To use the `Current` class to store data, first you need to create a file as
+To use a `Current` class to store data, first you need to create a file as
 shown in the example below, with `attribute` values for the attributes and
 models whose values you would like to access throughout your application. You
 can also define a method (e.g the `user` method below) which, when called, will
@@ -103,18 +117,6 @@ WARNING: It’s easy to put too many attributes in the `Current` class and tangl
 your model as a result. `Current` should only be used for a few, top-level
 globals, like account, user, and request details.
 
-### Isolated Execution State
-
-The `active_support.isolation_level` value in your `configuration.rb` file
-provides you the option to define where Rails internal state should be stored
-while tasks are run. If you use a fiber-based server or job processor (e.g.
-[`falcon`](https://github.com/socketry/falcon)), you should set this value to
-`:fiber`, otherwise it is best to set it to `:thread`.
-
-The next section of this guide details advanced ways of wrapping code to ensure
-thread safety, and how extensions and applications with particular concurrency
-requirements, such as library maintainers, should do this.
-
 Wrapping Application Code
 -------------------------
 
@@ -160,6 +162,7 @@ run:
 
 ```ruby
 Thread.new do
+  # no code here
   Rails.application.executor.wrap do
     # your code here
   end
@@ -201,7 +204,7 @@ application, the code should be wrapped to ensure thread safety and a consistent
 and clean runtime state.
 
 For example, you may be setting a `Current` user (using
-[`ActiveSupport::CurrentAttributes`](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)).
+[`ActiveSupport::CurrentAttributes`](#storing-thread-specific-data)).
 
 ```ruby
 def log_with_user_context(message)
@@ -273,9 +276,15 @@ invoked at the same points as those of the Executor, but only when the current
 execution has initiated an application reload. When no reload is deemed
 necessary, the Reloader will invoke the wrapped block with no other callbacks.
 
+```ruby
+Rails.application.reloader.to_run do
+  # call reloading code here
+end
+```
+
 #### Class Unload
 
-The most significant part of the reloading process is the 'class unload', where
+The most significant part of the reloading process is the "class unload", where
 all autoloaded classes are removed, ready to be loaded again. This will occur
 immediately before either the `to_run` or `to_complete` callback, depending on
 the
@@ -283,11 +292,17 @@ the
 setting.
 
 Often, additional reloading actions need to be performed either just before or
-just after the Class Unload, so the Reloader also provides
+just after the "class unload", so the Reloader also provides
 [`before_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-before_class_unload)
 and
 [`after_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-after_class_unload)
 callbacks.
+
+```ruby
+Rails.application.reloader.before_class_unload do
+  # call class unloading code here
+end
+```
 
 #### Concurrency
 
