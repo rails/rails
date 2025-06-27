@@ -379,7 +379,6 @@ module ActiveRecord
       #
       #   create_table :features do |t|
       #     t.boolean :active
-      #     t.boolean :flags, array: true, default: []
       #   end
 
       ##
