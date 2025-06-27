@@ -437,7 +437,6 @@ module ActiveRecord
       #
       #   create_table :reviews do |t|
       #     t.float :rating
-      #     t.float :samples, array: true
       #   end
 
       ##
