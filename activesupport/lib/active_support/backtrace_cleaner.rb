@@ -92,20 +92,7 @@ module ActiveSupport
           return frame if frame
         end
       end
-    else
-      # Returns the first clean frame of the caller's backtrace, or +nil+.
-      #
-      # Frames are strings.
-      def first_clean_frame(kind = :silent)
-        Thread.each_caller_location(2) do |location|
-          frame = clean_frame(location, kind)
-          return frame if frame
-        end
-      end
-    end
 
-    # Thread.each_caller_location does not accept a start in Ruby < 3.4.
-    if Thread.method(:each_caller_location).arity == 0
       # Returns the first clean location of the caller's call stack, or +nil+.
       #
       # Locations are Thread::Backtrace::Location objects. Since they are
@@ -124,6 +111,16 @@ module ActiveSupport
         end
       end
     else
+      # Returns the first clean frame of the caller's backtrace, or +nil+.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+
       # Returns the first clean location of the caller's call stack, or +nil+.
       #
       # Locations are Thread::Backtrace::Location objects. Since they are
