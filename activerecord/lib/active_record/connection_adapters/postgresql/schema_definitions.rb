@@ -467,7 +467,7 @@ module ActiveRecord
         # :call-seq: int4range(*names, **options)
         #
         # Adds an +int4range+ column for storing a range of 32-bit integers.
-        # It allows you to store inclusive or exclusive integer ranges (e.g., +[1,100)+).
+        # It allows you to store inclusive or exclusive integer ranges (e.g., <tt>(1..100)</tt>).
         # Useful for modeling bounded numeric intervals such as ID blocks, scoring thresholds, or numeric quotas.
         #
         # Example:
