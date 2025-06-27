@@ -12,7 +12,7 @@
 
     *Xavier Noria*
 
-*   Improve `CurrentAttribute` and `ExecutionContext` state managment in test cases.
+*   Improve `CurrentAttributes` and `ExecutionContext` state managment in test cases.
 
     Previously these two global state would be entirely cleared out whenever calling
     into code that is wrapped by the Rails executor, typically Action Controller or
@@ -48,16 +48,16 @@
 
     *Xavier Noria*
 
-*   Always clear `CurrentAttribute` instances.
+*   Always clear `CurrentAttributes` instances.
 
-    Previously `CurrentAttribute` instance would be reset at the end of requests.
+    Previously `CurrentAttributes` instance would be reset at the end of requests.
     Meaning its attributes would be re-initialized.
 
     This is problematic because it assume these objects don't hold any state
     other than their declared attribute, which isn't always the case, and
     can lead to state leak across request.
 
-    Now `CurrentAttribute` instances are abandoned at the end of a request,
+    Now `CurrentAttributes` instances are abandoned at the end of a request,
     and a new instance is created at the start of the next request.
 
     *Jean Boussier*, *Janko Marohnić*
