@@ -855,7 +855,7 @@ module ActiveRecord
         # space and time. They're commonly used for primary keys or to reference
         # external systems.
         #
-        # When creating a table with a UUID primary key, gen_random_uuid() is used
+        # When creating a table with a UUID primary key, <tt>gen_random_uuid()</tt> is used
         # as the default generator if no +:default+ option is specified:
         #
         #   create_table :devices, id: :uuid do |t|
