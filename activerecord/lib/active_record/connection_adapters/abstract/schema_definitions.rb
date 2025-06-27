@@ -406,7 +406,6 @@ module ActiveRecord
       #
       #   create_table :posts do |t|
       #     t.datetime :posted_at
-      #     t.datetime :access_times, array: true
       #   end
 
       ##
