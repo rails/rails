@@ -868,7 +868,7 @@ class User < ApplicationRecord
   # ...
 ```
 
-When admin is readonly, we have to directly update this in the database instead of using ActiveRecord.
+When admin is readonly, we have to directly update this in the database instead of using Active Record.
 
 Rails has a command called `dbconsole` that will open a database console where we can directly interact with the database using SQL.
 
