@@ -267,7 +267,7 @@ module ActiveRecord
         #  event.ends_at
         #  # => Thu, 13 Feb 2014
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
+        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and {PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
 
         ##
         # :method: enum
