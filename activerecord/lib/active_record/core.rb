@@ -159,6 +159,7 @@ module ActiveRecord
         connected_to_stack.reverse_each do |hash|
           return hash[:role] if hash[:role] && hash[:klasses].include?(Base)
           return hash[:role] if hash[:role] && hash[:klasses].include?(connection_class_for_self)
+          return hash[:role] if hash[:role] && self == Base && hash[:klasses].any?(&:primary_class?)
         end
 
         default_role
@@ -177,6 +178,7 @@ module ActiveRecord
         connected_to_stack.reverse_each do |hash|
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(Base)
           return hash[:shard] if hash[:shard] && hash[:klasses].include?(connection_class_for_self)
+          return hash[:shard] if hash[:shard] && self == Base && hash[:klasses].any?(&:primary_class?)
         end
 
         default_shard
@@ -196,6 +198,7 @@ module ActiveRecord
         connected_to_stack.reverse_each do |hash|
           return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
           return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(connection_class_for_self)
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && self == Base && hash[:klasses].any?(&:primary_class?)
         end
 
         false
@@ -207,6 +210,7 @@ module ActiveRecord
         connected_to_stack.reverse_each do |hash|
           return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
           return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].any? { |klass| klass.name == class_name }
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && class_name == "ActiveRecord::Base" && hash[:klasses].any?(&:primary_class?)
         end
 
         false

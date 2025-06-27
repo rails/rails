@@ -1,3 +1,8 @@
+*   Fix granular connection switching not respecting the primary abstract class (e.g. `ApplicationRecord`)
+    when using `ActiveRecord::Base` connections.
+
+    *Joshua Young*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
