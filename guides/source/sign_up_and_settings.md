@@ -601,7 +601,7 @@ Now let's add the view at `app/views/settings/accounts/show.html.erb` with the f
 <%= button_to "Delete my account", settings_account_path, method: :delete, data: {turbo_confirm: "Are you sure? This cannot be undone."} %>
 ```
 
-And finally, we'll add a link to account in the setting layout's sidebar.
+And finally, we'll add a link to Account in the setting layout's sidebar.
 
 ```erb#7
 <%= content_for :content do %>
