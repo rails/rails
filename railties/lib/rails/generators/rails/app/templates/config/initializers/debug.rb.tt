@@ -1,0 +1,8 @@
+# Be sure to restart your server when you modify this file.
+
+if Rails.env.local?
+  require "debug/config"
+
+  # See https://github.com/ruby/debug#configuration-list for more options.
+  DEBUGGER__::CONFIG[:no_repeat] = true
+end
