@@ -31,5 +31,21 @@ module ApplicationTests
       end
       assert_includes exception.message, "ActiveJob::Continuation::CheckpointError: Cannot checkpoint job with open transactions"
     end
+
+    test "filter_attributes include filter_parameters" do
+      app "development"
+
+      Rails.application.config.filter_parameters += [ :special_param ]
+
+      assert ActiveRecord::Base.filter_attributes.any? { |f| f.match?("special_param") }
+    end
+
+    test "filter_paramenters include filter_attributes" do
+      app "development"
+
+      ActiveRecord::Base.filter_attributes += [ :special_attr ]
+
+      assert Rails.application.config.filter_parameters.any? { |f| f.match?("special_attr") }
+    end
   end
 end
