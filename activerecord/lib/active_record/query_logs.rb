@@ -29,6 +29,7 @@ module ActiveRecord
   # * +source_location+
   #
   # WARNING: Calculating the +source_location+ of a query can be slow, so you should consider its impact if using it in a production environment.
+  #
   # Also see {config.active_record.verbose_query_logs}[https://guides.rubyonrails.org/debugging_rails_applications.html#verbose-query-logs].
   #
   # Action Controller adds default tags when loaded:
