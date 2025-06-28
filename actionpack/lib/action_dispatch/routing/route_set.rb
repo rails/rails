@@ -839,7 +839,7 @@ module ActionDispatch
 
       RESERVED_OPTIONS = [:host, :protocol, :port, :subdomain, :domain, :tld_length,
                           :trailing_slash, :anchor, :params, :only_path, :script_name,
-                          :original_script_name]
+                          :original_script_name, :include_nil_params]
 
       def optimize_routes_generation?
         default_url_options.empty?
