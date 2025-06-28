@@ -1,3 +1,17 @@
+*   Deprecate `:remote` options for `form_for` and `:local` option for `form_with`.
+
+    Please use the `actionview-remote-form-helpers` gem to restore this functionality.
+
+    *zzak*, *Sean Doyle*
+
+*   Deprecate `ActionView::Base.automatically_disable_submit_tag=`,
+    `ActionView::Helpers::FormHelper.form_with_generates_remote_forms=`, and
+    `ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms=`.
+
+    Please use the `actionview-remote-form-helpers` gem to restore this functionality.
+
+    *zzak*, *Sean Doyle*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
