@@ -1,3 +1,10 @@
+*   Update Security guide to account for changes to
+    `content_security_policy_report_only`.
+
+    Fixes #40452
+
+    *Shaun Russell*
+
 *   In the Active Job bug report template set the queue adapter to the
     test adapter so that `assert_enqueued_with` can pass.
 
