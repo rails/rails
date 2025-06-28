@@ -73,11 +73,47 @@ connections:
 
   postgresql:
     arunit:
+      <% if ENV['POSTGRES_USER'] %>
+        username: <%= ENV['POSTGRES_USER'] %>
+      <% end %>
+      <% if ENV['POSTGRES_HOST'] %>
+        host: <%= ENV['POSTGRES_HOST'] %>
+      <% end %>
+      <% if ENV['POSTGRES_PORT'] %>
+        port: <%= ENV['POSTGRES_PORT'] %>
+      <% end %>
+      <% if ENV['POSTGRES_SOCK'] %>
+        socket: "<%= ENV['POSTGRES_SOCK'] %>"
+      <% end %>
       min_messages: warning
     arunit_without_prepared_statements:
+      <% if ENV['POSTGRES_USER'] %>
+        username: <%= ENV['POSTGRES_USER'] %>
+      <% end %>
+      <% if ENV['POSTGRES_HOST'] %>
+        host: <%= ENV['POSTGRES_HOST'] %>
+      <% end %>
+      <% if ENV['POSTGRES_PORT'] %>
+        port: <%= ENV['POSTGRES_PORT'] %>
+      <% end %>
+      <% if ENV['POSTGRES_SOCK'] %>
+        socket: "<%= ENV['POSTGRES_SOCK'] %>"
+      <% end %>
       min_messages: warning
       prepared_statements: false
     arunit2:
+      <% if ENV['POSTGRES_USER'] %>
+        username: <%= ENV['POSTGRES_USER'] %>
+      <% end %>
+      <% if ENV['POSTGRES_HOST'] %>
+        host: <%= ENV['POSTGRES_HOST'] %>
+      <% end %>
+      <% if ENV['POSTGRES_PORT'] %>
+        port: <%= ENV['POSTGRES_PORT'] %>
+      <% end %>
+      <% if ENV['POSTGRES_SOCK'] %>
+        socket: "<%= ENV['POSTGRES_SOCK'] %>"
+      <% end %>
       min_messages: warning
 
   sqlite3:
