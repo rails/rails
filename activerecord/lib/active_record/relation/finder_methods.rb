@@ -55,7 +55,7 @@ module ActiveRecord
     # expected <tt>person.visits == 4</tt>.
     #
     #   Person.transaction do
-    #     person = Person.lock(true).find(1)
+    #     person = Person.lock.find(1)
     #     person.visits += 1
     #     person.save!
     #   end

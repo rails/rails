@@ -1,3 +1,22 @@
+*   Deprecate passing boolean arguments to the following relation query methods:
+    * `#lock`
+    * `#readonly`
+    * `#strict_loading`
+    * `#distinct`
+
+    And the following model methods:
+    * `#lock!`
+    * `#with_lock`
+
+    The argument can be omitted to maintain the behaviour of enabling these features, and the
+    following relation query methods have been introduced to support disabling them:
+    * `#unscope_lock`
+    * `#unscope_readonly`
+    * `#unscope_strict_loading`
+    * `#unscope_distinct`
+
+    *Joshua Young*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*

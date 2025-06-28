@@ -63,10 +63,10 @@ module ActiveRecord
     #   https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
-      # lock. Pass an SQL locking clause to append the end of the SELECT statement
-      # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
+      # lock. Pass an SQL locking clause to append to the end of the SELECT statement;
+      # otherwise, this will default to "FOR UPDATE" (an exclusive row lock). Returns
       # the locked record.
-      def lock!(lock = true)
+      def lock!(lock = "FOR UPDATE")
         if self.class.current_preventing_writes
           raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
         end
@@ -96,7 +96,7 @@ module ActiveRecord
       # ActiveRecord::ConnectionAdapters::DatabaseStatements#transaction).
       def with_lock(*args)
         transaction_opts = args.extract_options!
-        lock = args.present? ? args.first : true
+        lock = args.present? ? args.first : "FOR UPDATE"
         transaction(**transaction_opts) do
           lock!(lock)
           yield
