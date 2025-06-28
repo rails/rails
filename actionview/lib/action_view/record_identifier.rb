@@ -101,6 +101,25 @@ module ActionView
       end
     end
 
+    # The DOM target convention is to concatenate any number of parameters into a string.
+    # Records are passed through dom_id, while string and symbols are retained.
+    #
+    #   dom_target(Post.find(45))                  # => "post_45"
+    #   dom_target(Post.find(45), :edit)           # => "post_45_edit"
+    #   dom_target(Post.find(45), :edit, :special) # => "post_45_edit_special"
+    #   dom_target(Post.find(45), Comment.find(1)) # => "post_45_comment_1"
+    def dom_target(*objects)
+      objects.map do |object|
+        if object.is_a?(Symbol) || object.is_a?(String)
+          object
+        elsif object.is_a?(Class)
+          dom_class(object)
+        else
+          dom_id(object)
+        end
+      end.join(JOIN)
+    end
+
   private
     # Returns a string representation of the key attribute(s) that is suitable for use in an HTML DOM id.
     # This can be overwritten to customize the default generated string representation if desired.
