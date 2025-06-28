@@ -40,6 +40,7 @@ module ActiveRecord
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
+    config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -236,7 +237,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
           :postgresql_adapter_decode_dates,
-          :use_legacy_signed_id_verifier,
+          :use_legacy_signed_id_verifier
         )
 
         configs_used_in_other_initializers.each do |k, v|

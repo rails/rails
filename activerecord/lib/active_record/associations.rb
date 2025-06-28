@@ -39,6 +39,8 @@ module ActiveRecord
       autoload :AssociationScope
       autoload :DisableJoinsAssociationScope
       autoload :AliasTracker
+
+      autoload :Deprecation
     end
 
     def self.eager_load!
@@ -85,6 +87,14 @@ module ActiveRecord
       # Set the specified association instance.
       def association_instance_set(name, association)
         @association_cache[name] = association
+      end
+
+      def deprecated_associations_api_guard(association, method_name)
+        Deprecation.guard(association.reflection) { "the method #{method_name} was invoked" }
+      end
+
+      def report_deprecated_association(reflection, context:)
+        Deprecation.report(reflection, context: context)
       end
 
       # = Active Record \Associations
