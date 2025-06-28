@@ -5,65 +5,145 @@ Threading and Code Execution in Rails
 
 After reading this guide, you will know:
 
-* What code Rails will automatically execute concurrently
-* How to integrate manual concurrency with Rails internals
-* How to wrap all application code
+* Where to find concurrent code execution in Rails
+* How to integrate manual concurrency within Rails
+* How to wrap application code using the Rails Executor
 * How to affect application reloading
 
 --------------------------------------------------------------------------------
 
-Automatic Concurrency
----------------------
+Built-in Concurrency in Rails
+-----------------------------
 
-Rails automatically allows various operations to be performed at the same time.
+Rails automatically allows various operations to be performed at the same time
+(concurrently) in order for an application to run more efficiently. In this
+section, we will explore some of the ways this happens behind the scenes.
 
-When using a threaded web server, such as the default Puma, multiple HTTP
-requests will be served simultaneously, with each request provided its own
-controller instance.
+When using a threaded web server (such as Rails' default server, Puma) requests
+will be served simultaneously as each request is given its own controller
+instance.
 
-Threaded Active Job adapters, including the built-in Async, will likewise
-execute several jobs at the same time. Action Cable channels are managed this
-way too.
+Threaded Active Job adapters, including the built-in Async adapter, will
+likewise execute several jobs at the same time. Action Cable channels are
+managed this way too.
 
-These mechanisms all involve multiple threads, each managing work for a unique
-instance of some object (controller, job, channel), while sharing the global
-process space (such as classes and their configurations, and global variables).
-As long as your code doesn't modify any of those shared things, it can mostly
-ignore that other threads exist.
+Asynchronous Active Record queries are also performed in the background,
+allowing other processes to run on the main thread.
 
-The rest of this guide describes the mechanisms Rails uses to make it "mostly
-ignorable", and how extensions and applications with special needs can use them.
+The above mechanisms all involve multiple threads, each managing work for a
+unique instance of an object (controller, job, channel), while sharing the
+global process space (such as classes and their configurations, and global
+variables). As long as the code on each thread doesn't modify anything shared,
+multiple threads can safely run concurrently.
 
-Executor
---------
+Rails' built-in concurrency will cover the day-to-day needs of most application
+developers, and ensure applications remain generally performant.
 
-The Rails Executor separates application code from framework code: any time the
-framework invokes code you've written in your application, it will be wrapped by
-the Executor.
+NOTE: You can read more about how to configure Rails' concurrency in the
+[Framework Behavior](#framework-behavior) section.
 
-The Executor consists of two callbacks: `to_run` and `to_complete`. The Run
-callback is called before the application code, and the Complete callback is
-called after.
 
-### Default Callbacks
+### Isolated Execution State
 
-In a default Rails application, the Executor callbacks are used to:
+The `active_support.isolation_level` value in your `configuration.rb` file
+provides you the option to define where Rails' internal state should be stored
+while tasks are run. If you use a fiber-based server or job processor (e.g.
+[`falcon`](https://github.com/socketry/falcon)), you should set this value to
+`:fiber`, otherwise it is best to set it to `:thread`.
 
-* track which threads are in safe positions for autoloading and reloading
-* enable and disable the Active Record query cache
-* return acquired Active Record connections to the pool
-* constrain internal cache lifetimes
+Later sections of this guide detail advanced ways of wrapping code to ensure
+thread safety, and how extensions and applications with particular concurrency
+requirements, such as library maintainers, should do this.
 
-Prior to Rails 5.0, some of these were handled by separate Rack middleware
-classes (such as `ActiveRecord::ConnectionAdapters::ConnectionManagement`), or
-directly wrapping code with methods like
-`ActiveRecord::Base.connection_pool.with_connection`. The Executor replaces
-these with a single more abstract interface.
+Storing Thread-specific Data
+----------------------------
 
-### Wrapping Application Code
+The
+[`ActiveSupport::CurrentAttributes`](https://edgeapi.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
+class is a special class in Rails that helps you manage temporary,
+thread-specific data for each request in your app, and helps make sure this data
+is available to the whole system. It keeps this data separate for every request
+(even if there are multiple threads running) and makes sure the data is cleaned
+up automatically when the request is done.
+
+You can think of this class as a place to store data that you need to access
+anywhere in your app without having to pass it around in your code.
+
+To use a `Current` class to store data, first you need to create a file as
+shown in the example below, with `attribute` values for the attributes and
+models whose values you would like to access throughout your application. You
+can also define a method (e.g the `user` method below) which, when called, will
+contain set values:
+
+```ruby
+# app/models/current.rb
+class Current < ActiveSupport::CurrentAttributes
+  attribute :account, :user
+
+  resets { Time.zone = nil }
+
+  def user=(user)
+    super
+    self.account = user.account
+    Time.zone    = user.time_zone
+  end
+end
+```
+
+You will now have access to `Current.user` elsewhere in your application. For
+example, when authenticating a user:
+
+```ruby
+# app/controllers/concerns/authentication.rb
+module Authentication
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :authenticate
+  end
+
+  private
+    def authenticate
+      if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
+        Current.user = authenticated_user
+      else
+        redirect_to new_session_url
+      end
+    end
+end
+```
+
+WARNING: It’s easy to put too many attributes in the `Current` class and tangle
+your model as a result. `Current` should only be used for a few, top-level
+globals, like account, user, and request details.
+
+Wrapping Application Code
+-------------------------
+
+### The Rails Executor
+
+The Rails Executor inherits from the
+[`ActiveSupport::ExecutionWrapper`](https://api.rubyonrails.org/classes/ActiveSupport/ExecutionWrapper.html).
+The Executor separates application code from framework code by wrapping code
+that you've written and is necessary when threads are being used.
+
+#### Callbacks
+
+The Executor consists of two callbacks: `to_run` and `to_complete`. The `to_run`
+callback is called before the application code, and the `to_complete` callback
+is called after.
+
+In a default Rails application, the Rails Executor callbacks are used to:
+
+* Track which threads are in safe positions for autoloading and reloading.
+* Enable and disable the Active Record query cache.
+* Return acquired Active Record connections to the pool.
+* Constrain internal cache lifetimes.
+
+#### Code Execution
 
 If you're writing a library or component that will invoke application code, you
-should wrap it with a call to the executor:
+should wrap it with a call to the Executor:
 
 ```ruby
 Rails.application.executor.wrap do
@@ -72,30 +152,30 @@ end
 ```
 
 TIP: If you repeatedly invoke application code from a long-running process, you
-may want to wrap using the [Reloader](#reloader) instead.
+may want to wrap using the [Reloader](#the-reloader) instead.
 
-Each thread should be wrapped before it runs application code, so if your
-application manually delegates work to other threads, such as via `Thread.new`
-or Concurrent Ruby features that use thread pools, you should immediately wrap
-the block:
+If your application manually delegates work to other threads, such as via
+`Thread.new`, or uses features from the [Concurrent
+Ruby](https://github.com/ruby-concurrency/concurrent-ruby) gem that use thread
+pools, you should immediately wrap the block, before any application code is
+run:
 
 ```ruby
 Thread.new do
+  # no code here
   Rails.application.executor.wrap do
     # your code here
   end
 end
 ```
 
-NOTE: Concurrent Ruby uses a `ThreadPoolExecutor`, which it sometimes configures
-with an `executor` option. Despite the name, it is unrelated.
+NOTE: The Concurrent Ruby gem uses a `ThreadPoolExecutor`, which it sometimes
+configures with an `executor` option. Despite the name, it is _not_ related to
+the Rails Executor.
 
-The Executor is safely re-entrant; if it is already active on the current
-thread, `wrap` is a no-op.
-
-If it's impractical to wrap the application code in a block (for
-example, the Rack API makes this problematic), you can also use the `run!` /
-`complete!` pair:
+If it's impractical to wrap the application code in a block (for example, the
+Rack API makes this problematic), you can also use the `run!` / `complete!`
+pair:
 
 ```ruby
 Thread.new do
@@ -106,21 +186,75 @@ ensure
 end
 ```
 
-### Concurrency
+NOTE: The Rails Executor is safely re-entrant; it can be called again if it is
+already running. In this case, the `wrap` method has no effect.
 
-The Executor will put the current thread into `running` mode in the [Load
-Interlock](#load-interlock). This operation will block temporarily if another
-thread is currently either autoloading a constant or unloading/reloading
-the application.
+#### Running Mode
 
-Reloader
---------
+When called, the Rails Executor will put the current thread into `running` mode
+in the [Load Interlock](#load-interlock).
 
-Like the Executor, the Reloader also wraps application code. If the Executor is
-not already active on the current thread, the Reloader will invoke it for you,
-so you only need to call one. This also guarantees that everything the Reloader
-does, including all its callback invocations, occurs wrapped inside the
-Executor.
+This operation will block temporarily if another thread is currently either
+autoloading a constant or unloading/reloading the application.
+
+#### Examples of Wrapped Application Code
+
+Any time your library or component needs to invoke code that will run in the
+application, the code should be wrapped to ensure thread safety and a consistent
+and clean runtime state.
+
+For example, you may be setting a `Current` user (using
+[`ActiveSupport::CurrentAttributes`](#storing-thread-specific-data)).
+
+```ruby
+def log_with_user_context(message)
+  Rails.application.executor.wrap do
+    Current.user = User.find_by(id: 1)
+  end
+end
+```
+
+You may be triggering an Active Record callback or lifecycle hook in an
+application:
+
+```ruby
+def perform_task_with_record(record)
+  Rails.application.executor.wrap do
+    record.save! # Executes before_save, after_save, etc.
+  end
+end
+```
+
+Or enqueuing or performing a background job within the application:
+
+```ruby
+def enqueue_background_job(job_class, *args)
+  Rails.application.executor.wrap do
+    job_class.perform_later(*args)
+  end
+end
+```
+
+These are just a few of many possible use cases, including rendering views or
+templates, broadcasting via [`Action Cable`](action_cable_overview.html) or
+using [`Rails.cache`](caching_with_rails.html).
+
+### The Reloader
+
+Like the Executor, the
+[Reloader](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html) also
+wraps application code. The Reloader is only suitable where a long-running
+framework-level process repeatedly calls into application code, such as for a
+web server or job queue.
+
+NOTE: Rails automatically wraps web requests and Active Job workers, so you'll
+rarely need to invoke the Reloader for yourself. Always consider whether the
+Executor is a better fit for your use case.
+
+If the Executor is not already active on the current thread, the Reloader will
+invoke it for you, so you only need to call one. This also guarantees that
+everything the Reloader does, including all its callback executions, occurs
+wrapped inside the Executor.
 
 ```ruby
 Rails.application.reloader.wrap do
@@ -128,38 +262,49 @@ Rails.application.reloader.wrap do
 end
 ```
 
-The Reloader is only suitable where a long-running framework-level process
-repeatedly calls into application code, such as for a web server or job queue.
-Rails automatically wraps web requests and Active Job workers, so you'll rarely
-need to invoke the Reloader for yourself. Always consider whether the Executor
-is a better fit for your use case.
-
-### Callbacks
+#### Callbacks
 
 Before entering the wrapped block, the Reloader will check whether the running
-application needs to be reloaded -- for example, because a model's source file has
-been modified. If it determines a reload is required, it will wait until it's
-safe, and then do so, before continuing. When the application is configured to
-always reload regardless of whether any changes are detected, the reload is
-instead performed at the end of the block.
+application needs to be reloaded (because a model's source file has been
+modified, for example). If it determines a reload is required, it will wait
+until it's safe, and then do so, before continuing. When the application is
+configured to always reload regardless of whether any changes are detected, the
+reload is instead performed at the end of the block.
 
 The Reloader also provides `to_run` and `to_complete` callbacks; they are
 invoked at the same points as those of the Executor, but only when the current
 execution has initiated an application reload. When no reload is deemed
 necessary, the Reloader will invoke the wrapped block with no other callbacks.
 
-### Class Unload
+```ruby
+Rails.application.reloader.to_run do
+  # call reloading code here
+end
+```
 
-The most significant part of the reloading process is the Class Unload, where
+#### Class Unload
+
+The most significant part of the reloading process is the "class unload", where
 all autoloaded classes are removed, ready to be loaded again. This will occur
-immediately before either the Run or Complete callback, depending on the
-`reload_classes_only_on_change` setting.
+immediately before either the `to_run` or `to_complete` callback, depending on
+the
+[`reload_classes_only_on_change`](configuring.html#config-reload-classes-only-on-change)
+setting.
 
 Often, additional reloading actions need to be performed either just before or
-just after the Class Unload, so the Reloader also provides `before_class_unload`
-and `after_class_unload` callbacks.
+just after the "class unload", so the Reloader also provides
+[`before_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-before_class_unload)
+and
+[`after_class_unload`](https://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-after_class_unload)
+callbacks.
 
-### Concurrency
+```ruby
+Rails.application.reloader.before_class_unload do
+  # call class unloading code here
+end
+```
+
+#### Concurrency
 
 Only long-running "top level" processes should invoke the Reloader, because if
 it determines a reload is needed, it will block until all other threads have
@@ -173,36 +318,42 @@ thread is mid-execution. Child threads should use the Executor instead.
 Framework Behavior
 ------------------
 
-The Rails framework components use these tools to manage their own concurrency
-needs too.
+The Rails framework components use the Executor and the Reloader to manage their
+own concurrency needs too.
 
-`ActionDispatch::Executor` and `ActionDispatch::Reloader` are Rack middlewares
-that wrap requests with a supplied Executor or Reloader, respectively. They
-are automatically included in the default application stack. The Reloader will
-ensure any arriving HTTP request is served with a freshly-loaded copy of the
-application if any code changes have occurred.
+[`ActionDispatch::Executor`](https://api.rubyonrails.org/classes/ActionDispatch/Executor.html)
+and
+[`ActionDispatch::Reloader`](https://api.rubyonrails.org/classes/ActionDispatch/Reloader.html)
+are Rack middlewares that wrap requests with a supplied Executor or Reloader,
+respectively. They are automatically included in the default application stack.
+The Reloader will ensure any arriving HTTP request is served with a
+freshly-loaded copy of the application if any code changes have occurred.
 
 Active Job also wraps its job executions with the Reloader, loading the latest
 code to execute each job as it comes off the queue.
 
-Action Cable uses the Executor instead: because a Cable connection is linked to
-a specific instance of a class, it's not possible to reload for every arriving
-WebSocket message. Only the message handler is wrapped, though; a long-running
-Cable connection does not prevent a reload that's triggered by a new incoming
-request or job. Instead, Action Cable uses the Reloader's `before_class_unload`
-callback to disconnect all its connections. When the client automatically
-reconnects, it will be speaking to the new version of the code.
+Action Cable uses the Executor instead. A Cable connection is linked to a
+specific instance of a class, which means it's not possible to reload for every
+arriving WebSocket message. Only the message handler is wrapped, though; a
+long-running Cable connection does not prevent a reload that's triggered by a
+new incoming request or job. Instead, Action Cable also uses the Reloader's
+`before_class_unload` callback to disconnect all its connections. When the
+client automatically reconnects, it will be interacting with the new version of
+the code.
 
 The above are the entry points to the framework, so they are responsible for
 ensuring their respective threads are protected, and deciding whether a reload
-is necessary. Other components only need to use the Executor when they spawn
-additional threads.
+is necessary. Most other components only need to use the Executor when they
+spawn additional threads.
 
 ### Configuration
 
-The Reloader only checks for file changes when `config.enable_reloading` is
-`true` and so is `config.reload_classes_only_on_change`. These are the defaults in the
-`development` environment.
+#### Reloader and Executor Configuration
+
+The Reloader only checks for file changes when
+[`config.enable_reloading`](configuring.html#config-enable-reloading) and
+[`config.reload_classes_only_on_change`](configuring.html#config-reload-classes-only-on-change)
+are both `true`. These are the defaults in the `development` environment.
 
 When `config.enable_reloading` is `false` (in `production`, by default), the
 Reloader is only a pass-through to the Executor.
@@ -210,9 +361,11 @@ Reloader is only a pass-through to the Executor.
 The Executor always has important work to do, like database connection
 management. When `config.enable_reloading` is `false` and `config.eager_load` is
 `true` (`production` defaults), no reloading will occur, so it does not need the
-Load Interlock. With the default settings in the `development` environment, the
-Executor will use the Load Interlock to ensure constants are only loaded when it
-is safe.
+[Load Interlock](#load-interlock). With the default settings in the
+`development` environment, the Executor will use the Load Interlock to ensure
+constants are only loaded when it is safe.
+
+You can read more about the Load Interlock in the following section.
 
 Load Interlock
 --------------
@@ -247,7 +400,7 @@ block, and autoload knows when to upgrade to a `load` lock, and switch back to
 
 Other blocking operations performed inside the Executor block (which includes
 all application code), however, can needlessly retain the `running` lock. If
-another thread encounters a constant it must autoload, this can cause a
+another thread encounters a constant it must autoload, which can cause a
 deadlock.
 
 For example, assuming `User` is not yet loaded, the following will deadlock:
@@ -320,5 +473,5 @@ interlock, which lock level they are holding or awaiting, and their current
 backtrace.
 
 Generally a deadlock will be caused by the interlock conflicting with some other
-external lock or blocking I/O call. Once you find it, you can wrap it with
-`permit_concurrent_loads`.
+external lock or blocking input/output call. Once you find it, you can wrap it
+with `permit_concurrent_loads`.
