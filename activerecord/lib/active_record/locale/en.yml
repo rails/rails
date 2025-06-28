@@ -9,6 +9,7 @@ en:
     messages:
       required: "must exist"
       taken: "has already been taken"
+      invalid_enum: "'%{value}' is not a valid %{name}"
 
   # Active Record models configuration
   activerecord:
