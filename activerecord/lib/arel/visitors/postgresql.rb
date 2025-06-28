@@ -132,6 +132,36 @@ module Arel # :nodoc: all
           visit o.right, collector
         end
 
+        def visit_Arel_ValuesTable(o, collector)
+          # The table must be strictly typed so its columns can be used in
+          # assignments and comparisons, so use a subquery and put the types
+          # in the SELECT clause.
+          if o.column_types
+            collector << "(SELECT "
+            o.column_types.each_with_index do |type, i|
+              collector << ", " unless i == 0
+              collector << "CAST(" << quote_column_name("column#{i + 1}")
+              collector << " AS #{type.sql_type})"
+            end
+            collector << " FROM "
+          end
+
+          collector << "(VALUES "
+          collector = values_rows_list o.rows, collector
+          collector << ")" if o.column_types
+          collector << ") #{quote_table_name(o.name)}"
+
+          if o.column_aliases
+            collector << " ("
+            o.column_aliases.each_with_index do |name, i|
+              collector << ", " unless i == 0
+              collector << quote_column_name(name)
+            end
+            collector << ")"
+          end
+          collector
+        end
+
         BIND_BLOCK = proc { |i| "$#{i}" }
         private_constant :BIND_BLOCK
 
