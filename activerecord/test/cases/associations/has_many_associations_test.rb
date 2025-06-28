@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -44,6 +45,7 @@ require "models/human"
 require "models/sharded"
 require "models/cpk"
 require "models/comment_overlapping_counter_cache"
+require "models/dats"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -3199,7 +3201,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal(<<~MESSAGE.squish, error.message)
       Unknown key: :trough. Valid keys are:
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
-      :strict_loading, :query_constraints, :autosave, :class_name, :before_add,
+      :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
       :index_errors, :as, :through
     MESSAGE
@@ -3281,5 +3283,76 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = DATS::Car
+    @car = @model.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:tyres) do
+      @car.tyres
+    end
+
+    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyres)) do
+      assert_equal @car.tyres, @car.deprecated_tyres
+    end
+  end
+
+  test "<association>=" do
+    tyre = DATS::Tyre.new
+
+    assert_not_deprecated_association(:tyres) do
+      @car.tyres = [tyre]
+    end
+
+    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyres=)) do
+      @car.deprecated_tyres = [tyre]
+    end
+    assert_equal [tyre], @car.deprecated_tyres
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:tyres) do
+      @car.tyre_ids
+    end
+
+    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyre_ids)) do
+      assert_equal @car.tyre_ids, @car.deprecated_tyre_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    tyre = @car.tyres.create!
+
+    assert_not_deprecated_association(:tyres) do
+      @car.tyre_ids = [tyre.id]
+    end
+
+    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyre_ids=)) do
+      @car.deprecated_tyre_ids = [tyre.id]
+    end
+    assert_equal [tyre.id], @car.deprecated_tyre_ids
+  end
+
+  test "destroy (not deprecated)" do
+    assert_not_deprecated_association(:tyres) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_tyres, context: context_for_dependent) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end

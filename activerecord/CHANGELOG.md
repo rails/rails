@@ -1,3 +1,26 @@
+*   Implement support for deprecating associations:
+
+    ```ruby
+    has_many :posts, deprecated: true
+    ```
+
+    With that, Active Record will report any usage of the `posts` association.
+
+    Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+    backtraces can be enabled or disabled (they go through the backtrace
+    cleaner). Defaults are `:warn` mode and disabled backtraces.
+
+    Rails applications can configure these settings with the new optional
+    configuration endpoint
+
+    ```
+    config.active_record.deprecated_associations_options
+    ```
+
+    Please, check the docs for further details about this feature.
+
+    *Xavier Noria*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
