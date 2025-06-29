@@ -43,7 +43,7 @@ module ActiveJob
       end
 
       def logger_tagged_by_active_job?
-        logger.formatter.current_tags.include?("ActiveJob")
+        logger.tag_processor.current_tags.include?("ActiveJob")
       end
   end
 end
