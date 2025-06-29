@@ -225,17 +225,6 @@ module Arel # :nodoc: all
       Nodes::Lateral.new(base)
     end
 
-    def with(*subqueries)
-      if subqueries.first.is_a? Symbol
-        node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
-      else
-        node_class = Nodes::With
-      end
-      @ast.with = node_class.new(subqueries.flatten)
-
-      self
-    end
-
     def take(limit)
       if limit
         @ast.limit = Nodes::Limit.new(limit)

@@ -167,5 +167,26 @@ module Arel
         _(@um.key).must_equal @table[:foo]
       end
     end
+
+    describe "with" do
+      it "should support basic WITH" do
+        users          = Table.new(:users)
+        comments       = Table.new(:comments)
+        comments_count = Table.new(:comments_count)
+
+        count_manager  = comments.project(comments[:user_id], Arel.star.count.as("count")).group(comments[:user_id])
+
+        subquery = Arel::Nodes::Grouping.new(comments_count.project(comments_count[:count]).where(users[:id].eq(comments_count[:user_id])).ast)
+
+        manager = Arel::UpdateManager.new
+        manager.table users
+        manager.set [[users[:comments_count], Arel.sql(subquery.to_sql)]]
+        manager.with Arel::Nodes::TableAlias.new(count_manager, Arel.sql(comments_count.name.to_s))
+
+        _(manager.to_sql).must_be_like %{
+          WITH comments_count AS (SELECT "comments"."user_id", COUNT(*) AS count FROM "comments" GROUP BY "comments"."user_id") UPDATE "users" SET "comments_count" = (SELECT "comments_count"."count" FROM "comments_count" WHERE "users"."id" = "comments_count"."user_id")
+        }
+      end
+    end
   end
 end

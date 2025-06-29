@@ -230,6 +230,7 @@ module Arel
         assert_edge("columns", dot)
         assert_edge("values", dot)
         assert_edge("select", dot)
+        assert_edge("with", dot)
       end
 
       def test_Arel_Nodes_UpdateStatement
@@ -244,6 +245,7 @@ module Arel
         assert_edge("orders", dot)
         assert_edge("limit", dot)
         assert_edge("offset", dot)
+        assert_edge("with", dot)
         assert_edge("key", dot)
       end
 
@@ -258,6 +260,7 @@ module Arel
         assert_edge("orders", dot)
         assert_edge("limit", dot)
         assert_edge("offset", dot)
+        assert_edge("with", dot)
         assert_edge("key", dot)
       end
     end

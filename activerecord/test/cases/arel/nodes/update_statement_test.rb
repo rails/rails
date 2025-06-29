@@ -29,6 +29,7 @@ class Arel::Nodes::UpdateStatementTest < Arel::Spec
       statement1.key      = "zomg"
       statement1.groups   = ["foo"]
       statement1.havings  = []
+      statement1.with     = "bar"
       statement2 = Arel::Nodes::UpdateStatement.new
       statement2.relation = "zomg"
       statement2.wheres   = 2
@@ -38,6 +39,7 @@ class Arel::Nodes::UpdateStatementTest < Arel::Spec
       statement2.key      = "zomg"
       statement2.groups   = ["foo"]
       statement2.havings  = []
+      statement2.with     = "bar"
       array = [statement1, statement2]
       assert_equal 1, array.uniq.size
     end
