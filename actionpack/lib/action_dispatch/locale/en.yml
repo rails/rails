@@ -1,0 +1,2 @@
+en:
+  trace_customize: 'Customize via ActionDispatch::DebugView#ext_editor'
