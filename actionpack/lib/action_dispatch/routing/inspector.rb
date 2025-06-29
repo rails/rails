@@ -79,17 +79,16 @@ module ActionDispatch
       def format(formatter, filter = {})
         routes_to_display = filter_routes(normalize_filter(filter))
         routes = collect_routes(routes_to_display)
+
         if routes.none?
           formatter.no_routes(collect_routes(@routes), filter)
           return formatter.result
         end
 
-        formatter.header routes
-        formatter.section routes
+        formatter.draw(routes)
 
         @engines.each do |name, engine_routes|
-          formatter.section_title "Routes for #{name}"
-          formatter.section engine_routes
+          formatter.draw engine_routes, "Routes for #{name}"
         end
 
         formatter.result
@@ -153,22 +152,30 @@ module ActionDispatch
     end
 
     module ConsoleFormatter
+      cattr_accessor :registered_formatters, default: {}
+
+      def self.register_formatter(formatter, name = nil)
+        formatter_name = name || formatter.name.split(/::/).last
+        registered_formatters[formatter_name] = formatter if valid_formatter?(formatter)
+      end
+
+      def self.valid_formatter?(formatter)
+        raise ArgumentError, "#{formatter} must implement #draw, #result, and #no_routes" unless [:draw, :result, :no_routes].all? { |method| formatter.instance_methods.include?(method) }
+        !registered_formatters.has_key?(formatter.name)
+      end
+      private_class_method :valid_formatter?
+
       class Base
         def initialize
           @buffer = []
         end
 
+        def draw(routes, title = nil)
+          raise NotImplementedError
+        end
+
         def result
           @buffer.join("\n")
-        end
-
-        def section_title(title)
-        end
-
-        def section(routes)
-        end
-
-        def header(routes)
         end
 
         def no_routes(routes, filter)
@@ -189,17 +196,11 @@ module ActionDispatch
         end
       end
 
-      class Sheet < Base
-        def section_title(title)
-          @buffer << "\n#{title}:"
-        end
-
-        def section(routes)
-          @buffer << draw_section(routes)
-        end
-
-        def header(routes)
+      class SheetFormatter < Base
+        def draw(routes, title = nil)
           @buffer << draw_header(routes)
+          @buffer << "\n#{"[ #{title} ]"}" if title.present?
+          @buffer << draw_section(routes)
         end
 
         private
@@ -224,18 +225,16 @@ module ActionDispatch
              routes.map { |r| r[:path].length }.max || 0]
           end
       end
+      ConsoleFormatter.register_formatter(SheetFormatter, "sheet")
 
-      class Expanded < Base
-        def initialize(width: IO.console_size[1])
-          @width = width
-          super()
+      class ExpandedFormatter < Base
+        def initialize
+          @width = IO.console_size[1]
+          super
         end
 
-        def section_title(title)
-          @buffer << "\n#{"[ #{title} ]"}"
-        end
-
-        def section(routes)
+        def draw(routes, title = "")
+          @buffer << "\n#{"[ #{title} ]"}" if title.present?
           @buffer << draw_expanded_section(routes)
         end
 
@@ -259,9 +258,10 @@ module ActionDispatch
             "--[ Route #{index} ]".ljust(@width, "-")
           end
       end
+      ConsoleFormatter.register_formatter(ExpandedFormatter, "expanded")
 
-      class Unused < Sheet
-        def header(routes)
+      class Unused < SheetFormatter
+        def draw(routes)
           @buffer << <<~MSG
             Found #{routes.count} unused #{"route".pluralize(routes.count)}:
           MSG
