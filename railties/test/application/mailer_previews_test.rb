@@ -570,11 +570,17 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="part=text%2Fhtml">View as HTML email</option>', last_response.body
+      assert_select "option[selected][value]", "View as HTML email" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+      end
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="part=text%2Fplain">View as plain-text email</option>', last_response.body
+      assert_select "option[selected][value]", "View as plain-text email" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/plain", query["part"]
+      end
     end
 
     test "locale menu selects correct option" do
@@ -702,9 +708,18 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?part=text%2Fplain">', last_response.body
-      assert_match '<option selected value="part=text%2Fplain">', last_response.body
-      assert_match '<option  value="part=text%2Fhtml">', last_response.body
+      assert_select "iframe[name='messageBody'][src]" do |iframe,|
+        query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
+        assert_equal "text/plain", query["part"]
+      end
+      assert_select "option[selected][value*='plain']" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/plain", query["part"]
+      end
+      assert_select "option[value*='html']:not([selected])" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+      end
 
       get "/rails/mailers/notifier/foo?part=text%2Fplain"
       assert_equal 200, last_response.status
@@ -712,9 +727,22 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option  value="name=Ruby&amp;part=text%2Fplain">', last_response.body
+      assert_select "iframe[name='messageBody'][src]" do |iframe,|
+        query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
+        assert_equal "Ruby", query["name"]
+        assert_equal "text/html", query["part"]
+      end
+
+      assert_select "option[selected][value*='html']" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+      end
+
+      assert_select "option[value*='plain']:not([selected])" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "Ruby", query["name"]
+        assert_equal "text/plain", query["part"]
+      end
 
       get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml"
       assert_equal 200, last_response.status
