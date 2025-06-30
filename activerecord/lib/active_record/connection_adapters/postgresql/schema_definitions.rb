@@ -358,7 +358,7 @@ module ActiveRecord
         #     rename_enum_value :article_state, from: "archived", to: "deleted"
         #   end
         #
-        # To inspect all enum types and values in the database use this query in +bin/rails db+ or +psql+ console:
+        # To inspect all enum types and values in the database use this query in <tt>bin/rails db</tt> or +psql+ console:
         #
         #   SELECT n.nspname AS enum_schema,
         #          t.typname AS enum_name,
