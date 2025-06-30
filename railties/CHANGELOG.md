@@ -104,4 +104,8 @@
 
     *Petrik de Heus*
 
+*   Only add browser restrictions for a new Rails app when using importmap.
+
+    *Lucas Dohmen*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.
