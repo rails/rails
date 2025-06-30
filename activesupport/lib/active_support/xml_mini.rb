@@ -62,11 +62,12 @@ module ActiveSupport
       "yaml"     => Proc.new { |yaml| yaml.to_yaml }
     } unless defined?(FORMATTING)
 
-    # TODO use regexp instead of Date.parse
+    DATE_REGEX = /\A(\d{4})-(\d{2})-(\d{2})\z/ unless defined?(DATE_REGEX)
+
     unless defined?(PARSING)
       PARSING = {
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
-        "date"         => Proc.new { |date|    ::Date.parse(date) },
+        "date"         => Proc.new { |date|    (m = DATE_REGEX.match(date)) ? ::Date.new(m[1].to_i, m[2].to_i, m[3].to_i) : ::Date.parse(date) },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
         "duration"     => Proc.new { |duration| Duration.parse(duration) },
         "integer"      => Proc.new { |integer| integer.to_i },
