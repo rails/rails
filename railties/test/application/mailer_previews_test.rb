@@ -711,14 +711,17 @@ module ApplicationTests
       assert_select "iframe[name='messageBody'][src]" do |iframe,|
         query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
         assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
       end
       assert_select "option[selected][value*='plain']" do |option,|
         query = Rack::Utils.parse_nested_query(option["value"])
         assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
       end
       assert_select "option[value*='html']:not([selected])" do |option,|
         query = Rack::Utils.parse_nested_query(option["value"])
         assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
       end
 
       get "/rails/mailers/notifier/foo?part=text%2Fplain"
@@ -731,17 +734,20 @@ module ApplicationTests
         query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
         assert_equal "Ruby", query["name"]
         assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
       end
 
       assert_select "option[selected][value*='html']" do |option,|
         query = Rack::Utils.parse_nested_query(option["value"])
         assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
       end
 
       assert_select "option[value*='plain']:not([selected])" do |option,|
         query = Rack::Utils.parse_nested_query(option["value"])
         assert_equal "Ruby", query["name"]
         assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
       end
 
       get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml"
