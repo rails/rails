@@ -36,13 +36,13 @@ It's also a good idea to collect the user's name at sign up. This allows us to p
 In the terminal, create a migration with these columns:
 
 ```bash
-$ rails g migration AddNamesToUsers first_name:string last_name:string
+$ bin/rails g migration AddNamesToUsers first_name:string last_name:string
 ```
 
 Then migrate the database:
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 Let's also add a method to combine `first_name` and `last_name`, so that we can display the user's full name.
@@ -190,7 +190,7 @@ module Authentication
     # ...
 ```
 
-The `unauthenticated_only_access` class method can be used in any controller where we want to restrict actions to unauthenticated users only.
+The `unauthenticated_access_only` class method can be used in any controller where we want to restrict actions to unauthenticated users only.
 
 We can then use this method at the top of `SignUpsController`.
 
@@ -226,7 +226,7 @@ Now that users can login, let's create all the usual places that users would exp
 
 ### Using Namespaces
 
-The Rails authentication generator already created at `app/controllers/passwords_controller.rb` is the controller for password resets. This means we need to use a different controller for editing passwords of authenticated users.
+The Rails authentication generator already created a controller at `app/controllers/passwords_controller.rb` for password resets. This means we need to use a different controller for editing passwords of authenticated users.
 
 To prevent conflicts, we can use a feature called **namespaces**. A namespace organizes routes, controllers, and views into folders and helps prevent conflicts like our two passwords controllers.
 
@@ -337,12 +337,12 @@ en:
         password_challenge: "Current password"
 ```
 
-To learn more, check out the [I18n Guide])https://guides.rubyonrails.org/i18n.html#translations-for-active-record-models)
+To learn more, check out the [I18n Guide](https://guides.rubyonrails.org/i18n.html#translations-for-active-record-models)
 
 Editing User Profiles
 ---------------------
 
-Next, let's add a page so user's can edit their profile, like updating their first and last name.
+Next, let's add a page so users can edit their profile, like updating their first and last name.
 
 ### Profile Routes & Controller
 
@@ -353,7 +353,7 @@ namespace :settings do
   resource :password, only: [ :show, :update ]
   resource :profile, only: [ :show, :update ]
 
-  root to: redirect("/settings_profile")
+  root to: redirect("/settings/profile")
 end
 ```
 
@@ -635,13 +635,13 @@ Occassionally, users need to change the email address on their account. To do th
 We'll start by adding a new field to the users table in our database. This will store the new email address while we're waiting for confirmation.
 
 ```bash
-$ rails g migration AddUnconfirmedEmailToUsers unconfirmed_email:string
+$ bin/rails g migration AddUnconfirmedEmailToUsers unconfirmed_email:string
 ```
 
 Then migrate the database.
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 
@@ -729,7 +729,7 @@ We haven't created the `UserMailer` yet, so let's do that next.
 Let's use the mailer generator to create the `UserMailer` we referenced in `Settings::EmailsController`:
 
 ```bash
-$ rails generate mailer User email_confirmation
+$ bin/rails generate mailer User email_confirmation
       create  app/mailers/user_mailer.rb
       invoke  erb
       create    app/views/user_mailer
@@ -840,13 +840,13 @@ Now that anyone can sign up for an account on our store, we need to differentiat
 We'll start by adding a column to the User model.
 
 ```bash
-$ rails g migration AddAdminToUsers admin:boolean
+$ bin/rails g migration AddAdminToUsers admin:boolean
 ```
 
 Then migrate the database.
 
 ```bash
-$ rails db:migrate
+$ bin/rails db:migrate
 ```
 
 A `User` with `admin` set to `true` should be able to add and remove products and access other administrative areas of the store.
@@ -874,7 +874,7 @@ When admin is readonly, we have to directly update this in the database instead 
 Rails has a command called `dbconsole` that will open a database console where we can directly interact with the database using SQL.
 
 ```bash
-$ rails dbconsole
+$ bin/rails dbconsole
 SQLite version 3.43.2 2023-10-10 13:08:14
 Enter ".help" for usage hints.
 sqlite>
@@ -945,7 +945,7 @@ module Authentication
     # ...
 ```
 
-Adding this to the Authentication module allows us to use this method in any controller to restrict actions to admin only access.
+Adding this to the `Authentication` module allows us to use this method in any controller to restrict actions to admin only access.
 
 ### Users Controller & Views
 
@@ -1123,6 +1123,7 @@ Remove the Edit and Delete links in `app/views/products/show.html.erb`
 ```
 
 Then remove:
+
 - `app/views/products/new.html.erb`
 - `app/views/products/edit.html.erb`
 - `app/views/products/_form.html.erb`
@@ -1568,7 +1569,7 @@ These tests use a regular user to access the admin only areas and ensures they a
 
 Let's complete these tests by ensuring that admin users _can_ access these areas.
 
-```
+```ruby
 test "admins can access settings/products" do
   sign_in_as users(:admin)
   get settings_products_path
