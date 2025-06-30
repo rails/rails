@@ -1,7 +1,7 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/ruby/.devcontainer/base.Dockerfile
 
 # [Choice] Ruby version: 3.4, 3.3, 3.2
-ARG VARIANT="1.1.3-3.4.4"
+ARG VARIANT="3.4.4"
 FROM ghcr.io/rails/devcontainer/images/ruby:${VARIANT}
 
 RUN sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -34,5 +34,5 @@ COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 RUN sudo chown -R vscode:vscode /tmp/rails
 USER vscode
 RUN cd /tmp/rails \
-    && /home/vscode/.rbenv/shims/bundle install \
+    && bash -i -c 'bundle install' \
     && rm -rf /tmp/rails
