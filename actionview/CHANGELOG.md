@@ -1,3 +1,7 @@
+*   Allow `current_page?` to match against specific HTTP method(s) with a `method:` option.
+
+    *Ben Sheldon*
+
 *   Add `dom_target` helper to create `dom_id`-like strings from an unlimited
     number of objects.
 
