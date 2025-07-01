@@ -5,11 +5,11 @@
    Routing
      ActiveSupport::Concern
 
-    included do
+    included 
       cattr_accessor :router, default: ActionMailbox::Router.new
     
 
-    class_methods do
+    class_methods 
        routing(routes)
         router.add_routes(routes)
       
