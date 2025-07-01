@@ -2,10 +2,10 @@
 
 # :markup: markdown
 
-require "active_support/callbacks"
+ "active_support/callbacks"
 
-module ActionCable
-  module Channel
+ ActionCable
+   Channel
     # # Action Cable Channel Callbacks
     #
     # Action Cable Channel provides callback hooks that are invoked during the life
