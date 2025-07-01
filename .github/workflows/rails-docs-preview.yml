@@ -1,0 +1,61 @@
+---
+env:
+  CLOUDFLARE_PAGES_PROJECT: rails-docs-preview
+steps:
+- key: build
+  label: ":rails: build"
+  command: bundle install && bundle exec rake preview_docs
+  plugins:
+  - github.com/buildkite-plugins/docker-buildkite-plugin#v5.10.0:
+      image: 973266071021.dkr.ecr.us-east-1.amazonaws.com/builds:ruby-3-3-br-main
+      environment:
+      - BUILDKITE_BRANCH
+      - BUILDKITE_BUILD_CREATOR
+      - BUILDKITE_BUILD_NUMBER
+      - BUILDKITE_BUILD_URL
+      - BUILDKITE_COMMIT
+      - BUILDKITE_MESSAGE
+      - BUILDKITE_PULL_REQUEST
+      - BUILDKITE_REPO
+  - github.com/buildkite-plugins/artifacts-buildkite-plugin#v1.9.3:
+      upload: preview.tar.gz
+  timeout_in_minutes: 15
+- key: deploy
+  label: ":rocket: deploy"
+  command: |-
+    mkdir /tmp/preview
+    tar -xzf /tmp/preview.tar.gz -C /tmp/preview
+    npm install wrangler@3
+    npx wrangler@3 pages deploy /tmp/preview --project-name="$CLOUDFLARE_PAGES_PROJECT" --branch="git9087:main"
+  plugins:
+  - github.com/buildkite-plugins/docker-buildkite-plugin#v5.10.0:
+      tty: false
+      image: node:latest
+      volumes:
+      - "./preview.tar.gz:/tmp/preview.tar.gz"
+      workdir: "/workdir"
+      environment:
+      - BUILDKITE_BRANCH
+      - CLOUDFLARE_PAGES_PROJECT
+      - CLOUDFLARE_ACCOUNT_ID
+      - CLOUDFLARE_API_TOKEN
+      - WRANGLER_SEND_METRICS=false
+      mount_checkout: false
+  - github.com/buildkite-plugins/artifacts-buildkite-plugin#v1.9.3:
+      download: preview.tar.gz
+  depends_on:
+  - build
+  timeout_in_minutes: 15
+- env:
+    ANNOTATE_COMMAND: docker run --rm -e CLOUDFLARE_ACCOUNT_ID -e CLOUDFLARE_API_TOKEN
+      -e CLOUDFLARE_PAGES_PROJECT -v ./.buildkite:/workdir/.buildkite -w /workdir
+      ruby:latest ruby .buildkite/bin/docs-preview-annotate
+  label: ":writing_hand: annotate"
+  command: sh -c "$ANNOTATE_COMMAND" | buildkite-agent annotate --style info
+  plugins:
+  - github.com/buildkite-plugins/artifacts-buildkite-plugin#v1.9.3:
+      download: ".buildkite/bin/docs-preview-annotate"
+      compressed: ".buildkite.tgz"
+  depends_on:
+  - deploy
+  timeout_in_minutes: 15
