@@ -1049,7 +1049,7 @@ create that file in our editor and add the following contents:
 <%= link_to "Back", products_path %>
 ```
 
-Now let update the routes file to handle product show page:
+Now let's update the routes file to handle product show page:
 
 ```erb#4
 Rails.application.routes.draw do
