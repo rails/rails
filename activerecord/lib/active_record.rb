@@ -26,6 +26,7 @@
 require "active_support"
 require "active_support/rails"
 require "active_support/ordered_options"
+require "active_support/core_ext/array/conversions"
 require "active_model"
 require "arel"
 require "yaml"
@@ -469,6 +470,29 @@ module ActiveRecord
   # declarations. Defaults to <tt>:create</tt>.
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
+
+  def self.deprecated_associations_options=(options)
+    raise ArgumentError, "deprecated_associations_options must be a hash" unless options.is_a?(Hash)
+
+    valid_keys = [:mode, :backtrace]
+
+    invalid_keys = options.keys - valid_keys
+    unless invalid_keys.empty?
+      inflected_key = invalid_keys.size == 1 ? "key" : "keys"
+      raise ArgumentError, "invalid deprecated_associations_options #{inflected_key} #{invalid_keys.map(&:inspect).to_sentence} (valid keys are #{valid_keys.map(&:inspect).to_sentence})"
+    end
+
+    options.each do |key, value|
+      ActiveRecord::Associations::Deprecation.send("#{key}=", value)
+    end
+  end
+
+  def self.deprecated_associations_options
+    {
+      mode: ActiveRecord::Associations::Deprecation.mode,
+      backtrace: ActiveRecord::Associations::Deprecation.backtrace
+    }
+  end
 
   def self.marshalling_format_version
     Marshalling.format_version

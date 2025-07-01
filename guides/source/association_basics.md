@@ -2807,6 +2807,17 @@ The `:join_table` can be found on a `has_and_belongs_to_many` relationship. If
 the default name of the join table, based on lexical ordering, is not what you
 want, you can use the `:join_table` option to override the default.
 
+#### `:deprecated`
+
+If true, Active Record warns every time the association is used.
+
+Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+backtraces can be enabled or disabled. Defaults are `:warn` mode and disabled
+backtraces.
+
+Please, check the documentation of `ActiveRecord::Associations::ClassMethods`
+for further details.
+
 ### Scopes
 
 Scopes allow you to specify common queries that can be referenced as method

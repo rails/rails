@@ -118,6 +118,7 @@ module ActiveRecord
         def loaders
           @loaders ||=
             grouped_records.flat_map do |reflection, reflection_records|
+              Deprecation.guard(reflection) { "referenced in query to preload records" }
               preloaders_for_reflection(reflection, reflection_records)
             end
         end
