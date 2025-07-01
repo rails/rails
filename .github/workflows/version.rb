@@ -2,11 +2,11 @@
 
 # :markup: markdown
 
-require_relative "gem_version"
+ "gem_version"
 
-module ActionCable
+ ActionCable
   # Returns the currently loaded version of Action Cable as a `Gem::Version`.
-  def self.version
+       own.version
     gem_version
-  end
-end
+  
+
