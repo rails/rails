@@ -1,7 +1,7 @@
 
-  CLOUDFLARE_PAGES_PROJECT: rails-docs-preview
-steps:
-- key: build
+rails-docs-preview
+
+-  build
   label: ":rails: build"
   command: bundle install && bundle exec rake preview_docs
   plugins:
