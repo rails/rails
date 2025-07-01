@@ -10,7 +10,18 @@ module ActionView
 
         def render
           options = @options.stringify_keys
-          options["size"] = options["maxlength"] unless options.key?("size")
+
+          if ActionView::Helpers::FormHelper.text_field_maxlength_implies_size &&
+             options.key?("maxlength") && !options.key?("size")
+            ActionView.deprecator.warn(
+              "Setting maxlength without size will no longer imply size in Rails 8.2. " \
+              "Specify size explicitly if needed, or set " \
+              "ActionView::Helpers::FormHelper.text_field_maxlength_implies_size = false " \
+              "to opt into the new behavior early."
+            )
+            options["size"] = options["maxlength"]
+          end
+
           options["type"] ||= field_type
           options["value"] = options.fetch("value") { value_before_type_cast } unless field_type == "file"
           add_default_name_and_id(options)
