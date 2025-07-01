@@ -115,7 +115,7 @@ end
 Author.find_by_email("tolkien@email.com")
 ```
 
-The `deterministic:` option generates initialization vectors in a deterministic
+The `:deterministic` option generates initialization vectors in a deterministic
 way, meaning it will produce the same encrypted output given the same input
 value. This makes querying encrypted attributes possible, like the `email`
 above.
@@ -168,7 +168,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Attributes with structured types using the [`serialized`](https://api.rubyonrails.org/v8.0.2/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize) method are supported with encryption as well. The `serialized` method is used when you have an attribute that needs to be saved to the database as a serialized object (using `YAML`, `JSON` or such), and retrieved by deserializing into the same object.
+Attributes with structured types using the [`serialized`](https://api.rubyonrails.org/v8.0.2/classes/ActiveRecord/AttributeMethods/Serialization/ClassMethods.html#method-i-serialize) method can be encrypted as well. The `serialized` method is used when you have an attribute that needs to be saved to the database as a serialized object (using `YAML`, `JSON` or such), and retrieved by deserializing into the same object.
 
 WARNING: When using serialized attributes for custom types, the declaration of the serialized attribute should go **before** the encryption declaration:
 
@@ -186,7 +186,7 @@ class Article < ApplicationRecord
 end
 ```
 
-### Unique Constraints with Encrypted Data
+### Ensuring Uniqueness with Encrypted Data
 
 Unique constraints are only supported with deterministically encrypted data.
 
@@ -210,7 +210,7 @@ end
 
 The `extended_queries` configuration also allows combining encrypted and unencrypted data, and when configuring previous encryption schemes.
 
-NOTE: If you want to ignore the case, make sure to use the `downcase` or `ignore_case` option in the `encrypts` declaration. Using the `case_sensitive` option in the validation won't work.
+NOTE: If you want to ignore the case for uniqueness, make sure to use the `:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the `:case_sensitive` option in the validation won't work.
 
 #### Unique Indexes
 

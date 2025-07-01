@@ -1749,23 +1749,23 @@ database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
 #### `config.active_record.encryption.support_unencrypted_data`
 
-When true, unencrypted data can be read normally. When false, it will raise errors. Default: `false`.
+When `true`, unencrypted data can be read normally. When `false`, it will raise errors. Default: `false`.
 
 #### `config.active_record.encryption.extend_queries`
 
-When true, queries referencing deterministically encrypted attributes will be modified to include additional values if needed. Those additional values will be the clean version of the value (when `config.active_record.encryption.support_unencrypted_data` is true) and values encrypted with previous encryption schemes, if any (as provided with the `previous:` option). Default: `false`.
+When `true`, queries referencing deterministically encrypted attributes will be modified to include additional values if needed. Those additional values will be the clean version of the value (when `config.active_record.encryption.support_unencrypted_data` is `true`) and values encrypted with previous encryption schemes, if any (as provided with the `previous:` option). Default: `false`.
 
 #### `config.active_record.encryption.encrypt_fixtures`
 
-When true, encryptable attributes in fixtures will be automatically encrypted when loaded. Default: `false`.
+When `true`, encryptable attributes in fixtures will be automatically encrypted when loaded. Default: `false`.
 
 #### `config.active_record.encryption.store_key_references`
 
-When true, a reference to the encryption key is stored in the headers of the encrypted message. This makes for faster decryption when multiple keys are in use. Default: `false`.
+When `true`, a reference to the encryption key is stored in the headers of the encrypted message. This makes for faster decryption when multiple keys are in use. Default: `false`.
 
 #### `config.active_record.encryption.add_to_filter_parameters`
 
-When true, encrypted attribute names are added automatically to [`config.filter_parameters`](#config-filter-parameters) and won't be shown in logs. Default: `true`.
+When `true`, encrypted attribute names are added automatically to [`config.filter_parameters`](#config-filter-parameters) and won't be shown in logs. Default: `true`.
 
 #### `config.active_record.encryption.excluded_from_filter_parameters`
 
