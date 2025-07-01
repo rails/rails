@@ -1049,6 +1049,16 @@ create that file in our editor and add the following contents:
 <%= link_to "Back", products_path %>
 ```
 
+Now let update the routes file to handle product show page:
+
+```erb#4
+Rails.application.routes.draw do
+  root "products#index"
+  get "/products", to: "products#index"
+  get "/products/:id", to: "products#show", as: "product"
+end
+```
+
 It would be helpful for the index page to link to the show page for each product
 so we can click on them to navigate. We can update the
 `app/views/products/index.html.erb` view to link to this new page to use an
