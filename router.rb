@@ -36,9 +36,8 @@
       routes.detect { |route| route.match?(inbound_email) }&.mailbox_class
     end
 
-    private
+    
       attr_reader :routes
-  end
-end
+  
 
-require "action_mailbox/router/route"
+       "action_mailbox/router/route"
