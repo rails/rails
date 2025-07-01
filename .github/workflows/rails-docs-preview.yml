@@ -1,5 +1,4 @@
----
-env:
+
   CLOUDFLARE_PAGES_PROJECT: rails-docs-preview
 steps:
 - key: build
