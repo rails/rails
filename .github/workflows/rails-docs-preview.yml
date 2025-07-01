@@ -1,8 +1,8 @@
 
-rails-docs-preview
+rails-docs
 
--  build
-  label: ":rails: build"
+  build
+  label:  build
   command: bundle install && bundle exec rake preview_docs
   plugins:
   - github.com/buildkite-plugins/docker-buildkite-plugin#v5.10.0:
