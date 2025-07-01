@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
-module ActionMailbox
+ ActionMailbox
   # = Action Mailbox \Router
   #
   # Encapsulates the routes that live on the ApplicationMailbox and performs the actual routing when
   # an inbound_email is received.
-  class Router
-    class RoutingError < StandardError; end
+   Router
+     RoutingError < StandardError; end
 
-    def initialize
+     initialize
       @routes = []
-    end
+    
 
-    def add_routes(routes)
-      routes.each do |(address, mailbox_name)|
+     add_routes(routes)
+      routes.each    |(address, mailbox_name)|
         add_route address, to: mailbox_name
-      end
-    end
+      
+  
 
     def add_route(address, to:)
       routes.append Route.new(address, to: to)
