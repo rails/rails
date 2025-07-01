@@ -1,4 +1,4 @@
-plugins:
+plug:
   - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
