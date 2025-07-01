@@ -49,4 +49,8 @@ module Authentication
       Current.session.destroy
       cookies.delete(:session_id)
     end
+
+    def redirect_if_authenticated
+      redirect_to(after_authentication_url, alert: "Already Authenticated.") if authenticated?
+    end
 end
