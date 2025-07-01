@@ -48,6 +48,16 @@ module ActiveRecord
         end
       end
 
+      def test_errors_when_copy_from_is_used_while_preventing_writes
+        with_example_table do
+          ActiveRecord::Base.while_preventing_writes do
+            assert_raises(ActiveRecord::ReadOnlyError) do
+              @connection.execute("COPY ex (to) FROM STDIN")
+            end
+          end
+        end
+      end
+
       def test_doesnt_error_when_a_select_query_is_called_while_preventing_writes
         with_example_table do
           @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
@@ -89,6 +99,36 @@ module ActiveRecord
               assert_equal [], @connection.execute("MOVE cur_ex").entries
               assert_equal [], @connection.execute("CLOSE cur_ex").entries
             end
+          end
+        end
+      end
+
+      def test_doesnt_error_when_copy_to_using_a_query_is_used_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          ActiveRecord::Base.while_preventing_writes do
+            assert_equal [], @connection.execute("COPY (SELECT id FROM ex WHERE data = '138853948594') TO STDOUT").entries
+          end
+        end
+      end
+
+      def test_doesnt_error_when_copy_to_using_a_tablename_and_columns_is_used_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          ActiveRecord::Base.while_preventing_writes do
+            assert_equal [], @connection.execute("COPY ex (id, data) TO STDOUT").entries
+          end
+        end
+      end
+
+      def test_doesnt_error_when_copy_to_using_only_a_tablename_is_used_while_preventing_writes
+        with_example_table do
+          @connection.execute("INSERT INTO ex (data) VALUES ('138853948594')")
+
+          ActiveRecord::Base.while_preventing_writes do
+            assert_equal [], @connection.execute("COPY ex TO STDOUT").entries
           end
         end
       end
