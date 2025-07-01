@@ -6,7 +6,6 @@ rails-docs
   command: bundle install && bundle exec rake preview_docs
   plugins:
   - github.com/buildkite-plugins/docker-buildkite-plugin#v5.10.0:
-      image: 973266071021.dkr.ecr.us-east-1.amazonaws.com/builds:ruby-3-3-br-main
       environment:
       - BUILDKITE_BRANCH
       - BUILDKITE_BUILD_CREATOR
