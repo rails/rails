@@ -232,3 +232,48 @@ class BacktraceCleanerFirstCleanLocationTest < ActiveSupport::TestCase
     assert_nil invoke_first_clean_location_defaults
   end
 end
+
+class BacktraceCleanerCleanLocationsTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+    @locations = indirect_caller_locations
+  end
+
+  # Adds a frame from this file to the call stack.
+  def indirect_caller_locations
+    caller_locations
+  end
+
+  test "returns all clean locations (defaults)" do
+    cleaned_locations = @bc.clean_locations(@locations)
+    assert_equal [__FILE__], cleaned_locations.map(&:path)
+  end
+
+  test "returns all clean locations (:silent)" do
+    cleaned_locations = @bc.clean_locations(@locations, :silent)
+    assert_equal [__FILE__], cleaned_locations.map(&:path)
+  end
+
+  test "returns all clean locations (:noise)" do
+    cleaned_locations = @bc.clean_locations(@locations, :noise)
+    assert_not_includes cleaned_locations.map(&:path), __FILE__
+  end
+
+  test "returns an empty array if there are no clean locations" do
+    @bc.add_silencer { true }
+    assert_equal [], @bc.clean_locations(@locations)
+  end
+
+  test "filters and silencers are applied" do
+    @bc.remove_filters!
+    @bc.remove_silencers!
+
+    # We filter all locations as "foo", then we silence filtered strings that
+    # are exactly "foo". If filters and silencers are correctly applied, we
+    # should get no locations back.
+    @bc.add_filter { "foo" }
+    @bc.add_silencer { "foo" == _1 }
+
+    assert_equal [], @bc.clean_locations(@locations)
+  end
+end

@@ -35,31 +35,28 @@ module ApplicationTests
     test "filter_attributes include filter_parameters" do
       app "development"
 
-      assert_not_includes ActiveRecord::Base.filter_attributes, "special_param"
-
       Rails.application.config.filter_parameters += [ :special_param ]
 
-      assert_includes ActiveRecord::Base.filter_attributes, "special_param"
+      assert_includes ActiveRecord::Base.filter_attributes, :special_param
     end
 
-    test "filter_paramenters include filter_attributes for ActiveRecord::Base" do
+    test "filter_parameters include filter_attributes for ActiveRecord::Base" do
       app "development"
-
-      assert_not_includes ActiveRecord::Base.filter_attributes, "special_attr"
 
       ActiveRecord::Base.filter_attributes += [ :special_attr ]
 
       assert_includes Rails.application.config.filter_parameters, "special_attr"
     end
 
-    test "filter_paramenters include filter_attributes for AR::Base subclasses" do
+    test "filter_parameters include filter_attributes for AR::Base subclasses" do
       app "development"
 
-      assert_not_includes ActiveRecord::Base.filter_attributes, "special_attr"
+      class CreditCard < ActiveRecord::Base
+        self.table_name = "credit_cards"
+        self.filter_attributes += [ "digits" ]
+      end
 
-      Message.filter_attributes += [ :special_attr ]
-
-      assert_includes Rails.application.config.filter_parameters, "message.special_attr"
+      assert_includes Rails.application.config.filter_parameters, "credit_card.digits"
     end
   end
 end

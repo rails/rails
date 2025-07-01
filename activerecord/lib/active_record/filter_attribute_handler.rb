@@ -62,7 +62,7 @@ module ActiveRecord
 
       def apply_filter(klass, list)
         list.each do |attribute|
-          klass_name = (klass.name && klass < ActiveRecord::Base) ? klass.name : nil
+          klass_name = (klass.name && klass < ActiveRecord::Base) ? klass.model_name.element : nil
           filter = [klass_name, attribute.to_s].compact.join(".")
           app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
         end
