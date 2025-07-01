@@ -565,7 +565,7 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Deprecations
 
-*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
+*   Deprecate `Rails.application.config.active_job.use_big_decimal_serializer`.
 
 ### Notable changes
 
