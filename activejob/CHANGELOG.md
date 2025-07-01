@@ -89,7 +89,7 @@
 
     *Rafael Mendonça França*
 
-*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
+*   Deprecate `Rails.application.config.active_job.use_big_decimal_serializer`.
 
     *Rafael Mendonça França*
 
