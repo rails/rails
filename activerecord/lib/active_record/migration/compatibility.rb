@@ -50,9 +50,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -180,9 +178,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -243,9 +239,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -286,9 +280,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -334,17 +326,13 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 
           def command_recorder
             recorder = super
-            class << recorder
-              prepend CommandRecorder
-            end
+            recorder.singleton_class.prepend(CommandRecorder)
             recorder
           end
       end
@@ -432,9 +420,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -486,9 +472,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 
