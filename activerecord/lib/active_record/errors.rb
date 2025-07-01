@@ -609,6 +609,9 @@ module ActiveRecord
   # the database version cannot be determined.
   class DatabaseVersionError < ActiveRecordError
   end
+
+  class DeprecatedAssociationError < ActiveRecordError
+  end
 end
 
 require "active_record/associations/errors"
