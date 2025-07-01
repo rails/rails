@@ -15,21 +15,18 @@ namespace :action_mailbox
          url.blank? || password.blank?
         print "URL and INGRESS_PASSWORD are required"
         exit 64 # EX_USAGE
-      end
+      
 
       ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
         print result.message
 
-        case
-        when result.success?
+        
+             result.success?
           exit 0
-        when result.transient_failure?
+             result.transient_failure?
           exit 75 # EX_TEMPFAIL
-        else
+        
           exit 69 # EX_UNAVAILABLE
-        end
-      end
-    end
 
     desc "Relay an inbound email from Postfix to Action Mailbox (URL and INGRESS_PASSWORD required)"
     task postfix: "action_mailbox:ingress:environment" do
@@ -38,13 +35,12 @@ namespace :action_mailbox
       if url.blank? || password.blank?
         print "4.3.5 URL and INGRESS_PASSWORD are required"
         exit 1
-      end
+      
 
       ActionMailbox::Relayer.new(url: url, password: password).relay(STDIN.read).tap do |result|
         print "#{result.status_code} #{result.message}"
         exit result.success?
-      end
-    end
+      
 
     desc "Relay an inbound email from Qmail to Action Mailbox (URL and INGRESS_PASSWORD required)"
     task qmail: "action_mailbox:ingress:environment" do
