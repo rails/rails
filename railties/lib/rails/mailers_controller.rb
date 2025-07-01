@@ -38,7 +38,10 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
       if @preview.email_exists?(@email_action)
         @page_title = "Mailer Preview for #{@preview.preview_name}##{@email_action}"
-        @email = @preview.call(@email_action, params)
+        @@emails ||= {}
+        @email = params[:email_id] && @@emails[params[:email_id]] || @preview.call(@email_action, params)
+        @email_id = @preview.object_id.to_s
+        @@emails[@email_id] = @email
         @attachments = attachments_for(@email).reject { |filename, attachment| attachment.inline? }
         @inline_attachments = attachments_for(@email).select { |filename, attachment| attachment.inline? }
 
@@ -109,7 +112,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
 
     def part_query(mime_type)
-      request.query_parameters.merge(part: mime_type).to_query
+      request.query_parameters.merge(part: mime_type, email_id: @email_id).to_query
     end
 
     def locale_query(locale)
