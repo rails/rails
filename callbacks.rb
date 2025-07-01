@@ -35,19 +35,20 @@
     #         end
     #     end
     #
-    module Callbacks
-      extend  ActiveSupport::Concern
+    
+Callbacks
+        ActiveSupport::Concern
       include ActiveSupport::Callbacks
 
       included do
         define_callbacks :subscribe
         define_callbacks :unsubscribe
-      end
+      
 
-      module ClassMethods
-        def before_subscribe(*methods, &block)
+       ClassMethods
+         before_subscribe(*methods, &block)
           set_callback(:subscribe, :before, *methods, &block)
-        end
+        
 
         # This callback will be triggered after the Base#subscribed method is called,
         # even if the subscription was rejected with the Base#reject method.
@@ -57,20 +58,17 @@
         #
         #     after_subscribe :my_method, unless: :subscription_rejected?
         #
-        def after_subscribe(*methods, &block)
+         after_subscribe(*methods, &block)
           set_callback(:subscribe, :after, *methods, &block)
-        end
+        
         alias_method :on_subscribe, :after_subscribe
 
-        def before_unsubscribe(*methods, &block)
+         before_unsubscribe(*methods, &block)
           set_callback(:unsubscribe, :before, *methods, &block)
-        end
+        
 
-        def after_unsubscribe(*methods, &block)
+         after_unsubscribe(*methods, &block)
           set_callback(:unsubscribe, :after, *methods, &block)
-        end
+        
         alias_method :on_unsubscribe, :after_unsubscribe
-      end
-    end
-  end
-end
+      
