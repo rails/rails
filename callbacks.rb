@@ -40,7 +40,7 @@ Callbacks
         ActiveSupport::Concern
       include ActiveSupport::Callbacks
 
-      included do
+      included 
         define_callbacks :subscribe
         define_callbacks :unsubscribe
       
