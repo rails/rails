@@ -138,6 +138,7 @@ config.active_record.encryption.encrypt_fixtures = true
 ```
 
 When enabled, all the encryptable attributes will be encrypted according to the encryption settings defined in the model.
+If you are using `rails db:fixtures:load` in development, make sure to add the line above to `development.rb` as well.
 
 #### Action Text Fixtures
 
