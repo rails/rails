@@ -26,3 +26,8 @@
 # Applications that want to keep the escaping behavior can set the config to `true`.
 #++
 # Rails.configuration.action_controller.escape_json_responses = false
+
+###
+# Use a Ruby parser to track dependencies between Action View templates
+#++
+# Rails.configuration.action_view.render_tracker = :ruby
