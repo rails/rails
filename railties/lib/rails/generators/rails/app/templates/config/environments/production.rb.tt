@@ -22,9 +22,12 @@ Rails.application.configure do
   config.public_file_server.headers = {
     "cache-control" => lambda do |path, _|
       if path.start_with?("/assets/")
-        "public, max-age=#{1.year.to_i}"
+        # Files in /assets/ are expected to be fully immutable.
+        # If the content change the URL too.
+        "public, immutable, max-age=#{1.year.to_i}"
       else
-        "public, max-age=#{1.minute.to_i}"
+        # For anything else we cache for 1 minute.
+        "public, max-age=#{1.minute.to_i}, stale-while-revalidate=#{5.minutes.to_i}"
       end
     end
   }
