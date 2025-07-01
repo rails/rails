@@ -3,6 +3,10 @@
 
     *Jill Klang*
 
+*   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
+
+    *Bengt-Ove Hollaender*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
