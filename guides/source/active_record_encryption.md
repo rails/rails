@@ -138,7 +138,7 @@ NOTE: If you do not define a `deterministic_key`, then you have effectively disa
 
 You might want to ignore the case when querying deterministically encrypted data. There are two options for achieving this - `:downcase` and `:ignore_case`.
 
-You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
+When you use the `:downcase` option when declaring the encrypted attribute, it converts the data to downcase before encryption occurs. This allows to effectively ignore case when querying data.
 
 ```ruby
 class Person
@@ -146,17 +146,20 @@ class Person
 end
 ```
 
-When using `:downcase`, the original case is lost. In some situations, you might
-want to ignore the case only when querying while also storing the original case.
-For those situations, you can use the `:ignore_case` option. This requires you
-to add a new column named `original_<column_name>` to store the content with the
-case unchanged:
+When using `:downcase`, the original case is lost.
+
+You can use the `:ignore_case` option when you want to preserve the original case for displaying and ignore the case only when querying data:
 
 ```ruby
 class Label
   encrypts :name, deterministic: true, ignore_case: true # the content with the original case will be stored in the column `original_name`
 end
 ```
+
+With the `:ignore_case` option, you need to add a new column named
+`original_<column_name>` to store the encrypted content with the case unchanged.
+When reading the `name` attribute, Rails will serve the version with the
+original case. When querying `name`, it will ignore case.
 
 ### Serialized Attributes
 
