@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Active Record Encryption exists to protect sensitive information in your application, such as personally identifiable information (PII) about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It enables transparent encryption and decryption of attributes when saving and retrieving data. The encryption layer sits between the application and the database.
+Active Record Encryption exists to protect sensitive information in your application, such as personally identifiable information (PII) about your users. Active Record supports application-level encryption by allowing you to declare which attributes should be encrypted. It enables transparent encryption and decryption of attributes when saving and retrieving data.
 
 ## Why Encrypt Data at the Application Level?
 
@@ -52,7 +52,7 @@ active_record_encryption:
 These values can be stored by copying and pasting the generated values into your existing [Rails credentials](/security.html#custom-credentials). Then, you can set the credentials in a config file:
 
 ```ruby
-# config/appication.rb
+# config/application.rb
 config.active_record.encryption.primary_key = Rails.application.credentials.dig(:active_record_encryption, :primary_key)
 config.active_record.encryption.deterministic_key = Rails.application.credentials.dig(:active_record_encryption, :deterministic_key)
 config.active_record.encryption.key_derivation_salt = Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt)
@@ -85,7 +85,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Active Record Encryption will transparently encrypt these attributes before saving them to the database and will decrypt them upon retrieval. For example,
+Active Record Encryption will transparently encrypt these attributes before saving them to the database and will decrypt them upon retrieval. For example:
 
 ```ruby
 article = Article.create title: "Encrypt it all!"
@@ -102,7 +102,7 @@ The value inserted is the encrypted value for the `title` attribute.
 
 ### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
 
-By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder. However, it also means that queries (such as `WHERE title = "Encrypt it all!"`) on encrypted values are not possible, since the same value can result in a different encrypted value that does not match the previously stored ciphertext.
+By default, Active Record Encryption is non-deterministic, which means that encrypting the same value with the same key twice will result in *different* encrypted values (aka ciphertexts). The non-deterministic approach improves security by making crypto-analysis of ciphertexts harder. However, it also means that queries (such as `WHERE title = "Encryption"`) on encrypted values are not possible, since the same value can result in a different encrypted value that does not match the previously stored ciphertext.
 
 If you need to query the encrypted `email` field on the `Author` model below, you can use deterministic encryption:
 
@@ -136,7 +136,7 @@ NOTE: If you do not define a `deterministic_key`, then you have effectively disa
 
 ### Ignoring Case
 
-You might need to ignore the case when querying deterministically encrypted data. Two approaches make accomplishing this easier:
+You might want to ignore the case when querying deterministically encrypted data. There are two options for achieving this - `:downcase` and `:ignore_case`.
 
 You can use the `:downcase` option when declaring the encrypted attribute to downcase the content before encryption occurs.
 
