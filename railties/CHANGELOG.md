@@ -1,3 +1,11 @@
+*   Add email object caching to mailer previews for consistent dynamic content.
+
+    Mailer previews now cache email objects to ensure consistent content across
+    iframe loads and format switches. Previously, dynamic content like random
+    values or timestamps would differ between the subject line and body content.
+
+    *Caio Chassot*
+
 *   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
     It is still recommended to assume and force SSL in production as soon as you can.
