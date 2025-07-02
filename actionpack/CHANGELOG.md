@@ -1,3 +1,25 @@
+*   Add `context:` option to `rate_limit` method.
+
+    Previously, it was not possible to share a rate limit count between several controllers, since the count was by default separate for each controller.
+
+    Now, the `context:` option solves this problem.
+
+    ```ruby
+    class APIController < ActionController::API
+      rate_limit to: 2, within: 2.seconds, context: "api"
+    end
+
+    class API::PostsController < APIController
+      # ...
+    end
+
+    class API::UsersController < APIController
+      # ...
+    end
+    ```
+
+    *ArthurPV*
+
 *   Produce a log when `rescue_from` is invoked.
 
     *Steven Webb*, *Jean Boussier*
