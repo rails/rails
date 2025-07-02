@@ -1,3 +1,6 @@
+[![rails-new-docker](https://github.com/rails/rails/actions/workflows/rails-new-docker.yml/badge.svg)](https://github.com/rails/rails/actions/workflows/rails-new-docker.yml)
+
+
 # Welcome to Rails
 
 ## What's Rails?
