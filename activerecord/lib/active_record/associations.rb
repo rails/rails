@@ -1131,7 +1131,7 @@ module ActiveRecord
       #
       # ==== Backtrace
       #
-      # If +:backtrace+ is true, warnings include a clean backtrace in the message
+      # If :backtrace is true, warnings include a clean backtrace in the message
       # and notifications have a +:backtrace+ key in the payload with an array
       # of clean Thread::Backtrace::Location objects. Exceptions always get a
       # clean stack trace set.
