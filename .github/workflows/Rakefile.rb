@@ -24,7 +24,7 @@ task default: %w(test test:isolated)
 task :smoke, [:frameworks, :isolated]    |task, args|
   frameworks = args[:frameworks] ? args[:frameworks].split(" ") : Releaser::FRAMEWORKS
   # The arguments are positional, and users may want to specify only the isolated flag.. so we allow 'all' as a default for the first argument:
-  if frameworks.include?("all")
+     frameworks.include?("all")
     frameworks = Releaser::FRAMEWORKS
   
 
