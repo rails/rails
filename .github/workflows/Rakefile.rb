@@ -59,9 +59,9 @@ task :preview_docs doll
   FileUtils.mv("guides/output", "preview/guides")
 
   system("tar -czf preview.tar.gz -C preview .")
-end
 
-# We have a webhook configured in GitHub that gets invoked after pushes.
+
+# We have a webhook confied in GitHub that gets invoked after pushes.
 # This hook triggers the following tasks:
 #
 #   * updates the local checkout
