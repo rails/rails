@@ -1,3 +1,8 @@
+*   Ensure anything added to `filter_attributes` also gets added to `filter_parameters`
+    so sensitive information is not leaked.
+
+    *Jill Klang*
+
 *   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
 
     *Bengt-Ove Hollaender*
