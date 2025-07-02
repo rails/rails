@@ -39,8 +39,6 @@ module ActiveRecord
       autoload :AssociationScope
       autoload :DisableJoinsAssociationScope
       autoload :AliasTracker
-
-      autoload :Deprecation
     end
 
     def self.eager_load!
@@ -87,14 +85,6 @@ module ActiveRecord
       # Set the specified association instance.
       def association_instance_set(name, association)
         @association_cache[name] = association
-      end
-
-      def deprecated_associations_api_guard(association, method_name)
-        Deprecation.guard(association.reflection) { "the method #{method_name} was invoked" }
-      end
-
-      def report_deprecated_association(reflection, context:)
-        Deprecation.report(reflection, context: context)
       end
 
       # = Active Record \Associations
@@ -1030,116 +1020,6 @@ module ActiveRecord
       # associated records themselves, you can always do something along the lines of
       # <tt>person.tasks.each(&:destroy)</tt>.
       #
-      # == Deprecated Associations
-      #
-      # Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
-      #
-      #     has_many :posts, deprecated: true
-      #
-      # When a deprecated association is used, a warning is issued using the
-      # Active Record logger, though more options are available via
-      # configuration.
-      #
-      # The message includes some context that helps understand the deprecated
-      # usage:
-      #
-      #     The association Author#posts is deprecated, the method post_ids was invoked (...)
-      #     The association Author#posts is deprecated, referenced in query to preload records (...)
-      #
-      # The dots in the examples above would have the application-level spot
-      # where usage occurred, to help locate what triggered the warning. That
-      # location is computed using the Active Record backtrace cleaner.
-      #
-      # === What is considered to be usage?
-      #
-      # * Invocation of any association methods like +posts+, <tt>posts=</tt>,
-      #   etc.
-      #
-      # * If the association accepts nested attributes, assignment to those
-      #   attributes.
-      #
-      # * If the association is a through association and some of its nested
-      #   associations are deprecated, you'll get warnings for them whenever the
-      #   top-level through is used. This is so regardless of whether the
-      #   through itself is deprecated.
-      #
-      # * Execution of queries that refer to the association. Think execution of
-      #   <tt>eager_load(:posts)</tt>, <tt>joins(author: :posts)</tt>, etc.
-      #
-      # * If the association has a +:dependent+ option, destroying the
-      #   associated record issues warnings (because that has a side-effect that
-      #   would not happen if the association was removed).
-      #
-      # * If the association has a +:touch+ option, saving or destroying the
-      #   record issues a warning (because that has a side-effect that would not
-      #   happen if the association was removed).
-      #
-      # === Things that do NOT issue warnings
-      #
-      # The rationale behind most of the following edge cases is that Active
-      # Record accesses associations lazily, when used. Before that, the
-      # reference to the association is basically just a Ruby symbol.
-      #
-      # * If +posts+ is deprecated, <tt>has_many :comments, through: :posts</tt>
-      #   does not warn. Usage of the +comments+ association reports usage of
-      #   +posts+, as we explained above, but the definition of the +has_many+
-      #   itself does not.
-      #
-      # * Similarly, <tt>accepts_nested_attributes_for :posts</tt> does not
-      #   warn. Assignment to the posts attributes warns, as explained above,
-      #   but the +accepts_nested_attributes_for+ call itself does not.
-      #
-      # * Same if an association declares to be inverse of a deprecated one, the
-      #   macro itself does not warn.
-      #
-      # * In the same line, the declaration <tt>validates_associated :posts</tt>
-      #   does not warn by itself, though access is reported when the validation
-      #   runs.
-      #
-      # * Relation query methods like <tt>Author.includes(:posts)</tt> do not
-      #   warn by themselves. At that point, that is a relation that internally
-      #   stores a symbol for later use. As explained in the previous section,
-      #   you get a warning when/if the query is executed.
-      #
-      # * Access to the reflection object of the association as in
-      #   <tt>Author.reflect_on_association(:posts)</tt> or
-      #   <tt>Author.reflect_on_all_associations</tt> does not warn.
-      #
-      # === Configuration
-      #
-      # Reporting deprecated usage can be configured:
-      #
-      #     config.active_record.deprecated_associations_options = { ... }
-      #
-      # If present, this has to be a hash with keys +:mode+ and/or +:backtrace+.
-      #
-      # ==== Mode
-      #
-      # * In +:warn+ mode, usage issues a warning that includes the
-      #   application-level place where the access happened, if any. This is the
-      #   default mode.
-      #
-      # * In +:raise+ mode, usage raises an
-      #   ActiveRecord::DeprecatedAssociationError with a similar message and a
-      #   clean backtrace in the exception object.
-      #
-      # * In +:notify+ mode, a <tt>deprecated_association.active_record</tt>
-      #   Active Support notification is published. The event payload has the
-      #   association reflection (+:reflection+), the application-level location
-      #   (+:location+) where the access happened (a Thread::Backtrace::Location
-      #   object, or +nil+), and a deprecation message (+:message+).
-      #
-      # ==== Backtrace
-      #
-      # If :backtrace is true, warnings include a clean backtrace in the message
-      # and notifications have a +:backtrace+ key in the payload with an array
-      # of clean Thread::Backtrace::Location objects. Exceptions always get a
-      # clean stack trace set.
-      #
-      # Clean backtraces are computed using the Active Record backtrace cleaner.
-      # In Rails applications, that is by the default the same as
-      # <tt>Rails.backtrace_cleaner</tt>.
-      #
       # == Type safety with ActiveRecord::AssociationTypeMismatch
       #
       # If you attempt to assign an object to an association that doesn't match the inferred
@@ -1407,9 +1287,6 @@ module ActiveRecord
         #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>before an object is removed</b> from the association collection.
         # [:after_remove]
         #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>after an object is removed</b> from the association collection.
-        # [+:deprecated+]
-        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
-        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1607,9 +1484,6 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
-        # [+:deprecated+]
-        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
-        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1802,9 +1676,6 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
-        # [+:deprecated+]
-        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
-        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1994,9 +1865,6 @@ module ActiveRecord
         #   <tt>:autosave</tt> to <tt>true</tt>.
         # [+:strict_loading+]
         #   Enforces strict loading every time an associated record is loaded through this association.
-        # [+:deprecated+]
-        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
-        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_and_belongs_to_many :projects

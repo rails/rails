@@ -235,8 +235,6 @@ module ActiveRecord
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
-            Deprecation.guard(reflection) { "referenced in query to join its table" }
-
             JoinAssociation.new(reflection, build(right, reflection.klass))
           end
         end

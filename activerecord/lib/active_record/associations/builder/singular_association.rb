@@ -17,15 +17,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def reload_#{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.force_reload_reader
+          association(:#{name}).force_reload_reader
         end
 
         def reset_#{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.reset
+          association(:#{name}).reset
         end
       CODE
     end
@@ -34,41 +30,17 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_constructors(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def build_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.build(*args, &block)
+          association(:#{name}).build(*args, &block)
         end
 
         def create_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create(*args, &block)
+          association(:#{name}).create(*args, &block)
         end
 
         def create_#{name}!(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create!(*args, &block)
+          association(:#{name}).create!(*args, &block)
         end
       CODE
-    end
-
-    def self.define_callbacks(model, reflection)
-      super
-
-      # If the record is saved or destroyed and `:touch` is set, the parent
-      # record gets a timestamp updated. We want to know about it, because
-      # deleting the association would change that side-effect and perhaps there
-      # is code relying on it.
-      if reflection.deprecated? && reflection.options[:touch]
-        model.before_save do
-          report_deprecated_association(reflection, context: ":touch has a side effect here")
-        end
-
-        model.before_destroy do
-          report_deprecated_association(reflection, context: ":touch has a side effect here")
-        end
-      end
     end
 
     private_class_method :valid_options, :define_accessors, :define_constructors

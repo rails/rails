@@ -262,7 +262,4 @@ module ActiveRecord
       end
     end
   end
-
-  class DeprecatedAssociationError < ActiveRecordError
-  end
 end

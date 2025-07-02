@@ -19,7 +19,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     self.extensions = []
 
     VALID_OPTIONS = [
-      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints, :deprecated
+      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of, :strict_loading, :query_constraints
     ].freeze # :nodoc:
 
     def self.build(model, name, scope, options, &block)
@@ -102,9 +102,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.reader
+          association(:#{name}).reader
         end
       CODE
     end
@@ -112,9 +110,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_writers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.writer(value)
+          association(:#{name}).writer(value)
         end
       CODE
     end
@@ -142,15 +138,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      if reflection.deprecated?
-        # If :dependent is set, destroying the record has a side effect that
-        # would no longer happen if the association is removed.
-        model.before_destroy do
-          report_deprecated_association(reflection, context: ":dependent has a side effect here")
-        end
-      end
-
-      model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
+      name = reflection.name
+      model.before_destroy(->(o) { o.association(name).handle_dependency })
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)

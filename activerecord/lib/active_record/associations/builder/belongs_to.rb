@@ -108,14 +108,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      if reflection.deprecated?
-        # If :dependent is set, destroying the record has some side effect that
-        # would no longer happen if the association is removed.
-        model.before_destroy do
-          report_deprecated_association(reflection, context: ":dependent has a side effect here")
-        end
-      end
-
       model.after_destroy lambda { |o| o.association(reflection.name).handle_dependency }
     end
 
@@ -153,15 +145,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_change_tracking_methods(model, reflection)
       model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{reflection.name}_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, __method__)
-          association.target_changed?
+          association(:#{reflection.name}).target_changed?
         end
 
         def #{reflection.name}_previously_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, __method__)
-          association.target_previously_changed?
+          association(:#{reflection.name}).target_previously_changed?
         end
       CODE
     end
