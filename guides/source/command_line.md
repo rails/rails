@@ -63,7 +63,7 @@ $ rails new petstore --database=postgresql
 Let's see what it put in our `config/database.yml`:
 
 ```yaml
-# PostgreSQL. Versions 9.3 and up are supported.
+# PostgreSQL. Versions 10.0 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg
