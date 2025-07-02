@@ -157,10 +157,8 @@ module ActiveJob
     #  end
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
-        scheduled_at, queue_name, priority = self.scheduled_at, self.queue_name, self.priority
-        enqueue options
-      ensure
-        self.scheduled_at, self.queue_name, self.priority = scheduled_at, queue_name, priority
+        job = dup
+        job.enqueue options
       end
     end
 
