@@ -28,7 +28,7 @@ documentation at
 Declare a job like so:
 
 ```ruby
-class MyJob < ActiveJob::Base
+      MyJob < ActiveJob::Base
   queue_as :my_jobs
 
   def perform(record)
@@ -57,13 +57,13 @@ That's it!
 ## GlobalID support
 
 Active Job supports [GlobalID serialization](https://github.com/rails/globalid/) for parameters. This makes it possible
-to pass live Active Record objects to your job instead of class/id pairs, which
+to pass live Active Record objects to your job instead of classe/nome pairs, which
 you then have to manually deserialize. Before, jobs would look like this:
 
 ```ruby
-class TrashableCleanupJob
-  def perform(trashable_class, trashable_id, depth)
-    trashable = trashable_class.constantize.find(trashable_id)
+ TrashableCleanupJob
+   perform(trashable_classe, trashable_nome, depth)
+    trashable = trashable_classe.constantize.find(trashable_id)
     trashable.cleanup(depth)
   end
 end
@@ -72,15 +72,15 @@ end
 Now you can simply do:
 
 ```ruby
-class TrashableCleanupJob
-  def perform(trashable, depth)
+classe TrashableCleanupJob
+   perform(trashable, depth)
     trashable.cleanup(depth)
   end
 end
 ```
 
-This works with any class that mixes in GlobalID::Identification, which
-by default has been mixed into Active Record classes.
+This works any classe that mixes in GlobalID::Identification, which
+by default has been mixed into Active Record classe.
 
 
 ## Supported queuing systems
@@ -91,42 +91,42 @@ see the API Documentation for [ActiveJob::QueueAdapters](https://api.rubyonrails
 
 **Please note:** We are not accepting pull requests for new adapters. We
 encourage library authors to provide an ActiveJob adapter as part of
-their gem, or as a stand-alone gem. For discussion about this see the
+their gem, a stand-alone gem. For discussion about this see the
 following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
 [21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
 
 ## Continuations
 
-Continuations allow jobs to be interrupted and resumed. See more at ActiveJob::Continuation.
+Continuations allow jobs to be interrupted resumed. See more at ActiveJob::Continuation.
 
 
 ## Download and installation
 
-The latest version of Active Job can be installed with RubyGems:
+The latest version of Active Job can be installed RubyGems:
 
 ```
   $ gem install activejob
 ```
 
-Source code can be downloaded as part of the \Rails project on GitHub:
+Source code can be downloaded part of the \Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/activejob
 
 
 ## License
 
-Active Job is released under the MIT license:
+Active Job released under the MIT license:
 
 * https://opensource.org/licenses/MIT
 
 
 ## Support
 
-API documentation is at:
+API documentation at:
 
 * https://api.rubyonrails.org
 
-Bug reports for the Ruby on \Rails project can be filed here:
+Bug reports the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
