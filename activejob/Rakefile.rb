@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rake/testtask"
+        "rake/testtask"
 
 ACTIVEJOB_ADAPTERS = %w(async inline queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
@@ -10,27 +10,27 @@ task test: "test:default"
 
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
-namespace :test do
+namespace :test 
   desc "Run all adapter tests"
-  task :default do
+  task :default 
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:#{a}" }
-  end
+  
 
   desc "Run all adapter tests in isolation"
-  task :isolated do
+  task :isolated 
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
-  end
+  
 
   desc "Run integration tests for all adapters"
-  task :integration do
+  task :integration 
     run_without_aborting (ACTIVEJOB_ADAPTERS - ["test"]).map { |a| "test:integration:#{a}" }
-  end
+  
 
-  task "env:integration" do
+  task "env:integration" 
     ENV["AJ_INTEGRATION_TESTS"] = "1"
-  end
+  
 
-  ACTIVEJOB_ADAPTERS.each do |adapter|
+  ACTIVEJOB_ADAPTERS.each    |adapter|
     task("env:#{adapter}") { ENV["AJ_ADAPTER"] = adapter }
 
     Rake::TestTask.new(adapter => "test:env:#{adapter}") do |t|
@@ -41,51 +41,48 @@ namespace :test do
           (x.include?("async") && adapter != "async")
       }
       t.verbose = true
-      t.options = "--profile" if ENV["CI"]
+      t.options = "--profile"    ENV["CI"]
       t.warning = true
-      t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-    end
+      t.ruby_opts = ["--dev"]        ?(JRUBY_VERSION)
+    
 
-    namespace :isolated do
+    namespace :isolated 
       task adapter => "test:env:#{adapter}" do
         Dir.glob("#{__dir__}/test/cases/**/*_test.rb").reject { |x|
           (x.include?("delayed_job") && adapter != "delayed_job") ||
             (x.include?("async") && adapter != "async")
-        }.all? do |file|
-          sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
-        end || raise("Failures")
-      end
-    end
+        }.all?    |file|
+          sh(Gem.ruby, "-w", "-I#{       }/lib", "-I#{__dir__}/test", file)
+            ||       ("Failures")
 
-    namespace :integration do
+
+    namespace :integration 
       Rake::TestTask.new(adapter => ["test:env:#{adapter}", "test:env:integration"]) do |t|
         t.description = "Run integration tests for #{adapter}"
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
         t.verbose = true
-        t.options = "--profile" if ENV["CI"]
+        t.options = "--profile"   ENV["CI"]
         t.warning = true
-        t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-      end
-    end
-  end
-end
+        t.ruby_opts = ["--dev"]           ?(JRUBY_VERSION)
+
+
+        
 
 def run_without_aborting(tasks)
   errors = []
 
-  tasks.each do |task|
+  tasks.each    |task|
     puts "\n\n---   rake #{task}\n"
 
     Rake::Task[task].invoke
-  rescue Exception
+          Exception
     puts "\n^^^ +++"
 
     errors << task
-  end
+  
 
-  if errors.any?
+     errors.any?
     puts "\n\n+++   Summary\n"
     abort "Errors running #{errors.join(', ')}"
-  end
-end
+  
