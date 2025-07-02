@@ -718,7 +718,6 @@ class ReflectionTest < ActiveRecord::TestCase
     end
 end
 
-
 class DeprecatedReflectionsTest < ActiveRecord::TestCase
   test "has_many" do
     assert_non_deprecated_reflection DATS::Author, :posts
