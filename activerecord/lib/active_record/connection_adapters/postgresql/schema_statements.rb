@@ -279,6 +279,11 @@ module ActiveRecord
           execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)} CASCADE"
         end
 
+        # Renames the schema for the given schema name.
+        def rename_schema(schema_name, new_name)
+          execute "ALTER SCHEMA #{quote_schema_name(schema_name)} RENAME TO #{quote_schema_name(new_name)}"
+        end
+
         # Sets the schema search path to a string of comma-separated schema names.
         # Names beginning with $ have to be quoted (e.g. $user => '$user').
         # See: https://www.postgresql.org/docs/current/static/ddl-schemas.html
