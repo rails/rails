@@ -15,6 +15,7 @@ module ActionController
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      mattr_accessor :allowed_redirect_hosts, default: []
     end
 
     # Redirects the browser to the target specified in `options`. This parameter can
@@ -232,6 +233,7 @@ module ActionController
         host = URI(url.to_s).host
 
         return true if host == request.host
+        return true if _allowed_redirect_hosts_permissions.allows?(host)
         return false unless host.nil?
         return false unless url.to_s.start_with?("/")
         !url.to_s.start_with?("//")
@@ -247,6 +249,10 @@ module ActionController
             "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
           raise UnsafeRedirectError, msg
         end
+      end
+
+      def _allowed_redirect_hosts_permissions
+        @allowed_redirect_hosts_permissions ||= ActionDispatch::HostAuthorization::Permissions.new(allowed_redirect_hosts)
       end
   end
 end
