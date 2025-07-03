@@ -1,3 +1,6 @@
+*   Add `rename_schema` method for PostgreSQL.
+
+    *T S Vallender*
 *   Implement support for deprecating associations:
 
     ```ruby
