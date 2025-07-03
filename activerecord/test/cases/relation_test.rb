@@ -356,6 +356,22 @@ module ActiveRecord
       end
     end
 
+    def test_relation_with_annotation_includes_comment_in_update_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.update_all(title: "Same title")
+      end
+    end
+
+    def test_relation_with_annotation_includes_comment_in_delete_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.delete_all
+      end
+    end
+
     def test_relation_without_annotation_does_not_include_an_empty_comment
       log = capture_sql do
         Post.where(id: 1).first

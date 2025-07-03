@@ -26,6 +26,7 @@ module Arel # :nodoc: all
       um.offset(offset)
       um.order(*orders)
       um.wheres = constraints
+      um.comment(comment)
       um.key = key
 
       um.group(group_values_columns) unless group_values_columns.empty?
@@ -39,6 +40,7 @@ module Arel # :nodoc: all
       dm.offset(offset)
       dm.order(*orders)
       dm.wheres = constraints
+      dm.comment(comment)
       dm.key = key
       dm.group(group_values_columns) unless group_values_columns.empty?
       dm.having(having_clause) unless having_clause.nil?
