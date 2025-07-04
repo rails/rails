@@ -174,6 +174,7 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
+    autoload :AdapterTasks,  "active_record/tasks/adapter_tasks"
     autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
