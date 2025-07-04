@@ -42,10 +42,12 @@ module ActiveSupport
       app.reloader.before_class_unload do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.clear
+        ActiveSupport.event_reporter.clear_context
       end
 
       app.executor.to_run do
         ActiveSupport::ExecutionContext.push
+        ActiveSupport.event_reporter.clear_context
       end
 
       app.executor.to_complete do

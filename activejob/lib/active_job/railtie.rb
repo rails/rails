@@ -98,6 +98,16 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.clear_event_reporter_context" do
+      ActiveSupport.on_load(:active_job) do
+        ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around) do |_, inner|
+          inner.call
+        ensure
+          ActiveSupport.event_reporter.clear_context
+        end
+      end
+    end
+
     initializer "active_job.query_log_tags" do |app|
       query_logs_tags_enabled = app.config.respond_to?(:active_record) &&
         app.config.active_record.query_log_tags_enabled &&
