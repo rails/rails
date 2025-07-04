@@ -212,6 +212,18 @@ module AssociationDeprecationTest
       ActiveRecord::LogSubscriber.backtrace_cleaner = @original_backtrace_cleaner
     end
 
+    def assert_user_facing_reflection(model, association)
+      payloads = []
+      callback = ->(event) { payloads << event.payload }
+
+      ActiveSupport::Notifications.subscribed(callback, "deprecated_association.active_record") do
+        model.new.send(association)
+      end
+
+      assert_equal 1, payloads.size
+      assert_equal model.reflect_on_association(association), payloads[0][:reflection]
+    end
+
     test "report publishes an Active Support notification in :notify mode" do
       payloads = []
       callback = ->(event) { payloads << event.payload }
@@ -233,6 +245,30 @@ module AssociationDeprecationTest
 
       assert_equal __FILE__, payload[:backtrace][-2].path
       assert_equal line, payload[:backtrace][-2].lineno
+    end
+
+    test "has_many receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Author, :deprecated_posts)
+    end
+
+    test "has_one receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Author, :deprecated_post)
+    end
+
+    test "belongs_to receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Bulb, :deprecated_car)
+    end
+
+    test "has_many :through receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Author, :deprecated_has_many_through)
+    end
+
+    test "has_one :through receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Author, :deprecated_has_one_through)
+    end
+
+    test "HABTM receives the user-facing reflection in the payload" do
+      assert_user_facing_reflection(DATS::Category, :deprecated_posts)
     end
   end
 end
