@@ -2952,6 +2952,37 @@ The default value depends on the `config.load_defaults` target version:
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
+#### `config.active_support.event_reporter_context_store`
+
+Configures a custom context store for the Event Reporter. The context store is used to manage metadata that should be attached to every event emitted by the reporter.
+
+By default, the Event Reporter uses `ActiveSupport::EventContext` which stores context in fiber-local storage.
+
+To use a custom context store, set this config to a class that implements the context store interface:
+
+```ruby
+# config/application.rb
+config.active_support.event_reporter_context_store = CustomContextStore
+
+class CustomContextStore
+  class << self
+    def context
+      # Return the context hash
+    end
+
+    def set_context(context_hash)
+      # Append context_hash to the existing context store
+    end
+
+    def clear
+      # Clear the stored context
+    end
+  end
+end
+```
+
+Defaults to `nil`, which means the default `ActiveSupport::EventContext` store is used.
+
 ### Configuring Active Job
 
 `config.active_job` provides the following configuration options:

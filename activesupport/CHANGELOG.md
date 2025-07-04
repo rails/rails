@@ -1,3 +1,44 @@
+*   Add Structured Event Reporter, accessible via `Rails.event`.
+
+    The Event Reporter provides a unified interface for producing structured events in Rails
+    applications:
+
+    ```ruby
+    Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    ```
+
+    It supports adding tags to events:
+
+    ```ruby
+    Rails.event.tagged("graphql") do
+      # Event includes tags: { graphql: true }
+      Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    end
+    ```
+
+    As well as context:
+    ```ruby
+    # All events will contain context: {request_id: "abc123", shop_id: 456}
+    Rails.event.set_context(request_id: "abc123", shop_id: 456)
+    ```
+
+    Events are emitted to subscribers. Applications register subscribers to
+    control how events are serialized and emitted. Rails provides several default
+    encoders that can be used to serialize events to common formats:
+
+    ```ruby
+    class MySubscriber
+      def emit(event)
+        encoded_event = ActiveSupport::EventReporter.encoder(:json).encode(event)
+        StructuredLogExporter.export(encoded_event)
+      end
+    end
+
+    Rails.event.subscribe(MySubscriber.new)
+    ```
+
+    *Adrianna Chang*
+
 *   Make `ActiveSupport::Logger` `#freeze`-friendly.
 
     *Joshua Young*
