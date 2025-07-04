@@ -149,6 +149,7 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = build_app(Boomer.new(false), RoutesApp)
   DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
+  OpenInEditorApp = build_app(Boomer.new(true), RoutesApp)
   InterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [Interceptor])
   BadInterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
   ApiApp = build_app(Boomer.new(true), RoutesApp, :api)
@@ -865,6 +866,21 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       assert_select "#Application-Trace-2" do
         assert_select "code a:first", %r{in [`'].*raise_nested_exceptions_first'}
       end
+    end
+  end
+
+  test "shows the link to edit the file in the editor" do
+    begin
+      ENV["EDITOR"] = "atom"
+      @app = OpenInEditorApp
+      Rails.stub :root, Pathname.new(".") do
+        get "/nested_exceptions", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
+
+        assert_select "code a.edit-icon"
+        assert_includes body, "atom://core/open"
+      end
+    ensure
+      ENV.delete("EDITOR")
     end
   end
 

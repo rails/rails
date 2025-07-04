@@ -1,3 +1,8 @@
+*   Allow to open source file with a crash from the browser.
+
+    *Igor Kasyanchuk*
+
+
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 
