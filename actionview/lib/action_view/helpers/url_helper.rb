@@ -538,24 +538,49 @@ module ActionView
       #   current_page?('http://www.example.com/shop/checkout?order=desc&page=1')
       #   # => true
       #
-      # Let's say we're in the <tt>http://www.example.com/products</tt> action with method POST in case of invalid product.
+      #   Different actions may share the same URL path but have a different HTTP method. Let's say we
+      #   sent a POST to <tt>http://www.example.com/products</tt> and rendered a validation error.
       #
       #   current_page?(controller: 'product', action: 'index')
       #   # => false
       #
+      #   current_page?(controller: 'product', action: 'create')
+      #   # => false
+      #
+      #   current_page?(controller: 'product', action: 'create', method: :post)
+      #   # => true
+      #
+      #   current_page?(controller: 'product', action: 'index', method: [:get, :post])
+      #   # => true
+      #
       # We can also pass in the symbol arguments instead of strings.
       #
-      def current_page?(options = nil, check_parameters: false, **options_as_kwargs)
+      def current_page?(options = nil, check_parameters: false, method: :get, **options_as_kwargs)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
                 "in a #request method"
         end
 
-        return false unless request.get? || request.head?
-
         options ||= options_as_kwargs
-        check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
+        if options.is_a?(Hash)
+          check_parameters ||= options.delete(:check_parameters)
+          method ||= options.delete(:method)
+        end
+
+        method_matches = if method == :get
+          request.get? || request.head?
+        else
+          request_method = request.method.downcase.to_sym
+          if method.is_a?(Array)
+            method << :head if method.include?(:get)
+            method.include?(request_method)
+          else
+            method == request_method
+          end
+        end
+        return false unless method_matches
+
         url_string = URI::RFC2396_PARSER.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
