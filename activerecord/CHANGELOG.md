@@ -1,3 +1,20 @@
+*   Add `use_fixed_date_for_time_attributes` configuration option to fix time attribute dirty tracking with timezone conversions.
+
+    When `config.active_record.use_fixed_date_for_time_attributes = true`, time-only attributes maintain a fixed date
+    of 2000-01-01 during timezone conversions, preventing them from being incorrectly marked as changed due to date shifts.
+
+    ```ruby
+    # config/application.rb
+    config.active_record.use_fixed_date_for_time_attributes = true
+    ```
+
+    This fixes an issue where time attributes would be marked as changed when setting the same time value due to
+    timezone conversion causing internal date shifts.
+
+    Fixes #55118
+
+    *Prateek Choudhary*
+
 *   Implement support for deprecating associations:
 
     ```ruby
