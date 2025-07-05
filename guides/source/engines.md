@@ -21,29 +21,66 @@ After reading this guide, you will know:
 What are Engines?
 -----------------
 
-Engines can be considered miniature applications that provide functionality to
-their host applications. A Rails application is actually just a "supercharged"
-engine, with the `Rails::Application` class inheriting a lot of its behavior
-from `Rails::Engine`.
+Engines can be thought of as miniature applications that encapsulate specific
+functionality and integrate with a larger Rails application. A Rails application
+is essentially a "supercharged" engine, with the `Rails::Application` class
+inheriting a lot of its behavior from `Rails::Engine`, which in turn [inherits
+from `Rails::Railtie`](engines.html#the-inheritance-hierarchy).
 
-Therefore, engines and applications can be thought of as almost the same thing,
-just with subtle differences, as you'll see throughout this guide. Engines and
+In the example that follows, we'll be building an engine, called "blog" that
+provides blogging functionality to its host applications, allowing for new
+articles and comments to be created. We'll be using the [`--mountable`
+option](plugins.html#generator-options) to generate the engine.
+
+The main application is always the final authority in a Rails environment. While
+engines can extend or enhance the application's functionality, they are meant to
+support the app — not override or redefine its behavior. Engines exist to serve
+the application, not the other way around.
+
+Some demonstrations of engines in action:
+
+* [Devise](https://github.com/plataformatec/devise) which provides authentication for its parent applications
+* [Thredded](https://github.com/thredded/thredded) which provides forum functionality
+* [Spree](https://github.com/spree/spree) which provides an e-commerce platform
+* [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
+
+### The Inheritance Hierarchy
+
+At the base of this hierarchy,
+[`Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html) is the core
+building block of the Rails framework. It provides hooks into the Rails
+initialization process and allows extensions, such as frameworks (e.g., Active
+Record, Action Mailer) or third-party libraries, to tie into the Rails boot
+sequence.
+
+The [`Rails Engine`](https://api.rubyonrails.org/classes/Rails/Engine.html) builds on
+`Railtie` by adding support for things like routes, isolated namespaces, and
+load paths, making it possible to package complete Rails components. Engines and
 applications also share a common structure.
 
-Engines are also closely related to plugins. The two share a common `lib`
-directory structure, and are both generated using the `rails plugin new`
-generator. The difference is that an engine is considered a "full plugin" by
-Rails (as indicated by the `--full` option that's passed to the generator
-command). We'll actually be using the `--mountable` option here, which includes
-all the features of `--full`, and then some. This guide will refer to these
-"full plugins" simply as "engines" throughout. An engine **can** be a plugin,
-and a plugin **can** be an engine.
+Finally,
+[`Application`](https://api.rubyonrails.org/classes/Rails/Application.html)
+extends `Engine` with additional responsibilities like middleware setup,
+configuration loading, and application initialization. Engines and
+applications also share a common structure.
 
-The engine that will be created in this guide will be called "blorgh". This
-engine will provide blogging functionality to its host applications, allowing
-for new articles and comments to be created. At the beginning of this guide, you
-will be working solely within the engine itself, but in later sections you'll
-see how to hook it into an application.
+### Engines and Plugins
+
+Engines are also closely related to plugins - all engines are plugins, but not
+all plugins are engines. The two share a common `lib` directory structure, and
+are both generated using the `rails plugin new` generator.
+
+While a plugin is generated using `rails plugin new <plugin_name>`, an engine is
+generated using `rails plugin new <engine_name> --full` or `rails plugin new
+<engine_name> --mountable`. The `--full` option tells the generator that you
+want to create an engine that needs its own models/controllers but shares the
+host app's namespace, while the `--mountable` option tells the generator that
+you want to create a fully isolated, mountable engine with its own namespace.
+You can read more about the different generator options in the [Rails Plugins
+Generator Options](plugins.html#generator-options) section.
+
+
+### ** Information to put elsewhere
 
 Engines can also be isolated from their host applications. This means that an
 application is able to have a path provided by a routing helper such as
@@ -52,22 +89,6 @@ application is able to have a path provided by a routing helper such as
 and table names are also namespaced. You'll see how to do this later in this
 guide.
 
-It's important to keep in mind at all times that the application should
-**always** take precedence over its engines. An application is the object that
-has final say in what goes on in its environment. The engine should
-only be enhancing it, rather than changing it drastically.
-
-To see demonstrations of other engines, check out
-[Devise](https://github.com/plataformatec/devise), an engine that provides
-authentication for its parent applications, or
-[Thredded](https://github.com/thredded/thredded), an engine that provides forum
-functionality. There's also [Spree](https://github.com/spree/spree) which
-provides an e-commerce platform, and
-[Refinery CMS](https://github.com/refinery/refinerycms), a CMS engine.
-
-Finally, engines would not have been possible without the work of James Adam,
-Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
-meet them, don't forget to say thanks!
 
 Generating an Engine
 --------------------
