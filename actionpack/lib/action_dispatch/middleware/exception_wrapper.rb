@@ -197,7 +197,7 @@ module ActionDispatch
 
     def source_extracts
       backtrace.map do |trace|
-        extract_source(trace)
+        extract_source(trace).merge(trace: trace)
       end
     end
 

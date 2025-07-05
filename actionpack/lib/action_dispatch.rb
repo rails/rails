@@ -83,6 +83,7 @@ module ActionDispatch
     autoload :RemoteIp
     autoload :ServerTiming
     autoload :ShowExceptions
+    autoload :TraceToFileExtractor
     autoload :SSL
     autoload :Static
   end

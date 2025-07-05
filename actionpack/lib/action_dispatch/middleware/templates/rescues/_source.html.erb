@@ -12,7 +12,8 @@
             <td>
               <pre class="line_numbers">
                 <% source_extract[:code].each_key do |line_number| %>
-<span><%= line_number -%></span>
+                  <% file_url = ActionDispatch::TraceToFileExtractor.open_in_editor? && ActionDispatch::TraceToFileExtractor.new(source_extract[:trace], line_number:).call %>
+<span><%= file_url ? raw("<a href=\"#{file_url}\">#{line_number}</a>") : line_number -%></span>
                 <% end %>
               </pre>
             </td>
