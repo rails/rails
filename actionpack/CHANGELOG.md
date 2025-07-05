@@ -1,3 +1,29 @@
+*   Add support for flag parameters (parameters without values) in URL generation.
+
+    You can now generate URLs with flag parameters by setting parameter values to `nil`
+    and enabling the `include_nil_params` option:
+
+    ```ruby
+    # Traditional behavior (backward compatible)
+    url_for(controller: 'posts', debug: nil, only_path: true)
+    # => "/posts"
+
+    # New flag parameter support
+    url_for(controller: 'posts', debug: nil, only_path: true, include_nil_params: true)
+    # => "/posts?debug"
+
+    # Mixed parameters
+    url_for(controller: 'posts', debug: nil, category: 'tech', only_path: true, include_nil_params: true)
+    # => "/posts?category=tech&debug"
+    ```
+
+    Flag parameters are useful for boolean options in URLs where the presence of the
+    parameter indicates a true value, such as `?debug`, `?preview`, or `?mobile`.
+
+    The default behavior remains unchanged for backward compatibility.
+
+    *Katsuhiko Yoshida*
+
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 

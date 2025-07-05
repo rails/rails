@@ -75,16 +75,16 @@ module ActionDispatch
 
           path = "/" if options[:trailing_slash] && path.blank?
 
-          add_params(path, options[:params]) if options.key?(:params)
+          add_params(path, options[:params], include_nil_params: options[:include_nil_params]) if options.key?(:params)
           add_anchor(path, options[:anchor]) if options.key?(:anchor)
 
           path
         end
 
         private
-          def add_params(path, params)
+          def add_params(path, params, include_nil_params: false)
             params = { params: params } unless params.is_a?(Hash)
-            params.reject! { |_, v| v.to_param.nil? }
+            params.reject! { |_, v| v.to_param.nil? } unless include_nil_params
             query = params.to_query
             path << "?#{query}" unless query.empty?
           end
