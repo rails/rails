@@ -1239,19 +1239,6 @@ module ActiveRecord
           source_reflection.actual_source_reflection
         end
 
-        def collect_deprecated_nested_reflections
-          result = []
-          [through_reflection, source_reflection].each do |reflection|
-            result << reflection if reflection.deprecated?
-            # Both the through and the source reflections could be through
-            # themselves. Nesting can go an arbitrary number of levels down.
-            if reflection.through_reflection?
-              result.concat(reflection.deprecated_nested_reflections)
-            end
-          end
-          result
-        end
-
       private
         attr_reader :delegate_reflection
 
@@ -1269,6 +1256,19 @@ module ActiveRecord
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
+        end
+
+        def collect_deprecated_nested_reflections
+          result = []
+          [through_reflection, source_reflection].each do |reflection|
+            result << reflection if reflection.deprecated?
+            # Both the through and the source reflections could be through
+            # themselves. Nesting can go an arbitrary number of levels down.
+            if reflection.through_reflection?
+              result.concat(reflection.deprecated_nested_reflections)
+            end
+          end
+          result
         end
 
         delegate_methods = AssociationReflection.public_instance_methods -
