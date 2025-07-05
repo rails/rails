@@ -309,7 +309,24 @@ class CurrentAttributesTest < ActiveSupport::TestCase
   test "set and restore attributes when re-entering the executor" do
     ActiveSupport::ExecutionContext.with(nestable: true) do
       # simulate executor hooks from active_support/railtie.rb
-      executor = Class.new(ActiveSupport::Executor)
+      reloader = Class.new(ActiveSupport::Reloader)
+      executor = reloader.executor
+
+      reloader.to_run do |instance|
+        ActiveSupport::ExecutionContext.push
+        instance.class_unload!
+      end
+
+      reloader.to_complete do |instance|
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+      end
+
+      reloader.before_class_unload do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.clear
+      end
+
       executor.to_run do
         ActiveSupport::ExecutionContext.push
       end
@@ -335,6 +352,8 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
           Current.world = "world/3"
           Current.account = "account/3"
+
+          reloader.reload!
 
           assert_equal "world/3", Current.world
           assert_equal "account/3", Current.account
