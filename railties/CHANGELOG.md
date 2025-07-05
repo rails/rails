@@ -1,3 +1,11 @@
+*   Add email object caching to mailer previews for consistent dynamic content.
+
+    Mailer previews now cache email objects to ensure consistent content across
+    iframe loads and format switches. Previously, dynamic content like random
+    values or timestamps would differ between the subject line and body content.
+
+    *Caio Chassot*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
