@@ -87,6 +87,7 @@ class Developer < ActiveRecord::Base
   has_many :ratings, through: :comments
 
   has_one :ship, dependent: :nullify
+  has_one :ship_with_required_developer, dependent: :nullify
   has_one :strict_loading_ship, strict_loading: true, class_name: "Ship"
 
   belongs_to :firm
