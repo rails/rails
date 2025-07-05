@@ -37,7 +37,7 @@ engines can extend or enhance the application's functionality, they are meant to
 support the app — not override or redefine its behavior. Engines exist to serve
 the application, not the other way around.
 
-Some demonstrations of engines in action:
+Some examples of engines in action:
 
 * [Devise](https://github.com/plataformatec/devise) which provides authentication for its parent applications
 * [Thredded](https://github.com/thredded/thredded) which provides forum functionality
