@@ -1437,12 +1437,44 @@ response header to only report violations:
 Rails.application.config.content_security_policy_report_only = true
 ```
 
-Or override it in a controller:
+It is possible to provide an independant [Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+configuration:
 
 ```ruby
+# config/initializers/content_security_policy.rb
+Rails.application.config.content_security_policy_report_only do |policy|
+  policy.default_src :self, :https
+  policy.font_src    :self, :https, :data
+  policy.img_src     :self, :https, :data
+  policy.object_src  :none
+  policy.script_src  :self, :https
+  policy.style_src   :self, :https
+
+  # Specify URI for violation reports
+  policy.report_uri "/csp-violation-report-endpoint"
+end
+```
+
+As with `content_security_policy`, it is possible to override the default:
+
+```ruby
+# Controller override to promote the current content-security-policy policy to report-only
 class PostsController < ApplicationController
   content_security_policy_report_only only: :index
 end
+
+# Controller override to override content-security-policy-report-only header with block
+class PostsController < ApplicationController
+  content_security_policy_report_only only: :index do |policy|
+    # ...
+  end
+end
+
+# Controller override to disable content-security-policy-report-only
+class PostsController < ApplicationController
+  content_security_policy_report_only(false, only: :index)
+end
+
 ```
 
 [`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
