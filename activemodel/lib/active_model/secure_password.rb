@@ -155,7 +155,7 @@ module ActiveModel
             end
           end
 
-          validates_confirmation_of attribute, allow_blank: true
+          validates_confirmation_of attribute, allow_nil: true
         end
 
         # Only generate tokens for records that are capable of doing so (Active Records, not vanilla Active Models)
