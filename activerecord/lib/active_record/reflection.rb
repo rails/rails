@@ -1217,19 +1217,6 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
-      def deprecated?
-        unless defined?(@deprecated)
-          @deprecated =
-            if parent_reflection.is_a?(HasAndBelongsToManyReflection)
-              parent_reflection.deprecated?
-            else
-              delegate_reflection.deprecated?
-            end
-        end
-
-        @deprecated
-      end
-
       def deprecated_nested_reflections
         @deprecated_nested_reflections ||= collect_deprecated_nested_reflections
       end
