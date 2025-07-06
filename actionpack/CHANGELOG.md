@@ -2,7 +2,6 @@
 
     *Igor Kasyanchuk*
 
-
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 
