@@ -2190,25 +2190,6 @@ As with the basic test case, we create the email and store the returned object
 in the `email` variable. The following examples include variations of passing
 arguments and/or parameters.
 
-This example will assert that the email has been enqueued with the correct
-arguments:
-
-```ruby
-require "test_helper"
-
-class UserMailerTest < ActionMailer::TestCase
-  test "invite" do
-    # Create the email and store it for further assertions
-    email = UserMailer.create_invite("me@example.com", "friend@example.com")
-
-    # Test that the email got enqueued with the correct arguments
-    assert_enqueued_email_with UserMailer, :create_invite, args: ["me@example.com", "friend@example.com"] do
-      email.deliver_later
-    end
-  end
-end
-```
-
 This example will assert that a mailer has been enqueued with the correct mailer
 method named arguments by passing a hash of the arguments as `args`:
 
