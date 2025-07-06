@@ -79,12 +79,7 @@ module ActiveRecord::Associations::Deprecation # :nodoc:
       end
 
       def user_facing_reflection(reflection)
-        case reflection.parent_reflection
-        when ActiveRecord::Reflection::HasAndBelongsToManyReflection
-          reflection.parent_reflection
-        else
-          reflection
-        end
+        reflection.active_record.reflect_on_association(reflection.name)
       end
   end
 
