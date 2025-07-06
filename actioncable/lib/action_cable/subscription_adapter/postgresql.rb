@@ -2,7 +2,7 @@
 
 # :markup: markdown
 
-gem "pg", "~> 1.6.0.rc1"
+gem "pg", "~> 1.6"
 require "pg"
 require "openssl"
 
