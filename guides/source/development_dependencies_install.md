@@ -129,7 +129,7 @@ $ sudo npm install --global yarn
 To install all run:
 
 ```bash
-$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips poppler
+$ sudo pacman -S sqlite mariadb libmariadbclient mariadb-clients postgresql postgresql-libs redis memcached imagemagick ffmpeg mupdf mupdf-tools poppler yarn libxml2 libvips
 $ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 $ sudo systemctl start redis mariadb memcached
 ```

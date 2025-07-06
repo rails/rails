@@ -37,6 +37,8 @@ module ActiveRecord::Associations::Deprecation # :nodoc:
     end
 
     def report(reflection, context:)
+      reflection = user_facing_reflection(reflection)
+
       message = +"The association #{reflection.active_record}##{reflection.name} is deprecated, #{context}"
       message << " (#{backtrace_cleaner.first_clean_frame})"
 
@@ -74,6 +76,10 @@ module ActiveRecord::Associations::Deprecation # :nodoc:
 
       def set_backtrace_supports_array_of_locations?
         @backtrace_supports_array_of_locations ||= Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.4.0")
+      end
+
+      def user_facing_reflection(reflection)
+        reflection.active_record.reflect_on_association(reflection.name)
       end
   end
 
