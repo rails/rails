@@ -29,15 +29,19 @@ module ActionDispatch
       end
 
       private
-      def editor
-        @editor ||= ENV["EDITOR"].present? && KNOWN_EDITORS.find { |editor| editor[:symbols].include?(ENV["EDITOR"].to_sym) }
-      end
+        def editor
+          @editor ||= editor_name.present? && KNOWN_EDITORS.find { |editor| editor[:symbols].include?(editor_name.to_sym) }
+        end
 
-      # If we want to define a custom link format, we can set the `RAILS_FILE_LINK_FORMAT` environment variable.
-      # It should be a string with `%{file}` and `%{line}` placeholders.
-      def link_format
-        @link_format ||= (editor && editor&.dig(:url)) || ENV["RAILS_FILE_LINK_FORMAT"]
-      end
+        def editor_name
+          @editor_name ||= (ENV["RAILS_EDITOR"].presence || ENV["EDITOR"].presence)
+        end
+
+        # If we want to define a custom link format, we can set the `RAILS_FILE_LINK_FORMAT` environment variable.
+        # It should be a string with `%{file}` and `%{line}` placeholders.
+        def link_format
+          @link_format ||= (editor && editor&.dig(:url)) || ENV["RAILS_FILE_LINK_FORMAT"]
+        end
     end
   end
 end
