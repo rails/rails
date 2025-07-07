@@ -27,10 +27,6 @@ is essentially a "supercharged" engine, with the `Rails::Application` class
 inheriting a lot of its behavior from `Rails::Engine`, which in turn [inherits
 from `Rails::Railtie`](engines.html#the-inheritance-hierarchy).
 
-In the example that follows, we'll be building an engine, called "blog" that
-provides blogging functionality to its host applications, allowing for new
-articles and comments to be created. We'll be using the [`--mountable`
-option](plugins.html#generator-options) to generate the engine.
 
 The main application is always the final authority in a Rails environment. While
 engines can extend or enhance the application's functionality, they are meant to
@@ -79,7 +75,6 @@ you want to create a fully isolated, mountable engine with its own namespace.
 You can read more about the different generator options in the [Rails Plugins
 Generator Options](plugins.html#generator-options) section.
 
-
 ### ** Information to put elsewhere
 
 Engines can also be isolated from their host applications. This means that an
@@ -93,6 +88,11 @@ guide.
 Generating an Engine
 --------------------
 
+In the following example, we'll be building an engine, called "blorgh" that
+provides blogging functionality to its host applications, allowing for new
+articles and comments to be created. We'll be using the [`--mountable`
+option](plugins.html#generator-options) to generate the engine.
+
 To generate an engine, you will need to run the plugin generator and pass it
 options as appropriate to the need. For the "blorgh" example, you will need to
 create a "mountable" engine, running this command in a terminal:
@@ -101,17 +101,68 @@ create a "mountable" engine, running this command in a terminal:
 $ rails plugin new blorgh --mountable
 ```
 
-The full list of options for the plugin generator may be seen by typing:
+The `--mountable` option will allow our engine to behave like a self-contained mini-application that can be easily integrated into a host Rails application without polluting its global namespace. It will:
+- namespace all controllers, routes, views, helpers, and assets under the `Blorgh` module, preventing conflicts with similarly named components in the host app.
+- isolate routing to the engine, allowing you to mount it at a specific path in the host app (e.g., `/blorgh`), while keeping its internal route structure independent.
+- make the engine more modular and reusable, so it can be plugged into different applications with minimal configuration.
 
-```bash
-$ rails plugin --help
+The structure of the `--mountable` engine will be as follows:
+
+```
+blorgh/
+├── app/
+│   ├── assets/
+│   │   ├── javascripts/
+│   │   │   ├── blorgh/
+│   │   │   │   └── application.js
+│   │   │   └── blorgh_manifest.js
+│   │   └── stylesheets/
+│   │       ├── blorgh/
+│   │       │   └── application.css
+│   │       └── application.css
+│   ├── controllers/
+│   │   └── blorgh/
+│   │       └── application_controller.rb
+│   ├── helpers/
+│   │   └── blorgh/
+│   │       └── application_helper.rb
+│   ├── mailers/
+│   ├── models/
+│   └── views/
+│       └── layouts/
+│           └── blorgh/
+│               └── application.html.erb
+├── bin/
+├── blorgh.gemspec
+├── config/
+│   ├── initializers/
+│   └── routes.rb
+├── lib/
+│   ├── blorgh/
+│   │   └── engine.rb
+│   ├── blorgh.rb
+│   └── tasks/
+│       └── blorgh_tasks.rake
+├── MIT-LICENSE
+├── Rakefile
+├── README.md
+├── test/
+│   ├── dummy/
+│   │   ├── app/
+│   │   ├── bin/
+│   │   ├── config/
+│   │   ├── db/
+│   │   ├── public/
+│   │   └── ... (full Rails app)
+│   ├── integration/
+│   └── test_helper.rb
+└── tmp/
 ```
 
-The `--mountable` option tells the generator that you want to create a
-"mountable" and namespace-isolated engine. This generator will provide the same
-skeleton structure as would the `--full` option. The `--full` option tells the
-generator that you want to create an engine, including a skeleton structure
-that provides the following:
+
+
+
+The above structure provides the following:
 
   * An `app` directory tree
   * A `config/routes.rb` file:
@@ -131,7 +182,7 @@ that provides the following:
     end
     ```
 
-The `--mountable` option will add to the `--full` option:
+It contains some files that are not present in the `--full` option, these are:
 
   * Asset manifest files (`blorgh_manifest.js` and `application.css`)
   * A namespaced `ApplicationController` stub
@@ -161,6 +212,12 @@ following to the dummy application's routes file at
 
 ```ruby
 mount Blorgh::Engine => "/blorgh"
+```
+
+A full list of options for the plugin generator can be seen by running:
+
+```bash
+$ rails plugin --help
 ```
 
 ### Inside an Engine
