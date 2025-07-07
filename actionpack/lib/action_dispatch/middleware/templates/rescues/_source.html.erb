@@ -13,7 +13,7 @@
               <pre class="line_numbers">
                 <% source_extract[:code].each_key do |line_number| %>
                   <% file_url = ActionDispatch::TraceToFileExtractor.call(source_extract[:trace], line_number:) %>
-<span><%= link_to_if file_url.present?, line_number, file_url -%></span>
+<span><%= link_to_if file_url, line_number, file_url -%></span>
                 <% end %>
               </pre>
             </td>
