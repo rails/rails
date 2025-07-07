@@ -75,7 +75,14 @@ you want to create a fully isolated, mountable engine with its own namespace.
 You can read more about the different generator options in the [Rails Plugins
 Generator Options](plugins.html#generator-options) section.
 
-### ** Information to put elsewhere
+### How do you use an Engine in a host app?
+
+You add it to your host app’s `Gemfile`, and then mount it in the main app's routes:
+
+Once mounted, any routes, controllers, views, or assets defined in the engine become available at that mount point in the host application.
+
+
+### Information to put elsewhere**
 
 Engines can also be isolated from their host applications. This means that an
 application is able to have a path provided by a routing helper such as
@@ -83,7 +90,6 @@ application is able to have a path provided by a routing helper such as
 `articles_path`, and the two would not clash. Along with this, controllers, models
 and table names are also namespaced. You'll see how to do this later in this
 guide.
-
 
 Generating an Engine
 --------------------
@@ -102,9 +108,12 @@ $ rails plugin new blorgh --mountable
 ```
 
 The `--mountable` option will allow our engine to behave like a self-contained mini-application that can be easily integrated into a host Rails application without polluting its global namespace. It will:
+
 - namespace all controllers, routes, views, helpers, and assets under the `Blorgh` module, preventing conflicts with similarly named components in the host app.
 - isolate routing to the engine, allowing you to mount it at a specific path in the host app (e.g., `/blorgh`), while keeping its internal route structure independent.
 - make the engine more modular and reusable, so it can be plugged into different applications with minimal configuration.
+
+### The Structure of the Engine
 
 The structure of the `--mountable` engine will be as follows:
 
@@ -158,9 +167,6 @@ blorgh/
 │   └── test_helper.rb
 └── tmp/
 ```
-
-
-
 
 The above structure provides the following:
 
@@ -220,23 +226,29 @@ A full list of options for the plugin generator can be seen by running:
 $ rails plugin --help
 ```
 
-### Inside an Engine
+### The Engine’s Core Setup
 
-#### Critical Files
+#### The `.gemspec` File
 
-At the root of this brand new engine's directory lives a `blorgh.gemspec` file.
-When you include the engine into an application later on, you will do so with
-this line in the Rails application's `Gemfile`:
+At the root of your engine, you’ll find a file named `blorgh.gemspec`. This file defines your engine as a gem. It includes metadata like the gem name, version, authors, dependencies, and which files to include when it's packaged.
+
+To use this engine in a host Rails application, you reference it in the app’s `Gemfile` like so:
 
 ```ruby
 gem "blorgh", path: "engines/blorgh"
 ```
 
-Don't forget to run `bundle install` as usual. By specifying it as a gem within
-the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file
-and requiring a file within the `lib` directory called `lib/blorgh.rb`. This
-file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`)
-and defines a base module called `Blorgh`.
+Then run:
+
+```bash
+bundle install
+```
+
+This tells Bundler to treat the engine as a gem and load it accordingly.
+
+#### The Engine Entry Point: `lib/blorgh.rb`:
+
+Bundler looks for a file matching the gem name, `lib/blorgh.rb`. This file is the main entry point of the engine. It typically requires the engine definition and sets up a base module:
 
 ```ruby
 require "blorgh/engine"
@@ -250,7 +262,9 @@ for their engine. It's a relatively good idea, so if you want to offer
 configuration options, the file where your engine's `module` is defined is
 perfect for that. Place the methods inside the module and you'll be good to go.
 
-Within `lib/blorgh/engine.rb` is the base class for the engine:
+#### The Engine Class Definition: `lib/blorgh/engine.rb`
+
+This file defines the engine class and tells Rails how to load and isolate it:
 
 ```ruby
 module Blorgh
@@ -261,79 +275,85 @@ end
 ```
 
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
-there's an engine at the specified path, and will correctly mount the engine
-inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers, and views.
+there's an engine at the specified path. Rails will automatically:
 
-The `isolate_namespace` method here deserves special notice. This call is
-responsible for isolating the controllers, models, routes, and other things into
-their own namespace, away from similar components inside the application.
-Without this, there is a possibility that the engine's components could "leak"
-into the application, causing unwanted disruption, or that important engine
-components could be overridden by similarly named things within the application.
-One of the examples of such conflicts is helpers. Without calling
-`isolate_namespace`, the engine's helpers would be included in an application's
-controllers.
+* Add the engine’s `app/` folder to the load path.
+* Load the engine’s models, mailers, controllers, and views.
+* Mount the engine at the specified path when used in a host app.
+
+The `isolate_namespace Blorgh` from the Engine class is crucial. It prevents your engine’s components — like models, routes, helpers, and controllers—from clashing with those in the host application or other engines.
+
+For example:
+
+* A generated model becomes `Blorgh::Article` rather than `Article`.
+* The table name is `blorgh_articles`, not `articles`.
+* A controller becomes `Blorgh::ArticlesController`, with views in `app/views/blorgh/articles`.
+* A helper becomes `Blorgh::ArticlesHelper`, with views in `app/helpers/blorgh/articles_helper.rb`.
+* Mailers and Jobs are namespaced as well.
+* Engine routes are kept isolated and don’t mix with the main app’s routes. This is discussed later in the [Routes](#routes) section of this guide.
+
+Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
 
 NOTE: It is **highly** recommended that the `isolate_namespace` line be left
 within the `Engine` class definition. Without it, classes generated in an engine
 **may** conflict with an application.
 
-What this isolation of the namespace means is that a model generated by a call
-to `bin/rails generate model`, such as `bin/rails generate model article`, won't be called `Article`, but
-instead be namespaced and called `Blorgh::Article`. In addition, the table for the
-model is namespaced, becoming `blorgh_articles`, rather than simply `articles`.
-Similar to the model namespacing, a controller called `ArticlesController` becomes
-`Blorgh::ArticlesController` and the views for that controller will not be at
-`app/views/articles`, but `app/views/blorgh/articles` instead. Mailers, jobs
-and helpers are namespaced as well.
+### Understanding the `app` Directory
 
-Finally, routes will also be isolated within the engine. This is one of the most
-important parts about namespacing, and is discussed later in the
-[Routes](#routes) section of this guide.
+The `app` directory in a mountable engine mirrors the familiar structure of a standard Rails application. It includes subdirectories like `assets`, `controllers`, `helpers`, `jobs`, `mailers`, `models`, and `views`.
 
-#### `app` Directory
+Here’s what you should know about each of these, especially in the context of a namespaced engine like `blorgh`:
 
-Inside the `app` directory are the standard `assets`, `controllers`, `helpers`,
-`jobs`, `mailers`, `models`, and `views` directories that you should be familiar with
-from an application. We'll look more into models in a future section, when we're writing the engine.
+#### `app/assets`
 
-Within the `app/assets` directory, there are the `images` and
-`stylesheets` directories which, again, you should be familiar with due to their
-similarity to an application. One difference here, however, is that each
-directory contains a sub-directory with the engine name. Because this engine is
-going to be namespaced, its assets should be too.
+Inside `app/assets`, you’ll find directories for `images`, `javascripts`, and `stylesheets`. Each of these contains a subdirectory named after your engine—`blorgh` in this case.
 
-Within the `app/controllers` directory there is a `blorgh` directory that
-contains a file called `application_controller.rb`. This file will provide any
-common functionality for the controllers of the engine. The `blorgh` directory
-is where the other controllers for the engine will go. By placing them within
-this namespaced directory, you prevent them from possibly clashing with
-identically-named controllers within other engines or even within the
-application.
+This namespacing is important: it ensures that your engine’s assets don’t conflict with those from other engines or the host application. For example:
 
-NOTE: The `ApplicationController` class inside an engine is named just like a
-Rails application in order to make it easier for you to convert your
-applications into engines.
+```
+app/assets/stylesheets/blorgh/application.css
+app/assets/javascripts/blorgh/application.js
+```
 
-Just like for `app/controllers`, you will find a `blorgh` subdirectory under
-the `app/helpers`, `app/jobs`, `app/mailers` and `app/models` directories
-containing the associated `application_*.rb` file for gathering common
-functionalities. By placing your files under this subdirectory and namespacing
-your objects, you prevent them from possibly clashing with identically-named
-elements within other engines or even within the application.
+#### `app/controllers`
 
-Lastly, the `app/views` directory contains a `layouts` folder, which contains a
-file at `blorgh/application.html.erb`. This file allows you to specify a layout
-for the engine. If this engine is to be used as a stand-alone engine, then you
-would add any customization to its layout in this file, rather than the
-application's `app/views/layouts/application.html.erb` file.
+The `controllers` folder contains a `blorgh/` subdirectory where all engine controllers live. It starts with an `application_controller.rb`:
 
-If you don't want to force a layout on to users of the engine, then you can
-delete this file and reference a different layout in the controllers of your
-engine.
+```ruby
+module Blorgh
+  class ApplicationController < ActionController::Base
+  end
+end
+```
 
-#### `bin` Directory
+This controller acts as the base for all controllers in the engine, much like `ApplicationController` does in a full app. Placing it (and all other controllers) in the `blorgh/` namespace ensures they won’t clash with similarly named controllers in the host app or other engines.
+
+#### Other Namespaced Directories
+
+Similar to `app/controllers`, you’ll find a `blorgh/` subdirectory under these other top-level folders:
+
+* `app/helpers/blorgh/`
+* `app/jobs/blorgh/`
+* `app/mailers/blorgh/`
+* `app/models/blorgh/`
+
+Each of these may include a corresponding `application_*.rb` file (e.g., `application_helper.rb`) for defining shared behavior.
+
+This consistent namespacing helps prevent naming collisions and keeps your engine modular and encapsulated.
+
+#### `app/views`
+
+Inside `app/views/layouts`, you’ll find a layout file for the engine:
+
+```
+app/views/layouts/blorgh/application.html.erb
+```
+
+This is the default layout used by views inside the engine. It’s useful if your engine is meant to be used as a self-contained application (e.g., admin dashboards, wikis, etc.). If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the application's `app/views/layouts/application.html.erb` file.
+
+If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
+
+#### `bin/` directory
 
 This directory contains one file, `bin/rails`, which enables you to use the
 `rails` sub-commands and generators just like you would within an application.
@@ -347,7 +367,7 @@ $ bin/rails generate model
 Keep in mind, of course, that anything generated with these commands inside of
 an engine that has `isolate_namespace` in the `Engine` class will be namespaced.
 
-#### `test` Directory
+#### `test` directory
 
 The `test` directory is where tests for the engine will go. To test the engine,
 there is a cut-down version of a Rails application embedded within it at
