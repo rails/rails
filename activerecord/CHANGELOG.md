@@ -1,3 +1,8 @@
+*   Make `belongs_to` association with `optional: true` necessary when using
+    inverse associations with `dependent: :nullify`.
+
+    *francktrouillez*
+
 *   Implement support for deprecating associations:
 
     ```ruby
