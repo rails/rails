@@ -266,7 +266,7 @@ module ActiveRecord
       end
 
       def supports_insert_on_conflict?
-        database_version >= 9_05_00 # >= 9.5
+        true
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -277,7 +277,7 @@ module ActiveRecord
       end
 
       def supports_identity_columns? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       def supports_nulls_not_distinct?
@@ -285,7 +285,7 @@ module ActiveRecord
       end
 
       def supports_native_partitioning? # :nodoc:
-        database_version >= 10_00_00 # >= 10.0
+        true
       end
 
       def index_algorithms
@@ -434,8 +434,9 @@ module ActiveRecord
       end
 
       def supports_pgcrypto_uuid?
-        database_version >= 9_04_00 # >= 9.4
+        true
       end
+      deprecate :supports_pgcrypto_uuid?, deprecator: ActiveRecord.deprecator
 
       def supports_optimizer_hints?
         unless defined?(@has_pg_hint_plan)
@@ -663,8 +664,11 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < 9_03_00 # < 9.3
-          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
+        if database_version < 10_00_00 # < 10.0
+          raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 10.0."
+        end
+        if database_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+          warn "pg gem version #{PG::VERSION} is known to be incompatible with PostgreSQL 18+. Please upgrade to pg 1.6.0 or later."
         end
       end
 
