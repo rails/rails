@@ -15,6 +15,24 @@ class TraceToFileExtractorTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "generate link to file in editor with custom link format" do
+    ActionDispatch::TraceToFileExtractor.stub :link_format, "super://core/open/file?filename=%{file}&line=%{line}" do
+      traces = caller_locations(0)
+      assert traces.size > 0
+      traces.each do |trace|
+        next if trace.to_s.include?("internal:numeric")
+        assert_equal "super://core/open/file?filename=#{trace.absolute_path}&line=#{trace.lineno}", ActionDispatch::TraceToFileExtractor.call(trace)
+      end
+    end
+  end
+
+  test "generates link with custom line number" do
+    ActionDispatch::TraceToFileExtractor.stub :link_format, "super://core/open/file?filename=%{file}&line=%{line}" do
+      trace = caller_locations(0)[0]
+      assert_equal "super://core/open/file?filename=#{trace.absolute_path}&line=4242", ActionDispatch::TraceToFileExtractor.call(trace, line_number: 4242)
+    end
+  end
+
   test "return nil if editor is not set" do
     ActionDispatch::TraceToFileExtractor.stub :editor_name, nil do
       traces = caller_locations(0)
