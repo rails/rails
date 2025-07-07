@@ -148,6 +148,7 @@ module ActionDispatch
       application_trace_with_ids = []
       framework_trace_with_ids = []
       full_trace_with_ids = []
+      application_traces = application_trace.map(&:to_s)
 
       full_trace = backtrace_cleaner&.clean_locations(backtrace, :all) || backtrace
       full_trace.each_with_index do |trace, idx|
@@ -156,11 +157,11 @@ module ActionDispatch
         trace_with_id = {
           exception_object_id: @exception.object_id,
           id: idx,
-          filtered_trace: filtered_trace,
           trace: trace,
+          filtered_trace: filtered_trace,
         }
 
-        if application_trace.include?(filtered_trace)
+        if application_traces.include?(filtered_trace.to_s)
           application_trace_with_ids << trace_with_id
         else
           framework_trace_with_ids << trace_with_id

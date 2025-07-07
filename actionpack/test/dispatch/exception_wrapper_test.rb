@@ -56,10 +56,12 @@ module ActionDispatch
 
     test "#source_extracts fetches source fragments for every backtrace entry" do
       exception = begin index; rescue TestError => ex; ex; end
+
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -69,9 +71,10 @@ module ActionDispatch
       exc = begin ms_index; rescue TestError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["c:/path/to/rails/app/controller.rb", 27], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 27, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 27, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -81,9 +84,10 @@ module ActionDispatch
       exc = begin invalid_ex; rescue TestError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["invalid", 0], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 0, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 0, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -95,9 +99,10 @@ module ActionDispatch
       exception = begin throw_syntax_error; rescue SyntaxError => ex; ex; end
 
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+      trace = wrapper.source_extracts.first[:trace]
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, trace: trace ], wrapper.source_extracts
       end
     end
 
@@ -267,26 +272,26 @@ module ActionDispatch
           "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
-            trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'",
+            trace: wrapper.source_extracts.first[:trace],
             filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
           ],
           "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
-            trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'",
+            trace: wrapper.source_extracts.second[:trace],
             filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
           ],
           "Full Trace" => [
             {
               exception_object_id: exception.object_id,
               id: 0,
-              trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'",
+              trace: wrapper.source_extracts.first[:trace],
               filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
             },
             {
               exception_object_id: exception.object_id,
               id: 1,
-              trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'",
+              trace: wrapper.source_extracts.second[:trace],
               filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
             }
           ]
@@ -296,26 +301,26 @@ module ActionDispatch
           "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
-            trace: "lib/file.rb:42:in `index'",
+            trace: wrapper.source_extracts.first[:trace],
             filtered_trace: "lib/file.rb:42:in `index'"
           ],
           "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
-            trace: "/gems/rack.rb:43:in `in_rack'",
+            trace: wrapper.source_extracts.last[:trace],
             filtered_trace: "/gems/rack.rb:43:in `in_rack'"
           ],
           "Full Trace" => [
             {
               exception_object_id: exception.object_id,
               id: 0,
-              trace: "lib/file.rb:42:in `index'",
+              trace: wrapper.source_extracts.first[:trace],
               filtered_trace: "lib/file.rb:42:in `index'"
             },
             {
               exception_object_id: exception.object_id,
               id: 1,
-              trace: "/gems/rack.rb:43:in `in_rack'",
+              trace: wrapper.source_extracts.last[:trace],
               filtered_trace: "/gems/rack.rb:43:in `in_rack'"
             }
           ]
