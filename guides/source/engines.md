@@ -81,13 +81,10 @@ You add it to your host app’s `Gemfile`, and then mount it in the main app's r
 
 Once mounted, any routes, controllers, views, or assets defined in the engine become available at that mount point in the host application.
 
-
-### Information to put elsewhere**
-
-Engines can also be isolated from their host applications. This means that an
+Since the engine has an isolated namespace, this means that an
 application is able to have a path provided by a routing helper such as
-`articles_path` and use an engine that also provides a path also called
-`articles_path`, and the two would not clash. Along with this, controllers, models
+`articles_path` and the engine can have a path also called
+`articles_path` without clashing. Along with this, controllers, models
 and table names are also namespaced. You'll see how to do this later in this
 guide.
 
