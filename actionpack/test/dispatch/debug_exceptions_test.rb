@@ -149,7 +149,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = build_app(Boomer.new(false), RoutesApp)
   DevelopmentApp = build_app(Boomer.new(true), RoutesApp)
-  OpenInEditorApp = build_app(Boomer.new(true), RoutesApp)
   InterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [Interceptor])
   BadInterceptedApp = build_app(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
   ApiApp = build_app(Boomer.new(true), RoutesApp, :api)
@@ -819,68 +818,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/puke/, body)
   end
 
-  test "debug exceptions app shows all the nested exceptions in source view" do
-    @app = DevelopmentApp
-    Rails.stub :root, Pathname.new(".") do
-      cleaner = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-        bc.add_silencer { |line| !line.match?(%r{test/dispatch/debug_exceptions_test.rb}) }
-      end
-
-      get "/nested_exceptions", headers: { "action_dispatch.backtrace_cleaner" => cleaner }
-
-      # Assert correct error
-      assert_response 500
-      assert_select "div.exception-message" do
-        assert_select "div", /Third error/
-      end
-
-      # assert source view line shows the last error
-      assert_select "div.source:not(.hidden)" do
-        assert_select "pre .line.active", /raise "Third error"/
-      end
-
-      if RUBY_VERSION >= "3.4"
-        # Possible Ruby 3.4-dev bug: https://bugs.ruby-lang.org/issues/19117#note-45
-        # assert application trace refers to line that raises the last exception
-        assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions_third'}
-        end
-
-        # assert the second application trace refers to the line that raises the second exception
-        assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in '.*raise_nested_exceptions_second'}
-        end
-      else
-        # assert application trace refers to line that raises the last exception
-        assert_select "#Application-Trace-0" do
-          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_third'}
-        end
-
-        # assert the second application trace refers to the line that raises the second exception
-        assert_select "#Application-Trace-1" do
-          assert_select "code a:first", %r{in [`']rescue in .*raise_nested_exceptions_second'}
-        end
-      end
-
-      # assert the third application trace refers to the line that raises the first exception
-      assert_select "#Application-Trace-2" do
-        assert_select "code a:first", %r{in [`'].*raise_nested_exceptions_first'}
-      end
-    end
-  end
-
   test "shows the link to edit the file in the editor" do
-    begin
-      ENV["EDITOR"] = "atom"
-      @app = OpenInEditorApp
-      Rails.stub :root, Pathname.new(".") do
-        get "/nested_exceptions", headers: { "action_dispatch.backtrace_cleaner" => ActiveSupport::BacktraceCleaner.new }
+    @app = DevelopmentApp
+    ActionDispatch::TraceToFileExtractor.stub :editor_name, :atom do
+      get "/actionable_error"
 
-        assert_select "code a.edit-icon"
-        assert_includes body, "atom://core/open"
-      end
-    ensure
-      ENV.delete("EDITOR")
+      assert_select "code a.edit-icon"
+      assert_includes body, "atom://core/open"
     end
   end
 

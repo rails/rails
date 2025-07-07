@@ -25,22 +25,30 @@ module ActionDispatch
 
     class << self
       def call(trace, line_number: nil)
-        link_format && link_format % { file: trace.absolute_path, line: line_number || trace.lineno }
+        return nil unless link_format
+
+        absolute_path = trace&.absolute_path
+        line = line_number || trace&.lineno
+
+        return nil unless absolute_path && line
+        return nil unless File.exist?(absolute_path)
+
+        link_format % { file: absolute_path, line: line }
       end
 
       private
         def editor
-          @editor ||= editor_name.present? && KNOWN_EDITORS.find { |editor| editor[:symbols].include?(editor_name.to_sym) }
+          editor_name.present? && KNOWN_EDITORS.find { |editor| editor[:symbols].include?(editor_name.to_sym) }
         end
 
         def editor_name
-          @editor_name ||= (ENV["RAILS_EDITOR"].presence || ENV["EDITOR"].presence)
+          (ENV["RAILS_EDITOR"].presence || ENV["EDITOR"].presence)
         end
 
         # If we want to define a custom link format, we can set the `RAILS_FILE_LINK_FORMAT` environment variable.
         # It should be a string with `%{file}` and `%{line}` placeholders.
         def link_format
-          @link_format ||= (editor && editor&.dig(:url)) || ENV["RAILS_FILE_LINK_FORMAT"]
+          (editor && editor&.dig(:url)) || ENV["RAILS_FILE_LINK_FORMAT"]
         end
     end
   end

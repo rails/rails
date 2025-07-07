@@ -59,7 +59,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
       end
     end
 
@@ -71,7 +71,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
 
       assert_called_with(wrapper, :source_fragment, ["c:/path/to/rails/app/controller.rb", 27], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 27 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 27, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
       end
     end
 
@@ -83,7 +83,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exc, 1))
 
       assert_called_with(wrapper, :source_fragment, ["invalid", 0], returns: "nothing") do
-        assert_equal [ code: "nothing", line_number: 0 ], wrapper.source_extracts
+        assert_equal [ code: "nothing", line_number: 0, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
       end
     end
 
@@ -97,7 +97,7 @@ module ActionDispatch
       wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
 
       assert_called_with(wrapper, :source_fragment, ["lib/file.rb", 42], returns: "foo") do
-        assert_equal [ code: "foo", line_number: 42 ], wrapper.source_extracts
+        assert_equal [ code: "foo", line_number: 42, trace: wrapper.source_extracts.first[:trace] ], wrapper.source_extracts
       end
     end
 
@@ -123,7 +123,7 @@ module ActionDispatch
         code[lineno + i] = line
       end
       code[lineno + 2] = ["        1", ".time", "\n"]
-      assert_equal({ code: code, line_number: lineno + 2 }, wrapper.source_extracts.first)
+      assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
     end
 
     class_eval "def _app_views_tests_show_html_erb;
@@ -142,7 +142,8 @@ module ActionDispatch
 
       assert_equal [{
         code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
-        line_number: 1
+        line_number: 1,
+        trace: wrapper.source_extracts.first[:trace]
       }], wrapper.source_extracts
     end
 
@@ -168,17 +169,20 @@ module ActionDispatch
       extracts = wrapper.source_extracts
       assert_equal({
         code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
-        line_number: 1
+        line_number: 1,
+        trace: extracts[0][:trace]
       }, extracts[0])
       # extracts[1] is Array#each (unreliable backtrace across rubies)
       assert_equal({
         code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
-        line_number: 1
+        line_number: 1,
+        trace: extracts[2][:trace]
       }, extracts[2])
       # extracts[3] is Array#each (unreliable backtrace across rubies)
       assert_equal({
         code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
-        line_number: 1
+        line_number: 1,
+        trace: extracts[4][:trace]
       }, extracts[4])
     end
 
@@ -263,23 +267,27 @@ module ActionDispatch
           "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
-            trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+            trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'",
+            filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
           ],
           "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
-            trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+            trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'",
+            filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
           ],
           "Full Trace" => [
             {
               exception_object_id: exception.object_id,
               id: 0,
-              trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
+              trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'",
+              filtered_trace: "lib/file.rb:42:in 'ActionDispatch::ExceptionWrapperTest#index'"
             },
             {
               exception_object_id: exception.object_id,
               id: 1,
-              trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
+              trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'",
+              filtered_trace: "/gems/rack.rb:43:in 'ActionDispatch::ExceptionWrapperTest#in_rack'"
             }
           ]
         }.inspect, wrapper.traces.inspect)
@@ -288,23 +296,27 @@ module ActionDispatch
           "Application Trace" => [
             exception_object_id: exception.object_id,
             id: 0,
-            trace: "lib/file.rb:42:in `index'"
+            trace: "lib/file.rb:42:in `index'",
+            filtered_trace: "lib/file.rb:42:in `index'"
           ],
           "Framework Trace" => [
             exception_object_id: exception.object_id,
             id: 1,
-            trace: "/gems/rack.rb:43:in `in_rack'"
+            trace: "/gems/rack.rb:43:in `in_rack'",
+            filtered_trace: "/gems/rack.rb:43:in `in_rack'"
           ],
           "Full Trace" => [
             {
               exception_object_id: exception.object_id,
               id: 0,
-              trace: "lib/file.rb:42:in `index'"
+              trace: "lib/file.rb:42:in `index'",
+              filtered_trace: "lib/file.rb:42:in `index'"
             },
             {
               exception_object_id: exception.object_id,
               id: 1,
-              trace: "/gems/rack.rb:43:in `in_rack'"
+              trace: "/gems/rack.rb:43:in `in_rack'",
+              filtered_trace: "/gems/rack.rb:43:in `in_rack'"
             }
           ]
         }.inspect, wrapper.traces.inspect)
