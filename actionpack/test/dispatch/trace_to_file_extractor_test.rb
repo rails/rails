@@ -10,7 +10,7 @@ class TraceToFileExtractorTest < ActionDispatch::IntegrationTest
       traces.each do |trace|
         next if trace.to_s.include?("internal:numeric")
 
-        assert_equal "atom://core/open/file?filename=#{trace.path}&line=#{trace.lineno}", ActionDispatch::TraceToFileExtractor.call(trace)
+        assert_equal "atom://core/open/file?filename=#{trace.absolute_path}&line=#{trace.lineno}", ActionDispatch::TraceToFileExtractor.call(trace)
       end
     end
   end
