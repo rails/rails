@@ -32,6 +32,27 @@ module ActiveRecord
       V8_1 = Current
 
       class V8_0 < V8_1
+        module RemoveForeignKeyColumnMatch
+          def remove_foreign_key(from_table, to_table = nil, **options)
+            options[:_skip_column_match] = true
+            super
+          end
+        end
+
+        module TableDefinition
+          def remove_foreign_key(to_table = nil, **options)
+            options[:_skip_column_match] = true
+            super
+          end
+        end
+
+        include RemoveForeignKeyColumnMatch
+
+        private
+          def compatible_table_definition(t)
+            t.singleton_class.prepend(TableDefinition)
+            super
+          end
       end
 
       class V7_2 < V8_0
@@ -157,9 +178,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -220,9 +239,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -263,9 +280,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -311,17 +326,13 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 
           def command_recorder
             recorder = super
-            class << recorder
-              prepend CommandRecorder
-            end
+            recorder.singleton_class.prepend(CommandRecorder)
             recorder
           end
       end
@@ -409,9 +420,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -463,9 +472,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 

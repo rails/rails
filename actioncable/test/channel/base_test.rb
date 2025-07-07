@@ -126,6 +126,16 @@ class ActionCable::Channel::BaseTest < ActionCable::TestCase
     assert_not_predicate @channel, :subscribed?
   end
 
+  test "unsubscribed? method returns correct status" do
+    assert_not @channel.unsubscribed?
+
+    @channel.subscribe_to_channel
+    assert_not @channel.unsubscribed?
+
+    @channel.unsubscribe_from_channel
+    assert @channel.unsubscribed?
+  end
+
   test "connection identifiers" do
     assert_equal @user.name, @channel.current_user.name
   end

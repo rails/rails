@@ -22,18 +22,18 @@ module ActiveJob
       # The cursor for the step.
       attr_reader :cursor
 
-      def initialize(name, cursor, resumed:, &checkpoint_callback)
+      def initialize(name, cursor, job:, resumed:)
         @name = name.to_sym
         @initial_cursor = cursor
         @cursor = cursor
         @resumed = resumed
-        @checkpoint_callback = checkpoint_callback
+        @job = job
       end
 
       # Check if the job should be interrupted, and if so raise an Interrupt exception.
       # The job will be requeued for retry.
       def checkpoint!
-        checkpoint_callback.call
+        job.checkpoint!
       end
 
       # Set the cursor and interrupt the job if necessary.
@@ -48,8 +48,14 @@ module ActiveJob
       # An UnadvanceableCursorError error will be raised if the cursor does not implement +succ+.
       def advance!(from: nil)
         from = cursor if from.nil?
-        raise UnadvanceableCursorError, "Cursor class '#{from.class}' does not implement succ, " unless from.respond_to?(:succ)
-        set! from.succ
+
+        begin
+          to = from.succ
+        rescue NoMethodError
+          raise UnadvanceableCursorError, "Cursor class '#{from.class}' does not implement 'succ'"
+        end
+
+        set! to
       end
 
       # Has this step been resumed from a previous job execution?
@@ -71,7 +77,7 @@ module ActiveJob
       end
 
       private
-        attr_reader :checkpoint_callback, :initial_cursor
+        attr_reader :initial_cursor, :job
     end
   end
 end

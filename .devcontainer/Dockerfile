@@ -34,5 +34,5 @@ COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 RUN sudo chown -R vscode:vscode /tmp/rails
 USER vscode
 RUN cd /tmp/rails \
-    && /home/vscode/.rbenv/shims/bundle install \
+    && bash -i -c 'bundle install' \
     && rm -rf /tmp/rails

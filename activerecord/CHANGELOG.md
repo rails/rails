@@ -14,6 +14,62 @@
 
     *Alexandre Camillo*
 
+*   Implement support for deprecating associations:
+
+    ```ruby
+    has_many :posts, deprecated: true
+    ```
+
+    With that, Active Record will report any usage of the `posts` association.
+
+    Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+    backtraces can be enabled or disabled. Defaults are `:warn` mode and
+    disabled backtraces.
+
+    Please, check the docs for further details.
+
+    *Xavier Noria*
+
+*   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
+
+    *Bengt-Ove Hollaender*
+
+*   Use ntuples to populate row_count instead of count for Postgres
+
+    *Jonathan Calvert*
+
+*   Fix checking whether an unpersisted record is `include?`d in a strictly
+    loaded `has_and_belongs_to_many` association.
+
+    *Hartley McGuire*
+
+*   Add ability to change transaction isolation for all pools within a block.
+
+    This functionality is useful if your application needs to change the database
+    transaction isolation for a request or action.
+
+    Calling `ActiveRecord.with_transaction_isolation_level(level) {}` in an around filter or
+    middleware will set the transaction isolation for all pools accessed within the block,
+    but not for the pools that aren't.
+
+    This works with explicit and implicit transactions:
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.transaction do # opens a transaction explicitly
+        Tag.create!
+      end
+    end
+    ```
+
+    ```ruby
+    ActiveRecord.with_transaction_isolation_level(:read_committed) do
+      Tag.create! # opens a transaction implicitly
+    end
+    ```
+
+    *Eileen M. Uchitelle*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because

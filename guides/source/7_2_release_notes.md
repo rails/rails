@@ -478,6 +478,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   `ActiveRecord::Base.establish_connection` no longer sets `ActiveRecord::Base.connection.active?` to `true`. If you need this behavior, you can use `ActiveRecord::Base.connection.verify!` instead.
+
 Active Storage
 --------------
 
@@ -565,7 +567,7 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Deprecations
 
-*   Deprecate `Rails.application.config.active_job.use_big_decimal_serialize`.
+*   Deprecate `Rails.application.config.active_job.use_big_decimal_serializer`.
 
 ### Notable changes
 

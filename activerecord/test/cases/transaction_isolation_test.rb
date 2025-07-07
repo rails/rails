@@ -29,10 +29,16 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       self.table_name = "tags"
     end
 
+    class Dog < ARUnit2Model
+      self.table_name = "dogs"
+    end
+
     setup do
       Tag.establish_connection :arunit
       Tag2.establish_connection :arunit
+      Dog.establish_connection :arunit2
       Tag.destroy_all
+      Dog.destroy_all
     end
 
     # It is impossible to properly test read uncommitted. The SQL standard only
@@ -62,16 +68,16 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       assert_equal 1, Tag.count
     end
 
-    test "default_isolation_level" do
-      assert_nil Tag.default_isolation_level
+    test "pool_transaction_isolation_level" do
+      assert_nil Tag.pool_transaction_isolation_level
 
       events = []
       ActiveSupport::Notifications.subscribed(
         -> (event) { events << event.payload[:sql] },
         "sql.active_record",
       ) do
-        Tag.with_default_isolation_level(:read_committed) do
-          assert_equal :read_committed, Tag.default_isolation_level
+        Tag.with_pool_transaction_isolation_level(:read_committed) do
+          assert_equal :read_committed, Tag.pool_transaction_isolation_level
           Tag.transaction do
             Tag.create!(name: "jon")
           end
@@ -80,27 +86,120 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       assert_begin_isolation_level_event(events)
     end
 
-    test "default_isolation_level cannot be set within open transaction" do
+    test "pool_transaction_isolation_level cannot be set within open transaction" do
       assert_raises(ActiveRecord::TransactionIsolationError) do
         Tag.transaction do
-          Tag.with_default_isolation_level(:read_committed) { }
+          Tag.with_pool_transaction_isolation_level(:read_committed) { }
         end
       end
     end
 
-    test "default_isolation_level but transaction overrides isolation" do
-      assert_nil Tag.default_isolation_level
+    test "pool_transaction_isolation_level but transaction overrides isolation" do
+      assert_nil Tag.pool_transaction_isolation_level
 
       events = []
       ActiveSupport::Notifications.subscribed(
         -> (event) { events << event.payload[:sql] },
         "sql.active_record",
       ) do
-        Tag.with_default_isolation_level(:read_committed) do
-          assert_equal :read_committed, Tag.default_isolation_level
+        Tag.with_pool_transaction_isolation_level(:read_committed) do
+          assert_equal :read_committed, Tag.pool_transaction_isolation_level
 
           Tag.transaction(isolation: :repeatable_read) do
             Tag.create!(name: "jon")
+          end
+        end
+      end
+
+      assert_begin_isolation_level_event(events, isolation: "REPEATABLE READ")
+    end
+
+    test "with_transaction_isolation_level explicit transaction" do
+      assert_nil ActiveRecord.default_transaction_isolation_level
+
+      events = []
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { events << event.payload[:sql] },
+        "sql.active_record",
+      ) do
+        assert_nil Tag.connection_pool.pool_transaction_isolation_level
+        assert_nil Dog.connection_pool.pool_transaction_isolation_level
+
+        ActiveRecord.with_transaction_isolation_level(:read_committed) do
+          assert_equal :read_committed, ActiveRecord.default_transaction_isolation_level
+          Tag.transaction do
+            assert_equal :read_committed, Tag.connection_pool.pool_transaction_isolation_level
+            assert_equal :read_committed, Dog.connection_pool.pool_transaction_isolation_level
+
+            Tag.create!(name: "jon")
+            Dog.create!
+          end
+        end
+      end
+
+      assert_nil Tag.connection_pool.pool_transaction_isolation_level
+      assert_nil Dog.connection_pool.pool_transaction_isolation_level
+      assert_begin_isolation_level_event(events, count: 2)
+    end
+
+    test "with_transaction_isolation_level implicit transaction" do
+      assert_nil ActiveRecord.default_transaction_isolation_level
+
+      events = []
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { events << event.payload[:sql] },
+        "sql.active_record",
+      ) do
+        ActiveRecord.with_transaction_isolation_level(:read_committed) do
+          assert_equal :read_committed, ActiveRecord.default_transaction_isolation_level
+
+          Tag.create!(name: "jon")
+          Dog.create!
+        end
+      end
+
+      assert_begin_isolation_level_event(events, count: 2)
+    end
+
+    test "with_transaction_isolation_level cannot be set within open transaction" do
+      Tag.transaction do
+        assert_raises(ActiveRecord::TransactionIsolationError) do
+          ActiveRecord.with_transaction_isolation_level(:repeatable_read) do
+            Tag.create!(name: "some tag")
+          end
+        end
+      end
+    end
+
+    test "with_transaction_isolation_level cannot be changed within the block" do
+      Tag.transaction do
+        assert_raises(ActiveRecord::TransactionIsolationError) do
+          ActiveRecord.with_transaction_isolation_level(:repeatable_read) do
+            Tag.transaction do
+              ActiveRecord.with_transaction_isolation_level(:serializable) do
+                assert_raises do
+                  Tag.create!(name: "some tag")
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+    test "with_transaction_isolation_level but transaction overrides isolation" do
+      assert_nil ActiveRecord.default_transaction_isolation_level
+
+      events = []
+      ActiveSupport::Notifications.subscribed(
+        -> (event) { events << event.payload[:sql] },
+        "sql.active_record",
+      ) do
+        ActiveRecord.with_transaction_isolation_level(:read_committed) do
+          assert_equal :read_committed, ActiveRecord.default_transaction_isolation_level
+
+          Dog.transaction(isolation: :repeatable_read) do
+            Dog.create!
           end
         end
       end
@@ -154,11 +253,11 @@ class TransactionIsolationTest < ActiveRecord::TestCase
     end
 
     private
-      def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED")
+      def assert_begin_isolation_level_event(events, isolation: "READ COMMITTED", count: 1)
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal 1, events.select { _1.match(/BEGIN ISOLATION LEVEL #{isolation}/) }.size
+          assert_equal count, events.select { _1.match(/BEGIN ISOLATION LEVEL #{isolation}/) }.size
         else
-          assert_equal 1, events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
+          assert_equal count, events.select { _1.match(/SET TRANSACTION ISOLATION LEVEL #{isolation}/) }.size
         end
       end
   end

@@ -242,6 +242,21 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     write_prompt "User.new.respond_to?(:age)", "=> true"
   end
 
+  def test_console_respects_user_defined_irb_name
+    irbrc = Tempfile.new("irbrc")
+    irbrc.write <<-RUBY
+      IRB.conf[:IRB_NAME] = "jarretts-irb"
+    RUBY
+    irbrc.close
+
+    options = "-e test"
+    spawn_console(options, env: { "IRBRC" => irbrc.path })
+
+    write_prompt "123", prompt: "jarretts-irb(test):002> "
+  ensure
+    File.unlink(irbrc)
+  end
+
   def test_console_respects_user_defined_prompt_mode
     irbrc = Tempfile.new("irbrc")
     irbrc.write <<-RUBY

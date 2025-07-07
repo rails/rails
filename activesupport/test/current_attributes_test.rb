@@ -66,9 +66,6 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :current, :previous
   end
 
-  # Eagerly set-up `instance`s by reference.
-  [ Current.instance, Session.instance ]
-
   # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
   def before_setup
     @original_time_zone = Time.zone
@@ -306,5 +303,51 @@ class CurrentAttributesTest < ActiveSupport::TestCase
 
     assert_equal [], current.method(:attr).parameters
     assert_equal [[:req, :value]], current.method(:attr=).parameters
+  end
+
+
+  test "set and restore attributes when re-entering the executor" do
+    ActiveSupport::ExecutionContext.with(nestable: true) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+      end
+
+      Current.world = "world/1"
+      Current.account = "account/1"
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
+
+      Current.set(world: "world/2", account: "account/2") do
+        assert_equal "world/2", Current.world
+        assert_equal "account/2", Current.account
+
+        executor.wrap do
+          assert_nil Current.world
+          assert_nil Current.account
+
+          Current.world = "world/3"
+          Current.account = "account/3"
+
+          assert_equal "world/3", Current.world
+          assert_equal "account/3", Current.account
+
+          ActiveSupport::CurrentAttributes.clear_all
+
+          assert_nil Current.world
+          assert_nil Current.account
+        end
+      end
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
+    end
   end
 end

@@ -2,8 +2,10 @@
 
 require "cases/helper"
 require "models/author"
+require "models/lesson"
 require "models/post"
 require "models/pet"
+require "models/student"
 require "models/toy"
 require "models/comment"
 require "models/cpk"
@@ -31,8 +33,17 @@ class DeleteAllTest < ActiveRecord::TestCase
   def test_delete_all
     davids = Author.where(name: "David")
 
-    assert_difference("Author.count", -1) { davids.delete_all }
+    assert_difference("Author.count", -1) do
+      assert_equal 1, davids.delete_all
+    end
     assert_not_predicate davids, :loaded?
+  end
+
+  def test_delete_all_return_value_ignores_cascades
+    student = Student.create(name: "Ruy Rocha")
+    lesson = Lesson.create(name: "Anything Possible")
+    student.lessons << lesson
+    assert_equal 1, Student.delete_all
   end
 
   def test_delete_all_with_index_hint

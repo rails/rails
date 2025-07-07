@@ -49,8 +49,8 @@ module ActiveRecord
         true
       end
 
-      def default_isolation_level; end
-      def default_isolation_level=(isolation_level)
+      def pool_transaction_isolation_level; end
+      def pool_transaction_isolation_level=(isolation_level)
         raise NotImplementedError, "This method should never be called"
       end
     end
@@ -428,6 +428,24 @@ module ActiveRecord
         end
       end
 
+      def with_pool_transaction_isolation_level(isolation_level, transaction_open, &block) # :nodoc:
+        if !ActiveRecord.default_transaction_isolation_level.nil?
+          begin
+            if transaction_open && self.pool_transaction_isolation_level != ActiveRecord.default_transaction_isolation_level
+              raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
+            end
+
+            old_level = self.pool_transaction_isolation_level
+            self.pool_transaction_isolation_level = isolation_level
+            yield
+          ensure
+            self.pool_transaction_isolation_level = old_level
+          end
+        else
+          yield
+        end
+      end
+
       # Returns true if a connection has already been opened.
       def connected?
         synchronize { @connections.any?(&:connected?) }
@@ -711,13 +729,13 @@ module ActiveRecord
         raise ex.set_pool(self)
       end
 
-      def default_isolation_level
-        isolation_level_key = "activerecord_default_isolation_level_#{db_config.name}"
+      def pool_transaction_isolation_level
+        isolation_level_key = "activerecord_pool_transaction_isolation_level_#{db_config.name}"
         ActiveSupport::IsolatedExecutionState[isolation_level_key]
       end
 
-      def default_isolation_level=(isolation_level)
-        isolation_level_key = "activerecord_default_isolation_level_#{db_config.name}"
+      def pool_transaction_isolation_level=(isolation_level)
+        isolation_level_key = "activerecord_pool_transaction_isolation_level_#{db_config.name}"
         ActiveSupport::IsolatedExecutionState[isolation_level_key] = isolation_level
       end
 

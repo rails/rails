@@ -1013,7 +1013,7 @@ Previewing and Testing Mailers
 ------------------------------
 
 You can find detailed instructions on how to test your mailers in the [testing
-guide](testing.html#testing-your-mailers).
+guide](testing.html#testing-mailers).
 
 ### Previewing Emails
 

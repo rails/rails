@@ -1488,6 +1488,8 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL comment
 `[ :application, :controller, :action, :job ]`. The available tags are: `:application`, `:controller`,
 `:namespaced_controller`, `:action`, `:job`, and `:source_location`.
 
+WARNING: Calculating the `:source_location` of a query can be slow, so you should consider its impact if using it in a production environment.
+
 #### `config.active_record.query_log_tags_format`
 
 A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.
@@ -1793,6 +1795,31 @@ config.active_record.protocol_adapters.mysql = "trilogy"
 ```
 
 If no mapping is found, the protocol is used as the adapter name.
+
+#### `config.active_record.deprecated_associations_options`
+
+If present, this has to be a hash with keys `:mode` and/or `:backtrace`:
+
+```ruby
+config.active_record.deprecated_associations_options = { mode: :notify, backtrace: true }
+```
+
+* In `:warn` mode, accessing the deprecated association is reported by the
+  Active Record logger. This is the default mode.
+
+* In `:raise` mode, usage raises an `ActiveRecord::DeprecatedAssociationError`
+  with a similar message and a clean backtrace in the exception object.
+
+* In `:notify` mode, a `deprecated_association.active_record` Active Support
+  notification is published. Please, see details about its payload in the
+  [Active Support Instrumentation guide](active_support_instrumentation.html).
+
+Backtraces are disabled by default. If `:backtrace` is true, warnings include a
+clean backtrace in the message, and notifications have a `:backtrace` key in the
+payload with an array of clean `Thread::Backtrace::Location` objects. Exceptions
+always have a clean stack trace.
+
+Clean backtraces are computed using the Active Record backtrace cleaner.
 
 ### Configuring Action Controller
 

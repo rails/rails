@@ -3,7 +3,7 @@
 module Arel # :nodoc: all
   module Nodes
     class DeleteStatement < Arel::Nodes::Node
-      attr_accessor :relation, :wheres, :groups, :havings, :orders, :limit, :offset, :key
+      attr_accessor :relation, :wheres, :groups, :havings, :orders, :limit, :offset, :comment, :key
 
       def initialize(relation = nil, wheres = [])
         super()
@@ -14,6 +14,7 @@ module Arel # :nodoc: all
         @orders = []
         @limit = nil
         @offset = nil
+        @comment = nil
         @key = nil
       end
 
@@ -24,7 +25,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        [self.class, @relation, @wheres, @orders, @limit, @offset, @key].hash
+        [self.class, @relation, @wheres, @orders, @limit, @offset, @comment, @key].hash
       end
 
       def eql?(other)
@@ -36,6 +37,7 @@ module Arel # :nodoc: all
           self.havings == other.havings &&
           self.limit == other.limit &&
           self.offset == other.offset &&
+          self.comment == other.comment &&
           self.key == other.key
       end
       alias :== :eql?

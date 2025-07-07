@@ -17,8 +17,20 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
   <%- end -%>
 
-  # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  # Cache digest stamped assets for far-future expiry.
+  # Short cache for others: robots.txt, sitemap.xml, 404.html, etc.
+  config.public_file_server.headers = {
+    "cache-control" => lambda do |path, _|
+      if path.start_with?("/assets/")
+        # Files in /assets/ are expected to be fully immutable.
+        # If the content change the URL too.
+        "public, immutable, max-age=#{1.year.to_i}"
+      else
+        # For anything else we cache for 1 minute.
+        "public, max-age=#{1.minute.to_i}, stale-while-revalidate=#{5.minutes.to_i}"
+      end
+    end
+  }
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"

@@ -21,6 +21,7 @@ module Arel # :nodoc: all
       um.offset(offset)
       um.order(*orders)
       um.wheres = constraints
+      um.comment(comment)
       um.key = key
 
       um.ast.groups = @ctx.groups
@@ -34,6 +35,7 @@ module Arel # :nodoc: all
       dm.offset(offset)
       dm.order(*orders)
       dm.wheres = constraints
+      dm.comment(comment)
       dm.key = key
       dm.ast.groups = @ctx.groups
       @ctx.havings.each { |h| dm.having(h) }

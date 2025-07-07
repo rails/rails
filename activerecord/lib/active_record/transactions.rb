@@ -230,27 +230,28 @@ module ActiveRecord
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
         with_connection do |connection|
-          connection.transaction(**options, &block)
+          connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+            connection.transaction(**options, &block)
+          end
         end
       end
 
-      # Makes all transactions initiated within the block use the isolation level
-      # that you set as the default. Useful for gradually migrating apps onto new isolation level.
-      def with_default_isolation_level(isolation_level, &block)
+      # Makes all transactions the current pool use the isolation level initiated within the block.
+      def with_pool_transaction_isolation_level(isolation_level, &block)
         if current_transaction.open?
           raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
         end
 
-        old_level = connection_pool.default_isolation_level
-        connection_pool.default_isolation_level = isolation_level
+        old_level = connection_pool.pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level = isolation_level
         yield
       ensure
-        connection_pool.default_isolation_level = old_level
+        connection_pool.pool_transaction_isolation_level = old_level
       end
 
-      # Returns the default isolation level for the connection pool, set earlier by #with_default_isolation_level.
-      def default_isolation_level
-        connection_pool.default_isolation_level
+      # Returns the default isolation level for the connection pool, set earlier by #with_pool_transaction_isolation_level.
+      def pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level
       end
 
       # Returns a representation of the current transaction state,
@@ -426,18 +427,20 @@ module ActiveRecord
     # instance.
     def with_transaction_returning_status
       self.class.with_connection do |connection|
-        status = nil
-        ensure_finalize = !connection.transaction_open?
+        connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+          status = nil
+          ensure_finalize = !connection.transaction_open?
 
-        connection.transaction do
-          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-          remember_transaction_record_state
+          connection.transaction do
+            add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+            remember_transaction_record_state
 
-          status = yield
-          raise ActiveRecord::Rollback unless status
+            status = yield
+            raise ActiveRecord::Rollback unless status
+          end
+          @_last_transaction_return_status = status
+          status
         end
-        @_last_transaction_return_status = status
-        status
       end
     end
 
