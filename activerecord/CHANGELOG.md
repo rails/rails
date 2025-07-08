@@ -1,4 +1,4 @@
-*   Ensure anything added to `filter_attributes` also gets added to `filter_parameters`
+*   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
     so sensitive information is not leaked.
 
     *Jill Klang*
