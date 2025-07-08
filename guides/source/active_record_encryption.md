@@ -244,11 +244,10 @@ Checking for uniqueness is only supported with deterministically encrypted data.
 
 #### Unique Validations
 
-In order to support unique validations, you'll need to enable extended queries.
-The default value for this configuration is false:
+In order to support unique validations, you'll need to enable extended queries. This makes sure we query for the downcased encrypted attribute (if used) and previous encryption schemes as well. The default value for this configuration is false:
 
 ```ruby
-# config/applicaiton.rb
+# config/application.rb
 config.active_record.encryption.extend_queries = true
 ```
 
@@ -262,8 +261,6 @@ class Person
 end
 ```
 
-The `extended_queries` configuration also allows combining encrypted and
-unencrypted data, and when configuring previous encryption schemes.
 
 NOTE: If you want to ignore the case for uniqueness, make sure to use the
 `:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the
@@ -763,13 +760,4 @@ In order to store a key reference, you need to enable this configuration:
 ```ruby
 config.active_record.encryption.store_key_references = true
 ```
-
-## Configuration
-
-You can configure Active Record Encryption options in your `application.rb`
-(most common scenario) or in a specific environment config file
-`config/environments/<env name>.rb` if you want to set them on a per-environment
-basis. You can see the Active Record Encryption related configuration properties
-in the [Configuration
-Guide](configuring.html#config-active-record-encryption-support-unencrypted-data)
 
