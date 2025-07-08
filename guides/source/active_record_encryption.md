@@ -261,7 +261,6 @@ class Person
 end
 ```
 
-
 NOTE: If you want to ignore the case for uniqueness, make sure to use the
 `:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the
 `:case_sensitive` option in the validation won't work.
