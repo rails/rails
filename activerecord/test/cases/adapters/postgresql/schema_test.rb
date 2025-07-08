@@ -201,6 +201,33 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_rename_schema
+    @connection.create_schema("test_schema3")
+    @connection.rename_schema("test_schema3", "test_schema4")
+    assert_not_includes @connection.schema_names, "test_schema3"
+    assert_includes @connection.schema_names, "test_schema4"
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
+  end
+
+  def test_rename_schema_with_nonexisting_schema
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("idontexist", "neitherdoi")
+    end
+  end
+
+  def test_rename_schema_with_existing_target_name
+    @connection.create_schema("test_schema3")
+    @connection.create_schema("test_schema4")
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("test_schema3", "test_schema4")
+    end
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
+  end
+
   def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
       @connection.exec_query "select * from developers where id = ?", "sql", [bind_param(1)]
