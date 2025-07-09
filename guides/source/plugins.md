@@ -603,7 +603,7 @@ namespace :api_boost do
 
   def api_resource_models
     ApplicationRecord.descendants.select do |model|
-      model.respond_to?(:api_timestamp_field)
+      model.include?(ApiBoost::ActsAsApiResource)
     end
   end
 end
