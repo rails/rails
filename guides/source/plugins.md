@@ -627,9 +627,7 @@ class RailtieTest < ActiveSupport::TestCase
   end
 
   def test_acts_as_api_resource_is_automatically_included
-    # Test that ActsAsApiResource was automatically included
-    assert User.respond_to?(:acts_as_api_resource)
-    assert Product.respond_to?(:acts_as_api_resource)
+    assert Class.new(ApplicationRecord).include?(ApiBoost::ActsAsApiResource)
   end
 
   def test_rake_tasks_are_loaded
