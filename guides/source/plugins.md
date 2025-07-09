@@ -38,7 +38,7 @@ basic integration point for extending Rails — it’s typically used when your
 plugin needs to add configuration, rake tasks, or initializer code, but doesn’t
 expose any controllers, views, or models.
 
-NOTE: 
+NOTE:
 An [Engine](engines.html) is a more advanced type of plugin that behaves like a mini Rails
 application. It can include its own routes, controllers, views, and even assets.
 While all engines are plugins, not all plugins are engines. The main difference lies
@@ -334,7 +334,7 @@ module ApiBoost
     extend ActiveSupport::Concern
 
     class_methods do
-      def acts_as_api_resource(api_timestamp_field: :last_request_at)
+      def acts_as_api_resource(api_timestamp_field: :last_requested_at)
         # Create a class-level setting that stores which field to use for the API timestamp.
         cattr_accessor :api_timestamp_field, default: api_timestamp_field.to_s
       end
@@ -352,13 +352,13 @@ documentation](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ### Add a Class Method
 
 By default, this plugin expects your model to have a column named
-`last_request_at`. However, since that column name might already be used for
+`last_requested_at`. However, since that column name might already be used for
 something else, the plugin lets you customize it. You can override the default
 by passing a different column name with the `api_timestamp_field:` option.
 Internally, this value is stored in a class-level setting called
 `api_timestamp_field`, which the plugin uses when updating the timestamp.
 
-For example, if you want to use `last_api_call` instead of `last_request_at` as
+For example, if you want to use `last_api_call` instead of `last_requested_at` as
 the column name, you can do the following:
 
 First, generate some models in your "dummy" Rails application to test this
@@ -366,7 +366,7 @@ functionality. Run the following commands from the `test/dummy` directory:
 
 ```bash
 $ cd test/dummy
-$ bin/rails generate model Product last_request_at:datetime last_api_call:datetime
+$ bin/rails generate model Product last_requested_at:datetime last_api_call:datetime
 $ bin/rails db:migrate
 ```
 
@@ -424,7 +424,7 @@ module ApiBoost
 
     class_methods do
       def acts_as_api_resource(options = {})
-        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_request_at).to_s
+        cattr_accessor :api_timestamp_field, default: (options[:api_timestamp_field] || :last_requested_at).to_s
       end
     end
   end
@@ -682,20 +682,20 @@ Create a test file for your ActsAs functionality:
 require "test_helper"
 
 class ActsAsApiResourceTest < ActiveSupport::TestCase
-  def test_a_users_api_timestamp_field_should_be_last_request_at
-    assert_equal "last_request_at", User.api_timestamp_field
+  def test_a_users_api_timestamp_field_should_be_last_requested_at
+    assert_equal "last_requested_at", User.api_timestamp_field
   end
 
   def test_a_products_api_timestamp_field_should_be_last_api_call
     assert_equal "last_api_call", Product.api_timestamp_field
   end
 
-  def test_users_track_api_request_should_populate_last_request_at
+  def test_users_track_api_request_should_populate_last_requested_at
     user = User.new
     freeze_time = Time.current
     Time.stub(:current, freeze_time) do
       user.track_api_request
-      assert_equal freeze_time.to_s, user.last_request_at.to_s
+      assert_equal freeze_time.to_s, user.last_requested_at.to_s
     end
   end
 
