@@ -227,11 +227,15 @@ anywhere in your Rails application.
 WARNING: Before proceeding, it's important to understand that extending core
 classes (like String, Array, Hash, etc.) should be used sparingly, if at all.
 Core class extensions can be brittle, dangerous, and are often unnecessary.</br></br>
-Extending core classes can cause naming conflicts when multiple gems extend the
-same class with the same method name, break unexpectedly when Ruby or Rails
-updates change core class behavior, make debugging difficult because it's not
-obvious where methods come from, and create coupling issues between your plugin
-and other code. </br></br>Better alternatives to consider are to create utility
+Extending core classes can:
+<ul><li>cause naming conflicts when multiple gems extend the
+same class with the same method name</li>
+<li>break unexpectedly when Ruby or Rails
+updates change core class behavior</li>
+<li>make debugging difficult because it's not
+obvious where methods come from</li>
+<li> create coupling issues between your plugin
+and other code</li></ul> </br></br>Better alternatives to consider are to create utility
 modules or helper classes, use composition over monkey patching, or implement
 functionality as instance methods on your own classes.</br></br>
 For more details on why core class extensions can be problematic, see [The Case
