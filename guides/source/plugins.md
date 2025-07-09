@@ -644,7 +644,7 @@ the [Rails Initialization Process Guide](initialization.html).
 Testing Your Plugin
 -------------------
 
-Now that your plugin is working, it's good practice to add tests. The Rails
+It's good practice to add tests. The Rails
 plugin generator created a test framework for you. Let's add tests for the
 functionality we just built.
 
