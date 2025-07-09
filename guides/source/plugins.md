@@ -480,7 +480,7 @@ Let's say you want to make the default rate limit in your
 module ApiBoost
   class Railtie < Rails::Railtie
     config.api_boost = ActiveSupport::OrderedOptions.new
-    config.api_boost.default_rate_limit = "60 requests per hour"
+    config.api_boost.default_rate_limit = 60.requests_per_hour
 
     initializer "api_boost.configure" do |app|
       ApiBoost.configuration = app.config.api_boost
@@ -510,7 +510,7 @@ Update your core extension to use the configuration:
 
 class String
   def to_throttled_response(limit = nil)
-    default_limit = ApiBoost.configuration&.default_rate_limit || "60 requests per hour"
+    default_limit = ApiBoost.configuration&.default_rate_limit || 60.requests_per_hour
     {
       data: self,
       rate_limit: limit || default_limit
@@ -553,7 +553,7 @@ Instead of requiring users to manually include `ActsAsApiResource` in their
 module ApiBoost
   class Railtie < Rails::Railtie
     config.api_boost = ActiveSupport::OrderedOptions.new
-    config.api_boost.default_rate_limit = "60 requests per hour"
+    config.api_boost.default_rate_limit = 60.requests_per_hour
 
     initializer "api_boost.configure" do |app|
       ApiBoost.configuration = app.config.api_boost
@@ -623,7 +623,7 @@ require "test_helper"
 class RailtieTest < ActiveSupport::TestCase
   def test_configuration_is_available
     assert_not_nil ApiBoost.configuration
-    assert_equal "60 requests per hour", ApiBoost.configuration.default_rate_limit
+    assert_equal 60.requests_per_hour, ApiBoost.configuration.default_rate_limit
   end
 
   def test_acts_as_api_resource_is_automatically_included
@@ -660,7 +660,7 @@ require "test_helper"
 class CoreExtTest < ActiveSupport::TestCase
   def test_to_throttled_response_adds_rate_limit_header
     response_data = "Hello API"
-    expected = { data: "Hello API", rate_limit: "60 requests per hour" }
+    expected = { data: "Hello API", rate_limit: 60.requests_per_hour }
     assert_equal expected, response_data.to_throttled_response
   end
 
