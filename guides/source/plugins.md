@@ -51,7 +51,8 @@ Generator Options
 ------------------
 
 Rails plugins are built as gems. They can be shared across different Rails
-applications using RubyGems and Bundler if desired.
+applications using [RubyGems](https://guides.rubygems.org/make-your-own-gem/)
+and [Bundler](https://bundler.io/guides/creating_gem.html) if desired.
 
 The `rails plugin new` command supports several options that determine what type
 of plugin structure is generated.
@@ -221,8 +222,9 @@ start adding functionality.
 Extending Core Classes
 ----------------------
 
-This section will explain how to add a method to [Integer](https://docs.ruby-lang.org/en/master/Integer.html) that will be available
-anywhere in your Rails application.
+This section will explain how to add a method to
+[Integer](https://docs.ruby-lang.org/en/master/Integer.html) that will be
+available anywhere in your Rails application.
 
 WARNING: Before proceeding, it's important to understand that extending core
 classes (like String, Array, Hash, etc.) should be used sparingly, if at all.
@@ -508,14 +510,17 @@ Update your core extension to use the configuration:
 ```ruby
 # api_boost/lib/api_boost/core_ext.rb
 
-class String
-  def to_throttled_response(limit = nil)
-    default_limit = ApiBoost.configuration&.default_rate_limit || 60.requests_per_hour
-    {
-      data: self,
-      rate_limit: limit || default_limit
-    }
-  end
+module ApiBoost
+  module ActsAsApiResource
+    def to_throttled_json(rate_limit = ApiBoost.configuration.default_rate_limit)
+        limit_window = 1.send(rate_limit.per).ago..
+        num_of_requests = self.class.where(self.class.api_timestamp_field => limit_window).count
+        if num_of_requests > rate_limit.requests
+           { error: "Rate limit reached" }.to_json
+        else
+          to_json
+        end
+    end
 end
 ```
 
@@ -785,11 +790,3 @@ Once your comments are good to go, navigate to your plugin directory and run:
 ```bash
 $ bundle exec rake rdoc
 ```
-
-### References
-
-* [Developing a RubyGem using
-  Bundler](https://bundler.io/guides/creating_gem.html)
-* [Using .gemspecs as
-  Intended](https://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
-* [Gemspec Reference](https://guides.rubygems.org/specification-reference/)
