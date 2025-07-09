@@ -124,6 +124,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Notable changes
 
+*   Introduce safer, more explicit params handling method with [`params#expect`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect) such that
+    `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`.
+
 Action View
 -----------
 
