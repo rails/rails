@@ -1,3 +1,7 @@
+*   Include current character length in error messages for index and table name length validations.
+
+    *Joshua Young*
+
 *   Add `rename_schema` method for PostgreSQL.
 
     *T S Vallender*
