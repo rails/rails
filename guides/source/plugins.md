@@ -512,14 +512,15 @@ Update your core extension to use the configuration:
 module ApiBoost
   module ActsAsApiResource
     def to_throttled_json(rate_limit = ApiBoost.configuration.default_rate_limit)
-        limit_window = 1.send(rate_limit.per).ago..
-        num_of_requests = self.class.where(self.class.api_timestamp_field => limit_window).count
-        if num_of_requests > rate_limit.requests
-           { error: "Rate limit reached" }.to_json
-        else
-          to_json
-        end
+      limit_window = 1.send(rate_limit.per).ago..
+      num_of_requests = self.class.where(self.class.api_timestamp_field => limit_window).count
+      if num_of_requests > rate_limit.requests
+        { error: "Rate limit reached" }.to_json
+      else
+        to_json
+      end
     end
+  end
 end
 ```
 
