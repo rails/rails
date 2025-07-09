@@ -734,7 +734,7 @@ Git repository (like GitHub) and add a line to the `Gemfile` of the application
 in question:
 
 ```ruby
-gem "api_boost", git: "https://github.com/rails/api_boost.git"
+gem "api_boost", git: "https://github.com/YOUR_GITHUB_HANDLE/api_boost.git"
 ```
 
 After running `bundle install`, your gem functionality will be available to the
