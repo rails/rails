@@ -770,20 +770,18 @@ gem](https://guides.rubygems.org/publishing).
 RDoc Documentation
 ------------------
 
-Once your plugin is stable, and you are ready to deploy, do everyone else a
-favor and document it! Luckily, writing documentation for your plugin is easy.
-
-The first step is to update the README file with detailed information about how
-to use your plugin. A few key things to include are:
+Once your plugin is stable, you can write documentation for it. The first step
+is to update the `README.md` file with detailed information about how to use
+your plugin. A few key things to include are:
 
 * Your name
 * How to install
 * How to add the functionality to the app (several examples of common use cases)
 * Warnings, gotchas or tips that might help users and save them time
 
-Once your README is solid, go through and add RDoc comments to all the methods
-that developers will use. It's also customary to add `# :nodoc:` comments to
-those parts of the code that are not included in the public API.
+Once your `README.md` is solid, go through and add RDoc comments to all the
+methods that developers will use. It's also customary to add `# :nodoc:`
+comments to those parts of the code that are not included in the public API.
 
 Once your comments are good to go, navigate to your plugin directory and run:
 
