@@ -228,23 +228,22 @@ available anywhere in your Rails application.
 
 WARNING: Before proceeding, it's important to understand that extending core
 classes (like String, Array, Hash, etc.) should be used sparingly, if at all.
-Core class extensions can be brittle, dangerous, and are often unnecessary.</br></br>
-Extending core classes can:
-<ul><li>cause naming conflicts when multiple gems extend the
-same class with the same method name</li>
-<li>break unexpectedly when Ruby or Rails
-updates change core class behavior</li>
-<li>make debugging difficult because it's not
-obvious where methods come from</li>
-<li> create coupling issues between your plugin
-and other code</li></ul> </br></br>Better alternatives to consider are to create utility
-modules or helper classes, use composition over monkey patching, or implement
-functionality as instance methods on your own classes.</br></br>
-For more details on why core class extensions can be problematic, see [The Case
-Against Monkey Patching](https://shopify.engineering/the-case-against-monkey-patching).
-That said, understanding how core class extensions work is valuable. The example
-below demonstrates the technique, but they should be used sparingly. Consider
-whether it's the right approach for your specific use case.
+Core class extensions can be brittle, dangerous, and are often
+unnecessary.<br></br> They can:</br>
+- Cause naming conflicts when multiple gems extend the same class with the same
+  method name</br>
+- Break unexpectedly when Ruby or Rails updates change core class behavior</br>
+- Make debugging difficult because it's not obvious where methods come from</br>
+- Create coupling issues between your plugin and other code<br></br> Better
+alternatives to consider:</br>
+- Create utility modules or helper classes instead</br>
+- Use composition over monkey patching</br>
+- Implement functionality as instance methods on your own classes<br></br> For
+more details on why core class extensions can be problematic, see [The Case
+Against Monkey
+Patching](https://shopify.engineering/the-case-against-monkey-patching).
+<br></br> That said, understanding how core class extensions work is valuable.
+The example below demonstrates the technique, but they should be used sparingly.
 
 In this example you will add a method to Integer named `requests_per_hour`.
 
