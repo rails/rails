@@ -225,7 +225,7 @@ start adding functionality.
 Extending Core Classes
 ----------------------
 
-This section will explain how to add a method to String that will be available
+This section will explain how to add a method to [Integer](https://docs.ruby-lang.org/en/master/Integer.html) that will be available
 anywhere in your Rails application.
 
 WARNING: Before proceeding, it's important to understand that extending core
