@@ -124,7 +124,7 @@ module ActiveRecord
       else
         class WeakThreadKeyMap # :nodoc:
           # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
-          # but it currently cause GC crashes: https://github.com/byroot/rails/pull/3
+          # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
           def initialize
             @map = {}
           end
@@ -495,7 +495,7 @@ module ActiveRecord
         @connections.nil?
       end
 
-      # Clears the cache which maps classes and re-connects connections that
+      # Clears reloadable connections from the pool and re-connects connections that
       # require reloading.
       #
       # Raises:
@@ -518,7 +518,7 @@ module ActiveRecord
         end
       end
 
-      # Clears the cache which maps classes and re-connects connections that
+      # Clears reloadable connections from the pool and re-connects connections that
       # require reloading.
       #
       # The pool first tries to gain ownership of all connections. If unable to

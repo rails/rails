@@ -309,7 +309,7 @@ module ActiveRecord
       # Creates a virtual table
       #
       # Example:
-      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      #   create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
       def create_virtual_table(table_name, module_name, values)
         exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
       end
