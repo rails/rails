@@ -2066,7 +2066,7 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 We can enhance our `Entry` delegator by defining `delegate` and using
 polymorphism on the subclasses. For example, to delegate the `title` method from
-`Entry` to it's subclasses:
+`Entry` to its subclasses:
 
 ```ruby
 class Entry < ApplicationRecord
