@@ -1,3 +1,11 @@
+*   Extend `content_security_policy_report_only` configuration to support blocks, similar to `content_security_policy`.
+
+    The changes are backwards compatible.
+
+    Fixes #40452
+
+    *Shaun Russell*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
