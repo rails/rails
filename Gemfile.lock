@@ -105,6 +105,7 @@ PATH
       rackup (>= 1.0.0)
       rake (>= 12.2)
       thor (~> 1.0, >= 1.2.2)
+      tsort (>= 0.2)
       zeitwerk (~> 2.6)
 
 PATH
@@ -578,6 +579,7 @@ GEM
     tomlrb (2.0.3)
     trailblazer-option (0.1.2)
     trilogy (2.8.1)
+    tsort (0.2.0)
     turbo-rails (2.0.5)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
