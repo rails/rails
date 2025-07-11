@@ -53,7 +53,7 @@ class ActionMailbox::Ingresses::Postmark::InboundEmailsControllerTest < ActionDi
         headers: { authorization: credentials }, params: { From: "someone@example.com" }
     end
 
-    assert_response :unprocessable_entity
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 
   test "rejecting an unauthorized inbound email from Postmark" do
