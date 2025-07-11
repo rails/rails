@@ -7,7 +7,7 @@ require "models/developer"
 require "models/cpk"
 
 class EachTest < ActiveRecord::TestCase
-  fixtures :posts, :subscribers, :developers, :cpk_orders
+  fixtures :cpk_orders, :comments, :developers, :posts, :subscribers
 
   def setup
     @posts = Post.order("id asc")
@@ -943,6 +943,50 @@ class EachTest < ActiveRecord::TestCase
       end
 
       assert_equal @total, total
+    end
+
+    test "in_batches should not have a limit on the relation when load is #{load}" do
+      # MySQL is the only one with direct values and that eliminates the subquery when
+      # the limit is removed.
+      skip unless current_adapter?(:Mysql2Adapter) || current_adapter?(:TrilogyAdapter)
+
+      assert_equal 6, Post.no_comments.count
+
+      batch_size = 3
+      limit      = 5
+
+      post_id = Post.connection.quote_table_name("posts.id")
+
+      assert_queries_count(4) do
+        assert_queries_match(/\AUPDATE .* WHERE .* AND #{Regexp.escape(post_id)} IN \(8, 9, 10\)\z/, count: 1) do
+          assert_queries_match(/\ADELETE .* WHERE .* AND #{Regexp.escape(post_id)} IN \(9, 10\)\z/, count: 1) do
+            Post.no_comments.limit(limit).in_batches(of: batch_size, load: load).each_with_index do |batch, index|
+              assert_equal 3 - index, batch.delete_all
+            end
+          end
+        end
+      end
+    end
+
+    test "in_batches should not have an offset on the relation when load is #{load}" do
+      # MySQL is the only one with direct values and that eliminates the subquery when
+      # the offset is removed.
+      skip unless current_adapter?(:Mysql2Adapter)
+
+      assert_equal 6, Post.no_comments.count
+
+      batch_size = 3
+      offset     = 2
+
+      post_id = Post.connection.quote_table_name("posts.id")
+
+      assert_queries_count(3) do
+        assert_queries_match(/\AUPDATE .* WHERE .* AND #{Regexp.escape(post_id)} IN \(8, 9, 10\)\z/, count: 1) do
+          Post.no_comments.offset(offset).in_batches(of: batch_size, load: load) do |batch|
+            assert_equal 3, batch.update_all(legacy_comments_count: 0)
+          end
+        end
+      end
     end
   end
 

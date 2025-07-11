@@ -1,3 +1,14 @@
+*   Remove `LIMIT` and `OFFSET` on relations when batch iterating
+
+    When using `find_each`, `find_in_batches`, or `in_batches` on a relation
+    with a specified limit or offset, the batch relation yielded no longer
+    propagates those values.
+
+    Other than being being useless or potentially problematic, the removal also
+    eliminates a subquery under certain conditions when using `JOIN` with MySQL.
+
+    *Alex Coomans*
+
 *   Include current character length in error messages for index and table name length validations.
 
     *Joshua Young*

@@ -432,10 +432,13 @@ module ActiveRecord
         empty_scope = to_sql == model.unscoped.all.to_sql
 
         loop do
+          # We remove any limit or offset on the yielded relation because we've already
+          # respected it if set. Leaving it can uselessly trigger a subquery with some
+          # databases and could cause incorrect query executions.
           if load
             records = batch_relation.records
             values = records.pluck(*cursor)
-            yielded_relation = where(cursor => values).order(batch_orders.to_h)
+            yielded_relation = where(cursor => values).except(:limit, :offset).order(batch_orders.to_h)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
             values = batch_relation.pluck(*cursor)
@@ -448,7 +451,7 @@ module ActiveRecord
             end
           else
             values = batch_relation.pluck(*cursor)
-            yielded_relation = where(cursor => values).order(batch_orders.to_h)
+            yielded_relation = where(cursor => values).except(:limit, :offset).order(batch_orders.to_h)
           end
 
           break if values.empty?
