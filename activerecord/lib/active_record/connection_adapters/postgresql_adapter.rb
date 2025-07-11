@@ -612,7 +612,7 @@ module ActiveRecord
         }
       end
 
-      # Returns the configured supported identifier length supported by PostgreSQL
+      # Returns the configured maximum supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end

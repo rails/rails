@@ -194,7 +194,7 @@ class MigrationTest < ActiveRecord::TestCase
     error = assert_raises(ArgumentError) do
       connection.create_table(long_name)
     end
-    assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+    assert_equal "Table name '#{long_name}' is too long \(#{long_name.length} characters\); the limit is #{name_limit} characters", error.message
 
     connection.create_table(short_name)
     assert connection.table_exists?(short_name)

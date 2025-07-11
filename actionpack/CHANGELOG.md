@@ -2,6 +2,10 @@
 
     *Igor Kasyanchuk*
 
+*   Always check query string keys for valid encoding just like values are checked.
+
+    *Casper Smits*
+
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 

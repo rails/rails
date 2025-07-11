@@ -1633,7 +1633,8 @@ module ActionView
     #
     # A +FormBuilder+ object is associated with a particular model object and
     # allows you to generate fields associated with the model object. The
-    # +FormBuilder+ object is yielded when using #form_with or #fields_for.
+    # +FormBuilder+ object is yielded when using
+    # {form_with}[rdof-ref:ActionView::Helpers::FormHelper#form_with] or #fields_for.
     # For example:
     #
     #   <%= form_with model: @person do |person_form| %>

@@ -168,7 +168,7 @@ module ActiveRecord
         end
       end
 
-      # Clears the cache which maps classes.
+      # Clears reloadable connection caches in all connection pools.
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!(role = nil)
