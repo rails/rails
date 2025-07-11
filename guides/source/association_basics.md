@@ -75,7 +75,7 @@ value when creating the book.
 @book = Book.create(author_id: @author.id, published_at: Time.now)
 ```
 
-To delete an author and ensure all their books are also deleted, you need to
+To delete an author and ensure all their books are also deleted, you'd need to
 retrieve all the author's `books`, loop through each `book` to destroy it, and
 then destroy the author.
 
