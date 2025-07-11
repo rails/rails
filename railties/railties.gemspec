@@ -45,6 +45,7 @@ Gem::Specification.new do |s|
   s.add_dependency "thor", "~> 1.0", ">= 1.2.2"
   s.add_dependency "zeitwerk", "~> 2.6"
   s.add_dependency "irb", "~> 1.13"
+  s.add_dependency "tsort", ">= 0.2"
 
   s.add_development_dependency "actionview", version
 end
