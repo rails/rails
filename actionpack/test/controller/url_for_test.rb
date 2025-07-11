@@ -595,6 +595,33 @@ module AbstractController
         end
       end
 
+      def test_nil_values_generate_flag_parameters_with_include_nil_params
+        assert_equal "/posts?debug", W.new.url_for(controller: "posts", action: "index", debug: nil, only_path: true, include_nil_params: true)
+      end
+
+      def test_mixed_flag_and_regular_parameters_with_include_nil_params
+        assert_equal "/posts?category=tech&debug",
+                     W.new.url_for(controller: "posts", action: "index", debug: nil, category: "tech", only_path: true, include_nil_params: true)
+      end
+
+      def test_multiple_flag_parameters_with_include_nil_params
+        assert_equal "/posts?debug&featured",
+                     W.new.url_for(controller: "posts", action: "index", debug: nil, featured: nil, only_path: true, include_nil_params: true)
+      end
+
+      def test_nil_values_are_excluded_by_default
+        assert_equal "/posts", W.new.url_for(controller: "posts", action: "index", debug: nil, only_path: true)
+      end
+
+      def test_nil_values_are_excluded_by_included_nil_params_false
+        assert_equal "/posts", W.new.url_for(controller: "posts", action: "index", debug: nil, only_path: true, include_nil_params: false)
+      end
+
+      def test_empty_string_still_generates_equals_with_include_nil_params
+        assert_equal "/posts?search=",
+                     W.new.url_for(controller: "posts", action: "index", search: "", only_path: true, include_nil_params: true)
+      end
+
       private
         def extract_params(url)
           url.split("?", 2).last.split("&").sort
