@@ -1,3 +1,11 @@
+*   Optimize Active Record batching further when using ranges.
+
+    Tested on a PostgreSQL table with 10M records and batches of 10k records, the generation
+    of relations for the 1000 batches was `4.8x` faster (`6.8s` vs. `1.4s`), used `900x`
+    less bandwidth (`180MB` vs. `0.2MB`) and allocated `45x` less memory (`490MB` vs. `11MB`).
+
+    *Maxime Réty*, *fatkodima*
+
 *   Include current character length in error messages for index and table name length validations.
 
     *Joshua Young*
