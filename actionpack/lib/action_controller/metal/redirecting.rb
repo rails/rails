@@ -15,6 +15,7 @@ module ActionController
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      mattr_accessor :action_on_relative_redirects_without_leading_slash, default: :log
     end
 
     # Redirects the browser to the target specified in `options`. This parameter can
@@ -100,6 +101,26 @@ module ActionController
     #
     # See #url_from for more information on what an internal and safe URL is, or how
     # to fall back to an alternate redirect URL in the unsafe case.
+    #
+    # ### Relative URL Redirect Protection
+    #
+    # Rails also protects against potentially unsafe relative URL redirects that don't
+    # start with a leading slash. These can create security vulnerabilities:
+    #
+    #     redirect_to "example.com"     # Creates http://yourdomain.comexample.com
+    #     redirect_to "@attacker.com"   # Creates http://yourdomain.com@attacker.com
+    #                                   # which browsers interpret as user@host
+    #
+    # You can configure how Rails handles these cases using:
+    #
+    #     config.action_controller.action_on_relative_redirects_without_leading_slash = :log    # default
+    #     config.action_controller.action_on_relative_redirects_without_leading_slash = :notify
+    #     config.action_controller.action_on_relative_redirects_without_leading_slash = :raise
+    #
+    # * `:log` - Logs a warning but allows the redirect
+    # * `:notify` - Sends an ActiveSupport notification but allows the redirect
+    #   (includes stack trace to help identify the source)
+    # * `:raise` - Raises an UnsafeRedirectError
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
@@ -166,6 +187,10 @@ module ActionController
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options.to_str
       when String
+        if !options.start_with?("/") && !options.empty?
+          _handle_relative_url_without_leading_slash(options)
+        end
+
         request.protocol + request.host_with_port + options
       when Proc
         _compute_redirect_to_location request, instance_eval(&options)
@@ -246,6 +271,23 @@ module ActionController
           msg = "The redirect URL #{url} contains one or more illegal HTTP header field character. " \
             "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
           raise UnsafeRedirectError, msg
+        end
+      end
+
+      def _handle_relative_url_without_leading_slash(url)
+        message = "Relative URL redirect without leading slash detected: #{url.inspect}"
+
+        case action_on_relative_redirects_without_leading_slash
+        when :log
+          logger&.warn message
+        when :notify
+          ActiveSupport::Notifications.instrument("unsafe_redirect.action_controller",
+            url: url,
+            message: message,
+            stack_trace: caller
+          )
+        when :raise
+          raise UnsafeRedirectError, message
         end
       end
   end

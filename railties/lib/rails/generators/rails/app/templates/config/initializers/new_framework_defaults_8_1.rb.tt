@@ -26,3 +26,18 @@
 # Applications that want to keep the escaping behavior can set the config to `true`.
 #++
 # Rails.configuration.action_controller.escape_json_responses = false
+
+###
+# Controls how Rails handles relative URL redirects that don't start with a leading slash.
+# When set to `:raise`, Rails will raise an `ActionController::Redirecting::UnsafeRedirectError`
+# for relative URLs without a leading slash, which can help prevent open redirect vulnerabilities.
+#
+# Example:
+#   redirect_to "example.com"     # Raises UnsafeRedirectError
+#   redirect_to "@attacker.com"   # Raises UnsafeRedirectError
+#   redirect_to "/safe/path"      # Works correctly
+#
+# Applications that want to allow these redirects can set the config to `:log` (previous default)
+# to only log warnings, or `:notify` to send ActiveSupport notifications.
+#++
+# Rails.configuration.action_controller.action_on_relative_redirects_without_leading_slash = :raise

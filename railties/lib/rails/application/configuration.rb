@@ -358,6 +358,7 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.escape_json_responses = false
+            action_controller.action_on_relative_redirects_without_leading_slash = :raise
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
