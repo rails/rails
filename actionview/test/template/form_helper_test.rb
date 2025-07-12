@@ -519,10 +519,31 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, text_field("post", "title", size: 35)
   end
 
-  def test_text_field_assuming_size
+  def test_text_field_maxlength_implies_size_with_deprecation_warning
     expected = '<input id="post_title" maxlength="35" name="post[title]" size="35" type="text" value="Hello World" />'
+
+    assert_deprecated("Setting maxlength without size will no longer imply size", ActionView.deprecator) do
+      assert_dom_equal expected, text_field("post", "title", "maxlength" => 35)
+    end
+
+    assert_deprecated("Setting maxlength without size will no longer imply size", ActionView.deprecator) do
+      assert_dom_equal expected, text_field("post", "title", maxlength: 35)
+    end
+  end
+
+  def test_text_field_maxlength_doesnt_imply_size_when_disabled
+    ActionView::Helpers::FormHelper.text_field_maxlength_implies_size = false
+
+    expected = '<input id="post_title" maxlength="35" name="post[title]" type="text" value="Hello World" />'
     assert_dom_equal expected, text_field("post", "title", "maxlength" => 35)
     assert_dom_equal expected, text_field("post", "title", maxlength: 35)
+  ensure
+    ActionView::Helpers::FormHelper.text_field_maxlength_implies_size = true
+  end
+
+  def test_text_field_explicit_size_overrides_maxlength
+    expected = '<input id="post_title" maxlength="35" name="post[title]" size="20" type="text" value="Hello World" />'
+    assert_dom_equal expected, text_field("post", "title", maxlength: 35, size: 20)
   end
 
   def test_text_field_removing_size
