@@ -2303,7 +2303,7 @@ Concern is a Ruby module with some syntactic sugar to make using them easier.
 
 First let’s create the Notifications module.
 
-Create a file at `app/models/product/notifications.rb` with the following:
+Create a file at `app/models/concerns/product/notifications.rb` with the following:
 
 ```ruby
 module Product::Notifications
