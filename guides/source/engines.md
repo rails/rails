@@ -161,6 +161,7 @@ file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`)
 and defines a base module called `Blorgh`.
 
 ```ruby
+require "rails"
 require "blorgh/engine"
 
 module Blorgh
