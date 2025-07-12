@@ -662,6 +662,35 @@ are stored before the form is submitted, they can be used to retain uploads when
 <%= form.file_field :avatar, direct_upload: true %>
 ```
 
+## Querying
+
+Active Storage attachments are just ordinary Active Record associations behind the scenes, so you can use the usual `joins` / `where` toolbox to look up records whose attachments meet specific criteria.
+
+### `has_one_attached`
+
+`has_one_attached` creates a `has_one` association called `"<name>_attachment"` and a `has_one :through` association called `"<name>_blob"`.
+Need every user whose avatar is a PNG?
+
+```ruby
+User
+  .joins(:avatar_blob)
+  .where(active_storage_blobs: { content_type: "image/png" })
+```
+
+### `has_many_attached`
+
+`has_many_attached` creates a `has_many` association called `"<name>_attachments"` and a `has_many :through` association called `"<name>_blobs"` (note the plural).
+Want all messages whose images are videos instead of photos?
+
+```ruby
+Message
+  .joins(:images_blobs)
+  .where(active_storage_blobs: { content_type: "video/mp4" })
+```
+
+Because these are plain SQL joins, remember that the query filters on the **`ActiveStorage::Blob`**, not the attachment record. You can combine the blob predicates above with any other scope conditions, just as you would with any other Active Record query.
+
+
 Removing Files
 --------------
 
