@@ -2659,7 +2659,7 @@ end
 class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 
-  fixtures :posts, :authors
+  fixtures :posts, :authors, :author_addresses
 
   setup do
     @model = DATS::Post
