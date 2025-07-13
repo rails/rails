@@ -110,7 +110,7 @@ The `--mountable` option will allow our engine to behave like a self-contained m
 - isolate routing to the engine, allowing you to mount it at a specific path in the host app (e.g., `/blorgh`), while keeping its internal route structure independent.
 - make the engine more modular and reusable, so it can be plugged into different applications with minimal configuration.
 
-### The Engine's Structure
+### The Structure
 
 The structure of the `--mountable` engine will be as follows:
 
@@ -165,7 +165,7 @@ blorgh/
 └── tmp/
 ```
 
-The above structure provides the following:
+It provides the following:
 
   * An `app` directory tree
   * A `config/routes.rb` file:
@@ -185,7 +185,8 @@ The above structure provides the following:
     end
     ```
 
-It contains some files that are not present in the `--full` option, these are:
+`-- mountable` engines, like above, contain some files that are not present in
+the `--full` option, these are:
 
   * Asset manifest files (`blorgh_manifest.js` and `application.css`)
   * A namespaced `ApplicationController` stub
@@ -223,7 +224,7 @@ A full list of options for the plugin generator can be seen by running:
 $ rails plugin --help
 ```
 
-### The Engine’s Core Setup
+### The Core Setup
 
 #### The `.gemspec` File
 
@@ -278,7 +279,7 @@ there's an engine at the specified path. Rails will automatically:
 * Load the engine’s models, mailers, controllers, and views.
 * Mount the engine at the specified path when used in a host app.
 
-The `isolate_namespace Blorgh` from the Engine class is crucial. It prevents your engine’s components — like models, routes, helpers, and controllers—from clashing with those in the host application or other engines.
+The `isolate_namespace Blorgh` from the Engine class is crucial. It prevents your engine’s components — like models, routes, helpers, and controllers, from clashing with those in the host application or other engines.
 
 For example:
 
@@ -350,7 +351,7 @@ This is the default layout used by views inside the engine. It’s useful if you
 
 If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
 
-#### `bin/` directory
+#### `/bin`
 
 This directory contains one file, `bin/rails`, which enables you to use the
 `rails` sub-commands and generators just like you would within an application.
@@ -364,7 +365,7 @@ $ bin/rails generate model
 Keep in mind, of course, that anything generated with these commands inside of
 an engine that has `isolate_namespace` in the `Engine` class will be namespaced.
 
-#### `test` directory
+#### `/test`
 
 The `test` directory is where tests for the engine will go. To test the engine,
 there is a cut-down version of a Rails application embedded within it at
@@ -388,12 +389,8 @@ created in the `test` directory as well. For example, you may wish to create a
 Providing Engine Functionality
 ------------------------------
 
-The engine that this guide covers provides submitting articles and commenting
-functionality and follows a similar thread to the [Getting Started
-Guide](getting_started.html), with some new twists.
-
-NOTE: For this section, make sure to run the commands in the root of the
-`blorgh` engine's directory.
+The engine that we'll build, `blorgh`, will allow you to add article submissions and
+comment functionality when added to any Rails application.
 
 ### Generating an Article Resource
 
@@ -408,7 +405,7 @@ This command will output this information:
 
 ```
 invoke  active_record
-create    db/migrate/[timestamp]_create_blorgh_articles.rb
+create    db/migrate/20250713070753_create_blorgh_articles.rb
 create    app/models/blorgh/article.rb
 invoke    test_unit
 create      test/models/blorgh/article_test.rb
@@ -434,22 +431,28 @@ create      app/helpers/blorgh/articles_helper.rb
 invoke      test_unit
 ```
 
-The first thing that the scaffold generator does is invoke the `active_record`
-generator, which generates a migration and a model for the resource. Note here,
-however, that the migration is called `create_blorgh_articles` rather than the
-usual `create_articles`. This is due to the `isolate_namespace` method called in
-the `Blorgh::Engine` class's definition. The model here is also namespaced,
-being placed at `app/models/blorgh/article.rb` rather than `app/models/article.rb` due
-to the `isolate_namespace` call within the `Engine` class.
+#### The migration and model
+
+The scaffold generator invokes the `active_record` generator, which generates a
+_migration_ and a _model_ for the resource.
+
+NOTE: The migration is named `create_blorgh_articles` instead of the usual
+`create_articles`, and the model is located at `app/models/blorgh/article.rb`
+rather than `app/models/article.rb`. </br></br> This is due to the use of the
+`isolate_namespace` method in the `Blorgh::Engine` class, which ensures that
+models, migrations, and other components are properly namespaced under `Blorgh`.
+
+#### The test and fixture
 
 Next, the `test_unit` generator is invoked for this model, generating a model
 test at `test/models/blorgh/article_test.rb` (rather than
 `test/models/article_test.rb`) and a fixture at `test/fixtures/blorgh/articles.yml`
 (rather than `test/fixtures/articles.yml`).
 
-After that, a line for the resource is inserted into the `config/routes.rb` file
-for the engine. This line is simply `resources :articles`, turning the
-`config/routes.rb` file for the engine into this:
+#### The route
+
+Thereafter, a line `resources :articles`, for the `article` resource, is
+inserted into the `config/routes.rb` file for the engine.
 
 ```ruby
 Blorgh::Engine.routes.draw do
@@ -457,21 +460,27 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-Note here that the routes are drawn upon the `Blorgh::Engine` object rather than
-the `YourApp::Application` class. This is so that the engine routes are confined
-to the engine itself and can be mounted at a specific point as shown in the
-[test directory](#test-directory) section. It also causes the engine's routes to
-be isolated from those routes that are within the application. The
+NOTE: The routes are created on the `Blorgh::Engine` object rather than the
+`YourApp::Application` class. This ensures that the engine routes are confined
+to the engine itself and can be mounted at a specific point, as shown in the
+[test directory](#test-directory) section. It also allows the engine's routes to
+be isolated from routes that are within the application. The
 [Routes](#routes) section of this guide describes it in detail.
 
-Next, the `scaffold_controller` generator is invoked, generating a controller
-called `Blorgh::ArticlesController` (at
-`app/controllers/blorgh/articles_controller.rb`) and its related views at
-`app/views/blorgh/articles`. This generator also generates tests for the
-controller (`test/controllers/blorgh/articles_controller_test.rb` and `test/system/blorgh/articles_test.rb`) and a helper (`app/helpers/blorgh/articles_helper.rb`).
+#### The controller and views
 
-Everything this generator has created is neatly namespaced. The controller's
-class is defined within the `Blorgh` module:
+Next, the `scaffold_controller` generator is
+invoked, generating a controller called `Blorgh::ArticlesController` (at
+`app/controllers/blorgh/articles_controller.rb`) and its related views are
+created at `app/views/blorgh/articles`.
+
+This generator also generates tests for
+the controller (`test/controllers/blorgh/articles_controller_test.rb` and
+`test/system/blorgh/articles_test.rb`) and a helper
+(`app/helpers/blorgh/articles_helper.rb`).
+
+Once again, everything is namespaced. The controller's class is defined within
+the `Blorgh` module:
 
 ```ruby
 module Blorgh
@@ -484,6 +493,8 @@ end
 NOTE: The `ArticlesController` class inherits from
 `Blorgh::ApplicationController`, not the application's `ApplicationController`.
 
+#### The helper
+
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 
 ```ruby
@@ -494,45 +505,57 @@ module Blorgh
 end
 ```
 
-This helps prevent conflicts with any other engine or application that may have
+This prevents conflicts with any other engine or application that may have
 an article resource as well.
 
-You can see what the engine has so far by running `bin/rails db:migrate` at the root
-of our engine to run the migration generated by the scaffold generator, and then
-running `bin/rails server` in `test/dummy`. When you open
-`http://localhost:3000/blorgh/articles` you will see the default scaffold that has
-been generated. Click around! You've just generated your first engine's first
-functions.
+#### Exploring the engine in the browser
 
-If you'd rather play around in the console, `bin/rails console` will also work just
-like a Rails application. Remember: the `Article` model is namespaced, so to
-reference it you must call it as `Blorgh::Article`.
+You can explore the engine by running `bin/rails db:migrate` at the root of the
+engine, and then running `bin/rails server` in the engine's root directory.
 
-```irb
+When you open `http://localhost:3000/blorgh/articles` you will see the default scaffold that
+has been generated.
+
+![The landing page](images/engines/engine_article_page.png)
+
+Congratulations, you've just generated your first engine!
+
+#### Exploring the engine in the console
+
+If you'd rather explore in the console, you can run `bin/rails console`.
+Remember: the `Article` model is namespaced, so to reference it you must call it
+as `Blorgh::Article`.
+
+```ruby
+irb> Blorgh::Article.create(title: "Hello, world!", text: "This is a test article.")
+=>  #<Blorgh::Article id: 1, title: "Hello, world!", text: "This is a test article.", created_at: "2025-07-13 07:55:27.610591000 +0000", updated_at: "2025-07-13 07:55:27.610591000 +0000">
+
 irb> Blorgh::Article.find(1)
-=> #<Blorgh::Article id: 1 ...>
+=> #<Blorgh::Article id: 1, title: "Hello, world!" ...>
 ```
 
-One final thing is that the `articles` resource for this engine should be the root
-of the engine. Whenever someone goes to the root path where the engine is
-mounted, they should be shown a list of articles. This can be made to happen if
-this line is inserted into the `config/routes.rb` file inside the engine:
+Whenever someone goes to the root path where the engine is
+mounted, they should be shown a list of articles. To do this, add this line
 
 ```ruby
 root to: "articles#index"
 ```
 
-Now people will only need to go to the root of the engine to see all the articles,
-rather than visiting `/articles`. This means that instead of
+to the `config/routes.rb` file inside the engine.
+
+Now you will only need to go to the root of the engine to see all the articles,
+rather than visiting `/articles`. This means that instead of visiting
 `http://localhost:3000/blorgh/articles`, you only need to go to
 `http://localhost:3000/blorgh` now.
 
+![The landing page](images/engines/engine_root_page.png)
+
 ### Generating a Comments Resource
 
-Now that the engine can create new articles, it only makes sense to add
-commenting functionality as well. To do this, you'll need to generate a comment
-model, a comment controller, and then modify the articles scaffold to display
-comments and allow people to create new ones.
+Now that the engine can create new articles, let's add the ability to comment.
+To do this, you'll need to generate a comment model, a comment controller, and
+then modify the articles scaffold to display comments and allow people to create
+new ones.
 
 From the engine root, run the model generator. Tell it to generate a
 `Comment` model, with the related table having two columns: an `article` references
