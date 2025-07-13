@@ -499,7 +499,7 @@ the `LOCATION` environment variable:
 $ bin/rails app:template LOCATION=~/template.rb
 ```
 
-Templates don't have to be stored locally, you can also specify an URL instead
+Templates don't have to be stored locally, you can also specify a URL instead
 of a path:
 
 ```bash
