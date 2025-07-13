@@ -5063,7 +5063,7 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/david-bowie/changes-song"
     assert_equal 200, response.status
     assert_params artist: "david-bowie", song: "changes"
@@ -5204,7 +5204,7 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/test_internal/123"
     assert_equal 200, response.status
 

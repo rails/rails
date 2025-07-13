@@ -495,7 +495,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal("http://test.host/admin/user", setup_for_named_route.users_url)
   end
 
-  def test_optimised_named_route_with_host
+  def test_optimized_named_route_with_host
     rs.draw do
       get "page" => "content#show_page", :as => "pages", :host => "foo.com"
     end
