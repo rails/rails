@@ -977,7 +977,7 @@ class MysqlAdapter < AbstractAdapter
 end
 ```
 
-Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with `class_attribute` (see above). For example given
+Instance methods are also created for convenience, but they are simply proxies to the underlying class variable. As a result, when an instance sets the value, it modifies the shared class variable, which affects the entire class hierarchy. This is different behaviour when compared with `class_attribute` (see above). Here’s an example of the instance-level method in use:
 
 ```ruby
 module ActionView
