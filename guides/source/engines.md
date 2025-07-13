@@ -110,7 +110,7 @@ The `--mountable` option will allow our engine to behave like a self-contained m
 - isolate routing to the engine, allowing you to mount it at a specific path in the host app (e.g., `/blorgh`), while keeping its internal route structure independent.
 - make the engine more modular and reusable, so it can be plugged into different applications with minimal configuration.
 
-### The Structure of the Engine
+### The Engine's Structure
 
 The structure of the `--mountable` engine will be as follows:
 
