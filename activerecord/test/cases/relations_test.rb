@@ -1366,13 +1366,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_create_with_block
     sparrow = Bird.create do |bird|
       bird.name = "sparrow"
-      bird.color = "grey"
+      bird.color = "gray"
     end
 
     assert_kind_of Bird, sparrow
     assert_predicate sparrow, :persisted?
     assert_equal "sparrow", sparrow.name
-    assert_equal "grey", sparrow.color
+    assert_equal "gray", sparrow.color
   end
 
   def test_create_bang_with_array

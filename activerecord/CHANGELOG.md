@@ -416,7 +416,7 @@
     `WITH RECURSIVE` or `DISTINCT` statements. Those were never supported and were ignored
     when generating the SQL query.
 
-    An error will be raised in a future Rails release. This behaviour will be consistent
+    An error will be raised in a future Rails release. This behavior will be consistent
     with `delete_all` which currently raises an error for unsupported statements.
 
     *Edouard Chin*

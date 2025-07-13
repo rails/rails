@@ -1172,7 +1172,7 @@ The default behavior is to report all warnings. Warnings to ignore can be specif
 
 Controls the strategy class used to perform schema statement methods in a migration. The default class
 delegates to the connection adapter. Custom strategies should inherit from `ActiveRecord::Migration::ExecutionStrategy`,
-or may inherit from `DefaultStrategy`, which will preserve the default behaviour for methods that aren't implemented:
+or may inherit from `DefaultStrategy`, which will preserve the default behavior for methods that aren't implemented:
 
 ```ruby
 class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
