@@ -132,7 +132,7 @@ class MessagesController < ApplicationController
 end
 ```
 
-A browser that’s blocked will, by default, be served the file in `public/406-unsupported-browser.html` with a HTTP status code of “406 Not Acceptable”.
+A browser that’s blocked will, by default, be served the file in `public/406-unsupported-browser.html` with an HTTP status code of “406 Not Acceptable”.
 
 HTTP Authentication
 -------------------
