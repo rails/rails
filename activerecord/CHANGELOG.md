@@ -1,3 +1,9 @@
+*   Fix `counter_cache` registration for `belongs_to` associations where the associated class
+    is loaded after the association is defined. This removes the dependency on class load order
+    by registering pending counter caches and applying them once the target class is loaded.
+
+    *Miguel Torres*
+
 *   Optimize Active Record batching further when using ranges.
 
     Tested on a PostgreSQL table with 10M records and batches of 10k records, the generation
