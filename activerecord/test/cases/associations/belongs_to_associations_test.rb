@@ -407,6 +407,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, book.shop_id
   end
 
+  def test_clearing_optional_cpk_belongs_to_should_preserve_shared_pk
+    book = Cpk::Book.create!(id: [1, 2], title: "The Well-Grounded Rubyist")
+    chapter = Cpk::OptionalChapter.create!(id: [1, 2], book: book)
+
+    assert_equal book, chapter.book
+    assert_equal [1, 2], chapter.id
+
+    chapter.update!(book: nil)
+
+    assert_equal [1, 2], chapter.id
+    assert_nil chapter.book_id
+    assert_equal chapter.author_id, book.author_id
+  end
+
   def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
     blog = Sharded::Blog.create!
     blog_post = Sharded::BlogPost.create!(blog: blog)

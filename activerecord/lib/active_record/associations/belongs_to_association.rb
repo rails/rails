@@ -135,7 +135,9 @@ module ActiveRecord
             target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
 
             if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+              owner_pk = Array(owner.class.primary_key)
               reflection_fk.each_with_index do |key, index|
+                next if record.nil? && owner_pk.include?(key)
                 owner[key] = target_key_values[index]
               end
             end
