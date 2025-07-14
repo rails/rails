@@ -26,7 +26,29 @@ class Object
     !blank?
   end
 
-  # Returns the receiver if it's present otherwise returns +nil+.
+  # Returns +true+ if the receiver is blank, otherwise returns +nil+.
+  # <tt>object.absence</tt> is equivalent to
+  #
+  #    object.blank? ? true : nil
+  #
+  # For example, something like
+  #
+  #   {
+  #     process_at: params[:processed].blank? ? Time.current : nil
+  #   }
+  #
+  # becomes
+  #
+  #   {
+  #     process_at: params[:processed].absence && Time.current
+  #   }
+  #
+  # @return [true, nil]
+  def absence
+    true if blank?
+  end
+
+  # Returns the receiver if it's present, otherwise returns +nil+.
   # <tt>object.presence</tt> is equivalent to
   #
   #    object.present? ? object : nil
