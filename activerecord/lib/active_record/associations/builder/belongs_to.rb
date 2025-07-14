@@ -38,7 +38,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
       }
 
       klass = reflection.class_name.safe_constantize
-      klass._counter_cache_columns |= [cache_column] if klass && klass.respond_to?(:_counter_cache_columns)
+      if klass && klass.respond_to?(:_counter_cache_columns)
+        klass._counter_cache_columns |= [cache_column]
+      else
+        ActiveRecord::Associations::CounterCacheRegistry.register(reflection.class_name, cache_column)
+      end
       model.counter_cached_association_names |= [reflection.name]
     end
 

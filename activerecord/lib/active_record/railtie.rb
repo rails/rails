@@ -101,6 +101,14 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.clear_counter_cache_registry_on_reload" do |app|
+      app.config.to_prepare do
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Associations::CounterCacheRegistry.clear
+        end
+      end
+    end
+
     initializer "active_record.backtrace_cleaner" do
       ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
     end
