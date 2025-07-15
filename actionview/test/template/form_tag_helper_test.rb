@@ -25,14 +25,23 @@ class FormTagHelperTest < ActionView::TestCase
   def hidden_fields(options = {})
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
+    no_autocomplete = options[:no_autocomplete]
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        if no_autocomplete
+          txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        else
+          txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        end
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        if no_autocomplete
+          txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        else
+          txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        end
       end
     end
   end
@@ -321,10 +330,60 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal "post[1][title][subtitle][]", value
   end
 
-  def test_hidden_field_tag
-    actual = hidden_field_tag "id", 3
-    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
-    assert_dom_equal expected, actual
+  def test_hidden_field_tag_default_omits_autocomplete
+    with_remove_hidden_field_autocomplete(true) do
+      actual = hidden_field_tag "id", 3
+      expected = %(<input id="id" name="id" type="hidden" value="3" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_legacy_includes_autocomplete_off
+    with_remove_hidden_field_autocomplete(false) do
+      actual = hidden_field_tag "id", 3
+      expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_respects_explicit_autocomplete_when_default_omits
+    with_remove_hidden_field_autocomplete(true) do
+      actual = hidden_field_tag "username", "me@example.com", autocomplete: "username"
+      expected = %(<input id="username" name="username" type="hidden" value="me@example.com" autocomplete="username" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_respects_explicit_autocomplete_when_legacy_includes_off
+    with_remove_hidden_field_autocomplete(false) do
+      actual = hidden_field_tag "username", "me@example.com", autocomplete: "username"
+      expected = %(<input id="username" name="username" type="hidden" value="me@example.com" autocomplete="username" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_with_autocomplete_false_in_legacy_mode
+    with_remove_hidden_field_autocomplete(false) do
+      actual = hidden_field_tag "id", 3, autocomplete: nil
+      expected = %(<input id="id" name="id" type="hidden" value="3" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_tag_hidden_helpers_omit_autocomplete_by_default
+    with_remove_hidden_field_autocomplete(true) do
+      actual = form_tag({}, { method: :patch })
+      expected = whole_form("http://www.example.com", method: :patch, no_autocomplete: true)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_tag_hidden_helpers_include_autocomplete_off_in_legacy_mode
+    with_remove_hidden_field_autocomplete(false) do
+      actual = form_tag({}, { method: :patch })
+      expected = whole_form("http://www.example.com", method: :patch)
+      assert_dom_equal expected, actual
+    end
   end
 
   def test_hidden_field_tag_with_autocomplete
@@ -1023,5 +1082,13 @@ class FormTagHelperTest < ActionView::TestCase
       yield
     ensure
       ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention = old_value
+    end
+
+    def with_remove_hidden_field_autocomplete(value)
+      old = ActionView::Base.remove_hidden_field_autocomplete
+      ActionView::Base.remove_hidden_field_autocomplete = value
+      yield
+    ensure
+      ActionView::Base.remove_hidden_field_autocomplete = old
     end
 end
