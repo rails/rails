@@ -1041,7 +1041,7 @@ And finally, the user show view at `app/views/settings/users/show.html.erb`:
 <%= link_to "Back to all users", settings_users_path %>
 
 <h1><%= @user.full_name %></h1>
-<%= tag.p @user.email_address %>
+<p><%= @user.email_address %></p>
 
 <div>
   <%= link_to "Edit user", edit_settings_user_path(@user)  %>
