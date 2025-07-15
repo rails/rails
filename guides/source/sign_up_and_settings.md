@@ -293,7 +293,7 @@ We've set the `url:` argument to ensure the form submits to our namespaced route
 Let's add that `update` action to the controller now.
 
 ```ruby#5-17
-class Settings::PasswordsController < Settings::BaseController
+class Settings::PasswordsController < ApplicationController
   def show
   end
 
