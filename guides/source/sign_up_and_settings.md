@@ -1362,7 +1362,7 @@ test "invalid sign up" do
 end
 ```
 
-This test is should be invalid because the user's name is missing. Since this request is invalid, we need to assert the response is a 422 Unprocessable Entity. We can also assert that there is no difference in the `User.count` to ensure no User was created.
+This test should be invalid because the user's name is missing. Since this request is invalid, we need to assert the response is a 422 Unprocessable Entity. We can also assert that there is no difference in the `User.count` to ensure no User was created.
 
 Another important test to add is ensuring that sign up does not accept the `admin` attribute.
 
