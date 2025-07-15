@@ -2364,7 +2364,7 @@ First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
 ```ruby
-  resource :unsubscribe, only: [ :show ]
+    get "/unsubscribes/:token", to: "unsubscribes#show", as: :unsubscribe
 ```
 
 Active Record has a feature called `generates_token_for` that can generate
