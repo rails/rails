@@ -70,6 +70,19 @@
 
     *Eileen M. Uchitelle*
 
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values on the relation, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    This change will be introduced with a new framework default for Rails 8.1, and the current behavior of not raising
+    an error has been deprecated with the aim of removing the configuration option in Rails 8.2.
+
+    ```ruby
+    config.active_record.raise_on_missing_required_finder_order_columns = true
+    ```
+
+    *Joshua Young*
+
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
     Reason is `:class_name` does not make sense in those associations because

@@ -552,6 +552,11 @@ module ActiveRecord
   class Deadlocked < TransactionRollbackError
   end
 
+  # MissingRequiredOrderError is raised when a relation requires ordering but
+  # lacks any +order+ values in scope or any model order columns to use.
+  class MissingRequiredOrderError < ActiveRecordError
+  end
+
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
