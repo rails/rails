@@ -27,7 +27,7 @@ Let's get started!
 Adding Sign Up
 --------------
 
-We've already used the Rails authentication generator to allow users to login to their accounts. The generator created a `User` model with `email_address:string` and `password_digest:string` columns in the database. It also added `has_secure_password` to the `User` model which handles passwords and confirmations. This takes care of most of what we need to add sign up to our application.
+We've already used the [Rails authentication generator in the Getting Started guide](/getting_started.html#adding-authentication) to allow users to login to their accounts. The generator created a `User` model with `email_address:string` and `password_digest:string` columns in the database. It also added `has_secure_password` to the `User` model which handles passwords and confirmations. This takes care of most of what we need to add sign up to our application.
 
 ### Adding Names To Users
 
