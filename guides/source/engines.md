@@ -405,7 +405,7 @@ This command will output this information:
 
 ```
 invoke  active_record
-create    db/migrate/20250713070753_create_blorgh_articles.rb
+create    db/migrate/[timestamp]_create_blorgh_articles.rb
 create    app/models/blorgh/article.rb
 invoke    test_unit
 create      test/models/blorgh/article_test.rb
@@ -557,9 +557,9 @@ To do this, you'll need to generate a comment model, a comment controller, and
 then modify the articles scaffold to display comments and allow people to create
 new ones.
 
-From the engine root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: an `article` references
-column and `text` text column.
+From the engine root, run the model generator to generate a `Comment` model,
+with the related table having two columns: an `article` references column and a
+`text` text column.
 
 ```bash
 $ bin/rails generate model Comment article:references text:text
@@ -576,32 +576,62 @@ create      test/models/blorgh/comment_test.rb
 create      test/fixtures/blorgh/comments.yml
 ```
 
-This generator call will generate just the necessary model files it needs,
-namespacing the files under a `blorgh` directory and creating a model class
-called `Blorgh::Comment`. Now run the migration to create our blorgh_comments
-table:
+This will generate a `Blorgh::Comment` model and a migration to create the
+`blorgh_comments` table.
+
+The generated migration will look like this:
+
+```ruby
+class CreateBlorghComments < ActiveRecord::Migration[8.0]
+  def change
+    create_table :blorgh_comments do |t|
+      t.references :article, null: false, foreign_key: true
+      t.text :text
+
+      t.timestamps
+    end
+  end
+end
+```
+
+However, since you're building an isolated engine, the model `Blorgh::Comment`
+references `Blorgh::Article`, so the `article_id` foreign key should point to
+the `blorgh_articles` table, not an `articles` table.
+
+To fix this, you can modify the migration to look like this:
+
+```ruby
+class CreateBlorghComments < ActiveRecord::Migration[8.0]
+  def change
+    create_table :blorgh_comments do |t|
+      t.references :article, null: false, foreign_key: { to_table: :blorgh_articles }
+      t.text :text
+
+      t.timestamps
+    end
+  end
+end
+```
+
+Now, you can run the migration to create the `blorgh_comments` table:
 
 ```bash
 $ bin/rails db:migrate
 ```
 
-To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb` and
-add this line before the "Edit" link:
+#### Updating the view to show the comments
+
+To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb`
+and add this line before the "Edit" link:
 
 ```html+erb
 <h3>Comments</h3>
 <%= render @article.comments %>
 ```
 
-This line will require there to be a `has_many` association for comments defined
-on the `Blorgh::Article` model, which there isn't right now. To define one, open
-`app/models/blorgh/article.rb` and add this line into the model:
-
-```ruby
-has_many :comments
-```
-
-Turning the model into this:
+To get the comments to display on an article, you'll need to define a `has_many`
+association for comments on the `Blorgh::Article` model. To do this, open
+`app/models/blorgh/article.rb` and add the `has_many` association:
 
 ```ruby
 module Blorgh
@@ -611,22 +641,28 @@ module Blorgh
 end
 ```
 
-NOTE: Because the `has_many` is defined inside a class that is inside the
-`Blorgh` module, Rails will know that you want to use the `Blorgh::Comment`
-model for these objects, so there's no need to specify that using the
-`:class_name` option here.
+NOTE: Because the `has_many` association is defined inside a class that is inside
+the `Blorgh` module, Rails will know that you want to use the `Blorgh::Comment`
+model for these objects, so there's no need to specify the `:class_name` option.
 
-Next, there needs to be a form so that comments can be created on an article. To
-add this, put this line underneath the call to `render @article.comments` in
-`app/views/blorgh/articles/show.html.erb`:
+#### Adding a form and resource route to create comments
+
+Next, create a form so that comments can be added to an article. Render the
+`blorgh/comments/form` partial in `app/views/blorgh/articles/show.html.erb`
+underneath the `render @article.comments` line.
 
 ```erb
-<%= render "blorgh/comments/form" %>
+...
+  <%= render @article.comments %>
+
+  <!-- Render the comments form -->
+  <%= render "blorgh/comments/form" %>
+...
 ```
 
-Next, the partial that this line will render needs to exist. Create a new
-directory at `app/views/blorgh/comments` and in it a new file called
-`_form.html.erb` which has this content to create the required partial:
+Next, create the `blorgh/comments/form` partial that we just referenced.
+To do this, create a new directory at `app/views/blorgh/comments` and in it a
+new file called `_form.html.erb` with the following content:
 
 ```html+erb
 <h3>New comment</h3>
@@ -639,10 +675,13 @@ directory at `app/views/blorgh/comments` and in it a new file called
 <% end %>
 ```
 
-When this form is submitted, it is going to attempt to perform a `POST` request
-to a route of `/articles/:article_id/comments` within the engine. This route doesn't
-exist at the moment, but can be created by changing the `resources :articles` line
-inside `config/routes.rb` into these lines:
+When this form is submitted, it will attempt to perform a `POST` request to the
+`/articles/:article_id/comments` route within the engine. You can read more
+about the [`form_with` helper](form_helpers.html#working-with-basic-forms) in
+the guides.
+
+However, this route doesn't exist as yet. You can create it by nesting the
+`comments` resource inside the `articles` resource in `config/routes.rb`:
 
 ```ruby
 resources :articles do
@@ -650,10 +689,8 @@ resources :articles do
 end
 ```
 
-This creates a nested route for the comments, which is what the form requires.
-
-The route now exists, but the controller that this route goes to does not. To
-create it, run this command from the engine root:
+Now, create the controller that will handle the `POST` request to the
+`/articles/:article_id/comments` route:
 
 ```bash
 $ bin/rails generate controller comments
@@ -672,12 +709,13 @@ create    app/helpers/blorgh/comments_helper.rb
 invoke    test_unit
 ```
 
-The form will be making a `POST` request to `/articles/:article_id/comments`, which
-will correspond with the `create` action in `Blorgh::CommentsController`. This
-action needs to be created, which can be done by putting the following lines
-inside the class definition in `app/controllers/blorgh/comments_controller.rb`:
+As mentioned, the form will make a `POST` request to
+`/articles/:article_id/comments`, so we'll need a `create` action in
+`Blorgh::CommentsController`:
 
 ```ruby
+# app/controllers/blorgh/comments_controller.rb
+
 def create
   @article = Article.find(params[:article_id])
   @comment = @article.comments.create(comment_params)
@@ -691,26 +729,21 @@ private
   end
 ```
 
-This is the final step required to get the new comment form working. Displaying
-the comments, however, is not quite right yet. If you were to create a comment
-right now, you would see this error:
+However, if you were to create a comment, you would see an error where the engine
+is unable to find the partial required for rendering the comments:
 
 ```
-Missing partial blorgh/comments/_comment with {:handlers=>[:erb, :builder],
-:formats=>[:html], :locale=>[:en, :en]}. Searched in:   *
-"/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"   *
-"/Users/ryan/Sites/side_projects/blorgh/app/views"
+Missing partial blorgh/comments/_comment with {:locale=>[:en], :formats=>[:html], :variants=>[], :handlers=>[:raw, :erb, :html, :builder, :ruby]}.
 ```
 
-The engine is unable to find the partial required for rendering the comments.
-Rails looks first in the application's (`test/dummy`) `app/views` directory and
-then in the engine's `app/views` directory. When it can't find it, it will throw
-this error. The engine knows to look for `blorgh/comments/_comment` because the
-model object it is receiving is from the `Blorgh::Comment` class.
+NOTE: Rails will first look in the application's (`test/dummy`) `app/views`
+directory and then in the engine's `app/views` directory. When it can't find the
+file, it will throw this error. The engine looks for `blorgh/comments/_comment`
+because the comment object it's rendering is an instance of the
+`Blorgh::Comment` class.
 
-This partial will be responsible for rendering just the comment text, for now.
-Create a new file at `app/views/blorgh/comments/_comment.html.erb` and put this
-line inside it:
+Create a new file at `app/views/blorgh/comments/_comment.html.erb` and add the
+following line to display the comment text:
 
 ```erb
 <%= comment_counter + 1 %>. <%= comment.text %>
@@ -721,8 +754,10 @@ The `comment_counter` local variable is given to us by the `<%= render
 counter as it iterates through each comment. It's used in this example to
 display a small number next to each comment when it's created.
 
-That completes the comment function of the blogging engine. Now it's time to use
-it within an application.
+That completes the comment functionality of the blogging engine. Now it's time
+to use it within an application.
+
+![The article with comments](images/engines/engine_article_comment_page.png)
 
 Hooking Into an Application
 ---------------------------
