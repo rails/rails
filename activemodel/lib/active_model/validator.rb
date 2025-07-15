@@ -150,9 +150,15 @@ module ActiveModel
     def validate(record)
       attributes.each do |attribute|
         value = record.read_attribute_for_validation(attribute)
-        next if (value.nil? && options[:allow_nil]) || (value.blank? && options[:allow_blank])
-        value = prepare_value_for_validation(value, record, attribute)
-        validate_each(record, attribute, value)
+        value_for_validation = prepare_value_for_validation(value, record, attribute)
+
+        if options[:allow_blank] && value_for_validation.blank?
+          next
+        elsif options[:allow_nil] && value.nil? && value_for_validation.blank?
+          next
+        end
+
+        validate_each(record, attribute, value_for_validation)
       end
     end
 
