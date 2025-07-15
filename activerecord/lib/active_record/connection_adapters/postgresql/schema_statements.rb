@@ -167,11 +167,14 @@ module ActiveRecord
 
           options[:comment] = comment if comment
 
+          partition_bound_definition = table_partition_bound_definition(table_name)
           inherited_table_names = inherited_table_names(table_name).presence
 
-          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
-
-          if !options[:options] && supports_native_partitioning?
+          # Can't use :options for declarative partitioning. Partition will be attached
+          # via a separate 'ALTER TABLE ... ATTACH PARTITION ...' call.
+          if inherited_table_names && !partition_bound_definition
+            options[:options] = "INHERITS (#{inherited_table_names.join(", ")})"
+          elsif supports_native_partitioning?
             partition_definition = table_partition_definition(table_name)
 
             options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
@@ -195,7 +198,7 @@ module ActiveRecord
           end
         end
 
-        # Returns the partition definition of a given table
+        # Returns the partitioned table definition of a given table
         def table_partition_definition(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
 
@@ -222,6 +225,21 @@ module ActiveRecord
             WHERE child.relname = #{scope[:name]}
               AND child.relkind IN (#{scope[:type]})
               AND n.nspname = #{scope[:schema]}
+          SQL
+        end
+
+        # Returns the partition definition of a given table
+        def table_partition_bound_definition(table_name) # :nodoc:
+          scope = quoted_scope(table_name, type: "BASE TABLE")
+
+          query_value(<<~SQL, "SCHEMA")
+            SELECT pg_catalog.pg_get_expr(c.relpartbound, c.oid)
+            FROM pg_catalog.pg_class c
+              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = #{scope[:name]}
+              AND c.relkind IN (#{scope[:type]})
+              AND n.nspname = #{scope[:schema]}
+              AND c.relispartition
           SQL
         end
 

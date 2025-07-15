@@ -922,9 +922,14 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
       t.string :kind
     end
 
-    output = dump_table_schema "trains"
+    @connection.create_table "trains_a", id: false, options: "PARTITION OF trains FOR VALUES IN ('a')"
+    @connection.create_table "trains_b", id: false, options: "PARTITION OF trains FOR VALUES IN ('b')"
+
+    output = dump_table_schema "trains", "trains_a", "trains_b"
 
     assert_match("options: \"#{options}\"", output)
+    assert_match(/execute "ALTER TABLE ONLY trains ATTACH PARTITION trains_a FOR VALUES IN \('a'\)"/, output)
+    assert_match(/execute "ALTER TABLE ONLY trains ATTACH PARTITION trains_b FOR VALUES IN \('b'\)"/, output)
   end
 
   def test_range_partition_options_is_dumped

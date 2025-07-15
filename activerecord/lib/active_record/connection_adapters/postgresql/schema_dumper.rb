@@ -39,6 +39,17 @@ module ActiveRecord
             end
           end
 
+          def table(table, stream)
+            super
+
+            partition_bound_definition = @connection.table_partition_bound_definition(table)
+            if partition_bound_definition
+              partition_table = @connection.inherited_table_names(table).first
+
+              stream.puts "  execute \"ALTER TABLE ONLY #{partition_table} ATTACH PARTITION #{table} #{partition_bound_definition}\""
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
               exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
