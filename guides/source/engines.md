@@ -759,126 +759,183 @@ to use it within an application.
 
 ![The article with comments](images/engines/engine_article_comment_page.png)
 
-Hooking Into an Application
----------------------------
+Using the Engine in a Host Application
+-------------------------------------
 
-Using an engine within an application is very easy. This section covers how to
-mount the engine into an application and the initial setup required, as well as
-linking the engine to a `User` class provided by the application to provide
-ownership for articles and comments within the engine.
+This section explains how to mount the engine into an application, perform the
+initial setup, and connect the engine to an existing class defined by the host
+application.
 
 ### Mounting the Engine
 
-First, the engine needs to be specified inside the application's `Gemfile`. If
-there isn't an application handy to test this out in, generate one using the
-`rails new` command outside of the engine directory like this:
+To use the engine in a host application, add it to the application's `Gemfile`. If
+you don't already have an application to test with, you can generate one outside
+the engine directory using the `rails new` command:
 
 ```bash
-$ rails new unicorn
+$ cd .. # Go back one folder
+$ rails new host_application
 ```
 
-Usually, specifying the engine inside the `Gemfile` would be done by specifying it
-as a normal, everyday gem.
+This means the host application and the engine will live side by side in your filesystem, like this:
+
+```bash
+/your_project_root/
+├── blorgh/           # The engine
+└── host_application/ # The app where you test the engine
+```
+
+In a production application, once your gem has been published, you would add the
+engine to your Gemfile, like you do with other gems. For example, to add Devise
+to your application, you would add the following line to your Gemfile:
 
 ```ruby
 gem "devise"
 ```
 
-However, because you are developing the `blorgh` engine on your local machine,
-you will need to specify the `:path` option in your `Gemfile`:
+However, since the engine is not published as a gem yet, and you're developing it locally, you need to link to it using a relative path in the host application's Gemfile:
 
 ```ruby
-gem "blorgh", path: "engines/blorgh"
+gem "blorgh", path: "../blorgh"
 ```
 
-Then run `bundle` to install the gem.
+Now that the local path to the gem is specified, run `bundle install` to install
+it.
 
-As described earlier, by placing the gem in the `Gemfile` it will be loaded when
-Rails is loaded. It will first require `lib/blorgh.rb` from the engine, then
-`lib/blorgh/engine.rb`, which is the file that defines the major pieces of
-functionality for the engine.
+NOTE: By including the engine in the application's `Gemfile`, it will be loaded
+automatically when Rails boots. Rails will first require the engine’s entry
+point file at `lib/blorgh.rb`. This file typically sets up the namespace and
+requires additional files, including `lib/blorgh/engine.rb`, which defines the
+`Blorgh::Engine` class. This `Engine` class is responsible for hooking into the
+Rails application and mounting the engine's routes, initializers, and other
+configurations.
 
-To make the engine's functionality accessible from within an application, it
-needs to be mounted in that application's `config/routes.rb` file:
+To make the engine's functionality available within a host application, you need
+to mount it in the application's `config/routes.rb` file:
 
 ```ruby
 mount Blorgh::Engine, at: "/blog"
 ```
 
-This line will mount the engine at `/blog` in the application. Making it
-accessible at `http://localhost:3000/blog` when the application runs with `bin/rails
-server`.
+This mounts the engine at the `/blog` path, making its routes accessible at
+`http://localhost:3000/blog` when the application is running.
 
-NOTE: Other engines, such as Devise, handle this a little differently by making
-you specify custom helpers (such as `devise_for`) in the routes. These helpers
-do exactly the same thing, mounting pieces of the engines's functionality at a
-pre-defined path which may be customizable.
+NOTE: Some engines, like Devise, expose custom routing helpers (such as
+`devise_for`) instead of using `mount`. These helpers internally mount parts of
+the engine's functionality at specific paths and provide additional
+configuration options tailored to the engine's domain.
+
+However, if you try to run the application at this point, you will see an error
+like this:
+
+```ruby
+SQLite3::SQLException: no such table: blorgh_articles:
+SELECT "blorgh_articles".* FROM "blorgh_articles" /*action='index',application='HostApplication',controller='articles'*/
+```
+
+This is because the engine's migrations haven't been copied over to the host
+application's database as yet. We'll walk through how to do this in the next
+section.
 
 ### Engine Setup
 
-The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
-table which need to be created in the application's database so that the
-engine's models can query them correctly. To copy these migrations into the
-application run the following command from the application's root:
+The engine contains migrations for the `blorgh_articles` and
+`blorgh_comments` tables which need to be created in the application's database
+so that the engine's models can query them correctly.
+
+
+#### Copying the migrations
+
+To copy these migrations into the application run the following command from the application's root:
 
 ```bash
 $ bin/rails blorgh:install:migrations
 ```
 
-If you have multiple engines that need migrations copied over, use
-`railties:install:migrations` instead:
-
-```bash
-$ bin/rails railties:install:migrations
-```
-
-You can specify a custom path in the source engine for the migrations by specifying MIGRATIONS_PATH.
-
-```bash
-$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blourgh
-```
-
-If you have multiple databases you can also specify the target database by specifying DATABASE.
-
-```bash
-$ bin/rails railties:install:migrations DATABASE=animals
-```
-
-This command, when run for the first time, will copy over all the migrations
-from the engine. When run the next time, it will only copy over migrations that
-haven't been copied over already. The first run for this command will output
-something such as this:
+which will output something like this:
 
 ```
 Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
 Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
-The first timestamp (`[timestamp_1]`) will be the current time, and the second
-timestamp (`[timestamp_2]`) will be the current time plus a second. The reason
-for this is so that the migrations for the engine are run after any existing
-migrations in the application.
+NOTE: When run for the first time, it copies over all the migrations from the
+engine. When run the next time, it will only copy over migrations that haven't
+been copied over already. This is useful if you want to revert the migrations
+from the engine.
 
-To run these migrations within the context of the application, simply run `bin/rails
-db:migrate`. When accessing the engine through `http://localhost:3000/blog`, the
-articles will be empty. This is because the table created inside the application is
-different from the one created within the engine. Go ahead, play around with the
-newly mounted engine. You'll find that it's the same as when it was only an
-engine.
+#### Referencing a custom path for the migrations
 
-If you would like to run migrations only from one engine, you can do it by
-specifying `SCOPE`:
+If your engine stores its migrations in the non-default location, you can
+specify a custom path in the source engine for the migrations using
+`MIGRATIONS_PATH`.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
+```
+
+#### Migrations for multiple engines
+
+If you have multiple engines referenced in the host application, that need migrations copied over, use
+`railties:install:migrations` instead:
+
+```bash
+$ bin/rails railties:install:migrations
+```
+
+This will save you from having to run a separate `install:migrations` task for each engine individually.
+
+#### Migrations for multiple databases
+
+If you have multiple databases within an engine, you can specify the target database by
+specifying DATABASE.
+
+```bash
+$ bin/rails railties:install:migrations DATABASE=animals
+```
+
+NOTE: These tasks are provided by
+[Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html), the Rails
+component responsible for managing how engines and plugins are integrated into
+an application. When run, it looks through all loaded engines and copies any
+exposed migrations into the host application's `db/migrate` folder, saving you
+from having to run a separate `install:migrations` task for each engine
+individually.
+
+
+#### Running migrations
+
+To run these migrations within the context of the application, run
+
+```bash
+$ bin/rails db:migrate
+```
+
+#### Running and reverting migrations for only one engine
+
+If you have multiple engines referenced in the host application, and you would
+like to run migrations only from one engine, you can do it by specifying
+`SCOPE`:
 
 ```bash
 $ bin/rails db:migrate SCOPE=blorgh
 ```
 
-This may be useful if you want to revert engine's migrations before removing it.
+This scope may also be useful if you want to revert an engine's migrations before removing it.
+
 To revert all migrations from blorgh engine you can run code such as:
 
 ```bash
 $ bin/rails db:migrate SCOPE=blorgh VERSION=0
 ```
+
+Once you've run the migrations, you can access the engine through
+`http://localhost:3000/blog`.
+
+The articles will be empty, because the table created inside the application is
+different from the one created within the engine. You can explore the engine
+through the host application, in the same way as you did when it was only an
+engine.
 
 ### Using a Class Provided by the Application
 
