@@ -1,3 +1,15 @@
+*   Add `:touch` option to `update_column`/`update_columns` methods.
+
+    ```ruby
+    # Will update :updated_at/:updated_on alongside :nice column.
+    user.update_column(:nice, true, touch: true)
+
+    # Will update :updated_at/:updated_on alongside :last_ip column
+    user.update_columns(last_ip: request.remote_ip, touch: true)
+    ```
+
+    *Dmitrii Ivliev*
+
 *   Optimize Active Record batching further when using ranges.
 
     Tested on a PostgreSQL table with 10M records and batches of 10k records, the generation
