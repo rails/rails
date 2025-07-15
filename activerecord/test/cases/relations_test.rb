@@ -368,9 +368,10 @@ class RelationTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Edge.all.reverse_order
     end
+    assert_match(/Relation has no order values/, error.message)
   end
 
   def test_default_reverse_order_on_table_without_primary_key_with_implicit_order_column
