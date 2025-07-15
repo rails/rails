@@ -114,7 +114,7 @@ module ActiveJob
         "arguments"  => serialize_arguments_if_needed(arguments),
         "executions" => executions,
         "exception_executions" => exception_executions,
-        "locale"     => I18n.locale.to_s,
+        "locale"     => locale || I18n.locale.to_s,
         "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601(9),
         "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
