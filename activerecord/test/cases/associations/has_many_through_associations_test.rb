@@ -1728,7 +1728,7 @@ end
 class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 
-  fixtures :authors
+  fixtures :authors, :author_addresses
 
   setup do
     @model = DATS::Author

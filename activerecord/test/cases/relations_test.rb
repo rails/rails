@@ -368,9 +368,10 @@ class RelationTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Edge.all.reverse_order
     end
+    assert_match(/Relation has no order values/, error.message)
   end
 
   def test_default_reverse_order_on_table_without_primary_key_with_implicit_order_column
@@ -1366,13 +1367,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_create_with_block
     sparrow = Bird.create do |bird|
       bird.name = "sparrow"
-      bird.color = "grey"
+      bird.color = "gray"
     end
 
     assert_kind_of Bird, sparrow
     assert_predicate sparrow, :persisted?
     assert_equal "sparrow", sparrow.name
-    assert_equal "grey", sparrow.color
+    assert_equal "gray", sparrow.color
   end
 
   def test_create_bang_with_array
@@ -2659,7 +2660,7 @@ end
 class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 
-  fixtures :posts, :authors
+  fixtures :posts, :authors, :author_addresses
 
   setup do
     @model = DATS::Post

@@ -211,7 +211,7 @@ module ActiveRecord
         end
 
         def escape_sql_comment(content)
-          # Sanitize a string to appear within a SQL comment
+          # Sanitize a string to appear within an SQL comment
           # For compatibility, this also surrounding "/*+", "/*", and "*/"
           # characters, possibly with single surrounding space.
           # Then follows that by replacing any internal "*/" or "/ *" with

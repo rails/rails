@@ -56,7 +56,7 @@ module ActiveRecord
         error = assert_raises(ArgumentError) do
           connection.rename_table :test_models, long_name
         end
-        assert_equal "Table name '#{long_name}' is too long; the limit is #{name_limit} characters", error.message
+        assert_equal "Table name '#{long_name}' is too long \(#{long_name.length} characters\); the limit is #{name_limit} characters", error.message
 
         connection.rename_table :test_models, short_name
         assert connection.table_exists?(short_name)

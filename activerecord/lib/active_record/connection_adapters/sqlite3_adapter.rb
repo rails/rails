@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # There may be other options available specific to the SQLite3 driver. Please read the
     # documentation for
-    # {SQLite::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
+    # {SQLite3::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
     #
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
@@ -337,7 +337,7 @@ module ActiveRecord
       # Creates a virtual table
       #
       # Example:
-      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      #   create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
       def create_virtual_table(table_name, module_name, values)
         exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
       end

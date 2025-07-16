@@ -1,3 +1,27 @@
+*   Add `:touch` option to `update_column`/`update_columns` methods.
+
+    ```ruby
+    # Will update :updated_at/:updated_on alongside :nice column.
+    user.update_column(:nice, true, touch: true)
+
+    # Will update :updated_at/:updated_on alongside :last_ip column
+    user.update_columns(last_ip: request.remote_ip, touch: true)
+    ```
+
+    *Dmitrii Ivliev*
+
+*   Optimize Active Record batching further when using ranges.
+
+    Tested on a PostgreSQL table with 10M records and batches of 10k records, the generation
+    of relations for the 1000 batches was `4.8x` faster (`6.8s` vs. `1.4s`), used `900x`
+    less bandwidth (`180MB` vs. `0.2MB`) and allocated `45x` less memory (`490MB` vs. `11MB`).
+
+    *Maxime Réty*, *fatkodima*
+
+*   Include current character length in error messages for index and table name length validations.
+
+    *Joshua Young*
+
 *   Add `rename_schema` method for PostgreSQL.
 
     *T S Vallender*
@@ -57,6 +81,19 @@
     ```
 
     *Eileen M. Uchitelle*
+
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values on the relation, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    This change will be introduced with a new framework default for Rails 8.1, and the current behavior of not raising
+    an error has been deprecated with the aim of removing the configuration option in Rails 8.2.
+
+    ```ruby
+    config.active_record.raise_on_missing_required_finder_order_columns = true
+    ```
+
+    *Joshua Young*
 
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
@@ -404,7 +441,7 @@
     `WITH RECURSIVE` or `DISTINCT` statements. Those were never supported and were ignored
     when generating the SQL query.
 
-    An error will be raised in a future Rails release. This behaviour will be consistent
+    An error will be raised in a future Rails release. This behavior will be consistent
     with `delete_all` which currently raises an error for unsupported statements.
 
     *Edouard Chin*

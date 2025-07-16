@@ -1802,7 +1802,7 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_not_predicate ship, :valid?
   end
 
-  def test_recognises_inverse_polymorphic_association_changes_with_same_foreign_key
+  def test_recognizes_inverse_polymorphic_association_changes_with_same_foreign_key
     chef_a = chefs(:gordon_ramsay)
     chef_b = chefs(:marco_pierre_white)
 

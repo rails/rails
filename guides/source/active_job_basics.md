@@ -427,9 +427,9 @@ enables a powerful yet sharp tool: taking advantage of transactional integrity
 to ensure some action in your app is not committed unless your job is also committed
 and vice versa, and ensuring that your job won't be enqueued until the transaction
 within which you're enqueuing it is committed. This can be very powerful and useful,
-but it can also backfire if you base some of your logic on this behaviour,
+but it can also backfire if you base some of your logic on this behavior,
 and in the future, you move to another active job backend, or if you simply move
-Solid Queue to its own database, and suddenly the behaviour changes under you.
+Solid Queue to its own database, and suddenly the behavior changes under you.
 
 Because this can be quite tricky and many people shouldn't need to worry about it,
 by default Solid Queue is configured in a different database as the main app.

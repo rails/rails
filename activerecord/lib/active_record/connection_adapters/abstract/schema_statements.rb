@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/access"
+require "active_support/core_ext/string/filters"
 require "openssl"
 
 module ActiveRecord
@@ -186,6 +187,9 @@ module ActiveRecord
       #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
+      #
+      #   A Hash can be used to specify the generated primary key column creation options.
+      #   See {add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column] for available options.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
@@ -1871,13 +1875,19 @@ module ActiveRecord
 
         def validate_index_length!(table_name, new_name, internal = false)
           if new_name.length > index_name_length
-            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+            raise ArgumentError, <<~MSG.squish
+              Index name '#{new_name}' on table '#{table_name}' is too long (#{new_name.length} characters); the limit
+              is #{index_name_length} characters
+            MSG
           end
         end
 
         def validate_table_length!(table_name)
           if table_name.length > table_name_length
-            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
+            raise ArgumentError, <<~MSG.squish
+              Table name '#{table_name}' is too long (#{table_name.length} characters); the limit is
+              #{table_name_length} characters
+            MSG
           end
         end
 
