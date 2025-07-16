@@ -1,6 +1,8 @@
 # typed: true
 # frozen_string_literal: true
 
+require_relative "event_reporter/encoders"
+
 module ActiveSupport
   class TagStack # :nodoc:
     EMPTY_TAGS = {}.freeze
@@ -94,38 +96,37 @@ module ActiveSupport
   #   #  }
   #
   # These objects should represent schematized events and be serializable.
-  # There are no restrictions on what interface these objects should implement, or how they should be
-  # serialized. Subscribers are expected to know how to serialize their events.
   #
-  # For example, here is an event class:
+  # ==== Default Encoders
   #
-  #   class UserCreatedEvent
-  #     def initialize(id:, name:)
-  #       @id = id
-  #       @name = name
-  #     end
+  # Rails provides default encoders for common serialization formats. Event objects and tags MUST
+  # implement +to_h+ to be serialized.
   #
-  #     def to_h
-  #       {
-  #         id: @id,
-  #         name: @name,
-  #       }
-  #     end
-  #   end
-  #
-  # And a subscriber implementation that uses this event class:
-  #
-  #   class EventReporterSubscriber
+  #   class JSONLogSubscriber
   #     def emit(event)
-  #       name = event[:name]
-  #       event_payload = event[:payload].to_h
-  #       # => { id: 123, name: "John Doe" }
-  #       encoded_data = LogEncoder.encode(name, event_payload)
-  #       ExportService.export(encoded_data)
+  #       # event = { name: "UserCreatedEvent", payload: { UserCreatedEvent: #<UserCreatedEvent:0x111> } }
+  #       json_data = ActiveSupport::EventReporter.encoder(:json).encode(event)
+  #       # => {
+  #       #      "name": "UserCreatedEvent",
+  #       #      "payload": {
+  #       #        "id": 123,
+  #       #        "name": "John Doe"
+  #       #      }
+  #       #    }
+  #       Rails.logger.info(json_data)
   #     end
   #   end
   #
-  # You can also use the +debug+ method to report an event that will only be reported if the
+  #   class MessagePackSubscriber
+  #     def emit(event)
+  #       msgpack_data = ActiveSupport::EventReporter.encoder(:msgpack).encode(event)
+  #       BatchExporter.export(msgpack_data)
+  #     end
+  #   end
+  #
+  # ==== Debug Events
+  #
+  # You can use the +debug+ method to report an event that will only be reported if the
   # event reporter is in debug mode:
   #
   #   Rails.event.debug("my_debug_event", { foo: "bar" })
@@ -195,6 +196,31 @@ module ActiveSupport
 
     class << self
       attr_accessor :context_store # :nodoc:
+
+      # Lookup an encoder by name or symbol
+      #
+      #   ActiveSupport::EventReporter.encoder(:json)
+      #   # => ActiveSupport::EventReporter::Encoders::JSON
+      #
+      #   ActiveSupport::EventReporter.encoder("msgpack")
+      #   # => ActiveSupport::EventReporter::Encoders::MessagePack
+      #
+      # ==== Arguments
+      #
+      # * +format+ - The encoder format as a symbol or string
+      #
+      # ==== Raises
+      #
+      # * +KeyError+ - If the encoder format is not found
+      def encoder(format)
+        encoders = {
+          json: Encoders::JSON,
+          msgpack: Encoders::MessagePack
+        }
+        encoders.fetch(format.to_sym) do
+          raise KeyError, "Unknown encoder format: #{format.inspect}. Available formats: #{encoders.keys.join(', ')}"
+        end
+      end
     end
 
     self.context_store = EventContext

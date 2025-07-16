@@ -3,6 +3,7 @@
 
 require_relative "abstract_unit"
 require "active_support/event_reporter/test_helper"
+require "json"
 
 module ActiveSupport
   class EventReporterTest < ActiveSupport::TestCase
@@ -532,6 +533,132 @@ module ActiveSupport
           @reporter.notify(:test_event, key: "value")
         end
       end
+    end
+  end
+
+  class EncodersTest < ActiveSupport::TestCase
+    TestEvent = Class.new do
+      class << self
+        def name
+          "TestEvent"
+        end
+      end
+
+      def initialize(data)
+        @data = data
+      end
+
+      def to_h
+        {
+          data: @data
+        }
+      end
+    end
+
+    HttpRequestTag = Class.new do
+      class << self
+        def name
+          "HttpRequestTag"
+        end
+      end
+
+      def initialize(http_method, http_status)
+        @http_method = http_method
+        @http_status = http_status
+      end
+
+      def to_h
+        {
+          http_method: @http_method,
+          http_status: @http_status
+        }
+      end
+    end
+
+    setup do
+      @event = {
+        name: "test_event",
+        payload: { id: 123, message: "hello" },
+        tags: { section: "admin" },
+        context: { user_id: 456 },
+        timestamp: 1738964843208679035,
+        source_location: { filepath: "/path/to/file.rb", lineno: 42, label: "test_method" }
+      }
+    end
+
+    test "looking up encoder by symbol" do
+      assert_equal EventReporter::Encoders::JSON, EventReporter.encoder(:json)
+      assert_equal EventReporter::Encoders::MessagePack, EventReporter.encoder(:msgpack)
+    end
+
+    test "looking up encoder by string" do
+      assert_equal EventReporter::Encoders::JSON, EventReporter.encoder("json")
+      assert_equal EventReporter::Encoders::MessagePack, EventReporter.encoder("msgpack")
+    end
+
+    test "looking up nonexistant encoder raises KeyError" do
+      error = assert_raises(KeyError) do
+        EventReporter.encoder(:unknown)
+      end
+      assert_equal "Unknown encoder format: :unknown. Available formats: json, msgpack", error.message
+    end
+
+    test "Base encoder raises NotImplementedError" do
+      assert_raises(NotImplementedError) do
+        EventReporter::Encoders::Base.encode(@event)
+      end
+    end
+
+    test "JSON encoder encodes event to JSON" do
+      json_string = EventReporter::Encoders::JSON.encode(@event)
+      parsed = ::JSON.parse(json_string)
+
+      assert_equal "test_event", parsed["name"]
+      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
+      assert_equal({ "section" => "admin" }, parsed["tags"])
+      assert_equal({ "user_id" => 456 }, parsed["context"])
+      assert_equal 1738964843208679035, parsed["timestamp"]
+      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
+    end
+
+    test "JSON encoder serializes event objects and object tags as hashes" do
+      @event[:payload] = TestEvent.new("value")
+      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
+      json_string = EventReporter::Encoders::JSON.encode(@event)
+      parsed = ::JSON.parse(json_string)
+
+      assert_equal "value", parsed["payload"]["data"]
+      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
+      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
+    end
+
+    test "MessagePack encoder encodes event to MessagePack" do
+      begin
+        require "msgpack"
+      rescue LoadError
+        skip "msgpack gem not available"
+      end
+
+      msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
+      parsed = ::MessagePack.unpack(msgpack_data)
+
+      assert_equal "test_event", parsed["name"]
+      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
+      assert_equal({ "section" => "admin" }, parsed["tags"])
+      assert_equal({ "user_id" => 456 }, parsed["context"])
+      assert_equal 1738964843208679035, parsed["timestamp"]
+      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
+    end
+
+    test "MessagePack encoder serializes event objects and object tags as hashes" do
+      @event[:payload] = TestEvent.new("value")
+      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
+      msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
+      parsed = ::MessagePack.unpack(msgpack_data)
+
+      assert_equal "value", parsed["payload"]["data"]
+      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
+      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
     end
   end
 end
