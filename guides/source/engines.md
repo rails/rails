@@ -463,7 +463,7 @@ end
 NOTE: The routes are created on the `Blorgh::Engine` object rather than the
 `YourApp::Application` class. This ensures that the engine routes are confined
 to the engine itself and can be mounted at a specific point, as shown in the
-[test directory](#test-directory) section. It also allows the engine's routes to
+[Writing Tests](#writing-tests) section. It also allows the engine's routes to
 be isolated from routes that are within the application. The
 [Routes](#routes) section of this guide describes it in detail.
 
@@ -1274,71 +1274,9 @@ application. The same thing goes if you want to use a standard initializer.
 For locales, simply place the locale files in the `config/locales` directory,
 just like you would in an application.
 
-Testing an Engine
------------------
 
-When an engine is generated, there is a smaller dummy application created inside
-it at `test/dummy`. This application is used as a mounting point for the engine,
-to make testing the engine extremely simple. You may extend this application by
-generating controllers, models, or views from within the directory, and then use
-those to test your engine.
-
-The `test` directory should be treated like a typical Rails testing environment,
-allowing for unit, functional, and integration tests.
-
-### Functional Tests
-
-A matter worth taking into consideration when writing functional tests is that
-the tests are going to be running on an application - the `test/dummy`
-application - rather than your engine. This is due to the setup of the testing
-environment; an engine needs an application as a host for testing its main
-functionality, especially controllers. This means that if you were to make a
-typical `GET` to a controller in a controller's functional test like this:
-
-```ruby
-module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
-    include Engine.routes.url_helpers
-
-    def test_index
-      get foos_url
-      # ...
-    end
-  end
-end
-```
-
-It may not function correctly. This is because the application doesn't know how
-to route these requests to the engine unless you explicitly tell it **how**. To
-do this, you must set the `@routes` instance variable to the engine's route set
-in your setup code:
-
-```ruby
-module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
-    include Engine.routes.url_helpers
-
-    setup do
-      @routes = Engine.routes
-    end
-
-    def test_index
-      get foos_url
-      # ...
-    end
-  end
-end
-```
-
-This tells the application that you still want to perform a `GET` request to the
-`index` action of this controller, but you want to use the engine's route to get
-there, rather than the application's one.
-
-This also ensures that the engine's URL helpers will work as expected in your
-tests.
-
-Improving Engine Functionality
-------------------------------
+Improving the Engine
+--------------------
 
 This section explains how to add and/or override engine MVC functionality in the
 main Rails application.
@@ -1605,6 +1543,66 @@ end
 ```
 
 For more information, read the [Asset Pipeline guide](asset_pipeline.html).
+
+### Writing Tests
+
+When an engine is generated, there is a smaller dummy application created inside
+it at `test/dummy`. This application is used as a mounting point for the engine,
+to make testing the engine extremely simple. You may extend this application by
+generating controllers, models, or views from within the directory, and then use
+those to test your engine.
+
+The `test` directory should be treated like a typical Rails testing environment,
+allowing for unit, functional, and integration tests.
+
+A matter worth taking into consideration when writing functional tests is that
+the tests are going to be running on an application - the `test/dummy`
+application - rather than your engine. This is due to the setup of the testing
+environment; an engine needs an application as a host for testing its main
+functionality, especially controllers. This means that if you were to make a
+typical `GET` to a controller in a controller's functional test like this:
+
+```ruby
+module Blorgh
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
+    def test_index
+      get foos_url
+      # ...
+    end
+  end
+end
+```
+
+It may not function correctly. This is because the application doesn't know how
+to route these requests to the engine unless you explicitly tell it **how**. To
+do this, you must set the `@routes` instance variable to the engine's route set
+in your setup code:
+
+```ruby
+module Blorgh
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
+    setup do
+      @routes = Engine.routes
+    end
+
+    def test_index
+      get foos_url
+      # ...
+    end
+  end
+end
+```
+
+This tells the application that you still want to perform a `GET` request to the
+`index` action of this controller, but you want to use the engine's route to get
+there, rather than the application's one.
+
+This also ensures that the engine's URL helpers will work as expected in your
+tests.
 
 ### Other Gem Dependencies
 
