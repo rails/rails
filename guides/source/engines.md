@@ -967,7 +967,7 @@ $ bin/rails generate model user name:string
 The `bin/rails db:migrate` command needs to be run here to ensure that our
 application has the `users` table for future use.
 
-####  Associating `author_name` from the Engine to a Class in the Host Application
+#### Associating `author_name` from the Engine to a Class in the Host Application
 
 The article form will include a new text field called `author_name`, where users
 can enter their name. The engine will use this name to either find an existing
@@ -1274,7 +1274,6 @@ application. The same thing goes if you want to use a standard initializer.
 For locales, simply place the locale files in the `config/locales` directory,
 just like you would in an application.
 
-
 Improving the Engine
 --------------------
 
@@ -1283,13 +1282,21 @@ main Rails application.
 
 ### Overriding Models and Controllers
 
-Engine models and controllers can be reopened by the parent application to extend or decorate them.
+Engine models and controllers can be reopened and extended by the host
+application to customize or override their behavior. This is useful when the
+host application needs to make changes, such as adding validations to a model or
+adjusting controller logic, without modifying the engine’s source code directly.
 
-Overrides may be organized in a dedicated directory `app/overrides`, ignored by the autoloader, and preloaded in a `to_prepare` callback:
+A common approach is to place override files in a dedicated directory, such as
+`app/overrides`, and manually load them during application initialization. This
+directory is ignored by the Rails autoloader to prevent naming conflicts and to
+prevent unintended constant loading.
+
+Here’s how you can set this up in the host application:
 
 ```ruby
 # config/application.rb
-module MyApp
+module HostApplication
   class Application < Rails::Application
     # ...
 
@@ -1305,12 +1312,25 @@ module MyApp
 end
 ```
 
+#### Why Use `to_prepare` and `load`
+
+The `to_prepare` block ensures that overrides are reloaded on each request in development (and only once in production), which is helpful when working with engines during development. Using `load` instead of `require` allows the override files to be reloaded without restarting the server.
+
+#### Why Ignore Autoloading
+
+The `app/overrides` directory is ignored by Zeitwerk (Rails’ autoloader) so that you can control exactly when the files are loaded. This prevents potential conflicts with similarly named classes or modules elsewhere in the application.
+
+#### Naming Convention
+
+It’s recommended to suffix override files with `_override.rb` (e.g., `article_override.rb`) to clearly distinguish them from standard models and controllers and to avoid any conflicts with autoloaded files.
+
 #### Reopening Existing Classes Using `class_eval`
 
 For example, in order to override the engine model
 
 ```ruby
 # Blorgh/app/models/blorgh/article.rb
+
 module Blorgh
   class Article < ApplicationRecord
     # ...
@@ -1318,29 +1338,44 @@ module Blorgh
 end
 ```
 
-you just create a file that _reopens_ that class:
+you can create a file that _reopens_ that class. This example reopens the
+`Blorgh::Article` model and adds a validation for the `title` attribute.
 
 ```ruby
 # MyApp/app/overrides/models/blorgh/article_override.rb
+
 Blorgh::Article.class_eval do
-  # ...
+  validates :title, presence: true, length: { minimum: 10 }
 end
 ```
 
-It is very important that the override _reopens_ the class or module. Using the `class` or `module` keywords would define them if they were not already in memory, which would be incorrect because the definition lives in the engine. Using `class_eval` as shown above ensures you are reopening.
+It is very important that the override _reopens_ the class or module. Using the
+`class` or `module` keywords would define them if they were not already in
+memory, which would be incorrect because the definition lives in the engine.
+Using `class_eval` as shown above ensures you are reopening.
 
 #### Reopening Existing Classes Using ActiveSupport::Concern
 
 Using `Class#class_eval` is great for simple adjustments, but for more complex
-class modifications, you might want to consider using [`ActiveSupport::Concern`]
-(https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
+class modifications, you might want to consider using
+[`ActiveSupport::Concern`](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
 ActiveSupport::Concern manages load order of interlinked dependent modules and
-classes at run time allowing you to significantly modularize your code.
+classes at run time, allowing you to significantly modularize your code.
 
-**Adding** `Article#time_since_created` and **Overriding** `Article#summary`:
+Let’s say you want to extend the `Blorgh::Article` model from the host application by:
+
+- Adding a new instance method: `time_since_created`
+- Overriding the existing `summary` method
+
+Here’s how you can do it cleanly using `ActiveSupport::Concern`:
+
+##### Adding/Overriding methods
+
+Add the `Article#time_since_created` and override the `Article#summary` in the
+host application:
 
 ```ruby
-# MyApp/app/models/blorgh/article.rb
+# HostApplication/app/models/blorgh/article.rb
 
 class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
@@ -1355,14 +1390,23 @@ class Blorgh::Article < ApplicationRecord
 end
 ```
 
+##### Setting Up the Engine’s Base Model
+
+Set up the engine’s base model:
+
 ```ruby
 # Blorgh/app/models/blorgh/article.rb
+
 module Blorgh
   class Article < ApplicationRecord
     include Blorgh::Concerns::Models::Article
   end
 end
 ```
+
+##### Including the Concern
+
+Include the concern containing engine-level behavior:
 
 ```ruby
 # Blorgh/lib/concerns/models/article.rb
