@@ -951,7 +951,7 @@ host application uses a model called `User`, but there could be a case where a
 different host application calls this class something different, such as
 `Person`. For this reason, the engine should not hardcode associations
 specifically for a `User` class. Instead, it should be configurable. This is
-what we'll do in the [next section](#configuring-an-engine).
+what we'll do in the [next section](#configuring-the-engine-to-use-a-custom-class).
 
 
 #### Generating a User Model in the Host Application
@@ -1038,7 +1038,7 @@ end
 For now, this setup allows the engine to associate an author name with the
 `User` model defined by the host application, even though it introduces a
 coupling that we’ll later aim to remove. It will be made more configurable in
-the [next section](#configuring-an-engine).
+the [next section](#configuring-the-engine-to-use-a-custom-class).
 
 There also needs to be a way of associating the records in the `blorgh_articles`
 table with the records in the `users` table. Because the association in the
@@ -1130,100 +1130,130 @@ anything else defined there.
 Keep in mind that this setup only works when the engine is being used inside a
 host application that has its own `ApplicationController`.
 
-### Configuring an Engine
+### Configuring the Engine to Use a Custom Class
 
-This section covers how to make the `User` class configurable, followed by
-general configuration tips for the engine.
+Earlier, we hard-coded the author association to the `User` class. However, this
+approach isn't ideal, because the engine shouldn't assume the existence of a
+specific class in the host application. For example, some applications might use
+a differently named class, such as `Person`, to represent authors.
 
-#### Setting Configuration Settings in the Application
+In this section we'll make the class that represents a `User` in the application
+customizable for the engine, allowing the engine to work with any model the host
+application chooses to use. This will be followed by general configuration tips
+for the engine.
 
-The next step is to make the class that represents a `User` in the application
-customizable for the engine. This is because that class may not always be
-`User`, as previously explained. To make this setting customizable, the engine
-will have a configuration setting called `author_class` that will be used to
-specify which class represents users inside the application.
+#### Creating the `author_class` Configuration Setting in the Engine
 
-To define this configuration setting, you should use a `mattr_accessor` inside
-the `Blorgh` module for the engine. Add this line to `lib/blorgh.rb` inside the
-engine:
+To make the class that represents a `User` in the application customizable for
+the engine, the engine should have a configuration setting called `author_class`
+that will be used to specify which class represents `authors` within the host
+application.
+
+To define this configuration setting, you should use a
+[`mattr_accessor`](https://api.rubyonrails.org/classes/Module.html#method-i-mattr_accessor)
+inside the `Blorgh` module for the engine. Add this line to the `Blorgh` module:
 
 ```ruby
-mattr_accessor :author_class
+# lib/blorgh.rb
+
+module Blorgh
+  mattr_accessor :author_class
+end
 ```
 
-This method works like its siblings, `attr_accessor` and `cattr_accessor`, but
-provides a setter and getter method on the module with the specified name. To
-use it, it must be referenced using `Blorgh.author_class`.
+This method provides a getter and setter method on the module with the specified
+name. To use it, it must be referenced using `Blorgh.author_class`.
 
 The next step is to switch the `Blorgh::Article` model over to this new setting.
-Change the `belongs_to` association inside this model
-(`app/models/blorgh/article.rb`) to this:
+Replace `belongs_to :author, class_name: "User"` with `Blorgh.author_class` in
+the `Blorgh::Article` model with the following:
 
 ```ruby
+# app/models/blorgh/article.rb
+
 belongs_to :author, class_name: Blorgh.author_class
 ```
 
-The `set_author` method in the `Blorgh::Article` model should also use this class:
+`self.author = User.find_or_create_by(name: author_name)` in the `Blorgh::Article` model should also use this class instead of `User`:
 
 ```ruby
+# app/models/blorgh/article.rb
+
 self.author = Blorgh.author_class.constantize.find_or_create_by(name: author_name)
 ```
 
 To save having to call `constantize` on the `author_class` result all the time,
-you could instead just override the `author_class` getter method inside the
-`Blorgh` module in the `lib/blorgh.rb` file to always call `constantize` on the
-saved value before returning the result:
+you could instead override the `author_class` getter method inside the `Blorgh`
+module to always call `constantize` on the saved value before returning the
+result:
 
 ```ruby
-def self.author_class
-  @@author_class.constantize
+# lib/blorgh.rb
+
+module Blorgh
+  mattr_accessor :author_class
+
+  def self.author_class
+    @@author_class.constantize
+  end
 end
 ```
 
 This would then turn the above code for `set_author` into this:
 
 ```ruby
+# app/models/blorgh/article.rb
+
 self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 ```
 
-Resulting in something a little shorter, and more implicit in its behavior. The
-`author_class` method should always return a `Class` object.
-
-Since we changed the `author_class` method to return a `Class` instead of a
-`String`, we must also modify our `belongs_to` definition in the `Blorgh::Article`
-model:
+The `author_class` method should always return a `Class` object. Since we
+changed the `author_class` method to return a `Class` instead of a `String`, we
+must also modify our `belongs_to` definition in the `Blorgh::Article` model to
+use the `to_s` method:
 
 ```ruby
+# app/models/blorgh/article.rb
+
 belongs_to :author, class_name: Blorgh.author_class.to_s
 ```
 
-To set this configuration setting within the application, an initializer should
-be used. By using an initializer, the configuration will be set up before the
-application starts and calls the engine's models, which may depend on this
-configuration setting existing.
+#### Setting the `author_class` Configuration Setting in the Host Application
 
-Create a new initializer at `config/initializers/blorgh.rb` inside the
-application where the `blorgh` engine is installed and put this content in it:
+To set this configuration setting within the host application, an initializer
+should be used. By using an initializer, the configuration will be set up before
+the application starts and before it calls the engine's models. This is
+important because the engine's models may depend on this configuration setting
+existing.
+
+Create a new initializer at `config/initializers/blorgh.rb` inside the host
+application and set the `author_class` configuration setting to `User`:
 
 ```ruby
 Blorgh.author_class = "User"
 ```
 
-WARNING: It's very important here to use the `String` version of the class,
-rather than the class itself. If you were to use the class, Rails would attempt
-to load that class and then reference the related table. This could lead to
-problems if the table didn't already exist. Therefore, a `String` should be
-used and then converted to a class using `constantize` in the engine later on.
+In a different host application where the model is called `Person`, you would
+set the `author_class` configuration setting to `Person`.
 
-Go ahead and try to create a new article. You will see that it works exactly in the
-same way as before, except this time the engine is using the configuration
-setting in `config/initializers/blorgh.rb` to learn what the class is.
+WARNING: Be sure to pass the class name as a string (e.g., `"User"`), not as a
+constant (`User`). If you use the class directly, Rails may try to load it and
+its associated table before the application has fully initialized. This can
+cause errors if the table hasn't been created yet. By using a string, the engine
+can safely convert it to a class later using `constantize`, after initialization
+is complete.
 
-There are now no strict dependencies on what the class is, only what the API for
-the class must be. The engine simply requires this class to define a
-`find_or_create_by` method which returns an object of that class, to be
-associated with an article when it's created. This object, of course, should have
-some sort of identifier by which it can be referenced.
+Try creating a new article - everything should work just as before. The key
+difference is that the engine now uses the `author_class` configuration set in
+`config/initializers/blorgh.rb` to determine which model to associate as the
+author.
+
+At this point, the engine no longer has a hardcoded dependency on a specific
+class name like `User`. Instead, it relies on whatever class is specified in the
+configuration. The only requirement is that the configured class responds to
+`find_or_create_by` and returns an object that can be associated with an article.
+That object should also have an identifiable attribute (such as an `id`)
+that can be used for lookup and display.
 
 #### General Engine Configuration
 
