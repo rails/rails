@@ -977,19 +977,21 @@ class MysqlAdapter < AbstractAdapter
 end
 ```
 
-Instance methods are also created for convenience, but they are simply proxies to the underlying class variable. As a result, when an instance sets the value, it modifies the shared class variable, which affects the entire class hierarchy. This is different behaviour when compared with `class_attribute` (see above). Here’s an example of the instance-level method in use:
+Instance methods are also created for convenience, but they are simply proxies to the underlying class variable. As a result, when an instance sets the value, it modifies the shared class variable, which affects the entire class hierarchy. This is different behaviour when compared with `class_attribute` (see above). Example:
 
 ```ruby
-module ActionView
-  class Base
-    cattr_accessor :field_error_proc, default: Proc.new {
-      # ...
-    }
-  end
+class Foo
+  cattr_accessor :bar
 end
-```
 
-we can access `field_error_proc` in views.
+instance = Foo.new
+
+Foo.bar = 1
+instance.bar # => 1
+
+instance.bar = 2
+Foo.bar # => 2
+```
 
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
