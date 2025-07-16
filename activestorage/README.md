@@ -168,10 +168,12 @@ Active Storage, with its included JavaScript library, supports uploading directl
     import * as ActiveStorage from "@rails/activestorage"
     ActiveStorage.start()
     ```
-2. Annotate file inputs with the direct upload URL.
+2. Annotate file inputs with the direct upload URL. You can optionally provide a
+   custom storage key using the `data-key` attribute.
 
     ```erb
-    <%= form.file_field :attachments, multiple: true, direct_upload: true %>
+    <%= form.file_field :attachments, multiple: true, direct_upload: true,
+      data: { key: "uploads/#{current_user.id}/#{SecureRandom.uuid}/" } %>
     ```
 
 3. Configure CORS on third-party storage services to allow direct upload requests.

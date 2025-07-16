@@ -5,7 +5,7 @@ export class DirectUploadController {
   constructor(input, file) {
     this.input = input
     this.file = file
-    this.directUpload = new DirectUpload(this.file, this.url, this)
+    this.directUpload = new DirectUpload(this.file, this.url, this, {}, this.input.dataset.key)
     this.dispatch("initialize")
   }
 
