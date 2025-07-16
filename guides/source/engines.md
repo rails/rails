@@ -405,7 +405,7 @@ This command will output this information:
 
 ```
 invoke  active_record
-create    db/migrate/[timestamp]_create_blorgh_articles.rb
+create    db/migrate/<timestamp>_create_blorgh_articles.rb
 create    app/models/blorgh/article.rb
 invoke    test_unit
 create      test/models/blorgh/article_test.rb
@@ -569,7 +569,7 @@ This will output the following:
 
 ```
 invoke  active_record
-create    db/migrate/[timestamp]_create_blorgh_comments.rb
+create    db/migrate/<timestamp>_create_blorgh_comments.rb
 create    app/models/blorgh/comment.rb
 invoke    test_unit
 create      test/models/blorgh/comment_test.rb
@@ -854,8 +854,8 @@ $ bin/rails blorgh:install:migrations
 which will output something like this:
 
 ```
-Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
-Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
+Copied migration <timestamp_1>_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration <timestamp_2>_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
 NOTE: When run for the first time, it copies over all the migrations from the
@@ -1060,7 +1060,7 @@ $ bin/rails blorgh:install:migrations
 ```
 
 ```
-Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
+Copied migration <timestamp>_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
 ```
 
 Notice that only _the latest_ migration was copied over. This is because the first
