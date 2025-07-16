@@ -1483,11 +1483,12 @@ The new view at `localhost:3000/blog/articles` will now display the following:
 ### Routes
 
 Routes inside an engine are isolated from the application by default. This is
-done by the `isolate_namespace` call inside the `Engine` class. This essentially
-means that the application and its engines can have identically named routes and
-they will not clash.
+done by the [`isolate_namespace` call inside the `Engine`
+class](#the-engine-class-definition-libblorghenginerb). This means that the
+application and its engines can have identically named routes and they will not
+clash.
 
-Routes inside an engine are drawn on the `Engine` class within
+Routes inside an engine are created on the `Blorgh::Engine` class within
 `config/routes.rb`, like this:
 
 ```ruby
