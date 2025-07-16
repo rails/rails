@@ -265,6 +265,12 @@ ActiveRecord::Schema.define do
     t.string :author
   end
 
+  create_table :cpk_posts_tags, force: true do |t|
+    t.string :post_title
+    t.string :post_author
+    t.integer :tag_id
+  end
+
   create_table :cpk_comments, force: true do |t|
     t.string :commentable_title
     t.string :commentable_author
