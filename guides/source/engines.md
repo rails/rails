@@ -937,25 +937,28 @@ different from the one created within the engine. You can explore the engine
 through the host application, in the same way as you did when it was only an
 engine.
 
-### Using a Class Provided by the Application
+### Connecting Engine Records to Application Models
 
-#### Using a Model Provided by the Application
+When building a Rails engine, you may want to connect the engine's records to
+models defined by the host application. For example, in the blorgh engine, you
+might want each `article` or `comment` to have an associated `author`. While the
+engine sets up the `author` relationship, the actual model, `User` in this case,
+comes from the host application.
 
-When an engine is created, it may want to use specific classes from an
-application to provide links between the pieces of the engine and the pieces of
-the application. In the case of the `blorgh` engine, making articles and comments
-have authors would make a lot of sense.
+In this section, we'll walk through how to associate an `Article` from the
+engine with a `User` from the host application. For simplicity, we'll assume the
+host application uses a model called `User`, but there could be a case where a
+different host application calls this class something different, such as
+`Person`. For this reason, the engine should not hardcode associations
+specifically for a `User` class. Instead, it should be configurable. This is
+what we'll do in the [next section](#configuring-an-engine).
 
-A typical application might have a `User` class that would be used to represent
-authors for an article or a comment. But there could be a case where the
-application calls this class something different, such as `Person`. For this
-reason, the engine should not hardcode associations specifically for a `User`
-class.
+
+#### Generating a User Model in the Host Application
 
 To keep it simple in this case, the application will have a class called `User`
-that represents the users of the application (we'll get into making this
-configurable further on). It can be generated using this command inside the
-application:
+that represents the users of the application. It can be generated using this
+command inside the application's root directory:
 
 ```bash
 $ bin/rails generate model user name:string
@@ -964,15 +967,17 @@ $ bin/rails generate model user name:string
 The `bin/rails db:migrate` command needs to be run here to ensure that our
 application has the `users` table for future use.
 
-Also, to keep it simple, the articles form will have a new text field called
-`author_name`, where users can elect to put their name. The engine will then
-take this name and either create a new `User` object from it, or find one that
-already has that name. The engine will then associate the article with the found or
-created `User` object.
+####  Associating `author_name` from the Engine to a Class in the Host Application
 
-First, the `author_name` text field needs to be added to the
-`app/views/blorgh/articles/_form.html.erb` partial inside the engine. This can be
-added above the `title` field with this code:
+The article form will include a new text field called `author_name`, where users
+can enter their name. The engine will use this name to either find an existing
+`User` object or create a new one. It will then associate the article with that
+`User` (or whatever class the host application uses to represent authors) as the
+article's author.
+
+Add the `author_name` text field to the `app/views/blorgh/articles/_form.html.erb`
+partial inside the engine. This can be added above the `title` field with the
+following code:
 
 ```html+erb
 <div class="field">
@@ -981,81 +986,7 @@ added above the `title` field with this code:
 </div>
 ```
 
-Next, we need to update our `Blorgh::ArticlesController#article_params` method to
-permit the new form parameter:
-
-```ruby
-def article_params
-  params.expect(article: [:title, :text, :author_name])
-end
-```
-
-The `Blorgh::Article` model should then have some code to convert the `author_name`
-field into an actual `User` object and associate it as that article's `author`
-before the article is saved. It will also need to have an `attr_accessor` set up
-for this field, so that the setter and getter methods are defined for it.
-
-To do all this, you'll need to add the `attr_accessor` for `author_name`, the
-association for the author and the `before_validation` call into
-`app/models/blorgh/article.rb`. The `author` association will be hard-coded to the
-`User` class for the time being.
-
-```ruby
-attr_accessor :author_name
-belongs_to :author, class_name: "User"
-
-before_validation :set_author
-
-private
-  def set_author
-    self.author = User.find_or_create_by(name: author_name)
-  end
-```
-
-By representing the `author` association's object with the `User` class, a link
-is established between the engine and the application. There needs to be a way
-of associating the records in the `blorgh_articles` table with the records in the
-`users` table. Because the association is called `author`, there should be an
-`author_id` column added to the `blorgh_articles` table.
-
-To generate this new column, run this command within the engine:
-
-```bash
-$ bin/rails generate migration add_author_id_to_blorgh_articles author_id:integer
-```
-
-NOTE: Due to the migration's name and the column specification after it, Rails
-will automatically know that you want to add a column to a specific table and
-write that into the migration for you. You don't need to tell it any more than
-this.
-
-This migration will need to be run on the application. To do that, it must first
-be copied using this command:
-
-```bash
-$ bin/rails blorgh:install:migrations
-```
-
-Notice that only _one_ migration was copied over here. This is because the first
-two migrations were copied over the first time this command was run.
-
-```
-NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
-NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
-Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
-```
-
-Run the migration using:
-
-```bash
-$ bin/rails db:migrate
-```
-
-Now with all the pieces in place, an action will take place that will associate
-an author - represented by a record in the `users` table - with an article,
-represented by the `blorgh_articles` table from the engine.
-
-Finally, the author's name should be displayed on the article's page. Add this code
+The author's name should also be displayed on the article's page. Add this code
 above the "Title" output inside `app/views/blorgh/articles/_article.html.erb`:
 
 ```html+erb
@@ -1065,18 +996,123 @@ above the "Title" output inside `app/views/blorgh/articles/_article.html.erb`:
 </p>
 ```
 
+Next, we need to update the `Blorgh::ArticlesController#article_params` method to
+permit the new form parameter:
+
+```ruby
+def article_params
+  params.expect(article: [:title, :text, :author_name])
+end
+```
+
+The `Blorgh::Article` model should include logic to convert the `author_name`
+field into an actual `User` object (or whatever class the host application uses
+for authors) and associate it with the article before it is saved. It should
+also define an `attr_accessor` for `author_name` to provide getter and setter
+methods for this attribute.
+
+Lets start by adding the `attr_accessor` for `author_name`, the association for
+the author and the `before_validation` call into `app/models/blorgh/article.rb`.
+
+```ruby
+# app/models/blorgh/article.rb
+
+module Blorgh
+  class Article < ApplicationRecord
+    has_many :comments
+
+    # Add the author association to the model
+    attr_accessor :author_name
+    belongs_to :author, class_name: "User" # The User class exists in the host application
+
+    before_validation :set_author
+
+    private
+      def set_author
+        self.author = User.find_or_create_by(name: author_name)
+      end
+  end
+end
+```
+
+For now, this setup allows the engine to associate an author name with the
+`User` model defined by the host application, even though it introduces a
+coupling that we’ll later aim to remove. It will be made more configurable in
+the [next section](#configuring-an-engine).
+
+There also needs to be a way of associating the records in the `blorgh_articles`
+table with the records in the `users` table. Because the association in the
+engine is called `author`, there should be an `author_id` column added to the
+`blorgh_articles` table.
+
+To generate this new column, run this command within the engine's root directory:
+
+```bash
+$ bin/rails generate migration add_author_id_to_blorgh_articles author_id:integer
+```
+
+#### Copying and Running the Migration in the Host Application
+
+As discussed in the [Copying the migrations](#copying-the-migrations) section,
+this new migration will need to be copied to the host application:
+
+```bash
+$ bin/rails blorgh:install:migrations
+```
+
+```
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
+```
+
+Notice that only _the latest_ migration was copied over. This is because the first
+two migrations were copied over the first time this command was run.
+
+Run the migration using:
+
+```bash
+$ bin/rails db:migrate
+```
+
+#### Viewing the Association in the Rails console
+
+Now that you've associated the `author_name` from the engine to the `User` model
+in the host application, you can go to the form in the host application at
+`http://localhost:3000/blog/articles/new` and create an article with an author
+name that will create and link to a `User` record in the host application.
+
+![Article with Associated Author](images/engines/engine_article_with_author_page.png)
+
+If you open up the rails console in the host application, you can view the
+`Blorgh::Article` record that was created, and see that it is associated with the
+`User` record from the host application:
+
+```ruby
+> article = Blorgh::Article.last
+=> #<Blorgh::Article id: 1, title: "Hello, World!", text: "This is a test article.", created_at: "2025-07-16 19:04:54.552457000 +0000", updated_at: "2025-07-16 19:04:54.552457000 +0000", author_id: 1>
+
+> user = User.find(article.author_id)
+=> #<User id: 1, name: "Fake Author 1", created_at: "2025-07-16 19:04:54.542709000 +0000", updated_at: "2025-07-16 19:04:54.542709000 +0000">
+```
+
 #### Using a Controller Provided by the Application
 
-Because Rails controllers generally share code for things like authentication
-and accessing session variables, they inherit from `ApplicationController` by
-default. Rails engines, however are scoped to run independently from the main
-application, so each engine gets a scoped `ApplicationController`. This
-namespace prevents code collisions, but often engine controllers need to access
-methods in the main application's `ApplicationController`. An easy way to
-provide this access is to change the engine's scoped `ApplicationController` to
-inherit from the main application's `ApplicationController`. For our Blorgh
-engine this would be done by changing
-`app/controllers/blorgh/application_controller.rb` to look like:
+In a typical Rails application, all controllers inherit from
+`ApplicationController`, which often contains shared logic like authentication
+methods or session helpers.
+
+Rails engines, however, are isolated by default. Each engine has its own
+`ApplicationController` (like `Blorgh::ApplicationController`) to avoid
+conflicts with the main app. However, sometimes, the engine's controllers need
+to access methods defined in the main application's `ApplicationController`. This
+is often necessary for features like authentication (`current_user`),
+authorization checks, or helper methods that manage things like user preferences,
+flash messages, or layout logic. This is shared functionality that's already
+defined in the main application and shouldn't be re-implemented in the engine.
+
+To make this possible, you can update the engine’s `ApplicationController` so
+that it inherits from the main app’s `ApplicationController` instead of being
+isolated. In the Blorgh engine, you would change the file
+`app/controllers/blorgh/application_controller.rb` to:
 
 ```ruby
 module Blorgh
@@ -1085,13 +1121,14 @@ module Blorgh
 end
 ```
 
-By default, the engine's controllers inherit from
-`Blorgh::ApplicationController`. So, after making this change they will have
-access to the main application's `ApplicationController`, as though they were
-part of the main application.
+The `::ApplicationController` here refers to the main application's controller.
+With this change, all controllers in the engine (which inherit from
+`Blorgh::ApplicationController` by default) will now also have access to methods
+from the main app’s controller, like `current_user`, authentication helpers, or
+anything else defined there.
 
-This change does require that the engine is run from a Rails application that
-has an `ApplicationController`.
+Keep in mind that this setup only works when the engine is being used inside a
+host application that has its own `ApplicationController`.
 
 ### Configuring an Engine
 
