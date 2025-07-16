@@ -1446,21 +1446,21 @@ end
 Please check the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html#autoloading-and-engines)
 guide for more information about autoloading and engines.
 
-
 ### Overriding Views
 
-When Rails looks for a view to render, it will first look in the `app/views`
-directory of the application. If it cannot find the view there, it will check in
-the `app/views` directories of all engines that have this directory.
+When the Rails Host Application looks for a view to render, it will first look
+in the `app/views` directory of the application. If it cannot find the view
+there, it will then check in the `app/views` directories of all engines that have
+this directory.
 
-When the application is asked to render the view for `Blorgh::ArticlesController`'s
-index action, it will first look for the path
+For example, when the host application is asked to render the view for
+`Blorgh::ArticlesController`'s index action, it will first look for the path
 `app/views/blorgh/articles/index.html.erb` within the application. If it cannot
-find it, it will look inside the engine.
+find it, it will then look inside the engine.
 
-You can override this view in the application by simply creating a new file at
-`app/views/blorgh/articles/index.html.erb`. Then you can completely change what
-this view would normally output.
+You can override this view in the host application by creating a new file
+at `app/views/blorgh/articles/index.html.erb`. Then you can completely change
+what this view would normally output.
 
 Try this now by creating a new file at `app/views/blorgh/articles/index.html.erb`
 and put this content in it:
@@ -1470,11 +1470,15 @@ and put this content in it:
 <%= link_to "New Article", new_article_path %>
 <% @articles.each do |article| %>
   <h2><%= article.title %></h2>
-  <small>By <%= article.author %></small>
+  <small>By <%= article.author.name %></small>
   <%= simple_format(article.text) %>
   <hr>
 <% end %>
 ```
+
+The new view at `localhost:3000/blog/articles` will now display the following:
+
+![New overridden view at `localhost:3000/blog/articles`](images/engines/engine_articles_overriden_page.png)
 
 ### Routes
 
