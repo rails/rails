@@ -1047,7 +1047,7 @@ engine is called `author`, there should be an `author_id` column added to the
 To generate this new column, run this command within the engine's root directory:
 
 ```bash
-$ bin/rails generate migration add_author_id_to_blorgh_articles author_id:integer
+$ bin/rails generate migration AddAuthorIdToBlorghArticles author_id:integer
 ```
 
 #### Copying and Running the Migration in the Host Application
