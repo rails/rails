@@ -75,7 +75,7 @@ you want to create a fully isolated, mountable engine with its own namespace.
 You can read more about the different generator options in the [Rails Plugins
 Generator Options](plugins.html#generator-options) section.
 
-### How do you use an Engine in a host app?
+### How do you use an Engine in the Host Application?
 
 You add it to your host app’s `Gemfile`, and then mount it in the main app's routes:
 
@@ -431,7 +431,7 @@ create      app/helpers/blorgh/articles_helper.rb
 invoke      test_unit
 ```
 
-#### The migration and model
+#### The Migration and Model
 
 The scaffold generator invokes the `active_record` generator, which generates a
 _migration_ and a _model_ for the resource.
@@ -442,14 +442,14 @@ rather than `app/models/article.rb`. </br></br> This is due to the use of the
 `isolate_namespace` method in the `Blorgh::Engine` class, which ensures that
 models, migrations, and other components are properly namespaced under `Blorgh`.
 
-#### The test and fixture
+#### The Test and Fixture
 
 Next, the `test_unit` generator is invoked for this model, generating a model
 test at `test/models/blorgh/article_test.rb` (rather than
 `test/models/article_test.rb`) and a fixture at `test/fixtures/blorgh/articles.yml`
 (rather than `test/fixtures/articles.yml`).
 
-#### The route
+#### The Route
 
 Thereafter, a line `resources :articles`, for the `article` resource, is
 inserted into the `config/routes.rb` file for the engine.
@@ -467,7 +467,7 @@ to the engine itself and can be mounted at a specific point, as shown in the
 be isolated from routes that are within the application. The
 [Routes](#routes) section of this guide describes it in detail.
 
-#### The controller and views
+#### The Controller and Views
 
 Next, the `scaffold_controller` generator is
 invoked, generating a controller called `Blorgh::ArticlesController` (at
@@ -493,7 +493,7 @@ end
 NOTE: The `ArticlesController` class inherits from
 `Blorgh::ApplicationController`, not the application's `ApplicationController`.
 
-#### The helper
+#### The Helper
 
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 
@@ -508,7 +508,7 @@ end
 This prevents conflicts with any other engine or application that may have
 an article resource as well.
 
-#### Exploring the engine in the browser
+#### Exploring the Engine in the Browser
 
 You can explore the engine by running `bin/rails db:migrate` at the root of the
 engine, and then running `bin/rails server` in the engine's root directory.
@@ -520,7 +520,7 @@ has been generated.
 
 Congratulations, you've just generated your first engine!
 
-#### Exploring the engine in the console
+#### Exploring the Engine in the Console
 
 If you'd rather explore in the console, you can run `bin/rails console`.
 Remember: the `Article` model is namespaced, so to reference it you must call it
@@ -619,7 +619,7 @@ Now, you can run the migration to create the `blorgh_comments` table:
 $ bin/rails db:migrate
 ```
 
-#### Updating the view to show the comments
+#### Updating the View to Show the Comments
 
 To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb`
 and add this line before the "Edit" link:
@@ -645,7 +645,7 @@ NOTE: Because the `has_many` association is defined inside a class that is insid
 the `Blorgh` module, Rails will know that you want to use the `Blorgh::Comment`
 model for these objects, so there's no need to specify the `:class_name` option.
 
-#### Adding a form and resource route to create comments
+#### Adding a Form and Resource Route to Create Comments
 
 Next, create a form so that comments can be added to an article. Render the
 `blorgh/comments/form` partial in `app/views/blorgh/articles/show.html.erb`
@@ -760,7 +760,7 @@ to use it within an application.
 ![The article with comments](images/engines/engine_article_comment_page.png)
 
 Using the Engine in a Host Application
--------------------------------------
+--------------------------------------
 
 This section explains how to mount the engine into an application, perform the
 initial setup, and connect the engine to an existing class defined by the host
@@ -843,8 +843,7 @@ The engine contains migrations for the `blorgh_articles` and
 `blorgh_comments` tables which need to be created in the application's database
 so that the engine's models can query them correctly.
 
-
-#### Copying the migrations
+#### Copying the Migrations
 
 To copy these migrations into the application run the following command from the application's root:
 
@@ -864,7 +863,7 @@ engine. When run the next time, it will only copy over migrations that haven't
 been copied over already. This is useful if you want to revert the migrations
 from the engine.
 
-#### Referencing a custom path for the migrations
+#### Referencing a Custom Path for the Migrations
 
 If your engine stores its migrations in the non-default location, you can
 specify a custom path in the source engine for the migrations using
@@ -874,7 +873,7 @@ specify a custom path in the source engine for the migrations using
 $ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
 ```
 
-#### Migrations for multiple engines
+#### Migrations for Multiple Engines
 
 If you have multiple engines referenced in the host application, that need migrations copied over, use
 `railties:install:migrations` instead:
@@ -885,7 +884,7 @@ $ bin/rails railties:install:migrations
 
 This will save you from having to run a separate `install:migrations` task for each engine individually.
 
-#### Migrations for multiple databases
+#### Migrations for Multiple Databases
 
 If you have multiple databases within an engine, you can specify the target database by
 specifying DATABASE.
@@ -903,7 +902,7 @@ from having to run a separate `install:migrations` task for each engine
 individually.
 
 
-#### Running migrations
+#### Running Migrations
 
 To run these migrations within the context of the application, run
 
@@ -911,7 +910,7 @@ To run these migrations within the context of the application, run
 $ bin/rails db:migrate
 ```
 
-#### Running and reverting migrations for only one engine
+#### Running and Reverting Migrations for Only One Engine
 
 If you have multiple engines referenced in the host application, and you would
 like to run migrations only from one engine, you can do it by specifying
