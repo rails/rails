@@ -23,7 +23,8 @@ module ActiveRecord
           end
 
           def extensions(stream)
-            extensions = @connection.extensions
+            ignore_extensions = ActiveRecord::SchemaDumper.ignore_extensions
+            extensions = @connection.extensions.reject { |extension| ignore_extensions.any? { |pattern| pattern === extension } }
             if extensions.any?
               stream.puts "  # These are extensions that must be enabled in order to support this database"
               extensions.sort.each do |extension|

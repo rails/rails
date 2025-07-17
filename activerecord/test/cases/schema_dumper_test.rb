@@ -420,6 +420,49 @@ class SchemaDumperTest < ActiveRecord::TestCase
       end
     end
 
+    def test_schema_dump_with_string_ignored_extension
+      original_schema_dumper_ignore_extensions = ActiveRecord::SchemaDumper.ignore_extensions
+      ActiveRecord::SchemaDumper.ignore_extensions = ["hstore"]
+
+      connection = ActiveRecord::Base.lease_connection
+
+      connection.stub(:extensions, ["hstore"]) do
+        output = dump_all_table_schema(/./)
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension "hstore"}, output
+      end
+
+      connection.stub(:extensions, []) do
+        output = dump_all_table_schema(/./)
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
+    ensure
+      ActiveRecord::SchemaDumper.ignore_extensions = original_schema_dumper_ignore_extensions
+    end
+
+    def test_schema_dump_with_regexp_ignored_extension
+      original_schema_dumper_ignore_extensions = ActiveRecord::SchemaDumper.ignore_extensions
+      ActiveRecord::SchemaDumper.ignore_extensions = [/hstore/]
+
+      connection = ActiveRecord::Base.lease_connection
+
+      connection.stub(:extensions, ["hstore"]) do
+        output = dump_all_table_schema(/./)
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension "hstore"}, output
+      end
+
+      connection.stub(:extensions, []) do
+        output = dump_all_table_schema(/./)
+        assert_no_match "# These are extensions that must be enabled", output
+        assert_no_match %r{enable_extension}, output
+      end
+    ensure
+      ActiveRecord::SchemaDumper.ignore_extensions = original_schema_dumper_ignore_extensions
+    end
+
+
     def test_schema_dump_includes_extensions_in_alphabetic_order
       connection = ActiveRecord::Base.lease_connection
 

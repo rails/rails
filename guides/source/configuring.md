@@ -1741,7 +1741,11 @@ You should run `bin/rails db:migrate` to rebuild your schema.rb if you change th
 
 #### `ActiveRecord::SchemaDumper.ignore_tables`
 
-Accepts an array of tables that should _not_ be included in any generated schema file.
+Accepts an array of tables that should _not_ be included in any generated schema file. Tables to ignore can be specified as Strings or Regexps.
+
+#### `ActiveRecord::SchemaDumper.ignore_extensions`
+
+Accepts an array of extensions that should _not_ be included in any generated schema file. Extensions to ignore can be specified as Strings or Regexps.
 
 #### `ActiveRecord::SchemaDumper.fk_ignore_pattern`
 
