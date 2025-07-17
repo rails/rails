@@ -1559,29 +1559,31 @@ and avoids surprising bugs when working across engines and applications.
 
 ### Assets
 
-Assets within an engine work in an identical way to a full application. Because
-the engine class inherits from `Rails::Engine`, the application will know to
-look up assets in the engine's `app/assets` and `lib/assets` directories.
+Assets in a Rails engine work just like they do in a full Rails application.
+Because your engine inherits from Rails::Engine, Rails will automatically look
+for assets in the engine’s `app/assets` and `lib/assets` directories.
 
-Like all of the other components of an engine, the assets should be namespaced.
-This means that if you have an asset called `style.css`, it should be placed at
-`app/assets/stylesheets/[engine name]/style.css`, rather than
-`app/assets/stylesheets/style.css`. If this asset isn't namespaced, there is a
-possibility that the host application could have an asset named identically, in
-which case the application's asset would take precedence and the engine's one
-would be ignored.
+To avoid naming conflicts with the host application, all engine assets should be
+namespaced under a subdirectory that matches the engine’s name. For example,
+instead of placing a stylesheet directly at `app/assets/stylesheets/style.css`,
+you should place it at `app/assets/stylesheets/<engine_name>/style.css`, which
+would be `app/assets/stylesheets/blorgh/style.css` for the `blorgh` engine.
 
-Imagine that you did have an asset located at
-`app/assets/stylesheets/blorgh/style.css`. To include this asset inside an
-application, just use `stylesheet_link_tag` and reference the asset as if it
-were inside the engine:
+This prevents collisions with assets in the host application that may have the
+same filename.
 
-```erb
+To include a namespaced engine asset in the host application, reference it using
+its full path with the `stylesheet_link_tag` (or similar helpers):
+
+```html+erb
 <%= stylesheet_link_tag "blorgh/style.css" %>
 ```
 
-You can also specify these assets as dependencies of other assets using Asset
-Pipeline require statements in processed files:
+This will correctly load the stylesheet located at
+`app/assets/stylesheets/blorgh/style.css` within the engine.
+
+If you’re using the Asset Pipeline (Sprockets), you can also include engine
+assets as dependencies within other stylesheets using a `require` directive:
 
 ```css
 /*
@@ -1589,27 +1591,47 @@ Pipeline require statements in processed files:
  */
 ```
 
+This allows engine styles to be bundled into application-wide stylesheets.
+
 INFO. Remember that in order to use languages like Sass or CoffeeScript, you
 should add the relevant library to your engine's `.gemspec`.
 
 ### Separate Assets and Precompiling
 
-There are some situations where your engine's assets are not required by the
-host application. For example, say that you've created an admin functionality
-that only exists for your engine. In this case, the host application doesn't
-need to require `admin.css` or `admin.js`. Only the gem's admin layout needs
-these assets. It doesn't make sense for the host app to include
-`"blorgh/admin.css"` in its stylesheets. In this situation, you should
-explicitly define these assets for precompilation.  This tells Sprockets to add
-your engine assets when `bin/rails assets:precompile` is triggered.
+In some cases, your engine may include assets that are not required by the host
+application. For example, suppose your engine provides an admin interface with
+its own layout and styles. These assets, such as `admin.css` or `admin.js`, are
+only used within the engine and don't need to be included in the host
+application's asset pipeline.
 
-You can define assets for precompilation in `engine.rb`:
+In such situations, it doesn’t make sense for the host app to reference these
+assets manually (e.g., via `stylesheet_link_tag "blorgh/admin"`). Instead, you
+should explicitly tell Rails to precompile these assets so they’re available
+when the engine is used.
+
+To do this, you can add a precompilation hook in your engine’s engine.rb file:
 
 ```ruby
-initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w( admin.js admin.css )
+# lib/blorgh/engine.rb
+module Blorgh
+  class Engine < ::Rails::Engine
+    isolate_namespace Blorgh
+
+    initializer "blorgh.assets.precompile" do |app|
+      app.config.assets.precompile += %w( blorgh/admin.js blorgh/admin.css )
+    end
+  end
 end
 ```
+
+This ensures that these engine-specific assets will be compiled when running:
+
+```bash
+bin/rails assets:precompile
+```
+
+INFO. Be sure to include the full namespaced paths (e.g., `blorgh/admin.css`)
+so Sprockets can locate the correct files within your engine.
 
 For more information, read the [Asset Pipeline guide](asset_pipeline.html).
 
