@@ -1328,7 +1328,7 @@ It’s recommended to suffix override files with `_override.rb` (e.g., `article_
 For example, in order to override the engine model
 
 ```ruby
-# Blorgh/app/models/blorgh/article.rb
+# blorgh/app/models/blorgh/article.rb
 
 module Blorgh
   class Article < ApplicationRecord
@@ -1341,7 +1341,7 @@ you can create a file that _reopens_ that class. This example reopens the
 `Blorgh::Article` model and adds a validation for the `title` attribute.
 
 ```ruby
-# MyApp/app/overrides/models/blorgh/article_override.rb
+# host_application/app/overrides/models/blorgh/article_override.rb
 
 Blorgh::Article.class_eval do
   validates :title, presence: true, length: { minimum: 10 }
@@ -1374,7 +1374,7 @@ Add the `Article#time_since_created` and override the `Article#summary` in the
 host application:
 
 ```ruby
-# HostApplication/app/models/blorgh/article.rb
+# host_application/app/models/blorgh/article.rb
 
 class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
@@ -1394,7 +1394,7 @@ end
 Set up the engine’s base model:
 
 ```ruby
-# Blorgh/app/models/blorgh/article.rb
+# blorgh/app/models/blorgh/article.rb
 
 module Blorgh
   class Article < ApplicationRecord
@@ -1408,7 +1408,7 @@ end
 Include the concern containing engine-level behavior:
 
 ```ruby
-# Blorgh/lib/concerns/models/article.rb
+# blorgh/lib/concerns/models/article.rb
 
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
