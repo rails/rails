@@ -368,7 +368,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
           relation
         end
       end.each do |attachment|
-        attachment.touch
+        attachment.touch unless attachment.new_record?
       end
     end
 
