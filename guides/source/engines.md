@@ -1652,17 +1652,18 @@ there, rather than the application's one.
 This also ensures that the engine's URL helpers will work as expected in your
 tests.
 
-### Other Gem Dependencies
+### Gem Dependencies
 
 Gem dependencies inside an engine should be specified inside the `.gemspec` file
-at the root of the engine. The reason is that the engine may be installed as a
-gem. If dependencies were to be specified inside the `Gemfile`, these would not
-be recognized by a traditional gem install and so they would not be installed,
-causing the engine to malfunction.
+at the root of the engine to allow the engine to be installed as a gem.
 
-To specify a dependency that should be installed with the engine during a
-traditional `gem install`, specify it inside the `Gem::Specification` block
-inside the `.gemspec` file in the engine:
+NOTE: If the dependencies were to be specified inside the `Gemfile`, instead of
+the `.gemspec` file, these would not be recognized by a traditional `gem install`
+and so they would not be installed, causing the engine to malfunction.
+
+To specify a dependency that should be installed with the engine during a `gem
+install`, specify it inside the `Gem::Specification` block inside the `.gemspec`
+file in the engine:
 
 ```ruby
 s.add_dependency "moo"
@@ -1679,9 +1680,9 @@ Both kinds of dependencies will be installed when `bundle install` is run inside
 of the application. The development dependencies for the gem will only be used
 when the development and tests for the engine are running.
 
-Note that if you want to immediately require dependencies when the engine is
+If you want to immediately require dependencies when the engine is
 required, you should require them before the engine's initialization. For
-example:
+example, in the `engine.rb` file :
 
 ```ruby
 require "other_engine/engine"
