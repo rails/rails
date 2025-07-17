@@ -15,7 +15,7 @@ module ActiveSupport
 
       def with_tags(*args, **kwargs)
         existing_tags = tags
-        tags = existing_tags&.dup || {}
+        tags = existing_tags.dup
         tags.merge!(resolve_tags(args, kwargs))
         new_tags = tags.freeze
 
@@ -156,8 +156,9 @@ module ActiveSupport
   # and should be used for metadata associated with the execution context.
   # Context can be set via the +set_context+ method:
   #
-  #   Rails.event.set_context(request_id: "abcd123", user_agent: TestAgent")
+  #   Rails.event.set_context(request_id: "abcd123", user_agent: "TestAgent")
   #   Rails.event.notify("user_created", { id: 123 })
+  #
   #   # Emits event:
   #   #  {
   #   #    name: "user_created",
@@ -366,6 +367,7 @@ module ActiveSupport
     #   Rails.event.tagged("graphql") do
     #     Rails.event.notify("user.created", { id: 123 })
     #   end
+    #
     #   # Emits event:
     #   # {
     #   #    name: "user.created",
@@ -421,6 +423,7 @@ module ActiveSupport
     #   Rails.event.tagged("graphql") do
     #     Rails.event.notify("user_created", { id: 123 })
     #   end
+    #
     #   # Emits event:
     #   #  {
     #   #    name: "user_created",
