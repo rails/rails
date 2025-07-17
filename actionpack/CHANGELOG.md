@@ -166,6 +166,19 @@
 
     *Jeremy Green*
 
+*   A route pointing to a non-existing controller now returns a 500 instead of a 404.
+
+    A controller not existing isn't a routing error that should result
+    in a 404, but a programming error that should result in a 500 and
+    be reported.
+
+    Until recently, this was hard to untangle because of the support
+    for dynamic `:controller` segment in routes, but since this is
+    deprecated and will be removed in Rails 8.1, we can now easily
+    not consider missing controllers as routing errors.
+
+    *Jean Boussier*
+
 *   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
 
     Newly generated session ids use 128 bits of randomness, which is more than
