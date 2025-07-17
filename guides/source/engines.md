@@ -1481,14 +1481,16 @@ The new view at `localhost:3000/blog/articles` will now display the following:
 
 ### Routes
 
-Routes inside an engine are isolated from the application by default. This is
-done by the [`isolate_namespace` call inside the `Engine`
-class](#the-engine-class-definition-libblorghenginerb). This means that the
-application and its engines can have identically named routes and they will not
-clash.
+Routes defined inside a Rails engine are isolated from the main application by
+default. This isolation is established by the
+[`isolate_namespace`](#the-engine-class-definition-libblorghenginerb) call in
+the engine’s `Engine` class. It allows both the engine and the application to
+define routes with the same names—like `articles_path`—without conflict.
 
-Routes inside an engine are created on the `Blorgh::Engine` class within
-`config/routes.rb`, like this:
+#### Defining Engine Routes
+
+You define routes inside the engine using the engine's route set, typically in
+`blorgh/config/routes.rb`:
 
 ```ruby
 Blorgh::Engine.routes.draw do
@@ -1496,45 +1498,64 @@ Blorgh::Engine.routes.draw do
 end
 ```
 
-By having isolated routes such as this, if you wish to link to an area of an
-engine from within an application, you will need to use the engine's routing
-proxy method. Calls to normal routing methods such as `articles_path` may end up
-going to undesired locations if both the application and the engine have such a
-helper defined.
+When your engine is mounted into a host application (e.g., at `/blog`), this
+creates routes like:
 
-For instance, the following example would go to the application's `articles_path`
-if that template was rendered from the application, or the engine's `articles_path`
-if it was rendered from the engine:
+* `/blog/articles` → `Blorgh::ArticlesController#index`
 
-```erb
+#### Linking to Engine Routes from the Application
+
+Because routes are namespaced and isolated, route helpers like `articles_path`
+may refer to either the engine's route or the application's route, depending on
+where the view is rendered from.
+
+For example:
+
+```html+erb
 <%= link_to "Blog articles", articles_path %>
 ```
 
-To make this route always use the engine's `articles_path` routing helper method,
-we must call the method on the routing proxy method that shares the same name as
-the engine.
+If rendered from the application, it will likely resolve to the application's
+`articles_path`. If rendered from inside the engine, it may resolve to the
+engine's `articles_path`.
 
-```erb
+To ensure you're linking to the engine's route, use the engine's named routing
+proxy. For the `blorgh` engine, that would be:
+
+```html+erb
 <%= link_to "Blog articles", blorgh.articles_path %>
 ```
 
-If you wish to reference the application inside the engine in a similar way, use
-the `main_app` helper:
+This explicitly tells Rails to use the `articles_path` defined in the `Blorgh`
+engine.
+
+The name of the proxy method (`blorgh`) matches the name of the engine as
+declared in `engine.rb` via `isolate_namespace Blorgh`.
+
+#### Linking to Application Routes from the Engine
+
+If you need to reference a route defined in the main application from within the
+engine (for example, linking to the homepage), you can use the `main_app`
+routing proxy:
 
 ```erb
 <%= link_to "Home", main_app.root_path %>
 ```
 
-If you were to use this inside an engine, it would **always** go to the
-application's root. If you were to leave off the `main_app` "routing proxy"
-method call, it could potentially go to the engine's or application's root,
-depending on where it was called from.
+This ensures the route always points to the host application, even when called
+from within engine views.
 
-If a template rendered from within an engine attempts to use one of the
-application's routing helper methods, it may result in an undefined method call.
-If you encounter such an issue, ensure that you're not attempting to call the
-application's routing methods without the `main_app` prefix from within the
-engine.
+#### Targeted Routes
+
+If you call a route helper like `root_path` from inside an engine view, and both
+the engine and application define a root route, Rails may not know which one to
+use. Or worse, it may raise an error if the route doesn't exist in the engine.
+
+To prevent this, use `main_app.root_path` to target the application, and set
+`blorgh.root_path` (or your engine's namespace) to target the engine.
+
+Being explicit with routing proxies ensures that your routes behave consistently
+and avoids surprising bugs when working across engines and applications.
 
 ### Assets
 
@@ -1603,7 +1624,6 @@ views as needed to help you test the engine’s functionality in context.
 The `test/` directory works just like it does in a standard Rails application.
 You can write unit tests, functional tests, and integration tests to ensure your
 engine behaves as expected.
-
 
 #### Functional and Integration Tests
 
