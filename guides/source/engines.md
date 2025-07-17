@@ -1594,63 +1594,107 @@ For more information, read the [Asset Pipeline guide](asset_pipeline.html).
 
 ### Writing Tests
 
-When an engine is generated, there is a smaller dummy application created inside
-it at `test/dummy`. This application is used as a mounting point for the engine,
-to make testing the engine extremely simple. You may extend this application by
-generating controllers, models, or views from within the directory, and then use
-those to test your engine.
+When a Rails engine is generated, it includes a minimal host application inside
+the `test/dummy` directory. This "dummy app" is used solely for development and
+testing—it simulates how your engine will behave when mounted in a real
+application. You can extend the dummy app by adding controllers, models, or
+views as needed to help you test the engine’s functionality in context.
 
-The `test` directory should be treated like a typical Rails testing environment,
-allowing for unit, functional, and integration tests.
+The `test/` directory works just like it does in a standard Rails application.
+You can write unit tests, functional tests, and integration tests to ensure your
+engine behaves as expected.
 
-A matter worth taking into consideration when writing functional tests is that
-the tests are going to be running on an application - the `test/dummy`
-application - rather than your engine. This is due to the setup of the testing
-environment; an engine needs an application as a host for testing its main
-functionality, especially controllers. This means that if you were to make a
-typical `GET` to a controller in a controller's functional test like this:
+
+#### Functional and Integration Tests
+
+Since engines are not full applications, they need to be mounted into a host in
+order to test things like routing and controllers. That’s where the dummy app
+comes in.
+
+When writing controller or integration tests, your tests need to be aware of the
+engine’s routing context. Rails doesn’t automatically assume you’re using the
+engine’s routes, so if you write a test like this:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
-    include Engine.routes.url_helpers
-
-    def test_index
-      get foos_url
-      # ...
+  class ArticlesControllerTest < ActionDispatch::IntegrationTest
+    test "can get index" do
+      get articles_path
+      assert_response :success
     end
   end
 end
 ```
 
-It may not function correctly. This is because the application doesn't know how
-to route these requests to the engine unless you explicitly tell it **how**. To
-do this, you must set the `@routes` instance variable to the engine's route set
-in your setup code:
+It might fail because `articles_path` could resolve to the dummy app (or not at
+all), rather than your engine. To fix this, you must tell Rails explicitly to use
+the engine's routes in your test setup:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionDispatch::IntegrationTest
-    include Engine.routes.url_helpers
-
+  class ArticlesControllerTest < ActionDispatch::IntegrationTest
     setup do
       @routes = Engine.routes
     end
 
-    def test_index
-      get foos_url
-      # ...
+    test "can get index" do
+      get articles_path
+      assert_response :success
     end
   end
 end
 ```
 
-This tells the application that you still want to perform a `GET` request to the
-`index` action of this controller, but you want to use the engine's route to get
-there, rather than the application's one.
+This ensures the test uses the routing context defined in
+`Blorgh::Engine.routes`, and that the path helpers like `articles_path` map
+correctly to `/blog/articles` (since your engine is mounted at `/blog`).
 
-This also ensures that the engine's URL helpers will work as expected in your
-tests.
+NOTE: Even though the engine is mounted at `/blog` in the host app, you don't
+need to include that prefix in test paths. Setting `@routes = Engine.routes`
+scopes everything correctly for you.
+
+The following test checks that the index page for articles loads successfully
+and renders the expected heading.
+
+```ruby
+# test/controllers/blorgh/articles_controller_test.rb
+require "test_helper"
+
+module Blorgh
+  class ArticlesControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      @routes = Engine.routes
+    end
+
+    test "can get index" do
+      get articles_path
+      assert_response :success
+      assert_select "h1", "Articles"
+    end
+  end
+end
+```
+
+#### Unit and Model Tests
+
+You can test your engine’s models just like in a regular Rails app:
+
+```ruby
+# test/models/blorgh/article_test.rb
+require "test_helper"
+
+module Blorgh
+  class ArticleTest < ActiveSupport::TestCase
+    test "title is required" do
+      article = Article.new(text: "Some content")
+      assert_not article.valid?
+      assert_includes article.errors[:title], "can't be blank"
+    end
+  end
+end
+```
+
+Organize your test files under folders like `test/models` and `test/controllers` as needed.
 
 ### Gem Dependencies
 
