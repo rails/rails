@@ -1483,7 +1483,7 @@ The new view at `localhost:3000/blog/articles` will now display the following:
 
 Routes defined inside a Rails engine are isolated from the main application by
 default. This isolation is established by the
-[`isolate_namespace`](#the-engine-class-definition-libblorghenginerb) call in
+[`isolate_namespace`](#the-engine-class-definition-lib-blorgh-engine-rb) call in
 the engine’s `Engine` class. It allows both the engine and the application to
 define routes with the same names—like `articles_path`—without conflict.
 
