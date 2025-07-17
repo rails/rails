@@ -526,7 +526,7 @@ If you'd rather explore in the console, you can run `bin/rails console`.
 Remember: the `Article` model is namespaced, so to reference it you must call it
 as `Blorgh::Article`.
 
-```ruby
+```irb
 irb> Blorgh::Article.create(title: "Hello, world!", text: "This is a test article.")
 =>  #<Blorgh::Article id: 1, title: "Hello, world!", text: "This is a test article.", created_at: "2025-07-13 07:55:27.610591000 +0000", updated_at: "2025-07-13 07:55:27.610591000 +0000">
 
