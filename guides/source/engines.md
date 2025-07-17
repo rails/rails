@@ -40,7 +40,7 @@ Some examples of engines in action:
 * [Spree](https://github.com/spree/spree) which provides an e-commerce platform
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
 
-### The Inheritance Hierarchy
+### Inheritance Hierarchy
 
 At the base of this hierarchy,
 [`Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html) is the core
@@ -224,7 +224,7 @@ A full list of options for the plugin generator can be seen by running:
 $ rails plugin --help
 ```
 
-### The Core Setup
+### Core Setup
 
 #### The `.gemspec` File
 
