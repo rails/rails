@@ -828,7 +828,7 @@ configuration options tailored to the engine's domain.
 However, if you try to run the application at this point, you will see an error
 like this:
 
-```ruby
+```bash
 SQLite3::SQLException: no such table: blorgh_articles:
 SELECT "blorgh_articles".* FROM "blorgh_articles" /*action='index',application='HostApplication',controller='articles'*/
 ```
@@ -1085,11 +1085,11 @@ If you open up the rails console in the host application, you can view the
 `Blorgh::Article` record that was created, and see that it is associated with the
 `User` record from the host application:
 
-```ruby
-> article = Blorgh::Article.last
+```irb
+irb> article = Blorgh::Article.last
 => #<Blorgh::Article id: 1, title: "Hello, World!", text: "This is a test article.", created_at: "2025-07-16 19:04:54.552457000 +0000", updated_at: "2025-07-16 19:04:54.552457000 +0000", author_id: 1>
 
-> user = User.find(article.author_id)
+irb> user = User.find(article.author_id)
 => #<User id: 1, name: "Fake Author 1", created_at: "2025-07-16 19:04:54.542709000 +0000", updated_at: "2025-07-16 19:04:54.542709000 +0000">
 ```
 
