@@ -121,13 +121,6 @@ module TestHelpers
         end
       end
 
-      routes = File.read("#{app_path}/config/routes.rb")
-      if routes =~ /(\n\s*end\s*)\z/
-        File.open("#{app_path}/config/routes.rb", "w") do |f|
-          f.puts $` + "\nActionDispatch.deprecator.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
-        end
-      end
-
       File.open("#{app_path}/config/database.yml", "w") do |f|
         if options[:multi_db]
           f.puts multi_db_database_configs
@@ -481,6 +474,14 @@ module TestHelpers
 
     def controller(name, contents)
       app_file("app/controllers/#{name}_controller.rb", contents)
+    end
+
+    def routes(routes)
+      app_file("config/routes.rb", <<~RUBY)
+        Rails.application.routes.draw do
+          #{routes}
+        end
+      RUBY
     end
 
     def use_frameworks(arr)
