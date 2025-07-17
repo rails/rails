@@ -67,26 +67,33 @@ all plugins are engines. The two share a common `lib` directory structure, and
 are both generated using the `rails plugin new` generator.
 
 While a plugin is generated using `rails plugin new <plugin_name>`, an engine is
-generated using `rails plugin new <engine_name> --full` or `rails plugin new
-<engine_name> --mountable`. The `--full` option tells the generator that you
-want to create an engine that needs its own models/controllers but shares the
-host app's namespace, while the `--mountable` option tells the generator that
-you want to create a fully isolated, mountable engine with its own namespace.
+generated using either:
+
+- `rails plugin new <engine_name> --full`, or
+- `rails plugin new <engine_name> --mountable`.
+
+The `--full` option tells the generator that you want to create an engine that
+needs its own models/controllers but shares the host app's namespace, while the
+`--mountable` option tells the generator that you want to create a fully
+isolated, mountable engine with its own namespace.
+
 You can read more about the different generator options in the [Rails Plugins
 Generator Options](plugins.html#generator-options) section.
 
-### How do you use an Engine in the Host Application?
+### Using an Engine
 
-You add it to your host app’s `Gemfile`, and then mount it in the main app's routes:
+You add an engine to your host applications `Gemfile`, and then mount it in the
+main app's routes. Once mounted, any routes, controllers, views, or assets
+defined in the engine become available at that mount point in the host
+application. We'll cover this later in the section [Using an Engine in the Host
+Application](#using-an-engine-in-the-host-application).
 
-Once mounted, any routes, controllers, views, or assets defined in the engine become available at that mount point in the host application.
-
-Since the engine has an isolated namespace, this means that an
-application is able to have a path provided by a routing helper such as
+Since the engine has an isolated namespace, this means that an application is
+able to have a path provided by a routing helper such as
 `articles_path` and the engine can have a path also called
 `articles_path` without clashing. Along with this, controllers, models
-and table names are also namespaced. You'll see how to do this later in this
-guide.
+and table names are also namespaced. You'll see how to do this later in the
+[Routes section](#routes).
 
 Generating an Engine
 --------------------
@@ -179,6 +186,8 @@ It provides the following:
     standard Rails application's `config/application.rb` file:
 
     ```ruby
+    # lib/blorgh/engine.rb
+
     module Blorgh
       class Engine < ::Rails::Engine
       end
@@ -265,6 +274,7 @@ perfect for that. Place the methods inside the module and you'll be good to go.
 This file defines the engine class and tells Rails how to load and isolate it:
 
 ```ruby
+# lib/blorgh/engine.rb
 module Blorgh
   class Engine < ::Rails::Engine
     isolate_namespace Blorgh
@@ -285,16 +295,19 @@ For example:
 
 * A generated model becomes `Blorgh::Article` rather than `Article`.
 * The table name is `blorgh_articles`, not `articles`.
-* A controller becomes `Blorgh::ArticlesController`, with views in `app/views/blorgh/articles`.
-* A helper becomes `Blorgh::ArticlesHelper`, with views in `app/helpers/blorgh/articles_helper.rb`.
+* A controller becomes `Blorgh::ArticlesController`, with views in
+  `app/views/blorgh/articles`.
+* A helper becomes `Blorgh::ArticlesHelper`, with views in
+  `app/helpers/blorgh/articles_helper.rb`.
 * Mailers and Jobs are namespaced as well.
-* Engine routes are kept isolated and don’t mix with the main app’s routes. This is discussed later in the [Routes](#routes) section of this guide.
+* Engine routes are kept isolated and don’t mix with the main app’s routes. This
+  is discussed later in the [Routes](#routes) section of this guide.
 
 Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
 
-NOTE: It is **highly** recommended that the `isolate_namespace` line be left
-within the `Engine` class definition. Without it, classes generated in an engine
-**may** conflict with an application.
+NOTE: It is recommended that the `isolate_namespace` line be left within the
+`Engine` class definition. Without it, classes generated in an engine may
+conflict with an application.
 
 ### Understanding the `app` Directory
 
@@ -318,6 +331,7 @@ app/assets/javascripts/blorgh/application.js
 The `controllers` folder contains a `blorgh/` subdirectory where all engine controllers live. It starts with an `application_controller.rb`:
 
 ```ruby
+# app/controllers/blorgh/application_controller.rb
 module Blorgh
   class ApplicationController < ActionController::Base
   end
@@ -369,10 +383,11 @@ an engine that has `isolate_namespace` in the `Engine` class will be namespaced.
 
 The `test` directory is where tests for the engine will go. To test the engine,
 there is a cut-down version of a Rails application embedded within it at
-`test/dummy`. This application will mount the engine in the
-`test/dummy/config/routes.rb` file:
+`test/dummy`. This application will mount the engine at `/blorgh`, which will
+make it accessible through the application only at that path.
 
 ```ruby
+# test/dummy/config/routes.rb
 Rails.application.routes.draw do
   mount Blorgh::Engine => "/blorgh"
 end
@@ -582,6 +597,7 @@ This will generate a `Blorgh::Comment` model and a migration to create the
 The generated migration will look like this:
 
 ```ruby
+# db/migrate/<timestamp>_create_blorgh_comments.rb
 class CreateBlorghComments < ActiveRecord::Migration[8.0]
   def change
     create_table :blorgh_comments do |t|
@@ -601,6 +617,7 @@ the `blorgh_articles` table, not an `articles` table.
 To fix this, you can modify the migration to look like this:
 
 ```ruby
+# db/migrate/<timestamp>_create_blorgh_comments.rb
 class CreateBlorghComments < ActiveRecord::Migration[8.0]
   def change
     create_table :blorgh_comments do |t|
@@ -634,6 +651,7 @@ association for comments on the `Blorgh::Article` model. To do this, open
 `app/models/blorgh/article.rb` and add the `has_many` association:
 
 ```ruby
+# app/models/blorgh/article.rb
 module Blorgh
   class Article < ApplicationRecord
     has_many :comments
@@ -715,7 +733,6 @@ As mentioned, the form will make a `POST` request to
 
 ```ruby
 # app/controllers/blorgh/comments_controller.rb
-
 def create
   @article = Article.find(params[:article_id])
   @comment = @article.comments.create(comment_params)
@@ -1015,7 +1032,6 @@ the author and the `before_validation` call into `app/models/blorgh/article.rb`.
 
 ```ruby
 # app/models/blorgh/article.rb
-
 module Blorgh
   class Article < ApplicationRecord
     has_many :comments
@@ -1114,6 +1130,7 @@ isolated. In the Blorgh engine, you would change the file
 `app/controllers/blorgh/application_controller.rb` to:
 
 ```ruby
+# app/controllers/blorgh/application_controller.rb
 module Blorgh
   class ApplicationController < ::ApplicationController
   end
@@ -1154,7 +1171,6 @@ inside the `Blorgh` module for the engine. Add this line to the `Blorgh` module:
 
 ```ruby
 # lib/blorgh.rb
-
 module Blorgh
   mattr_accessor :author_class
 end
@@ -1169,7 +1185,6 @@ the `Blorgh::Article` model with the following:
 
 ```ruby
 # app/models/blorgh/article.rb
-
 belongs_to :author, class_name: Blorgh.author_class
 ```
 
@@ -1188,7 +1203,6 @@ result:
 
 ```ruby
 # lib/blorgh.rb
-
 module Blorgh
   mattr_accessor :author_class
 
@@ -1202,7 +1216,6 @@ This would then turn the above code for `set_author` into this:
 
 ```ruby
 # app/models/blorgh/article.rb
-
 self.author = Blorgh.author_class.find_or_create_by(name: author_name)
 ```
 
@@ -1329,7 +1342,6 @@ For example, in order to override the engine model
 
 ```ruby
 # blorgh/app/models/blorgh/article.rb
-
 module Blorgh
   class Article < ApplicationRecord
     # ...
@@ -1342,7 +1354,6 @@ you can create a file that _reopens_ that class. This example reopens the
 
 ```ruby
 # host_application/app/overrides/models/blorgh/article_override.rb
-
 Blorgh::Article.class_eval do
   validates :title, presence: true, length: { minimum: 10 }
 end
@@ -1375,7 +1386,6 @@ host application:
 
 ```ruby
 # host_application/app/models/blorgh/article.rb
-
 class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 
@@ -1395,7 +1405,6 @@ Set up the engine’s base model:
 
 ```ruby
 # blorgh/app/models/blorgh/article.rb
-
 module Blorgh
   class Article < ApplicationRecord
     include Blorgh::Concerns::Models::Article
@@ -1409,7 +1418,6 @@ Include the concern containing engine-level behavior:
 
 ```ruby
 # blorgh/lib/concerns/models/article.rb
-
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
 
@@ -1489,10 +1497,10 @@ define routes with the same names—like `articles_path`—without conflict.
 
 #### Defining Engine Routes
 
-You define routes inside the engine using the engine's route set, typically in
-`blorgh/config/routes.rb`:
+You define routes inside the engine using the engine's route set.
 
 ```ruby
+# blorgh/config/routes.rb
 Blorgh::Engine.routes.draw do
   resources :articles
 end
@@ -1658,6 +1666,7 @@ engine’s routing context. Rails doesn’t automatically assume you’re using 
 engine’s routes, so if you write a test like this:
 
 ```ruby
+# test/controllers/blorgh/articles_controller_test.rb
 module Blorgh
   class ArticlesControllerTest < ActionDispatch::IntegrationTest
     test "can get index" do
@@ -1673,6 +1682,7 @@ all), rather than your engine. To fix this, you must tell Rails explicitly to us
 the engine's routes in your test setup:
 
 ```ruby
+# test/controllers/blorgh/articles_controller_test.rb
 module Blorgh
   class ArticlesControllerTest < ActionDispatch::IntegrationTest
     setup do
