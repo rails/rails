@@ -66,6 +66,9 @@ module ApplicationTests
     end
 
     test "integration test" do
+      routes <<~'RUBY'
+        get "/posts" => "posts#index"
+      RUBY
       controller "posts", <<-RUBY
         class PostsController < ActionController::Base
         end
