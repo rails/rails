@@ -1,3 +1,41 @@
+*   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
+
+    ```ruby
+    base = Comment.joins(:post).where(user_id: 1).where("recent = 1")
+    puts base.merge(base.where(draft: true).or(Post.where(archived: true))).to_sql
+    ```
+
+    Before:
+
+    ```SQL
+    SELECT "comments".* FROM "comments"
+    INNER JOIN "posts" ON "posts"."id" = "comments"."post_id"
+    WHERE (recent = 1)
+    AND (
+      "comments"."user_id" = 1
+      AND (recent = 1)
+      AND "comments"."draft" = 1
+      OR "posts"."archived" = 1
+    )
+    ```
+
+    After:
+
+    ```SQL
+    SELECT "comments".* FROM "comments"
+    INNER JOIN "posts" ON "posts"."id" = "comments"."post_id"
+    WHERE "comments"."user_id" = 1
+    AND (recent = 1)
+    AND (
+      "comments"."user_id" = 1
+      AND (recent = 1)
+      AND "comments"."draft" = 1
+      OR "posts"."archived" = 1
+    )
+    ```
+
+    *Joshua Young*
+
 *   Make schema dumper to account for `ActiveRecord.dump_schemas` when dumping in `:ruby` format.
 
     *fatkodima*
