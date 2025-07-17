@@ -1148,6 +1148,8 @@ irb> Coffee.create(size: "mega").valid?
 For full options to the message argument please see the [message
 documentation](#message).
 
+Also aliased as `:ignore_if_nil`.
+
 ### `:allow_blank`
 
 The `:allow_blank` option is similar to the `:allow_nil` option. This option
@@ -1168,6 +1170,8 @@ irb> Topic.create(title: nil).valid?
 irb> Topic.create(title: "short").valid?
 => false # 'short' is not of length 6, so validation fails even though it's not blank
 ```
+
+Also aliased as `:ignore_if_blank`.
 
 ### `:message`
 
