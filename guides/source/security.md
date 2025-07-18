@@ -61,10 +61,10 @@ $ rails generate authentication
       create  app/controllers/sessions_controller.rb
       create  app/controllers/concerns/authentication.rb
       create  app/controllers/passwords_controller.rb
-      create  app/mailers/passwords_mailer.rb
-      create  app/views/passwords_mailer/reset.html.erb
-      create  app/views/passwords_mailer/reset.text.erb
-      create  test/mailers/previews/passwords_mailer_preview.rb
+      create  app/mailers/password_mailer.rb
+      create  app/views/password_mailer/reset.html.erb
+      create  app/views/password_mailer/reset.text.erb
+      create  test/mailers/previews/password_mailer_preview.rb
         gsub  app/controllers/application_controller.rb
        route  resources :passwords, param: :token
        route  resource :session
@@ -125,12 +125,12 @@ Untracked files:
   app/controllers/concerns/authentication.rb
   app/controllers/passwords_controller.rb
   app/controllers/sessions_controller.rb
-  app/mailers/passwords_mailer.rb
+  app/mailers/password_mailer.rb
   app/models/current.rb
   app/models/session.rb
   app/models/user.rb
   app/views/passwords/
-  app/views/passwords_mailer/
+  app/views/password_mailer/
   app/views/sessions/
   db/migrate/
   db/schema.rb

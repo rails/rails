@@ -145,10 +145,10 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
 
     assert_no_file "app/mailers/application_mailer.rb"
-    assert_no_file "app/mailers/passwords_mailer.rb"
-    assert_no_file "app/views/passwords_mailer/reset.html.erb"
-    assert_no_file "app/views/passwords_mailer/reset.text.erb"
-    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+    assert_no_file "app/mailers/password_mailer.rb"
+    assert_no_file "app/views/password_mailer/reset.html.erb"
+    assert_no_file "app/views/password_mailer/reset.text.erb"
+    assert_no_file "test/mailers/previews/password_mailer_preview.rb"
 
     assert_file "app/controllers/passwords_controller.rb" do |content|
       assert_no_match(/def create\n    end/, content)
