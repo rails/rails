@@ -2325,7 +2325,7 @@ as if it’s part of that class. At the same time, the methods defined in the
 module become regular methods you can call on objects (instances) of that class.
 
 Now that the code triggering the notification has been extracted into the
-Notification module, the Product model can be simplified to include the
+Notifications module, the Product model can be simplified to include the
 Notifications module.
 
 ```ruby#2
