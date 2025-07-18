@@ -417,9 +417,9 @@ GEM
     rdoc (6.5.0)
       psych (>= 4.0.0)
     redcarpet (3.2.3)
-    redis (5.3.0)
+    redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.24.0)
+    redis-client (0.25.1)
       connection_pool
     redis-namespace (1.10.0)
       redis (>= 4)

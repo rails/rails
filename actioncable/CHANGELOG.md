@@ -1,3 +1,7 @@
+*   Fixed compatibility with `redis` gem `5.4.1`
+
+    *Jean Boussier*
+
 ## Rails 7.1.5.1 (December 10, 2024) ##
 
 *   No changes.
