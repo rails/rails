@@ -117,8 +117,15 @@ class ComparisonValidationTest < ActiveModel::TestCase
   def test_validates_comparison_with_equal_to_using_string
     Topic.validates_comparison_of :approved, equal_to: "cat"
 
-    assert_invalid_values(["dog", "whale"], "must be equal to cat")
+    assert_invalid_values(["dog", "whale", "Cat", "CAT"], "must be equal to cat")
     assert_valid_values(["cat"])
+  end
+
+  def test_validates_comparison_with_case_insensitive_equal_to_using_string
+    Topic.validates_comparison_of :approved, equal_to: "cat", case_sensitive: false
+
+    assert_invalid_values(["dog", "whale"], "must be equal to cat")
+    assert_valid_values(["cat", "Cat", "CAT"])
   end
 
   def test_validates_comparison_with_less_than_using_numeric
@@ -230,6 +237,13 @@ class ComparisonValidationTest < ActiveModel::TestCase
     Topic.validates_comparison_of :approved, other_than: "whale"
 
     assert_invalid_values(["whale"], "must be other than whale")
+    assert_valid_values(["ant", "cat", "dog", "Whale", "WHALE"])
+  end
+
+  def test_validates_comparison_with_case_insensitive_other_than_using_string
+    Topic.validates_comparison_of :approved, other_than: "whale", case_sensitive: false
+
+    assert_invalid_values(["whale", "Whale", "WHALE"], "must be other than whale")
     assert_valid_values(["ant", "cat", "dog"])
   end
 
@@ -309,6 +323,14 @@ class ComparisonValidationTest < ActiveModel::TestCase
       end
     assert_equal "Expected one of :greater_than, :greater_than_or_equal_to, :equal_to," \
                  " :less_than, :less_than_or_equal_to, or :other_than option to be supplied.", error.message
+  end
+
+  def test_validates_comparison_of_case_insensitive_for_non_equal_to_or_other_than_checks
+    [:greater_than, :greater_than_or_equal_to, :less_than, :less_than_or_equal_to].each do |option|
+      assert_raises(ArgumentError) do
+        Topic.validates_comparison_of(:approved, option => "cat", case_sensitive: false)
+      end
+    end
   end
 
   private
