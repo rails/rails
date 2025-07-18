@@ -232,6 +232,99 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_pattern { div => { content: "The body" } }
   end
 
+  test "renders with custom locals passed to attachment partials" do
+    helper = Class.new do
+      include ActionText::ContentHelper
+
+      attr_accessor :captured_locals, :prefix_partial_path_with_controller_namespace
+
+      def render(**options)
+        @captured_locals = options[:locals]
+        "<div>rendered</div>"
+      end
+
+      def sanitize_action_text_content(content)
+        content
+      end
+    end.new
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+    content = ActionText::Content.new(html)
+
+    custom_locals = { user_id: 123, theme: "dark" }
+    helper.render_action_text_content(content, locals: custom_locals)
+
+    expected_locals = custom_locals.merge(in_gallery: false)
+    assert_equal expected_locals, helper.captured_locals
+  end
+
+  test "to_s without locals renders with layout" do
+    html = "<h1>Hello world</h1>"
+    content = content_from_html(html)
+    rendered = content.to_s
+
+    assert_includes rendered, html
+    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+  end
+
+  test "to_s with empty locals hash renders with layout" do
+    html = "<h1>Hello world</h1>"
+    content = content_from_html(html)
+    rendered = content.to_s(locals: {})
+
+    assert_includes rendered, html
+    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+  end
+
+  test "to_s with locals passes them to rendered layout" do
+    html = "<h1>Hello world</h1>"
+    content = content_from_html(html)
+
+    # Mock the to_rendered_html_with_layout method to capture locals
+    def content.to_rendered_html_with_layout(locals: {})
+      @captured_locals = locals
+      "<div class=\"trix-content\">#{fragment.to_html}</div>".html_safe
+    end
+
+    custom_locals = { user_id: 123, theme: "dark" }
+    content.to_s(locals: custom_locals)
+
+    assert_equal custom_locals, content.instance_variable_get(:@captured_locals)
+  end
+
+  test "to_s accepts locals parameter" do
+    html = "<h1>Hello world</h1>"
+    content = content_from_html(html)
+
+    # Test backward compatibility - no locals
+    rendered_without_locals = content.to_s
+    assert_includes rendered_without_locals, html
+
+    # Test with empty locals hash
+    rendered_with_empty_locals = content.to_s(locals: {})
+    assert_equal rendered_with_empty_locals, rendered_without_locals
+
+    # Test with custom locals
+    custom_locals = { user_id: 123, theme: "dark" }
+    rendered_with_locals = content.to_s(locals: custom_locals)
+    assert_includes rendered_with_locals, html
+  end
+
+  test "to_s with locals works with attachments" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
+    content = ActionText::Content.new(html)
+
+    custom_locals = { user_id: 123, theme: "dark" }
+
+    # Test that to_s with locals doesn't break with attachments
+    result = content.to_s(locals: custom_locals)
+
+    assert_includes result, '<div class="trix-content">'
+    assert result.html_safe?
+  end
+
   private
     def content_from_html(html)
       ActionText::Content.new(html).tap do |content|
