@@ -1113,6 +1113,28 @@ end
 
 This creates an `addresses_attributes=` method on `Person` that allows you to create, update, and destroy addresses.
 
+Similarly, Active Model also provides model level support via the
+[`ActiveModel::NestedAttributes`](https://api.rubyonrails.org/classes/ActiveModel/NestedAttributes.html)
+module and its
+[`accepts_nested_attributes_for`](https://api.rubyonrails.org/classes/ActiveModel/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for)
+method:
+
+```ruby
+class Person
+  include ActiveModel::Model
+  include ActiveModel::NestedAttributes
+
+  attr_accessor :addresses
+  accepts_nested_attributes_for :addresses
+end
+
+class Address
+  include ActiveModel::Model
+
+  attr_accessor :street, :kind
+end
+```
+
 ### Nested Forms in the View
 
 The following form allows a user to create a `Person` and its associated addresses.
