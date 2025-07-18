@@ -1,3 +1,15 @@
+*   Add `active_support/core_ext/symbol/inflections`
+
+    ```ruby
+    :post.pluralize # => :posts
+    :posts.singularize # => :post
+
+    :FirstName.underscore # => :first_name
+    :first_name.camelcase # => :FirstName
+    ```
+
+    *Sean Doyle*
+
 *   Given an array of `Thread::Backtrace::Location` objects, the new method
     `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
     clean ones:
