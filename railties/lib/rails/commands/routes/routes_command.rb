@@ -7,8 +7,8 @@ module Rails
     class RoutesCommand < Base # :nodoc:
       class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
       class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
-      class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
       class_option :unused, type: :boolean, aliases: "-u", desc: "Print unused routes."
+      class_option :formatter, aliases: "-f", desc: "Specify the formatter to render the routes, e.g. sheet, expanded."
 
       no_commands do
         def invoke_command(*)
@@ -34,11 +34,9 @@ module Rails
         end
 
         def formatter
-          if options.key?("expanded")
-            ActionDispatch::Routing::ConsoleFormatter::Expanded.new
-          else
-            ActionDispatch::Routing::ConsoleFormatter::Sheet.new
-          end
+          ActionDispatch::Routing::ConsoleFormatter.registered_formatters.fetch(options["formatter"]).new
+        rescue KeyError
+          ActionDispatch::Routing::ConsoleFormatter::SheetFormatter.new
         end
 
         def routes_filter
