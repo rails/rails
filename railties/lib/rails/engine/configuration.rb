@@ -44,7 +44,7 @@ module Rails
         @generators = app_generators.dup
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
         @javascript_path = "javascript"
-        @route_set_class = ActionDispatch::Routing::RouteSet
+        @route_set_class = Rails.env.local? ? Rails::Engine::LazyRouteSet : ActionDispatch::Routing::RouteSet
         @default_scope = nil
 
         @autoload_paths = []
