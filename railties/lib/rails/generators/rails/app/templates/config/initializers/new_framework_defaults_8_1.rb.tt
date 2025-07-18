@@ -36,3 +36,8 @@
 # Rails 8.2.
 #++
 # Rails.configuration.active_record.raise_on_missing_required_finder_order_columns = true
+
+###
+# Controls whether or not `<form>` elements rendered by `form_tag` without a block will render `</form>`
+#++
+# Rails.application.config.action_view.closes_form_tag_without_block = true
