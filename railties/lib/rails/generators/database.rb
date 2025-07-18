@@ -190,7 +190,7 @@ module Rails
         end
 
         def gem
-          ["pg", ["~> 1.1"]]
+          ["pg", ["~> 1.6.0.rc2"]]
         end
 
         def base_package

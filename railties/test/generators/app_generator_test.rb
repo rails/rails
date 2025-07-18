@@ -481,7 +481,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_config_postgresql_database
     run_generator([destination_root, "-d", "postgresql"])
     assert_file "config/database.yml", /postgresql/
-    assert_gem "pg", '"~> 1.1"'
+    assert_gem "pg", '"~> 1.6.0.rc2"'
   end
 
   def test_generator_defaults_to_puma_version

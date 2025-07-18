@@ -424,7 +424,11 @@ GEM
       ast (~> 2.4.1)
       racc
     path_expander (1.1.3)
-    pg (1.5.9)
+    pg (1.6.0.rc2)
+    pg (1.6.0.rc2-aarch64-linux)
+    pg (1.6.0.rc2-arm64-darwin)
+    pg (1.6.0.rc2-x86_64-darwin)
+    pg (1.6.0.rc2-x86_64-linux)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
@@ -755,7 +759,7 @@ DEPENDENCIES
   msgpack (>= 1.7.0)
   mysql2 (~> 0.5)
   nokogiri (>= 1.8.1, != 1.11.0)
-  pg (~> 1.3)
+  pg (~> 1.6.0.rc2)
   prism
   propshaft (>= 0.1.7, != 1.0.1)
   puma (>= 5.0.3)
