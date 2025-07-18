@@ -1,11 +1,12 @@
 # typed: true
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/indifferent_access"
 require_relative "event_reporter/encoders"
 
 module ActiveSupport
   class TagStack # :nodoc:
-    EMPTY_TAGS = {}.freeze
+    EMPTY_TAGS = {}.with_indifferent_access.freeze
     FIBER_KEY = :event_reporter_tags
 
     class << self
@@ -29,24 +30,27 @@ module ActiveSupport
 
       private
         def resolve_tags(args, kwargs)
-          tags = args.each_with_object({}) do |arg, tags|
+          tags = {}.with_indifferent_access
+
+          args.each do |arg|
             case arg
             when String, Symbol
-              tags[arg.to_sym] = true
+              tags[arg] = true
             when Hash
-              arg.each { |key, value| tags[key.to_sym] = value }
+              arg.each { |key, value| tags[key] = value }
             else
-              tags[arg.class.name.to_sym] = arg
+              tags[arg.class.name] = arg
             end
           end
-          kwargs.each { |key, value| tags[key.to_sym] = value }
+
+          kwargs.each { |key, value| tags[key] = value }
           tags
         end
     end
   end
 
   class EventContext # :nodoc:
-    EMPTY_CONTEXT = {}.freeze
+    EMPTY_CONTEXT = {}.with_indifferent_access.freeze
     FIBER_KEY = :event_reporter_context
 
     class << self
@@ -56,7 +60,7 @@ module ActiveSupport
 
       def set_context(context_hash)
         new_context = self.context.dup
-        context_hash.each { |key, value| new_context[key.to_sym] = value }
+        context_hash.each { |key, value| new_context[key] = value }
 
         Fiber[FIBER_KEY] = new_context.freeze
       end
@@ -265,6 +269,8 @@ module ActiveSupport
     #     #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #     #  }
     #
+    # Note that the payload is converted to a HashWithIndifferentAccess, so keys can be accessed as strings or symbols.
+    #
     # Alternatively, an event object can be provided:
     #
     #   Rails.event.notify(UserCreatedEvent.new(id: 123))
@@ -395,6 +401,8 @@ module ActiveSupport
     #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
     #
+    #  Note that tags are converted to a HashWithIndifferentAccess, so keys can be accessed as strings or symbols.
+    #
     # The +tagged+ API can also receive a tag object:
     #
     #   graphql_tag = GraphqlTag.new(operation_name: "user_created", operation_type: "mutation")
@@ -465,9 +473,9 @@ module ActiveSupport
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
           if kwargs.any?
-            kwargs
+            kwargs.with_indifferent_access
           elsif payload
-            payload
+            payload.with_indifferent_access
           end
         else
           handle_unexpected_args(name_or_object, payload, kwargs) if payload || kwargs.any?

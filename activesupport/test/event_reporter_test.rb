@@ -447,24 +447,20 @@ module ActiveSupport
 
     test "#set_context sets context data" do
       @reporter.set_context(shop_id: 123)
-      assert_equal({ shop_id: 123 }, @reporter.context)
+      assert_equal(123, @reporter.context[:shop_id])
     end
 
     test "#set_context merges with existing context" do
       @reporter.set_context(shop_id: 123)
       @reporter.set_context(user_id: 456)
-      assert_equal({ shop_id: 123, user_id: 456 }, @reporter.context)
+      assert_equal(123, @reporter.context[:shop_id])
+      assert_equal(456, @reporter.context[:user_id])
     end
 
     test "#set_context overwrites existing keys" do
       @reporter.set_context(shop_id: 123)
       @reporter.set_context(shop_id: 456)
-      assert_equal({ shop_id: 456 }, @reporter.context)
-    end
-
-    test "#set_context with string keys converts them to symbols" do
-      @reporter.set_context("shop_id" => 123)
-      assert_equal({ shop_id: 123 }, @reporter.context)
+      assert_equal(456, @reporter.context[:shop_id])
     end
 
     test "#clear_context removes all context data" do
@@ -525,7 +521,7 @@ module ActiveSupport
       @reporter.set_context(shop_id: 123)
 
       @reporter.tagged(request_id: "abc") do
-        assert_equal({ shop_id: 123 }, @reporter.context)
+        assert_equal(123, @reporter.context[:shop_id])
 
         assert_called_with(@subscriber, :emit, [
           event_matcher(name: "test_event", payload: { key: "value" }, tags: { request_id: "abc" }, context: { shop_id: 123 })
