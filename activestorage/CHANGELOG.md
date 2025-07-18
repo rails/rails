@@ -1,3 +1,8 @@
+*   Control downloaded filename encoded into `Content-Disposition` header
+    through `:download` query parameter
+
+    *Sean Doyle*
+
 *   Direct upload progress accounts for server processing time.
 
     *Jeremy Daer*
