@@ -633,4 +633,26 @@
 
     *Kazuma Watanabe*
 
+*   Fix conditions from associations being incorrectly put into join constraints when using left outer join
+
+    ```ruby
+    has_many :hello_posts, -> { where "posts.body = 'hello'" }, class_name: "Post"
+    # ...
+    puts Author.left_outer_joins(:hello_posts).to_sql
+    ```
+
+    Before
+
+    ```SQL
+    SELECT `authors`.* FROM `authors` LEFT OUTER JOIN `posts` ON `posts`.`author_id` = `authors`.`id` AND (posts.body = 'hello')
+    ```
+
+    After
+
+    ```SQL
+    SELECT `authors`.* FROM `authors` LEFT OUTER JOIN `posts` ON `posts`.`author_id` = `authors`.`id` WHERE (posts.body = 'hello')
+    ```
+
+    *endenis*
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activerecord/CHANGELOG.md) for previous changes.
