@@ -1,3 +1,13 @@
+*   Add `active_support/core_ext/symbol/inquiry`
+
+    ```ruby
+    env = :test
+    env.inquiry.test? # => true
+    env.inquiry.production? # => false
+    ```
+
+    *Sean Doyle*
+
 *   Given an array of `Thread::Backtrace::Location` objects, the new method
     `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
     clean ones:
