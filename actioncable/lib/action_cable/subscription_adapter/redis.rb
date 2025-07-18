@@ -164,7 +164,7 @@ module ActionCable
                 begin
                   conn = @adapter.redis_connection_for_subscriptions
                   listen conn
-                rescue ConnectionError
+                rescue *CONNECTION_ERRORS
                   reset
                   if retry_connecting?
                     when_connected { resubscribe }
@@ -210,7 +210,7 @@ module ActionCable
             end
 
             if ::Redis::VERSION < "5"
-              ConnectionError = ::Redis::BaseConnectionError
+              CONNECTION_ERRORS = [::Redis::BaseConnectionError].freeze
 
               class SubscribedClient
                 def initialize(raw_client)
@@ -244,7 +244,12 @@ module ActionCable
                 SubscribedClient.new(conn._client)
               end
             else
-              ConnectionError = RedisClient::ConnectionError
+              CONNECTION_ERRORS = [
+                ::Redis::BaseConnectionError,
+
+                # Some older versions of redis-rb sometime leak underlying exceptions
+                RedisClient::ConnectionError,
+              ].freeze
 
               def extract_subscribed_client(conn)
                 conn
