@@ -172,7 +172,7 @@ GEM
     childprocess (5.1.0)
       logger (~> 1.5)
     concurrent-ruby (1.3.5)
-    connection_pool (2.5.0)
+    connection_pool (2.5.3)
     crack (1.0.0)
       bigdecimal
       rexml
@@ -461,9 +461,9 @@ GEM
     rdoc (6.12.0)
       psych (>= 4.0.0)
     redcarpet (3.2.3)
-    redis (5.4.0)
+    redis (5.4.1)
       redis-client (>= 0.22.0)
-    redis-client (0.24.0)
+    redis-client (0.25.1)
       connection_pool
     redis-namespace (1.11.0)
       redis (>= 4)

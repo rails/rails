@@ -1,3 +1,7 @@
+*   Fixed compatibility with `redis` gem `5.4.1`
+
+    *Jean Boussier*
+
 *   Fixed a possible race condition in `stream_from`.
 
     *OuYangJinTing*
