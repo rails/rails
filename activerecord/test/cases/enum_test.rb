@@ -584,6 +584,22 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
+  test "conflict message grammar" do
+    conflicts = {
+      column: /will generate a class method/,
+      logger: /will generate an instance method/,
+    }
+
+    conflicts.each do |name, pattern|
+      assert_raises(ArgumentError, match: pattern) do
+        Class.new(ActiveRecord::Base) do
+          self.table_name = "books"
+          enum name, [:value]
+        end
+      end
+    end
+  end
+
   test "overriding enum method should not raise" do
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do
