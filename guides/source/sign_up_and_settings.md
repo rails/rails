@@ -64,6 +64,8 @@ class User < ApplicationRecord
 end
 ```
 
+TIP: `has_secure_password` only validates the presence of the password. Consider adding more validations for password minimum length or complexity to improve security.
+
 Next, let's add sign up so we can register new users.
 
 ### Sign Up Routes & Controller
