@@ -288,7 +288,11 @@ Views also move to a `settings` folder so let's create the folder and view at `a
 <% end %>
 ```
 
-We've set the `url:` argument to ensure the form submits to our namespaced route and is processed by the `Settings::PasswordsController`. Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request to process the form with the `update` action.
+We've set the `url:` argument to ensure the form submits to our namespaced route and is processed by the `Settings::PasswordsController`.
+
+Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request to process the form with the `update` action.
+
+TIP: `Current.user` comes from [CurrentAttributes](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html) which is a per-request attribute which resets automatically before and after each request. The Rails authentication generator uses this to keep track of the logged in User.
 
 ### Safely Updating Passwords
 
