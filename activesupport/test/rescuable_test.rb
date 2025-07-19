@@ -107,6 +107,14 @@ class Stargate
   def sos_first
     @result = "sos_first"
   end
+
+  def self.logger_buffer
+    @buffer ||= StringIO.new
+  end
+
+  def self.logger
+    @logger ||= ActiveSupport::Logger.new(logger_buffer)
+  end
 end
 
 class CoolStargate < Stargate
@@ -172,5 +180,11 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_handles_loops_in_exception_cause_chain
     @stargate.dispatch :looped_crash
     assert_equal "unhandled", @stargate.result
+  end
+
+  def test_rescue_from_logs_info
+    Stargate.logger_buffer.truncate(0)
+    @stargate.dispatch :attack
+    assert_match(/rescue_from handled exception/, Stargate.logger_buffer.string)
   end
 end

@@ -92,6 +92,7 @@ module ActiveSupport
 
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception
+          logger.info("rescue_from handled exception #{exception.class} (#{exception.message}) - #{exception.backtrace.first}")
           exception
         elsif exception
           if visited_exceptions.include?(exception.cause)

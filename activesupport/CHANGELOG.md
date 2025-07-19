@@ -1,3 +1,12 @@
+*   Log when `rescue_from` handles an error.
+
+    During development it's useful to know when `a rescue_from` handler
+    rescues an exception; and where the exception was first raised. This
+    behaviour is similar to the existing log entry for "Filter chain halted as
+    :before_action rendered or redirected".
+
+    *Steven Webb*
+
 *   Make `ActiveSupport::Gzip.compress` deterministic based on input.
 
     `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
