@@ -366,6 +366,15 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_params_key_is_if_force_plural_option_is_given
+    run_generator ["User", "name:string", "age:integer", "--force-plural"]
+
+    assert_file "app/controllers/users_controller.rb" do |content|
+      assert_match(/def user_params/, content)
+      assert_match(/params\.expect\(users: \[ :name, :age \]\)/, content)
+    end
+  end
+
   def test_check_class_collision
     Object.const_set :UsersController, Class.new
     content = capture(:stderr) { run_generator }
