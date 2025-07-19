@@ -1,3 +1,41 @@
+*   Add Structured Event Reporter, accessible via `Rails.event`.
+
+    The Event Reporter provides a unified interface for producing structured events in Rails
+    applications:
+
+    ```ruby
+    Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    ```
+
+    It supports adding tags and context to events:
+
+    ```ruby
+    Rails.event.set_context(request_id: "abc123", shop_id: 456)
+    # All events will contain context: {request_id: "abc123", shop_id: 456}
+
+    Rails.event.tagged("graphql") do
+      Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    end
+    # Event includes tags: { graphql: true }
+    ```
+
+    Events are emitted to subscribers. Applications may register their own subscribers
+    to control how events are serialized and emitted. Rails provides several default
+    encoders that can be used to serialize events to common formats.
+
+    ```ruby
+    class MySubscriber
+      def emit(event)
+        encoded_event = ActiveSupport::EventReporter.encoder(:json).encode(event)
+        StructuredLogExporter.export(encoded_event)
+      end
+    end
+
+    Rails.event.subscribe(MySubscriber.new)
+    ```
+
+    *Adrianna Chang*
+
 *   Given an array of `Thread::Backtrace::Location` objects, the new method
     `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
     clean ones:

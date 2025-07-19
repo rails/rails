@@ -70,6 +70,7 @@ module ActionDispatch
     autoload :HostAuthorization
     autoload :RequestId
     autoload :Callbacks
+    autoload :ClearEventReporterContext
     autoload :Cookies
     autoload :ActionableExceptions
     autoload :DebugExceptions
