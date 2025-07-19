@@ -1,3 +1,7 @@
+*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
+
+    *Yasuo Honda*
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby
