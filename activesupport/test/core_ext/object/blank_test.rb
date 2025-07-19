@@ -36,6 +36,11 @@ class BlankTest < ActiveSupport::TestCase
     NOT.each   { |v| assert_equal true, v.present?,  "#{v.inspect} should be present" }
   end
 
+  def test_absence
+    BLANK.each { |v| assert_equal true, v.absence, "#{v.inspect}.absence should return true" }
+    NOT.each   { |v| assert_nil v.absence, "#{v.inspect}.absence should return nil" }
+  end
+
   def test_presence
     BLANK.each { |v| assert_nil v.presence, "#{v.inspect}.presence should return nil" }
     NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }

@@ -1,3 +1,26 @@
+*   Introduce `Object#absence`, complementary to `Object#presence`.
+
+    Returns `true` if the receiver is blank, otherwise `nil`. This is
+    equivalent to:
+
+    ```ruby
+    object.blank? ? true : nil
+    ```
+
+    This can be useful when you want to return a value when a variable is blank,
+    or nil otherwise:
+
+    ```ruby
+    processed = false
+    {
+      processed_at: processed.presence && Time.current,
+      process_at: processed.absence && Time.current
+    }
+    # => { processed_at: nil, process_at: Mon, 14 Jul 2025 ... }
+    ```
+
+    *Petrik de Heus*
+
 *   Given an array of `Thread::Backtrace::Location` objects, the new method
     `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
     clean ones:
