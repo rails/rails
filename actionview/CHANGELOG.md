@@ -1,3 +1,12 @@
+*   Deprecate implicit `size` attribute when `maxlength` is specified on text fields.
+
+    Setting `maxlength` will no longer automatically set `size` in Rails 8.2.
+    Specify both attributes explicitly or set
+    `ActionView::Helpers::FormHelper.text_field_maxlength_implies_size = false`
+    to opt into the new behavior early.
+
+    *Caio Chassot*
+
 *   Add `dom_target` helper to create `dom_id`-like strings from an unlimited
     number of objects.
 
