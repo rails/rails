@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "json"
 
 class ContentSecurityPolicyTest < ActiveSupport::TestCase
   def setup
@@ -228,6 +229,77 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_match %r{report-uri /violations}, @policy.build
   end
 
+  def test_reporting_api_directives
+    @policy.report_to "/csp-violation-report-endpoint"
+    assert_match %r{report-to csp-violation-report-endpoint}, @policy.build
+
+    @policy.report_to "group_1", proc { { group_1: "/csp-violation-report-endpoint" } }
+    assert_match %r{report-to group_1; report-uri /csp-violation-report-endpoint}, @policy.build
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to 123, "/csp-violation-report-endpoint"
+    end
+    assert_match "CSP group name must be a String", error.message
+    assert_match "123", error.message
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to("", "/endpoint")
+    end
+    assert_match "CSP group name cannot be empty", error.message
+    assert_match '""', error.message
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to "group_1", proc { "not a hash" }
+    end
+    assert_match "CSP reporting endpoints Proc must return a Hash", error.message
+    assert_match '"not a hash"', error.message
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to :symbol_group, "/endpoint"
+    end
+    assert_match "CSP group name must be a String", error.message
+
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to "group", proc { [1, 2, 3] }
+    end
+    assert_match "CSP reporting endpoints Proc must return a Hash", error.message
+
+    # Test nil URL filtering
+    @policy.report_to "edge", proc {
+      {
+        edge: {
+          urls: ["/valid-url", nil, "/another-valid-url"],
+          max_age: 1800
+        }
+      }
+    }
+
+    report_to_data = @policy.report_directives["report-to"]
+    parsed_data = JSON.parse(report_to_data.first)
+    assert_equal 2, parsed_data["endpoints"].length
+    assert_equal "/valid-url", parsed_data["endpoints"][0]["url"]
+    assert_equal "/another-valid-url", parsed_data["endpoints"][1]["url"]
+
+    # Test invalid endpoint type
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to "group", proc {
+        {
+          group: {
+            urls: ["/valid-url"],
+            invalid_key: "should not be here"
+          }
+        }
+      }
+    end
+    assert_match "Invalid CSP reporting endpoint keys", error.message
+
+    # Test invalid URI format
+    error = assert_raises(ActionDispatch::ContentSecurityPolicy::ReportingEndpointError) do
+      @policy.report_to "invalid://uri:format", "/endpoint"
+    end
+    assert_match "Invalid CSP group name URI format", error.message
+  end
+
   def test_other_directives
     @policy.block_all_mixed_content
     assert_match %r{block-all-mixed-content}, @policy.build
@@ -374,6 +446,34 @@ class ContentSecurityPolicyMiddlewareTest < ActiveSupport::TestCase
     ).call(@env)
 
     assert_equal @default_csp, headers[ActionDispatch::Constants::CONTENT_SECURITY_POLICY_REPORT_ONLY]
+  end
+
+  def test_generates_reporting_headers
+    @env["action_dispatch.content_security_policy"] = ActionDispatch::ContentSecurityPolicy.new do |p|
+      p.report_to "default", proc {
+        {
+          default: {
+            urls: ["/csp-violation-report-endpoint"],
+            max_age: 86400
+          }
+        }
+      }
+    end
+
+    app = proc { [200, {}, []] }
+    _, headers, _ = Rack::Lint.new(
+      ActionDispatch::ContentSecurityPolicy::Middleware.new(Rack::Lint.new(app))
+    ).call(@env)
+
+    # The REPORT_TO header should contain JSON data, not just the group name
+    report_to_header = headers[ActionDispatch::Constants::REPORT_TO]
+    assert_not_nil report_to_header, "REPORT_TO header should be present"
+    assert_match(/"group":"default"/, report_to_header, "REPORT_TO header should contain the group name")
+
+    # The REPORTING_ENDPOINT header should contain the endpoint mapping
+    reporting_endpoint_header = headers[ActionDispatch::Constants::REPORTING_ENDPOINT]
+    assert_not_nil reporting_endpoint_header, "REPORTING_ENDPOINT header should be present"
+    assert_match(/default="\/csp-violation-report-endpoint"/, reporting_endpoint_header, "REPORTING_ENDPOINT header should contain the endpoint mapping")
   end
 end
 
