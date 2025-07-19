@@ -1,3 +1,19 @@
+*   Allow passing method name or proc to `allow_nil` and `allow_blank`
+
+    ```ruby
+    class EnrollmentForm
+      include ActiveModel::Validations
+
+      attr_accessor :course
+
+      validates :course,
+                inclusion: { in: :open_courses },
+                allow_nil: :saving_progress?
+    end
+    ```
+
+    *Richard Lynch*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*
