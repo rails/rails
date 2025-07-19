@@ -15,6 +15,8 @@ module ActionView
     config.action_view.apply_stylesheet_media_default = true
     config.action_view.prepend_content_exfiltration_prevention = false
 
+    config.action_view.remove_hidden_field_autocomplete = true
+    
     config.eager_load_namespaces << ActionView
 
     config.after_initialize do |app|
@@ -83,6 +85,11 @@ module ActionView
           send "#{k}=", v
         end
       end
+    end
+
+    config.after_initialize do |app|
+      flag = app.config.action_view.delete(:remove_hidden_field_autocomplete)
+      ActionView::Helpers::UrlHelper.remove_hidden_field_autocomplete = flag
     end
 
     initializer "action_view.deprecator", before: :load_environment_config do |app|
