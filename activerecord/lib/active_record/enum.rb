@@ -383,7 +383,7 @@ module ActiveRecord
 
       ENUM_CONFLICT_MESSAGE = \
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
-        "this will generate a %{type} method \"%{method}\", which is already defined " \
+        "this will generate %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
       private_constant :ENUM_CONFLICT_MESSAGE
 
@@ -405,10 +405,18 @@ module ActiveRecord
         raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
           enum: enum_name,
           klass: name,
-          type: type,
+          type: type_sentence(type),
           method: method_name,
           source: source
         }
+      end
+
+      def type_sentence(type)
+        case type
+        when "instance" then "an #{type}"
+        when "class"    then "a #{type}"
+        else "a"
+        end
       end
 
       def detect_negative_enum_conditions!(method_names)
