@@ -22,7 +22,7 @@ module ActiveRecord
           elsif value.respond_to?(:in_time_zone)
             begin
               result = super(user_input_in_time_zone(value)) || super
-              if result && type == :time && ActiveRecord.use_fixed_date_for_time_attributes
+              if result && type == :time
                 result = result.change(year: 2000, month: 1, day: 1)
               end
               result
@@ -46,7 +46,7 @@ module ActiveRecord
 
             if value.acts_like?(:time)
               converted = value.in_time_zone
-              if type == :time && ActiveRecord.use_fixed_date_for_time_attributes && converted
+              if type == :time && converted
                 converted = converted.change(year: 2000, month: 1, day: 1)
               end
               converted

@@ -124,7 +124,6 @@
     *T S Vallender*
 
 *   Fix time attribute dirty tracking with timezone conversions.
-
     Time-only attributes now maintain a fixed date of 2000-01-01 during timezone conversions,
     preventing them from being incorrectly marked as changed due to date shifts.
     This fixes an issue where time attributes would be marked as changed when setting the same time value
