@@ -225,14 +225,6 @@ module ActiveRecord
 
   self.default_timezone = :utc
 
-  ##
-  # :singleton-method: use_fixed_date_for_time_attributes
-  # Determines whether to normalize time-only attributes to a fixed date (2000-01-01)
-  # to ensure consistent behavior with timezone conversions and dirty tracking.
-  # This prevents time attributes from being incorrectly marked as changed due to
-  # date shifts during timezone conversion. Default is false for backward compatibility.
-  singleton_class.attr_accessor :use_fixed_date_for_time_attributes
-  self.use_fixed_date_for_time_attributes = false
 
   ##
   # :singleton-method: db_warnings_action

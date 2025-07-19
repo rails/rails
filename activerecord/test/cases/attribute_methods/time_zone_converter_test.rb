@@ -18,11 +18,9 @@ module ActiveRecord
         end
 
         def test_time_attributes_with_fixed_date_normalization
-          old_use_fixed_date = ActiveRecord.use_fixed_date_for_time_attributes
           old_time_zone = Time.zone
 
           Time.zone = "Tokyo"
-          ActiveRecord.use_fixed_date_for_time_attributes = true
 
           subtype = ActiveRecord::Type::Time.new
           converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
@@ -41,18 +39,15 @@ module ActiveRecord
           assert_equal time_value.month, time_value2.month
           assert_equal time_value.day, time_value2.day
         ensure
-          ActiveRecord.use_fixed_date_for_time_attributes = old_use_fixed_date
           Time.zone = old_time_zone
         end
 
         def test_time_attribute_dirty_tracking_with_fixed_date
-          old_use_fixed_date = ActiveRecord.use_fixed_date_for_time_attributes
           old_time_zone = Time.zone
           old_default_timezone = ActiveRecord.default_timezone
 
           Time.zone = "Tokyo"
           ActiveRecord.default_timezone = :utc
-          ActiveRecord.use_fixed_date_for_time_attributes = true
 
           klass = Class.new(ActiveRecord::Base) do
             self.table_name = "topics"
@@ -78,16 +73,11 @@ module ActiveRecord
           assert_equal 1, topic.bonus_time.month
           assert_equal 1, topic.bonus_time.day
         ensure
-          ActiveRecord.use_fixed_date_for_time_attributes = old_use_fixed_date
           Time.zone = old_time_zone
           ActiveRecord.default_timezone = old_default_timezone
         end
 
-        def test_datetime_not_affected_by_fixed_date_option
-          old_use_fixed_date = ActiveRecord.use_fixed_date_for_time_attributes
-
-          ActiveRecord.use_fixed_date_for_time_attributes = true
-
+        def test_datetime_not_affected_by_fixed_date
           subtype = ActiveRecord::Type::DateTime.new
           converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
 
@@ -96,8 +86,6 @@ module ActiveRecord
           assert_equal 2025, datetime_value.year
           assert_equal 5, datetime_value.month
           assert_equal 15, datetime_value.day
-        ensure
-          ActiveRecord.use_fixed_date_for_time_attributes = old_use_fixed_date
         end
       end
     end
