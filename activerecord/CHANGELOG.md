@@ -1,3 +1,9 @@
+*   Add `ActiveRecord::SchemaDumper.ignore_extensions` functionality.
+
+    *jonathan schatz*
+
+    Add the ability to filter extensions that are dumped to `schema.rb` analogous to the existing `ignore_tables` functionality.
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby

@@ -18,6 +18,12 @@ module ActiveRecord
 
     ##
     # :singleton-method:
+    # A list of extensions which should not be dumped to the schema.
+    # Acceptable values are strings and regexps.
+    cattr_accessor :ignore_extensions, default: []
+
+    ##
+    # :singleton-method:
     # Specify a custom regular expression matching foreign keys which name
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
