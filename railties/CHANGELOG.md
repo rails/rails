@@ -1,3 +1,7 @@
+*   Replace `build-essential` with `gcc`, `g++`, and `make` for building Gems in Dockerfiles.
+
+    *Brian Clinkenbeard*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*

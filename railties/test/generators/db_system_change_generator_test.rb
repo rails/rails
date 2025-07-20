@@ -47,7 +47,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "build-essential git libpq-dev", content
+              assert_match "gcc g++ make git libpq-dev", content
               assert_match "curl libvips postgresql-client", content
             end
 
@@ -90,7 +90,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "build-essential default-libmysqlclient-dev git", content
+              assert_match "gcc g++ make default-libmysqlclient-dev git", content
               assert_match "curl default-mysql-client libvips", content
             end
 
@@ -132,7 +132,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "build-essential git", content
+              assert_match "gcc g++ make git", content
               assert_match "curl libvips sqlite3", content
             end
 
@@ -155,7 +155,7 @@ module Rails
             end
 
             assert_file("Dockerfile") do |content|
-              assert_match "build-essential git", content
+              assert_match "gcc g++ make git", content
               assert_match "curl default-mysql-client libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end

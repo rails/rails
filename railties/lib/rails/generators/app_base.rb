@@ -602,7 +602,7 @@ module Rails
 
       def dockerfile_build_packages
         # start with the essentials
-        packages = %w(build-essential git pkg-config libyaml-dev)
+        packages = %w(gcc g++ make git pkg-config libyaml-dev)
 
         # add database support
         packages << database.build_package unless skip_active_record?
@@ -621,9 +621,6 @@ module Rails
 
       def ci_packages
         dockerfile_build_packages - [
-          # GitHub Actions doesn't have build-essential,
-          # but it's a meta-packages and all its dependencies are already installed.
-          "build-essential",
           "git",
           "pkg-config",
           "libyaml-dev",
