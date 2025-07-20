@@ -72,6 +72,25 @@ module ActiveSupport
       assert_equal "Event subscriber Object must respond to #emit", error.message
     end
 
+    test "#unsubscribe" do
+      second_subscriber = EventSubscriber.new
+      @reporter.subscribe(second_subscriber)
+      @reporter.notify(:test_event, key: "value")
+
+      assert event_matcher(name: "test_event", payload: { key: "value" }).call(second_subscriber.events.last)
+
+      @reporter.unsubscribe(second_subscriber)
+
+      assert_not_called(second_subscriber, :emit, [
+        event_matcher(name: "another_event")
+      ]) do
+        @reporter.notify(:another_event, key: "value")
+      end
+
+      @reporter.notify(:last_event, key: "value")
+      assert_empty second_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
+    end
+
     test "#notify with name" do
       assert_called_with(@subscriber, :emit, [
         event_matcher(name: "test_event")
