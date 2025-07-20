@@ -360,17 +360,17 @@ module ActiveSupport
 
     def transform_keys!(hash = NOT_GIVEN, &block)
       return to_enum(:transform_keys!) if NOT_GIVEN.equal?(hash) && !block_given?
+      return super if hash.nil?
 
-      if hash.nil?
-        super
-      elsif NOT_GIVEN.equal?(hash)
-        keys.each { |key| self[yield(key)] = delete(key) }
-      elsif block_given?
-        keys.each { |key| self[hash[key] || yield(key)] = delete(key) }
-      else
-        keys.each { |key| self[hash[key] || key] = delete(key) }
-      end
-
+      new_keys =
+        if NOT_GIVEN.equal?(hash)
+          keys.map(&block)
+        elsif block_given?
+          keys.map { |key| hash[key] || yield(key) }
+        else
+          keys.map { |key| hash[key] || key }
+        end
+      replace(new_keys.zip(values).to_h)
       self
     end
 
