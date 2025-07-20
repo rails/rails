@@ -261,8 +261,9 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   class EventReporter
-    attr_writer :raise_on_error # :nodoc:
-    attr_reader :subscribers
+    # Sets whether to raise an error if a subscriber raises an error during
+    # event emission, or when unexpected arguments are passed to +notify+.
+    attr_writer :raise_on_error
 
     class << self
       attr_accessor :context_store # :nodoc:
@@ -298,8 +299,19 @@ module ActiveSupport
       unless subscriber.respond_to?(:emit)
         raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #emit"
       end
-
       @subscribers << { subscriber: subscriber, filter: filter }
+    end
+
+    # Unregister an event subscriber. Accepts either a subscriber or a class.
+    #
+    #   subscriber = MyEventSubscriber.new
+    #   Rails.event.subscribe(subscriber)
+    #
+    #   Rails.event.unsubscribe(subscriber)
+    #   # or
+    #   Rails.event.unsubscribe(MyEventSubscriber)
+    def unsubscribe(subscriber)
+      @subscribers.delete_if { |s| s[:subscriber] === subscriber }
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:
@@ -358,7 +370,7 @@ module ActiveSupport
         event[:source_location] = source_location
       end
 
-      subscribers.each do |subscriber_entry|
+      @subscribers.each do |subscriber_entry|
         subscriber = subscriber_entry[:subscriber]
         filter = subscriber_entry[:filter]
 
