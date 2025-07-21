@@ -1,3 +1,24 @@
+*   Fix `ActiveSupport::HashWithIndifferentAccess#tranform_keys!` to handle collisions.
+
+    If the transformation would result in a key equal to another not yet transformed one,
+    it would result in keys being lost.
+
+    Before:
+
+    ```ruby
+    >> {a: 1, b: 2}.with_indifferent_access.transform_keys!(&:succ)
+    => {"c" => 1}
+    ```
+
+    After:
+
+    ```ruby
+    >> {a: 1, b: 2}.with_indifferent_access.transform_keys!(&:succ)
+    => {"c" => 1, "d" => 2}
+    ```
+
+    *Jason T Johnson*, *Jean Boussier*
+
 *   Fix `ActiveSupport::Cache::MemCacheStore#read_multi` to handle network errors.
 
     This method specifically wasn't handling network errors like other codepaths.
