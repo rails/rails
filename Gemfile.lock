@@ -199,7 +199,7 @@ GEM
       railties (>= 6.0.0)
       sass-embedded (~> 1.63)
     date (3.4.1)
-    debug (1.10.0)
+    debug (1.11.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
     declarative (0.0.20)

@@ -55,6 +55,7 @@ DEFAULT_APP_FILES = %w(
   config/environments/test.rb
   config/initializers/assets.rb
   config/initializers/content_security_policy.rb
+  config/initializers/debug.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
   config/locales/en.yml
