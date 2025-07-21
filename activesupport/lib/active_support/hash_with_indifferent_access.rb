@@ -354,21 +354,26 @@ module ActiveSupport
     NOT_GIVEN = Object.new # :nodoc:
 
     def transform_keys(hash = NOT_GIVEN, &block)
-      return to_enum(:transform_keys) if NOT_GIVEN.equal?(hash) && !block_given?
-      dup.tap { |h| h.transform_keys!(hash, &block) }
+      if NOT_GIVEN.equal?(hash)
+        if block_given?
+          self.class.new(super(&block))
+        else
+          to_enum(:transform_keys)
+        end
+      else
+        self.class.new(super)
+      end
     end
 
     def transform_keys!(hash = NOT_GIVEN, &block)
-      return to_enum(:transform_keys!) if NOT_GIVEN.equal?(hash) && !block_given?
-
-      if hash.nil?
-        super
-      elsif NOT_GIVEN.equal?(hash)
-        keys.each { |key| self[yield(key)] = delete(key) }
-      elsif block_given?
-        keys.each { |key| self[hash[key] || yield(key)] = delete(key) }
+      if NOT_GIVEN.equal?(hash)
+        if block_given?
+          replace(transform_keys(&block))
+        else
+          return to_enum(:transform_keys!)
+        end
       else
-        keys.each { |key| self[hash[key] || key] = delete(key) }
+        replace(transform_keys(hash, &block))
       end
 
       self

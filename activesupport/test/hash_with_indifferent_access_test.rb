@@ -473,6 +473,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@integers).transform_keys { |k| k + 1 }
+
+    assert_equal([1, 2], hash.keys)
+
+    repeating_strings = { "a" => 1, "aa" => 2, "aaa" => 3 }
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(repeating_strings).transform_keys { |k| "#{k}a" }
+
+    assert_equal(%w[aa aaa aaaa], hash.keys)
+
     assert_raise TypeError do
       hash.transform_keys(nil)
     end
