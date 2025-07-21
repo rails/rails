@@ -484,6 +484,8 @@ module ActionView
 
       mattr_accessor :multiple_file_field_include_hidden, default: false
 
+      mattr_accessor :text_field_maxlength_implies_size, default: true
+
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
       #   # Using just a URL:
