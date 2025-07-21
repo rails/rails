@@ -1,3 +1,13 @@
+*   Add `redirect_if_authenticated` to sessions controller when running `rails g authentication`
+
+    When using rails default `rails g authentication`, attempting to sign in while
+    already authenticated resulted in an error. This change updates the
+    sessions controller to redirect users to `after_authentication_url`
+    instead of raising an error when they try to sign in while already
+    logged in.
+
+    *Atul Kanswal*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
