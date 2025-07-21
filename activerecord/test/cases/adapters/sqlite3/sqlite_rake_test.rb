@@ -214,9 +214,8 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys"],
+        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys", { out: "awesome-file.sql" }],
         returns: nil,
-        out: "awesome-file.sql"
       ) do
         e = assert_raise(RuntimeError) do
           with_structure_dump_flags(["--noop"]) do
