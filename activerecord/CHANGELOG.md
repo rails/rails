@@ -1,3 +1,18 @@
+*   Fix migrating multiple databases with `ActiveRecord::PendingMigration` action.
+
+    *Gannon McGibbon*
+
+*   Allow setting `schema_format` in database configuration.
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby

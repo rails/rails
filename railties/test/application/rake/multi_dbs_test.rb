@@ -1459,6 +1459,95 @@ module ApplicationTests
         end
       end
 
+      test "each database can have its own schema_format" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/default.sqlite3
+              adapter: sqlite3
+              schema_format: ruby
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+              schema_format: sql
+          test:
+            primary:
+              database: storage/default_test.sqlite3
+              adapter: sqlite3
+              schema_format: ruby
+            animals:
+              database: storage/test_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+              schema_format: sql
+        YAML
+
+        Dir.chdir(app_path) do
+          assert_not File.exist?("db/schema.rb")
+          assert_not File.exist?("db/animals_structure.sql")
+          rails "db:migrate"
+          rails "db:schema:dump"
+          assert File.exist?("db/schema.rb")
+          assert File.exist?("db/animals_structure.sql")
+        end
+      end
+
+      test "defaults to ruby schema_format" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/default.sqlite3
+              adapter: sqlite3
+            animals:
+              database: storage/development_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+              schema_format: sql
+          test:
+            primary:
+              database: storage/default_test.sqlite3
+              adapter: sqlite3
+            animals:
+              database: storage/test_animals.sqlite3
+              adapter: sqlite3
+              migrations_paths: db/animals_migrate
+              schema_format: sql
+        YAML
+
+        Dir.chdir(app_path) do
+          assert_not File.exist?("db/schema.rb")
+          assert_not File.exist?("db/animals_structure.sql")
+          rails "db:migrate"
+          rails "db:schema:dump"
+          assert File.exist?("db/schema.rb")
+          assert File.exist?("db/animals_structure.sql")
+        end
+      end
+
+      test "raises an exception for invalid schema formats" do
+        require "#{app_path}/config/environment"
+        app_file "config/database.yml", <<-YAML
+          development:
+            primary:
+              database: storage/default.sqlite3
+              adapter: sqlite3
+              schema_format: invalid
+          test:
+            primary:
+              database: storage/default_test.sqlite3
+              adapter: sqlite3
+        YAML
+
+        Dir.chdir(app_path) do
+          assert_raises "Invalid schema format" do
+            rails "db:migrate"
+          end
+        end
+      end
+
       test "after schema is loaded test run on the correct connections" do
         require "#{app_path}/config/environment"
         app_file "config/database.yml", <<-YAML
