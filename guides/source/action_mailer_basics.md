@@ -46,21 +46,21 @@ Mailer. Here are the details of each step.
 First, you use the "mailer" generator to create the Mailer related classes:
 
 ```bash
-$ bin/rails generate mailer User
-create  app/mailers/user_mailer.rb
+$ bin/rails generate mailer Users
+create  app/mailers/users_mailer.rb
 invoke  erb
-create    app/views/user_mailer
+create    app/views/users_mailer
 invoke  test_unit
-create    test/mailers/user_mailer_test.rb
-create    test/mailers/previews/user_mailer_preview.rb
+create    test/mailers/users_mailer_test.rb
+create    test/mailers/previews/users_mailer_preview.rb
 ```
 
-Like the `UserMailer` below, all generated Mailer classes inherit from
+Like the `UsersMailer` below, all generated Mailer classes inherit from
 `ApplicationMailer`:
 
 ```ruby
-# app/mailers/user_mailer.rb
-class UserMailer < ApplicationMailer
+# app/mailers/users_mailer.rb
+class UsersMailer < ApplicationMailer
 end
 ```
 
@@ -87,18 +87,18 @@ end
 
 ### Edit the Mailer
 
-The `UserMailer` in `app/mailers/user_mailer.rb` initially doesn't have any methods. So next, we add
+The `UsersMailer` in `app/mailers/users_mailer.rb` initially doesn't have any methods. So next, we add
 methods (aka actions) to the mailer that will send specific emails.
 
 Mailers have methods called "actions" and they use views to structure their
 content, similar to controllers. While a controller generates HTML content to
 send back to the client, a Mailer creates a message to be delivered via email.
 
-Let's add a method called `welcome_email` to the `UserMailer`, that will send an
+Let's add a method called `welcome_email` to the `UsersMailer`, that will send an
 email to the user's registered email address:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   default from: "notifications@example.com"
 
   def welcome_email
@@ -126,13 +126,13 @@ It is possible to specify an action directly while using the generator like
 this:
 
 ```bash
-$ bin/rails generate mailer User welcome_email
+$ bin/rails generate mailer Users welcome_email
 ```
 
-The above will generate the `UserMailer` with an empty `welcome_email` method.
+The above will generate the `UsersMailer` with an empty `welcome_email` method.
 
 You can also send multiple emails from a single mailer class. It can be
-convenient to group related emails together. For example, the above `UserMailer`
+convenient to group related emails together. For example, the above `UsersMailer`
 can have a `goodbye_email` (and corresponding view) in addition to the
 `welcome_email`.
 
@@ -146,7 +146,7 @@ can have a `goodbye_email` (and corresponding view) in addition to the
 ### Create a Mailer View
 
 Next, for the `welcome_email` action, you'll need to create a matching view in a
-file called `welcome_email.html.erb` in the `app/views/user_mailer/` directory.
+file called `welcome_email.html.erb` in the `app/views/users_mailer/` directory.
 Here is a sample HTML template that can be used for the welcome email:
 
 ```html+erb
@@ -166,7 +166,7 @@ default mailer layout, which contains the `<html>` tag. See [Mailer
 layouts](#mailer-views-and-layouts) for more.
 
 You can also create a text version of the above email and store it in
-`welcome_email.text.erb` in the `app/views/user_mailer/` directory (notice the
+`welcome_email.text.erb` in the `app/views/users_mailer/` directory (notice the
 `.text.erb` extension vs. the `html.erb`). Sending both formats is considered
 best practice because, in case of HTML rendering issues, the text version can
 serve as a reliable fallback. Here is a sample text email:
@@ -198,7 +198,7 @@ can be thought of as another way of rendering views. Controller actions render a
 view to be sent over the HTTP protocol. Mailer actions render a view and send it
 through email protocols instead.
 
-Let's see an example of using the `UserMailer` to send a welcome email when a
+Let's see an example of using the `UsersMailer` to send a welcome email when a
 user is successfully created.
 
 First, let's create a `User` scaffold:
@@ -210,7 +210,7 @@ $ bin/rails db:migrate
 
 Next, we edit the `create` action in the `UserController` to send a welcome
 email when a new user is created. We do this by inserting a call to
-`UserMailer.with(user: @user).welcome_email` right after the user is
+`UsersMailer.with(user: @user).welcome_email` right after the user is
 successfully saved.
 
 NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
@@ -227,8 +227,8 @@ class UsersController < ApplicationController
 
     respond_to do |format|
       if @user.save
-        # Tell the UserMailer to send a welcome email after save
-        UserMailer.with(user: @user).welcome_email.deliver_later
+        # Tell the UsersMailer to send a welcome email after save
+        UsersMailer.with(user: @user).welcome_email.deliver_later
 
         format.html { redirect_to user_url(@user), notice: "User was successfully created." }
         format.json { render :show, status: :created, location: @user }
@@ -282,7 +282,7 @@ the same `welcome_email` as above:
 
 ```irb
 irb> user = User.first
-irb> UserMailer.with(user: user).welcome_email.deliver_later
+irb> UsersMailer.with(user: user).welcome_email.deliver_later
 ```
 
 If you want to send emails right away (from a cronjob for example) you can call
@@ -292,13 +292,13 @@ If you want to send emails right away (from a cronjob for example) you can call
 class SendWeeklySummary
   def run
     User.find_each do |user|
-      UserMailer.with(user: user).weekly_summary.deliver_now
+      UsersMailer.with(user: user).weekly_summary.deliver_now
     end
   end
 end
 ```
 
-A method like `weekly_summary` from `UserMailer` would return an
+A method like `weekly_summary` from `UsersMailer` would return an
 [`ActionMailer::MessageDelivery`][] object, which has the methods `deliver_now`
 or `deliver_later` to send itself now or later. The
 `ActionMailer::MessageDelivery` object is a wrapper around a
@@ -310,12 +310,12 @@ Here is an example of the `MessageDelivery` object from the Rails console
 example above:
 
 ```irb
-irb> UserMailer.with(user: user).weekly_summary
+irb> UsersMailer.with(user: user).weekly_summary
 #<ActionMailer::MailDeliveryJob:0x00007f84cb0367c0
  @_halted_callback_hook_called=nil,
  @_scheduled_at_time=nil,
  @arguments=
-  ["UserMailer",
+  ["UsersMailer",
    "welcome_email",
    "deliver_now",
    {:params=>
@@ -424,9 +424,9 @@ after the attachment URL as well:
 
 As demonstrated in [Create a Mailer View](#create-a-mailer-view), Action Mailer
 will automatically send multipart emails if you have different templates for the
-same action. For example, if you have a `UserMailer` with
+same action. For example, if you have a `UsersMailer` with
 `welcome_email.text.erb` and `welcome_email.html.erb` in
-`app/views/user_mailer`, Action Mailer will automatically send a multipart email
+`app/views/users_mailer`, Action Mailer will automatically send a multipart email
 with both the HTML and text versions included as separate parts.
 
 The [Mail](https://github.com/mikel/mail) gem has helper methods for making a
@@ -460,7 +460,7 @@ ways, as shown below.
 There are `template_path` and `template_name` options to the `mail` method:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   default from: "notifications@example.com"
 
   def welcome_email
@@ -482,7 +482,7 @@ If you need more flexibility, you can also pass a block and render a specific
 template. You can also render plain text inline without using a template file:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   default from: "notifications@example.com"
 
   def welcome_email
@@ -508,7 +508,7 @@ Lastly, if you need to render a template located outside of the default
 like so:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   prepend_view_path "custom/path/to/mailer/view"
 
   # This will try to load "custom/path/to/mailer/view/welcome_email" template
@@ -661,7 +661,7 @@ controller layouts, you use `yield` to render the mailer view inside the layout.
 To use a different layout for a given mailer, call [`layout`][]:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   layout "awesome" # Use awesome.(html|text).erb as the layout
 end
 ```
@@ -670,7 +670,7 @@ To use a specific layout for a given email, you can pass in a `layout:
 'layout_name'` option to the render call inside the format block:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   def welcome_email
     mail(to: params[:user].email) do |format|
       format.html { render layout: "my_layout" }
@@ -681,7 +681,7 @@ end
 ```
 
 The above will render the HTML part using the `my_layout.html.erb` file and the
-text part with the usual `user_mailer.text.erb` file.
+text part with the usual `welcome_email.text.erb` file.
 
 [`layout`]:
     https://api.rubyonrails.org/classes/ActionView/Layouts/ClassMethods.html#method-i-layout
@@ -698,7 +698,7 @@ single string with the addresses separated by commas.
 For example, to inform all admins of a new registration:
 
 ```ruby
-class AdminMailer < ApplicationMailer
+class AdminsMailer < ApplicationMailer
   default to: -> { Admin.pluck(:email) },
           from: "notification@example.com"
 
@@ -734,7 +734,7 @@ end
 The same method in `from:` works to display the name of the sender:
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   default from: email_address_with_name("notification@example.com", "Example Company Notifications")
 end
 ```
@@ -758,7 +758,7 @@ instead supply the email body as a string. You can achieve this using the
 to `text/html` below. Rails will default to `text/plain` as the content type.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   def welcome_email
     mail(to: params[:user].email,
          body: params[:email_body],
@@ -776,7 +776,7 @@ delivering emails, you can do this using `delivery_method_options` in the mailer
 action.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = user_url(@user)
@@ -850,7 +850,7 @@ You can also use an `after_action` to override delivery method settings by
 updating `mail.delivery_method.settings`.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   before_action { @business, @user = params[:business], params[:user] }
 
   after_action :set_delivery_options,
@@ -893,7 +893,7 @@ allows observer/interceptor-like behaviors, but with access to the full mailer
 context.
 
 ```ruby
-class UserMailer < ApplicationMailer
+class UsersMailer < ApplicationMailer
   after_deliver :mark_delivered
   before_deliver :sandbox_staging
   after_deliver :observe_delivery
@@ -1018,24 +1018,24 @@ guide](testing.html#testing-mailers).
 ### Previewing Emails
 
 You can preview rendered email templates visually by visiting a special Action
-Mailer preview URL. To set up a preview for `UserMailer`, create a class named
-`UserMailerPreview` in the `test/mailers/previews/` directory. To see the
-preview of `welcome_email` from `UserMailer`, implement a method that has the
-same name in `UserMailerPreview` and call `UserMailer.welcome_email`:
+Mailer preview URL. To set up a preview for `UsersMailer`, create a class named
+`UsersMailerPreview` in the `test/mailers/previews/` directory. To see the
+preview of `welcome_email` from `UsersMailer`, implement a method that has the
+same name in `UsersMailerPreview` and call `UsersMailer.welcome_email`:
 
 ```ruby
-class UserMailerPreview < ActionMailer::Preview
+class UsersMailerPreview < ActionMailer::Preview
   def welcome_email
-    UserMailer.with(user: User.first).welcome_email
+    UsersMailer.with(user: User.first).welcome_email
   end
 end
 ```
 
 Now the preview will be available at
-<http://localhost:3000/rails/mailers/user_mailer/welcome_email>.
+<http://localhost:3000/rails/mailers/users_mailer/welcome_email>.
 
 If you change something in the mailer view at
-`app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview
+`app/views/users_mailer/welcome_email.html.erb` or the mailer itself, the preview
 will automatically be updated. A list of previews is also available in
 <http://localhost:3000/rails/mailers>.
 
@@ -1057,7 +1057,7 @@ To rescue errors that occur during any part of the mailing process, use
 [rescue_from](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html#method-i-rescue_from):
 
 ```ruby
-class NotifierMailer < ApplicationMailer
+class NotifiersMailer < ApplicationMailer
   rescue_from ActiveJob::DeserializationError do
     # ...
   end
