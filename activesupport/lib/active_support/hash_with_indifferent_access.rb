@@ -297,13 +297,13 @@ module ActiveSupport
     #   hash['a'] = nil
     #   hash.reverse_merge(a: 0, b: 1) # => {"a"=>nil, "b"=>1}
     def reverse_merge(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
     alias_method :with_defaults, :reverse_merge
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
     alias_method :with_defaults!, :reverse_merge!
 
@@ -312,7 +312,7 @@ module ActiveSupport
     #   h = { "a" => 100, "b" => 200 }
     #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
     def replace(other_hash)
-      super(self.class.new(other_hash))
+      super(cast(other_hash))
     end
 
     # Removes the specified key from the hash.
@@ -406,6 +406,10 @@ module ActiveSupport
     end
 
     private
+      def cast(other)
+        self.class === other ? other : self.class.new(other)
+      end
+
       def convert_key(key)
         Symbol === key ? key.name : key
       end
