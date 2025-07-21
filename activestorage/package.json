@@ -4,9 +4,11 @@
   "description": "Attach cloud and local files in Rails applications",
   "module": "app/assets/javascripts/activestorage.esm.js",
   "main": "app/assets/javascripts/activestorage.js",
+  "types": "src/activestorage/activestorage.d.ts",
   "files": [
     "app/assets/javascripts/*.js",
-    "src/*.js"
+    "src/*.js",
+    "src/activestorage/activestorage.d.ts"
   ],
   "homepage": "https://rubyonrails.org/",
   "repository": {
