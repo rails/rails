@@ -41,7 +41,7 @@ jobs:
     - name: Test container
       run: ruby -r ./.github/workflows/scripts/test-container.rb
 
-    - uses: zzak/action-discord@v8
+    - uses: zzak/action-discord@4cd181470664aa174b7252e5afb2ecf896001817 # v8
       continue-on-error: true
       if: failure() && github.ref_name == 'main'
       with:
