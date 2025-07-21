@@ -1252,7 +1252,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
-      assert_match(/config\/master\.key/, content)
+      assert_match("config/*.key", content)
     end
   end
 

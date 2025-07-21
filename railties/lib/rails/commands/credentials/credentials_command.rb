@@ -81,7 +81,6 @@ module Rails
 
           encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
           encryption_key_file_generator.add_key_file(key_path)
-          encryption_key_file_generator.ignore_key_file(key_path)
         end
 
         def ensure_credentials_have_been_added
