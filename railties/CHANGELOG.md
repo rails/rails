@@ -1,3 +1,7 @@
+*   Broaden the `.gitignore` entry when adding a credentials key to ignore all key files.
+
+    *Greg Molnar*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
