@@ -14,6 +14,13 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
     assert_equal "''", @conn.quote_string("'")
   end
 
+  def test_quote_string_with_null_byte_raises
+    error = assert_raises(ArgumentError) do
+      @conn.quote_string("foo\x00bar")
+    end
+    assert_match(/null byte/, error.message)
+  end
+
   def test_quote_column_name
     [@conn, @conn.class].each do |adapter|
       assert_equal '"foo"', adapter.quote_column_name("foo")

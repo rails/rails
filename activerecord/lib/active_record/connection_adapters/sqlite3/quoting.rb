@@ -64,6 +64,9 @@ module ActiveRecord
         end
 
         def quote_string(s)
+          if s.include?("\x00")
+            raise ArgumentError, "string contains null byte"
+          end
           ::SQLite3::Database.quote(s)
         end
 
