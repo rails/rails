@@ -681,7 +681,7 @@ end
 ```
 
 The above will render the HTML part using the `my_layout.html.erb` file and the
-text part with the usual `welcome_email.text.erb` file.
+text part with the usual `users_mailer.text.erb` file.
 
 [`layout`]:
     https://api.rubyonrails.org/classes/ActionView/Layouts/ClassMethods.html#method-i-layout
