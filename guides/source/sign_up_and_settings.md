@@ -1776,3 +1776,5 @@ Here are a few ideas to build on to this:
 - Add payments to buy products
 
 Happy building!
+
+[Return to all tutorials](tutorials.html)
