@@ -71,7 +71,7 @@ module ActiveRecord
         end
 
         def dbconsole(config, options = {})
-          pg_config = config.configuration_hash
+          pg_config = config.configuration_hash.dup
 
           ENV["PGUSER"]         = pg_config[:username] if pg_config[:username]
           ENV["PGHOST"]         = pg_config[:host] if pg_config[:host]
@@ -81,6 +81,10 @@ module ActiveRecord
           ENV["PGSSLCERT"]      = pg_config[:sslcert].to_s if pg_config[:sslcert]
           ENV["PGSSLKEY"]       = pg_config[:sslkey].to_s if pg_config[:sslkey]
           ENV["PGSSLROOTCERT"]  = pg_config[:sslrootcert].to_s if pg_config[:sslrootcert]
+          if pg_config[:schema_search_path]
+            pg_config[:variables] ||= {}
+            pg_config[:variables][:search_path] ||= pg_config[:schema_search_path]
+          end
           if pg_config[:variables]
             ENV["PGOPTIONS"] = pg_config[:variables].filter_map do |name, value|
               "-c #{name}=#{value.to_s.gsub(/[ \\]/, '\\\\\0')}" unless value == ":default" || value == :default
