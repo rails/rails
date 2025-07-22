@@ -109,6 +109,9 @@ module Rails
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
+        class_option :skip_pwa,            type: :boolean, default: nil,
+                                           desc: "Skip PWA setup"
+
         class_option :skip_kamal,          type: :boolean, default: nil,
                                            desc: "Skip Kamal setup"
 
@@ -410,6 +413,10 @@ module Rails
 
       def devcontainer?
         options[:devcontainer]
+      end
+
+      def skip_pwa?
+        options[:skip_pwa]
       end
 
       def skip_kamal?

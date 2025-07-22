@@ -756,6 +756,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_pwa_files_are_skipped_when_skip_pwa_is_given
+    generator [destination_root], ["--skip-pwa"]
+    run_generator_instance
+
+    assert_no_directory "app/views/pwa"
+
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_no_match(%r{pwa_manifest_path(format: :json)}, content)
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
@@ -1329,6 +1340,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_option :skip_javascript
     assert_option :skip_jbuilder
     assert_option :skip_kamal
+    assert_option :skip_pwa
     assert_option :skip_rubocop
     assert_option :skip_solid
     assert_option :skip_system_test

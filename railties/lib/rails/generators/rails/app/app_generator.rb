@@ -324,6 +324,7 @@ module Rails
             :skip_javascript,
             :skip_jbuilder,
             :skip_kamal,
+            :skip_pwa,
             :skip_rubocop,
             :skip_solid,
             :skip_system_test,
@@ -499,13 +500,18 @@ module Rails
       end
 
       def delete_app_views_if_api_option
-        if options[:api]
+        if options[:api] || options[:skip_pwa]
           if options[:skip_action_mailer]
             remove_dir "app/views"
           else
             remove_file "app/views/layouts/application.html.erb"
-            remove_dir  "app/views/pwa"
           end
+        end
+      end
+
+      def remove_pwa_views_if_api_or_skip_pwa
+        if options[:api] || options[:skip_pwa]
+          remove_dir "app/views/pwa"
         end
       end
 
