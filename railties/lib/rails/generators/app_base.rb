@@ -653,7 +653,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
+        !options[:skip_bootsnap] && !options[:dev] && !jruby?
       end
 
       def target_rails_prerelease(self_command = "new")
@@ -729,7 +729,7 @@ module Rails
       end
 
       def add_bundler_platforms
-        if bundle_install?
+        if bundle_install? && !jruby?
           # The vast majority of Rails apps will be deployed on `x86_64-linux`.
           bundle_command("lock --add-platform=x86_64-linux")
 
@@ -742,6 +742,10 @@ module Rails
         if bundle_install?
           bundle_command("binstubs bundler")
         end
+      end
+
+      def jruby?
+        defined?(JRUBY_VERSION)
       end
 
       def empty_directory_with_keep_file(destination, config = {})
