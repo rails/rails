@@ -228,4 +228,6 @@ module ActiveModel
       end
     end
   end
+
+  ActiveSupport.run_load_hooks(:active_model_secure_password, SecurePassword)
 end
