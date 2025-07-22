@@ -1,3 +1,21 @@
+*   Add Reporting API support through `report_to` for `content_security_policy`
+
+    ```ruby
+    policy.report_to 'default', -> {
+      {
+        default: {
+          urls: ['/csp-violation-report-endpoint', 'https://example.com/csp-violation-report'],
+          max_age: 30.minutes,
+          include_subdomains: true
+        },
+
+        group_2: 'https://example.com/hpkp-reports'
+      }
+    }
+    ```
+
+    *Ezra Adeyinka*
+
 *   Allow to open source file with a crash from the browser.
 
     *Igor Kasyanchuk*
