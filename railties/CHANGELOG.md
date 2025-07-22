@@ -1,3 +1,11 @@
+*   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
+
+    Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
+    which regenerated the hash on each test run. Now generates a static hash with a comment
+    showing how to recreate it.
+
+    *Nate Smith*, *Cassia Scheffer*
+
 *   Broaden the `.gitignore` entry when adding a credentials key to ignore all key files.
 
     *Greg Molnar*
