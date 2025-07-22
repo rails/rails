@@ -583,7 +583,7 @@ module ActiveRecord
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value, touch: nil)
-      update_columns(name => value, :touch => touch)
+      update_columns(name => value, touch: touch)
     end
 
     # Updates the attributes directly in the database issuing an UPDATE SQL
