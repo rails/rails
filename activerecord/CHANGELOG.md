@@ -1,3 +1,7 @@
+*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
+
+    *Yasuo Honda*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
