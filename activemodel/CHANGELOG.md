@@ -1,3 +1,12 @@
+*   Fix `has_secure_password` to validate the password confirmation field even when blank.
+
+    The password confirmation field being blank suggest the confirmation field was displayed
+    and submitted.
+
+    The validation is now only skipped if the field is `nil`.
+
+    *Fabio Sangiovanni*
+
 ## Rails 7.2.2.1 (December 10, 2024) ##
 
 *   No changes.

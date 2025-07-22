@@ -140,7 +140,7 @@ module ActiveModel
             end
           end
 
-          validates_confirmation_of attribute, allow_blank: true
+          validates_confirmation_of attribute, allow_nil: true
         end
       end
     end
