@@ -665,7 +665,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
+        !options[:skip_bootsnap] && !options[:dev] && !jruby?
       end
 
       def target_rails_prerelease(self_command = "new")
@@ -722,13 +722,17 @@ module Rails
       end
 
       def add_bundler_platforms
-        if bundle_install?
+        if bundle_install? && !jruby?
           # The vast majority of Rails apps will be deployed on `x86_64-linux`.
           bundle_command("lock --add-platform=x86_64-linux")
 
           # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
           bundle_command("lock --add-platform=aarch64-linux") if RUBY_PLATFORM.start_with?("arm64")
         end
+      end
+
+      def jruby?
+        defined?(JRUBY_VERSION)
       end
 
       def generate_bundler_binstub
