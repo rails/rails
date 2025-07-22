@@ -186,7 +186,6 @@ module ActiveJob
   class Continuation
     extend ActiveSupport::Autoload
 
-    autoload :Step
     autoload :Validation
 
     # Raised when a job is interrupted, allowing Active Job to requeue it.
@@ -329,3 +328,5 @@ module ActiveJob
       end
   end
 end
+
+require "active_job/continuation/step"
