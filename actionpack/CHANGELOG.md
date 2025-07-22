@@ -1,3 +1,19 @@
+*   Add JSON support to the built-in health controller.
+
+    The health controller now responds to JSON requests with a structured response
+    containing status and timestamp information. This makes it easier for monitoring
+    tools and load balancers to consume health check data programmatically.
+
+    ```ruby
+    # /up.json
+    {
+      "status": "up",
+      "timestamp": "2025-09-19T12:00:00Z"
+    }
+    ```
+
+    *Francesco Loreti*, *Juan Vásquez*
+
 *   Allow to open source file with a crash from the browser.
 
     *Igor Kasyanchuk*
