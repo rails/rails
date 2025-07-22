@@ -166,7 +166,11 @@ end
 
 The `create` action assigns parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
 
-Authenticated users can still access `SignUpsController` and create another account while they're logged in which can be confusing.
+Visit https://localhost:3000/sign_up to try it out.
+
+### Requiring Unauthenticated Access
+
+Authenticated users can still access `SignUpsController` and create another account while they're logged in which is confusing.
 
 Let's fix this by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
 
@@ -238,7 +242,7 @@ In `config/routes.rb` we can add the Settings namespace along with a resource fo
 
 ```ruby
 namespace :settings do
-  resource :password, only: [:show, :update]
+  resource :password, only: [ :show, :update ]
 end
 ```
 
@@ -298,7 +302,7 @@ TIP: `Current.user` comes from [CurrentAttributes](https://api.rubyonrails.org/c
 
 Let's add that `update` action to the controller now.
 
-```ruby#5-17
+```ruby#5-16
 class Settings::PasswordsController < ApplicationController
   def show
   end
@@ -509,7 +513,7 @@ This allows the application controller to be used normally with `yield` or it ca
 
 We now have two separate `<nav>` tags, so we need to update our existing CSS selectors to avoid conflicts.
 
-To do this, add the the `.navbar` class to these selectors.
+To do this, add the the `.navbar` class to these selectors in `app/assets/stylesheets/application.css`.
 
 ```css#1,11
 nav.navbar {
@@ -573,20 +577,20 @@ Deleting Accounts
 
 Next, let's add the ability to delete your account. We'll start by adding another namespaced route for account to `config/routes.rb`.
 
-```ruby#2
+```ruby#4
 namespace :settings do
-  resource :account, only: [ :show, :destroy ]
   resource :password, only: [ :show, :update ]
   resource :profile, only: [ :show, :update ]
+  resource :user, only: [ :show, :destroy ]
 
   root to: redirect("/settings/profile")
 end
 ```
 
-To handle these new routes, create `app/controllers/settings/accounts_controller.rb` and add the following:
+To handle these new routes, create `app/controllers/settings/users_controller.rb` and add the following:
 
 ```ruby
-class Settings::AccountsController < Settings::BaseController
+class Settings::UsersController < Settings::BaseController
   def show
   end
 
@@ -600,12 +604,12 @@ end
 
 The controller for deleting accounts is pretty straightforward. We have a `show` action to display the page and a `destroy` action to logout and delete the user. It also inherits from `Settings::BaseController` so it will use the settings layout like the others.
 
-Now let's add the view at `app/views/settings/accounts/show.html.erb` with the following:
+Now let's add the view at `app/views/settings/users/show.html.erb` with the following:
 
 ```erb
 <h1>Account</h1>
 
-<%= button_to "Delete my account", settings_account_path, method: :delete, data: {turbo_confirm: "Are you sure? This cannot be undone."} %>
+<%= button_to "Delete my account", settings_user_path, method: :delete, data: { turbo_confirm: "Are you sure? This cannot be undone." } %>
 ```
 
 And finally, we'll add a link to Account in the setting layout's sidebar.
@@ -617,7 +621,7 @@ And finally, we'll add a link to Account in the setting layout's sidebar.
       <h4>Account Settings</h4>
       <%= link_to "Profile", settings_profile_path %>
       <%= link_to "Password", settings_password_path %>
-      <%= link_to "Account", settings_account_path %>
+      <%= link_to "Account", settings_user_path %>
     </nav>
 
     <div>
@@ -655,12 +659,12 @@ $ bin/rails db:migrate
 
 Next we can add an email route under the `:settings` namespace in `config/routes.rb`.
 
-```ruby#3
+```ruby#2
 namespace :settings do
-  resource :account, only: [ :show, :destroy ]
   resource :email, only: [ :show, :update ]
   resource :password, only: [ :show, :update ]
   resource :profile, only: [ :show, :update ]
+  resource :user, only: [ :show, :destroy ]
 
   root to: redirect("/settings/profile")
 end
@@ -705,7 +709,7 @@ To keep things secure, we need to ask for the new email address and validate use
 
 In our controller, we will validate the current password and save the new email address before sending an email to confirm the new email address.
 
-```ruby
+```ruby#5-17
 class Settings::EmailsController < Settings::BaseController
   def show
   end
@@ -775,7 +779,7 @@ This adds a token generator we can use for email confirmations. The token encode
 
 Let's update `app/mailers/user_mailer.rb` to generate a new token for the email:
 
-```ruby
+```ruby#6-9
 class UserMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
@@ -816,7 +820,7 @@ end
 
 When a user clicks a link in their email, it will open a browser and make a GET request to the app. This means we only need the `show` action for this controller.
 
-Next, add the following to `app/controllers/emails/confirmations_controller.rb`
+Next, add the following to `app/controllers/email/confirmations_controller.rb`
 
 ```ruby
 class Email::ConfirmationsController < ApplicationController
@@ -835,6 +839,30 @@ end
 ```
 
 We want to confirm the email address whether the user is authenticated or not, so this controller allows unauthenticated access. We use the `find_by_token_for` method to validate the token and look up the matching `User` record. If successful, we call the `confirm_email` method to update the user's email and reset `unconfirmed_email` to `nil`. If the token isn't valid, the `user` variable will be `nil`, and we will display an alert message.
+
+Finally, let's add a link to Email in the settings layout sidebar:
+
+```erb#6
+<%= content_for :content do %>
+  <section class="settings">
+    <nav>
+      <h4>Account Settings</h4>
+      <%= link_to "Profile", settings_profile_path %>
+      <%= link_to "Email", settings_email_path %>
+      <%= link_to "Password", settings_password_path %>
+      <%= link_to "Account", settings_user_path %>
+    </nav>
+
+    <div>
+      <%= yield %>
+    </div>
+  </section>
+<% end %>
+
+<%= render template: "layouts/application" %>
+```
+
+Test out this process by navigating to https://localhost:3000/settings/email and updating your email address. Watch the Rails server logs for the email contents and open the confirm link in your browser to update the email in the database.
 
 Separating Admins & Users
 -------------------------
@@ -901,66 +929,64 @@ To close the SQLite prompt, enter the following command:
 Viewing All Users
 -----------------
 
-As a store admin, we will want to view and manage users for customer support, marketing, etc.
+As a store admin, we will want to view and manage users for customer support, marketing and other use cases.
 
-First, we'll need to add a route in the settings namespace for users in `config/routes.rb`.
+First, we'll need to add a route for users in a new `store` namespace in `config/routes.rb`.
 
-```ruby#2
-namespace :settings do
-  resource :account, only: [ :show, :destroy ]
-  resource :email, only: [ :show, :update ]
-  resource :password, only: [ :show, :update ]
-  resource :profile, only: [ :show, :update ]
-
-  # Admins only
+```ruby
+# Admins Only
+namespace :store do
   resources :users
-
-  root to: redirect("/settings/profile")
 end
 ```
 
 ### Adding Admin Only Access
 
-The controller for users should be accessible to admins only. Before we create that controller, let's add a class method to the `Authentication` module to restrict access to admins only.
+The controller for users should be accessible to admins only. Before we create that controller, let's create an `Authorization` module with a class method to restrict access to admins only.
 
-Open `app/controllers/concerns/authentication.rb` and add:
+Create `app/controllers/concerns/authorization.rb` with the following code:
 
-```ruby#19-21
-module Authentication
+```ruby
+module Authorization
   extend ActiveSupport::Concern
 
-  included do
-    before_action :require_authentication
-    helper_method :authenticated?
-  end
-
   class_methods do
-    def allow_unauthenticated_access(**options)
-      skip_before_action :require_authentication, **options
-    end
-
-    def unauthenticated_access_only(**options)
-      allow_unauthenticated_access **options
-      before_action -> { redirect_to root_path if authenticated? }, **options
-    end
-
     def admin_access_only(**options)
       before_action -> { redirect_to root_path, alert: "You aren't allowed to do that." unless authenticated? && Current.user.admin? }, **options
     end
-
-    # ...
+  end
+end
 ```
 
-Adding this to the `Authentication` module allows us to use this method in any controller to restrict actions to admin only access.
+To use this module in our controllers, include it in `app/controllers/application_controller.rb`
+
+```ruby#3
+class ApplicationController < ActionController::Base
+  include Authentication
+  include Authorization
+
+  # ...
+```
+
+The `Authorization` module features can be used in any controller in our app. This module provides a home for any additional helpers to manage access for admins or other types of roles in the future.
 
 ### Users Controller & Views
 
-We can then use this in the controller. Create `app/controllers/settings/users_controller.rb` and add the following:
+First, create a base class for the `store` namespace at `app/controllers/store/base_controller.rb`.
 
 ```ruby
-class Settings::UsersController < Settings::BaseController
+class Store::BaseController < ApplicationController
   admin_access_only
+  layout "settings"
+end
+```
 
+This controller will restrict access to admins only using the `admin_access_only` method we just created. It will also use the same settings layout to display the sidebar.
+
+Next, create `app/controllers/store/users_controller.rb` and add the following:
+
+```ruby
+class Store::UsersController < Store::BaseController
   before_action :set_user, only: %i[ show edit update destroy ]
 
   def index
@@ -975,7 +1001,7 @@ class Settings::UsersController < Settings::BaseController
 
   def update
     if @user.update(user_params)
-      redirect_to settings_user_path(@user), status: :see_other, notice: "User has been updated"
+      redirect_to store_user_path(@user), status: :see_other, notice: "User has been updated"
     else
       render :edit, status: :unprocessable_entity
     end
@@ -997,29 +1023,29 @@ end
 
 This gives admins the ability to read, update, and destroy users in the database.
 
-Next, let's create the index view at `app/views/settings/users/index.html.erb`
+Next, let's create the index view at `app/views/store/users/index.html.erb`
 
 ```erb
 <h1><%= pluralize @users.count, "user" %></h1>
 
 <% @users.each do |user| %>
   <div>
-    <%= link_to user.full_name, settings_user_path(user) %>
+    <%= link_to user.full_name, store_user_path(user) %>
   </div>
 <% end %>
 ```
 
-Then, the edit user view at `app/views/settings/users/edit.html.erb`:
+Then, the edit user view at `app/views/store/users/edit.html.erb`:
 
 ```erb
 <h1>Edit User</h1>
 <%= render "form", user: @user %>
 ```
 
-And the form partial at `app/views/settings/users/_form.html.erb`:
+And the form partial at `app/views/store/users/_form.html.erb`:
 
 ```erb
-<%= form_with model: user, url: settings_user_path do |form| %>
+<%= form_with model: [ :store, user ] do |form| %>
   <div>
     <%= form.label :first_name %>
     <%= form.text_field :first_name, required: true, autofocus: true, autocomplete: "given-name" %>
@@ -1041,17 +1067,17 @@ And the form partial at `app/views/settings/users/_form.html.erb`:
 <% end %>
 ```
 
-And finally, the user show view at `app/views/settings/users/show.html.erb`:
+And finally, the user show view at `app/views/store/users/show.html.erb`:
 
 ```erb
-<%= link_to "Back to all users", settings_users_path %>
+<%= link_to "Back to all users", store_users_path %>
 
 <h1><%= @user.full_name %></h1>
 <p><%= @user.email_address %></p>
 
 <div>
-  <%= link_to "Edit user", edit_settings_user_path(@user)  %>
-  <%= button_to "Delete user", settings_user_path(@user), data: {turbo_confirm: "Are you sure?"} %>
+  <%= link_to "Edit user", edit_store_user_path(@user)  %>
+  <%= button_to "Delete user", store_user_path(@user), data: { turbo_confirm: "Are you sure?" } %>
 </div>
 ```
 
@@ -1059,7 +1085,7 @@ And finally, the user show view at `app/views/settings/users/show.html.erb`:
 
 Next, we want to add this to the Settings sidebar navigation. Since this should be only visible to admins, we need to wrap it in a conditional to ensure the current user is an admin.
 
-Add the following to the settings layout:
+Add the following to the settings layout in `app/views/layouts/settings.html.erb`:
 
 ```erb#10-13
 <%= content_for :content do %>
@@ -1069,11 +1095,11 @@ Add the following to the settings layout:
       <%= link_to "Profile", settings_profile_path %>
       <%= link_to "Email", settings_email_path %>
       <%= link_to "Password", settings_password_path %>
-      <%= link_to "Account", settings_account_path %>
+      <%= link_to "Account", settings_user_path %>
 
       <% if Current.user.admin? %>
         <h4>Store Settings</h4>
-        <%= link_to "Users", settings_users_path %>
+        <%= link_to "Users", store_users_path %>
       <% end %>
     </nav>
 
@@ -1113,7 +1139,17 @@ end
 
 We can then adjust the views for the products controller.
 
-Starting with `app/views/products/index.html.erb`, let's remove the link to "New product". We'll use the Settings area to create new products instead.
+First, let's copy these views to the `store` namespace since this is where we want to manage products for the store.
+
+```bash
+$ cp -R app/views/products app/views/store
+```
+
+### Clean Up Public Product Views
+
+Now let's remove all the create, update and destroy functionality from the public product views.
+
+In `app/views/products/index.html.erb`, let's remove the link to "New product". We'll use the Settings area to create new products instead.
 
 ```diff
 -<%= link_to "New product", new_product_path if authenticated? %>
@@ -1134,27 +1170,20 @@ Then remove:
 - `app/views/products/edit.html.erb`
 - `app/views/products/_form.html.erb`
 
-These views will be recreated in the settings namespace with some small adjustments.
-
 ### Admin Products CRUD
 
-First, let's add the namespaced route for products to `config/routes.rb`:
+First, let's add the namespaced route for products to `config/routes.rb` and also set a root route for this namespace:
 
-```ruby#7
-  namespace :settings do
-    resource :profile, only: [ :show, :update ]
-    resource :password, only: [ :show, :update ]
-    resource :email, only: [ :show, :update ]
-    resource :account, only: [ :show, :destroy ]
-
+```ruby#2,5
+  namespace :store do
     resources :products
     resources :users
 
-    root to: redirect("/settings/profile")
+    root to: redirect("/store/products")
   end
 ```
 
-And then update the settings layout sidebar navigation:
+And then update the settings layout navigation in `app/views/layouts/settings.html.erb`:
 
 ```erb#12
 <%= content_for :content do %>
@@ -1164,12 +1193,12 @@ And then update the settings layout sidebar navigation:
       <%= link_to "Profile", settings_profile_path %>
       <%= link_to "Email", settings_email_path %>
       <%= link_to "Password", settings_password_path %>
-      <%= link_to "Account", settings_account_path %>
+      <%= link_to "Account", settings_user_path %>
 
       <% if Current.user.admin? %>
         <h4>Store Settings</h4>
-        <%= link_to "Products", settings_products_path %>
-        <%= link_to "Users", settings_users_path %>
+        <%= link_to "Products", store_products_path %>
+        <%= link_to "Users", store_users_path %>
       <% end %>
     </nav>
 
@@ -1182,14 +1211,10 @@ And then update the settings layout sidebar navigation:
 <%= render template: "layouts/application" %>
 ```
 
-### Admin Products Controller & Views
-
-Next, create `app/controllers/settings/products_controller.rb` with the following:
+Next, create `app/controllers/store/products_controller.rb` with the following:
 
 ```ruby
-class Settings::ProductsController < Settings::BaseController
-  admin_access_only
-
+class Store::ProductsController < Store::BaseController
   before_action :set_product, only: %i[ show edit update destroy ]
 
   def index
@@ -1206,7 +1231,7 @@ class Settings::ProductsController < Settings::BaseController
   def create
     @product = Product.new(product_params)
     if @product.save
-      redirect_to settings_product_path(@product)
+      redirect_to store_product_path(@product)
     else
       render :new, status: :unprocessable_entity
     end
@@ -1217,7 +1242,7 @@ class Settings::ProductsController < Settings::BaseController
 
   def update
     if @product.update(product_params)
-      redirect_to settings_product_path(@product)
+      redirect_to store_product_path(@product)
     else
       render :edit, status: :unprocessable_entity
     end
@@ -1225,7 +1250,7 @@ class Settings::ProductsController < Settings::BaseController
 
   def destroy
     @product.destroy
-    redirect_to settings_products_path
+    redirect_to store_products_path
   end
 
   private
@@ -1242,7 +1267,95 @@ end
 This controller is almost the same as `ProductsController` previously, but two important changes:
 
 1. We have `admin_access_only` to restrict access to admin users only.
-2. Redirects use the settings namespace to keep the user in the settings area.
+2. Redirects use the `store` namespace to keep the user in the store settings area.
+
+### Updating Admin Product Views
+
+The admin views need some tweaks to work inside the `store` namespace.
+
+First, let's fix the form by updating the `model:` argument to use the `store` namespace. We should also display validation errors in the form while we're here.
+
+```erb#1-4
+<%= form_with model: [ :store, product ] do |form| %>
+  <% if form.object.errors.any? %>
+    <div>Error: <%= form.object.errors.full_messages.first %></div>
+  <% end %>
+
+  <div>
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <%# ... %>
+```
+
+Then we can remove the `authenticated?` check from `app/views/store/products/index.html.erb` and use the `store` namespace for links:
+
+```erb#3,8
+<h1><%= t ".title" %></h1>
+
+<%= link_to "New product", new_store_product_path %>
+
+<div id="products">
+  <% @products.each do |product| %>
+    <div>
+      <%= link_to product.name, store_product_path(product) %>
+    </div>
+  <% end %>
+</div>
+
+```
+
+We need to update the Cancel link to use the `store` namespace in `app/views/store/products/new.html.erb`:
+
+```erb#4
+<h1>New product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", store_products_path %>
+```
+
+Do the same in `app/views/store/products/edit.html.erb`:
+
+```erb#4
+<h1>Edit product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", store_product_path(@product) %>
+```
+
+Update `app/views/store/products/show.html.erb` with the following:
+
+```erb#1,12-14
+<p><%= link_to "Back", store_products_path %></p>
+
+<section class="product">
+  <%= image_tag @product.featured_image if @product.featured_image.attached? %>
+
+  <section class="product-info">
+    <% cache @product do %>
+      <h1><%= @product.name %></h1>
+      <%= @product.description %>
+    <% end %>
+
+    <%= link_to "View in Storefront", @product %>
+    <%= link_to "Edit", edit_store_product_path(@product) %>
+    <%= button_to "Delete", [ :store, @product ], method: :delete, data: { turbo_confirm: "Are you sure?" } %>
+  </section>
+</section>
+```
+
+This updates the `show` action so that:
+
+- Links now use to the `store` namespace.
+- A "View in Storefront" link is added to make it easier for admins to see how a product looks to the public.
+- The inventory partial is removed since that's only useful on the public storefront.
+
+Since we're not using the `_inventory.html.erb` partial in the admin area, let's remove it:
+
+```bash
+$ rm app/views/store/products/_inventory.html.erb
+```
 
 Adding Tests
 ------------
@@ -1556,16 +1669,16 @@ $ bin/rails test test/integration/settings_test.rb
 We also want to ensure regular users cannot access the Store settings for Products and Users. Let's add some tests for that.
 
 ```ruby
-test "regular user cannot access /settings/products" do
+test "regular user cannot access /store/products" do
   sign_in_as users(:one)
-  get settings_products_path
+  get store_products_path
   assert_response :redirect
   assert_equal "You aren't allowed to do that", flash[:alert]
 end
 
-test "regular user cannot access /settings/users" do
+test "regular user cannot access /store/users" do
   sign_in_as users(:one)
-  get settings_products_path
+  get store_products_path
   assert_response :redirect
   assert_equal "You aren't allowed to do that", flash[:alert]
 end
@@ -1576,15 +1689,15 @@ These tests use a regular user to access the admin only areas and ensures they a
 Let's complete these tests by ensuring that admin users _can_ access these areas.
 
 ```ruby
-test "admins can access settings/products" do
+test "admins can access /store/products" do
   sign_in_as users(:admin)
-  get settings_products_path
+  get store_products_path
   assert_response :success
 end
 
-test "admins can access settings/users" do
+test "admins can access /store/users" do
   sign_in_as users(:admin)
-  get settings_users_path
+  get store_users_path
   assert_response :success
 end
 ```
