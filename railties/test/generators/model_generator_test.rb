@@ -2,6 +2,34 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/model/model_generator"
+require "isolation/abstract_unit"
+
+class ModelGeneratorIntegrationTest < ActiveSupport::TestCase
+  include Rails::Generators::Testing::Assertions
+  include Rails::Generators::Testing::Behavior
+  include ActiveSupport::Testing::Isolation
+  setup :build_app
+  setup { self.class.destination rails_root }
+  teardown :teardown_app
+
+  def test_model_generator
+    Dir.chdir(app_path) do
+      output = quietly { capture(:stderr) { `bin/rails generate model Account` } }
+
+      assert_no_match(/The name 'Account' is either already used in your application or reserved by Ruby on Rails./, output)
+      assert_migration "db/migrate/create_accounts.rb"
+    end
+  end
+
+  def test_model_generator_revoke
+    Dir.chdir(app_path) do
+      output = quietly { capture(:stderr) { `bin/rails destroy model DoesNotExist` } }
+
+      assert_match(/The class 'DoesNotExist' does not exist/, output)
+      assert_no_migration "db/migrate/create_does_not_exists.rb"
+    end
+  end
+end
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -351,12 +379,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator
     error = capture(:stderr) { run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
-  end
-
-  def test_migration_is_removed_on_revoke
-    run_generator
-    run_generator ["Account"], behavior: :revoke
-    assert_no_migration "db/migrate/create_accounts.rb"
   end
 
   def test_existing_migration_is_removed_on_force
