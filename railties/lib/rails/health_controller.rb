@@ -44,15 +44,15 @@ module Rails
     private
       def render_up
         respond_to do |format|
-          format.html { render html: html_status(color: "green"), status: 200 }
-          format.json { render json: { status: 200 }, status: 200 }
+          format.html { render html: html_status(color: "green") }
+          format.json { render json: { status: "up", timestamp: Time.current.iso8601 } }
         end
       end
 
       def render_down
         respond_to do |format|
           format.html { render html: html_status(color: "red"), status: 500 }
-          format.json { render json: { status: 500 }, status: 500 }
+          format.json { render json: { status: "down", timestamp: Time.current.iso8601 }, status: 500 }
         end
       end
 
