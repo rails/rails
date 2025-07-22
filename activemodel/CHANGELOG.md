@@ -1,9 +1,6 @@
-*   Fix `has_secure_password` to validate the password confirmation field even when blank.
+*   Fix `has_secure_password` to perform confirmation validation of the password even when blank.
 
-    The password confirmation field being blank suggest the confirmation field was displayed
-    and submitted.
-
-    The validation is now only skipped if the field is `nil`.
+    The validation was incorrectly skipped when the password only contained whitespace characters.
 
     *Fabio Sangiovanni*
 
