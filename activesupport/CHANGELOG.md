@@ -1,3 +1,12 @@
+*   Make `ActiveSupport::Gzip.compress` deterministic based on input.
+
+    `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
+    causing consecutive calls with the same input data to have different output
+    if called during different seconds. It now always sets the timestamp to `0`
+    so that the output is identical for any given input.
+
+    *Rob Brackett*
+
 *   Given an array of `Thread::Backtrace::Location` objects, the new method
     `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
     clean ones:
