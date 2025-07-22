@@ -1149,6 +1149,15 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_column_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_column(:title, "super_title", touch: { time: new_updated_at })
+    end
+  end
+
   def test_update_column_should_not_use_setter_method
     dev = Developer.find(1)
     dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
@@ -1275,6 +1284,15 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_changes -> { topic.updated_at }, to: new_updated_at do
       topic.update_columns(title: "super_title", "updated_at" => new_updated_at, touch: true)
+    end
+  end
+
+  def test_update_columns_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", touch: { time: new_updated_at })
     end
   end
 
