@@ -1,3 +1,5 @@
+require "rails"
+
 <%= wrap_in_modules <<~rb
   class Engine < ::Rails::Engine
   #{mountable? ? "  isolate_namespace " + camelized_modules : " "}
