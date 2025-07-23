@@ -719,7 +719,7 @@ class Settings::EmailsController < Settings::BaseController
       UserMailer.with(user: Current.user).email_confirmation.deliver_later
       redirect_to settings_email_path, status: :see_other, notice: "We've sent a verification email to #{Current.user.unconfirmed_email}."
     else
-      render :edit, status: :unprocessable_entity
+      render :show, status: :unprocessable_entity
     end
   end
 
@@ -1664,14 +1664,14 @@ class SettingsTest < ActionDispatch::IntegrationTest
   test "user settings nav" do
     sign_in_as users(:one)
     get settings_profile_path
-    assert_dom "h4", "User Settings"
+    assert_dom "h4", "Account Settings"
     assert_not_dom "a", "Store Settings"
   end
 
   test "admin settings nav" do
     sign_in_as users(:admin)
     get settings_profile_path
-    assert_dom "h4", "User Settings"
+    assert_dom "h4", "Account Settings"
     assert_dom "h4", "Store Settings"
   end
 end
@@ -1692,14 +1692,14 @@ test "regular user cannot access /store/products" do
   sign_in_as users(:one)
   get store_products_path
   assert_response :redirect
-  assert_equal "You aren't allowed to do that", flash[:alert]
+  assert_equal "You aren't allowed to do that.", flash[:alert]
 end
 
 test "regular user cannot access /store/users" do
   sign_in_as users(:one)
   get store_products_path
   assert_response :redirect
-  assert_equal "You aren't allowed to do that", flash[:alert]
+  assert_equal "You aren't allowed to do that.", flash[:alert]
 end
 ```
 
