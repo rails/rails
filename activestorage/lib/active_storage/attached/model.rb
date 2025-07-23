@@ -61,8 +61,8 @@ module ActiveStorage
       # There is no column defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachment.
       #
-      # Under the covers, this relationship is implemented as a +has_one+ association to a
-      # ActiveStorage::Attachment record and a +has_one-through+ association to a
+      # Under the covers, this relationship is implemented as a +has_one+ association to an
+      # ActiveStorage::Attachment record and a +has_one-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
       # and +avatar_blob+. But you shouldn't need to work with these associations directly in
       # most circumstances.
@@ -163,8 +163,8 @@ module ActiveStorage
       # There are no columns defined on the model side, Active Storage takes
       # care of the mapping between your records and the attachments.
       #
-      # Under the covers, this relationship is implemented as a +has_many+ association to a
-      # ActiveStorage::Attachment record and a +has_many-through+ association to a
+      # Under the covers, this relationship is implemented as a +has_many+ association to an
+      # ActiveStorage::Attachment record and a +has_many-through+ association to an
       # ActiveStorage::Blob record. These associations are available as +photos_attachments+
       # and +photos_blobs+. But you shouldn't need to work with these associations directly in
       # most circumstances.
