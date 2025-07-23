@@ -8,18 +8,6 @@ GIT
       rdoc (>= 5.0)
       rouge
 
-GIT
-  remote: https://github.com/sidekiq/sidekiq.git
-  revision: c4deada77e1104c9fba96de66b778db72fe32d24
-  ref: c4deada
-  specs:
-    sidekiq (8.0.5)
-      connection_pool (>= 2.5.0)
-      json (>= 2.9.0)
-      logger (>= 1.6.2)
-      rack (>= 3.1.0)
-      redis-client (>= 0.23.2)
-
 PATH
   remote: .
   specs:
@@ -586,6 +574,12 @@ GEM
     serverengine (2.0.7)
       sigdump (~> 0.2.2)
     set (1.1.2)
+    sidekiq (8.0.5)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
     sigdump (0.2.5)
     signet (0.19.0)
       addressable (~> 2.8)
@@ -789,7 +783,7 @@ DEPENDENCIES
   rubyzip (~> 2.0)
   sdoc!
   selenium-webdriver (>= 4.20.0)
-  sidekiq (!= 8.0.3)!
+  sidekiq (!= 8.0.3)
   sneakers
   solid_cable
   solid_cache
