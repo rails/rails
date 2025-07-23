@@ -882,18 +882,7 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.adapter_name
-                  when "Mysql2"
-                    @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
-                  when "Trilogy"
-                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
-                  when "PostgreSQL"
-                    @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-                  else
-                    skip("kill_connection_from_server unsupported")
-        end
-
-        kill_connection_from_server(conn_id)
+        kill_connection_from_server
 
         @connection.execute("SELECT 1", allow_retry: true)
       end
@@ -964,7 +953,7 @@ module ActiveRecord
               true
             end
           else
-            skip("kill_connection_from_server unsupported")
+            skip("raw_transaction_open? unsupported")
           end
         end
 
@@ -986,13 +975,15 @@ module ActiveRecord
           end
         end
 
-        def kill_connection_from_server(connection_id)
+        def kill_connection_from_server
           conn = @connection.pool.checkout
           case conn.adapter_name
           when "Mysql2", "Trilogy"
+            connection_id = @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
             conn.execute("KILL #{connection_id}")
           when "PostgreSQL"
-            conn.execute("SELECT pg_cancel_backend(#{connection_id})")
+            connection_id = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+            conn.execute("SELECT pg_terminate_backend(#{connection_id})")
           else
             skip("kill_connection_from_server unsupported")
           end
