@@ -26,9 +26,9 @@ module ActiveJob
       Sidekiq.configure_server { |config| config.on(:quiet, &callback) }
 
       delegate :enqueue, :enqueue_at, :enqueue_all, :stopping?,
-        :enqueue_after_transaction_commit?, to: Sidekiq::ActiveJob::QueueAdapters::SidekiqAdapter
+        :enqueue_after_transaction_commit?, to: ::Sidekiq::ActiveJob::QueueAdapters::SidekiqAdapter
 
-      JobWrapper = Sidekiq::ActiveJob::Wrapper
+      JobWrapper = ::Sidekiq::ActiveJob::Wrapper
     end
   end
 end
