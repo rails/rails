@@ -1303,7 +1303,26 @@ Then we can remove the `authenticated?` check from `app/views/store/products/ind
     </div>
   <% end %>
 </div>
+```
 
+Since this view is now in the `store` namespace, the h1 tag's relative translation cannot be found. We can add another translation to `config/locales/en.yml` to fix this:
+
+```yaml#7-10
+en:
+  hello: "Hello world"
+  products:
+    index:
+      title: "Products"
+
+  store:
+    products:
+      index:
+        title: "Products"
+
+  activerecord:
+    attributes:
+      user:
+        password_challenge: "Current password"
 ```
 
 We need to update the Cancel link to use the `store` namespace in `app/views/store/products/new.html.erb`:
