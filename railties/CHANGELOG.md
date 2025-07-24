@@ -1,3 +1,7 @@
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
+
+    *Jan Grodowski*
+
 *   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
 
     *zzak*
