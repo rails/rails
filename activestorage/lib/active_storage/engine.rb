@@ -174,9 +174,9 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.services" do
+    initializer "active_storage.services" do |app|
       ActiveSupport.on_load(:active_storage_blob) do
-        configs = Rails.configuration.active_storage.service_configurations ||=
+        configs = app.config.active_storage.service_configurations ||=
           begin
             config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
             config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
@@ -187,7 +187,7 @@ module ActiveStorage
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
 
-        if config_choice = Rails.configuration.active_storage.service
+        if config_choice = app.config.active_storage.service
           ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end
@@ -209,7 +209,7 @@ module ActiveStorage
     initializer "action_view.configuration" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:action_view) do
-          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+          multiple_file_field_include_hidden = app.config.active_storage.multiple_file_field_include_hidden
 
           unless multiple_file_field_include_hidden.nil?
             ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden

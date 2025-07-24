@@ -15,7 +15,7 @@ module ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
-        if level = app.config.active_support.delete(:isolation_level)
+        if level = app.config.active_support.isolation_level
           ActiveSupport::IsolatedExecutionState.isolation_level = level
         end
       end
