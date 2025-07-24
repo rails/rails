@@ -411,6 +411,27 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal 5, pool.instance_variable_get(:@timeout)
   end
 
+  def test_custom_error_handler
+    custom_error_handler_calls = []
+
+    custom_error_handler = ->(fallback:, exception:) do
+      custom_error_handler_calls << { fallback: fallback, exception: exception }
+    end
+
+    cache = lookup_store(error_handler: custom_error_handler)
+    client = cache.instance_variable_get(:@data)
+
+    client.stub(:get, lambda { |*_args| raise Dalli::DalliError.new("test error") }) do
+      result = cache.read("key")
+
+      assert_equal 1, custom_error_handler_calls.length
+
+      assert_nil custom_error_handler_calls.first[:fallback]
+      assert_kind_of Dalli::DalliError, custom_error_handler_calls.first[:exception]
+      assert_nil result
+    end
+  end
+
   private
     def random_string(length)
       (0...length).map { (65 + rand(26)).chr }.join
