@@ -882,9 +882,13 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        kill_connection_from_server
+        initial_connection_id = connection_id_from_server
+
+        kill_connection_from_server(initial_connection_id)
 
         @connection.execute("SELECT 1", allow_retry: true)
+
+        assert_not_equal initial_connection_id, connection_id_from_server
       end
 
       test "disconnect and recover on #configure_connection failure" do
@@ -975,14 +979,23 @@ module ActiveRecord
           end
         end
 
-        def kill_connection_from_server
+        def connection_id_from_server
+          case @connection.adapter_name
+          when "Mysql2", "Trilogy"
+            @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
+          when "PostgreSQL"
+            @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
+          else
+            skip("connection_id_from_server unsupported")
+          end
+        end
+
+        def kill_connection_from_server(connection_id)
           conn = @connection.pool.checkout
           case conn.adapter_name
           when "Mysql2", "Trilogy"
-            connection_id = @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
             conn.execute("KILL #{connection_id}")
           when "PostgreSQL"
-            connection_id = @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
             conn.execute("SELECT pg_terminate_backend(#{connection_id})")
           else
             skip("kill_connection_from_server unsupported")
