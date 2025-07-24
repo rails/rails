@@ -1,9 +1,11 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Sign Up and Settings
-========================
+====================
 
-This guide covers adding Sign Up and Settings to the store e-commerce application in the [Getting Started Guide](getting_started.html)). We will use the final code from that guide as a starting place.
+This guide covers adding Sign Up and Settings to the store e-commerce
+application in the [Getting Started Guide](getting_started.html). We will use
+the final code from that guide as a starting place.
 
 After reading this guide, you will know how to:
 
@@ -18,20 +20,32 @@ After reading this guide, you will know how to:
 Introduction
 ------------
 
-One of the most common features to add to any application is a sign up process for registering new users. The e-commerce application we've built so far only has authentication and users must be created in the Rails console or a script.
+One of the most common features to add to any application is a sign up process
+for registering new users. The e-commerce application we've built so far only
+has authentication and users must be created in the Rails console or a script.
 
-This feature is required before we can add other features. For example, to let users create wishlists, they will need to be able to sign up first before they can create a wishlist associated with their account.
+This feature is required before we can add other features. For example, to let
+users create wishlists, they will need to be able to sign up first before they
+can create a wishlist associated with their account.
 
 Let's get started!
 
 Adding Sign Up
 --------------
 
-We've already used the [Rails authentication generator in the Getting Started guide](/getting_started.html#adding-authentication) to allow users to login to their accounts. The generator created a `User` model with `email_address:string` and `password_digest:string` columns in the database. It also added `has_secure_password` to the `User` model which handles passwords and confirmations. This takes care of most of what we need to add sign up to our application.
+We've already used the
+[Rails authentication generator in the Getting Started guide](/getting_started.html#adding-authentication)
+to allow users to login to their accounts. The generator created a `User` model
+with `email_address:string` and `password_digest:string` columns in the
+database. It also added `has_secure_password` to the `User` model which handles
+passwords and confirmations. This takes care of most of what we need to add sign
+up to our application.
 
 ### Adding Names To Users
 
-It's also a good idea to collect the user's name at sign up. This allows us to personalize their experience and address them directly in the application. Let's start by adding `first_name` and `last_name` columns to the database.
+It's also a good idea to collect the user's name at sign up. This allows us to
+personalize their experience and address them directly in the application. Let's
+start by adding `first_name` and `last_name` columns to the database.
 
 In the terminal, create a migration with these columns:
 
@@ -45,7 +59,8 @@ Then migrate the database:
 $ bin/rails db:migrate
 ```
 
-Let's also add a method to combine `first_name` and `last_name`, so that we can display the user's full name.
+Let's also add a method to combine `first_name` and `last_name`, so that we can
+display the user's full name.
 
 Open `app/models/user.rb` and add the following:
 
@@ -64,13 +79,16 @@ class User < ApplicationRecord
 end
 ```
 
-TIP: `has_secure_password` only validates the presence of the password. Consider adding more validations for password minimum length or complexity to improve security.
+TIP: `has_secure_password` only validates the presence of the password. Consider
+adding more validations for password minimum length or complexity to improve
+security.
 
 Next, let's add sign up so we can register new users.
 
 ### Sign Up Routes & Controller
 
-Now that our database has all the necessary columns to register new users, the next step is to create a route for sign up and its matching controller.
+Now that our database has all the necessary columns to register new users, the
+next step is to create a route for sign up and its matching controller.
 
 In `config/routes.rb`, let's add a resource for sign up:
 
@@ -80,9 +98,11 @@ resources :passwords, param: :token
 resource :sign_up
 ```
 
-We're using a singular resource here because we want a singular route for `/sign_up`.
+We're using a singular resource here because we want a singular route for
+`/sign_up`.
 
-This route directs requests to `app/controllers/sign_ups_controller.rb` so let's create that controller file now.
+This route directs requests to `app/controllers/sign_ups_controller.rb` so let's
+create that controller file now.
 
 ```ruby
 class SignUpsController < ApplicationController
@@ -92,9 +112,11 @@ class SignUpsController < ApplicationController
 end
 ```
 
-We're using the `show` action to create a new `User` instance, which will be used to display the sign up form.
+We're using the `show` action to create a new `User` instance, which will be
+used to display the sign up form.
 
-Let's create the form next. Create `app/views/sign_ups/show.html.erb` with the following code:
+Let's create the form next. Create `app/views/sign_ups/show.html.erb` with the
+following code:
 
 ```erb
 <h1>Sign Up</h1>
@@ -135,11 +157,17 @@ Let's create the form next. Create `app/views/sign_ups/show.html.erb` with the f
 <% end %>
 ```
 
-This form collects the user's name, email, and password. We're using the `autocomplete` attribute to help the browser suggest the values for these fields based on the user's saved information.
+This form collects the user's name, email, and password. We're using the
+`autocomplete` attribute to help the browser suggest the values for these fields
+based on the user's saved information.
 
-You'll also notice we set `url: sign_up_path` in the form alongside `model: @user`. Without this `url:` argument, `form_with` would see we have a `User` and send the form to `/users` by default. Since we want the form to submit to `/sign_up`, we set the `url:` to override the default route.
+You'll also notice we set `url: sign_up_path` in the form alongside
+`model: @user`. Without this `url:` argument, `form_with` would see we have a
+`User` and send the form to `/users` by default. Since we want the form to
+submit to `/sign_up`, we set the `url:` to override the default route.
 
-Back in `app/controllers/sign_ups_controller.rb` we can handle the form submission by adding the `create` action.
+Back in `app/controllers/sign_ups_controller.rb` we can handle the form
+submission by adding the `create` action.
 
 ```ruby#6-19
 class SignUpsController < ApplicationController
@@ -164,15 +192,19 @@ class SignUpsController < ApplicationController
 end
 ```
 
-The `create` action assigns parameters and attempts to save the user to the database. If successful, it logs the user in and redirects to `root_path`, otherwise it re-renders the form with errors.
+The `create` action assigns parameters and attempts to save the user to the
+database. If successful, it logs the user in and redirects to `root_path`,
+otherwise it re-renders the form with errors.
 
 Visit https://localhost:3000/sign_up to try it out.
 
 ### Requiring Unauthenticated Access
 
-Authenticated users can still access `SignUpsController` and create another account while they're logged in which is confusing.
+Authenticated users can still access `SignUpsController` and create another
+account while they're logged in which is confusing.
 
-Let's fix this by adding a helper to the `Authentication` module in `app/controllers/concerns/authentication.rb`.
+Let's fix this by adding a helper to the `Authentication` module in
+`app/controllers/concerns/authentication.rb`.
 
 ```ruby#14-17
 module Authentication
@@ -196,7 +228,8 @@ module Authentication
     # ...
 ```
 
-The `unauthenticated_access_only` class method can be used in any controller where we want to restrict actions to unauthenticated users only.
+The `unauthenticated_access_only` class method can be used in any controller
+where we want to restrict actions to unauthenticated users only.
 
 We can then use this method at the top of `SignUpsController`.
 
@@ -210,9 +243,13 @@ end
 
 ### Rate Limiting Sign Up
 
-Our application will be accessible on the internet so we're bound to have malicious bots and users trying to spam our application. We can add rate limiting to sign up to slow down anyone submitting too many requests.
+Our application will be accessible on the internet so we're bound to have
+malicious bots and users trying to spam our application. We can add rate
+limiting to sign up to slow down anyone submitting too many requests.
 
-Rails makes this easy with the [`rate_limit`](https://api.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html) method in controllers.
+Rails makes this easy with the
+[`rate_limit`](https://api.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html)
+method in controllers.
 
 ```ruby#3
 class SignUpsController < ApplicationController
@@ -223,22 +260,30 @@ class SignUpsController < ApplicationController
 end
 ```
 
-This will block any form submissions that happen more than 10 times within 3 minutes.
+This will block any form submissions that happen more than 10 times within 3
+minutes.
 
 Editing Passwords
 -----------------
 
-Now that users can login, let's create all the usual places that users would expect to update their profile, password, email address, and other settings.
+Now that users can login, let's create all the usual places that users would
+expect to update their profile, password, email address, and other settings.
 
 ### Using Namespaces
 
-The Rails authentication generator already created a controller at `app/controllers/passwords_controller.rb` for password resets. This means we need to use a different controller for editing passwords of authenticated users.
+The Rails authentication generator already created a controller at
+`app/controllers/passwords_controller.rb` for password resets. This means we
+need to use a different controller for editing passwords of authenticated users.
 
-To prevent conflicts, we can use a feature called **namespaces**. A namespace organizes routes, controllers, and views into folders and helps prevent conflicts like our two passwords controllers.
+To prevent conflicts, we can use a feature called **namespaces**. A namespace
+organizes routes, controllers, and views into folders and helps prevent
+conflicts like our two passwords controllers.
 
-We'll create a namespace called "Settings" to separate out the user and store settings from the rest of our application.
+We'll create a namespace called "Settings" to separate out the user and store
+settings from the rest of our application.
 
-In `config/routes.rb` we can add the Settings namespace along with a resource for editing passwords:
+In `config/routes.rb` we can add the Settings namespace along with a resource
+for editing passwords:
 
 ```ruby
 namespace :settings do
@@ -246,13 +291,18 @@ namespace :settings do
 end
 ```
 
-This will generate a route for `/settings/password` for editing the current user's password which is separate from the password resets routes at `/password`.
+This will generate a route for `/settings/password` for editing the current
+user's password which is separate from the password resets routes at
+`/password`.
 
 ### Adding the Namespaced Passwords Controller & View
 
-Namespaces also move controllers into a matching module in Ruby. This controller will be in a `settings` folder to match the namespace.
+Namespaces also move controllers into a matching module in Ruby. This controller
+will be in a `settings` folder to match the namespace.
 
-Let's create the folder and controller at `app/controllers/settings/passwords_controller.rb` and start with the `show` action.
+Let's create the folder and controller at
+`app/controllers/settings/passwords_controller.rb` and start with the `show`
+action.
 
 ```ruby
 class Settings::PasswordsController < ApplicationController
@@ -261,7 +311,8 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
-Views also move to a `settings` folder so let's create the folder and view at `app/views/settings/passwords/show.html.erb` for this action.
+Views also move to a `settings` folder so let's create the folder and view at
+`app/views/settings/passwords/show.html.erb` for this action.
 
 ```erb
 <h1>Password</h1>
@@ -292,11 +343,17 @@ Views also move to a `settings` folder so let's create the folder and view at `a
 <% end %>
 ```
 
-We've set the `url:` argument to ensure the form submits to our namespaced route and is processed by the `Settings::PasswordsController`.
+We've set the `url:` argument to ensure the form submits to our namespaced route
+and is processed by the `Settings::PasswordsController`.
 
-Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request to process the form with the `update` action.
+Passing `model: Current.user` also tells `form_with` to submit a `PATCH` request
+to process the form with the `update` action.
 
-TIP: `Current.user` comes from [CurrentAttributes](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html) which is a per-request attribute which resets automatically before and after each request. The Rails authentication generator uses this to keep track of the logged in User.
+TIP: `Current.user` comes from
+[CurrentAttributes](https://api.rubyonrails.org/classes/ActiveSupport/CurrentAttributes.html)
+which is a per-request attribute which resets automatically before and after
+each request. The Rails authentication generator uses this to keep track of the
+logged in User.
 
 ### Safely Updating Passwords
 
@@ -322,15 +379,25 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
-For security, we need to ensure that the user is the only one who can update their password. The `has_secure_password` method in our `User` model provides this attribute. If `password_challenge` is present, it will validate the password challenge against the user's current password in the database to confirm it matches.
+For security, we need to ensure that the user is the only one who can update
+their password. The `has_secure_password` method in our `User` model provides
+this attribute. If `password_challenge` is present, it will validate the
+password challenge against the user's current password in the database to
+confirm it matches.
 
-A malicious user could try deleting the `password_challenge` field in the browser to bypass this validation. To prevent this and ensure the validation always runs, we use `.with_defaults(password_challenge: "")` to set a default value even if the `password_challenge` parameter is missing.
+A malicious user could try deleting the `password_challenge` field in the
+browser to bypass this validation. To prevent this and ensure the validation
+always runs, we use `.with_defaults(password_challenge: "")` to set a default
+value even if the `password_challenge` parameter is missing.
 
-You can now visit http://localhost:3000/settings/password to update your password.
+You can now visit http://localhost:3000/settings/password to update your
+password.
 
 ### Renaming The Password Challenge Attribute
 
-While `password_challenge` is a good name for our code, users are used to seeing "Current password" for this form field. We can rename this with locales in Rails to change how this attribute is displayed on the frontend.
+While `password_challenge` is a good name for our code, users are used to seeing
+"Current password" for this form field. We can rename this with locales in Rails
+to change how this attribute is displayed on the frontend.
 
 Add the following to `config/locales/en.yml`:
 
@@ -347,16 +414,20 @@ en:
         password_challenge: "Current password"
 ```
 
-To learn more, check out the [I18n Guide](https://guides.rubyonrails.org/i18n.html#translations-for-active-record-models)
+To learn more, check out the
+[I18n Guide](https://guides.rubyonrails.org/i18n.html#translations-for-active-record-models)
 
 Editing User Profiles
 ---------------------
 
-Next, let's add a page so users can edit their profile, like updating their first and last name.
+Next, let's add a page so users can edit their profile, like updating their
+first and last name.
 
 ### Profile Routes & Controller
 
-In `config/routes.rb`, add a profile resource under the settings namespace. We can also add a root to the namespace to handle any visits to `/settings` and redirect them to profile settings.
+In `config/routes.rb`, add a profile resource under the settings namespace. We
+can also add a root to the namespace to handle any visits to `/settings` and
+redirect them to profile settings.
 
 ```ruby#3,5
 namespace :settings do
@@ -367,7 +438,8 @@ namespace :settings do
 end
 ```
 
-Let's create our controller for editing profiles at `app/controllers/settings/profiles_controller.rb`.
+Let's create our controller for editing profiles at
+`app/controllers/settings/profiles_controller.rb`.
 
 ```ruby
 class Settings::ProfilesController < ApplicationController
@@ -389,9 +461,11 @@ class Settings::ProfilesController < ApplicationController
 end
 ```
 
-This is very similar to the passwords controller but only allows updating the user's profile details like first and last name.
+This is very similar to the passwords controller but only allows updating the
+user's profile details like first and last name.
 
-Then create `app/views/settings/profiles/show.html.erb` to show the edit profile form.
+Then create `app/views/settings/profiles/show.html.erb` to show the edit profile
+form.
 
 ```erb
 <h1>Profile</h1>
@@ -421,9 +495,11 @@ You can now visit http://localhost:3000/settings/profile to update your name.
 
 ### Updating Navigation
 
-Let's update the navigation to include a link to Settings next to the Log out button.
+Let's update the navigation to include a link to Settings next to the Log out
+button.
 
-Open `app/views/layouts/application.html.erb` and update the navbar. We'll also add a div for any alert messages from our controllers while we're here.
+Open `app/views/layouts/application.html.erb` and update the navbar. We'll also
+add a div for any alert messages from our controllers while we're here.
 
 ```erb#9,13-19
 <!DOCTYPE html>
@@ -452,9 +528,13 @@ You'll now see a Settings link in the navbar when authenticated.
 
 ### Settings Layout
 
-While we're here, let's add a new layout for Settings so we can organize them in a sidebar. To do this, we're going to use a [Nested Layout](layouts_and_rendering.html#using-nested-layouts).
+While we're here, let's add a new layout for Settings so we can organize them in
+a sidebar. To do this, we're going to use a
+[Nested Layout](layouts_and_rendering.html#using-nested-layouts).
 
-A nested layout allows you add HTML (like a sidebar) while still rendering the application layout. This means we don't have to duplicate our head tags or navigation in our Settings layout.
+A nested layout allows you add HTML (like a sidebar) while still rendering the
+application layout. This means we don't have to duplicate our head tags or
+navigation in our Settings layout.
 
 Let's create `app/views/layouts/settings.html.erb` and add the following:
 
@@ -476,9 +556,11 @@ Let's create `app/views/layouts/settings.html.erb` and add the following:
 <%= render template: "layouts/application" %>
 ```
 
-In the settings layout, we're providing HTML for the sidebar and telling Rails to render the application layout as the parent.
+In the settings layout, we're providing HTML for the sidebar and telling Rails
+to render the application layout as the parent.
 
-We need to modify the application layout to render the content from the nested layout using `yield(:content)`.
+We need to modify the application layout to render the content from the nested
+layout using `yield(:content)`.
 
 ```erb#11,23
 <!DOCTYPE html>
@@ -509,11 +591,14 @@ We need to modify the application layout to render the content from the nested l
 </html
 ```
 
-This allows the application controller to be used normally with `yield` or it can be a parent layout if `content_for(:content)` is used in a nested layout.
+This allows the application controller to be used normally with `yield` or it
+can be a parent layout if `content_for(:content)` is used in a nested layout.
 
-We now have two separate `<nav>` tags, so we need to update our existing CSS selectors to avoid conflicts.
+We now have two separate `<nav>` tags, so we need to update our existing CSS
+selectors to avoid conflicts.
 
-To do this, add the the `.navbar` class to these selectors in `app/assets/stylesheets/application.css`.
+To do this, add the `.navbar` class to these selectors in
+`app/assets/stylesheets/application.css`.
 
 ```css#1,11
 nav.navbar {
@@ -548,9 +633,12 @@ section.settings nav a {
 }
 ```
 
-To use this new layout, we can tell the controller we want to use a specific layout. We can add `layout "settings"` to any controller to change the layout that is rendered.
+To use this new layout, we can tell the controller we want to use a specific
+layout. We can add `layout "settings"` to any controller to change the layout
+that is rendered.
 
-Since we will have many controllers that use this layout, we can create a base class to define shared configuration and use inheritance to use them.
+Since we will have many controllers that use this layout, we can create a base
+class to define shared configuration and use inheritance to use them.
 
 Add `app/controllers/settings/base_controller.rb` and add the following:
 
@@ -560,13 +648,15 @@ class Settings::BaseController < ApplicationController
 end
 ```
 
-Then update `app/controllers/settings/passwords_controller.rb` to inherit from this controller.
+Then update `app/controllers/settings/passwords_controller.rb` to inherit from
+this controller.
 
 ```ruby
 class Settings::PasswordsController < Settings::BaseController
 ```
 
-And update `app/controllers/settings/profiles_controller.rb` to inherit from it too.
+And update `app/controllers/settings/profiles_controller.rb` to inherit from it
+too.
 
 ```ruby
 class Settings::ProfilesController < Settings::BaseController
@@ -575,7 +665,8 @@ class Settings::ProfilesController < Settings::BaseController
 Deleting Accounts
 -----------------
 
-Next, let's add the ability to delete your account. We'll start by adding another namespaced route for account to `config/routes.rb`.
+Next, let's add the ability to delete your account. We'll start by adding
+another namespaced route for account to `config/routes.rb`.
 
 ```ruby#4
 namespace :settings do
@@ -587,7 +678,8 @@ namespace :settings do
 end
 ```
 
-To handle these new routes, create `app/controllers/settings/users_controller.rb` and add the following:
+To handle these new routes, create
+`app/controllers/settings/users_controller.rb` and add the following:
 
 ```ruby
 class Settings::UsersController < Settings::BaseController
@@ -602,9 +694,13 @@ class Settings::UsersController < Settings::BaseController
 end
 ```
 
-The controller for deleting accounts is pretty straightforward. We have a `show` action to display the page and a `destroy` action to logout and delete the user. It also inherits from `Settings::BaseController` so it will use the settings layout like the others.
+The controller for deleting accounts is pretty straightforward. We have a `show`
+action to display the page and a `destroy` action to logout and delete the user.
+It also inherits from `Settings::BaseController` so it will use the settings
+layout like the others.
 
-Now let's add the view at `app/views/settings/users/show.html.erb` with the following:
+Now let's add the view at `app/views/settings/users/show.html.erb` with the
+following:
 
 ```erb
 <h1>Account</h1>
@@ -638,11 +734,14 @@ That's it! You can now delete your account.
 Updating Email Addresses
 ------------------------
 
-Occassionally, users need to change the email address on their account. To do this safely, we need to store the new email address and send an email to confirm the change.
+Occasionally, users need to change the email address on their account. To do
+this safely, we need to store the new email address and send an email to confirm
+the change.
 
 ### Adding Unconfirmed Email To Users
 
-We'll start by adding a new field to the users table in our database. This will store the new email address while we're waiting for confirmation.
+We'll start by adding a new field to the users table in our database. This will
+store the new email address while we're waiting for confirmation.
 
 ```bash
 $ bin/rails g migration AddUnconfirmedEmailToUsers unconfirmed_email:string
@@ -657,7 +756,8 @@ $ bin/rails db:migrate
 
 ### Email Routes & Controller
 
-Next we can add an email route under the `:settings` namespace in `config/routes.rb`.
+Next we can add an email route under the `:settings` namespace in
+`config/routes.rb`.
 
 ```ruby#2
 namespace :settings do
@@ -670,7 +770,8 @@ namespace :settings do
 end
 ```
 
-Then we'll create `app/controllers/settings/emails_controller.rb` to display this.
+Then we'll create `app/controllers/settings/emails_controller.rb` to display
+this.
 
 ```ruby
 class Settings::EmailsController < Settings::BaseController
@@ -705,9 +806,12 @@ And finally, we'll create our view at `app/views/settings/emails/show.html.erb`:
 <% end %>
 ```
 
-To keep things secure, we need to ask for the new email address and validate user's current password to ensure only the owner of the account can change the email.
+To keep things secure, we need to ask for the new email address and validate
+user's current password to ensure only the owner of the account can change the
+email.
 
-In our controller, we will validate the current password and save the new email address before sending an email to confirm the new email address.
+In our controller, we will validate the current password and save the new email
+address before sending an email to confirm the new email address.
 
 ```ruby#5-17
 class Settings::EmailsController < Settings::BaseController
@@ -730,13 +834,15 @@ class Settings::EmailsController < Settings::BaseController
 end
 ```
 
-This uses the same `with_defaults(password_challenge: "")` as `Settings::PasswordsController` to trigger the password challenge validation.
+This uses the same `with_defaults(password_challenge: "")` as
+`Settings::PasswordsController` to trigger the password challenge validation.
 
 We haven't created the `UserMailer` yet, so let's do that next.
 
 ### New Email Confirmation
 
-Let's use the mailer generator to create the `UserMailer` we referenced in `Settings::EmailsController`:
+Let's use the mailer generator to create the `UserMailer` we referenced in
+`Settings::EmailsController`:
 
 ```bash
 $ bin/rails generate mailer User email_confirmation
@@ -750,7 +856,8 @@ $ bin/rails generate mailer User email_confirmation
       create    test/mailers/previews/user_mailer_preview.rb
 ```
 
-We'll need to generate a token to include in the email body. Open `app/models/user.rb` and add the following:
+We'll need to generate a token to include in the email body. Open
+`app/models/user.rb` and add the following:
 
 ```ruby#9-15
 class User < ApplicationRecord
@@ -775,7 +882,9 @@ class User < ApplicationRecord
 end
 ```
 
-This adds a token generator we can use for email confirmations. The token encodes the unconfirmed email, so it becomes invalid if the email changes or the token expires.
+This adds a token generator we can use for email confirmations. The token
+encodes the unconfirmed email, so it becomes invalid if the email changes or the
+token expires.
 
 Let's update `app/mailers/user_mailer.rb` to generate a new token for the email:
 
@@ -792,7 +901,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-We'll include the token in the HTML view at `app/views/user_mailer/email_confirmation.html.erb`:
+We'll include the token in the HTML view at
+`app/views/user_mailer/email_confirmation.html.erb`:
 
 ```erb
 <h1>Verify your email address</h1>
@@ -808,7 +918,8 @@ Confirm your email: <%= email_confirmation_url(token: @token) %>
 
 ### Email Confirmation Controller
 
-The confirmation email includes a link to our Rails app to verify the email change.
+The confirmation email includes a link to our Rails app to verify the email
+change.
 
 Let's add a route for this to `config/routes.rb`
 
@@ -818,7 +929,9 @@ namespace :email do
 end
 ```
 
-When a user clicks a link in their email, it will open a browser and make a GET request to the app. This means we only need the `show` action for this controller.
+When a user clicks a link in their email, it will open a browser and make a GET
+request to the app. This means we only need the `show` action for this
+controller.
 
 Next, add the following to `app/controllers/email/confirmations_controller.rb`
 
@@ -838,7 +951,12 @@ class Email::ConfirmationsController < ApplicationController
 end
 ```
 
-We want to confirm the email address whether the user is authenticated or not, so this controller allows unauthenticated access. We use the `find_by_token_for` method to validate the token and look up the matching `User` record. If successful, we call the `confirm_email` method to update the user's email and reset `unconfirmed_email` to `nil`. If the token isn't valid, the `user` variable will be `nil`, and we will display an alert message.
+We want to confirm the email address whether the user is authenticated or not,
+so this controller allows unauthenticated access. We use the `find_by_token_for`
+method to validate the token and look up the matching `User` record. If
+successful, we call the `confirm_email` method to update the user's email and
+reset `unconfirmed_email` to `nil`. If the token isn't valid, the `user`
+variable will be `nil`, and we will display an alert message.
 
 Finally, let's add a link to Email in the settings layout sidebar:
 
@@ -862,12 +980,15 @@ Finally, let's add a link to Email in the settings layout sidebar:
 <%= render template: "layouts/application" %>
 ```
 
-Test out this process by navigating to https://localhost:3000/settings/email and updating your email address. Watch the Rails server logs for the email contents and open the confirm link in your browser to update the email in the database.
+Test out this process by navigating to https://localhost:3000/settings/email and
+updating your email address. Watch the Rails server logs for the email contents
+and open the confirm link in your browser to update the email in the database.
 
 Separating Admins & Users
 -------------------------
 
-Now that anyone can sign up for an account on our store, we need to differentiate between regular users and admins.
+Now that anyone can sign up for an account on our store, we need to
+differentiate between regular users and admins.
 
 ### Adding An Admin Flag
 
@@ -883,13 +1004,21 @@ Then migrate the database.
 $ bin/rails db:migrate
 ```
 
-A `User` with `admin` set to `true` should be able to add and remove products and access other administrative areas of the store.
+A `User` with `admin` set to `true` should be able to add and remove products
+and access other administrative areas of the store.
 
 ### Readonly Attributes
 
-We need to be very careful that `admin` is not editable by any malicious users. This is easy enough by keeping the `:admin` attribute out of any permitted parameters list.
+We need to be very careful that `admin` is not editable by any malicious users.
+This is easy enough by keeping the `:admin` attribute out of any permitted
+parameters list.
 
-Optionally, we can mark the admin attribute as readonly for added security. This will tell Rails to raise an error anytime the admin attribute is changed. It can still be set when creating a record, but provides an additional layer of security against unauthorized changes. You may want to skip this if you'll be changing the admin flag for users often but in our e-commerce store, it's a useful safeguard.
+Optionally, we can mark the admin attribute as readonly for added security. This
+will tell Rails to raise an error anytime the admin attribute is changed. It can
+still be set when creating a record, but provides an additional layer of
+security against unauthorized changes. You may want to skip this if you'll be
+changing the admin flag for users often but in our e-commerce store, it's a
+useful safeguard.
 
 We can add `attr_readonly` in our model to protect the attribute from updates.
 
@@ -903,9 +1032,11 @@ class User < ApplicationRecord
   # ...
 ```
 
-When admin is readonly, we have to directly update this in the database instead of using Active Record.
+When `admin` is read-only, we have to directly update this in the database
+instead of using Active Record.
 
-Rails has a command called `dbconsole` that will open a database console where we can directly interact with the database using SQL.
+Rails has a command called `dbconsole` that will open a database console where
+we can directly interact with the database using SQL.
 
 ```bash
 $ bin/rails dbconsole
@@ -914,7 +1045,8 @@ Enter ".help" for usage hints.
 sqlite>
 ```
 
-In the SQLite prompt, we can update the admin column for a record using an `UPDATE` statement and using `WHERE` to filter to a single user ID.
+In the SQLite prompt, we can update the admin column for a record using an
+`UPDATE` statement and using `WHERE` to filter to a single user ID.
 
 ```sql
 UPDATE users SET admin=true WHERE users.id=1;
@@ -929,9 +1061,11 @@ To close the SQLite prompt, enter the following command:
 Viewing All Users
 -----------------
 
-As a store admin, we will want to view and manage users for customer support, marketing and other use cases.
+As a store admin, we will want to view and manage users for customer support,
+marketing and other use cases.
 
-First, we'll need to add a route for users in a new `store` namespace in `config/routes.rb`.
+First, we'll need to add a route for users in a new `store` namespace in
+`config/routes.rb`.
 
 ```ruby
 # Admins Only
@@ -942,7 +1076,9 @@ end
 
 ### Adding Admin Only Access
 
-The controller for users should be accessible to admins only. Before we create that controller, let's create an `Authorization` module with a class method to restrict access to admins only.
+The controller for users should be accessible to admins only. Before we create
+that controller, let's create an `Authorization` module with a class method to
+restrict access to admins only.
 
 Create `app/controllers/concerns/authorization.rb` with the following code:
 
@@ -958,7 +1094,8 @@ module Authorization
 end
 ```
 
-To use this module in our controllers, include it in `app/controllers/application_controller.rb`
+To use this module in our controllers, include it in
+`app/controllers/application_controller.rb`
 
 ```ruby#3
 class ApplicationController < ActionController::Base
@@ -968,11 +1105,14 @@ class ApplicationController < ActionController::Base
   # ...
 ```
 
-The `Authorization` module features can be used in any controller in our app. This module provides a home for any additional helpers to manage access for admins or other types of roles in the future.
+The `Authorization` module features can be used in any controller in our app.
+This module provides a home for any additional helpers to manage access for
+admins or other types of roles in the future.
 
 ### Users Controller & Views
 
-First, create a base class for the `store` namespace at `app/controllers/store/base_controller.rb`.
+First, create a base class for the `store` namespace at
+`app/controllers/store/base_controller.rb`.
 
 ```ruby
 class Store::BaseController < ApplicationController
@@ -981,7 +1121,9 @@ class Store::BaseController < ApplicationController
 end
 ```
 
-This controller will restrict access to admins only using the `admin_access_only` method we just created. It will also use the same settings layout to display the sidebar.
+This controller will restrict access to admins only using the
+`admin_access_only` method we just created. It will also use the same settings
+layout to display the sidebar.
 
 Next, create `app/controllers/store/users_controller.rb` and add the following:
 
@@ -1021,7 +1163,8 @@ class Store::UsersController < Store::BaseController
 end
 ```
 
-This gives admins the ability to read, update, and destroy users in the database.
+This gives admins the ability to read, update, and destroy users in the
+database.
 
 Next, let's create the index view at `app/views/store/users/index.html.erb`
 
@@ -1083,9 +1226,12 @@ And finally, the user show view at `app/views/store/users/show.html.erb`:
 
 ### Settings Navigation
 
-Next, we want to add this to the Settings sidebar navigation. Since this should be only visible to admins, we need to wrap it in a conditional to ensure the current user is an admin.
+Next, we want to add this to the Settings sidebar navigation. Since this should
+be only visible to admins, we need to wrap it in a conditional to ensure the
+current user is an admin.
 
-Add the following to the settings layout in `app/views/layouts/settings.html.erb`:
+Add the following to the settings layout in
+`app/views/layouts/settings.html.erb`:
 
 ```erb#10-13
 <%= content_for :content do %>
@@ -1115,13 +1261,19 @@ Add the following to the settings layout in `app/views/layouts/settings.html.erb
 Separating Products Controllers
 -------------------------------
 
-Now that we have a separation for regular users and admins, we can re-organize our Products controller to take advantage of this change. Instead of a single controller, we can split the Products controller in two: one public facing and one admin facing.
+Now that we have a separation for regular users and admins, we can re-organize
+our Products controller to take advantage of this change. Instead of a single
+controller, we can split the Products controller in two: one public facing and
+one admin facing.
 
-The public facing controller will handle the storefront views and the admin controller will handle managing products.
+The public facing controller will handle the storefront views and the admin
+controller will handle managing products.
 
 ### Public Products Controller
 
-For the public storefront, we only need to let users view products. This means `app/controllers/products_controller.rb` can be simplified down to the following.
+For the public storefront, we only need to let users view products. This means
+`app/controllers/products_controller.rb` can be simplified down to the
+following.
 
 ```ruby
 class ProductsController < ApplicationController
@@ -1139,7 +1291,8 @@ end
 
 We can then adjust the views for the products controller.
 
-First, let's copy these views to the `store` namespace since this is where we want to manage products for the store.
+First, let's copy these views to the `store` namespace since this is where we
+want to manage products for the store.
 
 ```bash
 $ cp -R app/views/products app/views/store
@@ -1147,9 +1300,11 @@ $ cp -R app/views/products app/views/store
 
 ### Clean Up Public Product Views
 
-Now let's remove all the create, update and destroy functionality from the public product views.
+Now let's remove all the create, update and destroy functionality from the
+public product views.
 
-In `app/views/products/index.html.erb`, let's remove the link to "New product". We'll use the Settings area to create new products instead.
+In `app/views/products/index.html.erb`, let's remove the link to "New product".
+We'll use the Settings area to create new products instead.
 
 ```diff
 -<%= link_to "New product", new_product_path if authenticated? %>
@@ -1172,7 +1327,8 @@ Then remove:
 
 ### Admin Products CRUD
 
-First, let's add the namespaced route for products to `config/routes.rb` and also set a root route for this namespace:
+First, let's add the namespaced route for products to `config/routes.rb` and
+also set a root route for this namespace:
 
 ```ruby#2,5
   namespace :store do
@@ -1183,7 +1339,8 @@ First, let's add the namespaced route for products to `config/routes.rb` and als
   end
 ```
 
-And then update the settings layout navigation in `app/views/layouts/settings.html.erb`:
+And then update the settings layout navigation in
+`app/views/layouts/settings.html.erb`:
 
 ```erb#12
 <%= content_for :content do %>
@@ -1264,16 +1421,20 @@ class Store::ProductsController < Store::BaseController
 end
 ```
 
-This controller is almost the same as `ProductsController` previously, but two important changes:
+This controller is almost the same as `ProductsController` previously, but two
+important changes:
 
 1. We have `admin_access_only` to restrict access to admin users only.
-2. Redirects use the `store` namespace to keep the user in the store settings area.
+2. Redirects use the `store` namespace to keep the user in the store settings
+   area.
 
 ### Updating Admin Product Views
 
 The admin views need some tweaks to work inside the `store` namespace.
 
-First, let's fix the form by updating the `model:` argument to use the `store` namespace. We should also display validation errors in the form while we're here.
+First, let's fix the form by updating the `model:` argument to use the `store`
+namespace. We should also display validation errors in the form while we're
+here.
 
 ```erb#1-4
 <%= form_with model: [ :store, product ] do |form| %>
@@ -1289,7 +1450,9 @@ First, let's fix the form by updating the `model:` argument to use the `store` n
   <%# ... %>
 ```
 
-Then we can remove the `authenticated?` check from `app/views/store/products/index.html.erb` and use the `store` namespace for links:
+Then we can remove the `authenticated?` check from
+`app/views/store/products/index.html.erb` and use the `store` namespace for
+links:
 
 ```erb#3,8
 <h1><%= t ".title" %></h1>
@@ -1305,7 +1468,9 @@ Then we can remove the `authenticated?` check from `app/views/store/products/ind
 </div>
 ```
 
-Since this view is now in the `store` namespace, the h1 tag's relative translation cannot be found. We can add another translation to `config/locales/en.yml` to fix this:
+Since this view is now in the `store` namespace, the h1 tag's relative
+translation cannot be found. We can add another translation to
+`config/locales/en.yml` to fix this:
 
 ```yaml#7-10
 en:
@@ -1325,7 +1490,8 @@ en:
         password_challenge: "Current password"
 ```
 
-We need to update the Cancel link to use the `store` namespace in `app/views/store/products/new.html.erb`:
+We need to update the Cancel link to use the `store` namespace in
+`app/views/store/products/new.html.erb`:
 
 ```erb#4
 <h1>New product</h1>
@@ -1367,10 +1533,13 @@ Update `app/views/store/products/show.html.erb` with the following:
 This updates the `show` action so that:
 
 - Links now use to the `store` namespace.
-- A "View in Storefront" link is added to make it easier for admins to see how a product looks to the public.
-- The inventory partial is removed since that's only useful on the public storefront.
+- A "View in Storefront" link is added to make it easier for admins to see how a
+  product looks to the public.
+- The inventory partial is removed since that's only useful on the public
+  storefront.
 
-Since we're not using the `_inventory.html.erb` partial in the admin area, let's remove it:
+Since we're not using the `_inventory.html.erb` partial in the admin area, let's
+remove it:
 
 ```bash
 $ rm app/views/store/products/_inventory.html.erb
@@ -1383,9 +1552,13 @@ Let's add some tests to verify that our features work correctly.
 
 ### Authentication Test Helpers
 
-In our test suite, we'll need to sign in users in our tests. The Rails authentication generator has been updated to include helpers for authentication, but your application may have been created before this, so let's ensure these files exist before writing our tests.
+In our test suite, we'll need to sign in users in our tests. The Rails
+authentication generator has been updated to include helpers for authentication,
+but your application may have been created before this, so let's ensure these
+files exist before writing our tests.
 
-In `test/test_helpers/session_test_helper.rb`, you should see the following. If you don't, go ahead and create this file.
+In `test/test_helpers/session_test_helper.rb`, you should see the following. If
+you don't, go ahead and create this file.
 
 ```ruby
 module SessionTestHelper
@@ -1405,7 +1578,8 @@ module SessionTestHelper
 end
 ```
 
-In `test/test_helper.rb`, you should see these lines. If not, go ahead and add them.
+In `test/test_helper.rb`, you should see these lines. If not, go ahead and add
+them.
 
 ```ruby#4,8
 ENV["RAILS_ENV"] ||= "test"
@@ -1430,9 +1604,11 @@ end
 
 ### Testing Sign Up
 
-We have a few different things to test for sign up. Let's start with a simple test to view the page.
+We have a few different things to test for sign up. Let's start with a simple
+test to view the page.
 
-Create a controller test at `test/controllers/sign_ups_controller_test.rb` with the following:
+Create a controller test at `test/controllers/sign_ups_controller_test.rb` with
+the following:
 
 ```ruby
 require "test_helper"
@@ -1462,7 +1638,8 @@ Finished in 0.559107s, 1.7886 runs/s, 1.7886 assertions/s.
 1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-Next, let's sign in a user and try to visit the sign up page. In this situation, the user should be redirected because they're already authenticated.
+Next, let's sign in a user and try to visit the sign up page. In this situation,
+the user should be redirected because they're already authenticated.
 
 Add the following test to the file.
 
@@ -1476,7 +1653,8 @@ end
 
 Run the tests again and you should see this one passes too.
 
-Next, let's add a test to ensure a new user is created when they fill out the form.
+Next, let's add a test to ensure a new user is created when they fill out the
+form.
 
 ```ruby
 test "successful sign up" do
@@ -1487,7 +1665,8 @@ test "successful sign up" do
 end
 ```
 
-For this test, we need submit params with a POST request to test the `create` action.
+For this test, we need submit params with a POST request to test the `create`
+action.
 
 Let's also test with invalid data to ensure the controller returns an error.
 
@@ -1500,9 +1679,13 @@ test "invalid sign up" do
 end
 ```
 
-This test should be invalid because the user's name is missing. Since this request is invalid, we need to assert the response is a 422 Unprocessable Entity. We can also assert that there is no difference in the `User.count` to ensure no User was created.
+This test should be invalid because the user's name is missing. Since this
+request is invalid, we need to assert the response is a 422 Unprocessable
+Entity. We can also assert that there is no difference in the `User.count` to
+ensure no User was created.
 
-Another important test to add is ensuring that sign up does not accept the `admin` attribute.
+Another important test to add is ensuring that sign up does not accept the
+`admin` attribute.
 
 ```ruby
 test "sign up ignores admin attribute" do
@@ -1514,13 +1697,17 @@ test "sign up ignores admin attribute" do
 end
 ```
 
-This test is just like a successful sign up, but it tries to set `admin: true`. After asserting the user is created, we also need to assert that the user is _not_ an admin.
+This test is just like a successful sign up, but it tries to set `admin: true`.
+After asserting the user is created, we also need to assert that the user is
+_not_ an admin.
 
 ### Testing Email Changes
 
-Changing a user's email is a multi-step process that is important to test as well.
+Changing a user's email is a multi-step process that is important to test as
+well.
 
-To start, let's create a controller test to ensure the email update form handles everything correctly.
+To start, let's create a controller test to ensure the email update form handles
+everything correctly.
 
 In `test/controllers/settings/emails_controller_test.rb` add the following:
 
@@ -1539,7 +1726,10 @@ class Settings::EmailsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-Our first test is going to be a submission with an invalid password challenge. For this, we want to ensure the response is an error and the unconfirmed email was not changed. We can also ensure that no emails were sent in this case as well.
+Our first test is going to be a submission with an invalid password challenge.
+For this, we want to ensure the response is an error and the unconfirmed email
+was not changed. We can also ensure that no emails were sent in this case as
+well.
 
 Then we can write a test for the success case:
 
@@ -1554,7 +1744,9 @@ test "sends email confirmation on successful update" do
 end
 ```
 
-This tests submits successful params, confirms the email is saved to the database, the user was redirected and the confirmation email was queued for delivery.
+This tests submits successful params, confirms the email is saved to the
+database, the user was redirected and the confirmation email was queued for
+delivery.
 
 Let's run these tests and make sure they pass:
 
@@ -1571,9 +1763,11 @@ Finished in 0.954590s, 2.0951 runs/s, 6.2854 assertions/s.
 2 runs, 6 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-We also need to test the `Email::ConfirmationsController` to ensure confirmation tokens are validated the email update process completes successfully.
+We also need to test the `Email::ConfirmationsController` to ensure confirmation
+tokens are validated the email update process completes successfully.
 
-Let's add another controller test at `test/controllers/email/confirmations_controller_test.rb` with the following:
+Let's add another controller test at
+`test/controllers/email/confirmations_controller_test.rb` with the following:
 
 ```ruby
 require "test_helper"
@@ -1601,11 +1795,15 @@ class Email::ConfirmationsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-The first test simulates a user confirming their email change with an invalid token. We assert the error message was set and the email address did not change.
+The first test simulates a user confirming their email change with an invalid
+token. We assert the error message was set and the email address did not change.
 
-The second test uses valid token and asserts the success notice was set and the email address was updated in the database.
+The second test uses valid token and asserts the success notice was set and the
+email address was updated in the database.
 
-We need to fix one more test related to email confirmations and that is the automatically generated tests for `UserMailer`. Let's update that to match our application logic.
+We need to fix one more test related to email confirmations and that is the
+automatically generated tests for `UserMailer`. Let's update that to match our
+application logic.
 
 Change `test/mailers/user_mailer_test.rb` to the following:
 
@@ -1624,13 +1822,18 @@ class UserMailerTest < ActionMailer::TestCase
 end
 ```
 
-This test ensures the user has an `unconfirmed_email` and the email is sent to that email address. It also ensures that the email body contains the path to `/email/confirmations` so we know it contains the link for the user to click and confirm their new email address.
+This test ensures the user has an `unconfirmed_email` and the email is sent to
+that email address. It also ensures that the email body contains the path to
+`/email/confirmations` so we know it contains the link for the user to click and
+confirm their new email address.
 
 ### Testing Settings
 
-Another area that we should test is the Settings navigation. We want to ensure the appropriate links are visible to admins and not visible to regular users.
+Another area that we should test is the Settings navigation. We want to ensure
+the appropriate links are visible to admins and not visible to regular users.
 
-Let's first create an admin user fixture in `test/fixtures/users.yml` and add names to the fixtures so they pass validations.
+Let's first create an admin user fixture in `test/fixtures/users.yml` and add
+names to the fixtures so they pass validations.
 
 ```yaml#6-7,12-13,15-20
 <% password_digest = BCrypt::Password.create("password") %>
@@ -1685,7 +1888,8 @@ You can run these tests with:
 $ bin/rails test test/integration/settings_test.rb
 ```
 
-We also want to ensure regular users cannot access the Store settings for Products and Users. Let's add some tests for that.
+We also want to ensure regular users cannot access the Store settings for
+Products and Users. Let's add some tests for that.
 
 ```ruby
 test "regular user cannot access /store/products" do
@@ -1703,9 +1907,11 @@ test "regular user cannot access /store/users" do
 end
 ```
 
-These tests use a regular user to access the admin only areas and ensures they are redirected away with a flash message.
+These tests use a regular user to access the admin only areas and ensures they
+are redirected away with a flash message.
 
-Let's complete these tests by ensuring that admin users _can_ access these areas.
+Let's complete these tests by ensuring that admin users _can_ access these
+areas.
 
 ```ruby
 test "admins can access /store/products" do
@@ -1756,17 +1962,21 @@ Great! Now, let's deploy this to production.
 Deploying To Production
 -----------------------
 
-Since we previously setup Kamal in the [Getting Started Guide](getting_started.html#deploying-to-production), we just need to push our code changes to our Git repository and run:
+Since we previously setup Kamal in the
+[Getting Started Guide](getting_started.html#deploying-to-production), we just
+need to push our code changes to our Git repository and run:
 
 ```bash
 $ bin/kamal deploy
 ```
 
-This will build a new container for our application and deploy it to our production server.
+This will build a new container for our application and deploy it to our
+production server.
 
 ### Setting Admins In Production
 
-If you added `attr_readonly :admin`, you'll need to use the dbconsole to update your account.
+If you added `attr_readonly :admin`, you'll need to use the dbconsole to update
+your account.
 
 ```bash
 $ bin/kamal dbc
@@ -1786,7 +1996,8 @@ You can now access the Store settings in production with your account.
 What's Next
 -----------
 
-You did it! Your e-commerce store now supports user sign up, account management, and an admin area for managing products and users.
+You did it! Your e-commerce store now supports user sign up, account management,
+and an admin area for managing products and users.
 
 Here are a few ideas to build on to this:
 
