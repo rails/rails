@@ -8,7 +8,6 @@ class DeepCompactTest < ActiveSupport::TestCase
     h = { a: 1, b: nil, c: { d: nil, e: 2 }, f: [1, nil, { g: nil, h: 3 }] }
     expected = { a: 1, c: { e: 2 }, f: [1, { h: 3 }] }
     assert_equal expected, h.deep_compact
-    # original unchanged
     assert h.key?(:b)
   end
 
@@ -20,7 +19,7 @@ class DeepCompactTest < ActiveSupport::TestCase
 
   test "blank: true removes blank values" do
     h = { a: "", b: " ", c: [], d: {}, e: 0 }
-    assert_equal({ e: 0 }, h.deep_compact(blank: true))
+    assert_equal({ e: 0 }, h.deep_compact(remove_blank: true))
   end
 
   test "handles nested arrays of arrays" do

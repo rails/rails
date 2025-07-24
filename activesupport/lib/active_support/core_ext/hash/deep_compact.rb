@@ -1,49 +1,46 @@
 class Hash
-  def deep_compact(blank: false)
-    dup.deep_compact!(blank: blank)
+  def deep_compact(remove_blank: false)
+    dup.deep_compact!(remove_blank: remove_blank)
   end
 
-  def deep_compact!(blank: false)
-    each_key do |k|
-      v = self[k]
+  def deep_compact!(remove_blank: false)
+    should_prune = lambda do |obj|
+      return true  if obj.nil?
+      return false unless remove_blank
 
-      case v
-      when Hash
-        v.deep_compact!(blank: blank)
-        delete(k) if blank ? v.blank? : v.nil?
-      when Array
-        v.map! do |elem|
-          if elem.is_a?(Hash)
-            elem.deep_compact!(blank: blank)
-            elem
-          elsif elem.is_a?(Array)
-            deep_compact_array(elem, blank)
-          else
-            elem
-          end
-        end
-        v.reject! { |elem| blank ? elem.blank? : elem.nil? }
-        delete(k) if blank ? v.blank? : v.nil?
-      else
-        delete(k) if blank ? v.blank? : v.nil?
+      case obj
+      when String       then obj.strip.empty?
+      when Array, Hash  then obj.empty?
+      else                   false
       end
     end
+
+    each_key.to_a.each do |key|
+      value = self[key]
+
+      case value
+      when Hash  then value.deep_compact!(remove_blank: remove_blank)
+      when Array then deep_compact_array!(value, should_prune, remove_blank)
+      end
+
+      delete(key) if should_prune.call(value)
+    end
+
     self
   end
 
   private
 
-  def deep_compact_array(arr, blank)
-    arr.map! do |elem|
-      if elem.is_a?(Hash)
-        elem.deep_compact!(blank: blank)
-      elsif elem.is_a?(Array)
-        deep_compact_array(elem, blank)
-      else
-        elem
+  def deep_compact_array!(array, should_prune, remove_blank)
+    array.map! do |element|
+      case element
+      when Hash  then element.deep_compact!(remove_blank: remove_blank)
+      when Array then deep_compact_array!(element, should_prune, remove_blank)
+      else            element
       end
     end
-    arr.reject! { |elem| blank ? elem.blank? : elem.nil? }
-    arr
+
+    array.reject!(&should_prune)
+    array
   end
 end
