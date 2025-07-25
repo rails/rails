@@ -1,3 +1,8 @@
+*   Extract `current_page?`, `button_to`, and `link_to` methods to
+    `ActionView::Helpers::NavigationHelper`
+
+    *Sean Doyle*
+
 *   Accept `Date` and `Numeric` inputs in `relative_time_in_words`.
 
     Passing a `Date` or a `Numeric` raised `ArgumentError` instead of returning
