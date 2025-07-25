@@ -3933,12 +3933,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       @app.routes.url_helpers.user_path(non_emptyable_object)
       assert true, "URL helper correctly handled object without empty? method"
     rescue NoMethodError => e
-      if e.message.include?("undefined method 'empty?'")
-        flunk "URL helper called empty? without checking respond_to?(:empty?) first. Fix needed in routing code."
-      else
-        # Re-raise if it's a different NoMethodError we weren't expecting
-        raise
-      end
+      flunk e.message
     end
   end
 
