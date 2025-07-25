@@ -3912,6 +3912,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "sessions#sort", @response.body
   end
 
+  def test_parameterize_args_raises_on_non_emptyable_value
+    # Use a custom RouteSet without default_url_options to ensure the optimized helper is used
+    routes = ActionDispatch::Routing::RouteSet.new
+    routes.draw do
+      get "/users/:id", to: "users#show", as: :user
+    end
+    @app = RoutedRackApp.new routes
+
+    # Create a class that doesn't respond to empty?
+    non_emptyable_class = Class.new do
+      def to_param
+        self  # Return self, not a string
+      end
+    end
+
+    non_emptyable_object = non_emptyable_class.new
+
+    begin
+      @app.routes.url_helpers.user_path(non_emptyable_object)
+      assert true, "URL helper correctly handled object without empty? method"
+    rescue NoMethodError => e
+      if e.message.include?("undefined method 'empty?'")
+        flunk "URL helper called empty? without checking respond_to?(:empty?) first. Fix needed in routing code."
+      else
+        # Re-raise if it's a different NoMethodError we weren't expecting
+        raise
+      end
+    end
+  end
+
 private
   def draw(&block)
     self.class.stub_controllers do |routes|

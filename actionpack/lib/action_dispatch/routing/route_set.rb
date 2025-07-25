@@ -249,7 +249,7 @@ module ActionDispatch
                 @arg_size.times { |i|
                   key = @required_parts[i]
                   value = args[i].to_param
-                  yield key if value.nil? || value.empty?
+                  yield key if value.nil? || (value.respond_to?(:empty?) && value.empty?)
                   params[key] = value
                 }
                 params
