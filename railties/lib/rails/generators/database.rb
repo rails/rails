@@ -3,10 +3,14 @@
 module Rails
   module Generators
     class Database
-      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy )
+      DATABASES = %w( mysql trilogy postgresql postgres sqlite3 mariadb-mysql mariadb-trilogy )
 
       module MySQL
         def name
+          "mysql"
+        end
+
+        def adapter
           "mysql"
         end
 
@@ -51,6 +55,10 @@ module Rails
           "mariadb"
         end
 
+        def adapter
+          "mariadb-mysql"
+        end
+
         def port
           3306
         end
@@ -72,7 +80,7 @@ module Rails
         def build(database_name)
           case database_name
           when "mysql" then MySQL2.new
-          when "postgresql" then PostgreSQL.new
+          when "postgresql", "postgres" then PostgreSQL.new
           when "trilogy" then Trilogy.new
           when "sqlite3" then SQLite3.new
           when "mariadb-mysql" then MariaDBMySQL2.new
@@ -93,6 +101,10 @@ module Rails
       end
 
       def name
+        raise NotImplementedError
+      end
+
+      def adapter
         raise NotImplementedError
       end
 
@@ -168,6 +180,10 @@ module Rails
           "postgres"
         end
 
+        def adapter
+          "postgresql"
+        end
+
         def template
           "config/databases/postgresql.yml"
         end
@@ -209,6 +225,10 @@ module Rails
       class Trilogy < Database
         include MySQL
 
+        def adapter
+          "trilogy"
+        end
+
         def template
           "config/databases/trilogy.yml"
         end
@@ -232,6 +252,10 @@ module Rails
 
       class SQLite3 < Database
         def name
+          "sqlite3"
+        end
+
+        def adapter
           "sqlite3"
         end
 
@@ -266,14 +290,23 @@ module Rails
 
       class MariaDBMySQL2 < MySQL2
         include MariaDB
+
+        def adapter
+          "mariadb-mysql"
+        end
       end
 
       class MariaDBTrilogy < Trilogy
         include MariaDB
+
+        def adapter
+          "mariadb-trilogy"
+        end
       end
 
       class Null < Database
         def name; end
+        def adapter; end
         def template; end
         def service; end
         def port; end
