@@ -1,3 +1,8 @@
+*   Extract `current_page?`, `button_to`, and `link_to` methods to
+    `ActionView::Helpers::NavigationHelper`
+
+    *Sean Doyle*
+
 *   Add structured events for Action View:
     - `action_view.render_template`
     - `action_view.render_partial`
