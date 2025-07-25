@@ -2132,7 +2132,7 @@ following:
 ```
 You may be asking, "what is `inventory_count?` doing? Where is this method even coming from?" When following Rails conventions, many such methods are automatically defined for you. In this case, this is the `query_attribute` method, which is aliased to `attribute?`. In addition to checking if an attribute (inventory in this case) is `false` or `nil`, this method is also checking if the attribute is 0 or an empty string.
 
-This can be seen [here](https://github.com/rails/rails/blob/3235827585d87661942c91bc81f64f56d710f0b2/activerecord/lib/active_record/attribute_methods/query.rb#L13) in the Rails source code itself or in the [Rails API manual](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/Query.html#method-i-query_attribute). Tracking these methods down may seem tricky at first, but using the class the object is under and learning more about Rails conventions will make this an easier process.
+NOTE: `inventory_count?` is query method created by Active Record. Active Record adds query methods for all attributes. For numeric attributes these methods  return `true` for all non-zero number, and `false` otherwise.
 
 Next update `app/views/products/show.html.erb` to render this partial after the
 `cache` block.
