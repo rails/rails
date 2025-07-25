@@ -3922,16 +3922,25 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     # Create a class that doesn't respond to empty?
     non_emptyable_class = Class.new do
+      def initialize(id)
+        @id = id
+      end
+
       def to_param
         self  # Return self, not a string
       end
+
+      def to_s
+        "custom_object_#{@id}"
+      end
     end
 
-    non_emptyable_object = non_emptyable_class.new
+    non_emptyable_object = non_emptyable_class.new(212)
 
     begin
-      @app.routes.url_helpers.user_path(non_emptyable_object)
-      assert true, "URL helper correctly handled object without empty? method"
+      generated_path = @app.routes.url_helpers.user_path(non_emptyable_object)
+      assert_equal "/users/custom_object_212", generated_path,
+                   "URL helper should generate path with object's string representation"
     rescue NoMethodError => e
       flunk e.message
     end
