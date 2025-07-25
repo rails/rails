@@ -286,7 +286,7 @@ module Rails
 
         gem_name, gem_version = database.gem
         GemfileEntry.version gem_name, gem_version,
-          "Use #{options[:database]} as the database for Active Record"
+          "Use #{database.adapter} as the database for Active Record"
       end
 
       def web_server_gemfile_entry # :doc:
@@ -353,7 +353,7 @@ module Rails
       end
 
       def sqlite3? # :doc:
-        !skip_active_record? && options[:database] == "sqlite3"
+        !skip_active_record? && database.adapter == "sqlite3"
       end
 
       def skip_active_record? # :doc:
