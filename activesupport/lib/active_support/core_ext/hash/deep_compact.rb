@@ -1,6 +1,10 @@
 class Hash
-  def deep_compact(remove_blank: false)
-    dup.deep_compact!(remove_blank: remove_blank)
+  def deep_compact
+    dup.deep_compact!
+  end
+
+  def deep_compact_blank
+    dup.deep_compact!(remove_blank: true)
   end
 
   def deep_compact!(remove_blank: false)

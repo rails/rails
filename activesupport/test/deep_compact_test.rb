@@ -19,7 +19,7 @@ class DeepCompactTest < ActiveSupport::TestCase
 
   test "blank: true removes blank values" do
     h = { a: "", b: " ", c: [], d: {}, e: 0 }
-    assert_equal({ e: 0 }, h.deep_compact(remove_blank: true))
+    assert_equal({ e: 0 }, h.deep_compact_blank)
   end
 
   test "handles nested arrays of arrays" do
