@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
@@ -1969,6 +1970,26 @@ The default value depends on the `config.load_defaults` target version:
 | 7.0                   | `true`               |
 
 [redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
+
+#### `config.action_controller.action_on_path_relative_redirect`
+
+Controls how Rails handles paths relative URL redirects.
+
+When set to `:log` (default), Rails will log a warning when a path relative URL redirect
+is detected. When set to `:notify`, Rails will publish an
+`unsafe_redirect.action_controller` notification event. When set to `:raise`, Rails
+will raise an `ActionController::Redirecting::UnsafeRedirectError`.
+
+This helps detect potentially unsafe redirects that could be exploited for open
+redirect attacks.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:log`               |
+| 8.1                   | `:raise`             |
+
 
 #### `config.action_controller.log_query_tags_around_actions`
 

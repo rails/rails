@@ -15,6 +15,7 @@ module ActionController
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      mattr_accessor :action_on_path_relative_redirect, default: :log
     end
 
     # Redirects the browser to the target specified in `options`. This parameter can
@@ -100,6 +101,26 @@ module ActionController
     #
     # See #url_from for more information on what an internal and safe URL is, or how
     # to fall back to an alternate redirect URL in the unsafe case.
+    #
+    # ### Path Relative URL Redirect Protection
+    #
+    # Rails also protects against potentially unsafe path relative URL redirects that don't
+    # start with a leading slash. These can create security vulnerabilities:
+    #
+    #     redirect_to "example.com"     # Creates http://yourdomain.comexample.com
+    #     redirect_to "@attacker.com"   # Creates http://yourdomain.com@attacker.com
+    #                                   # which browsers interpret as user@host
+    #
+    # You can configure how Rails handles these cases using:
+    #
+    #     config.action_controller.action_on_path_relative_redirect = :log    # default
+    #     config.action_controller.action_on_path_relative_redirect = :notify
+    #     config.action_controller.action_on_path_relative_redirect = :raise
+    #
+    # * `:log` - Logs a warning but allows the redirect
+    # * `:notify` - Sends an ActiveSupport notification but allows the redirect
+    #   (includes stack trace to help identify the source)
+    # * `:raise` - Raises an UnsafeRedirectError
     def redirect_to(options = {}, response_options = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
@@ -166,6 +187,10 @@ module ActionController
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options.to_str
       when String
+        if !options.start_with?("/") && !options.empty?
+          _handle_path_relative_redirect(options)
+        end
+
         request.protocol + request.host_with_port + options
       when Proc
         _compute_redirect_to_location request, instance_eval(&options)
@@ -246,6 +271,23 @@ module ActionController
           msg = "The redirect URL #{url} contains one or more illegal HTTP header field character. " \
             "Set of legal characters defined in https://datatracker.ietf.org/doc/html/rfc7230#section-3.2.6"
           raise UnsafeRedirectError, msg
+        end
+      end
+
+      def _handle_path_relative_redirect(url)
+        message = "Path relative URL redirect detected: #{url.inspect}"
+
+        case action_on_path_relative_redirect
+        when :log
+          logger&.warn message
+        when :notify
+          ActiveSupport::Notifications.instrument("unsafe_redirect.action_controller",
+            url: url,
+            message: message,
+            stack_trace: caller
+          )
+        when :raise
+          raise UnsafeRedirectError, message
         end
       end
   end
