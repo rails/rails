@@ -1,3 +1,33 @@
+*   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
+
+    Returns the isolation level if it was explicitly set via the `isolation:` parameter
+    or through `ActiveRecord.with_transaction_isolation_level`, otherwise returns `nil`.
+    Nested transactions return the parent transaction's isolation level.
+
+    ```ruby
+    # Returns nil when no transaction
+    User.connection.current_transaction.isolation # => nil
+
+    # Returns explicitly set isolation level
+    User.transaction(isolation: :serializable) do
+      User.connection.current_transaction.isolation # => :serializable
+    end
+
+    # Returns nil when isolation not explicitly set
+    User.transaction do
+      User.connection.current_transaction.isolation # => nil
+    end
+
+    # Nested transactions inherit parent's isolation
+    User.transaction(isolation: :read_committed) do
+      User.transaction do
+        User.connection.current_transaction.isolation # => :read_committed
+      end
+    end
+    ```
+
+    *Kir Shatrov*
+
 *   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
 
     *Yasuo Honda*
