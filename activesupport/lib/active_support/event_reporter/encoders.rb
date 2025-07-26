@@ -30,61 +30,9 @@ module ActiveSupport
         end
       end
 
-      # JSON encoder for serializing events to JSON format.
-      #
-      #   event = { name: "user_created", payload: { id: 123 }, tags: { api: true } }
-      #   ActiveSupport::EventReporter::Encoders::JSON.encode(event)
-      #   # => {
-      #   #      "name": "user_created",
-      #   #      "payload": {
-      #   #        "id": 123
-      #   #      },
-      #   #      "tags": {
-      #   #        "api": true
-      #   #      },
-      #   #      "context": {}
-      #   #    }
-      #
-      # Schematized events and tags MUST respond to #to_h to be serialized.
-      #
-      #   event = { name: "UserCreatedEvent", payload: #<UserCreatedEvent:0x111>, tags: { "GraphqlTag": #<GraphqlTag:0x111> } }
-      #   ActiveSupport::EventReporter::Encoders::JSON.encode(event)
-      #   # => {
-      #   #      "name": "UserCreatedEvent",
-      #   #      "payload": {
-      #   #        "id": 123
-      #   #      },
-      #   #      "tags": {
-      #   #        "GraphqlTag": {
-      #   #          "operation_name": "user_created",
-      #   #          "operation_type": "mutation"
-      #   #        }
-      #   #      },
-      #   #      "context": {}
-      #   #    }
-      class JSON < Base
-        def self.encode(event)
-          event[:payload] = event[:payload].to_h
-          event[:tags] = event[:tags].transform_values do |value|
-            value.respond_to?(:to_h) ? value.to_h : value
-          end
-          ::JSON.dump(event)
-        end
-      end
-
-      # EventReporter encoder for serializing events to MessagePack format.
-      class MessagePack < Base
-        def self.encode(event)
-          require "msgpack"
-          event[:payload] = event[:payload].to_h
-          event[:tags] = event[:tags].transform_values do |value|
-            value.respond_to?(:to_h) ? value.to_h : value
-          end
-          ::MessagePack.pack(event)
-        rescue LoadError
-          raise LoadError, "msgpack gem is required for MessagePack encoding. Add 'gem \"msgpack\"' to your Gemfile."
-        end
-      end
+      extend ActiveSupport::Autoload
+      autoload :JSON
+      autoload :MessagePack
     end
   end
 end
