@@ -207,9 +207,21 @@ module ActionView
         content_tag("a", name || url, html_options, &block)
       end
 
-      # Generates a form containing a single button that submits to the URL created
-      # by the set of +options+. This is the safest method to ensure links that
-      # cause changes to your data are not triggered by search bots or accelerators.
+      # Generates a plain button or a form containing a single button that submits to the URL created
+      # by the set of +options+.
+      #
+      # Passing <tt>form: false</tt> in +html_options+ will render only
+      # a <button> element without generating a <form>. This is useful when you want
+      # a button for JavaScript-driven interactions or UI-only behavior.
+      #
+      # Using a form is the safest method to ensure links that
+      # cause changes to your data are not triggered by search bots, browser prefetching,
+      # or other automated agents.
+      #
+      # Note that when <tt>form: false</tt> is used, options like <tt>:method</tt>, <tt>:params</tt>,
+      # <tt>:authenticity_token</tt>, and form-specific attributes are ignored. Additionally,
+      # the button's <tt>type</tt> is forced to <tt>"button"</tt> to avoid accidental submission
+      # in layouts that may contain nested forms.
       #
       # You can control the form and button behavior with +html_options+. Most
       # values in +html_options+ are passed through to the button element. For
@@ -297,6 +309,27 @@ module ActionView
         html_options, options = options, name if block_given?
         html_options ||= {}
         html_options = html_options.stringify_keys
+
+        if html_options.delete("form") == false
+          if html_options["method"]
+            raise "Cannot use :method option when form: false is passed to button_to"
+          end
+
+          if html_options["type"].to_s == "submit"
+            raise "Cannot use type: 'submit' when form: false is passed to button_to"
+          end
+
+          html_options = convert_options_to_data_attributes(options, html_options)
+          html_options["type"] = "button"
+
+          button = if block_given?
+            content_tag("button", html_options, &block)
+          else
+            content_tag("button", name || url_for(options), html_options)
+          end
+
+          return button
+        end
 
         url =
           case options

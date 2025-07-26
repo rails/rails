@@ -411,6 +411,41 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
   end
 
+  def test_button_to_with_form_false_sets_type_button
+    assert_dom_equal(
+      %(<button type="button">Click</button>),
+      button_to("Click", "/somewhere", form: false)
+    )
+  end
+
+  def test_button_to_with_form_false_renders_button_with_class
+    assert_dom_equal(
+      %(<button type="button" class="btn">Save</button>),
+      button_to("Save", "/save", form: false, class: "btn")
+    )
+  end
+
+  def test_button_to_with_form_false_and_method_raises
+    error = assert_raises(ArgumentError) do
+      button_to("Delete", "/delete", form: false, method: :delete)
+    end
+    assert_match "Cannot use :method option when form: false is passed", error.message
+  end
+
+  def test_button_to_with_form_false_and_submit_type_raises
+    error = assert_raises(ArgumentError) do
+      button_to("Click", "/nowhere", form: false, type: :submit)
+    end
+    assert_match "Cannot use type: 'submit' when form: false is passed", error.message
+  end
+
+  def test_button_to_with_form_false_and_submit_type_as_string_raises
+    error = assert_raises(ArgumentError) do
+      button_to("Click", "/nowhere", form: false, type: "submit")
+    end
+    assert_match "Cannot use type: 'submit' when form: false is passed", error.message
+  end
+
   class FakeParams
     def initialize(permitted = true)
       @permitted = permitted
