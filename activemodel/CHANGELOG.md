@@ -1,3 +1,11 @@
+*   Add `case_sensitive:` option for `ActiveModel::Validations::ComparisonValidator` when using `:equal_to` or `:other_than` options.
+
+    ```ruby
+    validates :new_email, comparison: { other_than: :old_email, case_sensitive: false }
+    ```
+
+    *Ryan Townsend*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*
