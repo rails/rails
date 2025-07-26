@@ -69,6 +69,11 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.reset_event_reporter_context" do |app|
+      app.reloader.before_class_unload { ActiveSupport.event_reporter.clear_context }
+      app.executor.to_run              { ActiveSupport.event_reporter.clear_context }
+    end
+
     initializer "active_support.deprecation_behavior" do |app|
       if app.config.active_support.report_deprecations == false
         app.deprecators.silenced = true
