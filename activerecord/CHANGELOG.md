@@ -1,3 +1,7 @@
+*   Respect `schema_search_path` on `rails dbconsole` for Postgres
+
+    *Gabriel Sobrinho*
+
 *   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
 
     *Yasuo Honda*
