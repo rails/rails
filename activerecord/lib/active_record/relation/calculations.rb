@@ -422,6 +422,12 @@ module ActiveRecord
           column_name
         when :all
           Arel.star
+        when Array
+          if column_name.all? { |col| col.is_a?(Arel::Attributes::Attribute) }
+            column_name
+          else
+            column_name.map { |col| arel_column(col.to_s) }
+          end
         else
           arel_column(column_name.to_s)
         end
@@ -450,6 +456,9 @@ module ActiveRecord
               distinct = distinct_select?(select_for_count) if group_values.empty?
             elsif group_values.any? || select_values.empty? && order_values.empty?
               column_name = primary_key
+              if distinct && column_name.is_a?(Array)
+                column_name = column_name.map { |col| arel_column(col) }
+              end
             end
           elsif distinct_select?(column_name)
             distinct = nil
@@ -478,7 +487,15 @@ module ActiveRecord
       end
 
       def operation_over_aggregate_column(column, operation, distinct)
-        operation == "count" ? column.count(distinct) : column.public_send(operation)
+        if operation == "count"
+          if column.is_a?(Array)
+            Arel::Nodes::Count.new(column, distinct)
+          else
+            column.count(distinct)
+          end
+        else
+          column.public_send(operation)
+        end
       end
 
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
@@ -489,16 +506,24 @@ module ActiveRecord
           relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
-          # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order).distinct!(false)
+          if operation == "count" && distinct && column_name.is_a?(Array)
+            relation = unscope(:order)
+            subquery = relation.select(column_name).distinct
+            subquery_arel = subquery.arel.as("t")
+            query_builder = Arel::SelectManager.new(Arel::Table.engine)
+            query_builder.project(Arel.star.count).from(subquery_arel)
+          else
+            # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+            relation = unscope(:order).distinct!(false)
 
-          column = relation.aggregate_column(column_name)
-          select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+            column = relation.aggregate_column(column_name)
+            select_value = operation_over_aggregate_column(column, operation, distinct)
+            select_value.distinct = true if operation == "sum" && distinct
 
-          relation.select_values = [select_value]
+            relation.select_values = [select_value]
 
-          query_builder = relation.arel
+            query_builder = relation.arel
+          end
         end
 
         query_result = if relation.where_clause.contradiction?

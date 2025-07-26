@@ -440,6 +440,17 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal Cpk::Book.count, Cpk::Book.includes(:chapters).references(:chapters).count
   end
 
+  def test_distinct_count_for_a_composite_primary_key_model
+    # This would have raised "no such column: "author_id", "id"" error before the fix
+    assert_nothing_raised do
+      assert_equal Cpk::Book.count, Cpk::Book.distinct.count
+    end
+
+    # Test with conditions
+    book = cpk_books(:cpk_great_author_first_book)
+    assert_equal 1, Cpk::Book.where(author_id: book.author_id, id: book.id).distinct.count
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]

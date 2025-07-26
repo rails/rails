@@ -1,3 +1,7 @@
+*   Fix `distinct.count` for models with composite primary keys.
+
+    *Rob Zolkos*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
