@@ -14,6 +14,7 @@ module ActionText
     # *   its `aria-label`
     # *   the `name` of its input
     #
+    # Additional options are forwarded to Capybara as filters
     #
     # Examples:
     #
@@ -33,8 +34,8 @@ module ActionText
     #     # <input id="trix_input_1" name="message[content]" type="hidden">
     #     # <trix-editor input="trix_input_1"></trix-editor>
     #     fill_in_rich_textarea "message[content]", with: "Hello <em>world!</em>"
-    def fill_in_rich_textarea(locator = nil, with:)
-      find(:rich_textarea, locator).execute_script("this.editor.loadHTML(arguments[0])", with.to_s)
+    def fill_in_rich_textarea(locator = nil, with:, **)
+      find(:rich_textarea, locator, **).execute_script("this.editor.loadHTML(arguments[0])", with.to_s)
     end
     alias_method :fill_in_rich_text_area, :fill_in_rich_textarea
   end
