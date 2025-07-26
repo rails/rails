@@ -10,19 +10,19 @@ module ActionCable
       extend ActiveSupport::Concern
 
       module ClassMethods
-        # Broadcast a hash to a unique broadcasting for this `model` in this channel.
-        def broadcast_to(model, message)
-          ActionCable.server.broadcast(broadcasting_for(model), message)
+        # Broadcast a hash to a unique broadcasting for this array of `broadcastables` in this channel.
+        def broadcast_to(broadcastables, message)
+          ActionCable.server.broadcast(broadcasting_for(broadcastables), message)
         end
 
         # Returns a unique broadcasting identifier for this `model` in this channel:
         #
         #     CommentsChannel.broadcasting_for("all") # => "comments:all"
         #
-        # You can pass any object as a target (e.g. Active Record model), and it would
+        # You can pass an array of objects as a target (e.g. Active Record model), and it would
         # be serialized into a string under the hood.
-        def broadcasting_for(model)
-          serialize_broadcasting([ channel_name, model ])
+        def broadcasting_for(broadcastables)
+          serialize_broadcasting([ channel_name ] + Array(broadcastables))
         end
 
         private
