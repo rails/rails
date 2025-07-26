@@ -1861,7 +1861,7 @@ documentation](https://github.com/rails/rails-dom-testing).
 In order to integrate with [rails-dom-testing][], tests that inherit from
 `ActionView::TestCase` declare a `document_root_element` method that returns the
 rendered content as an instance of a
-[Nokogiri::XML::Node](https://www.rubydoc.info/github/sparklemotion/nokogiri/Nokogiri/XML/Node):
+[Nokogiri::XML::Node](https://www.rubydoc.info/gems/nokogiri/Nokogiri/XML/Node):
 
 ```ruby
 test "renders a link to itself" do
