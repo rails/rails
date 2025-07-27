@@ -47,13 +47,7 @@ module ActiveRecord
           right = right.ast
           right = right.expr if right.is_a?(Arel::Nodes::Grouping)
 
-          or_clause = if left.is_a?(Arel::Nodes::Or)
-            Arel::Nodes::Or.new(left.children + [right])
-          else
-            Arel::Nodes::Or.new([left, right])
-          end
-
-          common.predicates << Arel::Nodes::Grouping.new(or_clause)
+          common.predicates << left.or(right)
           common
         end
       end
