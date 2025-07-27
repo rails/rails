@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ <%= user_default_branch %> ]
 
 jobs:
 <%- unless skip_rubocop? -%>
