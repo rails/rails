@@ -181,8 +181,8 @@ module ActiveRecord
     end
 
     test "raises Interrupt when canceling statement via interrupt" do
-      if ActiveRecord::Base.lease_connection.database_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
-        skip "pg gem version #{PG::VERSION} is known to be incompatible with PostgreSQL 18+. "
+      if PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+        skip "pg gem version #{PG::VERSION} is incompatible with libpq of PostgreSQL #{PG.library_version / 10000}. Please upgrade to pg 1.6.0 or later."
       end
       start_time = Time.now
       thread = Thread.new do
