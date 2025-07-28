@@ -3128,6 +3128,15 @@ The default value depends on the `config.load_defaults` target version:
 Determines whether job context for query tags will be automatically updated via
 an `around_perform`. The default value is `true`.
 
+#### `config.active_job.rate_limit_cache_store`
+
+Accepts a cache store to use for tracking job rate limits. The default value is
+same as `Rails.cache`.
+
+```ruby
+config.active_job.rate_limit_cache_store = Redis::Cache.new(url: ENV["REDIS_URL"])
+```
+
 ### Configuring Action Cable
 
 #### `config.action_cable.url`

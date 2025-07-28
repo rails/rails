@@ -963,6 +963,105 @@ module YourApp
 end
 ```
 
+Rate Limiting
+-------------
+
+Active Job provides rate limiting functionality to control how frequently jobs can be executed. This is useful for jobs that interact with external APIs, prevent resource overload, or need to respect rate limits imposed by third-party services.
+
+### Basic Rate Limiting
+
+You can set a basic rate limit using the `rate_limit` method:
+
+```ruby
+class NewsletterJob < ApplicationJob
+  rate_limit to: 100, within: 1.hour
+
+  def perform(user)
+    NewsletterMailer.weekly(user).deliver_now
+  end
+end
+```
+
+This limits the job to 100 executions per hour. If the limit is exceeded, an `ActiveJob::RateLimitExceeded` error is raised.
+
+### Rate Limiting by Custom Key
+
+Rate limits can be scoped using a custom identity function with the `by:` parameter:
+
+```ruby
+class DataImportJob < ApplicationJob
+  rate_limit to: 10, within: 5.minutes, by: -> { arguments.first }
+
+  def perform(account_id, data)
+    # Import processing logic
+  end
+end
+```
+
+This limits each account to 10 data import jobs per 5 minutes.
+
+### Custom Rate Limit Handling
+
+You can customize what happens when a rate limit is exceeded with the `with:` parameter:
+
+```ruby
+class ApiCallJob < ApplicationJob
+  rate_limit to: 5, within: 1.minute,
+             with: -> { retry_job(wait: 30.seconds) }
+
+  def perform(api_data)
+    # API call logic
+  end
+end
+```
+
+Above example will retry the job after 30 seconds if the rate limit is exceeded.
+Or, you can use `retry_on` to specify a retry strategy:
+
+```ruby
+class ApiCallJob < ApplicationJob
+  rate_limit to: 5, within: 1.minute
+
+  retry_on ActiveJob::RateLimitExceeded, wait: :polynomially_longer
+
+  def perform(api_data)
+    # API call logic
+  end
+end
+```
+
+### Multiple Rate Limits
+
+Jobs can have multiple rate limits by using the `name:` parameter:
+
+```ruby
+class ProcessingJob < ApplicationJob
+  rate_limit to: 10, within: 1.second, name: "burst"
+  rate_limit to: 1000, within: 1.hour, name: "sustained"
+
+  def perform
+    # Processing logic
+  end
+end
+```
+
+### Configure cache store
+
+Rate limiting uses a cache store to track execution counts. By default, it uses `Rails.cache`, but you can configure a different store:
+
+```ruby
+# config/application.rb
+config.active_job.rate_limit_cache_store = Redis::Cache.new(url: ENV["REDIS_URL"])
+```
+
+You can also set the cache store per rate limit:
+
+```ruby
+class MyJob < ApplicationJob
+  rate_limit to: 5, within: 1.minute, store: ActiveSupport::Cache::MemoryStore.new
+end
+```
+
 Exceptions
 ----------
 
