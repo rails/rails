@@ -1200,7 +1200,7 @@ the client. This section describes the purpose of some of the properties of the
 
 To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html)
-and [Rack](https://www.rubydoc.info/gems/rack/Rack/Request)
+and [Rack](https://rack.github.io/rack/main/Rack/Request.html)
 documentation.
 
 | Property of `request`                     | Purpose                                                                          |
@@ -1271,4 +1271,4 @@ Here are some of the properties of the `response` object:
 To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html)
 and [Rack
-Documentation](https://www.rubydoc.info/gems/rack/Rack/Response).
+Documentation](https://rack.github.io/rack/main/Rack/Response.html).
