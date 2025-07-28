@@ -824,7 +824,7 @@ module ActiveRecord
       end
 
       test "dirty transaction cannot be restored after remote disconnection" do
-        if PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+        if current_adapter?(:PostgreSQLAdapter) && PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
           skip "pg gem version #{PG::VERSION} is incompatible with libpq of PostgreSQL #{PG.library_version / 10000}. Please upgrade to pg 1.6.0 or later."
         end
         invocations = 0
