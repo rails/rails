@@ -2331,7 +2331,7 @@ as if it’s part of that class. At the same time, the methods defined in the
 module become regular methods you can call on objects (instances) of that class.
 
 Now that the code triggering the notification has been extracted into the
-Notification module, the Product model can be simplified to include the
+Notifications module, the Product model can be simplified to include the
 Notifications module.
 
 ```ruby#2
@@ -2363,9 +2363,16 @@ A subscriber may want to unsubscribe at some point, so let's build that next.
 First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
-```ruby
+```ruby#6
+Rails.application.routes.draw do
+  # ...
+  resources :products do
+    resources :subscribers, only: [ :create ]
+  end
   resource :unsubscribe, only: [ :show ]
 ```
+
+The unsubscribe route is added at the top level and uses the singular `resource` in order to handle routes like `/unsubscribe?token=xyz`.
 
 Active Record has a feature called `generates_token_for` that can generate
 unique tokens to find database records for different purposes. We can use this

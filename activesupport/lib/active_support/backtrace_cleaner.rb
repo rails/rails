@@ -56,6 +56,18 @@ module ActiveSupport
     end
     alias :filter :clean
 
+    # Given an array of Thread::Backtrace::Location objects, returns an array
+    # with the clean ones:
+    #
+    #     clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    #
+    # Filters and silencers receive strings as usual. However, the +path+
+    # attributes of the locations in the returned array are the original,
+    # unfiltered ones, since locations are immutable.
+    def clean_locations(locations, kind = :silent)
+      locations.select { |location| clean_frame(location, kind) }
+    end
+
     # Returns the frame with all filters applied.
     # returns +nil+ if the frame was silenced.
     def clean_frame(frame, kind = :silent)
@@ -71,6 +83,65 @@ module ActiveSupport
         frame if @silencers.any? { |s| s.call(frame) }
       else
         frame
+      end
+    end
+
+    # Thread.each_caller_location does not accept a start in Ruby < 3.4.
+    if Thread.method(:each_caller_location).arity == 0
+      # Returns the first clean frame of the caller's backtrace, or +nil+.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+
+      # Returns the first clean location of the caller's call stack, or +nil+.
+      #
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their +path+ attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
+      def first_clean_location(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          return location if clean_frame(location, kind)
+        end
+      end
+    else
+      # Returns the first clean frame of the caller's backtrace, or +nil+.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+
+      # Returns the first clean location of the caller's call stack, or +nil+.
+      #
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their +path+ attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
+      def first_clean_location(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          return location if clean_frame(location, kind)
+        end
       end
     end
 

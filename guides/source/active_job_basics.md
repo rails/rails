@@ -427,9 +427,9 @@ enables a powerful yet sharp tool: taking advantage of transactional integrity
 to ensure some action in your app is not committed unless your job is also committed
 and vice versa, and ensuring that your job won't be enqueued until the transaction
 within which you're enqueuing it is committed. This can be very powerful and useful,
-but it can also backfire if you base some of your logic on this behaviour,
+but it can also backfire if you base some of your logic on this behavior,
 and in the future, you move to another active job backend, or if you simply move
-Solid Queue to its own database, and suddenly the behaviour changes under you.
+Solid Queue to its own database, and suddenly the behavior changes under you.
 
 Because this can be quite tricky and many people shouldn't need to worry about it,
 by default Solid Queue is configured in a different database as the main app.
@@ -747,24 +747,24 @@ jobs as arguments (note that this is different from `perform_later`).
 `perform_all_later` does call `perform` under the hood. The arguments passed to
 `new` will be passed on to `perform` when it's eventually called.
 
-Here is an example calling `perform_all_later` with `GuestCleanupJob` instances:
+Here is an example calling `perform_all_later` with `GuestsCleanupJob` instances:
 
 ```ruby
 # Create jobs to pass to `perform_all_later`.
 # The arguments to `new` are passed on to `perform`
-guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest) }
 
-# Will enqueue a separate job for each instance of `GuestCleanupJob`
-ActiveJob.perform_all_later(guest_cleanup_jobs)
+# Will enqueue a separate job for each instance of `GuestsCleanupJob`
+ActiveJob.perform_all_later(cleanup_jobs)
 
 # Can also use `set` method to configure options before bulk enqueuing jobs.
-guest_cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
+cleanup_jobs = Guest.all.map { |guest| GuestsCleanupJob.new(guest).set(wait: 1.day) }
 
-ActiveJob.perform_all_later(guest_cleanup_jobs)
+ActiveJob.perform_all_later(cleanup_jobs)
 ```
 
 `perform_all_later` logs the number of jobs successfully enqueued, for example
-if `Guest.all.map` above resulted in 3 `guest_cleanup_jobs`, it would log
+if `Guest.all.map` above resulted in 3 `cleanup_jobs`, it would log
 `Enqueued 3 jobs to Async (3 GuestsCleanupJob)` (assuming all were enqueued).
 
 The return value of `perform_all_later` is `nil`. Note that this is different

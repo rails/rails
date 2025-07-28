@@ -435,35 +435,49 @@ module ActiveRecord
           if load
             records = batch_relation.records
             values = records.pluck(*cursor)
+            values_size = values.size
+            values_last = values.last
             yielded_relation = where(cursor => values).order(batch_orders.to_h)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
-            values = batch_relation.pluck(*cursor)
+            # Efficiently peak at the last value for the next batch using offset and limit.
+            values_size = batch_limit
+            values_last = batch_relation.offset(batch_limit - 1).pick(*cursor)
 
-            finish = values.last
-            if finish
-              yielded_relation = apply_finish_limit(batch_relation, cursor, finish, batch_orders)
+            # If the last value is not found using offset, there is at most one more batch of size < batch_limit.
+            # Retry by getting the whole list of remaining values so that we have the exact size and last value.
+            unless values_last
+              values = batch_relation.pluck(*cursor)
+              values_size = values.size
+              values_last = values.last
+            end
+
+            # Finally, build the yielded relation if at least one value found.
+            if values_last
+              yielded_relation = apply_finish_limit(batch_relation, cursor, values_last, batch_orders)
               yielded_relation = yielded_relation.except(:limit).reorder(batch_orders.to_h)
               yielded_relation.skip_query_cache!(false)
             end
           else
             values = batch_relation.pluck(*cursor)
+            values_size = values.size
+            values_last = values.last
             yielded_relation = where(cursor => values).order(batch_orders.to_h)
           end
 
-          break if values.empty?
+          break if values_size == 0
 
-          if values.flatten.any?(nil)
+          if [values_last].flatten.any?(nil)
             raise ArgumentError, "Not all of the batch cursor columns were included in the custom select clause "\
                                   "or some columns contain nil."
           end
 
           yield yielded_relation
 
-          break if values.length < batch_limit
+          break if values_size < batch_limit
 
           if limit_value
-            remaining -= values.length
+            remaining -= values_size
 
             if remaining == 0
               # Saves a useless iteration when the limit is a multiple of the
@@ -481,7 +495,7 @@ module ActiveRecord
           end
           operators << (last_order == :desc ? :lt : :gt)
 
-          cursor_value = values.last
+          cursor_value = values_last
           batch_relation = batch_condition(relation, cursor, cursor_value, operators)
         end
 

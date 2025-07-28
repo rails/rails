@@ -196,14 +196,14 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
       time_string = Time.current.to_s
       time = Time.zone.parse(time_string)
 
-      record = PostgresqlRange.new(tstz_range: time_string...)
-      assert_equal time..., record.tstz_range
+      record = PostgresqlRange.new(tstz_range: time_string..)
+      assert_equal time.., record.tstz_range
       assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
 
       record.save!
       record.reload
 
-      assert_equal time..., record.tstz_range
+      assert_equal time.., record.tstz_range
       assert_equal ActiveSupport::TimeZone[tz], record.tstz_range.begin.time_zone
     end
   end
@@ -302,9 +302,12 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_unbounded_tsrange
-    tz = ::ActiveRecord.default_timezone
-    assert_equal_round_trip @first_range, :ts_range, Time.public_send(tz, 2010, 1, 1, 14, 30, 0)...nil
-    assert_equal_round_trip @first_range, :ts_range, nil..Time.public_send(tz, 2010, 1, 1, 14, 30, 0)
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+
+    assert_equal_round_trip @first_range, :ts_range, time..nil
+    assert_equal_round_trip @first_range, :ts_range, time...nil
+    assert_equal_round_trip @first_range, :ts_range, nil..time
+    assert_equal_round_trip @first_range, :ts_range, nil...time
   end
 
   def test_timezone_awareness_tsrange

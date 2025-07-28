@@ -97,7 +97,7 @@ module ActiveRecord
       # Returns the first class in the inheritance hierarchy that descends from either an
       # abstract class or from <tt>ActiveRecord::Base</tt>.
       #
-      # Consider the following behaviour:
+      # Consider the following behavior:
       #
       #   class ApplicationRecord < ActiveRecord::Base
       #     self.abstract_class = true

@@ -75,7 +75,7 @@ value when creating the book.
 @book = Book.create(author_id: @author.id, published_at: Time.now)
 ```
 
-To delete an author and ensure all their books are also deleted, you need to
+To delete an author and ensure all their books are also deleted, you'd need to
 retrieve all the author's `books`, loop through each `book` to destroy it, and
 then destroy the author.
 
@@ -217,7 +217,7 @@ then you should use `has_one` instead.
 
 When used alone, `belongs_to` produces a one-directional one-to-one
 relationship. Therefore each book in the above example "knows" its author, but
-the authors don't know about their books. To setup a [bi-directional
+the authors don't know about their books. To set up a [bi-directional
 association](#bi-directional-associations) - use `belongs_to` in combination
 with a `has_one` or `has_many` on the other model, in this case the Author
 model.
@@ -560,7 +560,7 @@ the associated object's foreign key to the same value.
 
 The `build_association` method returns a new object of the associated type. This
 object will be instantiated from the passed attributes, and the link through
-this objects foreign key will be set, but the associated object will _not_ yet
+this object's foreign key will be set, but the associated object will _not_ yet
 be saved.
 
 ```ruby
@@ -1614,7 +1614,7 @@ Similarly, you can retrieve a collection of pictures from an instance of the
 Additionally, if you have an instance of the `Picture` model, you can get its
 parent via `@picture.imageable`, which could be an `Employee` or a `Product`.
 
-To setup a polymorphic association manually you would need to declare both a
+To set up a polymorphic association manually you would need to declare both a
 foreign key column (`imageable_id`) and a type column (`imageable_type`) in the
 model:
 
@@ -1884,7 +1884,7 @@ end
 class Car < Vehicle
 end
 
-Car.create
+Car.create(color: "Red", price: 10000)
 # => #<Car kind: "Car", color: "Red", price: 10000>
 ```
 
@@ -1905,7 +1905,7 @@ class Vehicle < ApplicationRecord
   self.inheritance_column = nil
 end
 
-Vehicle.create!(type: "Car")
+Vehicle.create!(type: "Car", color: "Red", price: 10000)
 # => #<Vehicle type: "Car", color: "Red", price: 10000>
 ```
 
@@ -1929,8 +1929,7 @@ includes all attributes of all subclasses in a single table.
 
 A disadvantage of this approach is that it can result in table bloat, as the
 table will include attributes specific to each subclass, even if they aren't
-used by others. This can be solved by using [`Delegated
-Types`](#delegated-types).
+used by others. This can be solved by using [`Delegated Types`](#delegated-types).
 
 Additionally, if you’re using [polymorphic
 associations](#polymorphic-associations), where a model can belong to more than
@@ -2067,7 +2066,7 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 We can enhance our `Entry` delegator by defining `delegate` and using
 polymorphism on the subclasses. For example, to delegate the `title` method from
-`Entry` to it's subclasses:
+`Entry` to its subclasses:
 
 ```ruby
 class Entry < ApplicationRecord
@@ -2807,6 +2806,17 @@ setting up a many-to-many self-join.
 The `:join_table` can be found on a `has_and_belongs_to_many` relationship. If
 the default name of the join table, based on lexical ordering, is not what you
 want, you can use the `:join_table` option to override the default.
+
+#### `:deprecated`
+
+If true, Active Record warns every time the association is used.
+
+Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+backtraces can be enabled or disabled. Defaults are `:warn` mode and disabled
+backtraces.
+
+Please, check the documentation of `ActiveRecord::Associations::ClassMethods`
+for further details.
 
 ### Scopes
 

@@ -335,7 +335,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_yield_relation_if_block_given
-    assert_queries_count(6) do
+    assert_queries_count(7) do
       Post.in_batches(of: 2) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
       end
@@ -343,7 +343,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_be_enumerable_if_no_block_given
-    assert_queries_count(6) do
+    assert_queries_count(7) do
       Post.in_batches(of: 2).each do |relation|
         assert_kind_of ActiveRecord::Relation, relation
       end
@@ -378,10 +378,10 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_update_all_affect_all_records
-    assert_queries_count(6 + 6) do # 6 selects, 6 updates
+    assert_queries_count(7 + 6) do # 7 selects, 6 updates
       Post.in_batches(of: 2).update_all(title: "updated-title")
     end
-    assert_equal Post.all.pluck(:title), ["updated-title"] * Post.count
+    assert_equal ["updated-title"] * Post.count, Post.all.pluck(:title)
   end
 
   def test_in_batches_update_all_returns_rows_affected
@@ -394,7 +394,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_touch_all_affect_all_records
     time = Time.new(2000, 1, 1, 0, 0, 0)
-    assert_queries_count(6 + 6) do # 6 selects, 6 updates
+    assert_queries_count(7 + 6) do # 7 selects, 6 updates
       Developer.in_batches(of: 2).touch_all(time: time)
     end
     assert_equal [time] * Developer.count, Developer.all.pluck(:updated_at)
@@ -486,7 +486,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_if_not_loaded_executes_more_queries
-    assert_queries_count(@total + 1) do
+    assert_queries_count(@total + 2) do
       Post.in_batches(of: 1, load: false) do |relation|
         assert_not_predicate relation, :loaded?
       end
@@ -617,7 +617,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_return_relations
-    assert_queries_count(@total + 1) do
+    assert_queries_count(@total + 2) do
       Post.in_batches(of: 1) do |relation|
         assert_kind_of ActiveRecord::Relation, relation
       end
@@ -634,7 +634,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_end_at_the_finish_option
     post = Post.order("id DESC").where("id <= ?", 5).first
-    assert_queries_count(7) do
+    assert_queries_count(8) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
     end
@@ -642,38 +642,62 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_executes_range_queries_when_unconstrained
     quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+ OFFSET \S+\z/i, count: 6) do
+      assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+\z/i, count: 1) do
+        Post.in_batches(of: 2).to_a
+      end
+    end
+
     assert_queries_match(/WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
-      Post.in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
+      relations.each { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_in_queries_when_unconstrained_and_opted_out_of_ranges
     quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+\z/i, count: 6) do
+      Post.in_batches(of: 2, use_ranges: false).to_a
+    end
+
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
-      Post.in_batches(of: 2, use_ranges: false) { |relation| assert_kind_of Post, relation.first }
+      relations.each { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_in_queries_when_constrained
     quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+\z/i, count: 3) do
+      Post.where("id < ?", 5).in_batches(of: 2).to_a
+    end
+
     assert_queries_match(/#{quoted_posts_id} IN \(.+\)/i) do
-      Post.where("id < ?", 5).in_batches(of: 2) { |relation| assert_kind_of Post, relation.first }
+      relations.each { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_executes_range_queries_when_constrained_and_opted_in_into_ranges
     quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+
+    relations = assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+ OFFSET \S+\z/i, count: 3) do
+      assert_queries_match(/ORDER BY #{quoted_posts_id} ASC LIMIT \S+\z/i, count: 1) do
+        Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true).to_a
+      end
+    end
+
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
-      Post.where("id < ?", 5).in_batches(of: 2, use_ranges: true) { |relation| assert_kind_of Post, relation.first }
+      relations.each { |relation| assert_kind_of Post, relation.first }
     end
   end
 
   def test_in_batches_shouldnt_execute_query_unless_needed
-    assert_queries_count(2) do
+    assert_queries_count(3) do
       Post.in_batches(of: @total) { |relation| assert_kind_of ActiveRecord::Relation, relation }
     end
 
-    assert_queries_count(1) do
+    assert_queries_count(2) do
       Post.in_batches(of: @total + 1) { |relation| assert_kind_of ActiveRecord::Relation, relation }
     end
   end
@@ -997,7 +1021,7 @@ class EachTest < ActiveRecord::TestCase
 
   test ".in_batches bypasses the query cache for its own queries" do
     Post.cache do
-      assert_queries_count(2) do
+      assert_queries_count(4) do
         Post.in_batches { }
         Post.in_batches { }
       end

@@ -12,6 +12,7 @@ require "active_support/core_ext/object/try"
 require "active_support/testing/autorun"
 require "image_processing/mini_magick"
 
+require "active_support/current_attributes/test_helper"
 require "active_record/testing/query_assertions"
 
 require "active_job"
@@ -25,6 +26,7 @@ ActiveStorage::FixtureSet.file_fixture_path = File.expand_path("fixtures/files",
 class ActiveSupport::TestCase
   self.file_fixture_path = ActiveStorage::FixtureSet.file_fixture_path
 
+  include ActiveSupport::CurrentAttributes::TestHelper
   include ActiveRecord::TestFixtures
   include ActiveRecord::Assertions::QueryAssertions
 
@@ -32,10 +34,6 @@ class ActiveSupport::TestCase
 
   setup do
     ActiveStorage::Current.url_options = { protocol: "https://", host: "example.com", port: nil }
-  end
-
-  teardown do
-    ActiveStorage::Current.reset
   end
 
   private

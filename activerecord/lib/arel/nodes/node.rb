@@ -6,7 +6,7 @@ module Arel # :nodoc: all
     #
     # Active Record uses Arel to compose SQL statements. Instead of building SQL strings directly, it's building an
     # abstract syntax tree (AST) of the statement using various types of Arel::Nodes::Node. Each node represents a
-    # fragment of a SQL statement.
+    # fragment of an SQL statement.
     #
     # The intermediate representation allows Arel to compile the statement into the database's specific SQL dialect
     # only before sending it without having to care about the nuances of each database when building the statement.

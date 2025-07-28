@@ -150,6 +150,21 @@ module ActiveJob
   # - a list of the completed steps
   # - the current step and its cursor value (if one is in progress)
   #
+  # === Isolated Steps
+  #
+  # Steps run sequentially in a single job execution, unless the job is interrupted.
+  #
+  # You can specify that a step should always run in its own execution by passing the +isolated: true+ option.
+  #
+  # This is useful for long-running steps where it may not be possible to checkpoint within
+  # the job grace period - it ensures that progress is serialized back into the job data before
+  # the step starts.
+  #
+  #   step :quick_step1
+  #   step :slow_step, isolated: true
+  #   step :quick_step2
+  #   step :quick_step3
+  #
   # === Errors
   #
   # If a job raises an error and is not retried via Active Job, it will be passed back to the underlying
@@ -171,7 +186,6 @@ module ActiveJob
   class Continuation
     extend ActiveSupport::Autoload
 
-    autoload :Step
     autoload :Validation
 
     # Raised when a job is interrupted, allowing Active Job to requeue it.
@@ -204,23 +218,24 @@ module ActiveJob
       @encountered = []
       @advanced = false
       @running_step = false
+      @isolating = false
     end
 
-    def step(name, start:, &block) # :nodoc:
+    def step(name, **options, &block) # :nodoc:
       validate_step!(name)
       encountered << name
 
       if completed?(name)
         skip_step(name)
       else
-        run_step(name, start: start, &block)
+        run_step(name, **options, &block)
       end
     end
 
     def to_h # :nodoc:
       {
         "completed" => completed.map(&:to_s),
-        "current" => current&.to_a
+        "current" => current&.to_a,
       }.compact
     end
 
@@ -255,6 +270,10 @@ module ActiveJob
         @running_step
       end
 
+      def isolating?
+        @isolating
+      end
+
       def completed?(name)
         completed.include?(name)
       end
@@ -267,7 +286,17 @@ module ActiveJob
         instrument :step_skipped, step: name
       end
 
-      def run_step(name, start:, &block)
+      def run_step(name, start:, isolated:, &block)
+        @isolating ||= isolated
+
+        if isolating? && advanced?
+          job.interrupt!(reason: :isolating)
+        else
+          run_step_inline(name, start: start, &block)
+        end
+      end
+
+      def run_step_inline(name, start:, **options, &block)
         @running_step = true
         @current ||= new_step(name, start, resumed: false)
 
@@ -299,3 +328,5 @@ module ActiveJob
       end
   end
 end
+
+require "active_job/continuation/step"

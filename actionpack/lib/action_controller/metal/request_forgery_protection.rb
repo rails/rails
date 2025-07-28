@@ -642,7 +642,7 @@ module ActionController # :nodoc:
         end
       end
 
-      def normalize_action_path(action_path) # :doc:
+      def normalize_action_path(action_path)
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))
@@ -652,7 +652,7 @@ module ActionController # :nodoc:
         end
       end
 
-      def normalize_relative_action_path(rel_action_path) # :doc:
+      def normalize_relative_action_path(rel_action_path)
         uri = URI.parse(request.path)
         # add the action path to the request.path
         uri.path += "/#{rel_action_path}"

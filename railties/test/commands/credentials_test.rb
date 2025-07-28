@@ -42,7 +42,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
 
     Dir.chdir(app_path) do
       gitignore = File.read(".gitignore")
-      assert_equal 1, gitignore.scan(%r|config/master\.key|).length
+      assert_equal 1, gitignore.scan("config/*.key").length
     end
   end
 
@@ -61,7 +61,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     run_edit_command
 
     assert_file "config/master.key"
-    assert_match "config/master.key", read_file(".gitignore")
+    assert_match "config/*.key", read_file(".gitignore")
   end
 
   test "edit command does not overwrite master key file if it already exists" do
@@ -74,7 +74,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   test "edit command does not add duplicate master key entries to gitignore" do
     2.times { run_edit_command }
 
-    assert_equal 1, read_file(".gitignore").scan("config/master.key").length
+    assert_equal 1, read_file(".gitignore").scan("config/*.key").length
   end
 
   test "edit command can add master key when require_master_key is true" do

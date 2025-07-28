@@ -55,6 +55,10 @@ module ActionDispatch
       ActionDispatch::Http::URL.secure_protocol = app.config.force_ssl
       ActionDispatch::Http::URL.tld_length = app.config.action_dispatch.tld_length
 
+      unless app.config.action_dispatch.domain_extractor.nil?
+        ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
+      end
+
       ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
       ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
 

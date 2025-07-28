@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class Range
-  # Compare two ranges and see if they overlap each other
-  #  (1..5).overlap?(4..6) # => true
-  #  (1..5).overlap?(7..9) # => false
   unless Range.method_defined?(:overlap?) # Ruby 3.3+
+    # Compare two ranges and see if they overlap each other
+    #  (1..5).overlap?(4..6) # => true
+    #  (1..5).overlap?(7..9) # => false
     def overlap?(other)
       raise TypeError unless other.is_a? Range
 

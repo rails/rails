@@ -122,10 +122,96 @@ class RenderJsonTest < ActionController::TestCase
   end
 
   def test_render_json_with_new_default_and_without_callback_does_not_escape_js_chars
-    TestController.with(escape_json_responses: false) do
-      get :render_json_unsafe_chars_without_callback
-      assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
-      assert_equal "application/json", @response.media_type
+    msg = <<~MSG.squish
+      Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+      Set it to `false`, or remove the config.
+    MSG
+
+    assert_deprecated(msg, ActionController.deprecator) do
+      TestController.with(escape_json_responses: false) do
+        get :render_json_unsafe_chars_without_callback
+        assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
+        assert_equal "application/json", @response.media_type
+      end
+    end
+  end
+
+  def test_render_json_with_optional_escape_option_is_not_deprecated
+    @before_escape_json_responses = @controller.class.escape_json_responses
+
+    assert_not_deprecated(ActionController.deprecator) do
+      @controller.class.escape_json_responses = false
+    end
+
+    get :render_json_unsafe_chars_without_callback
+    assert_equal %({"hello":"\u2028\u2029<script>"}), @response.body
+    assert_equal "application/json", @response.media_type
+  ensure
+    ActionController.deprecator.silence do
+      @controller.class.escape_json_responses = @before_escape_json_responses
+    end
+  end
+
+  def test_render_json_with_redundant_escape_option_is_deprecated
+    @before_escape_json_responses = @controller.class.escape_json_responses
+
+    msg = <<~MSG.squish
+      Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+      Set it to `false`, or remove the config.
+    MSG
+
+    assert_deprecated(msg, ActionController.deprecator) do
+      @controller.class.escape_json_responses = true
+    end
+
+    get :render_json_unsafe_chars_without_callback
+    assert_equal '{"hello":"\\u2028\\u2029\\u003cscript\\u003e"}', @response.body
+    assert_equal "application/json", @response.media_type
+  ensure
+    ActionController.deprecator.silence do
+      @controller.class.escape_json_responses = @before_escape_json_responses
+    end
+  end
+
+  def test_set_escape_json_responses_class_method_is_deprecated
+    @before_escape_json_responses = @controller.class.escape_json_responses
+
+    msg = <<~MSG.squish
+      Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+      Set it to `false`, or remove the config.
+    MSG
+
+    assert_deprecated(msg, ActionController.deprecator) do
+      @controller.class.escape_json_responses = true
+    end
+
+    get :render_json_unsafe_chars_without_callback
+    assert_equal '{"hello":"\\u2028\\u2029\\u003cscript\\u003e"}', @response.body
+    assert_equal "application/json", @response.media_type
+  ensure
+    ActionController.deprecator.silence do
+      @controller.class.escape_json_responses = @before_escape_json_responses
+    end
+  end
+
+  def test_set_escape_json_responses_controller_method_is_deprecated
+    @before_escape_json_responses = @controller.class.escape_json_responses
+
+    msg = <<~MSG.squish
+      Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+      Set it to `false`, or remove the config.
+    MSG
+
+    assert_deprecated(msg, ActionController.deprecator) do
+      @controller.class.escape_json_responses = true
+    end
+
+    get :render_json_unsafe_chars_without_callback
+    assert_equal '{"hello":"\\u2028\\u2029\\u003cscript\\u003e"}', @response.body
+    assert_equal "application/json", @response.media_type
+  ensure
+    ActionController.deprecator.silence do
+      @controller.class.escape_json_responses = @before_escape_json_responses
     end
   end
 

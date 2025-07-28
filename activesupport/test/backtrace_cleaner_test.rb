@@ -136,3 +136,144 @@ class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
     assert_equal backtrace, @bc.clean(backtrace)
   end
 end
+
+class BacktraceCleanerFirstCleanFrameTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+  end
+
+  def invoke_first_clean_frame_defaults
+    -> do
+      @bc.first_clean_frame.tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  def invoke_first_clean_frame(kind = :silent)
+    -> do
+      @bc.first_clean_frame(kind).tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  test "returns the first clean frame (defaults)" do
+    result = invoke_first_clean_frame_defaults
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame_defaults[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:silent)" do
+    result = invoke_first_clean_frame(:silent)
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:noise)" do
+    @bc.add_silencer { true }
+    result = invoke_first_clean_frame(:noise)
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns the first clean frame (:any)" do
+    result = invoke_first_clean_frame(:any) # fallback of the case statement
+    assert_match(/\A#{__FILE__}:#@line:in [`'](#{self.class}#)?invoke_first_clean_frame[`']\z/, result)
+  end
+
+  test "returns nil if there is no clean frame" do
+    @bc.add_silencer { true }
+    assert_nil invoke_first_clean_frame_defaults
+  end
+end
+
+class BacktraceCleanerFirstCleanLocationTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+  end
+
+  def invoke_first_clean_location_defaults
+    -> do
+      @bc.first_clean_location.tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  def invoke_first_clean_location(kind = :silent)
+    -> do
+      @bc.first_clean_location(kind).tap { @line = __LINE__ + 1 }
+    end.call
+  end
+
+  test "returns the first clean location (defaults)" do
+    location = invoke_first_clean_location_defaults
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:silent)" do
+    location = invoke_first_clean_location(:silent)
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:noise)" do
+    @bc.add_silencer { true }
+    location = invoke_first_clean_location(:noise)
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns the first clean location (:any)" do
+    location = invoke_first_clean_location(:any) # fallback of the case statement
+
+    assert_equal __FILE__, location.path
+    assert_equal @line, location.lineno
+  end
+
+  test "returns nil if there is no clean location" do
+    @bc.add_silencer { true }
+    assert_nil invoke_first_clean_location_defaults
+  end
+end
+
+class BacktraceCleanerCleanLocationsTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+    @locations = indirect_caller_locations
+  end
+
+  # Adds a frame from this file to the call stack.
+  def indirect_caller_locations
+    caller_locations
+  end
+
+  test "returns all clean locations (defaults)" do
+    cleaned_locations = @bc.clean_locations(@locations)
+    assert_equal [__FILE__], cleaned_locations.map(&:path)
+  end
+
+  test "returns all clean locations (:silent)" do
+    cleaned_locations = @bc.clean_locations(@locations, :silent)
+    assert_equal [__FILE__], cleaned_locations.map(&:path)
+  end
+
+  test "returns all clean locations (:noise)" do
+    cleaned_locations = @bc.clean_locations(@locations, :noise)
+    assert_not_includes cleaned_locations.map(&:path), __FILE__
+  end
+
+  test "returns an empty array if there are no clean locations" do
+    @bc.add_silencer { true }
+    assert_equal [], @bc.clean_locations(@locations)
+  end
+
+  test "filters and silencers are applied" do
+    @bc.remove_filters!
+    @bc.remove_silencers!
+
+    # We filter all locations as "foo", then we silence filtered strings that
+    # are exactly "foo". If filters and silencers are correctly applied, we
+    # should get no locations back.
+    @bc.add_filter { "foo" }
+    @bc.add_silencer { "foo" == _1 }
+
+    assert_equal [], @bc.clean_locations(@locations)
+  end
+end

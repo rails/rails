@@ -333,6 +333,34 @@ class RequestDomain < BaseRequestTest
   end
 end
 
+class RequestDomainExtractor < BaseRequestTest
+  module CustomExtractor
+    extend self
+
+    def domain_from(_, _)
+      "world"
+    end
+
+    def subdomains_from(_, _)
+      ["hello"]
+    end
+  end
+
+  setup { ActionDispatch::Http::URL.domain_extractor = CustomExtractor }
+
+  teardown { ActionDispatch::Http::URL.domain_extractor = ActionDispatch::Http::URL::DomainExtractor }
+
+  test "domain" do
+    request = stub_request "HTTP_HOST" => "foobar.foobar.com"
+    assert_equal "world", request.domain
+  end
+
+  test "subdomains" do
+    request = stub_request "HTTP_HOST" => "foobar.foobar.com"
+    assert_equal "hello", request.subdomain
+  end
+end
+
 class RequestPort < BaseRequestTest
   test "standard_port" do
     request = stub_request
@@ -1118,6 +1146,11 @@ class RequestParameters < BaseRequestTest
 
   test "parameters containing an invalid UTF8 character" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
+
+  test "parameters key containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "%81E=bar")
     assert_raises(ActionController::BadRequest) { request.parameters }
   end
 

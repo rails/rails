@@ -55,6 +55,17 @@ module ActionDispatch
       end
     end
 
+    def editor_url(location, line: nil)
+      if editor = ActiveSupport::Editor.current
+        line ||= location&.lineno
+        absolute_path = location&.absolute_path
+
+        if absolute_path && line && File.exist?(absolute_path)
+          editor.url_for(absolute_path, line)
+        end
+      end
+    end
+
     def protect_against_forgery?
       false
     end

@@ -14,6 +14,10 @@ class TransactionIsolationUnsupportedTest < ActiveRecord::TestCase
         Tag.transaction(isolation: :serializable) { Tag.lease_connection.materialize_transactions }
       end
     end
+
+    test "current_transaction.isolation returns nil when no transaction" do
+      assert_nil Tag.lease_connection.current_transaction.isolation
+    end
   end
 end
 
@@ -249,6 +253,30 @@ class TransactionIsolationTest < ActiveRecord::TestCase
         assert_raises(ActiveRecord::TransactionIsolationError) do
           Tag.transaction(requires_new: true, isolation: :serializable) { }
         end
+      end
+    end
+
+    test "current_transaction.isolation returns nil when no transaction" do
+      assert_nil Tag.lease_connection.current_transaction.isolation
+    end
+
+    test "current_transaction.isolation returns explicitly set isolation level" do
+      Tag.transaction(isolation: :read_committed) do
+        assert_equal :read_committed, Tag.lease_connection.current_transaction.isolation
+      end
+    end
+
+    test "current_transaction.isolation returns parent isolation for nested transactions" do
+      Tag.transaction(isolation: :read_committed) do
+        Tag.transaction do
+          assert_equal :read_committed, Tag.lease_connection.current_transaction.isolation
+        end
+      end
+    end
+
+    test "current_transaction.isolation returns nil for transactions without explicit isolation" do
+      Tag.transaction do
+        assert_nil Tag.lease_connection.current_transaction.isolation
       end
     end
 

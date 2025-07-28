@@ -868,6 +868,16 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "shows the link to edit the file in the editor" do
+    @app = DevelopmentApp
+    ActiveSupport::Editor.stub(:current, ActiveSupport::Editor.find("atom")) do
+      get "/actionable_error"
+
+      assert_select "code a.edit-icon"
+      assert_includes body, "atom://core/open"
+    end
+  end
+
   test "shows a buttons for every action in an actionable error" do
     @app = DevelopmentApp
     Rails.stub :root, Pathname.new(".") do

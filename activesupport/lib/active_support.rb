@@ -44,6 +44,7 @@ module ActiveSupport
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :Editor
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter

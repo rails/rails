@@ -861,7 +861,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     utc = Time.utc(2000, 1, 1, 0, 30, 10)
     twz = ActiveSupport::TimeWithZone.new(utc, @time_zone)
     assert_equal "1999-12-31 19:30:10.000000000 EST -05:00", twz.inspect
-    assert_equal "1999-12-31 19:00:00.000000000 EST -05:00", twz.beginning_of_hour.inspect
+    assert_equal "1999-12-31 19:30:00.000000000 EST -05:00", twz.beginning_of_minute.inspect
   end
 
   def test_end_of_minute

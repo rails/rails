@@ -488,7 +488,7 @@ Rails.application.executor.wrap do
 end
 ```
 
-You can opt out of this behaviour by using the `--skip-executor` option.
+You can opt out of this behavior by using the `--skip-executor` option.
 
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb

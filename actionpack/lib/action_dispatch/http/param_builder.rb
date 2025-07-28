@@ -111,6 +111,10 @@ module ActionDispatch
 
         return if k.empty?
 
+        unless k.valid_encoding?
+          raise InvalidParameterError, "Invalid encoding for parameter: #{k}"
+        end
+
         if depth == 0 && String === v
           # We have to wait until we've found the top part of the name,
           # because that's what the encoding template is configured with

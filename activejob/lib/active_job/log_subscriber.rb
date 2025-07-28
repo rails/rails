@@ -141,7 +141,7 @@ module ActiveJob
     def interrupt(event)
       job = event.payload[:job]
       info do
-        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]} (#{event.payload[:reason]})"
       end
     end
     subscribe_log_level :interrupt, :info
@@ -256,11 +256,7 @@ module ActiveJob
       end
 
       def enqueue_source_location
-        Thread.each_caller_location do |location|
-          frame = backtrace_cleaner.clean_frame(location)
-          return frame if frame
-        end
-        nil
+        backtrace_cleaner.first_clean_frame
       end
 
       def enqueued_jobs_message(adapter, enqueued_jobs)

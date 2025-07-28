@@ -582,8 +582,8 @@ module ActiveRecord
     end
 
     # Equivalent to <code>update_columns(name => value)</code>.
-    def update_column(name, value)
-      update_columns(name => value)
+    def update_column(name, value, touch: nil)
+      update_columns(name => value, touch: touch)
     end
 
     # Updates the attributes directly in the database issuing an UPDATE SQL
@@ -597,11 +597,25 @@ module ActiveRecord
     #
     # * \Validations are skipped.
     # * \Callbacks are skipped.
-    # * +updated_at+/+updated_on+ are not updated.
+    # * +updated_at+/+updated_on+ are updated if the +touch+ option is set to +true+.
     # * However, attributes are serialized with the same rules as ActiveRecord::Relation#update_all
     #
     # This method raises an ActiveRecord::ActiveRecordError when called on new
     # objects, or when at least one of the attributes is marked as readonly.
+    #
+    # ==== Parameters
+    #
+    # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
+    # * If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
+    #
+    # ==== Examples
+    #
+    #   # Update a single attribute.
+    #   user.update_columns(last_request_at: Time.current)
+    #
+    #   # Update with touch option.
+    #   user.update_columns(last_request_at: Time.current, touch: true)
+
     def update_columns(attributes)
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
@@ -611,6 +625,15 @@ module ActiveRecord
         name = key.to_s
         name = self.class.attribute_aliases[name] || name
         verify_readonly_attribute(name) || name
+      end
+
+      touch = attributes.delete("touch")
+      if touch
+        names = touch if touch != true
+        names = Array.wrap(names)
+        options = names.extract_options!
+        touch_updates = self.class.touch_attributes_with_time(*names, **options)
+        attributes.with_defaults!(touch_updates) unless touch_updates.empty?
       end
 
       update_constraints = _query_constraints_hash

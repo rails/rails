@@ -61,6 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -1172,7 +1173,7 @@ The default behavior is to report all warnings. Warnings to ignore can be specif
 
 Controls the strategy class used to perform schema statement methods in a migration. The default class
 delegates to the connection adapter. Custom strategies should inherit from `ActiveRecord::Migration::ExecutionStrategy`,
-or may inherit from `DefaultStrategy`, which will preserve the default behaviour for methods that aren't implemented:
+or may inherit from `DefaultStrategy`, which will preserve the default behavior for methods that aren't implemented:
 
 ```ruby
 class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
@@ -1796,6 +1797,44 @@ config.active_record.protocol_adapters.mysql = "trilogy"
 
 If no mapping is found, the protocol is used as the adapter name.
 
+#### `config.active_record.deprecated_associations_options`
+
+If present, this has to be a hash with keys `:mode` and/or `:backtrace`:
+
+```ruby
+config.active_record.deprecated_associations_options = { mode: :notify, backtrace: true }
+```
+
+* In `:warn` mode, accessing the deprecated association is reported by the
+  Active Record logger. This is the default mode.
+
+* In `:raise` mode, usage raises an `ActiveRecord::DeprecatedAssociationError`
+  with a similar message and a clean backtrace in the exception object.
+
+* In `:notify` mode, a `deprecated_association.active_record` Active Support
+  notification is published. Please, see details about its payload in the
+  [Active Support Instrumentation guide](active_support_instrumentation.html).
+
+Backtraces are disabled by default. If `:backtrace` is true, warnings include a
+clean backtrace in the message, and notifications have a `:backtrace` key in the
+payload with an array of clean `Thread::Backtrace::Location` objects. Exceptions
+always have a clean stack trace.
+
+Clean backtraces are computed using the Active Record backtrace cleaner.
+
+#### `config.active_record.raise_on_missing_required_finder_order_columns`
+
+Raises an error when order dependent finder methods (e.g. `#first`, `#second`) are called without `order` values
+on the relation, and the model does not have any order columns (`implicit_order_column`, `query_constraints`, or
+`primary_key`) to fall back on.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.1                   | `true`               |
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -2029,6 +2068,26 @@ Specifies the default character set for all renders. Defaults to `nil`.
 #### `config.action_dispatch.tld_length`
 
 Sets the TLD (top-level domain) length for the application. Defaults to `1`.
+
+#### `config.action_dispatch.domain_extractor`
+
+Configures the domain extraction strategy used by Action Dispatch for parsing host names into domain and subdomain components. This must be an object that responds to `domain_from(host, tld_length)` and `subdomains_from(host, tld_length)` methods.
+
+Defaults to `ActionDispatch::Http::URL::DomainExtractor`, which provides the standard domain parsing logic. You can provide a custom extractor to implement specialized domain parsing behavior:
+
+```ruby
+class CustomDomainExtractor
+  def self.domain_from(host, tld_length)
+    # Custom domain extraction logic
+  end
+
+  def self.subdomains_from(host, tld_length)
+    # Custom subdomain extraction logic
+  end
+end
+
+config.action_dispatch.domain_extractor = CustomDomainExtractor
+```
 
 #### `config.action_dispatch.ignore_accept_header`
 

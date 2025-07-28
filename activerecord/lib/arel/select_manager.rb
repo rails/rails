@@ -255,8 +255,12 @@ module Arel # :nodoc: all
     end
 
     def comment(*values)
-      @ctx.comment = Nodes::Comment.new(values)
-      self
+      if values.any?
+        @ctx.comment = Nodes::Comment.new(values)
+        self
+      else
+        @ctx.comment
+      end
     end
 
     private

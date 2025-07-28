@@ -1,3 +1,27 @@
+*   Add JSON support to the built-in health controller.
+
+    The health controller now responds to JSON requests with a structured response
+    containing status and timestamp information. This makes it easier for monitoring
+    tools and load balancers to consume health check data programmatically.
+
+    ```ruby
+    # /up.json
+    {
+      "status": "up",
+      "timestamp": "2025-09-19T12:00:00Z"
+    }
+    ```
+
+    *Francesco Loreti*, *Juan Vásquez*
+
+*   Allow to open source file with a crash from the browser.
+
+    *Igor Kasyanchuk*
+
+*   Always check query string keys for valid encoding just like values are checked.
+
+    *Casper Smits*
+
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 
@@ -157,6 +181,19 @@
     ```
 
     *Jeremy Green*
+
+*   A route pointing to a non-existing controller now returns a 500 instead of a 404.
+
+    A controller not existing isn't a routing error that should result
+    in a 404, but a programming error that should result in a 500 and
+    be reported.
+
+    Until recently, this was hard to untangle because of the support
+    for dynamic `:controller` segment in routes, but since this is
+    deprecated and will be removed in Rails 8.1, we can now easily
+    not consider missing controllers as routing errors.
+
+    *Jean Boussier*
 
 *   Add `check_collisions` option to `ActionDispatch::Session::CacheStore`.
 

@@ -138,8 +138,8 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/.manifest.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert_match(/application-([0-z]+)\.css/, assets["application.css"])
-      assert_match(/rails-([0-z]+)\.png/, assets["rails.png"])
+      assert_match(/application-([0-z]+)\.css/, digested_path(assets, "application.css"))
+      assert_match(/rails-([0-z]+)\.png/, digested_path(assets, "rails.png"))
     end
 
     test "the manifest file should be saved by default in the same assets folder" do
@@ -150,7 +150,7 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/x/.manifest.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert_match(/test-([0-z]+)\.css/, assets["test.css"])
+      assert_match(/test-([0-z]+)\.css/, digested_path(assets, "test.css"))
     end
 
     test "assets do not require any assets group gem when manifest file is present" do
@@ -161,7 +161,7 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/.manifest.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      asset_path = assets["application.js"]
+      asset_path = digested_path(assets, "application.js")
 
       # Load app env
       app "production"
@@ -223,7 +223,8 @@ module ApplicationTests
 
       manifest = Dir["#{app_path}/public/assets/.manifest.json"].first
       assets = ActiveSupport::JSON.decode(File.read(manifest))
-      assert asset_path = assets.find { |(k, _)| /.png/.match?(k) }[1]
+      assert asset = assets.find { |(k, _)| /.png/.match?(k) }[1]
+      asset_path = asset.is_a?(Hash) ? asset["digested_path"] : asset
 
       # Load app env
       app "development"
@@ -314,6 +315,11 @@ module ApplicationTests
     end
 
     private
+      def digested_path(assets, name)
+        asset = assets[name]
+        asset.is_a?(Hash) ? asset["digested_path"] : asset
+      end
+
       def app_with_assets_in_view
         app_file "app/assets/javascripts/application.js", "function f1() { alert(); }"
         app_file "app/views/posts/index.html.erb", "<%= javascript_include_tag 'application' %>"

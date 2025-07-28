@@ -246,7 +246,7 @@ To see this in action, let's create a `lib/templates/erb/scaffold/index.html.erb
 file with the following contents:
 
 ```erb
-<%% @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
+<%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
 ```
 
 Note that the template is an ERB template that renders _another_ ERB template.
@@ -265,7 +265,7 @@ $ bin/rails generate scaffold Post title:string
 The contents of `app/views/posts/index.html.erb` is:
 
 ```erb
-<% @posts.count %> Posts
+<%= @posts.count %> Posts
 ```
 
 [scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
@@ -499,7 +499,7 @@ the `LOCATION` environment variable:
 $ bin/rails app:template LOCATION=~/template.rb
 ```
 
-Templates don't have to be stored locally, you can also specify an URL instead
+Templates don't have to be stored locally, you can also specify a URL instead
 of a path:
 
 ```bash

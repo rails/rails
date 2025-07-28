@@ -925,6 +925,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
+  def test_esbuild_without_yarn_installed
+    generator([destination_root], javascript: "esbuild")
+
+    # fallback to latest when yarn is not installed
+    generator.stub :dockerfile_yarn_version, "latest" do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "jsbundling-rails"
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG YARN_VERSION=latest/, content)
+
+      assert_match("RUN corepack enable && yarn set version $YARN_VERSION", content)
+    end
+  end
+
   def test_bun_option
     generator([destination_root], javascript: "bun")
 
@@ -947,6 +963,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bun_option_with_js_argument
     run_generator [destination_root, "--js", "bun"]
     assert_gem "jsbundling-rails"
+  end
+
+  def test_bun_without_bun_installed
+    generator([destination_root], javascript: "bun")
+    bun_version = generator.class.const_get(:BUN_VERSION)
+
+    # fallback to constant when bun is not installed
+    generator.stub :dockerfile_bun_version, bun_version do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "jsbundling-rails"
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG BUN_VERSION=#{bun_version}/, content)
+
+      assert_match("RUN bun install --frozen-lockfile", content)
+    end
   end
 
   def test_skip_javascript_option_with_skip_javascript_argument
@@ -1117,6 +1150,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /main/
+    assert_file ".github/workflows/ci.yml", /branches: \[ main \]/
   ensure
     if !current_default_branch.strip.empty?
       `git config --global init.defaultBranch #{current_default_branch}`
@@ -1132,6 +1166,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /master/
+    assert_file ".github/workflows/ci.yml", /branches: \[ master \]/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
       `git config --global --unset init.defaultBranch`
@@ -1219,7 +1254,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
-      assert_match(/config\/master\.key/, content)
+      assert_match("config/*.key", content)
     end
   end
 
@@ -1367,7 +1402,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../..:/workspaces:cached"],
+        "volumes" => ["../../#{compose_config["name"]}:/workspaces/#{compose_config["name"]}:cached"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
