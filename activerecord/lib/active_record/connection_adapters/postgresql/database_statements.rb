@@ -127,6 +127,10 @@ module ActiveRecord
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
 
+            if PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+              raise NotImplementedError, "PG::Connection#cancel is not supported with the combination of pg gem #{PG::VERSION} and PostgreSQL libpq #{PG.library_version / 10000}. Please upgrade pg gem to 1.6.0 or later."
+            end
+
             @raw_connection.cancel
             @raw_connection.block
           rescue PG::Error
