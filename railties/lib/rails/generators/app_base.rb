@@ -657,6 +657,11 @@ module Rails
         end
       end
 
+      def rails_command(command, command_options = {})
+        command_options[:capture] = true if options[:quiet]
+        super
+      end
+
       def bundle_install?
         !(options[:skip_bundle] || options[:pretend])
       end
