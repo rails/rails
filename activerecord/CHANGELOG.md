@@ -1,3 +1,8 @@
+*   Emit a warning at initialization when using pg < 1.6.0 with the PostgreSQL 18 client library (libpq),
+    and raise an error in cancel_any_running_query because it calls the incompatible PG::Connection#cancel.
+
+    *Yasuo Honda*, *Lars Kanis*
+
 *   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
 
     *Ryuta Kamizono*
@@ -48,10 +53,6 @@
     ```
 
     *Kir Shatrov*
-
-*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
-
-    *Yasuo Honda*
 
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
