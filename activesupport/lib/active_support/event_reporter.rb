@@ -209,6 +209,15 @@ module ActiveSupport
   #       end
   #     end
   #
+  # The Event Reporter standardizes on symbol keys for all payload data, tags, and context store entries.
+  # String keys are automatically converted to symbols for consistency.
+  #
+  #   Rails.event.notify("user.created", { "id" => 123 })
+  #   # Emits event:
+  #   #  {
+  #   #    name: "user.created",
+  #   #    payload: { id: 123 },
+  #   #  }
   class EventReporter
     attr_reader :subscribers
     attr_accessor :raise_on_error
@@ -482,9 +491,9 @@ module ActiveSupport
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
           if kwargs.any?
-            kwargs
+            kwargs.transform_keys(&:to_sym)
           elsif payload
-            payload
+            payload.transform_keys(&:to_sym)
           end
         else
           handle_unexpected_args(name_or_object, payload, kwargs) if payload || kwargs.any?
