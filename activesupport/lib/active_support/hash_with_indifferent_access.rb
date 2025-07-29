@@ -368,12 +368,12 @@ module ActiveSupport
     def transform_keys!(hash = NOT_GIVEN, &block)
       if NOT_GIVEN.equal?(hash)
         if block_given?
-          replace(transform_keys(&block))
+          replace(transform_keys(&block).tap { |h| set_defaults(h) })
         else
           return to_enum(:transform_keys!)
         end
       else
-        replace(transform_keys(hash, &block))
+        replace(transform_keys(hash, &block).tap { |h| set_defaults(h) })
       end
 
       self
