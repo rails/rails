@@ -79,6 +79,14 @@ module ActiveSupport
       end
     end
 
+    test "#notify symbolizes keys in hash payload" do
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value" })
+      ]) do
+        @reporter.notify(:test_event, { "key" => "value" })
+      end
+    end
+
     test "#notify with hash payload and kwargs raises" do
       error = assert_raises(ArgumentError) do
         @reporter.notify(:test_event, { key: "value" }, extra: "arg")
@@ -378,7 +386,7 @@ module ActiveSupport
       http_tag = HttpRequestTag.new("GET", 200)
       @reporter.tagged("foobar", http_tag, shop_id: 123) do
         assert_called_with(@subscriber, :emit, [
-          event_matcher(name: "test_event", payload: { key: "value" }, tags: { "foobar": true, "HttpRequestTag": http_tag, shop_id: 123 })
+          event_matcher(name: "test_event", payload: { key: "value" }, tags: { foobar: true, "HttpRequestTag": http_tag, shop_id: 123 })
         ]) do
           @reporter.notify(:test_event, key: "value")
         end
