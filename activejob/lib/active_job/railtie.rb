@@ -101,6 +101,7 @@ module ActiveJob
     initializer "active_job.clear_event_reporter_context" do
       ActiveSupport.on_load(:active_job) do
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around) do |_, inner|
+          ActiveSupport.event_reporter.clear_context
           inner.call
         ensure
           ActiveSupport.event_reporter.clear_context
