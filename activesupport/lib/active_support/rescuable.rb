@@ -92,6 +92,7 @@ module ActiveSupport
 
         if handler = handler_for_rescue(exception, object: object)
           handler.call exception
+          ActiveSupport::Notifications.instrument("rescue_from_callback.action_controller", exception: exception)
           exception
         elsif exception
           if visited_exceptions.include?(exception.cause)
