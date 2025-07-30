@@ -815,6 +815,26 @@ class RedirectTest < ActionController::TestCase
     ActionController::Base.action_on_path_relative_redirect = old_config
   end
 
+  def test_redirect_with_allowed_redirect_hosts
+    with_raise_on_open_redirects do
+      with_allowed_redirect_hosts(hosts: ["www.rubyonrails.org"]) do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_redirected_to "http://www.rubyonrails.org/"
+      end
+    end
+  end
+
+  def test_not_redirect_with_allowed_redirect_hosts
+    with_raise_on_open_redirects do
+      with_allowed_redirect_hosts(hosts: ["www.ruby-lang.org"]) do
+        assert_raise ActionController::Redirecting::UnsafeRedirectError do
+          get :redirect_to_url
+        end
+      end
+    end
+  end
+
   private
     def with_raise_on_open_redirects
       old_raise_on_open_redirects = ActionController::Base.raise_on_open_redirects
@@ -822,6 +842,14 @@ class RedirectTest < ActionController::TestCase
       yield
     ensure
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+    end
+
+    def with_allowed_redirect_hosts(hosts:)
+      old_allowed_redirect_hosts = ActionController::Base.allowed_redirect_hosts
+      ActionController::Base.allowed_redirect_hosts = hosts
+      yield
+    ensure
+      ActionController::Base.allowed_redirect_hosts = old_allowed_redirect_hosts
     end
 end
 

@@ -16,6 +16,7 @@ module ActionController
     config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
+    config.action_controller.allowed_redirect_hosts = []
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController

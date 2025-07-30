@@ -1,3 +1,11 @@
+*   Allow hosts redirects from `hosts` Rails configuration
+
+    ```ruby
+    config.action_controller.allowed_redirect_hosts << "example.com"
+    ```
+
+    *Kevin Robatel*
+
 *   `rate_limit.action_controller` notification has additional payload
 
     additonal values: count, to, within, by, name, cache_key
