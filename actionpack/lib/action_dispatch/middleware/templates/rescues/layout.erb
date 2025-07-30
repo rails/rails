@@ -38,6 +38,22 @@
       padding: 0.5em 1.5em;
     }
 
+    header button {
+      appearance: none;
+      background-color: hsl(0 0% 0% / 0.2);
+      border: 0;
+      border-radius: 14px;
+      color: white;
+      float: right;
+      font-weight: 500;
+      height: 28px;
+      padding-inline: 14px;
+      margin: 0.35em 0;
+    }
+    header button:active {
+      background-color: hsl(0 0% 0% / 0.25);
+    }
+
     h1 {
       overflow-wrap: break-word;
       margin: 0.2em 0;
@@ -298,11 +314,21 @@
     var toggleEnvDump = function() {
       return toggle('env_dump');
     }
+    var copyAsText = function() {
+      const text = document.getElementById("exception-message-for-copy").textContent;
+
+      navigator.clipboard.writeText(text).then(() => {
+        const beforeText = this.innerText;
+        this.innerText = "Copied!"
+        setTimeout(() => this.innerText = beforeText, 1000)
+      })
+    }
   </script>
 </head>
 <body>
 
   <%= yield %>
+  <script type="text/plain" id="exception-message-for-copy"><%= raw @exception_message_for_copy %></script>
 
 </body>
 </html>
