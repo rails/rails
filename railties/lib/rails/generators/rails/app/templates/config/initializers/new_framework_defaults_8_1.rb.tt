@@ -10,6 +10,19 @@
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
 
 ###
+# Changes Rails internal state locality from thread-based to fiber-based.
+# This provides better support for fiber-based servers (e.g., Falcon) and 
+# modern fiber concurrency patterns, and is unlikely to cause issues for
+# most applications.
+#
+# However, applications that explicitly depend on Active Record connections 
+# being shared into fibers (e.g. enumerators) may need to review their code. 
+# If you encounter issues, you can revert to thread-based isolation by 
+# setting this to `:thread`.
+#++
+# Rails.configuration.active_support.isolation_level = :fiber
+
+###
 # Skips escaping HTML entities and line separators. When set to `false`, the
 # JSON renderer no longer escapes these to improve performance.
 #

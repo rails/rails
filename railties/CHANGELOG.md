@@ -1,3 +1,11 @@
+*   Set `config.active_support.isolation_level = :fiber` as the default for Rails 8.1 applications.
+
+    This provides better support for fiber-based servers and modern concurrency patterns.
+    Existing applications upgrading to Rails 8.1 will maintain thread-based isolation
+    unless they update their `config.load_defaults` version.
+
+    *Samuel Williams*
+
 *   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
 
     Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,

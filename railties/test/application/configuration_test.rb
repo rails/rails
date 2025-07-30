@@ -4529,7 +4529,14 @@ module ApplicationTests
       assert_equal true, ActionController::Base.raise_on_missing_callback_actions
     end
 
-    test "isolation_level is :thread by default" do
+    test "isolation_level is :fiber by default for Rails 8.1+" do
+      app "development"
+      assert_equal :fiber, ActiveSupport::IsolatedExecutionState.isolation_level
+    end
+
+    test "isolation_level is :thread by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
       app "development"
       assert_equal :thread, ActiveSupport::IsolatedExecutionState.isolation_level
     end
