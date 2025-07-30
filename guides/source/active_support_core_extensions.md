@@ -977,19 +977,23 @@ class MysqlAdapter < AbstractAdapter
 end
 ```
 
-Instance methods are created as well for convenience, they are just proxies to the class attribute. So, instances can change the class attribute, but cannot override it as it happens with `class_attribute` (see above). For example given
+Instance methods are also created for convenience, but they are simply proxies to the internal value which is shared among the class. As a result, when an instance modifies the value, this affects the entire class hierarchy. This behavior is different than `class_attribute` (see above).
+
+For example:
 
 ```ruby
-module ActionView
-  class Base
-    cattr_accessor :field_error_proc, default: Proc.new {
-      # ...
-    }
-  end
+class Foo
+  cattr_accessor :bar
 end
-```
 
-we can access `field_error_proc` in views.
+instance = Foo.new
+
+Foo.bar = 1
+instance.bar # => 1
+
+instance.bar = 2
+Foo.bar # => 2
+```
 
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
