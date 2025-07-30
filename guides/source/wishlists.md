@@ -1542,4 +1542,4 @@ Here are a few ideas to build on to this:
 - Write more tests
 - Add payments to buy products
 
-[Return to all tutorials](tutorials.html)
+[Return to all tutorials](https://rubyonrails.org/docs/tutorials)
