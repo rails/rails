@@ -8,7 +8,7 @@
 
 *   `rate_limit.action_controller` notification has additional payload
 
-    additonal values: count, to, within, by, name, cache_key
+    additional values: count, to, within, by, name, cache_key
 
     *Jonathan Rochkind*
 
