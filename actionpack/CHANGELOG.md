@@ -1,3 +1,12 @@
+*   Add support for `rack.response_finished` callbacks in ActionDispatch::Executor.
+
+    The executor middleware now supports deferring completion callbacks to later
+    in the request lifecycle by utilizing Rack's `rack.response_finished` mechanism,
+    when available. This enables applications to define `rack.response_finished` callbacks
+    that may rely on state that would be cleaned up by the executor's completion callbacks.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
 *   Allow hosts redirects from `hosts` Rails configuration
 
     ```ruby
