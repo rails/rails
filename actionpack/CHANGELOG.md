@@ -1,3 +1,9 @@
+*   `rate_limit.action_controller` notification has additional payload
+
+    additonal values: count, to, within, by, name, cache_key
+
+    *Jonathan Rochkind*
+
 *   Add JSON support to the built-in health controller.
 
     The health controller now responds to JSON requests with a structured response
