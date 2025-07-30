@@ -262,9 +262,7 @@ module ActiveSupport
     #   hash[:a][:c] # => "c"
     #   dup[:a][:c]  # => "c"
     def dup
-      self.class.new(self).tap do |new_hash|
-        set_defaults(new_hash)
-      end
+      copy_defaults(self.class.new(self))
     end
 
     # This method has the same semantics of +update+, except it does not
@@ -352,12 +350,12 @@ module ActiveSupport
     def transform_keys!(hash = NOT_GIVEN, &block)
       if NOT_GIVEN.equal?(hash)
         if block_given?
-          replace(transform_keys(&block))
+          replace(copy_defaults(transform_keys(&block)))
         else
           return to_enum(:transform_keys!)
         end
       else
-        replace(transform_keys(hash, &block))
+        replace(copy_defaults(transform_keys(hash, &block)))
       end
 
       self
@@ -381,8 +379,7 @@ module ActiveSupport
     def to_hash
       copy = Hash[self]
       copy.transform_values! { |v| convert_value_to_hash(v) }
-      set_defaults(copy)
-      copy
+      copy_defaults(copy)
     end
 
     def to_proc
@@ -418,12 +415,13 @@ module ActiveSupport
       end
 
 
-      def set_defaults(target)
+      def copy_defaults(target)
         if default_proc
           target.default_proc = default_proc.dup
         else
           target.default = default
         end
+        target
       end
 
       def update_with_single_argument(other_hash, block)
