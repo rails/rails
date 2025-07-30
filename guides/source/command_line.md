@@ -3,16 +3,17 @@
 The Rails Command Line
 ======================
 
-After reading this guide, you will know:
+After reading this guide, you will know how to use the Rails command:
 
-* How to create a Rails application.
-* How to generate models, controllers, database migrations, and unit tests.
-* How to start a development server.
-* How to experiment with objects through an interactive shell.
+* To create a Rails application.
+* To generate models, controllers, database migrations, and unit tests.
+* To start a development server.
+* To inspect a Rails application through an interactive shell.
+* To add and edit credentials to an application. 
 
 --------------------------------------------------------------------------------
 
-NOTE: This tutorial assumes you have basic Rails knowledge from reading the [Getting Started with Rails Guide](getting_started.html).
+TODO: do `rails generate model --help`, it prints out two screens worth of info, use that to write
 
 Creating a Rails App
 --------------------
