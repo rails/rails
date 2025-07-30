@@ -47,7 +47,6 @@ module ActiveSupport
 
       app.executor.to_run do
         ActiveSupport::ExecutionContext.push
-        ActiveSupport.event_reporter.clear_context
       end
 
       app.executor.to_complete do
