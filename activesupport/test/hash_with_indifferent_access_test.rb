@@ -555,15 +555,20 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     hash_with_default = Hash.new(:a)
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys!(&:to_s)
-    assert_equal hash_with_default.default, hash.default
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
+
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys! { |k| k.to_s }
-    assert_equal hash_with_default.default, hash.default
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
 
     hash_with_default_proc = Hash.new { |h, k| h[k] = :b }
+    default_proc = hash_with_default_proc.default_proc
+
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys!(&:to_s)
-    assert_equal hash_with_default_proc.default_proc, hash.default_proc
+    assert_equal default_proc, hash.default_proc
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys! { |k| k.to_s }
-    assert_equal hash_with_default_proc.default_proc, hash.default_proc
+    assert_equal default_proc, hash.default_proc
   end
 
   def test_indifferent_deep_transform_keys_bang
