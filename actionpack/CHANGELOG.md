@@ -1,3 +1,14 @@
+*   Address `rack 3.2` deprecations warnings.
+
+    ```
+    warning: Status code :unprocessable_entity is deprecated and will be removed in a future version of Rack.
+    Please use :unprocessable_content instead.
+    ```
+
+    Rails API will transparently convert one into the other for the forseable future.
+
+    *Earlopain*, *Jean Boussier*
+
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
 

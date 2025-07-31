@@ -75,8 +75,6 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise ActionController::UnknownHttpMethod
       when "/not_implemented"
         raise ActionController::NotImplemented
-      when "/unprocessable_entity"
-        raise ActionController::InvalidAuthenticityToken
       when "/invalid_mimetype"
         raise ActionDispatch::Http::MimeNegotiation::InvalidType
       when "/not_found_original_exception"

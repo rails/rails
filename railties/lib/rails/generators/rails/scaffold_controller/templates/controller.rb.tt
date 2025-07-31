@@ -27,7 +27,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     if @<%= orm_instance.save %>
       redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully created.") %>
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: <%= ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect %>
     end
   end
 
@@ -36,7 +36,7 @@ class <%= controller_class_name %>Controller < ApplicationController
     if @<%= orm_instance.update("#{singular_table_name}_params") %>
       redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>, status: :see_other
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: <%= ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect %>
     end
   end
 
