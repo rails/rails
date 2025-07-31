@@ -178,7 +178,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      Rack::Utils.status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
     end
 
     def show?(request)
