@@ -57,7 +57,7 @@ module ActionMailbox
         When configuring your Postmark inbound webhook, be sure to check the box
         labeled "Include raw email content in JSON payload".
       MESSAGE
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     private

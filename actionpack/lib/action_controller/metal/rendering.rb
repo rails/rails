@@ -232,7 +232,7 @@ module ActionController
         end
 
         if options[:status]
-          options[:status] = Rack::Utils.status_code(options[:status])
+          options[:status] = ActionDispatch::Response.rack_status_code(options[:status])
         end
 
         super
