@@ -249,9 +249,9 @@ module ActionController
 
       def _extract_redirect_to_status(options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
-          Rack::Utils.status_code(options.delete(:status))
+          ActionDispatch::Response.rack_status_code(options.delete(:status))
         elsif response_options.key?(:status)
-          Rack::Utils.status_code(response_options[:status])
+          ActionDispatch::Response.rack_status_code(response_options[:status])
         else
           302
         end

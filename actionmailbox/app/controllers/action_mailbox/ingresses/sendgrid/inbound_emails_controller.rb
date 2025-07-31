@@ -52,7 +52,7 @@ module ActionMailbox
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
     rescue JSON::ParserError => error
       logger.error error.message
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     private
