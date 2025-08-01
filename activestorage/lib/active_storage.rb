@@ -373,6 +373,7 @@ module ActiveStorage
     require "digest/md5"
     @checksum_implementation = Digest::MD5
   end
+  mattr_accessor :default_chunk_size, default: 5242880
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
