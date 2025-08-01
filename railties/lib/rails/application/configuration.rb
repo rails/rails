@@ -364,6 +364,10 @@ module Rails
           if respond_to?(:active_record)
             active_record.raise_on_missing_required_finder_order_columns = true
           end
+
+          if respond_to?(:action_view)
+            action_view.close_form_with_without_block = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_view.close_form_with_without_block`](#config-action-view-close-form-with-without-block): `true`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
@@ -2468,6 +2469,30 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `true`               |
 | 7.0                   | `false`              |
+
+#### `config.action_view.close_form_with_without_block`
+
+Controls whether or not calls to `form_with` without a block will render without a closing tag.
+
+When set to `false`, calls without a block will render `<form>` elements as open tags:
+
+```ruby
+form_with url: "https://example.com"
+# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields -->
+```
+
+When set to `true`, calls without a block will render `<form>` elements with closing tags:
+
+```ruby
+form_with url: "https://example.com"
+# => <form action="https://example.com" method="post"><!-- Rails-generated hidden fields --></form>
+```
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.1                   | `true`               |
+
 
 #### `config.action_view.prepend_content_exfiltration_prevention`
 
