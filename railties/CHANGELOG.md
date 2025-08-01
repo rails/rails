@@ -1,3 +1,7 @@
+*   Suggest `bin/rails action_text:install` from Action Dispatch error page
+
+    *Sean Doyle*
+
 *   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
 
     Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
