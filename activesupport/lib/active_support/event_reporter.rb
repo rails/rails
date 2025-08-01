@@ -82,6 +82,16 @@ module ActiveSupport
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }
   #
+  # ==== Filtered Subscriptions
+  #
+  # Subscribers can be configured with an optional filter proc to only receive a subset of events:
+  #
+  #   # Only receive events with names starting with "user."
+  #   Rails.event.subscribe(user_subscriber) { |event| event[:name].start_with?("user.") }
+  #
+  #   # Only receive events with specific payload types
+  #   Rails.event.subscribe(audit_subscriber) { |event| event[:payload].is_a?(AuditEvent) }
+  #
   # The +notify+ API can receive either an event name and a payload hash, or an event object. Names are coerced to strings.
   #
   # ==== Event Objects
@@ -271,12 +281,17 @@ module ActiveSupport
     #   timestamp: Float (The timestamp of the event, in nanoseconds)
     #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
     #
-    def subscribe(subscriber)
+    # An optional filter proc can be provided to only receive a subset of events:
+    #
+    #   Rails.event.subscribe(subscriber) { |event| event[:name].start_with?("user.") }
+    #   Rails.event.subscribe(subscriber) { |event| event[:payload].is_a?(UserEvent) }
+    #
+    def subscribe(subscriber, &filter)
       unless subscriber.respond_to?(:emit)
         raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #emit"
       end
 
-      @subscribers << subscriber
+      @subscribers << { subscriber: subscriber, filter: filter }
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:
@@ -333,7 +348,12 @@ module ActiveSupport
         event[:source_location] = source_location
       end
 
-      subscribers.each do |subscriber|
+      subscribers.each do |subscriber_entry|
+        subscriber = subscriber_entry[:subscriber]
+        filter = subscriber_entry[:filter]
+
+        next if filter && !filter.call(event)
+
         subscriber.emit(event)
       rescue => subscriber_error
         if raise_on_error
