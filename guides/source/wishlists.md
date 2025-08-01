@@ -960,7 +960,7 @@ can filter wishlists by `User` or by `Product`.
 Update `app/views/store/wishlists/index.html.erb` by adding the following form:
 
 ```erb#1,3-7
-<h1><%= pluralize @wishlists.count", "Wishlist" %></h1>
+<h1><%= pluralize @wishlists.count, "Wishlist" %></h1>
 
 <%= form_with url: store_wishlists_path, method: :get do |form| %>
   <%= form.collection_select :user_id, User.all, :id, :full_name, selected: params[:user_id], include_blank: "All Users" %>
