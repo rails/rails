@@ -1,4 +1,5 @@
 <header role="banner">
+  <%= render "rescues/copy_button" %>
   <h1>
     <%= @exception_wrapper.exception_name %> in
     <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
