@@ -294,6 +294,10 @@ module ActiveRecord
       ActiveRecord::Base.adapter_class.quote_table_name(name)
     end
 
+    def quote_column_name(name)
+      ActiveRecord::Base.adapter_class.quote_column_name(name)
+    end
+
     # Connect to the database
     ARTest.connect
     # Load database schema
