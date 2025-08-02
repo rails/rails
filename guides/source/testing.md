@@ -64,7 +64,7 @@ JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/v3.1/classes/ActiveRecord/Fixtures.html)
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
 are a way of mocking up data to use in your tests, so that you don't have to use
 'real' data. They are stored in the `fixtures` directory, and you can read more
 about them in the [Fixtures](#fixtures) section below.
@@ -1677,7 +1677,7 @@ which can be used in system tests.
 #### Screenshot Helper
 
 The
-[`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
+[`ScreenshotHelper`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
 is a helper designed to capture screenshots of your tests. This can be helpful
 for viewing the browser at the point a test failed, or to view screenshots later
 for debugging.
