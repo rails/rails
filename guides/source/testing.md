@@ -2166,6 +2166,39 @@ You have been invited.
 Cheers!
 ```
 
+When testing multi-part emails with both HTML *and* text parts, use the
+[`assert_html_part`](https://api.rubyonrails.org/classes/ActionMailer/TestCase/Behavior.html#method-i-assert_html_part)
+and
+[`assert_text_part`](https://api.rubyonrails.org/classes/ActionMailer/TestCase/Behavior.html#method-i-assert_text_part)
+assertions. HTML assertions provided by [Rails::Dom::Testing](https://github.com/rails/rails-dom-testing) are available
+within the `assert_html_part` block.
+
+```ruby
+require "test_helper"
+
+class UserMailerTest < ActionMailer::TestCase
+  test "invite" do
+    # Create the email and store it for further assertions
+    email = UserMailer.create_invite("me@example.com",
+                                     "friend@example.com", Time.now)
+
+    # Test the body of the sent email's text part
+    assert_text_part email do |text|
+      assert_includes text, "Hi friend@example.com"
+      assert_includes text, "You have been invited."
+      assert_includes text, "Cheers!"
+    end
+
+    # Test the body of the sent email's HTML part
+    assert_html_part email do
+      assert_select "h1", text: "Hi friend@example.com"
+      assert_select "p", "You have been invited."
+      assert_select "p", "Cheers!"
+    end
+  end
+end
+```
+
 #### Configuring the Delivery Method for Test
 
 The line `ActionMailer::Base.delivery_method = :test` in
