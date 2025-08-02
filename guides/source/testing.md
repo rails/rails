@@ -1008,7 +1008,7 @@ for additional settings.
 
 ### Screenshot Helper
 
-The `ScreenshotHelper` is a helper designed to capture screenshots of your tests.
+The [`ScreenshotHelper`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html) is a helper designed to capture screenshots of your tests.
 This can be helpful for viewing the browser at the point a test failed, or
 to view screenshots later for debugging.
 
