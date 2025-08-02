@@ -1,3 +1,11 @@
+*   Preserve one space between elements when converting to plain text.
+
+    Line breaks between text and inline elements (like `<a>` tags) are now
+    squeezed to a single space instead of being removed, ensuring proper
+    spacing in the plaintext output.
+
+    *Steve Hoeksema*
+
 *   Attachment upload progress accounts for server processing time.
 
     *Jeremy Daer*
