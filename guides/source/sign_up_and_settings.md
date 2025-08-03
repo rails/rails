@@ -1901,7 +1901,7 @@ end
 
 test "regular user cannot access /store/users" do
   sign_in_as users(:one)
-  get store_products_path
+  get store_users_path
   assert_response :redirect
   assert_equal "You aren't allowed to do that.", flash[:alert]
 end
