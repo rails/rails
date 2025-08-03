@@ -64,3 +64,8 @@
 # Applications that want to keep generating the `autocomplete` attribute for those tags can set it to `false`.
 #++
 # Rails.configuration.action_view.remove_hidden_field_autocomplete = true
+
+# Configures the Rails.cache LocalCache to use the application's executor
+# instead of a middleware (if the Rails.cache store supports it)
+#
+# Rails.configuration.local_cache_store_strategy = :executor

@@ -65,6 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_view.remove_hidden_field_autocomplete`](#config-action-view-remove-hidden-field-autocomplete): `true`
 - [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
+- [`config.local_cache_store_strategy`](#config-local-cache-store-strategy): `:executor`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -447,9 +448,20 @@ An app's configured `javascript_path` will be excluded from `autoload_paths`.
 
 #### `config.local_cache_store_strategy`
 
-Configures whether `ActiveSupport::Cache::Strategy::LocalCache` is added to the
-middleware stack if supported by `Rails.cache`. Set to `false` to disable the
-middleware.
+Configures whether `Rails.cache` will use `LocalCache`, if supported. Valid
+options are:
+
+- `:executor`, which enables `LocalCache` inside the application's `Executor`.
+- `:middleware`, which enables `LocalCache` with a Rack middleware.
+- `false`, to disable any automatic `LocalCache` behavior.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:middleware`        |
+| 8.1                   | `:executor`          |
+
+[`Executor`]: https://api.rubyonrails.org/classes/ActionDispatch/Executor.html
+[`LocalCache`]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Strategy/LocalCache.html
 
 #### `config.log_file_size`
 
