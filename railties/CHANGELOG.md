@@ -1,3 +1,7 @@
+*   Allow `postgres` as an alias for `postgresql` in rails generators
+
+    *Ali Ismayilov*
+
 *   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
 
     Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
