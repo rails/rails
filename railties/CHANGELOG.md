@@ -1,3 +1,22 @@
+*   Enable hooking `LocalCache` into `Executor`.
+
+    Previously, `LocalCache` would automatically be enabled for requests using a
+    middleware (if supported by the `Rails.cache` store). Now, it can be
+    configured to use the `Executor` instead, meaning it'll be used in jobs,
+    tests, etc. This will be the default starting with `load_defaults 8.1`.
+
+    ```ruby
+    config.local_cache_store_strategy = :executor
+    ```
+
+    The same configuration can also be used to disable the `LocalCache`.
+
+    ```ruby
+    config.local_cache_store_strategy = false
+    ```
+
+    *Hartley McGuire*
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash

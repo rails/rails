@@ -4340,6 +4340,8 @@ module ApplicationTests
     end
 
     test "app starts with LocalCache middleware" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app "development"
 
       assert(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
@@ -4350,6 +4352,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be moved via app config" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       # you can't move Rails.cache.middleware as it doesn't exist yet
       add_to_config "config.middleware.move_after(Rails::Rack::Logger, ActiveSupport::Cache::Strategy::LocalCache)"
 
@@ -4361,6 +4365,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be moved via initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app_file "config/initializers/move_local_cache_middleware.rb", <<~RUBY
         Rails.application.config.middleware.move_after(Rails::Rack::Logger, Rails.cache.middleware)
       RUBY
@@ -4373,6 +4379,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be removed via app config" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       # you can't delete Rails.cache.middleware as it doesn't exist yet
       add_to_config "config.middleware.delete(ActiveSupport::Cache::Strategy::LocalCache)"
 
@@ -4382,6 +4390,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be removed via initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app_file "config/initializers/remove_local_cache_middleware.rb", <<~RUBY
         Rails.application.config.middleware.delete(Rails.cache.middleware)
       RUBY
@@ -4410,8 +4420,6 @@ module ApplicationTests
     end
 
     test "LocalCache executor hook can be enabled via configuration" do
-      add_to_config "config.local_cache_store_strategy = :executor"
-
       app "development"
 
       assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
@@ -4424,6 +4432,8 @@ module ApplicationTests
     end
 
     test "LocalCache executor hook can be enabled via configuration in initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app_file "config/initializers/new_framework_defaults.rb", <<~RUBY
         Rails.configuration.local_cache_store_strategy = :executor
       RUBY
