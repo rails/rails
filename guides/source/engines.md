@@ -57,8 +57,7 @@ applications also share a common structure.
 Finally,
 [`Application`](https://api.rubyonrails.org/classes/Rails/Application.html)
 extends `Engine` with additional responsibilities like middleware setup,
-configuration loading, and application initialization. Engines and
-applications also share a common structure.
+configuration loading, and application initialization.
 
 ### Engines and Plugins
 
