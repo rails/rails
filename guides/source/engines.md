@@ -27,18 +27,19 @@ is essentially a "supercharged" engine, with the `Rails::Application` class
 inheriting a lot of its behavior from `Rails::Engine`, which in turn [inherits
 from `Rails::Railtie`](engines.html#the-inheritance-hierarchy).
 
-
-The main application is always the final authority in a Rails environment. While
-engines can extend or enhance the application's functionality, they are meant to
-support the app — not override or redefine its behavior. Engines exist to serve
-the application, not the other way around.
-
 Some examples of engines in action:
 
 * [Devise](https://github.com/plataformatec/devise) which provides authentication for its parent applications
 * [Thredded](https://github.com/thredded/thredded) which provides forum functionality
 * [Spree](https://github.com/spree/spree) which provides an e-commerce platform
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
+* [Active Storage](https://github.com/rails/rails/tree/main/activestorage) which provides a file storage as an engine.
+* [Action Text](https://github.com/rails/rails/tree/main/actiontext) which provides a rich text editor as an engine.
+
+NOTE: The main application is always the final authority in a Rails environment. While
+engines can extend or enhance the application's functionality, they are meant to
+support the app — not override or redefine its behavior. Engines exist to serve
+the application, not the other way around.
 
 ### Inheritance Hierarchy
 
@@ -54,10 +55,11 @@ The [`Rails Engine`](https://api.rubyonrails.org/classes/Rails/Engine.html) buil
 load paths, making it possible to package complete Rails components. Engines and
 applications also share a common directory structure.
 
-Finally,
-[`Application`](https://api.rubyonrails.org/classes/Rails/Application.html)
-extends `Engine` with additional responsibilities like middleware setup,
-configuration loading, and application initialization.
+While an engine can be part of a larger Rails application, it does not require
+an [`Application`](https://api.rubyonrails.org/classes/Rails/Application.html)
+class to function. However, `Application` can extend `Engine` with additional
+responsibilities like middleware setup, configuration loading, and application
+initialization.
 
 ### Engines and Plugins
 
@@ -304,8 +306,7 @@ For example:
 Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
 
 NOTE: It is recommended that the `isolate_namespace` line be left within the
-`Engine` class definition. Without it, classes generated in an engine may
-conflict with an application.
+`Engine` class definition. Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
 
 ### Understanding the `app` Directory
 
@@ -874,16 +875,6 @@ engine. When run the next time, it will only copy over migrations that haven't
 been copied over already. This is useful if you want to revert the migrations
 from the engine.
 
-#### Referencing a Custom Path for the Migrations
-
-If your engine stores its migrations in the non-default location, you can
-specify a custom path in the source engine for the migrations using
-`MIGRATIONS_PATH`.
-
-```bash
-$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
-```
-
 #### Migrations for Multiple Engines
 
 If you have multiple engines referenced in the host application, that need migrations copied over, use
@@ -894,6 +885,16 @@ $ bin/rails railties:install:migrations
 ```
 
 This will save you from having to run a separate `install:migrations` task for each engine individually.
+
+#### Referencing a Custom Path for the Migrations
+
+If your engine stores its migrations in the non-default location, you can
+specify a custom path in the source engine for the migrations using
+`MIGRATIONS_PATH`.
+
+```bash
+$ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
+```
 
 #### Migrations for Multiple Databases
 
@@ -1227,7 +1228,7 @@ belongs_to :author, class_name: Blorgh.author_class.to_s
 #### Setting the `author_class` Configuration Setting in the Host Application
 
 To set this configuration setting within the host application, an initializer
-should be used. By using an initializer, the configuration will be set up before
+can be used. By using an initializer, the configuration will be set up before
 the application starts and before it calls the engine's models. This is
 important because the engine's models may depend on this configuration setting
 existing.
@@ -1332,7 +1333,7 @@ It’s recommended to suffix override files with `_override.rb` (e.g., `article_
 
 #### Reopening Existing Classes Using `class_eval`
 
-For example, in order to override the engine model
+In order to override the engine model
 
 ```ruby
 # blorgh/app/models/blorgh/article.rb
@@ -1356,15 +1357,11 @@ end
 It is very important that the override _reopens_ the class or module. Using the
 `class` or `module` keywords would define them if they were not already in
 memory, which would be incorrect because the definition lives in the engine.
-Using `class_eval` as shown above ensures you are reopening.
+Using [`class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-class_eval) as shown above ensures you are reopening.
 
 #### Reopening Existing Classes Using ActiveSupport::Concern
 
-Using `Class#class_eval` is great for simple adjustments, but for more complex
-class modifications, you might want to consider using
-[`ActiveSupport::Concern`](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html).
-ActiveSupport::Concern manages load order of interlinked dependent modules and
-classes at run time, allowing you to significantly modularize your code.
+While [`Class#class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-class_eval) is useful for making simple runtime changes to a class, more complex modifications—especially those involving multiple modules with dependencies—are often better handled using [`ActiveSupport::Concern`](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html). It provides a structured way to define module behavior and dependencies, ensuring consistent load order and making it easier to organize and compose reusable code.
 
 Let’s say you want to extend the `Blorgh::Article` model from the host application by:
 
