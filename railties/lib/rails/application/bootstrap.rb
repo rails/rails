@@ -81,16 +81,7 @@ module Rails
         cache_format_version = config.active_support.delete(:cache_format_version)
         ActiveSupport.cache_format_version = cache_format_version if cache_format_version
 
-        unless Rails.cache
-          Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
-
-          case config.local_cache_store
-          when :middleware
-            if Rails.cache.respond_to?(:middleware)
-              config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
-            end
-          end
-        end
+        Rails.cache ||= ActiveSupport::Cache.lookup_store(*config.cache_store)
       end
 
       # We setup the once autoloader this early so that engines and applications
