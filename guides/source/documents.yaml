@@ -290,7 +290,6 @@
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-
     -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
