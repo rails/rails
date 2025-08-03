@@ -444,6 +444,13 @@ attacks.
 Sets the path where your app's JavaScript lives relative to the `app` directory and the default value is `javascript`.
 An app's configured `javascript_path` will be excluded from `autoload_paths`.
 
+
+#### `config.local_cache_store_strategy`
+
+Configures whether `ActiveSupport::Cache::Strategy::LocalCache` is added to the
+middleware stack if supported by `Rails.cache`. Set to `false` to disable the
+middleware.
+
 #### `config.log_file_size`
 
 Defines the maximum size of the Rails log file in bytes. Defaults to `104_857_600` (100 MiB) in development and test, and unlimited in all other environments.

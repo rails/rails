@@ -26,7 +26,7 @@ module Rails
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version, :yjit
 
-      attr_reader :encoding, :api_only, :loaded_config_version, :log_level
+      attr_reader :encoding, :api_only, :loaded_config_version, :local_cache_store_strategy, :log_level
 
       def initialize(*)
         super
@@ -56,6 +56,7 @@ module Rails
         @log_file_size                           = nil
         @generators                              = app_generators
         @cache_store                             = [ :file_store, "#{root}/tmp/cache/" ]
+        @local_cache_store_strategy              = :middleware
         @railties_order                          = [:all]
         @relative_url_root                       = ENV["RAILS_RELATIVE_URL_ROOT"]
         @reload_classes_only_on_change           = true
@@ -525,6 +526,14 @@ module Rails
       def colorize_logging=(val)
         ActiveSupport::LogSubscriber.colorize_logging = val
         generators.colorize_logging = val
+      end
+
+      def local_cache_store_strategy=(val)
+        if [false, :middleware].include? val
+          @local_cache_store_strategy = val
+        else
+          raise ArgumentError, "Invalid value for local_cache_store_strategy, #{val}. Must be `false` or `:middleware`"
+        end
       end
 
       def secret_key_base
