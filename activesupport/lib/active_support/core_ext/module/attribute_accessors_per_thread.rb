@@ -40,7 +40,7 @@ class Module
   #   Current.new.user # => NoMethodError
   def thread_mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil) # :nodoc:
     syms.each do |sym|
-      raise NameError.new("invalid attribute name: #{sym}") unless /^[_A-Za-z]\w*$/.match?(sym)
+      raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
 
       # The following generated method concatenates `object_id` because we want
       # subclasses to maintain independent values.
