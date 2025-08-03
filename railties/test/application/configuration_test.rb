@@ -4409,6 +4409,36 @@ module ApplicationTests
       assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
     end
 
+    test "LocalCache executor hook can be enabled via configuration" do
+      add_to_config "config.local_cache_store_strategy = :executor"
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+
+      assert_nil Rails.cache.send(:local_cache)
+      Rails.application.executor.wrap do
+        assert_not_nil Rails.cache.send(:local_cache)
+      end
+      assert_nil Rails.cache.send(:local_cache)
+    end
+
+    test "LocalCache executor hook can be enabled via configuration in initializer" do
+      app_file "config/initializers/new_framework_defaults.rb", <<~RUBY
+        Rails.configuration.local_cache_store_strategy = :executor
+      RUBY
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+
+      assert_nil Rails.cache.send(:local_cache)
+      Rails.application.executor.wrap do
+        assert_not_nil Rails.cache.send(:local_cache)
+      end
+      assert_nil Rails.cache.send(:local_cache)
+    end
+
     test "custom middleware with overridden names can be added, moved, or deleted" do
       app_file "config/initializers/add_custom_middleware.rb", <<~RUBY
         class CustomMiddlewareOne

@@ -529,10 +529,10 @@ module Rails
       end
 
       def local_cache_store_strategy=(val)
-        if [false, :middleware].include? val
+        if [false, :middleware, :executor].include? val
           @local_cache_store_strategy = val
         else
-          raise ArgumentError, "Invalid value for local_cache_store_strategy, #{val}. Must be `false` or `:middleware`"
+          raise ArgumentError, "Invalid value for local_cache_store, #{val}. Must be `false`, `:middleware`, or `:executor`"
         end
       end
 
