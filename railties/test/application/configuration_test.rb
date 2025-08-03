@@ -4391,6 +4391,14 @@ module ApplicationTests
       assert_not(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
     end
 
+    test "LocalCache middleware can be removed via configuration" do
+      add_to_config "config.local_cache_store_strategy = false"
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+    end
+
     test "custom middleware with overridden names can be added, moved, or deleted" do
       app_file "config/initializers/add_custom_middleware.rb", <<~RUBY
         class CustomMiddlewareOne
