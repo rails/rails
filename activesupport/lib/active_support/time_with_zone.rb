@@ -103,7 +103,7 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
     #   Time.zone.now.utc?                          # => false
     def utc?
-      zone == "UTC" || zone == "UCT"
+      zone == "UTC" || zone == "GMT"
     end
     alias_method :gmt?, :utc?
 
