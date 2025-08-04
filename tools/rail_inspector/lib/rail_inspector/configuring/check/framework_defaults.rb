@@ -37,12 +37,7 @@ module RailInspector
             end
 
             def defaults_file_content
-              @defaults_file_content ||= checker.read(new_framework_defaults_path)
-            end
-
-            def new_framework_defaults_path
-              NEW_FRAMEWORK_DEFAULTS_PATH %
-                { version: checker.rails_version.tr(".", "_") }
+              @defaults_file_content ||= checker.files.new_framework_defaults.read
             end
         end
 
@@ -66,7 +61,7 @@ module RailInspector
 
         private
           def app_config_tree
-            checker.parse(APPLICATION_CONFIGURATION_PATH)
+            checker.files.application_configuration.parse
           end
 
           def check_defaults(defaults)
@@ -106,7 +101,7 @@ module RailInspector
               end
 
             checker.errors << <<~MESSAGE unless config_diff.empty?
-              #{APPLICATION_CONFIGURATION_PATH}: Incorrect load_defaults docs
+              #{checker.files.application_configuration}: Incorrect load_defaults docs
               --- Expected
               +++ Actual
               #{config_diff.split("\n")[5..].join("\n")}
