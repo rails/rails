@@ -10,35 +10,33 @@ module RailInspector
         class NewFrameworkDefaultsFile
           attr_reader :checker, :visitor
 
-          def initialize(checker, visitor)
+          # Defaults are strings like:
+          #   self.yjit
+          #   action_controller.escape_json_responses
+          def initialize(checker, defaults, file_content)
             @checker = checker
-            @visitor = visitor
+            @defaults = defaults
+            @file_content = file_content
           end
 
           def check
-            visitor.config_map[checker.rails_version].each_key do |config|
-              app_config = config.gsub(/^self/, "config")
+            @defaults.each do |config|
+              if config.start_with? "self"
+                next if @file_content.include? config.gsub(/^self/, "config")
+                next if @file_content.include? config.gsub(/^self/, "configuration")
+              end
 
-              next if defaults_file_content.include? app_config
+              next if @file_content.include? config
 
               next if config == "self.yjit"
 
-              add_error(config)
-            end
-          end
-
-          private
-            def add_error(config)
               checker.errors << <<~MESSAGE
-              #{new_framework_defaults_path}
-              Missing: #{config}
+                #{checker.files.new_framework_defaults}: Missing new default
+                #{config}
 
               MESSAGE
             end
-
-            def defaults_file_content
-              @defaults_file_content ||= checker.files.new_framework_defaults.read
-            end
+          end
         end
 
         attr_reader :checker
@@ -50,7 +48,11 @@ module RailInspector
         def check
           header, *defaults_by_version = documented_defaults
 
-          NewFrameworkDefaultsFile.new(checker, visitor).check
+          NewFrameworkDefaultsFile.new(
+            checker,
+            visitor.config_map[checker.rails_version].keys,
+            checker.files.new_framework_defaults.read
+          ).check
 
           checker.doc.versioned_defaults =
             header +
