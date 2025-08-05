@@ -31,6 +31,17 @@ class InfoTest < ActiveSupport::TestCase
       File.read(File.realpath("../../RAILS_VERSION", __dir__)).chomp
   end
 
+  def test_to_s_includes_configuration
+    Rails::Info.module_eval do
+      property "Configuration", { "foo" => "bar" }
+    end
+
+    output = Rails::Info.to_s
+    properties.value_for("Configuration").each do |key, value|
+      assert_includes output, "Configuration      #{key}   #{value}"
+    end
+  end
+
   def test_html_includes_middleware
     Rails::Info.module_eval do
       property "Middleware", ["Rack::Lock", "Rack::Static"]
@@ -40,6 +51,17 @@ class InfoTest < ActiveSupport::TestCase
     assert_includes html, '<tr><td class="name">Middleware</td>'
     properties.value_for("Middleware").each do |value|
       assert_includes html, "<li>#{CGI.escapeHTML(value)}</li>"
+    end
+  end
+
+  def test_html_includes_configuration
+    Rails::Info.module_eval do
+      property "Configuration", { "foo" => "bar" }
+    end
+
+    html = Rails::Info.to_html
+    properties.value_for("Configuration").each do |config, config_value|
+      assert_includes html, "<tr><td>#{config}</td><td>#{config_value}</td></tr>"
     end
   end
 
