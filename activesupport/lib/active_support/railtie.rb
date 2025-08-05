@@ -52,6 +52,7 @@ module ActiveSupport
       app.executor.to_complete do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.pop
+        ActiveSupport.event_reporter.clear_context
       end
 
       ActiveSupport.on_load(:active_support_test_case) do
