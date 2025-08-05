@@ -3,7 +3,9 @@
 require "pathname"
 require_relative "./configuring/check/general_configuration"
 require_relative "./configuring/check/framework_defaults"
+require_relative "./configuring/check/new_framework_defaults_file"
 require_relative "./configuring/document"
+require_relative "./visitor/framework_default"
 
 module RailInspector
   class Configuring
@@ -60,13 +62,25 @@ module RailInspector
     end
 
     def check
-      [Check::GeneralConfiguration, Check::FrameworkDefaults].each do |check|
-        check.new(self).check
-      end
+      [
+        Check::GeneralConfiguration.new(self),
+        Check::FrameworkDefaults.new(self),
+        Check::NewFrameworkDefaultsFile.new(
+          self,
+          framework_defaults_by_version[rails_version].keys,
+          files.new_framework_defaults.read
+        ),
+      ].each(&:check)
     end
 
     def doc
       @doc ||= Configuring::Document.parse(files.doc_path.read)
+    end
+
+    def framework_defaults_by_version
+      @framework_defaults_by_version ||= Visitor::FrameworkDefault.new.tap { |visitor|
+        visitor.visit(files.application_configuration.parse)
+      }.config_map
     end
 
     def rails_version

@@ -3,7 +3,7 @@
 require "test_helper"
 require "rail_inspector/configuring"
 
-class TestFrameworkDefaults < ActiveSupport::TestCase
+class NewFrameworkDefaultsFileTest < ActiveSupport::TestCase
   def test_identifies_self_when_file_uses_config
     defaults = ["self.log_file_size"]
 
@@ -30,7 +30,7 @@ class TestFrameworkDefaults < ActiveSupport::TestCase
 
   private
     def check(defaults, file_content)
-      @check ||= RailInspector::Configuring::Check::FrameworkDefaults::NewFrameworkDefaultsFile.new(checker, defaults, file_content)
+      @check ||= RailInspector::Configuring::Check::NewFrameworkDefaultsFile.new(checker, defaults, file_content)
     end
 
     def checker

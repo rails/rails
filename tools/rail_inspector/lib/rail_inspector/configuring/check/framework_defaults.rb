@@ -1,44 +1,11 @@
 # frozen_string_literal: true
 
 require "tempfile"
-require_relative "../../visitor/framework_default"
 
 module RailInspector
   class Configuring
     module Check
       class FrameworkDefaults
-        class NewFrameworkDefaultsFile
-          attr_reader :checker, :visitor
-
-          # Defaults are strings like:
-          #   self.yjit
-          #   action_controller.escape_json_responses
-          def initialize(checker, defaults, file_content)
-            @checker = checker
-            @defaults = defaults
-            @file_content = file_content
-          end
-
-          def check
-            @defaults.each do |config|
-              if config.start_with? "self"
-                next if @file_content.include? config.gsub(/^self/, "config")
-                next if @file_content.include? config.gsub(/^self/, "configuration")
-              end
-
-              next if @file_content.include? config
-
-              next if config == "self.yjit"
-
-              checker.errors << <<~MESSAGE
-                #{checker.files.new_framework_defaults}: Missing new default
-                #{config}
-
-              MESSAGE
-            end
-          end
-        end
-
         attr_reader :checker
 
         def initialize(checker)
@@ -48,12 +15,6 @@ module RailInspector
         def check
           header, *defaults_by_version = documented_defaults
 
-          NewFrameworkDefaultsFile.new(
-            checker,
-            visitor.config_map[checker.rails_version].keys,
-            checker.files.new_framework_defaults.read
-          ).check
-
           checker.doc.versioned_defaults =
             header +
               defaults_by_version
@@ -62,10 +23,6 @@ module RailInspector
         end
 
         private
-          def app_config_tree
-            checker.files.application_configuration.parse
-          end
-
           def check_defaults(defaults)
             header, configs = defaults[0], defaults[2, defaults.length - 3]
             configs ||= []
@@ -73,7 +30,7 @@ module RailInspector
             version = header.match(/\d\.\d/)[0]
 
             generated_doc =
-              visitor.config_map[version]
+              checker.framework_defaults_by_version[version]
                 .map do |config, value|
                   full_config =
                     case config
@@ -118,15 +75,6 @@ module RailInspector
               .versioned_defaults
               .slice_before { |line| line.start_with?("####") }
               .to_a
-          end
-
-          def visitor
-            @visitor ||=
-              begin
-                visitor = Visitor::FrameworkDefault.new
-                visitor.visit(app_config_tree)
-                visitor
-              end
           end
       end
     end
