@@ -67,10 +67,7 @@ module RailInspector
         Check::FrameworkDefaults.new(
           self,
           framework_defaults_by_version,
-          doc
-            .versioned_defaults
-            .slice_before { |line| line.start_with?("####") }
-            .to_a,
+          doc.versioned_defaults,
         ),
         Check::NewFrameworkDefaultsFile.new(
           self,

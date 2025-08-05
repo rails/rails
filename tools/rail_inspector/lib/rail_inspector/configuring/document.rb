@@ -5,19 +5,19 @@ module RailInspector
     class Document
       class << self
         def parse(text)
-          before, versioned_defaults, general_config, after =
+          before, *versioned_defaults, general_config, after =
             text
               .split("\n")
               .slice_before do |line|
                 [
-                  "### Versioned Default Values",
+                  "#### Default Values for Target Version",
                   "### Rails General Configuration",
                   "### Configuring Assets"
-                ].include?(line)
+                ].any? { |s| line.start_with?(s) }
               end
               .to_a
 
-          new(before, versioned_defaults, general_config, after)
+          new(before, versioned_defaults.flatten.join("\n"), general_config, after)
         end
       end
 
@@ -29,7 +29,7 @@ module RailInspector
       end
 
       def to_s
-        (@before + @versioned_defaults + @general_config + @after).join("\n") +
+        (@before + [@versioned_defaults] + @general_config + @after).join("\n") +
           "\n"
       end
     end
