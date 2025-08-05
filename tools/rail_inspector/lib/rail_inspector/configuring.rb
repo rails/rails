@@ -64,7 +64,14 @@ module RailInspector
     def check
       [
         Check::GeneralConfiguration.new(self),
-        Check::FrameworkDefaults.new(self),
+        Check::FrameworkDefaults.new(
+          self,
+          framework_defaults_by_version,
+          doc
+            .versioned_defaults
+            .slice_before { |line| line.start_with?("####") }
+            .to_a,
+        ),
         Check::NewFrameworkDefaultsFile.new(
           self,
           framework_defaults_by_version[rails_version].keys,
@@ -75,12 +82,6 @@ module RailInspector
 
     def doc
       @doc ||= Configuring::Document.parse(files.doc_path.read)
-    end
-
-    def framework_defaults_by_version
-      @framework_defaults_by_version ||= Visitor::FrameworkDefault.new.tap { |visitor|
-        visitor.visit(files.application_configuration.parse)
-      }.config_map
     end
 
     def rails_version
@@ -98,5 +99,12 @@ module RailInspector
         "Make sure new configurations are added to configuring.md#rails-general-configuration in alphabetical order.\n" +
         "Errors may be autocorrectable with the --autocorrect flag"
     end
+
+    private
+      def framework_defaults_by_version
+        @framework_defaults_by_version ||= Visitor::FrameworkDefault.new.tap { |visitor|
+          visitor.visit(files.application_configuration.parse)
+        }.config_map
+      end
   end
 end

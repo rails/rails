@@ -8,12 +8,14 @@ module RailInspector
       class FrameworkDefaults
         attr_reader :checker
 
-        def initialize(checker)
+        def initialize(checker, defaults_by_version, documented_defaults)
           @checker = checker
+          @defaults_by_version = defaults_by_version
+          @documented_defaults = documented_defaults
         end
 
         def check
-          header, *defaults_by_version = documented_defaults
+          header, *defaults_by_version = @documented_defaults
 
           checker.doc.versioned_defaults =
             header +
@@ -30,7 +32,7 @@ module RailInspector
             version = header.match(/\d\.\d/)[0]
 
             generated_doc =
-              checker.framework_defaults_by_version[version]
+              @defaults_by_version[version]
                 .map do |config, value|
                   full_config =
                     case config
@@ -67,14 +69,6 @@ module RailInspector
             MESSAGE
 
             [header, "", *generated_doc, ""]
-          end
-
-          def documented_defaults
-            checker
-              .doc
-              .versioned_defaults
-              .slice_before { |line| line.start_with?("####") }
-              .to_a
           end
       end
     end
