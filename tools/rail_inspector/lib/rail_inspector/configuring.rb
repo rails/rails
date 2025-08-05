@@ -3,6 +3,7 @@
 require "pathname"
 require_relative "./configuring/check/general_configuration"
 require_relative "./configuring/check/framework_defaults"
+require_relative "./configuring/document"
 
 module RailInspector
   class Configuring
@@ -43,29 +44,6 @@ module RailInspector
       end
     end
 
-    class Doc
-      attr_accessor :general_config, :versioned_defaults
-
-      def initialize(content)
-        @before, @versioned_defaults, @general_config, @after =
-          content
-            .split("\n")
-            .slice_before do |line|
-              [
-                "### Versioned Default Values",
-                "### Rails General Configuration",
-                "### Configuring Assets"
-              ].include?(line)
-            end
-            .to_a
-      end
-
-      def to_s
-        (@before + @versioned_defaults + @general_config + @after).join("\n") +
-          "\n"
-      end
-    end
-
     attr_reader :errors, :files
 
     def initialize(rails_path)
@@ -88,7 +66,7 @@ module RailInspector
     end
 
     def doc
-      @doc ||= Configuring::Doc.new(files.doc_path.read)
+      @doc ||= Configuring::Document.parse(files.doc_path.read)
     end
 
     def rails_version
