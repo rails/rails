@@ -924,4 +924,37 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_select "#container p", /Showing #{__FILE__} where line #\d+ raised/
     assert_select "#container code", /undefined local variable or method ['`]string”'/
   end
+
+  test "includes copy button in error pages" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+
+    assert_match %r{<button onclick="copyAsText\.bind\(this\)\(\)">Copy as text</button>}, body
+    assert_match %r{<script type="text/plain" id="exception-message-for-copy">.*RuntimeError \(puke}m, body
+  end
+
+  test "copy button not shown for XHR requests" do
+    @app = DevelopmentApp
+
+    get "/", headers: {
+      "action_dispatch.show_exceptions" => :all,
+      "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
+    }
+
+    assert_response 500
+    assert_no_match %r{<button}, body
+    assert_no_match %r{<script}, body
+  end
+
+  test "exception message includes causes for nested exceptions" do
+    @app = DevelopmentApp
+
+    get "/nested_exceptions", headers: { "action_dispatch.show_exceptions" => :all }
+
+    script_content = body[%r{<script type="text/plain" id="exception-message-for-copy">(.*?)</script>}m, 1]
+    assert_match %r{Third error}, script_content
+    assert_match %r{Caused by:.*Second error}m, script_content
+  end
 end

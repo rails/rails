@@ -1,3 +1,7 @@
+*   Add "Copy as text" button to error pages
+
+    *Mikkel Malmberg*
+
 *   Produce a log when `rescue_from` is invoked.
 
     *Steven Webb*, *Jean Boussier*
