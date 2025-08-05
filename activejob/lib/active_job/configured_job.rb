@@ -14,9 +14,5 @@ module ActiveJob
     def perform_later(...)
       @job_class.new(...).enqueue @options
     end
-
-    def perform_all_later(multi_args)
-      @job_class.perform_all_later(multi_args, options: @options)
-    end
   end
 end
