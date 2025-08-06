@@ -1,3 +1,7 @@
+*   Add support to `SchemaDumper.ignore_tables` properly ignore tables in non-public schemas for PostgreSQL.
+
+    *Gabriel Sobrinho*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter

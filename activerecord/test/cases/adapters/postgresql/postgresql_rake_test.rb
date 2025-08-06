@@ -406,7 +406,7 @@ module ActiveRecord
       end
     end
 
-    def test_structure_dump_with_ignore_tables
+    def test_structure_dump_with_ignore_tables_array
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
@@ -415,6 +415,31 @@ module ActiveRecord
             [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "prefix_foo", "-T", "ignored_foo", "my-app-db"],
             returns: true
           ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+    end
+
+    def test_structure_dump_with_ignore_tables_hash
+      ActiveRecord::Base.lease_connection.stub(:data_sources, [["public", "foo"], ["public", "bar"], ["public", "prefix_foo"], ["public", "ignored_foo"], ["another_schema", "foo"]]) do
+        ActiveRecord::SchemaDumper.stub(:ignore_tables, { "public" => [/^prefix_/, "ignored_foo"] }) do
+          assert_called_with(
+            Kernel,
+            :system,
+            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "public.prefix_foo", "-T", "public.ignored_foo", "my-app-db"],
+            returns: true
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+    end
+
+    def test_structure_dump_with_ignore_tables_invalid_type
+      ActiveRecord::Base.lease_connection.stub(:data_sources, [["public", "foo"], ["public", "bar"], ["public", "prefix_foo"], ["public", "ignored_foo"]]) do
+        ActiveRecord::SchemaDumper.stub(:ignore_tables, true) do
+          assert_raises(ArgumentError, match: "Expected ActiveRecord::SchemaDumper.ignore_tables to be an Array or Hash, got TrueClass") do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
           end
         end
