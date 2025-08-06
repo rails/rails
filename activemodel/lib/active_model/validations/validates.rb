@@ -93,7 +93,9 @@ module ActiveModel
       #   method, proc, or string should return or evaluate to a +true+ or
       #   +false+ value.
       # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
+      #   Also aliased as <tt>:ignore_if_nil</tt>.
       # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
+      #   Also aliased as <tt>:ignore_if_blank</tt>.
       # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
       #   <tt>:strict</tt> option can also be set to any other exception.
@@ -110,6 +112,7 @@ module ActiveModel
       #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
+        defaults.transform_keys!(ignore_if_nil: :allow_nil, ignore_if_blank: :allow_blank)
         validations = defaults.slice!(*_validates_default_keys)
 
         raise ArgumentError, "You need to supply at least one attribute" if attributes.empty?
