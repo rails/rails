@@ -50,7 +50,7 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
         if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+          ignore_tables = connection.data_sources(include_schema: true).select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.flat_map { |table| ["-T", table] }
         end
 

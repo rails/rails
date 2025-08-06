@@ -1,3 +1,7 @@
+*   Ensure `SchemaDumper.ignore_tables` correctly ignores tables in non-public schemas when using PostgreSQL.
+
+    *Gabriel Sobrinho*
+
 *   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
 
     *Yasuo Honda*

@@ -407,12 +407,12 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_ignore_tables
-      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["public.foo", "public.bar", "public.prefix_foo", "another_schema.ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
             :system,
-            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "prefix_foo", "-T", "ignored_foo", "my-app-db"],
+            [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "-T", "public.prefix_foo", "-T", "another_schema.ignored_foo", "my-app-db"],
             returns: true
           ) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
