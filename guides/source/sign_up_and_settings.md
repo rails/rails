@@ -1626,7 +1626,7 @@ This test will visit `/sign_up` and ensure that it receives a 200 OK response.
 Let's run the test and see if it passes:
 
 ```bash
-$ bin/rails test test/controllers/sign_ups_controller.rb:4
+$ bin/rails test test/controllers/sign_ups_controller_test.rb:4
 Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 5967
 
