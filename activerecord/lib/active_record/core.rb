@@ -676,6 +676,8 @@ module ActiveRecord
     # Sets the record to strict_loading mode. This will raise an error
     # if the record tries to lazily load an association.
     #
+    # NOTE: Strict loading is disabled during validation in order to let the record validate its association.
+    #
     #   user = User.first
     #   user.strict_loading! # => true
     #   user.address.city
