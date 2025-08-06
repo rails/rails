@@ -51,3 +51,8 @@
 # to only log warnings, or `:notify` to send ActiveSupport notifications.
 #++
 # Rails.configuration.action_controller.action_on_path_relative_redirect = :raise
+
+###
+# Controls whether or not to close the `<form>` element rendered by a call to `form_with` without a block
+#++
+# Rails.application.config.action_view.close_form_with_without_block = true
