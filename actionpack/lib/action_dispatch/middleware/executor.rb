@@ -13,7 +13,7 @@ module ActionDispatch
     def call(env)
       state = @executor.run!(reset: true)
       if response_finished = env["rack.response_finished"]
-        response_finished << -> { state.complete! }
+        response_finished << proc { state.complete! }
       end
 
       begin

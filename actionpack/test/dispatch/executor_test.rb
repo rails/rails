@@ -180,7 +180,7 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_not completed
 
     assert_equal 1, env["rack.response_finished"].size
-    env["rack.response_finished"].first.call
+    env["rack.response_finished"].first.call({}, 200, {}, nil)
 
     assert completed
   end
@@ -199,7 +199,7 @@ class ExecutorTest < ActiveSupport::TestCase
     end
 
     assert_equal 1, env["rack.response_finished"].size
-    env["rack.response_finished"].first.call
+    env["rack.response_finished"].first.call({}, 200, {}, nil)
 
     assert_equal 1, completed_count
   end
