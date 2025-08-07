@@ -21,28 +21,34 @@ module ActiveRecord
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
-      # +name+ The name of the methods to define attribute methods for, and the
-      # column which this will persist to.
+      # ==== Parameters
       #
-      # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
-      # to be used for this attribute. If this parameter is not passed, the previously
-      # defined type (if any) will be used.
-      # Otherwise, the type will be ActiveModel::Type::Value.
-      # See the examples below for more information about providing custom type objects.
+      # [+name+]
+      #   The name of the methods to define attribute methods for, and the
+      #   column which this will persist to.
+      #
+      # [+cast_type+]
+      #   A symbol such as +:string+ or +:integer+, or a type object to be used
+      #   for this attribute. If this parameter is not passed, the previously
+      #   defined type (if any) will be used. Otherwise, the type will be
+      #   ActiveModel::Type::Value. See the examples below for more information
+      #   about providing custom type objects.
       #
       # ==== Options
       #
-      # The following options are accepted:
+      # [+:default+]
+      #   The default value to use when no value is provided. If this option is
+      #   not passed, the previously defined default value (if any) on the
+      #   superclass or in the schema will be used. Otherwise, the default will
+      #   be +nil+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previously defined default value (if any) on the superclass or in the schema will be used.
-      # Otherwise, the default will be +nil+.
+      # [+:array+]
+      #   (PostgreSQL only) Specifies that the type should be an array. See the
+      #   examples below.
       #
-      # +array+ (PostgreSQL only) specifies that the type should be an array (see the
-      # examples below).
-      #
-      # +range+ (PostgreSQL only) specifies that the type should be a range (see the
-      # examples below).
+      # [+:range+]
+      #   (PostgreSQL only) Specifies that the type should be a range. See the
+      #   examples below.
       #
       # When using a symbol for +cast_type+, extra options are forwarded to the
       # constructor of the type object.
