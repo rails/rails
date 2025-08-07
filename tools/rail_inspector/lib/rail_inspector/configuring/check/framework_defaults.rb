@@ -10,38 +10,31 @@ module RailInspector
         class NewFrameworkDefaultsFile
           attr_reader :checker, :visitor
 
-          def initialize(checker, visitor)
+          # Defaults are strings like:
+          #   self.yjit
+          #   action_controller.escape_json_responses
+          def initialize(checker, defaults, file_content)
             @checker = checker
-            @visitor = visitor
+            @defaults = defaults
+            @file_content = file_content
           end
 
           def check
-            visitor.config_map[checker.rails_version].each_key do |config|
-              app_config = config.gsub(/^self/, "config")
+            @defaults.each do |config|
+              if config.start_with? "self"
+                next if @file_content.include? config.gsub(/^self/, "config")
+                next if @file_content.include? config.gsub(/^self/, "configuration")
+              end
 
-              next if defaults_file_content.include? app_config
+              next if @file_content.include? config
 
-              add_error(config)
-            end
-          end
-
-          private
-            def add_error(config)
               checker.errors << <<~MESSAGE
-              #{new_framework_defaults_path}
-              Missing: #{config}
+                #{checker.files.new_framework_defaults}: Missing new default
+                #{config}
 
               MESSAGE
             end
-
-            def defaults_file_content
-              @defaults_file_content ||= checker.read(new_framework_defaults_path)
-            end
-
-            def new_framework_defaults_path
-              NEW_FRAMEWORK_DEFAULTS_PATH %
-                { version: checker.rails_version.tr(".", "_") }
-            end
+          end
         end
 
         attr_reader :checker
@@ -53,7 +46,11 @@ module RailInspector
         def check
           header, *defaults_by_version = documented_defaults
 
-          NewFrameworkDefaultsFile.new(checker, visitor).check
+          NewFrameworkDefaultsFile.new(
+            checker,
+            visitor.config_map[checker.rails_version].keys,
+            checker.files.new_framework_defaults.read
+          ).check
 
           checker.doc.versioned_defaults =
             header +
@@ -64,7 +61,7 @@ module RailInspector
 
         private
           def app_config_tree
-            checker.parse(APPLICATION_CONFIGURATION_PATH)
+            checker.files.application_configuration.parse
           end
 
           def check_defaults(defaults)
@@ -104,7 +101,7 @@ module RailInspector
               end
 
             checker.errors << <<~MESSAGE unless config_diff.empty?
-              #{APPLICATION_CONFIGURATION_PATH}: Incorrect load_defaults docs
+              #{checker.files.application_configuration}: Incorrect load_defaults docs
               --- Expected
               +++ Actual
               #{config_diff.split("\n")[5..].join("\n")}
