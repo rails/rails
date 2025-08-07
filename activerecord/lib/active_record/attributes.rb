@@ -218,17 +218,22 @@ module ActiveRecord
       # is provided so it can be used by plugin authors, application code
       # should probably use ClassMethods#attribute.
       #
-      # +name+ The name of the attribute being defined. Expected to be a +String+.
+      # ==== Parameters
       #
-      # +cast_type+ The type object to use for this attribute.
+      # [+name+]
+      #   The name of the attribute being defined. Expected to be a +String+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+. A proc can also be passed, and
-      # will be called once each time a new value is needed.
+      # [+cast_type+]
+      #   The type object to use for this attribute.
       #
-      # +user_provided_default+ Whether the default value should be cast using
-      # +cast+ or +deserialize+.
+      # [+default+]
+      #   The default value to use when no value is provided. If this option
+      #   is not passed, the previous default value (if any) will be used.
+      #   Otherwise, the default will be +nil+. A proc can also be passed, and
+      #   will be called once each time a new value is needed.
+      #
+      # [+user_provided_default+]
+      #   Whether the default value should be cast using +cast+ or +deserialize+.
       def define_attribute(
         name,
         cast_type,
