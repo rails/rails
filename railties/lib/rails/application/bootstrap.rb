@@ -73,6 +73,10 @@ module Rails
         end
       end
 
+      initializer :initialize_event_reporter, group: :all do
+        Rails.event.raise_on_error = config.consider_all_requests_local
+      end
+
       # Initialize cache early in the stack so railties can make use of it.
       initializer :initialize_cache, group: :all do
         cache_format_version = config.active_support.delete(:cache_format_version)
