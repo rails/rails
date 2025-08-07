@@ -1007,3 +1007,42 @@ errors, while others will print deprecation warnings to be fixed for Rails 7.0.
 
 More information about this change and details about the API changes can be
 found [in this PR](https://github.com/rails/rails/pull/32313).
+
+Upgrading Versions before 6.0
+-----------------------------
+
+### Upgrading Rails 5.2 to 6.0
+
+Please see this guide for help [upgrading Rails 5.2 to 6.0](upgrading_from_rails_5.2_to_6.0.html).
+
+### Upgrading Rails 5.1 to 5.2
+
+Please see this guide for help [upgrading Rails 5.1 to 5.2](upgrading_from_rails_5.1_to_5.2.html).
+
+### Upgrading Rails 5.0 to 5.1
+
+Please see this guide for help [upgrading Rails 5.0 to 5.1](upgrading_from_rails_5.0_to_5.1.html).
+
+### Upgrading Rails 4.2 to 5.0
+
+Please see this guide for help [upgrading Rails 4.2 to 5.0](upgrading_from_rails_4.2_to_5.0.html).
+
+### Upgrading Rails 4.1 to 4.2
+
+Please see this guide for help [upgrading Rails 4.1 to 4.2](upgrading_from_rails_4.1_to_4.2.html).
+
+### Upgrading Rails 4.0 to 4.1
+
+Please see this guide for help [upgrading Rails 4.0 to 4.1](upgrading_from_rails_4.0_to_4.1.html).
+
+### Upgrading Rails 3.2 to 4.0
+
+Please see this guide for help [upgrading Rails 3.2 to 4.0](upgrading_from_rails_3.2_to_4.0.html).
+
+### Upgrading Rails 3.1 to 3.2
+
+Please see this guide for help [upgrading Rails 3.1 to 3.2](upgrading_from_rails_3.1_to_3.2.html).
+
+### Upgrading Rails 3.0 to 3.1
+
+Please see this guide for help [upgrading Rails 3.0 to 3.1](upgrading_from_rails_3.1_to_3.2.html).
