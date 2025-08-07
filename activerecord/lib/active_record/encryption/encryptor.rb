@@ -12,10 +12,11 @@ module ActiveRecord
     # It interacts with a KeyProvider for getting the keys, and delegate to
     # ActiveRecord::Encryption::Cipher the actual encryption algorithm.
     class Encryptor
-      # === Options
+      # ==== Options
       #
-      # * <tt>:compress</tt> - Boolean indicating whether records should be compressed before encryption.
-      #   Defaults to +true+.
+      # [+:compress+]
+      #   Boolean indicating whether records should be compressed before
+      #   encryption. Defaults to +true+.
       def initialize(compress: true)
         @compress = compress
       end
@@ -26,17 +27,17 @@ module ActiveRecord
       #
       # 1. Create a new ActiveRecord::Encryption::Message.
       # 2. Compress and encrypt +clean_text+ as the message payload.
-      # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+ (+ActiveRecord::Encryption::SafeMarshal+
-      #    by default).
+      # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+
+      #    (+ActiveRecord::Encryption::SafeMarshal+ by default).
       # 4. Encode the result with Base64.
       #
-      # === Options
+      # ==== Options
       #
-      # [:key_provider]
+      # [+:key_provider+]
       #   Key provider to use for the encryption operation. It will default to
       #   +ActiveRecord::Encryption.key_provider+ when not provided.
       #
-      # [:cipher_options]
+      # [+:cipher_options+]
       #   Cipher-specific options that will be passed to the Cipher configured in
       #   +ActiveRecord::Encryption.cipher+.
       def encrypt(clear_text, key_provider: default_key_provider, cipher_options: {})
@@ -48,13 +49,13 @@ module ActiveRecord
 
       # Decrypts an +encrypted_text+ and returns the result as clean text.
       #
-      # === Options
+      # ==== Options
       #
-      # [:key_provider]
+      # [+:key_provider+]
       #   Key provider to use for the encryption operation. It will default to
       #   +ActiveRecord::Encryption.key_provider+ when not provided.
       #
-      # [:cipher_options]
+      # [+:cipher_options+]
       #   Cipher-specific options that will be passed to the Cipher configured in
       #   +ActiveRecord::Encryption.cipher+.
       def decrypt(encrypted_text, key_provider: default_key_provider, cipher_options: {})
