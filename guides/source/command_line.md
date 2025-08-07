@@ -18,7 +18,96 @@ TODO: do `rails generate model --help`, it prints out two screens worth of info,
 Overview
 --------
 
-There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
+The Rails command line is a powerful part of the Ruby on Rails framework. It is what allows you to quickly start a new application by generating boiler plate code (that follows convention over configuration). This guide includes an overview of Rails commands that allow you to manage all aspects of your web application, including the database.
+
+You can get a list of rails commands available to you, which will often depend on your current directory, by typing `bin/rails --help`. Each command has a description, and should help you find the thing you need.
+
+```bash
+$ bin/rails --help
+Usage:
+  bin/rails COMMAND [options]
+
+You must specify a command. The most common commands are:
+
+  generate     Generate new code (short-cut alias: "g")
+  console      Start the Rails console (short-cut alias: "c")
+  server       Start the Rails server (short-cut alias: "s")
+  test         Run tests except system tests (short-cut alias: "t")
+  test:system  Run system tests
+  dbconsole    Start a console for the database specified in config/database.yml
+               (short-cut alias: "db")
+  plugin new   Create a new Rails railtie or engine
+
+All commands can be run with -h (or --help) for more information.
+
+In addition to those commands, there are:
+```
+
+The output of `bin/rails --help` then proceeds to list all commands in alphabetical order, with a short description of each. Something like this:
+
+```bash
+In addition to those commands, there are:
+about                              List versions of all Rails frameworks ...
+action_mailbox:ingress:exim        Relay an inbound email from Exim to ...
+action_mailbox:ingress:postfix     Relay an inbound email from Postfix ...
+action_mailbox:ingress:qmail       Relay an inbound email from Qmail to ...
+action_mailbox:install             Install Action Mailbox and its ...
+...
+db:fixtures:load                    Load fixtures into the ...
+db:migrate                          Migrate the database ...
+db:migrate:status                   Display status of migrations
+db:rollback                         Roll the schema back to ...
+...
+turbo:install                      Install Turbo into the app
+turbo:install:bun                  Install Turbo into the app with bun
+turbo:install:importmap            Install Turbo into the app with asset ...
+turbo:install:node                 Install Turbo into the app with webpacker
+turbo:install:redis                Switch on Redis and use it in development
+version                            Show the Rails version
+yarn:install                       Install all JavaScript dependencies as ...
+zeitwerk:check                     Check project structure for Zeitwerk ...
+```
+
+In addition to `rails --help`, running a particular command from the list above with `--help` can be also be useful. For example, you can learn about the options that can be used with `rails routes`:
+
+```bash
+$ bin/rails routes --help
+Usage:
+  bin/rails routes
+
+Options:
+  -c, [--controller=CONTROLLER]      # Filter by a specific controller, e.g. PostsController or Admin::PostsController.
+  -g, [--grep=GREP]                  # Grep routes by a specific pattern.
+  -E, [--expanded], [--no-expanded]  # Print routes expanded vertically with parts explained.
+  -u, [--unused], [--no-unused]      # Print unused routes.
+
+List all the defined routes
+```
+
+Most Rails command line subcommands can all be run with `--help` (or `-h`) and the output can be very informative. For example `bin/rails generate model --help` prints two pages of description, in addition to usage and options:
+
+```bash
+$ rails generate model --help
+Usage:
+  bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
+Options:
+... 
+Description:
+    Generates a new model. Pass the model name, either CamelCased or
+    under_scored, and an optional list of attribute pairs as arguments.
+
+    Attribute pairs are field:type arguments specifying the
+    model's attributes. Timestamps are added by default, so you don't have to
+    specify them by hand as 'created_at:datetime updated_at:datetime'.
+
+    As a special case, specifying 'password:digest' will generate a
+    password_digest field of string type, and configure your generated model and
+    tests for use with Active Model has_secure_password (assuming the default ORM and test framework are being used).
+    ...
+    ...
+```
+
+Some of the most commonly used command are:
 
 * `bin/rails console`
 * `bin/rails server`
@@ -30,43 +119,7 @@ There are a few commands that are absolutely critical to your everyday usage of 
 * `bin/rails dbconsole`
 * `rails new app_name`
 
-You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
-
-```bash
-$ rails --help
-Usage:
-  bin/rails COMMAND [options]
-
-You must specify a command. The most common commands are:
-
-  generate     Generate new code (short-cut alias: "g")
-  console      Start the Rails console (short-cut alias: "c")
-  server       Start the Rails server (short-cut alias: "s")
-  ...
-
-All commands can be run with -h (or --help) for more information.
-
-In addition to those commands, there are:
-about                               List versions of all Rails ...
-assets:clean[keep]                  Remove old compiled assets
-assets:clobber                      Remove compiled assets
-assets:environment                  Load asset compile environment
-assets:precompile                   Compile all the assets ...
-...
-db:fixtures:load                    Load fixtures into the ...
-db:migrate                          Migrate the database ...
-db:migrate:status                   Display status of migrations
-db:rollback                         Roll the schema back to ...
-db:schema:cache:clear               Clears a db/schema_cache.yml file
-db:schema:cache:dump                Create a db/schema_cache.yml file
-db:schema:dump                      Create a database schema file (either db/schema.rb or db/structure.sql ...
-db:schema:load                      Load a database schema file (either db/schema.rb or db/structure.sql ...
-db:seed                             Load the seed data ...
-db:version                          Retrieve the current schema ...
-...
-restart                             Restart app by touching ...
-tmp:create                          Create tmp directories ...
-```
+We'll cover the above commands (and more) in details in this guide, starting with creating a new Rails application.
 
 Creating a New Rails Application
 --------------------------------
