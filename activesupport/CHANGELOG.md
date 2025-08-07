@@ -1,3 +1,7 @@
+*   Make `ActiveSupport::Logger` `#freeze`-friendly.
+
+    *Joshua Young*
+
 *   Make `ActiveSupport::Gzip.compress` deterministic based on input.
 
     `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
