@@ -119,20 +119,16 @@ Some of the most commonly used command are:
 * `bin/rails dbconsole`
 * `rails new app_name`
 
-We'll cover the above commands (and more) in details in this guide, starting with creating a new Rails application.
+We'll cover the above commands (and more) in details in this guide, starting with the command for creating a new application.
 
 Creating a New Rails Application
 --------------------------------
 
-First, let's create a simple Rails application using the `rails new` command.
+We can create a brand new Rails application using the `rails new` command. The first argument to `rails new` is the application name.
 
-We will use this application to play and discover all the commands described in this guide.
+INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already. For more step-by-step instructions, see [Installing Ruby on Rails](install_ruby_on_rails.html) guide.
 
-INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already.
-
-### `rails new`
-
-The first argument we'll pass to the `rails new` command is the application name.
+With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run the simple application right out of the box:
 
 ```bash
 $ rails new my_app
@@ -149,13 +145,12 @@ $ rails new my_app
         run  bundle install
 ```
 
-Rails will set up what seems like a huge amount of stuff for such a tiny command! We've got the entire Rails directory structure now with all the code we need to run our simple application right out of the box.
+You can also pass options to the `new` command to modify its default behavior.
 
-### Preconfigure a Different Database
+### Configure a Different Database
 
 When creating a new Rails application, you have the option to specify what kind
-of database your application is going to use. This will save you a few minutes,
-and certainly many keystrokes.
+of database your application is going to use.
 
 Let's see what a `--database=postgresql` option will do for us:
 
