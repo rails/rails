@@ -149,20 +149,17 @@ You can also pass options to the `new` command to modify its default behavior.
 
 ### Configure a Different Database
 
-When creating a new Rails application, you have the option to specify what kind
-of database your application is going to use.
-
-Let's see what a `--database=postgresql` option will do for us:
+When creating a new Rails application, you can specify a preferred database for your application by using the `--database` option. The default database for `rails new` is SQLite. For example, you can set up a PostgreSQL database like this:
 
 ```bash
-$ rails new petstore --database=postgresql
+$ rails new booknotes --database=postgresql
       create
       create  app/controllers
       create  app/helpers
 ...
 ```
 
-Let's see what it put in our `config/database.yml`:
+The main difference is the content of the `config/database.yml` file, with PostgreSQL option, it looks like this:
 
 ```yaml
 # PostgreSQL. Versions 9.3 and up are supported.
@@ -170,7 +167,7 @@ Let's see what it put in our `config/database.yml`:
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
+#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -182,26 +179,25 @@ Let's see what it put in our `config/database.yml`:
 default: &default
   adapter: postgresql
   encoding: unicode
-
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
+
 development:
   <<: *default
-  database: petstore_development
-...
+  database: booknotes_development
+  ...
 ```
 
-It generated a database configuration corresponding to our choice of PostgreSQL.
+The `--database=postgresql` option will also modify other files generated for a new Rails app appropriately, such as adding the `pg` gem to the `Gemfile`, etc. 
 
 ### Skipping Defaults
 
-If you wish to skip some files from being generated or skip some libraries
-entirely, you can pass one of the `--skip` arguments to the `rails new` command:
+The `rails new` command by default creates dozens of files. By using the `--skip` option, you can skip some files from being generated if you don't need them. For example,
 
 ```bash
-$ rails new sas --skip-active-storage
+$ rails new no_storage --skip-active-storage
 Based on the specified options, the following options will also be activated:
 
   --skip-action-mailbox [due to --skip-active-storage]
@@ -215,11 +211,7 @@ Based on the specified options, the following options will also be activated:
 In the above example, Action Mailbox and Action Text are skipped in addition to
 Active Storage because they depend on Active Storage functionality.
 
-For a full list of options (including what can be skipped), use `--help`:
-
-```bash
-$ rails new --help
-```
+TIP: You can get a full list of what can be skipped in the options section of `rails new --help` command.
 
 Starting a Rails Application
 ----------------------------
