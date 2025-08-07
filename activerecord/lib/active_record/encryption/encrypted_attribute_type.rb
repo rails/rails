@@ -15,7 +15,7 @@ module ActiveRecord
       delegate :key_provider, :downcase?, :deterministic?, :previous_schemes, :with_context, :fixed?, to: :scheme
       delegate :accessor, :type, to: :cast_type
 
-      # === Options
+      # ==== Options
       #
       # * <tt>:scheme</tt> - A +Scheme+ with the encryption properties for this attribute.
       # * <tt>:cast_type</tt> - A type that will be used to serialize (before encrypting) and deserialize

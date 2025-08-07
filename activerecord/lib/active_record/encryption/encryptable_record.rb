@@ -16,7 +16,7 @@ module ActiveRecord
       class_methods do
         # Encrypts the +name+ attribute.
         #
-        # === Options
+        # ==== Options
         #
         # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
         #   +ActiveRecord::Encryption.key_provider+.
