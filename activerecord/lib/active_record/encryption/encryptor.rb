@@ -20,15 +20,15 @@ module ActiveRecord
         @compress = compress
       end
 
-      # Encrypts +clean_text+ and returns the encrypted result
+      # Encrypts +clean_text+ and returns the encrypted result.
       #
       # Internally, it will:
       #
-      # 1. Create a new ActiveRecord::Encryption::Message
-      # 2. Compress and encrypt +clean_text+ as the message payload
+      # 1. Create a new ActiveRecord::Encryption::Message.
+      # 2. Compress and encrypt +clean_text+ as the message payload.
       # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+ (+ActiveRecord::Encryption::SafeMarshal+
-      #    by default)
-      # 4. Encode the result with Base 64
+      #    by default).
+      # 4. Encode the result with Base64.
       #
       # === Options
       #
@@ -38,7 +38,7 @@ module ActiveRecord
       #
       # [:cipher_options]
       #   Cipher-specific options that will be passed to the Cipher configured in
-      #   +ActiveRecord::Encryption.cipher+
+      #   +ActiveRecord::Encryption.cipher+.
       def encrypt(clear_text, key_provider: default_key_provider, cipher_options: {})
         clear_text = force_encoding_if_needed(clear_text) if cipher_options[:deterministic]
 
@@ -46,17 +46,17 @@ module ActiveRecord
         serialize_message build_encrypted_message(clear_text, key_provider: key_provider, cipher_options: cipher_options)
       end
 
-      # Decrypts an +encrypted_text+ and returns the result as clean text
+      # Decrypts an +encrypted_text+ and returns the result as clean text.
       #
       # === Options
       #
       # [:key_provider]
       #   Key provider to use for the encryption operation. It will default to
-      #   +ActiveRecord::Encryption.key_provider+ when not provided
+      #   +ActiveRecord::Encryption.key_provider+ when not provided.
       #
       # [:cipher_options]
       #   Cipher-specific options that will be passed to the Cipher configured in
-      #   +ActiveRecord::Encryption.cipher+
+      #   +ActiveRecord::Encryption.cipher+.
       def decrypt(encrypted_text, key_provider: default_key_provider, cipher_options: {})
         message = deserialize_message(encrypted_text)
         keys = key_provider.decryption_keys(message)
@@ -66,7 +66,7 @@ module ActiveRecord
         raise Errors::Decryption
       end
 
-      # Returns whether the text is encrypted or not
+      # Returns whether the text is encrypted or not.
       def encrypted?(text)
         deserialize_message(text)
         true
