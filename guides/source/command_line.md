@@ -250,67 +250,67 @@ The `-b` option binds Rails to the specified IP, by default it is localhost. You
 Generating Code
 ---------------
 
-### `bin/rails generate`
+You can use the `bin/rails generate` command to generate a number of different files and add functionality to your application, such as models, controllers, and full scaffolds. 
 
-The `bin/rails generate` command uses templates to create a whole lot of things. Running `bin/rails generate` by itself gives a list of available generators:
-
-INFO: You can also use the alias "g" to invoke the generator command: `bin/rails g`.
+To see a list of built-in generators, you can run `bin/rails generate` (or `bin/rails g` for short) without any arguments. It lists all available generators after the usage. You can also learn more about what a specific generator will do by using the `--pretend` option. 
 
 ```bash
 $ bin/rails generate
 Usage:
   bin/rails generate GENERATOR [args] [options]
 
-...
-...
+General options:
+  -h, [--help]     # Print generator's options and usage
+  -p, [--pretend]  # Run but do not make any changes
+  -f, [--force]    # Overwrite files that already exist
+  -s, [--skip]     # Skip files that already exist
+  -q, [--quiet]    # Suppress status output
 
 Please choose a generator below.
-
 Rails:
-  assets
+  application_record
+  benchmark
   channel
   controller
   generator
-  ...
-  ...
+  helper
+...
 ```
 
-NOTE: You can install more generators through generator gems, portions of plugins you'll undoubtedly install, and you can even create your own!
+NOTE: When you add certain gems to your application, they may install more generators. You can also create your own generators, see [Generators guide](generators.html) for more.
 
-Using generators will save you a large amount of time by writing **boilerplate code**, code that is necessary for the app to work.
+The purpose of Rails' built-in generators is to save you time by freeing you from having to write repetitive boilerplate code that is necessary for the application to work.
 
-Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
-
-INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `bin/rails server --help`.
+Let's add a controller with the `controller` generator.
 
 ### Generating Controllers
+
+We can find out exactly how to use the `controller` generator with the `bin/rails generate controller` command (which is the same as using it with `--help`). There is a "Usage" section and even an example:
 
 ```bash
 $ bin/rails generate controller
 Usage:
   bin/rails generate controller NAME [action action] [options]
-
 ...
-...
+Examples:
+    `bin/rails generate controller credit_cards open debit credit close`
 
-Description:
-    ...
-
-    To create a controller within a module, specify the controller name as a path like 'parent_module/controller_name'.
-
-    ...
-
-Example:
-    `bin/rails generate controller CreditCards open debit credit close`
-
-    Credit card controller with URLs like /credit_cards/debit.
+    This generates a `CreditCardsController` with routes like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb
         Test:       test/controllers/credit_cards_controller_test.rb
         Views:      app/views/credit_cards/debit.html.erb [...]
         Helper:     app/helpers/credit_cards_helper.rb
+
+    `bin/rails generate controller users index --skip-routes`
+
+    This generates a `UsersController` with an index action and no routes.
+
+    `bin/rails generate controller admin/dashboard --parent=admin_controller`
+
+    This generates a `Admin::DashboardController` with an `AdminController` parent class.
 ```
 
-The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of **hello**, which will say something nice to us.
+The controller generator is expecting parameters in the form of `generate controller ControllerName action1 action2`. Let's make a `Greetings` controller with an action of `hello`, which will say something nice to us.
 
 ```bash
 $ bin/rails generate controller Greetings hello
@@ -326,9 +326,9 @@ $ bin/rails generate controller Greetings hello
      invoke    test_unit
 ```
 
-What did all this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
+The above command created various files at specific directories. It created a controller file, a view file, a functional test file, a helper for the view, and added a route.
 
-Check out the controller and modify it a little (in `app/controllers/greetings_controller.rb`):
+To test out the new controller, we can modify the `hello` action and the view to display a message:
 
 ```ruby
 class GreetingsController < ApplicationController
@@ -338,23 +338,12 @@ class GreetingsController < ApplicationController
 end
 ```
 
-Then the view, to display our message (in `app/views/greetings/hello.html.erb`):
-
-```erb
+```html+erb
 <h1>A Greeting for You!</h1>
 <p><%= @message %></p>
 ```
 
-Fire up your server using `bin/rails server`.
-
-```bash
-$ bin/rails server
-=> Booting Puma...
-```
-
-The URL will be [http://localhost:3000/greetings/hello](http://localhost:3000/greetings/hello).
-
-INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the **index** action of that controller.
+Then, we can start the Rails server, with `bin/rails server`, and go to the added route [http://localhost:3000/greetings/hello](http://localhost:3000/greetings/hello) to see the message.
 
 ### Generating Models
 
