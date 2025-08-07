@@ -1,3 +1,7 @@
+*   Make `ActiveSupport::Logger` `#freeze`-friendly.
+
+    *Joshua Young*
+
 *   Fix `ActiveSupport::HashWithIndifferentAccess#tranform_keys!` to handle collisions.
 
     If the transformation would result in a key equal to another not yet transformed one,
