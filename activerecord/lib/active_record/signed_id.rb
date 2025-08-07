@@ -79,7 +79,7 @@ module ActiveRecord
       # or has been tampered with. It will also raise an +ActiveRecord::RecordNotFound+ exception if
       # the valid signed id can't find a record.
       #
-      # === Examples
+      # ==== Examples
       #
       #   User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
       #

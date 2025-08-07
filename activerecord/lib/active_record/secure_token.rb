@@ -30,7 +30,7 @@ module ActiveRecord
       # {validates_uniqueness_of}[rdoc-ref:Validations::ClassMethods#validates_uniqueness_of] can.
       # You're encouraged to add a unique index in the database to deal with this even more unlikely scenario.
       #
-      # === Options
+      # ==== Options
       #
       # [:length]
       #   Length of the Secure Random, with a minimum of 24 characters. It will
