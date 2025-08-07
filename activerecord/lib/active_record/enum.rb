@@ -119,7 +119,18 @@ module ActiveRecord
   #     enum :status, [ :active, :archived ], instance_methods: false
   #   end
   #
-  # If you want the enum value to be validated before saving, use the option +:validate+:
+  # By default, an +ArgumentError+ will be raised when assigning an invalid value:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ]
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  #
+  # If, instead, you want the enum value to be validated before saving, use the
+  # +:validate+ option:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: true
@@ -136,7 +147,7 @@ module ActiveRecord
   #   conversation.status = :active
   #   conversation.valid? # => true
   #
-  # It is also possible to pass additional validation options:
+  # You may also pass additional validation options:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: { allow_nil: true }
@@ -152,16 +163,6 @@ module ActiveRecord
   #
   #   conversation.status = :active
   #   conversation.valid? # => true
-  #
-  # Otherwise +ArgumentError+ will raise:
-  #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ]
-  #   end
-  #
-  #   conversation = Conversation.new
-  #
-  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
