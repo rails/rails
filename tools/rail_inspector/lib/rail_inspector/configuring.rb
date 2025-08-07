@@ -3,6 +3,9 @@
 require "pathname"
 require_relative "./configuring/check/general_configuration"
 require_relative "./configuring/check/framework_defaults"
+require_relative "./configuring/check/new_framework_defaults_file"
+require_relative "./configuring/document"
+require_relative "./visitor/framework_default"
 
 module RailInspector
   class Configuring
@@ -43,29 +46,6 @@ module RailInspector
       end
     end
 
-    class Doc
-      attr_accessor :general_config, :versioned_defaults
-
-      def initialize(content)
-        @before, @versioned_defaults, @general_config, @after =
-          content
-            .split("\n")
-            .slice_before do |line|
-              [
-                "### Versioned Default Values",
-                "### Rails General Configuration",
-                "### Configuring Assets"
-              ].include?(line)
-            end
-            .to_a
-      end
-
-      def to_s
-        (@before + @versioned_defaults + @general_config + @after).join("\n") +
-          "\n"
-      end
-    end
-
     attr_reader :errors, :files
 
     def initialize(rails_path)
@@ -82,13 +62,23 @@ module RailInspector
     end
 
     def check
-      [Check::GeneralConfiguration, Check::FrameworkDefaults].each do |check|
-        check.new(self).check
-      end
+      [
+        Check::GeneralConfiguration.new(self),
+        Check::FrameworkDefaults.new(
+          self,
+          framework_defaults_by_version,
+          doc.versioned_defaults,
+        ),
+        Check::NewFrameworkDefaultsFile.new(
+          self,
+          framework_defaults_by_version[rails_version].keys,
+          files.new_framework_defaults.read
+        ),
+      ].each(&:check)
     end
 
     def doc
-      @doc ||= Configuring::Doc.new(files.doc_path.read)
+      @doc ||= Configuring::Document.parse(files.doc_path.read)
     end
 
     def rails_version
@@ -106,5 +96,12 @@ module RailInspector
         "Make sure new configurations are added to configuring.md#rails-general-configuration in alphabetical order.\n" +
         "Errors may be autocorrectable with the --autocorrect flag"
     end
+
+    private
+      def framework_defaults_by_version
+        @framework_defaults_by_version ||= Visitor::FrameworkDefault.new.tap { |visitor|
+          visitor.visit(files.application_configuration.parse)
+        }.config_map
+      end
   end
 end
