@@ -6,7 +6,7 @@ The Rails Command Line
 After reading this guide, you will know how to use the Rails command:
 
 * To create a Rails application.
-* To generate models, controllers, database migrations, and unit tests.
+* To generate models, controllers, tests, and database migrations.
 * To start a development server.
 * To inspect a Rails application through an interactive shell.
 * To add and edit credentials to an application. 
@@ -15,8 +15,61 @@ After reading this guide, you will know how to use the Rails command:
 
 TODO: do `rails generate model --help`, it prints out two screens worth of info, use that to write
 
-Creating a Rails App
---------------------
+Overview
+--------
+
+There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
+
+* `bin/rails console`
+* `bin/rails server`
+* `bin/rails test`
+* `bin/rails generate`
+* `bin/rails db:migrate`
+* `bin/rails db:create`
+* `bin/rails routes`
+* `bin/rails dbconsole`
+* `rails new app_name`
+
+You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
+
+```bash
+$ rails --help
+Usage:
+  bin/rails COMMAND [options]
+
+You must specify a command. The most common commands are:
+
+  generate     Generate new code (short-cut alias: "g")
+  console      Start the Rails console (short-cut alias: "c")
+  server       Start the Rails server (short-cut alias: "s")
+  ...
+
+All commands can be run with -h (or --help) for more information.
+
+In addition to those commands, there are:
+about                               List versions of all Rails ...
+assets:clean[keep]                  Remove old compiled assets
+assets:clobber                      Remove compiled assets
+assets:environment                  Load asset compile environment
+assets:precompile                   Compile all the assets ...
+...
+db:fixtures:load                    Load fixtures into the ...
+db:migrate                          Migrate the database ...
+db:migrate:status                   Display status of migrations
+db:rollback                         Roll the schema back to ...
+db:schema:cache:clear               Clears a db/schema_cache.yml file
+db:schema:cache:dump                Create a db/schema_cache.yml file
+db:schema:dump                      Create a database schema file (either db/schema.rb or db/structure.sql ...
+db:schema:load                      Load a database schema file (either db/schema.rb or db/structure.sql ...
+db:seed                             Load the seed data ...
+db:version                          Retrieve the current schema ...
+...
+restart                             Restart app by touching ...
+tmp:create                          Create tmp directories ...
+```
+
+Creating a New Rails Application
+--------------------------------
 
 First, let's create a simple Rails application using the `rails new` command.
 
@@ -120,58 +173,8 @@ For a full list of options (including what can be skipped), use `--help`:
 $ rails new --help
 ```
 
-Command Line Basics
--------------------
-
-There are a few commands that are absolutely critical to your everyday usage of Rails. In the order of how much you'll probably use them are:
-
-* `bin/rails console`
-* `bin/rails server`
-* `bin/rails test`
-* `bin/rails generate`
-* `bin/rails db:migrate`
-* `bin/rails db:create`
-* `bin/rails routes`
-* `bin/rails dbconsole`
-* `rails new app_name`
-
-You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
-
-```bash
-$ rails --help
-Usage:
-  bin/rails COMMAND [options]
-
-You must specify a command. The most common commands are:
-
-  generate     Generate new code (short-cut alias: "g")
-  console      Start the Rails console (short-cut alias: "c")
-  server       Start the Rails server (short-cut alias: "s")
-  ...
-
-All commands can be run with -h (or --help) for more information.
-
-In addition to those commands, there are:
-about                               List versions of all Rails ...
-assets:clean[keep]                  Remove old compiled assets
-assets:clobber                      Remove compiled assets
-assets:environment                  Load asset compile environment
-assets:precompile                   Compile all the assets ...
-...
-db:fixtures:load                    Load fixtures into the ...
-db:migrate                          Migrate the database ...
-db:migrate:status                   Display status of migrations
-db:rollback                         Roll the schema back to ...
-db:schema:cache:clear               Clears a db/schema_cache.yml file
-db:schema:cache:dump                Create a db/schema_cache.yml file
-db:schema:dump                      Create a database schema file (either db/schema.rb or db/structure.sql ...
-db:schema:load                      Load a database schema file (either db/schema.rb or db/structure.sql ...
-db:seed                             Load the seed data ...
-db:version                          Retrieve the current schema ...
-...
-restart                             Restart app by touching ...
-tmp:create                          Create tmp directories ...
-```
+Starting a Rails Application
+----------------------------
 
 ### `bin/rails server`
 
@@ -208,6 +211,9 @@ $ bin/rails server -e production -p 4000
 
 The `-b` option binds Rails to the specified IP, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
 
+Generating Code
+---------------
+
 ### `bin/rails generate`
 
 The `bin/rails generate` command uses templates to create a whole lot of things. Running `bin/rails generate` by itself gives a list of available generators:
@@ -240,6 +246,8 @@ Using generators will save you a large amount of time by writing **boilerplate c
 Let's make our own controller with the controller generator. But what command should we use? Let's ask the generator:
 
 INFO: All Rails console utilities have help text. As with most *nix utilities, you can try adding `--help` or `-h` to the end, for example `bin/rails server --help`.
+
+### Generating Controllers
 
 ```bash
 $ bin/rails generate controller
@@ -312,6 +320,8 @@ The URL will be [http://localhost:3000/greetings/hello](http://localhost:3000/gr
 
 INFO: With a normal, plain-old Rails application, your URLs will generally follow the pattern of http://(host)/(controller)/(action), and a URL like http://(host)/(controller) will hit the **index** action of that controller.
 
+### Generating Models
+
 Rails comes with a generator for data models too.
 
 ```bash
@@ -335,6 +345,8 @@ Description:
 ```
 
 NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
+
+### Generating Scaffolds
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
@@ -383,13 +395,12 @@ $ bin/rails db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions
-about code. In unit testing, we take a little part of code, say a method of a model,
-and test its inputs and outputs. Unit tests are your friend. The sooner you make
-peace with the fact that your quality of life will drastically increase when you unit
-test your code, the better. Seriously. Please visit
-[the testing guide](testing.html) for an in-depth
-look at unit testing.
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes
+assertions about code. In unit testing, we take a little part of code, say a
+method of a model, and test its inputs and outputs. Unit tests are your friend.
+The sooner you make peace with the fact that your quality of life will
+drastically increase when you unit test your code, the better. Seriously. Please
+visit [the testing guide](testing.html) for an in-depth look at unit testing.
 
 Let's see the interface Rails created for us.
 
@@ -398,6 +409,35 @@ $ bin/rails server
 ```
 
 Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
+
+### Undoing Code Generation with `bin/rails destroy`
+
+Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
+
+INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
+
+```bash
+$ bin/rails generate model Oops
+      invoke  active_record
+      create    db/migrate/20120528062523_create_oops.rb
+      create    app/models/oops.rb
+      invoke    test_unit
+      create      test/models/oops_test.rb
+      create      test/fixtures/oops.yml
+```
+
+```bash
+$ bin/rails destroy model Oops
+      invoke  active_record
+      remove    db/migrate/20120528062523_create_oops.rb
+      remove    app/models/oops.rb
+      invoke    test_unit
+      remove      test/models/oops_test.rb
+      remove      test/fixtures/oops.yml
+```
+
+Inspecting and Exploring a Rails Application
+--------------------------------------------
 
 ### `bin/rails console`
 
@@ -494,33 +534,6 @@ You can opt out of this behavior by using the `--skip-executor` option.
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb
 ```
-
-### `bin/rails destroy`
-
-Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
-
-INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
-
-```bash
-$ bin/rails generate model Oops
-      invoke  active_record
-      create    db/migrate/20120528062523_create_oops.rb
-      create    app/models/oops.rb
-      invoke    test_unit
-      create      test/models/oops_test.rb
-      create      test/fixtures/oops.yml
-```
-
-```bash
-$ bin/rails destroy model Oops
-      invoke  active_record
-      remove    db/migrate/20120528062523_create_oops.rb
-      remove    app/models/oops.rb
-      invoke    test_unit
-      remove      test/models/oops_test.rb
-      remove      test/fixtures/oops.yml
-```
-
 ### `bin/rails about`
 
 `bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
@@ -540,11 +553,17 @@ Database adapter          sqlite3
 Database schema version   20180205173523
 ```
 
+Managing Assets
+---------------
+
 ### `bin/rails assets:`
 
 You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
+
+Managing the Database
+---------------------
 
 ### `bin/rails db:`
 
@@ -552,7 +571,7 @@ The most common commands of the `db:` rails namespace are `migrate` and `create`
 
 More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
 
-#### Switching to a Different Database Later
+### Switching to a Different Database Later
 
 After creating a new Rails application, you have the option to switch to any
 other supported database. For example, you might work with SQLite for a while and
@@ -573,8 +592,10 @@ And then install the missing gems:
 ```bash
 $ bundle install
 ...
-
 ```
+
+Other Useful Commands
+---------------------
 
 ### `bin/rails notes`
 
@@ -711,7 +732,8 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails time:zones:all` lists all the timezones Rails knows about.
 * `bin/rails boot` boots the application and exits.
 
-### Custom Rake Tasks
+Custom Rake Tasks
+-----------------
 
 Custom rake tasks have a `.rake` extension and are placed in
 `Rails.root/lib/tasks`. You can create these custom rake tasks with the
