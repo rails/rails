@@ -13,8 +13,6 @@ After reading this guide, you will know how to use the Rails command:
 
 --------------------------------------------------------------------------------
 
-TODO: do `rails generate model --help`, it prints out two screens worth of info, use that to write
-
 Overview
 --------
 
@@ -345,31 +343,34 @@ end
 
 Then, we can start the Rails server, with `bin/rails server`, and go to the added route [http://localhost:3000/greetings/hello](http://localhost:3000/greetings/hello) to see the message.
 
+Now let's use the generator to add models to our application.
+
 ### Generating Models
 
-Rails comes with a generator for data models too.
+The Rails model generator command has a very detailed description that is worth perusing. We can see the basic usage like this: 
 
 ```bash
 $ bin/rails generate model
 Usage:
   bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
-
-...
-
-ActiveRecord options:
-      [--migration], [--no-migration]        # Indicates when to generate migration
-                                             # Default: true
-
-...
-
-Description:
-    Generates a new model. Pass the model name, either CamelCased or
-    under_scored, and an optional list of attribute pairs as arguments.
-
 ...
 ```
 
-NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column.
+As an example, we can generate a `post` model like this:
+
+```bash
+$ bin/rails generate model post title:string body:text
+    invoke  active_record
+    create    db/migrate/20250807202154_create_posts.rb
+    create    app/models/post.rb
+    invoke    test_unit
+    create      test/models/post_test.rb
+    create      test/fixtures/posts.yml
+```
+
+The model generator adds test files as well as a migration, which you'll need to run with `bin/rails db:migrate`.
+
+NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module.
 
 ### Generating Scaffolds
 
