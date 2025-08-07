@@ -21,7 +21,7 @@ module ActiveRecord
     # The SQLite3 adapter works with the sqlite3-ruby drivers
     # (available as gem from https://rubygems.org/gems/sqlite3).
     #
-    # Options:
+    # ==== Options
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter

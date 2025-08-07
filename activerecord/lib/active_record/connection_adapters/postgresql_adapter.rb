@@ -25,7 +25,7 @@ module ActiveRecord
     #
     # The PostgreSQL adapter works with the native C (https://github.com/ged/ruby-pg) driver.
     #
-    # Options:
+    # ==== Options
     #
     # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
     #   the default is to connect to localhost.
