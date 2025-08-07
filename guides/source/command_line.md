@@ -216,11 +216,7 @@ TIP: You can get a full list of what can be skipped in the options section of `r
 Starting a Rails Application
 ----------------------------
 
-### `bin/rails server`
-
-The `bin/rails server` command launches a web server named Puma which comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
-
-With no further work, `bin/rails server` will run our new shiny Rails app:
+We can start a newly created Rails application using the `bin/rails server` command, which launches the [Puma](https://github.com/puma/puma) web server that comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
 
 ```bash
 $ cd my_app
@@ -239,11 +235,11 @@ Puma starting in single mode...
 Use Ctrl-C to stop
 ```
 
-With just three commands we whipped up a Rails server listening on port 3000. Go to your browser and open [http://localhost:3000](http://localhost:3000), you will see a basic Rails app running.
+With just two commands we have a Rails application up and running. The `server` command starts the application listening on port 3000 by default. You can open your browser to [http://localhost:3000](http://localhost:3000) to see a basic Rails application running.
 
 INFO: You can also use the alias "s" to start the server: `bin/rails s`.
 
-The server can be run on a different port using the `-p` option. The default development environment can be changed using `-e`.
+You can run the application on a different port using the `-p` option. You can also change the environment using `-e` (default is `development`).
 
 ```bash
 $ bin/rails server -e production -p 4000
