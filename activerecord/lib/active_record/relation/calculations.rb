@@ -60,26 +60,26 @@ module ActiveRecord
     #   Person.distinct.count(:age)
     #   # => counts the number of different age values
     #
-    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group],
+    # If +count+ is used with {Relation#group}[rdoc-ref:QueryMethods#group],
     # it returns a Hash whose keys represent the aggregated column,
     # and the values are the respective amounts:
     #
     #   Person.group(:city).count
     #   # => { 'Rome' => 5, 'Paris' => 3 }
     #
-    # If #count is used with {Relation#group}[rdoc-ref:QueryMethods#group] for multiple columns, it returns a Hash whose
+    # If +count+ is used with {Relation#group}[rdoc-ref:QueryMethods#group] for multiple columns, it returns a Hash whose
     # keys are an array containing the individual values of each column and the value
-    # of each key would be the #count.
+    # of each key would be the count.
     #
     #   Article.group(:status, :category).count
     #   # =>  {["draft", "business"]=>10, ["draft", "technology"]=>4, ["published", "technology"]=>2}
     #
-    # If #count is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
+    # If +count+ is used with {Relation#select}[rdoc-ref:QueryMethods#select], it will count the selected columns:
     #
     #   Person.select(:age).count
     #   # => counts the number of different age values
     #
-    # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid #count expressions. The specifics differ
+    # Note: not all valid {Relation#select}[rdoc-ref:QueryMethods#select] expressions are valid +count+ expressions. The specifics differ
     # between databases. In invalid cases, an error from the database is thrown.
     #
     # When given a block, loads all records in the relation, if the relation
