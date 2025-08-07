@@ -20,7 +20,7 @@ module ActiveRecord
       #   Defaults to +true+.
       # * <tt>:compressor</tt> - The compressor to use.
       #   1. If compressor is provided, it will be used.
-      #   2. If not, it will use ActiveRecord::Encryption.config.compressor which default value is +Zlib+.
+      #   2. If not, it will use +ActiveRecord::Encryption.config.compressor+ which default value is +Zlib+.
       #   If you want to use a custom compressor, it must respond to +deflate+ and +inflate+.
       def initialize(compress: true, compressor: nil)
         @compress = compress
