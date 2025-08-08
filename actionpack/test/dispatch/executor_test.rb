@@ -174,13 +174,15 @@ class ExecutorTest < ActiveSupport::TestCase
     completed = false
     executor.to_complete { completed = true }
 
-    env = { "rack.response_finished" => [] }
+    env = Rack::MockRequest.env_for
+    env["rack.response_finished"] = []
+
     call_and_return_body(env)
 
     assert_not completed
 
     assert_equal 1, env["rack.response_finished"].size
-    env["rack.response_finished"].first.call({}, 200, {}, nil)
+    env["rack.response_finished"].first.call(env, 200, {}, nil)
 
     assert completed
   end
@@ -189,7 +191,8 @@ class ExecutorTest < ActiveSupport::TestCase
     completed_count = 0
     executor.to_complete { completed_count += 1 }
 
-    env = { "rack.response_finished" => [] }
+    env = Rack::MockRequest.env_for
+    env["rack.response_finished"] = []
 
     begin
       call_and_return_body(env) do
@@ -199,15 +202,14 @@ class ExecutorTest < ActiveSupport::TestCase
     end
 
     assert_equal 1, env["rack.response_finished"].size
-    env["rack.response_finished"].first.call({}, 200, {}, nil)
+    env["rack.response_finished"].first.call(env, 200, {}, nil)
 
     assert_equal 1, completed_count
   end
 
   private
-    def call_and_return_body(env = {}, &block)
+    def call_and_return_body(env = Rack::MockRequest.env_for, &block)
       app = block || proc { [200, {}, []] }
-      env = Rack::MockRequest.env_for("", env)
       _, _, body = middleware(app).call(env)
       body
     end
