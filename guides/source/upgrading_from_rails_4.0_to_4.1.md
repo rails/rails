@@ -3,7 +3,9 @@
 Upgrading from Rails 4.0 to Rails 4.1
 =====================================
 
-This guide provides steps to be followed when you upgrade your applications from Rails 4.0 to Rails 4.1. These steps are also available in individual release guides.
+This guide provides steps to be followed when you upgrade your applications from
+Rails 4.0 to Rails 4.1. These steps are also available in individual release
+guides.
 
 --------------------------------------------------------------------------------
 
@@ -33,8 +35,8 @@ xhr :get, :index, format: :js
 to explicitly test an `XmlHttpRequest`.
 
 NOTE: Your own `<script>` tags are treated as cross-origin and blocked by
-default, too. If you really mean to load JavaScript from `<script>` tags,
-you must now explicitly skip CSRF protection on those actions.
+default, too. If you really mean to load JavaScript from `<script>` tags, you
+must now explicitly skip CSRF protection on those actions.
 
 ### Spring
 
@@ -45,15 +47,16 @@ If you want to use Spring as your application preloader you need to:
 3. Generate the Spring binstub with `bundle exec spring binstub`.
 
 NOTE: User defined rake tasks will run in the `development` environment by
-default. If you want them to run in other environments consult the
-[Spring README](https://github.com/rails/spring#rake).
+default. If you want them to run in other environments consult the [Spring
+README](https://github.com/rails/spring#rake).
 
 ### `config/secrets.yml`
 
 If you want to use the new `secrets.yml` convention to store your application's
 secrets, you need to:
 
-1. Create a `secrets.yml` file in your `config` folder with the following content:
+1. Create a `secrets.yml` file in your `config` folder with the following
+   content:
 
     ```yaml
     development:
@@ -67,36 +70,39 @@ secrets, you need to:
     ```
 
 2. Use your existing `secret_key_base` from the `secret_token.rb` initializer to
-   set the `SECRET_KEY_BASE` environment variable for whichever users running the
-   Rails application in production. Alternatively, you can simply copy the existing
-   `secret_key_base` from the `secret_token.rb` initializer to `secrets.yml`
-   under the `production` section, replacing `<%= ENV["SECRET_KEY_BASE"] %>`.
+   set the `SECRET_KEY_BASE` environment variable for whichever users running
+   the Rails application in production. Alternatively, you can simply copy the
+   existing `secret_key_base` from the `secret_token.rb` initializer to
+   `secrets.yml` under the `production` section, replacing `<%=
+   ENV["SECRET_KEY_BASE"] %>`.
 
 3. Remove the `secret_token.rb` initializer.
 
-4. Use `rake secret` to generate new keys for the `development` and `test` sections.
+4. Use `rake secret` to generate new keys for the `development` and `test`
+   sections.
 
 5. Restart your server.
 
 ### Changes to test helper
 
-If your test helper contains a call to
-`ActiveRecord::Migration.check_pending!` this can be removed. The check
-is now done automatically when you `require "rails/test_help"`, although
-leaving this line in your helper is not harmful in any way.
+If your test helper contains a call to `ActiveRecord::Migration.check_pending!`
+this can be removed. The check is now done automatically when you `require
+"rails/test_help"`, although leaving this line in your helper is not harmful in
+any way.
 
 ### Cookies serializer
 
-Applications created before Rails 4.1 uses `Marshal` to serialize cookie values into
-the signed and encrypted cookie jars. If you want to use the new `JSON`-based format
-in your application, you can add an initializer file with the following content:
+Applications created before Rails 4.1 uses `Marshal` to serialize cookie values
+into the signed and encrypted cookie jars. If you want to use the new
+`JSON`-based format in your application, you can add an initializer file with
+the following content:
 
 ```ruby
 Rails.application.config.action_dispatch.cookies_serializer = :hybrid
 ```
 
-This would transparently migrate your existing `Marshal`-serialized cookies into the
-new `JSON`-based format.
+This would transparently migrate your existing `Marshal`-serialized cookies into
+the new `JSON`-based format.
 
 When using the `:json` or `:hybrid` serializer, you should beware that not all
 Ruby objects can be serialized as JSON. For example, `Date` and `Time` objects
@@ -124,10 +130,10 @@ If you use the cookie session store, this would apply to the `session` and
 
 ### Flash structure changes
 
-Flash message keys are
-[normalized to strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1). They
-can still be accessed using either symbols or strings. Looping through the flash
-will always yield string keys:
+Flash message keys are [normalized to
+strings](https://github.com/rails/rails/commit/a668beffd64106a1e1fedb71cc25eaaa11baf0c1).
+They can still be accessed using either symbols or strings. Looping through the
+flash will always yield string keys:
 
 ```ruby
 flash["string"] = "a string"
@@ -148,19 +154,23 @@ There are a few major changes related to JSON handling in Rails 4.1.
 
 #### MultiJSON removal
 
-MultiJSON has reached its [end-of-life](https://github.com/rails/rails/pull/10576)
-and has been removed from Rails.
+MultiJSON has reached its
+[end-of-life](https://github.com/rails/rails/pull/10576) and has been removed
+from Rails.
 
-If your application currently depends on MultiJSON directly, you have a few options:
+If your application currently depends on MultiJSON directly, you have a few
+options:
 
-1. Add 'multi_json' to your `Gemfile`. Note that this might cease to work in the future
+1. Add 'multi_json' to your `Gemfile`. Note that this might cease to work in the
+   future
 
-2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)` instead.
+2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)`
+   instead.
 
-WARNING: Do not simply replace `MultiJson.load` with
-`JSON.load` as that API is meant for deserializing arbitrary Ruby objects and
-is generally [unsafe](https://docs.ruby-lang.org/en/master/JSON.html#method-i-load).
-Prefer to use `JSON.parse`.
+WARNING: Do not simply replace `MultiJson.load` with `JSON.load` as that API is
+meant for deserializing arbitrary Ruby objects and is generally
+[unsafe](https://docs.ruby-lang.org/en/master/JSON.html#method-i-load). Prefer
+to use `JSON.parse`.
 
 #### JSON gem compatibility
 
@@ -198,14 +208,16 @@ part of the rewrite, the following features have been removed from the encoder:
 3. Option to encode `BigDecimal` objects as numbers instead of strings
 
 If your application depends on one of these features, you can get them back by
-adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
+adding the
+[`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
 gem to your `Gemfile`.
 
 #### JSON representation of Time objects
 
-`#as_json` for objects with time component (`Time`, `DateTime`, `ActiveSupport::TimeWithZone`)
-now returns millisecond precision by default. If you need to keep old behavior with no millisecond
-precision, set the following in an initializer:
+`#as_json` for objects with time component (`Time`, `DateTime`,
+`ActiveSupport::TimeWithZone`) now returns millisecond precision by default. If
+you need to keep old behavior with no millisecond precision, set the following
+in an initializer:
 
 ```ruby
 ActiveSupport::JSON::Encoding.time_precision = 0
@@ -221,10 +233,10 @@ class ReadOnlyModel < ActiveRecord::Base
 end
 ```
 
-This behavior was never intentionally supported. Due to a change in the internals
-of `ActiveSupport::Callbacks`, this is no longer allowed in Rails 4.1. Using a
-`return` statement in an inline callback block causes a `LocalJumpError` to
-be raised when the callback is executed.
+This behavior was never intentionally supported. Due to a change in the
+internals of `ActiveSupport::Callbacks`, this is no longer allowed in Rails 4.1.
+Using a `return` statement in an inline callback block causes a `LocalJumpError`
+to be raised when the callback is executed.
 
 Inline callback blocks using `return` can be refactored to evaluate to the
 returned value:
@@ -235,8 +247,8 @@ class ReadOnlyModel < ActiveRecord::Base
 end
 ```
 
-Alternatively, if `return` is preferred it is recommended to explicitly define
-a method:
+Alternatively, if `return` is preferred it is recommended to explicitly define a
+method:
 
 ```ruby
 class ReadOnlyModel < ActiveRecord::Base
@@ -277,9 +289,9 @@ ActiveRecord::FixtureSet.context_class.include FixtureFileHelpers
 
 ### I18n enforcing available locales
 
-Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`. This
-means that it will make sure that all locales passed to it must be declared in
-the `available_locales` list.
+Rails 4.1 now defaults the I18n option `enforce_available_locales` to `true`.
+This means that it will make sure that all locales passed to it must be declared
+in the `available_locales` list.
 
 To disable it (and allow I18n to accept *any* locale option) add the following
 configuration to your application:
@@ -298,8 +310,8 @@ doing so.
 `Relation` no longer has mutator methods like `#map!` and `#delete_if`. Convert
 to an `Array` by calling `#to_a` before using these methods.
 
-It intends to prevent odd bugs and confusion in code that call mutator
-methods directly on the `Relation`.
+It intends to prevent odd bugs and confusion in code that call mutator methods
+directly on the `Relation`.
 
 ```ruby
 # Instead of this
@@ -314,9 +326,9 @@ authors.compact!
 
 Default scopes are no longer overridden by chained conditions.
 
-In previous versions when you defined a `default_scope` in a model
-it was overridden by chained conditions in the same field. Now it
-is merged like any other scope.
+In previous versions when you defined a `default_scope` in a model it was
+overridden by chained conditions in the same field. Now it is merged like any
+other scope.
 
 Before:
 
@@ -357,8 +369,7 @@ User.where(state: "inactive")
 ```
 
 To get the previous behavior it is needed to explicitly remove the
-`default_scope` condition using `unscoped`, `unscope`, `rewhere` or
-`except`.
+`default_scope` condition using `unscoped`, `unscope`, `rewhere` or `except`.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -398,11 +409,10 @@ Using `render :text` may pose a security risk, as the content is sent as
 
 ### PostgreSQL JSON and hstore datatypes
 
-Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`.
-In earlier versions, a `HashWithIndifferentAccess` was used. This means that
-symbol access is no longer supported. This is also the case for
-`store_accessors` based on top of `json` or `hstore` columns. Make sure to use
-string keys consistently.
+Rails 4.1 will map `json` and `hstore` columns to a string-keyed Ruby `Hash`. In
+earlier versions, a `HashWithIndifferentAccess` was used. This means that symbol
+access is no longer supported. This is also the case for `store_accessors` based
+on top of `json` or `hstore` columns. Make sure to use string keys consistently.
 
 ### Explicit block use for `ActiveSupport::Callbacks`
 
