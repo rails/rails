@@ -373,7 +373,8 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, format = db_config.schema_format, file = nil) # :nodoc:
+        format = format.to_sym
         file ||= schema_dump_path(db_config, format)
         return unless file
 
@@ -394,7 +395,7 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
+      def schema_up_to_date?(configuration, _ = nil, file = nil)
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
@@ -410,25 +411,32 @@ module ActiveRecord
         end
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= schema_dump_path(db_config, format)
+      def reconstruct_from_schema(db_config, file = nil) # :nodoc:
+        file ||= schema_dump_path(db_config, db_config.schema_format)
 
         check_schema_file(file) if file
 
         with_temporary_pool(db_config, clobber: true) do
-          if schema_up_to_date?(db_config, format, file)
+          if schema_up_to_date?(db_config, nil, file)
             truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
           else
             purge(db_config)
-            load_schema(db_config, format, file)
+            load_schema(db_config, db_config.schema_format, file)
           end
         rescue ActiveRecord::NoDatabaseError
           create(db_config)
-          load_schema(db_config, format, file)
+          load_schema(db_config, db_config.schema_format, file)
         end
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
+      def dump_all
+        with_temporary_pool_for_each do |pool|
+          db_config = pool.db_config
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+        end
+      end
+
+      def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
         return unless db_config.schema_dump
 
         require "active_record/schema_dumper"
@@ -436,7 +444,7 @@ module ActiveRecord
         return unless filename
 
         FileUtils.mkdir_p(db_dir)
-        case format
+        case format.to_sym
         when :ruby
           File.open(filename, "w:utf-8") do |file|
             ActiveRecord::SchemaDumper.dump(migration_connection_pool, file)
@@ -452,7 +460,7 @@ module ActiveRecord
         end
       end
 
-      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+      def schema_dump_path(db_config, format = db_config.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
 
         filename = db_config.schema_dump(format)
@@ -471,10 +479,10 @@ module ActiveRecord
           db_config.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
       end
 
-      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
+      def load_schema_current(format = nil, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
           with_temporary_connection(db_config) do
-            load_schema(db_config, format, file)
+            load_schema(db_config, format || db_config.schema_format, file)
           end
         end
       end
@@ -661,7 +669,7 @@ module ActiveRecord
             unless database_already_initialized
               schema_dump_path = schema_dump_path(db_config)
               if schema_dump_path && File.exist?(schema_dump_path)
-                load_schema(db_config, ActiveRecord.schema_format, nil)
+                load_schema(db_config)
               end
             end
 

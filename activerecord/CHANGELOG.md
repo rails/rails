@@ -1,3 +1,14 @@
+*   Allow setting `schema_format` in database configuration.
+
+    ```
+    primary:
+      schema_format: ruby
+    ```
+
+    Useful in multi-database setups to have different formats per-database.
+
+    *T S Vallender*
+
 *   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
 
     *Yasuo Honda*
