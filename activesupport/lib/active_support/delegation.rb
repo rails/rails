@@ -132,10 +132,9 @@ module ActiveSupport
 
             method_def <<
               "def #{method_name}(#{definition})" <<
-              "  _ = #{receiver}" <<
-              "  _.#{method}(#{definition})" <<
+              "  #{receiver}.#{method}(#{definition})" <<
               "rescue NoMethodError => e" <<
-              "  if _.nil? && e.name == :#{method}" <<
+              "  if e.receiver.nil? && e.name == :#{method}" <<
               "    raise ::ActiveSupport::DelegationError.nil_target(:#{method_name}, :'#{receiver}')" <<
               "  else" <<
               "    raise" <<
