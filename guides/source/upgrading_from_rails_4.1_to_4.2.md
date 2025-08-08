@@ -3,7 +3,9 @@
 Upgrading from Rails 4.1 to Rails 4.2
 =====================================
 
-This guide provides steps to be followed when you upgrade your applications from Rails 4.1 to Rails 4.2. These steps are also available in individual release guides.
+This guide provides steps to be followed when you upgrade your applications from
+Rails 4.1 to Rails 4.2. These steps are also available in individual release
+guides.
 
 --------------------------------------------------------------------------------
 
@@ -12,11 +14,20 @@ Key Changes
 
 ### Web Console
 
-First, add `gem "web-console", "~> 2.0"` to the `:development` group in your `Gemfile` and run `bundle install` (it won't have been included when you upgraded Rails). Once it's been installed, you can simply drop a reference to the console helper (i.e., `<%= console %>`) into any view you want to enable it for. A console will also be provided on any error page you view in your development environment.
+First, add `gem "web-console", "~> 2.0"` to the `:development` group in your
+`Gemfile` and run `bundle install` (it won't have been included when you
+upgraded Rails). Once it's been installed, you can simply drop a reference to
+the console helper (i.e., `<%= console %>`) into any view you want to enable it
+for. A console will also be provided on any error page you view in your
+development environment.
 
 ### Responders
 
-`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem "responders", "~> 2.0"` to your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+`respond_with` and the class-level `respond_to` methods have been extracted to
+the `responders` gem. To use them, simply add `gem "responders", "~> 2.0"` to
+your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class
+level) will no longer work without having included the `responders` gem in your
+dependencies:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -31,7 +42,8 @@ class UsersController < ApplicationController
 end
 ```
 
-Instance-level `respond_to` is unaffected and does not require the additional gem:
+Instance-level `respond_to` is unaffected and does not require the additional
+gem:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -51,17 +63,15 @@ See [#16526](https://github.com/rails/rails/pull/16526) for more details.
 
 ### Error handling in transaction callbacks
 
-Currently, Active Record suppresses errors raised
-within `after_rollback` or `after_commit` callbacks and only prints them to
-the logs. In the next version, these errors will no longer be suppressed.
-Instead, the errors will propagate normally just like in other Active
-Record callbacks.
+Currently, Active Record suppresses errors raised within `after_rollback` or
+`after_commit` callbacks and only prints them to the logs. In the next version,
+these errors will no longer be suppressed. Instead, the errors will propagate
+normally just like in other Active Record callbacks.
 
-When you define an `after_rollback` or `after_commit` callback, you
-will receive a deprecation warning about this upcoming change. When
-you are ready, you can opt into the new behavior and remove the
-deprecation warning by adding following configuration to your
-`config/application.rb`:
+When you define an `after_rollback` or `after_commit` callback, you will receive
+a deprecation warning about this upcoming change. When you are ready, you can
+opt into the new behavior and remove the deprecation warning by adding following
+configuration to your `config/application.rb`:
 
 ```ruby
 config.active_record.raise_in_transactional_callbacks = true
@@ -90,10 +100,9 @@ end
 
 ### Serialized attributes
 
-When using a custom coder (e.g. `serialize :metadata, JSON`),
-assigning `nil` to a serialized attribute will save it to the database
-as `NULL` instead of passing the `nil` value through the coder (e.g. `"null"`
-when using the `JSON` coder).
+When using a custom coder (e.g. `serialize :metadata, JSON`), assigning `nil` to
+a serialized attribute will save it to the database as `NULL` instead of passing
+the `nil` value through the coder (e.g. `"null"` when using the `JSON` coder).
 
 ### Production log level
 
@@ -148,21 +157,24 @@ venerable html-scanner approach is now officially being deprecated in favor of
 This means the methods `sanitize`, `sanitize_css`, `strip_tags` and
 `strip_links` are backed by a new implementation.
 
-This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah) internally. Loofah in turn uses Nokogiri, which
-wraps XML parsers written in both C and Java, so sanitization should be faster
-no matter which Ruby version you run.
+This new sanitizer uses [Loofah](https://github.com/flavorjones/loofah)
+internally. Loofah in turn uses Nokogiri, which wraps XML parsers written in
+both C and Java, so sanitization should be faster no matter which Ruby version
+you run.
 
 The new version updates `sanitize`, so it can take a `Loofah::Scrubber` for
-powerful scrubbing.
-[See some examples of scrubbers here](https://github.com/flavorjones/loofah#loofahscrubber).
+powerful scrubbing. [See some examples of scrubbers
+here](https://github.com/flavorjones/loofah#loofahscrubber).
 
 Two new scrubbers have also been added: `PermitScrubber` and `TargetScrubber`.
-Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more information.
+Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more
+information.
 
-The documentation for `PermitScrubber` and `TargetScrubber` explains how you
-can gain complete control over when and how elements should be stripped.
+The documentation for `PermitScrubber` and `TargetScrubber` explains how you can
+gain complete control over when and how elements should be stripped.
 
-If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your `Gemfile`:
+If your application needs to use the old sanitizer implementation, include
+`rails-deprecated_sanitizer` in your `Gemfile`:
 
 ```ruby
 gem "rails-deprecated_sanitizer"
@@ -170,11 +182,21 @@ gem "rails-deprecated_sanitizer"
 
 ### Rails DOM Testing
 
-The [`TagAssertions` module](https://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
+The [`TagAssertions`
+module](https://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html)
+(containing methods such as `assert_tag`), [has been
+deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb)
+in favor of the `assert_select` methods from the `SelectorAssertions` module,
+which has been extracted into the [rails-dom-testing
+gem](https://github.com/rails/rails-dom-testing).
 
 ### Masked Authenticity Tokens
 
-In order to mitigate SSL attacks, `form_authenticity_token` is now masked so that it varies with each request.  Thus, tokens are validated by unmasking and then decrypting.  As a result, any strategies for verifying requests from non-rails forms that relied on a static session CSRF token have to take this into account.
+In order to mitigate SSL attacks, `form_authenticity_token` is now masked so
+that it varies with each request.  Thus, tokens are validated by unmasking and
+then decrypting.  As a result, any strategies for verifying requests from
+non-rails forms that relied on a static session CSRF token have to take this
+into account.
 
 ### Action Mailer
 
@@ -216,13 +238,13 @@ end
 The migration DSL has been expanded to support foreign key definitions. If
 you've been using the Foreigner gem, you might want to consider removing it.
 Note that the foreign key support of Rails is a subset of Foreigner. This means
-that not every Foreigner definition can be fully replaced by its Rails
-migration DSL counterpart.
+that not every Foreigner definition can be fully replaced by its Rails migration
+DSL counterpart.
 
 The migration procedure is as follows:
 
 1. remove `gem "foreigner"` from the `Gemfile`.
 2. run `bundle install`.
 3. run `bin/rake db:schema:dump`.
-4. make sure that `db/schema.rb` contains every foreign key definition with
-  the necessary options.
+4. make sure that `db/schema.rb` contains every foreign key definition with the
+  necessary options.
