@@ -347,7 +347,7 @@ Now let's use the generator to add models to our application.
 
 ### Generating Models
 
-The Rails model generator command has a very detailed description that is worth perusing. We can see the basic usage like this: 
+The Rails model generator command has a very detailed "Description" section that is worth perusing. Here is the basic usage: 
 
 ```bash
 $ bin/rails generate model
@@ -370,96 +370,81 @@ $ bin/rails generate model post title:string body:text
 
 The model generator adds test files as well as a migration, which you'll need to run with `bin/rails db:migrate`.
 
-NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module.
+NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column).
 
 ### Generating Scaffolds
 
-But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
+In addition to generating controllers and models separately, Rails also provides a generator that adds all of the code necessary to create a resource in your application. This is called a *scaffold*. 
 
-We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
+A Rails scaffold generates a full set of files for a resource, including a model, controller, views, routes, migration, tests, and helper files. It should be used for quickly prototyping CRUD interfaces or when you want to generate the basic structure of a resource as a starting point that you can customize manually.
 
-```bash
-$ bin/rails generate scaffold HighScore game:string score:integer
-    invoke  active_record
-    create    db/migrate/20190416145729_create_high_scores.rb
-    create    app/models/high_score.rb
-    invoke    test_unit
-    create      test/models/high_score_test.rb
-    create      test/fixtures/high_scores.yml
-    invoke  resource_route
-     route    resources :high_scores
-    invoke  scaffold_controller
-    create    app/controllers/high_scores_controller.rb
-    invoke    erb
-    create      app/views/high_scores
-    create      app/views/high_scores/index.html.erb
-    create      app/views/high_scores/edit.html.erb
-    create      app/views/high_scores/show.html.erb
-    create      app/views/high_scores/new.html.erb
-    create      app/views/high_scores/_form.html.erb
-    invoke    test_unit
-    create      test/controllers/high_scores_controller_test.rb
-    create      test/system/high_scores_test.rb
-    invoke    helper
-    create      app/helpers/high_scores_helper.rb
-    invoke      test_unit
-    invoke    jbuilder
-    create      app/views/high_scores/index.json.jbuilder
-    create      app/views/high_scores/show.json.jbuilder
-    create      app/views/high_scores/_high_score.json.jbuilder
-```
-
-The generator creates the model, views, controller, **resource** route, and database migration (which creates the `high_scores` table) for HighScore. And it adds tests for those.
-
-The migration requires that we **migrate**, that is, run some Ruby code (the `20190416145729_create_high_scores.rb` file from the above output) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `bin/rails db:migrate` command. We'll talk more about that command below.
+If we scaffold the `post` resource you can see all of the files mentioned above being generated:
 
 ```bash
-$ bin/rails db:migrate
-==  CreateHighScores: migrating ===============================================
--- create_table(:high_scores)
-   -> 0.0017s
-==  CreateHighScores: migrated (0.0019s) ======================================
+$ bin/rails generate scaffold model post title:string body:text
+      invoke  active_record
+      create    db/migrate/20250808131823_create_models.rb
+      create    app/models/model.rb
+      invoke    test_unit
+      create      test/models/model_test.rb
+      create      test/fixtures/models.yml
+      invoke  resource_route
+       route    resources :models
+      invoke  scaffold_controller
+      create    app/controllers/models_controller.rb
+      invoke    tailwindcss
+      create      app/views/models
+      create      app/views/models/index.html.erb
+      create      app/views/models/edit.html.erb
+      create      app/views/models/show.html.erb
+      create      app/views/models/new.html.erb
+      create      app/views/models/_form.html.erb
+      create      app/views/models/_model.html.erb
+      invoke    resource_route
+      invoke    test_unit
+      create      test/controllers/models_controller_test.rb
+      create      test/system/models_test.rb
+      invoke    helper
+      create      app/helpers/models_helper.rb
+      invoke      test_unit
+      invoke    jbuilder
+      create      app/views/models/index.json.jbuilder
+      create      app/views/models/show.json.jbuilder
+      create      app/views/models/_model.json.jbuilder
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes
-assertions about code. In unit testing, we take a little part of code, say a
-method of a model, and test its inputs and outputs. Unit tests are your friend.
-The sooner you make peace with the fact that your quality of life will
-drastically increase when you unit test your code, the better. Seriously. Please
-visit [the testing guide](testing.html) for an in-depth look at unit testing.
+At this point, you can run `bin/rails db:migrate` to create the `post` table (see [Managing the Database](#managing-the-databse) for more on that command). Then, if you start the Rails server with `bin/rails server` and navigate to [http://localhost:3000/posts](http://localhost:3000/posts), you will be able to interact with the `post` resource - see a list of posts, create new posts, as well as edit and delete them.
 
-Let's see the interface Rails created for us.
-
-```bash
-$ bin/rails server
-```
-
-Go to your browser and open [http://localhost:3000/high_scores](http://localhost:3000/high_scores), now we can create new high scores (55,160 on Space Invaders!)
+INFO: The scaffold generate test files, though you will need to modify them and actually add test cases for your code. See the [Testing guide](testing.html) for an in-depth look at creating and running tests.
 
 ### Undoing Code Generation with `bin/rails destroy`
 
-Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
+Imagine you had a typo when using the `generate` command for a model (or controller or scaffold or anything), it would be tedious to manually delete each file that was created by the generator. Rails provides a `destroy` command for that reason. You can think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
 
 INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
 
-```bash
-$ bin/rails generate model Oops
-      invoke  active_record
-      create    db/migrate/20120528062523_create_oops.rb
-      create    app/models/oops.rb
-      invoke    test_unit
-      create      test/models/oops_test.rb
-      create      test/fixtures/oops.yml
-```
+For example, if you meant to generate an `article` model but instead typed `artcle`: 
 
 ```bash
-$ bin/rails destroy model Oops
+$ rails generate model Artcle title:string body:text
       invoke  active_record
-      remove    db/migrate/20120528062523_create_oops.rb
-      remove    app/models/oops.rb
+      create    db/migrate/20250808142940_create_artcles.rb
+      create    app/models/artcle.rb
       invoke    test_unit
-      remove      test/models/oops_test.rb
-      remove      test/fixtures/oops.yml
+      create      test/models/artcle_test.rb
+      create      test/fixtures/artcles.yml
+```
+
+You can undo the `generate` command with `destroy` like this:
+
+```bash
+$ rails destroy model Artcle title:string body:text
+      invoke  active_record
+      remove    db/migrate/20250808142940_create_artcles.rb
+      remove    app/models/artcle.rb
+      invoke    test_unit
+      remove      test/models/artcle_test.rb
+      remove      test/fixtures/artcles.yml
 ```
 
 Inspecting and Exploring a Rails Application
