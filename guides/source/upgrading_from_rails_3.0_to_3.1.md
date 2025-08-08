@@ -3,16 +3,20 @@
 Upgrading from Rails 3.0 to Rails 3.1
 =====================================
 
-This guide provides steps to be followed when you upgrade your applications from Rails 3.0 to Rails 3.1. These steps are also available in individual release guides.
+This guide provides steps to be followed when you upgrade your applications from
+Rails 3.0 to Rails 3.1. These steps are also available in individual release
+guides.
 
 --------------------------------------------------------------------------------
 
 Key Changes
 -----------
 
-If your application is currently on any version of Rails older than 3.0.x, you should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
+If your application is currently on any version of Rails older than 3.0.x, you
+should upgrade to Rails 3.0 before attempting an update to Rails 3.1.
 
-The following changes are meant for upgrading your application to Rails 3.1.12, the last 3.1.x version of Rails.
+The following changes are meant for upgrading your application to Rails 3.1.12,
+the last 3.1.x version of Rails.
 
 ### Gemfile
 
@@ -42,7 +46,8 @@ config.assets.enabled = true
 config.assets.version = "1.0"
 ```
 
-If your application is using an "/assets" route for a resource you may want to change the prefix used for assets to avoid conflicts:
+If your application is using an "/assets" route for a resource you may want to
+change the prefix used for assets to avoid conflicts:
 
 ```ruby
 # Defaults to '/assets'
@@ -65,7 +70,8 @@ config.assets.debug = true
 
 ### config/environments/production.rb
 
-Again, most of the changes below are for the asset pipeline. You can read more about these in the [Asset Pipeline](asset_pipeline.html) guide.
+Again, most of the changes below are for the asset pipeline. You can read more
+about these in the [Asset Pipeline](asset_pipeline.html) guide.
 
 ```ruby
 # Compress JavaScripts and CSS
@@ -101,7 +107,8 @@ config.public_file_server.headers = {
 
 ### config/initializers/wrap_parameters.rb
 
-Add this file with the following contents, if you wish to wrap parameters into a nested hash. This is on by default in new applications.
+Add this file with the following contents, if you wish to wrap parameters into a
+nested hash. This is on by default in new applications.
 
 ```ruby
 # Be sure to restart your server when you modify this file.
@@ -136,4 +143,5 @@ $ bin/rake db:sessions:clear
 
 ### Remove :cache and :concat options in asset helpers references in views
 
-* With the Asset Pipeline the :cache and :concat options aren't used anymore, delete these options from your views.
+* With the Asset Pipeline the :cache and :concat options aren't used anymore,
+  delete these options from your views.
