@@ -3563,12 +3563,11 @@ development:
   pool: 5
 ```
 
-By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
+By default Active Record a database features called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
-  prepared_statements: false
   advisory_locks: false
 ```
 
