@@ -1,3 +1,14 @@
+*   Allow `:if` and `:unless` inside the `:include` hash passed to
+    `ActiveModel::Serialization#serializable_hash`, so associations can
+    be added conditionally (method, proc, or boolean).
+
+    ```ruby
+    # Example – include notes only for admins
+    user.serializable_hash(include: { notes: { if: :admin? } })
+    ```
+
+    *Zakaria Fatahi*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*
