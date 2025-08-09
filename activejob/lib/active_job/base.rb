@@ -50,7 +50,7 @@ module ActiveJob # :nodoc:
   #
   #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
   #
-  # More information can be found in ActiveJob::Core::ClassMethods#set
+  # More information can be found in ActiveJob::Core::ClassMethods#set.
   #
   # A job can also be processed immediately without sending to the queue:
   #

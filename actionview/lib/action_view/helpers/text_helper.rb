@@ -271,7 +271,7 @@ module ActionView
       #
       # The word will be pluralized using rules defined for the locale
       # (you must define your own inflection rules for languages other than English).
-      # See ActiveSupport::Inflector.pluralize
+      # See ActiveSupport::Inflector.pluralize.
       #
       #   pluralize(1, 'person')
       #   # => "1 person"
@@ -346,7 +346,7 @@ module ActionView
       # ==== Options
       # * <tt>:sanitize</tt> - If +false+, does not sanitize +text+.
       # * <tt>:sanitize_options</tt> - Any extra options you want appended to the sanitize.
-      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>
+      # * <tt>:wrapper_tag</tt> - String representing the wrapper tag, defaults to <tt>"p"</tt>.
       #
       # ==== Examples
       #   my_text = "Here is some basic text...\n...with a line break."
