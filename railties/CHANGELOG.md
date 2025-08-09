@@ -1,7 +1,7 @@
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash
-    $ bin/rails credentials:fetch kamal_registry/password
+    $ bin/rails credentials:fetch kamal_registry.password
     ```
 
     *Matthew Nguyen*, *Jean Boussier*
