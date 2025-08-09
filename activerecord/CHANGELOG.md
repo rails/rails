@@ -1,3 +1,8 @@
+*   Make `belongs_to` association with `optional: true` necessary when using
+    inverse associations with `dependent: :nullify`.
+
+    *francktrouillez*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
