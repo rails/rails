@@ -600,7 +600,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.slice(:title, :author_name)
-    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #   # => { "title" => "Budget", "author_name" => "Jason" }
     #
     #--
     # Implemented by ActiveModel::Access#slice.
@@ -614,7 +614,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.values_at(:title, :author_name)
-    #   => ["Budget", "Jason"]
+    #   # => ["Budget", "Jason"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.
