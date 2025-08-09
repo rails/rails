@@ -527,8 +527,6 @@ server.
 When you open `http://localhost:3000/blorgh/articles` you will see the default
 scaffold that has been generated.
 
-![The landing page](images/engines/engine_article_page.png)
-
 Congratulations, you've just generated your first engine!
 
 #### Exploring the Engine in the Console
@@ -556,10 +554,8 @@ to the `config/routes.rb` file inside the engine.
 
 Now you will only need to go to the root of the engine to see all the articles,
 rather than visiting `/articles`. This means that instead of visiting
-`http://localhost:3000/blorgh/articles`, you only need to go to
-`http://localhost:3000/blorgh` now.
-
-![The landing page](images/engines/engine_root_page.png)
+`http://localhost:3000/blorgh/articles`, you can now go to
+`http://localhost:3000/blorgh`.
 
 ### Generating a Comments Resource
 
@@ -768,8 +764,6 @@ display a small number next to each comment when it's created.
 
 That completes the comment functionality of the blogging engine. Now it's time
 to use it within an application.
-
-![The article with comments](images/engines/engine_article_comment_page.png)
 
 Using the Engine in a Host Application
 --------------------------------------
@@ -1089,8 +1083,6 @@ Now that you've associated the `author_name` from the engine to the `User` model
 in the host application, you can go to the form in the host application at
 `http://localhost:3000/blog/articles/new` and create an article with an author
 name that will create and link to a `User` record in the host application.
-
-![Article with Associated Author](images/engines/engine_article_with_author_page.png)
 
 If you open up the rails console in the host application, you can view the
 `Blorgh::Article` record that was created, and see that it is associated with the
@@ -1474,9 +1466,7 @@ and put this content in it:
 <% end %>
 ```
 
-The new view at `localhost:3000/blog/articles` will now display the following:
-
-![New overridden view at `localhost:3000/blog/articles`](images/engines/engine_articles_overriden_page.png)
+The new view at `localhost:3000/blog/articles` will now display the updated view with the new content.
 
 ### Routes
 
