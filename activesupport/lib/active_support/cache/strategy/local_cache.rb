@@ -63,6 +63,20 @@ module ActiveSupport
           end
         end
 
+        class ExecutorHooks
+          def initialize(local_cache_key)
+            @local_cache_key = local_cache_key
+          end
+
+          def run
+            LocalCacheRegistry.set_cache_for(@local_cache_key, LocalStore.new)
+          end
+
+          def complete(_)
+            LocalCacheRegistry.set_cache_for(@local_cache_key, nil)
+          end
+        end
+
         # Use a local cache for the duration of block.
         def with_local_cache(&block)
           use_temporary_local_cache(LocalStore.new, &block)
@@ -74,6 +88,10 @@ module ActiveSupport
           @middleware ||= Middleware.new(
             "ActiveSupport::Cache::Strategy::LocalCache",
             local_cache_key)
+        end
+
+        def install_executor_hooks(executor = ActiveSupport::Executor)
+          executor.register_hook(executor_hooks)
         end
 
         def clear(options = nil) # :nodoc:
@@ -216,6 +234,10 @@ module ActiveSupport
 
           def local_cache
             LocalCacheRegistry.cache_for(local_cache_key)
+          end
+
+          def executor_hooks
+            @executor_hooks ||= ExecutorHooks.new(local_cache_key)
           end
 
           def bypass_local_cache(&block)
