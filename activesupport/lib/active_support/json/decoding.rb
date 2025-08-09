@@ -18,7 +18,7 @@ module ActiveSupport
       # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
-      #   => {"team" => "rails", "players" => "36"}
+      #   # => {"team" => "rails", "players" => "36"}
       def decode(json)
         data = ::JSON.parse(json, quirks_mode: true)
 
