@@ -579,6 +579,8 @@ module ActiveRecord
       # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
+      # * <tt>:array</tt> -
+      #   Specifies that the column is an array. This option is only supported by some databases like PostgreSQL.
       # * <tt>:comment</tt> -
       #   Specifies the comment for the column. This option is ignored by some backends.
       # * <tt>:collation</tt> -
@@ -866,13 +868,14 @@ module ActiveRecord
       #
       # ====== Creating an index that includes additional columns
       #
-      #   add_index(:accounts, :branch_id,  include: :party_id)
+      #   add_index(:accounts, :branch_id, include: [:party_id, :created_at])
       #
       # generates:
       #
-      #   CREATE INDEX index_accounts_on_branch_id ON accounts USING btree(branch_id) INCLUDE (party_id)
+      #   CREATE INDEX index_accounts_on_branch_id ON accounts USING btree(branch_id) INCLUDE (party_id, created_at)
       #
-      # Note: only supported by PostgreSQL.
+      # Note: only supported by PostgreSQL. These keys are not used in index scans for searching, but can be read during an index
+      # only scan without having to visit the associated table.
       #
       # ====== Creating an index where NULLs are treated equally
       #
