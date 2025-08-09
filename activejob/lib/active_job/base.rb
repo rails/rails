@@ -12,6 +12,7 @@ require "active_job/log_subscriber"
 require "active_job/logging"
 require "active_job/instrumentation"
 require "active_job/execution_state"
+require "active_job/rate_limiting"
 
 module ActiveJob # :nodoc:
   # = Active Job \Base
@@ -71,6 +72,7 @@ module ActiveJob # :nodoc:
     include Instrumentation
     include Logging
     include ExecutionState
+    include RateLimiting
 
     ActiveSupport.run_load_hooks(:active_job, self)
   end
