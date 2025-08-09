@@ -1,3 +1,18 @@
+*   Auto-detect the column type for enums defined with the array syntax.
+
+    Previously enums defined using an array were always mapped to integers
+    and indexed by position, now it is converted based on the column type,
+    it works for strings and database enums as well.
+
+    ```ruby
+    # Before
+    enum :status, { proposed: "proposed", written: "written", published: "published" }
+
+    # After
+    enum :status, [:proposed, :written, :published]
+    ```
+
+    *Felipe Felix*, *Lázaro Nixon*
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter

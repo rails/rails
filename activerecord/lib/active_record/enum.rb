@@ -165,15 +165,16 @@ module ActiveRecord
   #   conversation.valid? # => true
   module Enum
     def self.extended(base) # :nodoc:
-      base.class_attribute(:defined_enums, instance_writer: false, default: {})
+      base.class_attribute(:defined_enums_type, instance_writer: false, default: {})
     end
 
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
-      def initialize(name, mapping, subtype, raise_on_invalid_values: true)
+      def initialize(klass, name, initial_mapping, subtype, raise_on_invalid_values: true)
+        @klass = klass
         @name = name
-        @mapping = mapping
+        @initial_mapping = initial_mapping
         @subtype = subtype
         @_raise_on_invalid_values = raise_on_invalid_values
       end
@@ -208,10 +209,44 @@ module ActiveRecord
         end
       end
 
-      attr_reader :subtype
+      def mapping
+        @mapping ||= define_enum_values(name, subtype, initial_mapping)
+      end
+
+      def subtype
+        @subtype ||= begin
+          klass.load_schema
+          @subtype
+        end
+      end
+
+      attr_accessor :klass
+      attr_reader :name
+      attr_writer :subtype
 
       private
-        attr_reader :name, :mapping
+        attr_reader :initial_mapping
+        attr_writer :mapping
+
+        def define_enum_values(name, subtype, initial_mapping)
+          pairs = initial_mapping.respond_to?(:each_pair) ? initial_mapping.each_pair : enum_typed_pairs(name, initial_mapping, subtype)
+
+          enum_values = ActiveSupport::HashWithIndifferentAccess.new
+
+          pairs.each do |label, value|
+            enum_values[label] = value
+          end
+
+          enum_values.freeze
+        end
+
+        def enum_typed_pairs(name, initial_mapping, subtype)
+          if subtype.type.in?([:integer, nil])
+            initial_mapping.each_with_index
+          else
+            initial_mapping.index_with { |v| subtype.cast(v) }
+          end
+        end
     end
 
     def enum(name, values = nil, **options)
@@ -219,25 +254,8 @@ module ActiveRecord
       _enum(name, values, **options)
     end
 
-    private
-      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
-        values = assert_valid_enum_definition_values(values)
-        assert_valid_enum_options(options)
-
-        # statuses = { }
-        enum_values = ActiveSupport::HashWithIndifferentAccess.new
-        name = name.to_s
-
-        # def self.statuses() statuses end
-        detect_enum_conflict!(name, name.pluralize, true)
-        singleton_class.define_method(name.pluralize) { enum_values }
-        defined_enums[name] = enum_values
-
-        detect_enum_conflict!(name, name)
-        detect_enum_conflict!(name, "#{name}=")
-
-        attribute(name, **options)
-
+    protected
+      def define_pending_decorate_attribute(name)
         decorate_attributes([name]) do |_name, subtype|
           if subtype == ActiveModel::Type.default_value
             raise "Undeclared attribute type for enum '#{name}' in #{self.name}. Enums must be" \
@@ -246,8 +264,36 @@ module ActiveRecord
           end
 
           subtype = subtype.subtype if EnumType === subtype
-          EnumType.new(name, enum_values, subtype, raise_on_invalid_values: !validate)
+
+          enum_type = defined_enums_type[name]
+
+          enum_type.subtype = subtype
+
+          enum_type
         end
+      end
+
+    private
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
+        values = assert_valid_enum_definition_values(values)
+        assert_valid_enum_options(options)
+
+        name = name.to_s
+
+        # def self.statuses() statuses end
+        detect_enum_conflict!(name, name.pluralize, true)
+        singleton_class.define_method(name.pluralize) { defined_enums_type[name].mapping }
+
+        self.defined_enums_type[name] = EnumType.new(self, name, values, nil, raise_on_invalid_values: !validate)
+
+        detect_enum_conflict!(name, name)
+        detect_enum_conflict!(name, "#{name}=")
+
+        attribute(name, **options)
+
+        define_pending_decorate_attribute(name)
+
+        labels = values.respond_to?(:each_pair) ? values.keys : values
 
         value_method_names = []
         _enum_methods_module.module_eval do
@@ -259,21 +305,17 @@ module ActiveRecord
             suffix == true ? "_#{name}" : "_#{suffix}"
           end
 
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-          pairs.each do |label, value|
-            enum_values[label] = value
-            label = label.to_s
-
+          labels.each do |label|
             value_method_name = "#{prefix}#{label}#{suffix}"
             value_method_names << value_method_name
-            define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+            define_enum_methods(name, value_method_name, label, scopes, instance_methods)
 
-            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
+            method_friendly_label = label.to_s.gsub(/[\W&&[:ascii:]]+/, "_")
             value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
             if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
               value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, value, scopes, instance_methods)
+              define_enum_methods(name, value_method_alias, label, scopes, instance_methods)
             end
           end
         end
@@ -281,14 +323,19 @@ module ActiveRecord
 
         if validate
           validate = {} unless Hash === validate
-          validates_inclusion_of name, in: enum_values.keys, **validate
+          validates_inclusion_of name, in: labels.map(&:to_s), **validate
         end
-
-        enum_values.freeze
       end
 
       def inherited(base)
-        base.defined_enums = defined_enums.deep_dup
+        base.defined_enums_type = defined_enums_type.deep_dup
+        base.defined_enums_type.values.each do |enum_type|
+          enum_type.klass = base
+        end
+        base.defined_enums_type.keys.each do |name|
+          base.define_pending_decorate_attribute(name)
+        end
+
         super
       end
 
@@ -300,25 +347,32 @@ module ActiveRecord
         private
           attr_reader :klass
 
-          def define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+          def define_enum_methods(name, value_method_name, label, scopes, instance_methods)
             if instance_methods
               # def active?() status_for_database == 0 end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-              define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
+
+              define_method("#{value_method_name}?") do
+                public_send(:"#{name}_for_database") == defined_enums_type[name].mapping[label]
+              end
 
               # def active!() update!(status: 0) end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-              define_method("#{value_method_name}!") { update!(name => value) }
+              define_method("#{value_method_name}!") { update!(name => defined_enums_type[name].mapping[label]) }
             end
 
             if scopes
               # scope :active, -> { where(status: 0) }
               klass.send(:detect_enum_conflict!, name, value_method_name, true)
-              klass.scope value_method_name, -> { where(name => value) }
+              klass.scope value_method_name, -> do
+                where(name => model.defined_enums_type[name].mapping[label])
+              end
 
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              klass.scope "not_#{value_method_name}", -> do
+                where.not(name => model.defined_enums_type[name].mapping[label])
+              end
             end
           end
       end
