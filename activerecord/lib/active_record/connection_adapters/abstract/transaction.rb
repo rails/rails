@@ -112,6 +112,7 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def isolation; nil; end
       def add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
@@ -149,6 +150,11 @@ module ActiveRecord
       attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
+
+      # Returns the isolation level if it was explicitly set, nil otherwise
+      def isolation
+        @isolation_level
+      end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
@@ -386,7 +392,7 @@ module ActiveRecord
         @parent.state.add_child(@state)
       end
 
-      delegate :materialize!, :materialized?, :restart, to: :@parent
+      delegate :materialize!, :materialized?, :restart, :isolation, to: :@parent
 
       def rollback
         @state.rollback!
@@ -405,6 +411,7 @@ module ActiveRecord
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
 
+        @parent_transaction = parent_transaction
         parent_transaction.state.add_child(@state)
 
         if isolation_level
@@ -412,6 +419,11 @@ module ActiveRecord
         end
 
         @savepoint_name = savepoint_name
+      end
+
+      # Delegates to parent transaction's isolation level
+      def isolation
+        @parent_transaction.isolation
       end
 
       def materialize!

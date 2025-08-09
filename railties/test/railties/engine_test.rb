@@ -12,6 +12,10 @@ module RailtiesTest
     def setup
       build_app({ multi_db: true })
 
+      routes <<~'RUBY'
+        mount Bukkits::Engine, at: "/"
+      RUBY
+
       @plugin = engine "bukkits" do |plugin|
         plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
@@ -326,7 +330,7 @@ module RailtiesTest
     test "can draw routes in app routes from engines" do
       @plugin.write "config/routes/testing.rb", <<~RUBY
         Rails.application.routes.draw do
-          get "/testing", to: "test#action", as: :testing
+          get "/testing", to: "testing#index", as: :testing
         end
       RUBY
 
@@ -808,13 +812,18 @@ en:
         end
       RUBY
 
+      routes <<~'RUBY'
+        mount Bukkits::Engine, at: "/engine"
+        get "/other" => "other#index"
+      RUBY
+
       boot_rails
 
-      env = Rack::MockRequest.env_for("/")
+      env = Rack::MockRequest.env_for("/engine")
       Bukkits::Engine.call(env)
       assert_equal Bukkits::Engine.routes, env["action_dispatch.routes"]
 
-      env = Rack::MockRequest.env_for("/")
+      env = Rack::MockRequest.env_for("/other")
       Rails.application.call(env)
       assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end

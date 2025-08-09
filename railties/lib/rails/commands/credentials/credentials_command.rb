@@ -35,7 +35,7 @@ module Rails
       def show
         load_environment_config!
 
-        say credentials.read.presence || missing_credentials_message
+        say credentials.read.presence || missing_credentials!
       end
 
       desc "diff", "Enroll/disenroll in decrypted diffs of credentials using git"
@@ -55,6 +55,26 @@ module Rails
         end
       rescue ActiveSupport::MessageEncryptor::InvalidMessage
         say credentials.content_path.read
+      end
+
+      desc "fetch PATH", "Fetch a value in the decrypted credentials"
+      def fetch(path)
+        load_environment_config!
+
+        if (yaml = credentials.read)
+          begin
+            value = YAML.load(yaml)
+            value = path.split(".").inject(value) do |doc, key|
+              doc.fetch(key)
+            end
+            say value.to_s
+          rescue KeyError, NoMethodError
+            say_error "Invalid or missing credential path: #{path}"
+            exit 1
+          end
+        else
+          missing_credentials!
+        end
       end
 
       private
@@ -81,7 +101,6 @@ module Rails
 
           encryption_key_file_generator = Rails::Generators::EncryptionKeyFileGenerator.new
           encryption_key_file_generator.add_key_file(key_path)
-          encryption_key_file_generator.ignore_key_file(key_path)
         end
 
         def ensure_credentials_have_been_added
@@ -115,12 +134,13 @@ module Rails
           say "Your application will not be able to load '#{content_path}' until the error has been fixed.", :red
         end
 
-        def missing_credentials_message
+        def missing_credentials!
           if !credentials.key?
-            "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`."
+            say_error "Missing '#{key_path}' to decrypt credentials. See `#{executable(:help)}`."
           else
-            "File '#{content_path}' does not exist. Use `#{executable(:edit)}` to change that."
+            say_error "File '#{content_path}' does not exist. Use `#{executable(:edit)}` to change that."
           end
+          exit 1
         end
 
         def relative_path(path)

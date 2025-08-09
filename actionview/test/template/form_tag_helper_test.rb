@@ -581,7 +581,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_field_tag_with_ac_parameters
     actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
-    value = CGI.escapeHTML({ "key" => "value" }.inspect)
+    value = ERB::Util.html_escape({ "key" => "value" }.inspect)
     expected = %(<input id="title" name="title" type="text" value="#{value}" />)
     assert_dom_equal expected, actual
   end

@@ -1,3 +1,127 @@
+*   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
+
+    Returns the isolation level if it was explicitly set via the `isolation:` parameter
+    or through `ActiveRecord.with_transaction_isolation_level`, otherwise returns `nil`.
+    Nested transactions return the parent transaction's isolation level.
+
+    ```ruby
+    # Returns nil when no transaction
+    User.connection.current_transaction.isolation # => nil
+
+    # Returns explicitly set isolation level
+    User.transaction(isolation: :serializable) do
+      User.connection.current_transaction.isolation # => :serializable
+    end
+
+    # Returns nil when isolation not explicitly set
+    User.transaction do
+      User.connection.current_transaction.isolation # => nil
+    end
+
+    # Nested transactions inherit parent's isolation
+    User.transaction(isolation: :read_committed) do
+      User.transaction do
+        User.connection.current_transaction.isolation # => :read_committed
+      end
+    end
+    ```
+
+    *Kir Shatrov*
+
+*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
+
+    *Yasuo Honda*
+
+*   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
+
+    ```ruby
+    base = Comment.joins(:post).where(user_id: 1).where("recent = 1")
+    puts base.merge(base.where(draft: true).or(Post.where(archived: true))).to_sql
+    ```
+
+    Before:
+
+    ```SQL
+    SELECT "comments".* FROM "comments"
+    INNER JOIN "posts" ON "posts"."id" = "comments"."post_id"
+    WHERE (recent = 1)
+    AND (
+      "comments"."user_id" = 1
+      AND (recent = 1)
+      AND "comments"."draft" = 1
+      OR "posts"."archived" = 1
+    )
+    ```
+
+    After:
+
+    ```SQL
+    SELECT "comments".* FROM "comments"
+    INNER JOIN "posts" ON "posts"."id" = "comments"."post_id"
+    WHERE "comments"."user_id" = 1
+    AND (recent = 1)
+    AND (
+      "comments"."user_id" = 1
+      AND (recent = 1)
+      AND "comments"."draft" = 1
+      OR "posts"."archived" = 1
+    )
+    ```
+
+    *Joshua Young*
+
+*   Make schema dumper to account for `ActiveRecord.dump_schemas` when dumping in `:ruby` format.
+
+    *fatkodima*
+
+*   Add `:touch` option to `update_column`/`update_columns` methods.
+
+    ```ruby
+    # Will update :updated_at/:updated_on alongside :nice column.
+    user.update_column(:nice, true, touch: true)
+
+    # Will update :updated_at/:updated_on alongside :last_ip column
+    user.update_columns(last_ip: request.remote_ip, touch: true)
+    ```
+
+    *Dmitrii Ivliev*
+
+*   Optimize Active Record batching further when using ranges.
+
+    Tested on a PostgreSQL table with 10M records and batches of 10k records, the generation
+    of relations for the 1000 batches was `4.8x` faster (`6.8s` vs. `1.4s`), used `900x`
+    less bandwidth (`180MB` vs. `0.2MB`) and allocated `45x` less memory (`490MB` vs. `11MB`).
+
+    *Maxime Réty*, *fatkodima*
+
+*   Include current character length in error messages for index and table name length validations.
+
+    *Joshua Young*
+
+*   Add `rename_schema` method for PostgreSQL.
+
+    *T S Vallender*
+
+*   Implement support for deprecating associations:
+
+    ```ruby
+    has_many :posts, deprecated: true
+    ```
+
+    With that, Active Record will report any usage of the `posts` association.
+
+    Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+    backtraces can be enabled or disabled. Defaults are `:warn` mode and
+    disabled backtraces.
+
+    Please, check the docs for further details.
+
+    *Xavier Noria*
+
+*   PostgreSQL adapter create DB now supports `locale_provider` and `locale`.
+
+    *Bengt-Ove Hollaender*
+
 *   Use ntuples to populate row_count instead of count for Postgres
 
     *Jonathan Calvert*
@@ -33,6 +157,19 @@
     ```
 
     *Eileen M. Uchitelle*
+
+*   Raise `ActiveRecord::MissingRequiredOrderError` when order dependent finder methods (e.g. `#first`, `#last`) are
+    called without `order` values on the relation, and the model does not have any order columns (`implicit_order_column`,
+    `query_constraints`, or `primary_key`) to fall back on.
+
+    This change will be introduced with a new framework default for Rails 8.1, and the current behavior of not raising
+    an error has been deprecated with the aim of removing the configuration option in Rails 8.2.
+
+    ```ruby
+    config.active_record.raise_on_missing_required_finder_order_columns = true
+    ```
+
+    *Joshua Young*
 
 *   `:class_name` is now invalid in polymorphic `belongs_to` associations.
 
@@ -380,7 +517,7 @@
     `WITH RECURSIVE` or `DISTINCT` statements. Those were never supported and were ignored
     when generating the SQL query.
 
-    An error will be raised in a future Rails release. This behaviour will be consistent
+    An error will be raised in a future Rails release. This behavior will be consistent
     with `delete_all` which currently raises an error for unsupported statements.
 
     *Edouard Chin*

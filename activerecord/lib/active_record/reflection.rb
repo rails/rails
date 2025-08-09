@@ -540,6 +540,8 @@ module ActiveRecord
           options[:query_constraints] = options.delete(:foreign_key)
         end
 
+        @deprecated = !!options[:deprecated]
+
         ensure_option_not_given_as_class!(:class_name)
       end
 
@@ -750,6 +752,10 @@ module ActiveRecord
 
       def extensions
         Array(options[:extend])
+      end
+
+      def deprecated?
+        @deprecated
       end
 
       private
@@ -1211,6 +1217,10 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
+      def deprecated_nested_reflections
+        @deprecated_nested_reflections ||= collect_deprecated_nested_reflections
+      end
+
       protected
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.actual_source_reflection
@@ -1233,6 +1243,19 @@ module ActiveRecord
         def derive_class_name
           # get the class_name of the belongs_to association of the through reflection
           options[:source_type] || source_reflection.class_name
+        end
+
+        def collect_deprecated_nested_reflections
+          result = []
+          [through_reflection, source_reflection].each do |reflection|
+            result << reflection if reflection.deprecated?
+            # Both the through and the source reflections could be through
+            # themselves. Nesting can go an arbitrary number of levels down.
+            if reflection.through_reflection?
+              result.concat(reflection.deprecated_nested_reflections)
+            end
+          end
+          result
         end
 
         delegate_methods = AssociationReflection.public_instance_methods -

@@ -75,7 +75,7 @@ value when creating the book.
 @book = Book.create(author_id: @author.id, published_at: Time.now)
 ```
 
-To delete an author and ensure all their books are also deleted, you need to
+To delete an author and ensure all their books are also deleted, you'd need to
 retrieve all the author's `books`, loop through each `book` to destroy it, and
 then destroy the author.
 
@@ -2066,7 +2066,7 @@ Entry.create! entryable: Message.new(subject: "hello!")
 
 We can enhance our `Entry` delegator by defining `delegate` and using
 polymorphism on the subclasses. For example, to delegate the `title` method from
-`Entry` to it's subclasses:
+`Entry` to its subclasses:
 
 ```ruby
 class Entry < ApplicationRecord
@@ -2859,6 +2859,17 @@ setting up a many-to-many self-join.
 The `:join_table` can be found on a `has_and_belongs_to_many` relationship. If
 the default name of the join table, based on lexical ordering, is not what you
 want, you can use the `:join_table` option to override the default.
+
+#### `:deprecated`
+
+If true, Active Record warns every time the association is used.
+
+Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+backtraces can be enabled or disabled. Defaults are `:warn` mode and disabled
+backtraces.
+
+Please, check the documentation of `ActiveRecord::Associations::ClassMethods`
+for further details.
 
 ### Scopes
 

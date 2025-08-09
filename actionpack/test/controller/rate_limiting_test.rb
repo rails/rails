@@ -33,6 +33,20 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :too_many_requests
   end
 
+  test "notification on limit action" do
+    get :limited
+    get :limited
+
+    assert_notification("rate_limit.action_controller",
+        count: 3,
+        to: 2,
+        within: 2.seconds,
+        name: nil,
+        by: request.remote_ip) do
+      get :limited
+    end
+  end
+
   test "multiple rate limits" do
     get :limited
     get :limited
