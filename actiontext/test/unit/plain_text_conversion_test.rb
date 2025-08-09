@@ -137,6 +137,17 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "squeezes line breaks and other whitespace to a single space between inline elements" do
+    assert_converted_to(
+      "Visit my website at example.com",
+      <<~HTML
+        Visit my website at
+
+        <a href="example.com">example.com</a>
+      HTML
+    )
+  end
+
   test "preserves trailing linebreaks after text" do
     assert_converted_to(
       "Hello\nHow are you?",
