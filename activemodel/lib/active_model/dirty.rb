@@ -108,7 +108,7 @@ module ActiveModel
   #   person.changes # => {"name" => ["Bill", "Bob"]}
   #
   # If an attribute is modified in-place then make use of
-  # {*_will_change!}[rdoc-label:method-i-2A_will_change-21] to mark that the attribute is changing.
+  # {*_will_change!}[rdoc-ref:#*_will_change!] to mark that the attribute is changing.
   # Otherwise \Active \Model can't track changes to in-place attributes. Note
   # that Active Record can detect in-place modifications automatically. You do
   # not need to call <tt>*_will_change!</tt> on Active Record models.
@@ -296,22 +296,22 @@ module ActiveModel
       mutations_from_database.changed_attribute_names
     end
 
-    # Dispatch target for {*_changed?}[rdoc-label:method-i-2A_changed-3F] attribute methods.
+    # Dispatch target for {*_changed?}[rdoc-ref:#*_changed?] attribute methods.
     def attribute_changed?(attr_name, **options)
       mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
-    # Dispatch target for {*_was}[rdoc-label:method-i-2A_was] attribute methods.
+    # Dispatch target for {*_was}[rdoc-ref:#*_was] attribute methods.
     def attribute_was(attr_name)
       mutations_from_database.original_value(attr_name.to_s)
     end
 
-    # Dispatch target for {*_previously_changed?}[rdoc-label:method-i-2A_previously_changed-3F] attribute methods.
+    # Dispatch target for {*_previously_changed?}[rdoc-ref:#*_previously_changed?] attribute methods.
     def attribute_previously_changed?(attr_name, **options)
       mutations_before_last_save.changed?(attr_name.to_s, **options)
     end
 
-    # Dispatch target for {*_previously_was}[rdoc-label:method-i-2A_previously_was] attribute methods.
+    # Dispatch target for {*_previously_was}[rdoc-ref:#*_previously_was] attribute methods.
     def attribute_previously_was(attr_name)
       mutations_before_last_save.original_value(attr_name.to_s)
     end
