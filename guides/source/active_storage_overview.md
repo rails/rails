@@ -103,7 +103,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the S3 service in production, you add the following to
+To use the S3 service in production, you would add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -111,7 +111,7 @@ To use the S3 service in production, you add the following to
 config.active_storage.service = :amazon
 ```
 
-To use the test service when testing, you add the following to
+To use the test service when testing, you would add the following to
 `config/environments/test.rb`:
 
 ```ruby
