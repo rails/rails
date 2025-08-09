@@ -24,22 +24,22 @@ module ActiveRecord
     #   TravelRoute.primary_key = [:origin, :destination]
     #
     #   TravelRoute.find(["Ottawa", "London"])
-    #   => #<TravelRoute origin: "Ottawa", destination: "London">
+    #   # => #<TravelRoute origin: "Ottawa", destination: "London">
     #
     #   TravelRoute.find([["Paris", "Montreal"]])
-    #   => [#<TravelRoute origin: "Paris", destination: "Montreal">]
+    #   # => [#<TravelRoute origin: "Paris", destination: "Montreal">]
     #
     #   TravelRoute.find(["New York", "Las Vegas"], ["New York", "Portland"])
-    #   => [
-    #        #<TravelRoute origin: "New York", destination: "Las Vegas">,
-    #        #<TravelRoute origin: "New York", destination: "Portland">
-    #      ]
+    #   # => [
+    #   #      #<TravelRoute origin: "New York", destination: "Las Vegas">,
+    #   #      #<TravelRoute origin: "New York", destination: "Portland">
+    #   #    ]
     #
     #   TravelRoute.find([["Berlin", "London"], ["Barcelona", "Lisbon"]])
-    #   => [
-    #        #<TravelRoute origin: "Berlin", destination: "London">,
-    #        #<TravelRoute origin: "Barcelona", destination: "Lisbon">
-    #      ]
+    #   # => [
+    #   #      #<TravelRoute origin: "Berlin", destination: "London">,
+    #   #      #<TravelRoute origin: "Barcelona", destination: "Lisbon">
+    #   #    ]
     #
     # NOTE: The returned records are in the same order as the ids you provide.
     # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where

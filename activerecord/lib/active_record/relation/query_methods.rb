@@ -1305,7 +1305,7 @@ module ActiveRecord
     #
     #   users.readonly(false)
     #   users.first.save
-    #   => true
+    #   # => true
     def readonly(value = true)
       spawn.readonly!(value)
     end
