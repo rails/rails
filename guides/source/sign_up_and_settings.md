@@ -1220,7 +1220,7 @@ And finally, the user show view at `app/views/store/users/show.html.erb`:
 
 <div>
   <%= link_to "Edit user", edit_store_user_path(@user)  %>
-  <%= button_to "Delete user", store_user_path(@user), data: { turbo_confirm: "Are you sure?" } %>
+  <%= button_to "Delete user", store_user_path(@user), method: :delete, data: { turbo_confirm: "Are you sure?" } %>
 </div>
 ```
 
