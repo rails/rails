@@ -473,9 +473,31 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@integers).transform_keys { |k| k + 1 }
+
+    assert_equal([1, 2], hash.keys)
+
+    repeating_strings = { "a" => 1, "aa" => 2, "aaa" => 3 }
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(repeating_strings).transform_keys { |k| "#{k}a" }
+
+    assert_equal(%w[aa aaa aaaa], hash.keys)
+
     assert_raise TypeError do
       hash.transform_keys(nil)
     end
+
+    hash_with_default = Hash.new(:a)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys(&:to_s)
+    assert_nil hash.default
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys { |k| k.to_s }
+    assert_nil hash.default
+
+    hash_with_default_proc = Hash.new { |h, k| h[k] = :b }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys(&:to_s)
+    assert_nil hash.default_proc
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys { |k| k.to_s }
+    assert_nil hash.default_proc
   end
 
   def test_indifferent_deep_transform_keys
@@ -530,6 +552,23 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_raise TypeError do
       hash.transform_keys(nil)
     end
+
+    hash_with_default = Hash.new(:a)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys!(&:to_s)
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys! { |k| k.to_s }
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
+
+    hash_with_default_proc = Hash.new { |h, k| h[k] = :b }
+    default_proc = hash_with_default_proc.default_proc
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys!(&:to_s)
+    assert_equal default_proc, hash.default_proc
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys! { |k| k.to_s }
+    assert_equal default_proc, hash.default_proc
   end
 
   def test_indifferent_deep_transform_keys_bang

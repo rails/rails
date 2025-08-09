@@ -662,6 +662,31 @@ are stored before the form is submitted, they can be used to retain uploads when
 <%= form.file_field :avatar, direct_upload: true %>
 ```
 
+## Querying
+
+Active Storage attachments are Active Record associations behind the scenes, so you can use the usual [query methods](active_record_querying.html) to look up records for attachments that meet specific criteria.
+
+### `has_one_attached`
+
+[`has_one_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached) creates a `has_one` association named `"<name>_attachment"` and a `has_one :through` association named `"<name>_blob"`.
+To select every user where the avatar is a PNG, run the following:
+
+```ruby
+User.joins(:avatar_blob).where(active_storage_blobs: { content_type: "image/png" })
+```
+
+### `has_many_attached`
+
+[`has_many_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached) creates a `has_many` association called `"<name>_attachments"` and a `has_many :through` association called `"<name>_blobs"` (note the plural).
+To select all messages where images are videos rather than photos you can do the following:
+
+```ruby
+Message.joins(:images_blobs).where(active_storage_blobs: { content_type: "video/mp4" })
+```
+
+The query will filter on the [**`ActiveStorage::Blob`**](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html), not the [attachment record](https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html) because these are plain SQL joins. You can combine the blob predicates above with any other scope conditions, just as you would with any other Active Record query.
+
+
 Removing Files
 --------------
 
@@ -693,8 +718,8 @@ require a higher level of protection consider implementing
 
 ### Redirect Mode
 
-To generate a permanent URL for a blob, you can pass the blob to the
-[`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
+To generate a permanent URL for a blob, you can pass the attachment or the blob to
+the [`url_for`][ActionView::RoutingUrlFor#url_for] view helper. This generates a
 URL with the blob's [`signed_id`][ActiveStorage::Blob#signed_id]
 that is routed to the blob's [`RedirectController`][`ActiveStorage::Blobs::RedirectController`]
 

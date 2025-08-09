@@ -31,6 +31,18 @@ module ActiveRecord
         end
       end
 
+      # This is the actual query cache store.
+      #
+      # It has an internal hash whose keys are either SQL strings, or arrays of
+      # two elements [SQL string, binds], if there are binds. The hash values
+      # are their corresponding ActiveRecord::Result objects.
+      #
+      # Keeping the hash size under max size is achieved with LRU eviction.
+      #
+      # The store gets passed a version object, which is shared among the query
+      # cache stores of a given connection pool (see ConnectionPoolConfiguration
+      # down below). The version value may be externally changed as a way to
+      # signal cache invalidation, that is why all methods have a guard for it.
       class Store # :nodoc:
         attr_accessor :enabled, :dirties
         alias_method :enabled?, :enabled
@@ -94,6 +106,12 @@ module ActiveRecord
           end
       end
 
+      # Each connection pool has one of these registries. They map execution
+      # contexts to query cache stores.
+      #
+      # The keys of the internal map are threads or fibers (whatever
+      # ActiveSupport::IsolatedExecutionState.context returns), and their
+      # associated values are their respective query cache stores.
       class QueryCacheRegistry # :nodoc:
         def initialize
           @mutex = Mutex.new

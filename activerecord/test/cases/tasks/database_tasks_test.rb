@@ -63,10 +63,12 @@ module ActiveRecord
 
       def setup
         recreate_metadata_tables
+        @before_root = ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
       end
 
       def teardown
         recreate_metadata_tables
+        ActiveRecord::Tasks::DatabaseTasks.root = @before_root
       end
 
       def test_raises_an_error_when_called_with_protected_environment
@@ -156,6 +158,14 @@ module ActiveRecord
   class DatabaseTasksCheckProtectedEnvironmentsMultiDatabaseTest < ActiveRecord::TestCase
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
       self.use_transactional_tests = false
+
+      def setup
+        @before_root = ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
+      end
+
+      def teardown
+        ActiveRecord::Tasks::DatabaseTasks.root = @before_root
+      end
 
       def test_with_multiple_databases
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call

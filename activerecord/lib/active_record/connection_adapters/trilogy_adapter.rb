@@ -181,7 +181,7 @@ module ActiveRecord
           end
 
           case exception
-          when ::Trilogy::ConnectionClosed, ::Trilogy::EOFError
+          when ::Trilogy::ConnectionClosed, ::Trilogy::EOFError, ::Trilogy::SSLError
             return ConnectionFailed.new(message, connection_pool: @pool)
           when ::Trilogy::Error
             if exception.is_a?(SystemCallError) || exception.message.include?("TRILOGY_INVALID_SEQUENCE_ID")

@@ -119,7 +119,18 @@ module ActiveRecord
   #     enum :status, [ :active, :archived ], instance_methods: false
   #   end
   #
-  # If you want the enum value to be validated before saving, use the option +:validate+:
+  # By default, an +ArgumentError+ will be raised when assigning an invalid value:
+  #
+  #   class Conversation < ActiveRecord::Base
+  #     enum :status, [ :active, :archived ]
+  #   end
+  #
+  #   conversation = Conversation.new
+  #
+  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  #
+  # If, instead, you want the enum value to be validated before saving, use the
+  # +:validate+ option:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: true
@@ -136,7 +147,7 @@ module ActiveRecord
   #   conversation.status = :active
   #   conversation.valid? # => true
   #
-  # It is also possible to pass additional validation options:
+  # You may also pass additional validation options:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum :status, [ :active, :archived ], validate: { allow_nil: true }
@@ -152,16 +163,6 @@ module ActiveRecord
   #
   #   conversation.status = :active
   #   conversation.valid? # => true
-  #
-  # Otherwise +ArgumentError+ will raise:
-  #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ]
-  #   end
-  #
-  #   conversation = Conversation.new
-  #
-  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})
@@ -383,25 +384,25 @@ module ActiveRecord
 
       ENUM_CONFLICT_MESSAGE = \
         "You tried to define an enum named \"%{enum}\" on the model \"%{klass}\", but " \
-        "this will generate a %{type} method \"%{method}\", which is already defined " \
+        "this will generate %{type} method \"%{method}\", which is already defined " \
         "by %{source}."
       private_constant :ENUM_CONFLICT_MESSAGE
 
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
-          raise_conflict_error(enum_name, method_name, type: "class")
+          raise_conflict_error(enum_name, method_name, "a class")
         elsif klass_method && method_defined_within?(method_name, Relation)
-          raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
+          raise_conflict_error(enum_name, method_name, "a class", source: Relation.name)
         elsif klass_method && method_name.to_sym == :id
-          raise_conflict_error(enum_name, method_name)
+          raise_conflict_error(enum_name, method_name, "an instance")
         elsif !klass_method && dangerous_attribute_method?(method_name)
-          raise_conflict_error(enum_name, method_name)
+          raise_conflict_error(enum_name, method_name, "an instance")
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)
-          raise_conflict_error(enum_name, method_name, source: "another enum")
+          raise_conflict_error(enum_name, method_name, "an instance", source: "another enum")
         end
       end
 
-      def raise_conflict_error(enum_name, method_name, type: "instance", source: "Active Record")
+      def raise_conflict_error(enum_name, method_name, type, source: "Active Record")
         raise ArgumentError, ENUM_CONFLICT_MESSAGE % {
           enum: enum_name,
           klass: name,

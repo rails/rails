@@ -476,6 +476,23 @@ In practice, you cannot do much with the transaction object, but it may still be
 helpful for tracing database activity. For example, by tracking
 `transaction.uuid`.
 
+#### `deprecated_association.active_record`
+
+This event is emitted when a deprecated association is accessed, and the
+configured deprecated associations mode is `:notify`.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:reflection`        | The reflection of the association                    |
+| `:message`           | A descriptive message about the access               |
+| `:location`          | The application-level location of the access         |
+| `:backtrace`         | Only present if the option `:backtrace` is true      |
+
+The `:location` is a `Thread::Backtrace::Location` object, and `:backtrace`, if
+present, is an array of `Thread::Backtrace::Location` objects. These are
+computed using the Active Record backtrace cleaner. In Rails applications, this
+is the same as `Rails.backtrace_cleaner.
+
 ### Action Mailer
 
 #### `deliver.action_mailer`

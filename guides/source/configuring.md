@@ -60,7 +60,10 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
+- [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
+- [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -752,11 +755,10 @@ The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
 must match the entire hostname. `/product.com/`, for example, once anchored,
 would fail to match `www.product.com`.
 
-A special case is supported that allows you to permit all sub-domains:
+A special case is supported that allows you to permit the domain and all sub-domains:
 
 ```ruby
-# Allow requests from subdomains like `www.product.com` and
-# `beta1.product.com`.
+# Allow requests from the domain itself `product.com` and subdomains like `www.product.com` and `beta1.product.com`.
 Rails.application.config.hosts << ".product.com"
 ```
 
@@ -1172,7 +1174,7 @@ The default behavior is to report all warnings. Warnings to ignore can be specif
 
 Controls the strategy class used to perform schema statement methods in a migration. The default class
 delegates to the connection adapter. Custom strategies should inherit from `ActiveRecord::Migration::ExecutionStrategy`,
-or may inherit from `DefaultStrategy`, which will preserve the default behaviour for methods that aren't implemented:
+or may inherit from `DefaultStrategy`, which will preserve the default behavior for methods that aren't implemented:
 
 ```ruby
 class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
@@ -1488,6 +1490,8 @@ Define an `Array` specifying the key/value tags to be inserted in an SQL comment
 `[ :application, :controller, :action, :job ]`. The available tags are: `:application`, `:controller`,
 `:namespaced_controller`, `:action`, `:job`, and `:source_location`.
 
+WARNING: Calculating the `:source_location` of a query can be slow, so you should consider its impact if using it in a production environment.
+
 #### `config.active_record.query_log_tags_format`
 
 A `Symbol` specifying the formatter to use for tags. Valid values are `:sqlcommenter` and `:legacy`.
@@ -1794,6 +1798,44 @@ config.active_record.protocol_adapters.mysql = "trilogy"
 
 If no mapping is found, the protocol is used as the adapter name.
 
+#### `config.active_record.deprecated_associations_options`
+
+If present, this has to be a hash with keys `:mode` and/or `:backtrace`:
+
+```ruby
+config.active_record.deprecated_associations_options = { mode: :notify, backtrace: true }
+```
+
+* In `:warn` mode, accessing the deprecated association is reported by the
+  Active Record logger. This is the default mode.
+
+* In `:raise` mode, usage raises an `ActiveRecord::DeprecatedAssociationError`
+  with a similar message and a clean backtrace in the exception object.
+
+* In `:notify` mode, a `deprecated_association.active_record` Active Support
+  notification is published. Please, see details about its payload in the
+  [Active Support Instrumentation guide](active_support_instrumentation.html).
+
+Backtraces are disabled by default. If `:backtrace` is true, warnings include a
+clean backtrace in the message, and notifications have a `:backtrace` key in the
+payload with an array of clean `Thread::Backtrace::Location` objects. Exceptions
+always have a clean stack trace.
+
+Clean backtraces are computed using the Active Record backtrace cleaner.
+
+#### `config.active_record.raise_on_missing_required_finder_order_columns`
+
+Raises an error when order dependent finder methods (e.g. `#first`, `#second`) are called without `order` values
+on the relation, and the model does not have any order columns (`implicit_order_column`, `query_constraints`, or
+`primary_key`) to fall back on.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.1                   | `true`               |
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
@@ -1929,6 +1971,26 @@ The default value depends on the `config.load_defaults` target version:
 
 [redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 
+#### `config.action_controller.action_on_path_relative_redirect`
+
+Controls how Rails handles paths relative URL redirects.
+
+When set to `:log` (default), Rails will log a warning when a path relative URL redirect
+is detected. When set to `:notify`, Rails will publish an
+`unsafe_redirect.action_controller` notification event. When set to `:raise`, Rails
+will raise an `ActionController::Redirecting::UnsafeRedirectError`.
+
+This helps detect potentially unsafe redirects that could be exploited for open
+redirect attacks.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:log`               |
+| 8.1                   | `:raise`             |
+
+
 #### `config.action_controller.log_query_tags_around_actions`
 
 Determines whether controller context for query tags will be automatically
@@ -1958,6 +2020,11 @@ The default value depends on the `config.load_defaults` target version:
 | 7.0                   | `true`               |
 
 [params_wrapper]: https://api.rubyonrails.org/classes/ActionController/ParamsWrapper.html
+
+#### `config.action_controller.allowed_redirect_hosts`
+
+Specifies a list of allowed hosts for redirects. `redirect_to` will allow redirects to them without raising an
+`UnsafeRedirectError` error.
 
 #### `ActionController::Base.wrap_parameters`
 
@@ -2027,6 +2094,26 @@ Specifies the default character set for all renders. Defaults to `nil`.
 #### `config.action_dispatch.tld_length`
 
 Sets the TLD (top-level domain) length for the application. Defaults to `1`.
+
+#### `config.action_dispatch.domain_extractor`
+
+Configures the domain extraction strategy used by Action Dispatch for parsing host names into domain and subdomain components. This must be an object that responds to `domain_from(host, tld_length)` and `subdomains_from(host, tld_length)` methods.
+
+Defaults to `ActionDispatch::Http::URL::DomainExtractor`, which provides the standard domain parsing logic. You can provide a custom extractor to implement specialized domain parsing behavior:
+
+```ruby
+class CustomDomainExtractor
+  def self.domain_from(host, tld_length)
+    # Custom domain extraction logic
+  end
+
+  def self.subdomains_from(host, tld_length)
+    # Custom subdomain extraction logic
+  end
+end
+
+config.action_dispatch.domain_extractor = CustomDomainExtractor
+```
 
 #### `config.action_dispatch.ignore_accept_header`
 
@@ -2324,7 +2411,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_view.image_loading`
 
-Specifies a default value for the `loading` attribute of `<img>` tags rendered by the `image_tag` helper. For example, when set to `"lazy"`, `<img>` tags rendered by `image_tag` will include `loading="lazy"`, which [instructs the browser to wait until an image is near the viewport to load it](https://html.spec.whatwg.org/#lazy-loading-attributes). (This value can still be overridden per image by passing e.g. `loading: "eager"` to `image_tag`.) Defaults to `nil`.
+Specifies a default value for the `loading` attribute of `<img>` tags rendered by the `image_tag` helper. For example, when set to `"lazy"`, `<img>` tags rendered by `image_tag` will include `loading="lazy"`, which [instructs the browser to wait until an image is near the viewport to load it](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/loading#lazy). (This value can still be overridden per image by passing e.g. `loading: "eager"` to `image_tag`.) Defaults to `nil`.
 
 #### `config.action_view.image_decoding`
 
@@ -2396,6 +2483,15 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `config.action_view.render_tracker`
+
+Configures the strategy for tracking dependencies between Action View templates.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:regex`             |
+| 8.1                   | `:ruby`              |
 
 ### Configuring Action Mailbox
 
@@ -3466,12 +3562,11 @@ development:
   pool: 5
 ```
 
-By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
+By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
-  prepared_statements: false
   advisory_locks: false
 ```
 

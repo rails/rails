@@ -59,10 +59,18 @@ module ActionController # :nodoc:
 
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:)
-        cache_key = ["rate-limit", controller_path, name, instance_exec(&by)].compact.join(":")
+        by = instance_exec(&by)
+        cache_key = ["rate-limit", controller_path, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
-          ActiveSupport::Notifications.instrument("rate_limit.action_controller", request: request) do
+          ActiveSupport::Notifications.instrument("rate_limit.action_controller",
+              request: request,
+              count: count,
+              to: to,
+              within: within,
+              by: by,
+              name: name,
+              cache_key: cache_key) do
             instance_exec(&with)
           end
         end

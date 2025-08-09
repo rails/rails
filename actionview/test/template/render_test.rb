@@ -60,7 +60,7 @@ module RenderTestCases
 
   def test_explicit_js_format_adds_html_fallback
     rendered_templates = @controller_view.render(template: "test/js_html_fallback", formats: :js)
-    assert_equal(%Q(document.write("<b>Hello from a HTML partial!<\\/b>")\n), rendered_templates)
+    assert_equal(%Q(document.write("<b>Hello from an HTML partial!<\\/b>")\n), rendered_templates)
   end
 
   def test_render_without_options
