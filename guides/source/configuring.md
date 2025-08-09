@@ -3387,7 +3387,7 @@ development:
   pool: 5
 ```
 
-By default Active Record a database features called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
+By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
