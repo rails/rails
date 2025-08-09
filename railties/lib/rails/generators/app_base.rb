@@ -529,8 +529,13 @@ module Rails
         using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
-      def capture_command(command, pattern)
-        `#{command}`[pattern]
+      def capture_command(command, pattern = nil)
+        output = `#{command}`
+        if pattern
+          output[pattern]
+        else
+          output
+        end
       rescue SystemCallError
         nil
       end
@@ -661,7 +666,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
+        !options[:skip_bootsnap] && !options[:dev] && !jruby?
       end
 
       def target_rails_prerelease(self_command = "new")
@@ -737,13 +742,17 @@ module Rails
       end
 
       def add_bundler_platforms
-        if bundle_install?
+        if bundle_install? && !jruby?
           # The vast majority of Rails apps will be deployed on `x86_64-linux`.
           bundle_command("lock --add-platform=x86_64-linux")
 
           # Users that develop on M1 mac may use docker and would need `aarch64-linux` as well.
           bundle_command("lock --add-platform=aarch64-linux") if RUBY_PLATFORM.start_with?("arm64")
         end
+      end
+
+      def jruby?
+        defined?(JRUBY_VERSION)
       end
 
       def empty_directory_with_keep_file(destination, config = {})
@@ -756,11 +765,13 @@ module Rails
       end
 
       def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
+        @user_default_branch ||= capture_command("git config init.defaultbranch").strip.presence || "main"
       end
 
       def git_init_command
-        return "git init" if user_default_branch.strip.present?
+        if capture_command("git config init.defaultbranch").present?
+          return "git init"
+        end
 
         git_version = `git --version`[/\d+\.\d+\.\d+/]
 

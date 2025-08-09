@@ -12,9 +12,10 @@ module ActiveRecord
         end
 
         # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt> (defaults to utf8), <tt>:collation</tt>, <tt>:ctype</tt>,
-        # <tt>:tablespace</tt>, and <tt>:connection_limit</tt> (note that MySQL uses
-        # <tt>:charset</tt> while PostgreSQL uses <tt>:encoding</tt>).
+        # <tt>:encoding</tt> (defaults to utf8), <tt>:locale_provider</tt>, <tt>:locale</tt>,
+        # <tt>:collation</tt>, <tt>:ctype</tt>, <tt>:tablespace</tt>, and
+        # <tt>:connection_limit</tt> (note that MySQL uses <tt>:charset</tt> while PostgreSQL
+        # uses <tt>:encoding</tt>).
         #
         # Example:
         #   create_database config[:database], config
@@ -30,6 +31,10 @@ module ActiveRecord
                       " TEMPLATE = \"#{value}\""
                     when :encoding
                       " ENCODING = '#{value}'"
+                    when :locale_provider
+                      " LOCALE_PROVIDER = '#{value}'"
+                    when :locale
+                      " LOCALE = '#{value}'"
                     when :collation
                       " LC_COLLATE = '#{value}'"
                     when :ctype
@@ -230,6 +235,14 @@ module ActiveRecord
           query_value("SELECT current_schema", "SCHEMA")
         end
 
+        # Returns an array of the names of all schemas presently in the effective search path,
+        # in their priority order.
+        def current_schemas # :nodoc:
+          schemas = query_value("SELECT current_schemas(false)", "SCHEMA")
+          decoder = PG::TextDecoder::Array.new
+          decoder.decode(schemas)
+        end
+
         # Returns the current database encoding format.
         def encoding
           query_value("SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()", "SCHEMA")
@@ -272,6 +285,11 @@ module ActiveRecord
         # Drops the schema for the given schema name.
         def drop_schema(schema_name, **options)
           execute "DROP SCHEMA#{' IF EXISTS' if options[:if_exists]} #{quote_schema_name(schema_name)} CASCADE"
+        end
+
+        # Renames the schema for the given schema name.
+        def rename_schema(schema_name, new_name)
+          execute "ALTER SCHEMA #{quote_schema_name(schema_name)} RENAME TO #{quote_schema_name(new_name)}"
         end
 
         # Sets the schema search path to a string of comma-separated schema names.

@@ -28,6 +28,10 @@ module ActiveRecord
   # * +database+
   # * +source_location+
   #
+  # WARNING: Calculating the +source_location+ of a query can be slow, so you should consider its impact if using it in a production environment.
+  #
+  # Also see {config.active_record.verbose_query_logs}[https://guides.rubyonrails.org/debugging_rails_applications.html#verbose-query-logs].
+  #
   # Action Controller adds default tags when loaded:
   #
   # * +controller+
@@ -207,7 +211,7 @@ module ActiveRecord
         end
 
         def escape_sql_comment(content)
-          # Sanitize a string to appear within a SQL comment
+          # Sanitize a string to appear within an SQL comment
           # For compatibility, this also surrounding "/*+", "/*", and "*/"
           # characters, possibly with single surrounding space.
           # Then follows that by replacing any internal "*/" or "/ *" with

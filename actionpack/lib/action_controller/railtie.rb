@@ -13,8 +13,10 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
+    config.action_controller.allowed_redirect_hosts = []
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController
@@ -131,19 +133,6 @@ module ActionController
     initializer "action_controller.test_case" do |app|
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
-      end
-    end
-
-    initializer "action_controller.escape_json_responses_deprecated_warning" do
-      config.after_initialize do
-        ActiveSupport.on_load(:action_controller) do
-          if ActionController::Base.escape_json_responses
-            ActionController.deprecator.warn(<<~MSG.squish)
-              Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
-              Set it to `false` or use `config.load_defaults(8.1)`.
-            MSG
-          end
-        end
       end
     end
   end

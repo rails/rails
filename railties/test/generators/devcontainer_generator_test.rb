@@ -360,7 +360,7 @@ module Rails
                 "context" => "..",
                 "dockerfile" => ".devcontainer/Dockerfile"
               },
-              "volumes" => ["../..:/workspaces:cached"],
+              "volumes" => ["../../#{compose["name"]}:/workspaces/#{compose["name"]}:cached"],
               "command" => "sleep infinity"
             }
             actual_independent_config = compose["services"]["rails-app"].except("depends_on")

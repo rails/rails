@@ -1150,6 +1150,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /main/
+    assert_file ".github/workflows/ci.yml", /branches: \[ main \]/
   ensure
     if !current_default_branch.strip.empty?
       `git config --global init.defaultBranch #{current_default_branch}`
@@ -1165,6 +1166,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /master/
+    assert_file ".github/workflows/ci.yml", /branches: \[ master \]/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
       `git config --global --unset init.defaultBranch`
@@ -1252,7 +1254,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
-      assert_match(/config\/master\.key/, content)
+      assert_match("config/*.key", content)
     end
   end
 
@@ -1400,7 +1402,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../..:/workspaces:cached"],
+        "volumes" => ["../../#{compose_config["name"]}:/workspaces/#{compose_config["name"]}:cached"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }

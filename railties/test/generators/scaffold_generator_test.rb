@@ -3,6 +3,7 @@
 require "plugin_helpers"
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold/scaffold_generator"
+require "bcrypt"
 
 class ScaffoldGeneratorTest < Rails::Generators::TestCase
   include PluginHelpers
@@ -564,7 +565,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "test/fixtures/users.yml" do |content|
-      assert_match(/password_digest: <%= BCrypt::Password.create\("secret"\) %>/, content)
+      assert_match(/password_digest: (.+)$/, content)
+      digest = content.match(/password_digest: ([^#\s]+)/)[1].strip
+      assert BCrypt::Password.new(digest) == "secret"
     end
   end
 

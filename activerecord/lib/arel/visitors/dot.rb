@@ -150,6 +150,7 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "comment"
           visit_edge o, "key"
         end
 
@@ -159,6 +160,7 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "comment"
           visit_edge o, "key"
         end
 
