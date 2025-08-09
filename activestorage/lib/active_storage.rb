@@ -380,6 +380,7 @@ module ActiveStorage
     extend ActiveSupport::Autoload
 
     autoload :Transformer
+    autoload :NullTransformer
     autoload :ImageProcessingTransformer
     autoload :Vips
     autoload :ImageMagick
