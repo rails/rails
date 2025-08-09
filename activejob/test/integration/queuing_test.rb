@@ -35,7 +35,8 @@ class QueuingTest < ActiveSupport::TestCase
       Sidekiq::Testing.fake! do
         ::HelloJob.perform_later
         hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
-        assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash["class"]
+        permitted_wrappers = %w(Sidekiq::ActiveJob::Wrapper ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper)
+        assert_includes permitted_wrappers, hash["class"]
         assert_equal "HelloJob", hash["wrapped"]
       end
     end
