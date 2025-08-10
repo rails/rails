@@ -87,7 +87,7 @@ You add an engine to your host applications `Gemfile`, and then mount it in the
 main app's routes. Once mounted, any routes, controllers, views, or assets
 defined in the engine become available at that mount point in the host
 application. We'll cover this later in the section [Using an Engine in the Host
-Application](#using-an-engine-in-the-host-application).
+Application](#using-the-engine-in-a-host-application).
 
 Since a mounted engine has an isolated namespace, the host application and the
 mounted engine can have a routing helper with the same name (such as
