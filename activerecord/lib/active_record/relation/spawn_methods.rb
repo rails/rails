@@ -52,18 +52,18 @@ module ActiveRecord
       end
     end
 
-    # Removes from the query the condition(s) specified in +skips+.
+    # Removes the condition(s) specified in +skips+ from the query.
     #
-    #   Post.order('id asc').except(:order)                  # discards the order condition
-    #   Post.where('id > 10').order('id asc').except(:where) # discards the where condition but keeps the order
+    #   Post.order('id asc').except(:order)                  # removes the order condition
+    #   Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
     def except(*skips)
       relation_with values.except(*skips)
     end
 
-    # Removes any condition from the query other than the one(s) specified in +onlies+.
+    # Keeps only the condition(s) specified in +onlies+ in the query, removing all others.
     #
-    #   Post.order('id asc').only(:where)         # discards the order condition
-    #   Post.order('id asc').only(:where, :order) # uses the specified order
+    #   Post.order('id asc').only(:where)         # keeps only the where condition, removes the order
+    #   Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
     def only(*onlies)
       relation_with values.slice(*onlies)
     end
