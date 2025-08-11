@@ -14,10 +14,6 @@ module ActionDispatch
           ActionDispatch::Request
         end
 
-        def dispatcher_class
-          RouteSet::Dispatcher
-        end
-
         def defaults
           routes.map(&:defaults)
         end
