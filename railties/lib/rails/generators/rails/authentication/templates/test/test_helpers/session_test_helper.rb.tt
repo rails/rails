@@ -4,7 +4,12 @@ module SessionTestHelper
 
     ActionDispatch::TestRequest.create.cookie_jar.tap do |cookie_jar|
       cookie_jar.signed[:session_id] = Current.session.id
-      cookies[:session_id] = cookie_jar[:session_id]
+      if defined?(ApplicationSystemTestCase) && is_a?(ApplicationSystemTestCase)
+        visit new_session_url unless page.current_url.start_with?("http")
+        page.driver.browser.manage.add_cookie(name: :session_id, value: cookie_jar[:session_id], sameSite: :Lax, httpOnly: true)
+      else
+        cookies[:session_id] = cookie_jar[:session_id]
+      end
     end
   end
 
