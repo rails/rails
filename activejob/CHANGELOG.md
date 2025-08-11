@@ -1,3 +1,7 @@
+*   Add structured events for Active Job.
+
+    *Adrianna Chang*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Deprecate built-in `sidekiq` adapter.
