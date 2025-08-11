@@ -447,22 +447,16 @@ $ rails destroy model Artcle title:string body:text
       remove      test/fixtures/artcles.yml
 ```
 
-Inspecting and Exploring a Rails Application
---------------------------------------------
+Debugging and Interacting with a Rails Application
+--------------------------------------------------
 
-### `bin/rails console`
+### The Rails Console
 
-The `console` command lets you interact with your Rails application from the command line. On the underside, `bin/rails console` uses IRB, so if you've ever used it, you'll be right at home. This is useful for testing out quick ideas with code and changing data server-side without touching the website.
+The `bin/rails console` command loads a full Rails environment (including models, database, etc.) into an interactive IRB style shell. It is a powerful feature of the Ruby on Rails framework as it allows you to interact with, debug and explore your entire application at the command line.
 
-INFO: You can also use the alias "c" to invoke the console: `bin/rails c`.
+The Rails Console can be useful for testing out ideas by prototyping with code and for creating and updating records in the database without needing to use a browser.
 
-You can specify the environment in which the `console` command should operate.
-
-```bash
-$ bin/rails console -e staging
-```
-
-If you wish to test out some code without changing any data, you can do that by invoking `bin/rails console --sandbox`.
+The Rails Console has several useful features. For example, if you wish to test out some code without changing any data, you can do use `sandbox` mode with `bin/rails console --sandbox`. The `sandbox` mode wraps all database operations in a transaction that rolls back when you exit:
 
 ```bash
 $ bin/rails console --sandbox
@@ -470,30 +464,73 @@ Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
+The `sandbox` option is great for safely testing destructive changes without affecting your database.
 
-#### The `app` and `helper` Objects
+You can also specify the Rails environment for the `console` command with the `-e` option:
 
-Inside the `bin/rails console` you have access to the `app` and `helper` instances.
-
-With the `app` method you can access named route helpers, as well as do requests.
-
-```irb
-irb> app.root_path
-=> "/"
-
-irb> app.get _
-Started GET "/" for 127.0.0.1 at 2014-06-19 10:41:57 -0300
-...
+```bash
+$ bin/rails console -e test
+Loading test environment (Rails 8.1.0)
 ```
 
-With the `helper` method it is possible to access Rails and your application's helpers.
+#### The `app` Object
+
+Inside the Rails Console you have access to the `app` and `helper` instances.
+
+With the `app` method you can access named route helpers:
 
 ```irb
-irb> helper.time_ago_in_words 30.days.ago
-=> "about 1 month"
+> app.root_path
+=> "/"
+> app.edit_user_path
+=> "profile/edit"
+```
 
-irb> helper.my_custom_helper
-=> "my custom helper"
+You can also use the `app` object to make requests of your application without starting a real server:
+
+```irb
+>> app.get "/", headers: { "Host" => "localhost" }
+Started GET "/" for 127.0.0.1 at 2025-08-11 11:11:34 -0500
+...
+
+> app.response.status
+=> 200
+```
+
+NOTE: You have to pass the "Host" header with the `app.get` request above, because the Rack client used under-the-hood defaults to "www.example.com" if not "Host" is specified. You can modify your application to always use `localhost` using a configuration or an initializer.
+
+The reason you can "make requests" like above is because the `app` object is the same one that Rails uses for integration tests: 
+
+```irb
+> app.class
+=> ActionDispatch::Integration::Session
+```
+
+The `app` object exposes methods like `app.cookies`, `app.session`, `app.post`, and `app.response`. This way you can simulate and debug integration tests in the Rails Console.
+
+#### The `helper` Object
+
+The `helper` object in the Rails console is your direct portal into Rails’ view layer. The `helper` object lets you use view-related formatting and utility methods right in the console, without having to render a view. As well custom helpers defined in your application (i.e. in `app/helpers`).
+
+```irb
+> helper.time_ago_in_words 3.days.ago
+=> "3 days"
+
+> helper.l(Date.today)
+=> "2025-08-11"
+
+> helper.pluralize(3, "child")
+=> "3 children"
+
+> helper.truncate("This is a very long sentence", length: 22)
+=> "This is a very long..."
+
+> helper.link_to("Home", "/")
+=> "<a href=\"/\">Home</a>"
+
+# Assuming a custom_helper method defined in a app/helpers/*_helper.rb file.
+> helper.custom_helper
+"testing custom_helper"
 ```
 
 ### `bin/rails dbconsole`
@@ -545,24 +582,11 @@ You can opt out of this behavior by using the `--skip-executor` option.
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb
 ```
-### `bin/rails about`
 
-`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+Inspecting an Application
+-------------------------
 
-```bash
-$ bin/rails about
-About your application's environment
-Rails version             8.1.0
-Ruby version              3.2.0 (x86_64-linux)
-RubyGems version          3.3.7
-Rack version              3.0.8
-JavaScript Runtime        Node.js (V8)
-Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActionDispatch::ServerTiming, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::ActionableExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ContentSecurityPolicy::Middleware, ActionDispatch::PermissionsPolicy::Middleware, Rack::Head, Rack::ConditionalGet, Rack::ETag, Rack::TempfileReaper
-Application root          /home/foobar/my_app
-Environment               development
-Database adapter          sqlite3
-Database schema version   20180205173523
-```
+`bin/rails routes`, `bin/rails about`, `bin/rails middleware`, `bin/rails initializers`, `bin/rails stats`, `bin/rails notes`, `bin/rails time:zones:all` and maybe more
 
 Managing Assets
 ---------------
@@ -733,6 +757,25 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails tmp:screenshots:clear` clears `tmp/screenshots`.
 * `bin/rails tmp:clear` clears all cache, sockets, and screenshot files.
 * `bin/rails tmp:create` creates tmp directories for cache, sockets, and pids.
+
+### `bin/rails about`
+
+`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
+
+```bash
+$ bin/rails about
+About your application's environment
+Rails version             8.1.0
+Ruby version              3.2.0 (x86_64-linux)
+RubyGems version          3.3.7
+Rack version              3.0.8
+JavaScript Runtime        Node.js (V8)
+Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActionDispatch::ServerTiming, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::ActionableExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ContentSecurityPolicy::Middleware, ActionDispatch::PermissionsPolicy::Middleware, Rack::Head, Rack::ConditionalGet, Rack::ETag, Rack::TempfileReaper
+Application root          /home/foobar/my_app
+Environment               development
+Database adapter          sqlite3
+Database schema version   20180205173523
+```
 
 ### Miscellaneous
 
