@@ -51,3 +51,8 @@
 # to only log warnings, or `:notify` to send ActiveSupport notifications.
 #++
 # Rails.configuration.action_controller.action_on_path_relative_redirect = :raise
+
+###
+# Use a Ruby parser to track dependencies between Action View templates
+#++
+# Rails.configuration.action_view.render_tracker = :ruby

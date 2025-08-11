@@ -1220,7 +1220,7 @@ And finally, the user show view at `app/views/store/users/show.html.erb`:
 
 <div>
   <%= link_to "Edit user", edit_store_user_path(@user)  %>
-  <%= button_to "Delete user", store_user_path(@user), data: { turbo_confirm: "Are you sure?" } %>
+  <%= button_to "Delete user", store_user_path(@user), method: :delete, data: { turbo_confirm: "Are you sure?" } %>
 </div>
 ```
 
@@ -1626,7 +1626,7 @@ This test will visit `/sign_up` and ensure that it receives a 200 OK response.
 Let's run the test and see if it passes:
 
 ```bash
-$ bin/rails test test/controllers/sign_ups_controller.rb:4
+$ bin/rails test test/controllers/sign_ups_controller_test.rb:4
 Running 1 tests in a single process (parallelization threshold is 50)
 Run options: --seed 5967
 
@@ -1901,7 +1901,7 @@ end
 
 test "regular user cannot access /store/users" do
   sign_in_as users(:one)
-  get store_products_path
+  get store_users_path
   assert_response :redirect
   assert_equal "You aren't allowed to do that.", flash[:alert]
 end

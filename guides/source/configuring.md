@@ -62,6 +62,7 @@ Below are the default values associated with each target version. In cases of co
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
@@ -754,11 +755,10 @@ The provided regexp will be wrapped with both anchors (`\A` and `\z`) so it
 must match the entire hostname. `/product.com/`, for example, once anchored,
 would fail to match `www.product.com`.
 
-A special case is supported that allows you to permit all sub-domains:
+A special case is supported that allows you to permit the domain and all sub-domains:
 
 ```ruby
-# Allow requests from subdomains like `www.product.com` and
-# `beta1.product.com`.
+# Allow requests from the domain itself `product.com` and subdomains like `www.product.com` and `beta1.product.com`.
 Rails.application.config.hosts << ".product.com"
 ```
 
@@ -2411,7 +2411,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_view.image_loading`
 
-Specifies a default value for the `loading` attribute of `<img>` tags rendered by the `image_tag` helper. For example, when set to `"lazy"`, `<img>` tags rendered by `image_tag` will include `loading="lazy"`, which [instructs the browser to wait until an image is near the viewport to load it](https://html.spec.whatwg.org/#lazy-loading-attributes). (This value can still be overridden per image by passing e.g. `loading: "eager"` to `image_tag`.) Defaults to `nil`.
+Specifies a default value for the `loading` attribute of `<img>` tags rendered by the `image_tag` helper. For example, when set to `"lazy"`, `<img>` tags rendered by `image_tag` will include `loading="lazy"`, which [instructs the browser to wait until an image is near the viewport to load it](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/loading#lazy). (This value can still be overridden per image by passing e.g. `loading: "eager"` to `image_tag`.) Defaults to `nil`.
 
 #### `config.action_view.image_decoding`
 
@@ -2483,6 +2483,15 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `config.action_view.render_tracker`
+
+Configures the strategy for tracking dependencies between Action View templates.
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:regex`             |
+| 8.1                   | `:ruby`              |
 
 ### Configuring Action Mailbox
 
@@ -3553,12 +3562,11 @@ development:
   pool: 5
 ```
 
-By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
+By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
-  prepared_statements: false
   advisory_locks: false
 ```
 

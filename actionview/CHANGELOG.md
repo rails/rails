@@ -1,3 +1,11 @@
+*   Enable configuring the strategy for tracking dependencies between Action
+    View templates.
+
+    The existing `:regex` strategy is kept as the default, but with
+    `load_defaults 8.1` the strategy will be `:ruby` (using a real Ruby parser).
+
+    *Hartley McGuire*
+
 *   Introduce `relative_time_in_words` helper
 
     ```ruby

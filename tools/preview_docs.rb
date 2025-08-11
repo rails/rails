@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "erb"
-require "cgi/escape"
-require "cgi/util" if RUBY_VERSION < "3.5"
+require "active_support/core_ext/string/output_safety"
 
 # How to test:
 #
@@ -41,9 +39,10 @@ class PreviewDocs
     "<a href=\"#{escape(url)}\">#{escape(name)}</a>"
   end
 
-  def escape(str)
-    CGI.escapeHTML(str)
-  end
+  private
+    def escape(str)
+      ERB::Util.html_escape(str)
+    end
 end
 
 module EnvVars

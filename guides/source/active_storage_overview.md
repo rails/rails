@@ -103,7 +103,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the S3 service in production, you add the following to
+To use the S3 service in production, you would add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -111,7 +111,7 @@ To use the S3 service in production, you add the following to
 config.active_storage.service = :amazon
 ```
 
-To use the test service when testing, you add the following to
+To use the test service when testing, you would add the following to
 `config/environments/test.rb`:
 
 ```ruby
@@ -1005,49 +1005,11 @@ Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
 processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-The parameters available are defined by the [`image_processing`][] gem and depend on the
-variant processor that you are using, but both support the following parameters:
-
-| Parameter      | Example | Description |
-| ------------------- | ---------------- | ----- |
-| `resize_to_limit` | `resize_to_limit: [100, 100]` | Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions. |
-| `resize_to_fit` | `resize_to_fit: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller. |
-| `resize_to_fill` | `resize_to_fill: [100, 100]` | Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension. |
-| `resize_and_pad` | `resize_and_pad: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. If necessary, will pad the remaining area with transparent color if source image has alpha channel, black otherwise. |
-| `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
-| `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
-
-[`image_processing`][] has all parameters available in its own documentation
-for both the
-[Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
-[MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
-processors.
-
-Some parameters, including those listed above, accept additional processor
-specific options which can be passed as `key: value` pairs inside a hash:
-
-```erb
-<!-- Vips supports configuring `crop` for many of its transformations -->
-<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
-```
-
-If migrating an existing application between MiniMagick and Vips, processor
-specific options will need to be updated:
-
-```erb
-<!-- MiniMagick -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
-
-<!-- Vips -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
-```
-
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
 [`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
-[`image_processing`]: https://github.com/janko/image_processing
 
 ### Previewing Files
 
