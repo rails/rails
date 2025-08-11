@@ -57,8 +57,22 @@ module ActionText
         "\n"
       end
 
+      # If this text node has trailing whitespace and a next sibling that's an element,
+      # convert trailing whitespace (including multiple newlines) to a single space
+      # to preserve spacing between inline elements.
+      # But only if the previous sibling doesn't exist (first child) or is not skippable.
       def plain_text_for_text_node(node, index)
-        remove_trailing_newlines(node.text)
+        text = node.text
+        if text.match?(/\s+\z/) && node.next_sibling && !node.next_sibling.text?
+          prev_sibling = node.previous_sibling
+          if !prev_sibling || !skippable?(prev_sibling)
+            text.sub(/\s+\z/, " ")
+          else
+            remove_trailing_newlines(text)
+          end
+        else
+          remove_trailing_newlines(text)
+        end
       end
 
       def plain_text_for_div_node(node, index)
