@@ -53,6 +53,7 @@ module ActiveSupport
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
