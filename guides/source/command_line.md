@@ -535,9 +535,54 @@ The `helper` object in the Rails console is your direct portal into Rails’ vie
 
 ### `bin/rails dbconsole`
 
-`bin/rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
+The `bin/rails dbconsole` command figures out which database you're using and drops you into the command line interface appropriate for that database. It also figures out the command line parameters to start a session based on your `config/database.yml` file and current Rails environment. 
 
-INFO: You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
+Once you're in a `dbconsole` session, you can interact with your database directly as you normally would. For example, if you're using PostgreSQL, running `bin/rails dbconsole` may look like this:
+
+```bash
+$ bin/rails dbconsole
+psql (17.5 (Homebrew))
+Type "help" for help.
+
+booknotes_development=# help
+You are using psql, the command-line interface to PostgreSQL.
+Type:  \copyright for distribution terms
+       \h for help with SQL commands
+       \? for help with psql commands
+       \g or terminate with semicolon to execute query
+       \q to quit
+booknotes_development=# \dt
+                    List of relations
+ Schema |              Name              | Type  | Owner 
+--------+--------------------------------+-------+-------
+ public | action_text_rich_texts         | table | bhumi
+ ...
+```
+
+The `dbconsole` command is a very convenient shorthand, it's equivalent to running the `psql` command (or `myslq` or `sqlite`) with the appropriate arguments from your `database.yml`:
+
+```bash
+psql -h <host> -p <port> -U <username> <database_name>
+```
+
+So if your `database.yml` file looks like this:
+
+```yml
+development:
+  adapter: postgresql
+  database: myapp_development
+  username: myuser
+  password:
+  host: localhost
+```
+
+Running the `bin/rails dbconsole` command is the same as:
+
+```bash
+psql -h localhost -U myuser myapp_development
+```
+
+NOTE: The `dbconsole` command supports MySQL (including MariaDB), PostgreSQL, and SQLite3. You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 
 If you are using multiple databases, `bin/rails dbconsole` will connect to the primary database by default. You can specify which database to connect to using `--database` or `--db`:
 
