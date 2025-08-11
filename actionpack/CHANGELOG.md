@@ -1,3 +1,17 @@
+*   Add structured events for Action Pack and Action Dispatch:
+    - `action_dispatch.redirect`
+    - `action_controller.request_started`
+    - `action_controller.request_completed`
+    - `action_controller.callback_halted`
+    - `action_controller.rescue_from_handled`
+    - `action_controller.file_sent`
+    - `action_controller.redirected`
+    - `action_controller.data_sent`
+    - `action_controller.unpermitted_parameters`
+    - `action_controller.fragment_cache`
+
+    *Adrianna Chang*
+
 *   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
 
     Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
