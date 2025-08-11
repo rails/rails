@@ -1,3 +1,7 @@
+*   Add structured events for Action Pack and Action Dispatch.
+
+    *Adrianna Chang*
+
 *   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
 
     Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
