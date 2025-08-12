@@ -56,3 +56,9 @@
 # Use a Ruby parser to track dependencies between Action View templates
 #++
 # Rails.configuration.action_view.render_tracker = :ruby
+
+###
+# Configures the Rails.cache LocalCache to use the application's executor
+# instead of a middleware (if the Rails.cache store supports it)
+#
+# Rails.configuration.local_cache_store_strategy = :executor

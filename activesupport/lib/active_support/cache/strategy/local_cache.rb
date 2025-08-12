@@ -18,13 +18,11 @@ module ActiveSupport
           extend self
 
           def cache_for(local_cache_key)
-            registry = ActiveSupport::IsolatedExecutionState[:active_support_local_cache_registry] ||= {}
-            registry[local_cache_key]
+            ExecutionContext.local_cache_registry[local_cache_key]
           end
 
           def set_cache_for(local_cache_key, value)
-            registry = ActiveSupport::IsolatedExecutionState[:active_support_local_cache_registry] ||= {}
-            registry[local_cache_key] = value
+            ExecutionContext.local_cache_registry[local_cache_key] = value
           end
         end
 
@@ -74,6 +72,14 @@ module ActiveSupport
           @middleware ||= Middleware.new(
             "ActiveSupport::Cache::Strategy::LocalCache",
             local_cache_key)
+        end
+
+        def install_executor_hooks(executor = ActiveSupport::Executor)
+          key = local_cache_key
+
+          executor.to_run do
+            LocalCacheRegistry.set_cache_for(key, LocalStore.new)
+          end
         end
 
         def clear(options = nil) # :nodoc:

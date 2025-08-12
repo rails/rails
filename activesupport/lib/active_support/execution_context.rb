@@ -3,22 +3,25 @@
 module ActiveSupport
   module ExecutionContext # :nodoc:
     class Record
-      attr_reader :store, :current_attributes_instances
+      attr_reader :store, :current_attributes_instances, :local_cache_registry
 
       def initialize
         @store = {}
         @current_attributes_instances = {}
+        @local_cache_registry = {}
         @stack = []
       end
 
       def push
-        @stack << @store << @current_attributes_instances
+        @stack << @store << @current_attributes_instances << @local_cache_registry
         @store = {}
         @current_attributes_instances = {}
+        @local_cache_registry = {}
         self
       end
 
       def pop
+        @local_cache_registry = @stack.pop
         @current_attributes_instances = @stack.pop
         @store = @stack.pop
         self
@@ -99,6 +102,10 @@ module ActiveSupport
 
       def current_attributes_instances
         record.current_attributes_instances
+      end
+
+      def local_cache_registry
+        record.local_cache_registry
       end
 
       private
