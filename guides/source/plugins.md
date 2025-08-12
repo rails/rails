@@ -86,7 +86,7 @@ mountable engine that includes everything from `--full` plus:
 - Namespace isolation (`ApiBoost::` prefix for all classes)
 - Isolated routing (`ApiBoost::Engine.routes.draw`)
 - Asset manifest files
-- Namespaced ApplicationController and ApplicationHelper
+- Namespaced `ApplicationController` and `ApplicationHelper`
 - Automatic mounting in the dummy app for testing
 
 ```bash
