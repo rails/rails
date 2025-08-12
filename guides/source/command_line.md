@@ -629,15 +629,64 @@ If you have a reason to opt of this behavior, there is a `--skip-executor` optio
 $ bin/rails runner --skip-executor lib/long_running_script.rb
 ```
 
+### `bin/rails boot`
+
+The `bin/rails boot` command is a relatively low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run. 
+
+The `boot` command boots the application and exits, does nothing else. So what is it useful for then? 
+
+It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simplest test.
+
+It can also be useful for timing application initialization. You can profile how long your application takes to boot by wrapping `bin/rails boot` in a profiler.
+
+The `boot` command is also loaded internally by all commands that need the Rails application loaded (e.g. `server`, `console`, `runner`, etc.).
+
 Inspecting an Application
 -------------------------
 
-`bin/rails routes`, `bin/rails about`, `bin/rails middleware`, `bin/rails initializers`, `bin/rails stats`, `bin/rails notes`, `bin/rails time:zones:all` and maybe more
+### `bin/rails routes`
+
+`bin/rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+
+### `bin/rails about`
+
+`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help or check if a security patch might affect you.
+
+```bash
+$ bin/rails about
+About your application's environment
+Rails version             8.1.0
+Ruby version              3.2.0 (x86_64-linux)
+RubyGems version          3.3.7
+Rack version              3.0.8
+JavaScript Runtime        Node.js (V8)
+Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ...
+Application root          /home/code/my_app
+Environment               development
+Database adapter          sqlite3
+Database schema version   20250205173523
+```
+
+### `bin/rails initializers`
+
+The `bin/rails initializers` command prints out all defined initializers in the order they are invoked by Rails.
+
+### `bin/rails middleware`
+
+The `bin/rails middleware` command lists Rack middleware stack enabled for your app.
+
+### `bin/rails stats`
+
+The `bin/rails stats` command is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+
+### `bin/rails time:zones:all`
+
+The`bin/rails time:zones:all` command lists all the timezones Rails knows about.
 
 Managing Assets
 ---------------
 
-### `bin/rails assets:`
+The `bin/rails assets:` commands allow you to manage assets in the `app/assets` directory.
 
 You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
@@ -674,6 +723,16 @@ And then install the missing gems:
 $ bundle install
 ...
 ```
+
+Running Tests
+-------------
+
+### `bin/rails test`
+
+INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
+
+Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace help in running the different tests you will hopefully write.
+
 
 Other Useful Commands
 ---------------------
@@ -782,15 +841,8 @@ vendor/tools.rb:
   * [ 56] [TODO] Get rid of this dependency
 ```
 
-### `bin/rails routes`
 
-`bin/rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-### `bin/rails test`
-
-INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
-
-Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace help in running the different tests you will hopefully write.
 
 ### `bin/rails tmp:`
 
@@ -804,33 +856,9 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails tmp:clear` clears all cache, sockets, and screenshot files.
 * `bin/rails tmp:create` creates tmp directories for cache, sockets, and pids.
 
-### `bin/rails about`
+###  `bin/rails secret` 
 
-`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
-
-```bash
-$ bin/rails about
-About your application's environment
-Rails version             8.1.0
-Ruby version              3.2.0 (x86_64-linux)
-RubyGems version          3.3.7
-Rack version              3.0.8
-JavaScript Runtime        Node.js (V8)
-Middleware:               ActionDispatch::HostAuthorization, Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActionDispatch::ServerTiming, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::ActionableExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, ActionDispatch::ContentSecurityPolicy::Middleware, ActionDispatch::PermissionsPolicy::Middleware, Rack::Head, Rack::ConditionalGet, Rack::ETag, Rack::TempfileReaper
-Application root          /home/foobar/my_app
-Environment               development
-Database adapter          sqlite3
-Database schema version   20180205173523
-```
-
-### Miscellaneous
-
-* `bin/rails initializers` prints out all defined initializers in the order they are invoked by Rails.
-* `bin/rails middleware` lists Rack middleware stack enabled for your app.
-* `bin/rails stats` is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
-* `bin/rails secret` will give you a pseudo-random key to use for your session secret.
-* `bin/rails time:zones:all` lists all the timezones Rails knows about.
-* `bin/rails boot` boots the application and exits.
+The `bin/rails secret` command will give you a pseudo-random key to use for your session secret.
 
 Custom Rake Tasks
 -----------------
