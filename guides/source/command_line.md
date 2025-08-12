@@ -592,37 +592,38 @@ $ bin/rails dbconsole --database=animals
 
 ### `bin/rails runner`
 
-`runner` runs Ruby code in the context of the Rails application non-interactively, without having to open Rails `console`. For instance:
+The `runner` command executes Ruby code in the context of the Rails application without having to open a Rails Console. This can be useful for one-off tasks that do not need the interactivity of the Rails Console. For instance:
 
 ```bash
-$ bin/rails runner "Model.long_running_method"
-```
+$ bin/rails runner "puts User.count"
+42
 
-INFO: You can also use the alias "r" to invoke the runner: `bin/rails r`.
+$ bin/rails runner 'MyJob.perform_now'
+```
 
 You can specify the environment in which the `runner` command should operate using the `-e` switch.
 
 ```bash
-$ bin/rails runner -e staging "Model.long_running_method"
+$ bin/rails runner -e production "puts User.count"
 ```
 
-You can even execute ruby code written in a file with runner.
+You can also execute code in a Ruby file with the `runner` command, in the context of your Rails application:
 
 ```bash
-$ bin/rails runner lib/code_to_be_run.rb
+$ bin/rails runner lib/path_to_ruby_script.rb
 ```
 
-By default, `bin/rails runner` scripts are automatically wrapped with the Rails Executor, which helps report uncaught exceptions for tasks like cron jobs.
+By default, `bin/rails runner` scripts are automatically wrapped with the Rails Executor (which is an instance of [ActiveSupport::Executor](https://api.rubyonrails.org/classes/ActiveSupport/Executor.html) associated with your Rails application. The Executor creates a “safe zone” to run arbitrary Ruby inside a Rails app so that the autoloader, middleware stack, and Active Support hooks all behave consistently.
 
-Therefore, executing `bin/rails runner lib/long_running_scripts.rb` is functionally equivalent to the following:
+Therefore, executing `bin/rails runner lib/path_to_ruby_script.rb` is functionally equivalent to the following:
 
 ```ruby
 Rails.application.executor.wrap do
-  # executes code inside lib/long_running_scripts.rb
+  # executes code inside lib/path_to_ruby_script.rb
 end
 ```
 
-You can opt out of this behavior by using the `--skip-executor` option.
+If you have a reason to opt of this behavior, there is a `--skip-executor` option.
 
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb
