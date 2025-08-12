@@ -1,3 +1,26 @@
+*   Add `scope:` option to `rate_limit` method.
+
+    Previously, it was not possible to share a rate limit count between several controllers, since the count was by
+    default separate for each controller.
+
+    Now, the `scope:` option solves this problem.
+
+    ```ruby
+    class APIController < ActionController::API
+      rate_limit to: 2, within: 2.seconds, scope: "api"
+    end
+
+    class API::PostsController < APIController
+      # ...
+    end
+
+    class API::UsersController < APIController
+      # ...
+    end
+    ```
+
+    *ArthurPV*, *Kamil Hanus*
+
 *   Add support for `rack.response_finished` callbacks in ActionDispatch::Executor.
 
     The executor middleware now supports deferring completion callbacks to later
