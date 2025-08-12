@@ -305,17 +305,16 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal [[:req, :value]], current.method(:attr=).parameters
   end
 
-
   test "set and restore attributes when re-entering the executor" do
-    ActiveSupport::ExecutionContext.with(nestable: true) do
+    ActiveSupport::Execution.with(nestable: true) do
       # simulate executor hooks from active_support/railtie.rb
       executor = Class.new(ActiveSupport::Executor)
       executor.to_run do
-        ActiveSupport::ExecutionContext.push
+        ActiveSupport::Execution.push
       end
 
       executor.to_complete do
-        ActiveSupport::ExecutionContext.pop
+        ActiveSupport::Execution.pop
       end
 
       Current.world = "world/1"

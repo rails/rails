@@ -166,7 +166,7 @@ module ActiveSupport
         end
 
         def current_instances
-          ExecutionContext.current_attributes_instances
+          Execution[:active_support_current_attributes_instances] ||= {}
         end
 
         def current_instances_key

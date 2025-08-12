@@ -40,20 +40,20 @@ module ActiveSupport
 
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
-        ActiveSupport::ExecutionContext.clear
+        ActiveSupport::Execution.clear
       end
 
       app.executor.to_run do
-        ActiveSupport::ExecutionContext.push
+        ActiveSupport::Execution.push
       end
 
       app.executor.to_complete do
-        ActiveSupport::ExecutionContext.pop
+        ActiveSupport::Execution.pop
       end
 
       ActiveSupport.on_load(:active_support_test_case) do
         if app.config.active_support.executor_around_test_case
-          ActiveSupport::ExecutionContext.nestable = true
+          ActiveSupport::Execution.nestable = true
 
           require "active_support/executor/test_helper"
           include ActiveSupport::Executor::TestHelper

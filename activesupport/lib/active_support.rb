@@ -68,6 +68,7 @@ module ActiveSupport
     autoload :Deprecation
     autoload :Delegation
     autoload :Digest
+    autoload :Execution
     autoload :ExecutionContext
     autoload :Gzip
     autoload :Inflector
