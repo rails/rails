@@ -163,6 +163,10 @@ class RedirectController < ActionController::Base
     redirect_to "@example.com"
   end
 
+  def redirect_to_query_string_url
+    redirect_to "?foo=bar"
+  end
+
   def redirect_to_existing_record
     redirect_to Workshop.new(5)
   end
@@ -354,6 +358,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_path_relative_url_starting_with_an_at
     assert_response :redirect
     assert_equal "http://test.host@example.com", redirect_to_url
+  end
+
+  def test_redirect_to_query_string_url
+    get :redirect_to_query_string_url
+    assert_response :redirect
+    assert_equal "http://test.host?foo=bar", redirect_to_url
   end
 
   def test_redirect_to_url_with_network_path_reference
@@ -811,6 +821,53 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_url_with_network_path_reference
     assert_response :redirect
     assert_equal "//www.rubyonrails.org/", redirect_to_url
+  ensure
+    ActionController::Base.action_on_path_relative_redirect = old_config
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_log
+    old_config = ActionController::Base.action_on_path_relative_redirect
+    ActionController::Base.action_on_path_relative_redirect = :log
+
+    logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    old_logger = ActionController::Base.logger
+    ActionController::Base.logger = logger
+
+    get :redirect_to_query_string_url
+    assert_response :redirect
+    assert_equal "http://test.host?foo=bar", redirect_to_url
+    assert_empty logger.logged(:warn)
+  ensure
+    ActionController::Base.logger = old_logger
+    ActionController::Base.action_on_path_relative_redirect = old_config
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_notify
+    old_config = ActionController::Base.action_on_path_relative_redirect
+    ActionController::Base.action_on_path_relative_redirect = :notify
+
+    events = []
+    ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
+    end
+
+    get :redirect_to_query_string_url
+    assert_response :redirect
+    assert_equal "http://test.host?foo=bar", redirect_to_url
+
+    assert_empty events.select { |e| e.payload[:message]&.include?("Path relative URL redirect detected") }
+  ensure
+    ActiveSupport::Notifications.unsubscribe("unsafe_redirect.action_controller")
+    ActionController::Base.action_on_path_relative_redirect = old_config
+  end
+
+  def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_raise
+    old_config = ActionController::Base.action_on_path_relative_redirect
+    ActionController::Base.action_on_path_relative_redirect = :raise
+
+    get :redirect_to_query_string_url
+    assert_response :redirect
+    assert_equal "http://test.host?foo=bar", redirect_to_url
   ensure
     ActionController::Base.action_on_path_relative_redirect = old_config
   end
