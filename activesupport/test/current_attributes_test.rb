@@ -315,7 +315,6 @@ class CurrentAttributesTest < ActiveSupport::TestCase
       end
 
       executor.to_complete do
-        ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.pop
       end
 

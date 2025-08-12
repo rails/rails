@@ -40,7 +40,6 @@ module ActiveSupport
 
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
-        ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.clear
       end
 
@@ -49,7 +48,6 @@ module ActiveSupport
       end
 
       app.executor.to_complete do
-        ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.pop
       end
 

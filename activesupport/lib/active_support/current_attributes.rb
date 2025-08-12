@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
-require "active_support/execution_context"
 require "active_support/core_ext/object/with"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
