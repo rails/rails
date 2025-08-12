@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/insert_all"
+require "active_record/uniform_update_all"
 
 module ActiveRecord
   # = Active Record \Persistence
