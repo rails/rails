@@ -12,7 +12,7 @@ class ActionCable::Channel::BroadcastingTest < ActionCable::TestCase
     @connection = TestConnection.new
   end
 
-  test "broadcasts_to" do
+  test "broadcasts_to with an object" do
     assert_called_with(
       ActionCable.server,
       :broadcast,
@@ -22,6 +22,32 @@ class ActionCable::Channel::BroadcastingTest < ActionCable::TestCase
       ]
     ) do
       ChatChannel.broadcast_to(Room.new(1), "Hello World")
+    end
+  end
+
+  test "broadcasts_to with an array" do
+    assert_called_with(
+      ActionCable.server,
+      :broadcast,
+      [
+        "action_cable:channel:broadcasting_test:chat:Room#1-Campfire:Room#2-Campfire",
+        "Hello World"
+      ]
+    ) do
+      ChatChannel.broadcast_to([ Room.new(1), Room.new(2) ], "Hello World")
+    end
+  end
+
+  test "broadcasts_to with a string" do
+    assert_called_with(
+      ActionCable.server,
+      :broadcast,
+      [
+        "action_cable:channel:broadcasting_test:chat:hello",
+        "Hello World"
+      ]
+    ) do
+      ChatChannel.broadcast_to("hello", "Hello World")
     end
   end
 
