@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "active_support/core_ext/module/delegation"
 require "active_support/i18n"
 
 module ActiveSupport
@@ -30,24 +31,35 @@ module ActiveSupport
     class Inflections
       @__instance__ = Concurrent::Map.new
 
-      class Uncountables < Array
+      class Uncountables # :nodoc:
+        include Enumerable
+
+        delegate :each, :pop, :empty?, :to_s, :==, :to_a, :to_ary, to: :@members
+
         def initialize
+          @members = []
           @regex_array = []
-          super
         end
 
         def delete(entry)
-          super entry
+          @members.delete(entry)
           @regex_array.delete(to_regex(entry))
         end
 
-        def <<(*word)
-          add(word)
+        def <<(word)
+          word = word.downcase
+          @members << word
+          @regex_array << to_regex(word)
+          self
+        end
+
+        def flatten
+          @members.dup
         end
 
         def add(words)
           words = words.flatten.map(&:downcase)
-          concat(words)
+          @members.concat(words)
           @regex_array += words.map { |word| to_regex(word) }
           self
         end
