@@ -1539,6 +1539,48 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal message, error.message
   end
 
+  test "#alias_attribute returns custom getter value rather than raw DB value" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      define_method(:title) do
+        "custom_value"
+      end
+
+      alias_attribute :subject, :title
+    end
+
+    rec = klass.create!(title: "raw_db")
+    rec = klass.find(rec.id)
+
+    assert_equal "custom_value", rec.subject
+    assert_equal "raw_db", rec.read_attribute(:title)
+  end
+
+  test "#alias_attribute uses custom setter when only setter is overridden" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def title=(value)
+        super("Processed: #{value}")
+      end
+
+      alias_attribute :subject, :title
+    end
+
+    rec = klass.new
+    rec.subject = "Hello"
+
+    assert_equal "Processed: Hello", rec.subject
+    assert_equal "Processed: Hello", rec.title
+
+    rec.save!
+    rec = klass.find(rec.id)
+
+    assert_equal "Processed: Hello", rec.subject
+    assert_equal "Processed: Hello", rec.title
+  end
+
   test "#alias_attribute with an association method raises an error" do
     class_with_association_target = Class.new(ActiveRecord::Base) do
       def self.name

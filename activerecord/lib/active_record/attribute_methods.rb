@@ -90,6 +90,8 @@ module ActiveRecord
         if !abstract_class? && !has_attribute?(old_name)
           raise ArgumentError, "#{self.name} model aliases `#{old_name}`, but `#{old_name}` is not an attribute. " \
             "Use `alias_method :#{new_name}, :#{old_name}` or define the method manually."
+        elsif old_name != "id" && pattern.prefix == "" && (pattern.suffix == "" || pattern.suffix == "=")
+          super
         else
           define_attribute_method_pattern(pattern, old_name, owner: code_generator, as: new_name, override: true)
         end
