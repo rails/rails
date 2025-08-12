@@ -1,3 +1,7 @@
+*   Add "Copy as text" button to error pages
+
+    *Mikkel Malmberg*
+
 *   Add `scope:` option to `rate_limit` method.
 
     Previously, it was not possible to share a rate limit count between several controllers, since the count was by
