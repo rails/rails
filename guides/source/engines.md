@@ -210,6 +210,7 @@ It provides the following:
 
     module Blorgh
       class Engine < ::Rails::Engine
+        isolate_namespace Blorgh
       end
     end
     ```
@@ -227,15 +228,7 @@ the `--full` option, these are:
     end
     ```
 
-  * Namespace isolation to `lib/blorgh/engine.rb`:
-
-    ```ruby
-    module Blorgh
-      class Engine < ::Rails::Engine
-        isolate_namespace Blorgh
-      end
-    end
-    ```
+  * Namespace isolation to `lib/blorgh/engine.rb` as described above.
 
 Additionally, the `--mountable` option tells the generator to mount the engine
 inside the dummy testing application located at `test/dummy` by adding the
