@@ -631,22 +631,48 @@ $ bin/rails runner --skip-executor lib/long_running_script.rb
 
 ### `bin/rails boot`
 
-The `bin/rails boot` command is a relatively low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run. 
+The `bin/rails boot` command is a low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run.
 
 The `boot` command boots the application and exits, does nothing else. So what is it useful for then? 
 
-It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simplest test.
+It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
 
 It can also be useful for timing application initialization. You can profile how long your application takes to boot by wrapping `bin/rails boot` in a profiler.
 
-The `boot` command is also loaded internally by all commands that need the Rails application loaded (e.g. `server`, `console`, `runner`, etc.).
+The `boot` command is also run internally by all commands that need the Rails application loaded (e.g. `server`, `console`, `runner`, etc.).
 
 Inspecting an Application
 -------------------------
 
 ### `bin/rails routes`
 
-`bin/rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
+The `bin/rails routes` commands lists all defined routes in your application, including the URI Pattern and HTTP verb, as well as the Controller Action it maps to.
+
+```bash
+$ bin/rails routes
+  Prefix  Verb  URI Pattern  Controller#Action
+  books GET    /books(:format) books#index
+  books POST   /books(:format) books#create
+  ...
+  ...
+```
+
+This can be useful for tracking down a routing issue, or simply getting an overview of the resources and routes that are part of a Rails application. You can also narrow down the output of the `routes` command like this:
+
+```bash
+# Only shows routes handled by the UsersController
+bin/rails routes -c users
+
+# Show routes handled by namespace Admin::UsersController
+bin/rails routes -c admin/users
+
+# Search by name, path, or controller/action with -g (or --grep)
+bin/rails routes -g users
+```
+
+There is also an option, `bin/rails routes --expanded`, that displays even more information about each route, including the line number in your `config/routes.rb` where that route is defined.
+
+TIP: In development mode, you can also access the same routes info by going to `http://localhost:3000/rails/info/routes`
 
 ### `bin/rails about`
 
