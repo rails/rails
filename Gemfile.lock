@@ -120,6 +120,7 @@ PATH
     releaser (1.0.0)
       minitest
       rake (~> 13.0)
+      sigstore-cli
 
 GEM
   remote: https://rubygems.org/
@@ -354,6 +355,8 @@ GEM
     multipart-post (2.2.3)
     mutex_m (0.3.0)
     mysql2 (0.5.6)
+    net-http (0.6.0)
+      uri
     net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
     net-imap (0.5.1)
@@ -381,7 +384,16 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
-      railties (>= 7.0.0)
+    protobug (0.1.0)
+    protobug_googleapis_field_behavior_protos (0.1.0)
+      protobug (= 0.1.0)
+      protobug_well_known_protos (= 0.1.0)
+    protobug_sigstore_protos (0.1.0)
+      protobug (= 0.1.0)
+      protobug_googleapis_field_behavior_protos (= 0.1.0)
+      protobug_well_known_protos (= 0.1.0)
+    protobug_well_known_protos (0.1.0)
+      protobug (= 0.1.0)
     psych (5.2.5)
       date
       stringio
@@ -499,6 +511,13 @@ GEM
       faraday (>= 0.17.5, < 3.a)
       jwt (>= 1.5, < 3.0)
       multi_json (~> 1.10)
+    sigstore (0.2.1)
+      net-http
+      protobug_sigstore_protos (~> 0.1.0)
+      uri
+    sigstore-cli (0.2.1)
+      sigstore (= 0.2.1)
+      thor
     sinatra (1.0)
       rack (>= 1.0)
     sneakers (2.11.0)
@@ -527,11 +546,7 @@ GEM
       concurrent-ruby (~> 1.0)
     syntax_tree (6.1.1)
       prettier_print (>= 1.2.0)
-    tailwindcss-rails (2.0.21)
-      railties (>= 6.0.0)
-    tailwindcss-rails (2.0.21-x86_64-darwin)
-      railties (>= 6.0.0)
-    tailwindcss-rails (2.0.21-x86_64-linux)
+    tailwindcss-rails (2.0.21-aarch64-linux)
       railties (>= 6.0.0)
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
@@ -551,6 +566,7 @@ GEM
     unicode-display_width (3.1.2)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    uri (1.0.3)
     w3c_validators (1.3.7)
       json (>= 1.8)
       nokogiri (~> 1.6)
@@ -574,9 +590,7 @@ GEM
     zeitwerk (2.7.1)
 
 PLATFORMS
-  ruby
-  x86_64-darwin
-  x86_64-linux
+  aarch64-linux
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)

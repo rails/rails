@@ -67,7 +67,7 @@ class Releaser < Rake::TaskLib
 
         task push: :build do
           Dir.chdir(root) do
-            sh "gem push #{gem_path(framework)}#{gem_otp}"
+            sh "gem push #{gem_path(framework)}#{gem_otp(gem_path(framework))}"
 
             if File.exist?("#{framework}/package.json")
               Dir.chdir("#{framework}") do
@@ -311,10 +311,11 @@ class Releaser < Rake::TaskLib
       " --provenance --access public"
     end
 
-    def gem_otp
+    def gem_otp(gem_path)
       " --otp " + ykman("rubygems.org")
     rescue
-      ""
+      sh "sigstore-cli sign #{gem_path} --bundle #{gem_path}.sigstore.json"
+      " --attestation #{gem_path}.sigstore.json"
     end
 
     def ykman(service)
