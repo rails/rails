@@ -261,6 +261,7 @@ This tells Bundler to treat the engine as a gem and load it accordingly.
 Bundler looks for a file matching the gem name, `lib/blorgh.rb`. This file is the main entry point of the engine. It typically requires the engine definition and sets up a base module:
 
 ```ruby
+# lib/blorgh.rb
 require "blorgh/engine"
 
 module Blorgh
