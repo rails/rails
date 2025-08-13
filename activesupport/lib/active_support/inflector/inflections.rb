@@ -38,18 +38,18 @@ module ActiveSupport
 
         def initialize
           @members = []
-          @regex_array = []
+          @pattern = nil
         end
 
         def delete(entry)
           @members.delete(entry)
-          @regex_array.delete(to_regex(entry))
+          @pattern = nil
         end
 
         def <<(word)
           word = word.downcase
           @members << word
-          @regex_array << to_regex(word)
+          @pattern = nil
           self
         end
 
@@ -60,18 +60,17 @@ module ActiveSupport
         def add(words)
           words = words.flatten.map(&:downcase)
           @members.concat(words)
-          @regex_array += words.map { |word| to_regex(word) }
+          @pattern = nil
           self
         end
 
         def uncountable?(str)
-          @regex_array.any? { |regex| regex.match? str }
-        end
-
-        private
-          def to_regex(string)
-            /\b#{::Regexp.escape(string)}\Z/i
+          if @pattern.nil?
+            members_pattern = Regexp.union(@members.map { |w| /#{Regexp.escape(w)}/i })
+            @pattern = /\b#{members_pattern}\Z/i
           end
+          @pattern.match?(str)
+        end
       end
 
       def self.instance(locale = :en)
