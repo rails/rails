@@ -29,7 +29,7 @@ from `Rails::Railtie`](engines.html#the-inheritance-hierarchy).
 
 Some examples of engines in action:
 
-* [Devise](https://github.com/plataformatec/devise) which provides authentication for its parent applications
+* [Devise](https://github.com/heartcombo/devise) which provides authentication for its parent applications
 * [Thredded](https://github.com/thredded/thredded) which provides forum functionality
 * [Spree](https://github.com/spree/spree) which provides an e-commerce platform
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
