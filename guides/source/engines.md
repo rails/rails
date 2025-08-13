@@ -297,8 +297,7 @@ For example:
 * The table name is `blorgh_articles`, not `articles`.
 * A controller becomes `Blorgh::ArticlesController`, with views in
   `app/views/blorgh/articles`.
-* A helper becomes `Blorgh::ArticlesHelper`, with views in
-  `app/helpers/blorgh/articles_helper.rb`.
+* A helper becomes `Blorgh::ArticlesHelper`.
 * Mailers and Jobs are namespaced as well.
 * Engine routes are kept isolated and don’t mix with the main app’s routes. This
   is discussed later in the [Routes](#routes) section of this guide.
