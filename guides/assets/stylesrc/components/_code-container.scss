@@ -44,10 +44,13 @@ dl dd .interstitial {
     padding-left: 1em !important; // remove if icon is restored
     direction: ltr !important;
     text-align: left !important;
+    width: 100%;
+    white-space: normal;
 
     pre {
       margin: 0;
-      overflow: visible; // allows for the blue highlight to be seen
+      overflow: scroll;
+      white-space: pre;
     }
 
     button.clipboard-button {
