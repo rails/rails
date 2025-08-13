@@ -1,3 +1,9 @@
+    Remove dangerous transformations
+
+    [CVE-2025-24293]
+
+    *Zack Deveau*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   No changes.

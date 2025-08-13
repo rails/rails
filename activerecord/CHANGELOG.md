@@ -1,3 +1,9 @@
+*   Call inspect on ids in RecordNotFound error
+
+    [CVE-2025-55193]
+
+    *Gannon McGibbon*, *John Hawthorn*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   No changes.
