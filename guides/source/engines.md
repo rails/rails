@@ -31,7 +31,6 @@ Some examples of engines in action:
 
 * [Devise](https://github.com/heartcombo/devise) which provides authentication for its parent applications
 * [Thredded](https://github.com/thredded/thredded) which provides forum functionality
-* [Spree](https://github.com/spree/spree) which provides an e-commerce platform
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
 * [Active Storage](https://github.com/rails/rails/tree/main/activestorage) which provides file storage as an engine.
 * [Action Text](https://github.com/rails/rails/tree/main/actiontext) which provides a rich text editor as an engine.
