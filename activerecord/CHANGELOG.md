@@ -1,3 +1,9 @@
+*   Call inspect on ids in RecordNotFound error
+
+    [CVE-2025-55193]
+
+    *Gannon McGibbon*, *John Hawthorn*
+
 ## Rails 7.1.5.1 (December 10, 2024) ##
 
 *   No changes.
