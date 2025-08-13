@@ -676,7 +676,7 @@ TIP: In development mode, you can also access the same routes info by going to `
 
 ### `bin/rails about`
 
-`bin/rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help or check if a security patch might affect you.
+The `bin/rails about` command displays information about your Rails application, such as Ruby, RubyGems, and Rails versions, database adapter, schema version, etc. It is useful when you need to ask for help or check if a security patch might affect you.
 
 ```bash
 $ bin/rails about
@@ -695,7 +695,20 @@ Database schema version   20250205173523
 
 ### `bin/rails initializers`
 
-The `bin/rails initializers` command prints out all defined initializers in the order they are invoked by Rails.
+The `bin/rails initializers` command prints out all defined initializers in the order they are invoked by Rails:
+
+```bash
+$ bin/rails initializers
+ActiveSupport::Railtie.active_support.deprecator
+ActionDispatch::Railtie.action_dispatch.deprecator
+ActiveModel::Railtie.active_model.deprecator
+...
+Booknotes::Application.set_routes_reloader_hook
+Booknotes::Application.set_clear_dependencies_hook
+Booknotes::Application.enable_yjit
+```
+
+This command can be useful when initializers depend on each other and the order in which they are run matter. Using this command, you can see what's run before/after and discover the relationship between initializers. Rails runs framework initializers first and then application ones defined in `config/initializers`.
 
 ### `bin/rails middleware`
 
