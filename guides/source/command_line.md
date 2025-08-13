@@ -834,7 +834,7 @@ Other Useful Commands
 
 ### `bin/rails notes`
 
-`bin/rails notes` searches through your code for comments beginning with a specific keyword. You can refer to `bin/rails notes --help` for information about usage.
+The `bin/rails notes` command searches through your code for comments beginning with a specific keyword. You can refer to `bin/rails notes --help` for information about usage.
 
 By default, it will search in `app`, `config`, `db`, `lib`, and `test` directories for FIXME, OPTIMIZE, and TODO annotations in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb`.
 
@@ -846,12 +846,11 @@ app/controllers/admin/users_controller.rb:
 
 lib/school.rb:
   * [ 13] [OPTIMIZE] refactor this code to make it faster
-  * [ 17] [FIXME]
 ```
 
 #### Annotations
 
-You can pass specific annotations by using the `--annotations` argument. By default, it will search for FIXME, OPTIMIZE, and TODO.
+You can pass specific annotations by using the `-a` (or `--annotations`) option.
 Note that annotations are case sensitive.
 
 ```bash
@@ -864,9 +863,9 @@ lib/school.rb:
   * [ 17] [FIXME]
 ```
 
-#### Tags
+#### Add Tags
 
-You can add more default tags to search for by using `config.annotations.register_tags`. It receives a list of tags.
+You can add more default tags to search for by using `config.annotations.register_tags`:
 
 ```ruby
 config.annotations.register_tags("DEPRECATEME", "TESTME")
@@ -880,64 +879,21 @@ app/controllers/admin/users_controller.rb:
   * [132] [DEPRECATEME] ensure this method is deprecated in next release
 ```
 
-#### Directories
+#### Add Directories
 
-You can add more default directories to search from by using `config.annotations.register_directories`. It receives a list of directory names.
+You can add more default directories to search from by using `config.annotations.register_directories`:
 
 ```ruby
 config.annotations.register_directories("spec", "vendor")
 ```
 
-```bash
-$ bin/rails notes
-app/controllers/admin/users_controller.rb:
-  * [ 20] [TODO] any other way to do this?
-  * [132] [FIXME] high priority for next deploy
+#### Add File Extensions
 
-lib/school.rb:
-  * [ 13] [OPTIMIZE] Refactor this code to make it faster
-  * [ 17] [FIXME]
-
-spec/models/user_spec.rb:
-  * [122] [TODO] Verify the user that has a subscription works
-
-vendor/tools.rb:
-  * [ 56] [TODO] Get rid of this dependency
-```
-
-#### Extensions
-
-You can add more default file extensions to search from by using `config.annotations.register_extensions`. It receives a list of extensions with its corresponding regex to match it up.
+You can add more default file extensions by using `config.annotations.register_extensions`:
 
 ```ruby
 config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ }
 ```
-
-```bash
-$ bin/rails notes
-app/controllers/admin/users_controller.rb:
-  * [ 20] [TODO] any other way to do this?
-  * [132] [FIXME] high priority for next deploy
-
-app/assets/stylesheets/application.css.sass:
-  * [ 34] [TODO] Use pseudo element for this class
-
-app/assets/stylesheets/application.css.scss:
-  * [  1] [TODO] Split into multiple components
-
-lib/school.rb:
-  * [ 13] [OPTIMIZE] Refactor this code to make it faster
-  * [ 17] [FIXME]
-
-spec/models/user_spec.rb:
-  * [122] [TODO] Verify the user that has a subscription works
-
-vendor/tools.rb:
-  * [ 56] [TODO] Get rid of this dependency
-```
-
-
-
 
 ### `bin/rails tmp:`
 
@@ -953,7 +909,14 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 
 ###  `bin/rails secret` 
 
-The `bin/rails secret` command will give you a pseudo-random key to use for your session secret.
+The `bin/rails secret` command generates a cryptographically secure random string for use as a secret key in your Rails application.
+
+```bash
+$ bin/rails secret
+4d39f92a661b5afea8c201b0b5d797cdd3dcf8ae41a875add6ca51489b1fbbf2852a666660d32c0a09f8df863b71073ccbf7f6534162b0a690c45fd278620a63
+```
+
+It can be useful for setting the secret key in your application's `config/credentials.yml.enc` file.
 
 Custom Rake Tasks
 -----------------
