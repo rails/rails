@@ -759,7 +759,24 @@ $ bin/rails stats
 
 ### `bin/rails time:zones:all`
 
-The`bin/rails time:zones:all` command lists all the timezones Rails knows about.
+The`bin/rails time:zones:all` command is a Rake task that prints the complete list of time zones that Active Support knows about, along with their UTC offsets followed by the Rails timezone identifiers.
+
+As an example, you can use `bin/rails time:zones:local` to see your system's timezone:
+
+```bash
+$ bin/rails time:zones:local
+
+* UTC -06:00 *
+Central America
+Central Time (US & Canada)
+Chihuahua
+Guadalajara
+Mexico City
+Monterrey
+Saskatchewan
+```
+
+This can be useful when setting `config.time_zone` in `config/application.rb`, you need an exact Rails time zone name and spelling(e.g., "Pacific Time (US & Canada)") or validating user input or debugging.
 
 Managing Assets
 ---------------
