@@ -27,7 +27,7 @@ class ActionText::SystemTestHelperTest < ApplicationSystemTestCase
 
   test "filling in a rich-text area by label" do
     assert_selector :label, "Message content label", for: "message_content"
-    fill_in_rich_textarea "Message content label", with: "Hello world!"
+    fill_in_rich_textarea "Message content label", id: "message_content", with: "Hello world!"
     assert_selector :field, "message[content]", with: /Hello world!/, type: "hidden"
   end
 
