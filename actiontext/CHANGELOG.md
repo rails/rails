@@ -1,3 +1,8 @@
+## Rails 7.2.2.2 (August 13, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.2.2.1 (December 10, 2024) ##
 
 *   Update vendored trix version to 2.1.10

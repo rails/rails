@@ -6,6 +6,11 @@
     *Efstathios Stivaros*
 
 
+## Rails 7.2.2.2 (August 13, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.2.2.1 (December 10, 2024) ##
 
 *   No changes.
