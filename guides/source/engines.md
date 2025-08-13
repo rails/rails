@@ -70,8 +70,11 @@ are both generated using the `rails plugin new` generator.
 While a plugin is generated using `rails plugin new <plugin_name>`, an engine is
 generated using either:
 
-- `rails plugin new <engine_name> --full`, or
-- `rails plugin new <engine_name> --mountable`.
+```bash
+rails plugin new <engine_name> --full
+# or
+rails plugin new <engine_name> --mountable
+```
 
 The `--full` option tells the generator that you want to create an engine that
 needs its own models/controllers but shares the host app's namespace, while the
