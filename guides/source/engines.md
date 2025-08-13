@@ -324,7 +324,6 @@ This namespacing is important: it ensures that your engine’s assets don’t co
 
 ```
 app/assets/stylesheets/blorgh/application.css
-app/assets/javascripts/blorgh/application.js
 ```
 
 #### `app/controllers`
