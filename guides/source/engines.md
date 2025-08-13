@@ -128,51 +128,69 @@ The structure of the `--mountable` engine will be as follows:
 blorgh/
 ├── app/
 │   ├── assets/
-│   │   ├── javascripts/
-│   │   │   ├── blorgh/
-│   │   │   │   └── application.js
-│   │   │   └── blorgh_manifest.js
+│   │   ├── images/
+│   │   │   └── blorgh/
 │   │   └── stylesheets/
-│   │       ├── blorgh/
-│   │       │   └── application.css
-│   │       └── application.css
+│   │       └── blorgh/
+│   │           └── application.css
 │   ├── controllers/
+│   │   ├── concerns/
 │   │   └── blorgh/
 │   │       └── application_controller.rb
 │   ├── helpers/
 │   │   └── blorgh/
 │   │       └── application_helper.rb
+│   ├── jobs/
+│   │   └── blorgh/
+│   │       └── application_job.rb
 │   ├── mailers/
+│   │   └── blorgh/
+│   │       └── application_mailer.rb
 │   ├── models/
+│   │   ├── concerns/
+│   │   └── blorgh/
+│   │       └── application_record.rb
 │   └── views/
 │       └── layouts/
 │           └── blorgh/
 │               └── application.html.erb
 ├── bin/
-├── blorgh.gemspec
+│   ├── rails
+│   └── rubocop
 ├── config/
-│   ├── initializers/
 │   └── routes.rb
 ├── lib/
-│   ├── blorgh/
-│   │   └── engine.rb
-│   ├── blorgh.rb
 │   └── tasks/
 │       └── blorgh_tasks.rake
+│   ├── blorgh/
+│   │   ├── engine.rb
+│   │   └── version.rb
+│   ├── blorgh.rb
+├── test/
+│   ├── controllers/
+│   └── dummy/
+│       ├── app/
+│       ├── bin/
+│       ├── config/
+│       ├── log/
+│       ├── public/
+│       ├── storage/
+│       ├── tmp/
+│   ├── fixtures/
+│   │   └── files/
+│   ├── helpers/
+│   ├── integration/
+│   │   └── navigation_test.rb
+│   ├── mailers/
+│   ├── models/
+│   ├── blorgh_test.rb
+│   ├── test_helper.rb
+├── .rubocop.yml
+├── Gemfile
 ├── MIT-LICENSE
 ├── Rakefile
 ├── README.md
-├── test/
-│   ├── dummy/
-│   │   ├── app/
-│   │   ├── bin/
-│   │   ├── config/
-│   │   ├── db/
-│   │   ├── public/
-│   │   └── ... (full Rails app)
-│   ├── integration/
-│   └── test_helper.rb
-└── tmp/
+├── blorgh.gemspec
 ```
 
 It provides the following:
