@@ -48,6 +48,7 @@ module ActiveSupport
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
+  autoload :EventReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
@@ -109,6 +110,9 @@ module ActiveSupport
 
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
+
+  @event_reporter = ActiveSupport::EventReporter.new
+  singleton_class.attr_accessor :event_reporter # :nodoc:
 
   def self.cache_format_version
     Cache.format_version
