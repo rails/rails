@@ -1,3 +1,5 @@
+## Rails 8.0.2.1 (August 13, 2025) ##
+
     Remove dangerous transformations
 
     [CVE-2025-24293]

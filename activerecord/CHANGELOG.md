@@ -1,3 +1,5 @@
+## Rails 8.0.2.1 (August 13, 2025) ##
+
 *   Call inspect on ids in RecordNotFound error
 
     [CVE-2025-55193]
