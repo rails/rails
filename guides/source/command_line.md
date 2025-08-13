@@ -790,7 +790,82 @@ If you want to clear `public/assets` completely, you can use `bin/rails assets:c
 Managing the Database
 ---------------------
 
-### `bin/rails db:`
+The commands in this section, `bin/rails db:*`, are all under the `db:` namespace. They are about setting up databases, managing migrations, etc.
+
+You can get a list of all commands (which are rake tasks) like this:
+
+```bash
+$ bin/rails -T db
+bin/rails db:create              # Create the database from DATABASE_URL or
+bin/rails db:drop                # Drop the database from DATABASE_URL or
+bin/rails db:encryption:init     # Generate a set of keys for configuring
+bin/rails db:environment:set     # Set the environment value for the database
+bin/rails db:fixtures:load       # Load fixtures into the current environment's
+bin/rails db:migrate             # Migrate the database (options: VERSION=x,
+bin/rails db:migrate:down        # Run the "down" for a given migration VERSION
+bin/rails db:migrate:redo        # Roll back the database one migration and
+bin/rails db:migrate:status      # Display status of migrations
+bin/rails db:migrate:up          # Run the "up" for a given migration VERSION
+bin/rails db:prepare             # Run setup if database does not exist, or run
+bin/rails db:reset               # Drop and recreate all databases from their
+bin/rails db:rollback            # Roll the schema back to the previous version
+bin/rails db:schema:cache:clear  # Clear a db/schema_cache.yml file
+bin/rails db:schema:cache:dump   # Create a db/schema_cache.yml file
+bin/rails db:schema:dump         # Create a database schema file (either db/
+bin/rails db:schema:load         # Load a database schema file (either db/
+bin/rails db:seed                # Load the seed data from db/seeds.rb
+bin/rails db:seed:replant        # Truncate tables of each database for current
+bin/rails db:setup               # Create all databases, load all schemas, and
+bin/rails db:version             # Retrieve the current schema version number
+bin/rails test:db                # Reset the database and run `bin/rails test`
+```
+
+TIP: You can also see the `db:` commands in the Rails [source code](activerecord/lib/active_record/railties/databases.rake).
+
+### Database Setup
+
+The `db:create` and `db:drop` commands create or delete the database for the current environment (or all environments with the `db:create:all`, `db:drop:all`)
+
+The `db:seed` commands loads sample data from `db/seeds.rb` and the `db:seed:replant` command truncates tables of each database for current environment and then load the seed data.
+
+The `db:setup` command create all databases, load all schemas, and initialize with the seed data (does not drop databases first, like the `db:reset` command below).
+
+The `db:reset` command drops and recreates all databases from their schema for the current environment and loads the seed data. (so it's a combination of the above command).
+
+### Migrations
+
+The `bin/rails db:migrate` is a very commonly run commands and it migrates the database by running all new (not yet run) migrations.
+
+The `db:migrate:up` command runs the "up" method and the `db:migrate:down` command run the "down" method for a given migration VERSION argument.
+
+```bash
+$ bin/rails db:migrate:down VERSION=VERSION=20250812120000
+```
+
+The `db:rollback` command rolls the schema back to the previous version (or you can specify steps with the `STEP=n` argument).
+
+The `db:migrate:redo` command rolls back the database one migration and re-migrate up. It is a combination of the above two commands.
+
+There is also a `db:migrate:status` command, which shows which migrations have been run and which are still pending:
+
+```bash
+$ bin/rails db:migrate:status
+database: db/development.sqlite3
+
+ Status   Migration ID    Migration Name
+--------------------------------------------------
+   up     20250101010101  Create users
+   up     20250102020202  Add email to users
+  down    20250812120000  Add age to users
+```
+
+NOTE: Please see the [Migration Guide](active_record_migrations.html) for explanation of concepts related database migrations.
+
+### Schema Management
+
+### Other Utility Commands
+
+`bin/rails db:`
 
 The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `bin/rails db:version` is useful when troubleshooting, telling you the current version of the database.
 
