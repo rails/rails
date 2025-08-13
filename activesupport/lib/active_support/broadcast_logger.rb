@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/tagged_logging"
+
 module ActiveSupport
   # = Active Support Broadcast Logger
   #
@@ -71,6 +73,40 @@ module ActiveSupport
   #   logger.broadcast_to(MyLogger.new(STDOUT))
   #   puts logger.broadcasts # => [MyLogger, MyLogger]
   #   logger.loggable? # [true, true]
+  #
+  # ====== A note on tagging logs while using the Broadcast logger
+  #
+  # It is quite frequent to tag logs using the `ActiveSupport::TaggedLogging` module
+  # while also broadcasting them (the default Rails.logger in development is
+  # configured in such a way).
+  # Tagging your logs can be done for the whole broadcast or for each sink independently.
+  #
+  # Tagging logs for the whole broadcast:
+  #
+  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  #   broadcast.tagged("BMX") { broadcast.info("Hello world!") }
+  #
+  #   Outputs: "[BMX] Hello world!" is written on both STDOUT and in the file.
+  #
+  # Tagging logs for a single logger:
+  #
+  #   stdout_logger.extend(ActiveSupport::TaggedLogging)
+  #   stdout_logger.push_tags("BMX")
+  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  #   broadcast.info("Hello world!")
+  #
+  #   Outputs: "[BMX] Hello world!" is written on STDOUT
+  #   Outputs: "Hello world!"       is written in the file
+  #
+  # Adding tags for the whole broadcast and adding extra tags on a specific logger:
+  #
+  #   stdout_logger.extend(ActiveSupport::TaggedLogging)
+  #   stdout_logger.push_tags("BMX")
+  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  #   broadcast.tagged("APP") { broadcast.info("Hello world!") }
+  #
+  #   Outputs: "[APP][BMX] Hello world!" is written on STDOUT
+  #   Outputs: "[APP] Hello world!"      is written in the file
   class BroadcastLogger
     include ActiveSupport::LoggerSilence
 
@@ -80,6 +116,8 @@ module ActiveSupport
     attr_accessor :progname
 
     def initialize(*loggers)
+      extend ActiveSupport::TaggedLogging
+
       @broadcasts = []
       @progname = "Broadcast"
 
@@ -91,6 +129,10 @@ module ActiveSupport
     #   broadcast_logger = ActiveSupport::BroadcastLogger.new
     #   broadcast_logger.broadcast_to(Logger.new(STDOUT), Logger.new(STDERR))
     def broadcast_to(*loggers)
+      loggers.each do |logger|
+        logger.extend(LogProcessor) unless logger.is_a?(LogProcessor)
+      end
+
       @broadcasts.concat(loggers)
     end
 
@@ -114,32 +156,32 @@ module ActiveSupport
     end
 
     def add(...)
-      dispatch { |logger| logger.add(...) }
+      dispatch_with_processors { |logger| logger.add(...) }
     end
     alias_method :log, :add
 
     def debug(...)
-      dispatch { |logger| logger.debug(...) }
+      dispatch_with_processors { |logger| logger.debug(...) }
     end
 
     def info(...)
-      dispatch { |logger| logger.info(...) }
+      dispatch_with_processors { |logger| logger.info(...) }
     end
 
     def warn(...)
-      dispatch { |logger| logger.warn(...) }
+      dispatch_with_processors { |logger| logger.warn(...) }
     end
 
     def error(...)
-      dispatch { |logger| logger.error(...) }
+      dispatch_with_processors { |logger| logger.error(...) }
     end
 
     def fatal(...)
-      dispatch { |logger| logger.fatal(...) }
+      dispatch_with_processors { |logger| logger.fatal(...) }
     end
 
     def unknown(...)
-      dispatch { |logger| logger.unknown(...) }
+      dispatch_with_processors { |logger| logger.unknown(...) }
     end
 
     def formatter=(formatter)
@@ -218,7 +260,7 @@ module ActiveSupport
       dispatch { |logger| logger.fatal! }
     end
 
-    def initialize_copy(other)
+    def initialize_dup(other)
       @broadcasts = []
       @progname = other.progname.dup
       @formatter = other.formatter.dup
@@ -229,6 +271,18 @@ module ActiveSupport
     private
       def dispatch(&block)
         @broadcasts.each { |logger| block.call(logger) }
+        true
+      end
+
+      def dispatch_with_processors(&block)
+        @broadcasts.each do |logger|
+          logger.processors.unshift(processors)
+
+          block.call(logger)
+        ensure
+          logger.processors.shift(processors.count)
+        end
+
         true
       end
 

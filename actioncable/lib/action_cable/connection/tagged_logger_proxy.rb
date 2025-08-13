@@ -25,7 +25,7 @@ module ActionCable
 
       def tag(logger, &block)
         if logger.respond_to?(:tagged)
-          current_tags = tags - logger.formatter.current_tags
+          current_tags = tags - logger.tag_processor.current_tags
           logger.tagged(*current_tags, &block)
         else
           yield
