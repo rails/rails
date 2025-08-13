@@ -712,11 +712,50 @@ This command can be useful when initializers depend on each other and the order 
 
 ### `bin/rails middleware`
 
-The `bin/rails middleware` command lists Rack middleware stack enabled for your app.
+The `bin/rails middleware` shows you the entire Rack middleware stack for your Rails application, in the exact order the middlewares are run for each request.
+
+```bash
+$ bin/rails middleware
+use ActionDispatch::HostAuthorization
+use Rack::Sendfile
+use ActionDispatch::Static
+use ActionDispatch::Executor
+use ActionDispatch::ServerTiming
+...
+```
+
+This can be useful to see which middleware Rails includes and which ones are added by gems (Warden::Manager from Devise) as well as for debugging and profiling.
 
 ### `bin/rails stats`
 
-The `bin/rails stats` command is great for looking at statistics on your code, displaying things like KLOCs (thousands of lines of code) and your code to test ratio.
+The `bin/rails stats` command is show you things like lines of code (LOC) and number of classes and methods for various compents in your applicaiton.
+
+```bash
+$ bin/rails stats
++----------------------+--------+--------+---------+---------+-----+-------+
+| Name                 |  Lines |    LOC | Classes | Methods | M/C | LOC/M |
++----------------------+--------+--------+---------+---------+-----+-------+
+| Controllers          |    309 |    247 |       7 |      37 |   5 |     4 |
+| Helpers              |     10 |     10 |       0 |       0 |   0 |     0 |
+| Jobs                 |      7 |      2 |       1 |       0 |   0 |     0 |
+| Models               |     89 |     70 |       6 |       3 |   0 |    21 |
+| Mailers              |     10 |     10 |       2 |       1 |   0 |     8 |
+| Channels             |     16 |     14 |       1 |       2 |   2 |     5 |
+| Views                |    622 |    501 |       0 |       1 |   0 |   499 |
+| Stylesheets          |    584 |    495 |       0 |       0 |   0 |     0 |
+| JavaScript           |     81 |     62 |       0 |       0 |   0 |     0 |
+| Libraries            |      0 |      0 |       0 |       0 |   0 |     0 |
+| Controller tests     |    117 |     75 |       4 |       9 |   2 |     6 |
+| Helper tests         |      0 |      0 |       0 |       0 |   0 |     0 |
+| Model tests          |     21 |      9 |       3 |       0 |   0 |     0 |
+| Mailer tests         |      7 |      5 |       1 |       1 |   1 |     3 |
+| Integration tests    |      0 |      0 |       0 |       0 |   0 |     0 |
+| System tests         |     51 |     41 |       1 |       4 |   4 |     8 |
++----------------------+--------+--------+---------+---------+-----+-------+
+| Total                |   1924 |   1541 |      26 |      58 |   2 |    24 |
++----------------------+--------+--------+---------+---------+-----+-------+
+  Code LOC: 1411     Test LOC: 130     Code to Test Ratio: 1:0.1
+```
 
 ### `bin/rails time:zones:all`
 
