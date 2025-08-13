@@ -199,7 +199,7 @@ module ActionController
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options.to_str
       when String
-        if !options.start_with?("/") && !options.empty?
+        if !options.start_with?("/", "?") && !options.empty?
           _handle_path_relative_redirect(options)
         end
 

@@ -368,6 +368,10 @@ module Rails
           if respond_to?(:action_view)
             action_view.render_tracker = :ruby
           end
+
+          if respond_to?(:action_view)
+            action_view.remove_hidden_field_autocomplete = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

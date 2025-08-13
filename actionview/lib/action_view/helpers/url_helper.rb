@@ -341,8 +341,9 @@ module ActionView
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
-                                       autocomplete: "off")
+            options = { type: "hidden", name: param[:name], value: param[:value] }
+            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            inner_tags.safe_concat tag(:input, **options)
           end
         end
         html = content_tag("form", inner_tags, form_options)
@@ -751,14 +752,18 @@ module ActionView
               else
                 token
               end
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
+            options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
+            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            tag(:input, **options)
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
+          options = { type: "hidden", name: "_method", value: method.to_s }
+          options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+          tag("input", **options)
         end
 
         # Returns an array of hashes each containing :name and :value keys

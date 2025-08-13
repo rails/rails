@@ -17,6 +17,43 @@ class RateLimitedController < ActionController::Base
   end
 end
 
+class RateLimitedBaseController < ActionController::Base
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+end
+
+class RateLimitedSharedOneController < RateLimitedBaseController
+  rate_limit to: 2, within: 2.seconds, scope: "shared"
+
+  def limited_shared_one
+    head :ok
+  end
+end
+
+class RateLimitedSharedTwoController < RateLimitedBaseController
+  rate_limit to: 2, within: 2.seconds, scope: "shared"
+
+  def limited_shared_two
+    head :ok
+  end
+end
+
+class RateLimitedSharedController < ActionController::Base
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+  rate_limit to: 2, within: 2.seconds
+end
+
+class RateLimitedSharedThreeController < RateLimitedSharedController
+  def limited_shared_three
+    head :ok
+  end
+end
+
+class RateLimitedSharedFourController < RateLimitedSharedController
+  def limited_shared_four
+    head :ok
+  end
+end
+
 class RateLimitingTest < ActionController::TestCase
   tests RateLimitedController
 
@@ -91,5 +128,47 @@ class RateLimitingTest < ActionController::TestCase
     get :limited_with
     get :limited_with
     assert_response :forbidden
+  end
+
+  test "cross-controller rate limit" do
+    @controller = RateLimitedSharedOneController.new
+    get :limited_shared_one
+    assert_response :ok
+
+    get :limited_shared_one
+    assert_response :ok
+
+    @controller = RateLimitedSharedTwoController.new
+
+    get :limited_shared_two
+    assert_response :too_many_requests
+
+    @controller = RateLimitedSharedOneController.new
+
+    get :limited_shared_one
+    assert_response :too_many_requests
+  ensure
+    RateLimitedBaseController.cache_store.clear
+  end
+
+  test "inherited rate limit isn't shared between controllers" do
+    @controller = RateLimitedSharedThreeController.new
+    get :limited_shared_three
+    assert_response :ok
+
+    get :limited_shared_three
+    assert_response :ok
+
+    @controller = RateLimitedSharedFourController.new
+
+    get :limited_shared_four
+    assert_response :ok
+
+    @controller = RateLimitedSharedThreeController.new
+
+    get :limited_shared_three
+    assert_response :too_many_requests
+  ensure
+    RateLimitedSharedController.cache_store.clear
   end
 end

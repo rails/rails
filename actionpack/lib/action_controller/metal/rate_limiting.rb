@@ -18,6 +18,10 @@ module ActionController # :nodoc:
       # parameter. It's evaluated within the context of the controller processing the
       # request.
       #
+      # By default, rate limits are scoped to the controller's path. If you want to
+      # share rate limits across multiple controllers, you can provide your own scope,
+      # by passing value in the `scope:` parameter.
+      #
       # Requests that exceed the rate limit are refused with a `429 Too Many Requests`
       # response. You can specialize this by passing a callable in the `with:`
       # parameter. It's evaluated within the context of the controller processing the
@@ -46,21 +50,22 @@ module ActionController # :nodoc:
       #     class APIController < ApplicationController
       #       RATE_LIMIT_STORE = ActiveSupport::Cache::RedisCacheStore.new(url: ENV["REDIS_URL"])
       #       rate_limit to: 10, within: 3.minutes, store: RATE_LIMIT_STORE
+      #       rate_limit to: 100, within: 5.minutes, scope: :api_global
       #     end
       #
       #     class SessionsController < ApplicationController
       #       rate_limit to: 3, within: 2.seconds, name: "short-term"
       #       rate_limit to: 10, within: 5.minutes, name: "long-term"
       #     end
-      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: nil, **options)
-        before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name) }, **options
+      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: nil, scope: nil, **options)
+        before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name, scope: scope || controller_path) }, **options
       end
     end
 
     private
-      def rate_limiting(to:, within:, by:, with:, store:, name:)
+      def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
         by = instance_exec(&by)
-        cache_key = ["rate-limit", controller_path, name, by].compact.join(":")
+        cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
           ActiveSupport::Notifications.instrument("rate_limit.action_controller",
@@ -70,6 +75,7 @@ module ActionController # :nodoc:
               within: within,
               by: by,
               name: name,
+              scope: scope,
               cache_key: cache_key) do
             instance_exec(&with)
           end
