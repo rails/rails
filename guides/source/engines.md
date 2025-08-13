@@ -194,7 +194,7 @@ It provides the following:
     end
     ```
 
-`-- mountable` engines, like above, contain some files that are not present in
+`--mountable` engines, like above, contain some files that are not present in
 the `--full` option, these are:
 
   * Asset manifest files (`blorgh_manifest.js` and `application.css`)
