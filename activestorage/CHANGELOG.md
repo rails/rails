@@ -1,3 +1,11 @@
+## Rails 7.1.5.2 (August 13, 2025) ##
+
+    Remove dangerous transformations
+
+    [CVE-2025-24293]
+
+    *Zack Deveau*
+
 ## Rails 7.1.5.1 (December 10, 2024) ##
 
 *   No changes.

@@ -24,6 +24,14 @@
 
     *Jean Boussier*
 
+## Rails 7.1.5.2 (August 13, 2025) ##
+
+*   Call inspect on ids in RecordNotFound error
+
+    [CVE-2025-55193]
+
+    *Gannon McGibbon*, *John Hawthorn*
+
 
 ## Rails 7.1.5.1 (December 10, 2024) ##
 
