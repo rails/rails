@@ -417,15 +417,15 @@ module ApiBoost
   module ActsAsApiResource
     extend ActiveSupport::Concern
 
-    def track_api_request(timestamp = Time.current)
-      write_attribute(self.class.api_timestamp_field, timestamp)
-    end
-
     class_methods do
       def acts_as_api_resource(options = {})
         cattr_accessor :api_timestamp_field,
                        default: (options[:api_timestamp_field] || :last_requested_at).to_s
       end
+    end
+
+    def track_api_request(timestamp = Time.current)
+      write_attribute(self.class.api_timestamp_field, timestamp)
     end
   end
 end
