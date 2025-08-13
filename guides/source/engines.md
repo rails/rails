@@ -33,7 +33,7 @@ Some examples of engines in action:
 * [Thredded](https://github.com/thredded/thredded) which provides forum functionality
 * [Spree](https://github.com/spree/spree) which provides an e-commerce platform
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
-* [Active Storage](https://github.com/rails/rails/tree/main/activestorage) which provides a file storage as an engine.
+* [Active Storage](https://github.com/rails/rails/tree/main/activestorage) which provides file storage as an engine.
 * [Action Text](https://github.com/rails/rails/tree/main/actiontext) which provides a rich text editor as an engine.
 
 NOTE: The main application is always the final authority in a Rails environment. While
