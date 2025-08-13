@@ -318,7 +318,7 @@ Here’s what you should know about each of these, especially in the context of 
 
 #### `app/assets`
 
-Inside `app/assets`, you’ll find directories for `images`, `javascripts`, and `stylesheets`. Each of these contains a subdirectory named after your engine—`blorgh` in this case.
+Inside `app/assets`, you’ll find directories for `images` and `stylesheets`. Each of these contains a subdirectory named after your engine—`blorgh` in this case.
 
 This namespacing is important: it ensures that your engine’s assets don’t conflict with those from other engines or the host application. For example:
 
