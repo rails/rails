@@ -30,6 +30,7 @@ module ActiveSupport
     # before any of the rules that may already have been loaded.
     class Inflections
       @__instance__ = Concurrent::Map.new
+      @__en_instance__ = nil
 
       class Uncountables # :nodoc:
         include Enumerable
@@ -74,10 +75,14 @@ module ActiveSupport
       end
 
       def self.instance(locale = :en)
+        return @__en_instance__ ||= new if locale == :en
+
         @__instance__[locale] ||= new
       end
 
       def self.instance_or_fallback(locale)
+        return @__en_instance__ ||= new if locale == :en
+
         I18n.fallbacks[locale].each do |k|
           return @__instance__[k] if @__instance__.key?(k)
         end
