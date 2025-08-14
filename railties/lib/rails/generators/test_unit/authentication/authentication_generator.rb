@@ -22,6 +22,11 @@ module TestUnit # :nodoc:
       def create_test_helper_files
         template "test/test_helpers/session_test_helper.rb"
       end
+
+      def configure_test_helper
+        inject_into_file "test/test_helper.rb", "require_relative \"test_helpers/session_test_helper\"\n", after: "require \"rails/test_help\"\n"
+        inject_into_class "test/test_helper.rb", "TestCase", "    include SessionTestHelper\n"
+      end
     end
   end
 end
