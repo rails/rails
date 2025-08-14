@@ -515,7 +515,7 @@ GEM
     retriable (3.1.2)
     rexml (3.4.2)
     rouge (4.6.1)
-    rubocop (1.72.2)
+    rubocop (1.79.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -523,7 +523,7 @@ GEM
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.38.0, < 2.0)
+      rubocop-ast (>= 1.46.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.46.0)
@@ -769,7 +769,7 @@ DEPENDENCIES
   resque-scheduler
   rexml
   rouge
-  rubocop (< 1.73)
+  rubocop (= 1.79.2)
   rubocop-md
   rubocop-minitest
   rubocop-packaging

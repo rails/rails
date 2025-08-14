@@ -29,7 +29,7 @@ task :smoke, [:frameworks, :isolated] do |task, args|
     frameworks = Releaser::FRAMEWORKS
   end
 
-  isolated = args[:isolated].nil? ? true : args[:isolated] == "true"
+  isolated = args[:isolated].nil? || args[:isolated] == "true"
   test_task = isolated ? "test:isolated" : "test"
 
   (frameworks - ["activerecord"]).each do |project|
