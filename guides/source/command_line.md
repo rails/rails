@@ -1034,6 +1034,40 @@ $ bin/rails secret
 
 It can be useful for setting the secret key in your application's `config/credentials.yml.enc` file.
 
+### `bin/rails credentials`
+
+The `credentials` commands provide access to encrypted credentials, so you can
+safely store access tokens, database passwords, and the like inside the
+app without relying on a mess of environment variables.
+
+To add values to the encrypted YML file `config/credentials.yml.enc`, you can use the `credentials:edit` command:
+
+```bash
+$ bin/rails credentials:edit
+```
+
+This opens the decrypted credentials in an editor (set by `$VISUAL` or `$EDITOR`) for editing. When saved, the content is encrypted automatically.
+
+You can also use the `:show` command to view the decrypted credential file, which may look something like this (don't worry this is from a sample application and not sensitive data):
+
+```bash
+$ bin/rails credentials:show
+# aws:
+#   access_key_id: 123
+#   secret_access_key: 345
+active_record_encryption:
+  primary_key: 99eYu7ZO0JEwXUcpxmja5PnoRJMaazVZ
+  deterministic_key: lGRKzINTrMTDSuuOIr6r5kdq2sH6S6Ii
+  key_derivation_salt: aoOUutSgvw788fvO3z0hSgv0Bwrm76P0
+
+# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
+secret_key_base: 6013280bda2fcbdbeda1732859df557a067ac81c423855aedba057f7a9b14161442d9cadfc7e48109c79143c5948de848ab5909ee54d04c34f572153466fc589
+```
+
+You can learn about credentials in the [Rails Security Guide](security.html#custom-credentials)
+
+TIP: Checkout the detailed description for this command in the output of `bin/rails credentials --help`.
+
 Custom Rake Tasks
 -----------------
 
