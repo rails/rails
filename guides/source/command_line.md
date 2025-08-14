@@ -9,7 +9,7 @@ After reading this guide, you will know how to use the Rails command:
 * To generate models, controllers, tests, and database migrations.
 * To start a development server.
 * To inspect a Rails application through an interactive shell.
-* To add and edit credentials to an application. 
+* To add and edit credentials to an application.
 
 --------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ $ rails generate model --help
 Usage:
   bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 Options:
-... 
+...
 Description:
     Generates a new model. Pass the model name, either CamelCased or
     under_scored, and an optional list of attribute pairs as arguments.
@@ -188,7 +188,7 @@ development:
   ...
 ```
 
-The `--database=postgresql` option will also modify other files generated for a new Rails app appropriately, such as adding the `pg` gem to the `Gemfile`, etc. 
+The `--database=postgresql` option will also modify other files generated for a new Rails app appropriately, such as adding the `pg` gem to the `Gemfile`, etc.
 
 ### Skipping Defaults
 
@@ -248,9 +248,9 @@ The `-b` option binds Rails to the specified IP, by default it is localhost. You
 Generating Code
 ---------------
 
-You can use the `bin/rails generate` command to generate a number of different files and add functionality to your application, such as models, controllers, and full scaffolds. 
+You can use the `bin/rails generate` command to generate a number of different files and add functionality to your application, such as models, controllers, and full scaffolds.
 
-To see a list of built-in generators, you can run `bin/rails generate` (or `bin/rails g` for short) without any arguments. It lists all available generators after the usage. You can also learn more about what a specific generator will do by using the `--pretend` option. 
+To see a list of built-in generators, you can run `bin/rails generate` (or `bin/rails g` for short) without any arguments. It lists all available generators after the usage. You can also learn more about what a specific generator will do by using the `--pretend` option.
 
 ```bash
 $ bin/rails generate
@@ -347,7 +347,7 @@ Now let's use the generator to add models to our application.
 
 ### Generating Models
 
-The Rails model generator command has a very detailed "Description" section that is worth perusing. Here is the basic usage: 
+The Rails model generator command has a very detailed "Description" section that is worth perusing. Here is the basic usage:
 
 ```bash
 $ bin/rails generate model
@@ -374,7 +374,7 @@ NOTE: For a list of available field types for the `type` parameter, refer to the
 
 ### Generating Scaffolds
 
-In addition to generating controllers and models separately, Rails also provides a generator that adds all of the code necessary to create a resource in your application. This is called a *scaffold*. 
+In addition to generating controllers and models separately, Rails also provides a generator that adds all of the code necessary to create a resource in your application. This is called a *scaffold*.
 
 A Rails scaffold generates a full set of files for a resource, including a model, controller, views, routes, migration, tests, and helper files. It should be used for quickly prototyping CRUD interfaces or when you want to generate the basic structure of a resource as a starting point that you can customize manually.
 
@@ -413,7 +413,7 @@ $ bin/rails generate scaffold model post title:string body:text
       create      app/views/models/_model.json.jbuilder
 ```
 
-At this point, you can run `bin/rails db:migrate` to create the `post` table (see [Managing the Database](#managing-the-databse) for more on that command). Then, if you start the Rails server with `bin/rails server` and navigate to [http://localhost:3000/posts](http://localhost:3000/posts), you will be able to interact with the `post` resource - see a list of posts, create new posts, as well as edit and delete them.
+At this point, you can run `bin/rails db:migrate` to create the `post` table (see [Managing the Database](#managing-the-database) for more on that command). Then, if you start the Rails server with `bin/rails server` and navigate to [http://localhost:3000/posts](http://localhost:3000/posts), you will be able to interact with the `post` resource - see a list of posts, create new posts, as well as edit and delete them.
 
 INFO: The scaffold generate test files, though you will need to modify them and actually add test cases for your code. See the [Testing guide](testing.html) for an in-depth look at creating and running tests.
 
@@ -423,7 +423,7 @@ Imagine you had a typo when using the `generate` command for a model (or control
 
 INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
 
-For example, if you meant to generate an `article` model but instead typed `artcle`: 
+For example, if you meant to generate an `article` model but instead typed `artcle`:
 
 ```bash
 $ rails generate model Artcle title:string body:text
@@ -464,6 +464,7 @@ Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
+
 The `sandbox` option is great for safely testing destructive changes without affecting your database.
 
 You can also specify the Rails environment for the `console` command with the `-e` option:
@@ -499,7 +500,7 @@ Started GET "/" for 127.0.0.1 at 2025-08-11 11:11:34 -0500
 
 NOTE: You have to pass the "Host" header with the `app.get` request above, because the Rack client used under-the-hood defaults to "www.example.com" if not "Host" is specified. You can modify your application to always use `localhost` using a configuration or an initializer.
 
-The reason you can "make requests" like above is because the `app` object is the same one that Rails uses for integration tests: 
+The reason you can "make requests" like above is because the `app` object is the same one that Rails uses for integration tests:
 
 ```irb
 > app.class
@@ -535,7 +536,7 @@ The `helper` object in the Rails console is your direct portal into Rails’ vie
 
 ### `bin/rails dbconsole`
 
-The `bin/rails dbconsole` command figures out which database you're using and drops you into the command line interface appropriate for that database. It also figures out the command line parameters to start a session based on your `config/database.yml` file and current Rails environment. 
+The `bin/rails dbconsole` command figures out which database you're using and drops you into the command line interface appropriate for that database. It also figures out the command line parameters to start a session based on your `config/database.yml` file and current Rails environment.
 
 Once you're in a `dbconsole` session, you can interact with your database directly as you normally would. For example, if you're using PostgreSQL, running `bin/rails dbconsole` may look like this:
 
@@ -553,7 +554,7 @@ Type:  \copyright for distribution terms
        \q to quit
 booknotes_development=# \dt
                     List of relations
- Schema |              Name              | Type  | Owner 
+ Schema |              Name              | Type  | Owner
 --------+--------------------------------+-------+-------
  public | action_text_rich_texts         | table | bhumi
  ...
@@ -633,7 +634,7 @@ $ bin/rails runner --skip-executor lib/long_running_script.rb
 
 The `bin/rails boot` command is a low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run.
 
-The `boot` command boots the application and exits, does nothing else. So what is it useful for then? 
+The `boot` command boots the application and exits, does nothing else. So what is it useful for then?
 
 It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
 
@@ -1022,7 +1023,7 @@ The `tmp:` namespaced commands will help you clear and create the `Rails.root/tm
 * `bin/rails tmp:clear` clears all cache, sockets, and screenshot files.
 * `bin/rails tmp:create` creates tmp directories for cache, sockets, and pids.
 
-###  `bin/rails secret` 
+### `bin/rails secret`
 
 The `bin/rails secret` command generates a cryptographically secure random string for use as a secret key in your Rails application.
 
