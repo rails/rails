@@ -29,6 +29,12 @@
 
     *Alessandro Dal Grande*
 
+
+## Rails 8.0.2.1 (August 13, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   Fix setting `to_time_preserves_timezone` from `new_framework_defaults_8_0.rb`.

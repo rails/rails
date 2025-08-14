@@ -1,3 +1,11 @@
+## Rails 8.0.2.1 (August 13, 2025) ##
+
+*   Remove dangerous transformations
+
+    [CVE-2025-24293]
+
+    *Zack Deveau*
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   A Blob will no longer autosave associated Attachment.
