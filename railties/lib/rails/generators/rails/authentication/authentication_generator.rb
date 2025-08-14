@@ -30,8 +30,6 @@ module Rails
 
           template "app/views/passwords_mailer/reset.html.erb"
           template "app/views/passwords_mailer/reset.text.erb"
-
-          template "test/mailers/previews/passwords_mailer_preview.rb"
         end
       end
 
