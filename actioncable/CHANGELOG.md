@@ -2,9 +2,18 @@
 
     *Jean Boussier*
 
+
+## Rails 8.0.2.1 (August 13, 2025) ##
+
+*   No changes.
+
+
+## Rails 8.0.2 (March 12, 2025) ##
+
 *   Fixed a possible race condition in `stream_from`.
 
     *OuYangJinTing*
+
 
 ## Rails 8.0.2 (March 12, 2025) ##
 

@@ -86,6 +86,16 @@
 
     *Jean Boussier*
 
+
+## Rails 8.0.2.1 (August 13, 2025) ##
+
+*   Call inspect on ids in RecordNotFound error
+
+    [CVE-2025-55193]
+
+    *Gannon McGibbon*, *John Hawthorn*
+
+
 ## Rails 8.0.2 (March 12, 2025) ##
 
 *   Fix inverting `rename_enum_value` when `:from`/`:to` are provided.
