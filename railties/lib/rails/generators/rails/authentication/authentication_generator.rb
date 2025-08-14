@@ -33,8 +33,6 @@ module Rails
 
           template "test/mailers/previews/passwords_mailer_preview.rb"
         end
-
-        template "test/test_helpers/session_test_helper.rb"
       end
 
       def configure_application_controller
