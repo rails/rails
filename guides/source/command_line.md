@@ -919,12 +919,30 @@ The `db:encryption:init` command generates a set of keys for configuring Active 
 Running Tests
 -------------
 
-### `bin/rails test`
+The `bin/rails test` command helsp you the different types of tests in your application. The `bin/rails test --help` output has good examples of the different options for this command:
 
-INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
+```bash
+You can run a single test by appending a line number to a filename:
 
-Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace help in running the different tests you will hopefully write.
+  bin/rails test test/models/user_test.rb:27
 
+You can run multiple tests with in a line range by appending the line range to a filename:
+
+  bin/rails test test/models/user_test.rb:10-20
+
+You can run multiple files and directories at the same time:
+
+  bin/rails test test/controllers test/integration/login_test.rb
+```
+
+Rails comes with a testing framework called Minitest and there are also Minitest options you can use with the `test` command:
+
+```bash
+# Runs only tests whose names match the regex /validation/
+$ bin/rails test -n /validation/
+```
+
+INFO: Please see the  [Testing Guide](testing.html) for explanations and examples of different types of tests.
 
 Other Useful Commands
 ---------------------
@@ -1018,15 +1036,14 @@ It can be useful for setting the secret key in your application's `config/creden
 Custom Rake Tasks
 -----------------
 
-Custom rake tasks have a `.rake` extension and are placed in
-`Rails.root/lib/tasks`. You can create these custom rake tasks with the
+Custom rake tasks have a `.rake` extension and are placed in `lib/tasks` folder
+in your Rails application. You can create these custom rake tasks with the
 `bin/rails generate task` command.
 
 ```ruby
-desc "I am short, but comprehensive description for my cool task"
+desc "I am short description for a cool task"
 task task_name: [:prerequisite_task, :another_task_we_depend_on] do
-  # All your magic here
-  # Any valid Ruby code is allowed
+  # Any valid Ruby code is allowed.
 end
 ```
 
@@ -1042,23 +1059,23 @@ You can group tasks by placing them in namespaces:
 
 ```ruby
 namespace :db do
-  desc "This task does nothing"
-  task :nothing do
-    # Seriously, nothing
+  desc "This task has something to do with the database"
+  task :my_db_task do
+    ...
   end
 end
 ```
 
-Invocation of the tasks will look like:
+Invoking rake tasks looks like this:
 
 ```bash
 $ bin/rails task_name
-$ bin/rails "task_name[value 1]" # entire argument string should be quoted
-$ bin/rails "task_name[value 1,value2,value3]" # separate multiple args with a comma
-$ bin/rails db:nothing
+$ bin/rails "task_name[value1]" # entire argument string should be quoted
+$ bin/rails "task_name[value1, value2]" # separate multiple args with a comma
+$ bin/rails db:my_db_task
 ```
 
-If you need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
+If you need to interact with your application models, perform database queries, and so on, your task can depend on the `environment` task, which will load your Rails application.
 
 ```ruby
 task task_that_requires_app_code: [:environment] do
