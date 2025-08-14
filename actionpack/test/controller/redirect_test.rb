@@ -850,6 +850,132 @@ class RedirectTest < ActionController::TestCase
     end
   end
 
+  def test_redirect_to_external_with_action_on_open_redirect_log
+    with_action_on_open_redirect(:log) do
+      with_logger do |logger|
+        get :redirect_to_url
+        assert_response :redirect
+        assert_equal "http://www.rubyonrails.org/", redirect_to_url
+        assert_logged(/Open redirect to "http:\/\/www.rubyonrails.org\/" detected/, logger)
+      end
+    end
+  end
+
+  def test_redirect_to_external_with_action_on_open_redirect_notify
+    with_action_on_open_redirect(:notify) do
+      events = []
+      ActiveSupport::Notifications.subscribe("open_redirect.action_controller") do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+
+      get :redirect_to_url
+      assert_response :redirect
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+
+      assert_equal 1, events.size
+      event = events.first
+      assert_equal "http://www.rubyonrails.org/", event.payload[:location]
+      assert_kind_of ActionDispatch::Request, event.payload[:request]
+      assert_kind_of Array, event.payload[:stack_trace]
+    ensure
+      ActiveSupport::Notifications.unsubscribe("open_redirect.action_controller")
+    end
+  end
+
+  def test_redirect_to_external_with_action_on_open_redirect_raise
+    with_action_on_open_redirect(:raise) do
+      error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+        get :redirect_to_url
+      end
+      assert_equal "Unsafe redirect to \"http://www.rubyonrails.org/\", pass allow_other_host: true to redirect anyway.", error.message
+    end
+  end
+
+  def test_redirect_to_external_with_explicit_allow_other_host_false_always_raises
+    with_action_on_open_redirect(:log) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+
+    with_action_on_open_redirect(:notify) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+
+    with_action_on_open_redirect(:raise) do
+      get :redirect_to_external_with_rescue
+      assert_response :ok
+      assert_equal "caught error", response.body
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_log
+    with_action_on_open_redirect(:log) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_notify
+    with_action_on_open_redirect(:notify) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://www.rubyonrails.org/", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_action_on_open_redirect_raise
+    with_action_on_open_redirect(:raise) do
+      @request.env["HTTP_REFERER"] = "http://www.rubyonrails.org/"
+      get :redirect_back_with_status
+      assert_response 307
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+    end
+  end
+
+  def test_redirect_back_with_external_referer_and_explicit_allow_other_host_false
+    with_action_on_open_redirect(:log) do
+      @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
+      get :safe_redirect_back_with_status
+      assert_response 307
+      assert_equal "http://test.host/things/stuff", redirect_to_url
+    end
+  end
+
+  def test_raise_on_open_redirects_overrides_action_on_open_redirect
+    with_action_on_open_redirect(:log) do
+      with_raise_on_open_redirects do
+        error = assert_raise(ActionController::Redirecting::UnsafeRedirectError) do
+          get :redirect_to_url
+        end
+        assert_match(/Unsafe redirect/, error.message)
+      end
+    end
+  end
+
+  def test_action_on_open_redirect_does_not_affect_internal_redirects
+    with_action_on_open_redirect(:raise) do
+      get :simple_redirect
+      assert_response :redirect
+      assert_equal "http://test.host/redirect/hello_world", redirect_to_url
+    end
+  end
+
+  def test_action_on_open_redirect_with_allowed_redirect_hosts
+    with_action_on_open_redirect(:raise) do
+      with_allowed_redirect_hosts(hosts: ["www.rubyonrails.org"]) do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_redirected_to "http://www.rubyonrails.org/"
+      end
+    end
+  end
+
   private
     def with_logger
       logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
@@ -884,6 +1010,14 @@ class RedirectTest < ActionController::TestCase
       yield
     ensure
       ActionController::Base.raise_on_open_redirects = old_raise_on_open_redirects
+    end
+
+    def with_action_on_open_redirect(action)
+      old_action = ActionController::Base.action_on_open_redirect
+      ActionController::Base.action_on_open_redirect = action
+      yield
+    ensure
+      ActionController::Base.action_on_open_redirect = old_action
     end
 
     def with_allowed_redirect_hosts(hosts:)

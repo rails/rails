@@ -13,6 +13,7 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.action_on_open_redirect = :log
     config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
@@ -99,6 +100,17 @@ module ActionController
       ActiveSupport.on_load(:action_controller_base) do
         if app.config.action_controller.default_protect_from_forgery
           protect_from_forgery with: :exception
+        end
+      end
+    end
+
+    initializer "action_controller.open_redirects" do |app|
+      ActiveSupport.on_load(:action_controller, run_once: true) do
+        if app.config.action_controller.raise_on_open_redirects != nil
+          ActiveSupport.deprecator.warn(<<~MSG.squish)
+            `raise_on_open_redirects` is deprecated and will be removed in a future Rails version.
+            Use `config.action_controller.action_on_open_redirect = :raise` instead.
+          MSG
         end
       end
     end
