@@ -790,9 +790,9 @@ If you want to clear `public/assets` completely, you can use `bin/rails assets:c
 Managing the Database
 ---------------------
 
-The commands in this section, `bin/rails db:*`, are all under the `db:` namespace. They are about setting up databases, managing migrations, etc.
+The commands in this section, `bin/rails db:*`, are all about setting up databases, managing migrations, etc.
 
-You can get a list of all commands (which are rake tasks) like this:
+You can get a list of all commands in the `db:` namespace like this:
 
 ```bash
 $ bin/rails -T db
@@ -820,7 +820,7 @@ bin/rails db:version             # Retrieve the current schema version number
 bin/rails test:db                # Reset the database and run `bin/rails test`
 ```
 
-TIP: You can also see the `db:` commands in the Rails [source code](activerecord/lib/active_record/railties/databases.rake).
+TIP: You can also see the `db:` commands, which are rake tasks, in the Rails [source code](activerecord/lib/active_record/railties/databases.rake).
 
 ### Database Setup
 
@@ -834,7 +834,7 @@ The `db:reset` command drops and recreates all databases from their schema for t
 
 ### Migrations
 
-The `bin/rails db:migrate` is a very commonly run commands and it migrates the database by running all new (not yet run) migrations.
+The `db:migrate` command is one of the most frequently run command in a Rails application and it migrates the database by running all new (not yet run) migrations.
 
 The `db:migrate:up` command runs the "up" method and the `db:migrate:down` command run the "down" method for a given migration VERSION argument.
 
@@ -863,19 +863,44 @@ NOTE: Please see the [Migration Guide](active_record_migrations.html) for explan
 
 ### Schema Management
 
+There are two main commands that help with managing the database schema in your Rails application: `db:schema:dump` and `db:schema:load`.
+
+**The `db:schema:dump` command** reads your database’s current schema and writes it out to the `db/schema.rb` file (or `db/structure.sql` if you’ve configured schema format to `sql`). After running migrations, Rails automatically calls `schema:dump` so your schema file is always up to date (and doesn't need to be modified manually).
+
+The schema file is a blueprint of your database and it is useful for setting up new environments for tests or development. It’s version-controlled, so you can see changes to the schema over time.
+
+**The `db:schema:load` command** drops and recreates the database schema from `db/schema.rb` (or `db/structure.sql`). It does this directly, *without* replay each migration one at a time.
+
+The command is useful for quickly resetting a database to the current schema without replaying years of migrations one by one. For example, running `db:setup` calls `db:schema:load` after creating the database and before seeding it.
+
+You can think of `db:schema:dump` as the one that *writes* the `schema.rb` file and `db:schema:load` as the one that *reads* that file.
+
 ### Other Utility Commands
 
-`bin/rails db:`
+#### `bin/rails db:version`
 
-The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `bin/rails db:version` is useful when troubleshooting, telling you the current version of the database.
+The `bin/rails db:version` command is tells you the current version of the database, can be useful for troubleshooting:
 
-More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
+```bash
+$ bin/rails db:version
 
-### Switching to a Different Database Later
+database: storage/development.sqlite3
+Current version: 20250806173936
+```
 
-After creating a new Rails application, you have the option to switch to any
-other supported database. For example, you might work with SQLite for a while and
-then decide to switch to PostgreSQL. In this case, you only need to run:
+#### `db:fixtures:load`
+
+The `db:fixtures:load` command loads fixtures into the current environment's database. To load specific fixtures, you can use `FIXTURES=x,y`. To load from subdirectory in `test/fixtures`, use `FIXTURES_DIR=z`.
+
+```bash
+$ bin/rails db:fixtures:load
+   -> Loading fixtures from test/fixtures/users.yml
+   -> Loading fixtures from test/fixtures/books.yml
+```
+
+#### `db:system:change`
+
+In an existing Rails application, it's possible to switch to a different database. The `db:system:change` command helps with that by changing the `config/database.yml` file and your database gem to the target database.
 
 ```bash
 $ rails db:system:change --to=postgresql
@@ -887,12 +912,9 @@ Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
 ...
 ```
 
-And then install the missing gems:
+#### `db:encryption:init`
 
-```bash
-$ bundle install
-...
-```
+The `db:encryption:init` command generates a set of keys for configuring Active Record encryption in a given environment.
 
 Running Tests
 -------------
