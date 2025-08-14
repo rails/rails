@@ -64,7 +64,7 @@ module ActiveSupport
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
       "Puerto Rico"                  => "America/Puerto_Rico",
-      "Greenland"                    => "America/Godthab",
+      "Greenland"                    => "America/Nuuk",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
       "Cape Verde Is."               => "Atlantic/Cape_Verde",
