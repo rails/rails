@@ -48,7 +48,7 @@ gem "prism"
 group :rubocop do
   # Rubocop has to be locked in the Gemfile because CI ignores Gemfile.lock
   # We don't want rubocop to start failing whenever rubocop makes a new release.
-  gem "rubocop", "< 1.73", require: false
+  gem "rubocop", "1.79.2", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false

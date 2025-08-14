@@ -62,7 +62,7 @@ class TestResponseTest < ActiveSupport::TestCase
     HTML
     html = response.parsed_body
 
-    html.at("main") => {name:, content:}
+    html.at("main") => { name:, content: }
     assert_equal "main", name
     assert_equal "Some main content", content
 
