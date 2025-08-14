@@ -679,6 +679,16 @@ module ActiveRecord
     #   #     WHEN "users"."id" = 3 THEN 3
     #   #   END ASC
     #
+    # To group values together, an array can be passed as a value.
+    #
+    #   User.in_order_of(:id, [[1, 5], 3])
+    #   # SELECT "users".* FROM "users"
+    #   #   WHERE "users"."id" IN (1, 5, 3)
+    #   #   ORDER BY CASE
+    #   #     WHEN "users"."id" IN (1, 5) THEN 1
+    #   #     WHEN "users"."id" = 3 THEN 2
+    #   #   END ASC
+    #
     # +column+ can point to an enum column; the actual query generated may be different depending
     # on the database adapter and the column definition.
     #
@@ -728,13 +738,21 @@ module ActiveRecord
 
         caster = arel_column.type_caster
         values = values.map do |value|
-          caster.serialize(value) if caster.serializable?(value)
+          if value.is_a?(Array)
+            value.map do |current_value|
+              caster.serialize(current_value) if caster.serializable?(current_value)
+            end
+          else
+            caster.serialize(value) if caster.serializable?(value)
+          end
         end
       end
 
       scope = spawn.order!(build_case_for_value_position(arel_column, values, filter: filter))
 
       if filter
+        values = values.flatten(1)
+
         where_clause =
           if values.include?(nil)
             arel_column.in(values.compact).or(arel_column.eq(nil))
@@ -2186,7 +2204,15 @@ module ActiveRecord
       def build_case_for_value_position(column, values, filter: true)
         node = Arel::Nodes::Case.new
         values.each.with_index(1) do |value, order|
-          node.when(column.eq(value)).then(order)
+          if value.is_a?(Array)
+            if value.include?(nil)
+              node.when(column.in(value.compact).or(column.eq(nil))).then(order)
+            else
+              node.when(column.in(value)).then(order)
+            end
+          else
+            node.when(column.eq(value)).then(order)
+          end
         end
 
         node = node.else(values.length + 1) unless filter

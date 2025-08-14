@@ -1,3 +1,21 @@
+*   Allow to pass array values to `in_order_of`
+
+    Passing arrays allows to group records and order those groups with another query:
+
+    ```rb
+    Posts
+      .in_order_of(:state, [[:published, :canceled], :archived])
+      .order(created_at: :desc)
+    # =>
+    # SELECT "posts".* FROM "posts" WHERE "posts"."state" IN (1, 2, 3)
+    # ORDER BY CASE
+    #   WHEN "posts"."state" IN (1, 2) THEN 1
+    #   WHEN "posts"."state" = 3 THEN 2
+    #  END ASC, "posts"."created_at" DESC
+    ```
+
+    *Markus Doits*
+
 *   On PostgreSQL 18.4+, `disable_referential_integrity` uses `NOT ENFORCED`/`ENFORCED`
     instead of `DISABLE TRIGGER ALL`/`ENABLE TRIGGER ALL`, requiring only table ownership
     rather than superuser privileges. Only currently `ENFORCED` foreign keys are toggled;
