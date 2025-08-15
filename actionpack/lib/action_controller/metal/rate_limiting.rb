@@ -22,8 +22,9 @@ module ActionController # :nodoc:
       # share rate limits across multiple controllers, you can provide your own scope,
       # by passing value in the `scope:` parameter.
       #
-      # Requests that exceed the rate limit are refused with a `429 Too Many Requests`
-      # response. You can specialize this by passing a callable in the `with:`
+      # Requests that exceed the rate limit will raise an `ActionController::TooManyRequests`
+      # error. By default, Action Dispatch will rescue from the error and refuse the request
+      # with a `429 Too Many Requests` response. You can specialize this by passing a callable in the `with:`
       # parameter. It's evaluated within the context of the controller processing the
       # request.
       #
@@ -57,7 +58,7 @@ module ActionController # :nodoc:
       #       rate_limit to: 3, within: 2.seconds, name: "short-term"
       #       rate_limit to: 10, within: 5.minutes, name: "long-term"
       #     end
-      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: nil, scope: nil, **options)
+      def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: cache_store, name: nil, scope: nil, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name, scope: scope || controller_path) }, **options
       end
     end
