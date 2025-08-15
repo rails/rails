@@ -1,3 +1,8 @@
+*   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
+    so sensitive information is not leaked.
+
+    *Jill Klang*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
