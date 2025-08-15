@@ -120,6 +120,97 @@ module ActiveSupport
         assert_match(/Expected no 'user\.created' event to be reported, but found:/, e.message)
         assert_match(/user\.created/, e.message)
       end
+
+      test "assert_events_reported" do
+        assert_events_reported([
+          { name: "user.created" },
+          { name: "email.sent" }
+        ]) do
+          @reporter.notify("user.created", { id: 123 })
+          @reporter.notify("email.sent", { to: "user@example.com" })
+        end
+      end
+
+      test "assert_events_reported is order agnostic" do
+        assert_events_reported([
+          { name: "user.created", payload: { id: 123 } },
+          { name: "email.sent" }
+        ]) do
+          @reporter.notify("email.sent", { to: "user@example.com" })
+          @reporter.notify("user.created", { id: 123, name: "John" })
+        end
+      end
+
+      test "assert_events_reported ignores extra events" do
+        assert_events_reported([
+          { name: "user.created", payload: { id: 123 } }
+        ]) do
+          @reporter.notify("extra_event_1")
+          @reporter.notify("user.created", { id: 123, name: "John" })
+          @reporter.notify("extra_event_2")
+          @reporter.notify("extra_event_3")
+        end
+      end
+
+      test "assert_events_reported works with empty expected array" do
+        assert_events_reported([]) do
+          @reporter.notify("some.event")
+        end
+      end
+
+      test "assert_events_reported fails when one event missing" do
+        e = assert_raises(Minitest::Assertion) do
+          assert_events_reported([
+            { name: "user.created" },
+            { name: "email.sent" }
+          ]) do
+            @reporter.notify("user.created", { id: 123 })
+            @reporter.notify("other.event")
+          end
+        end
+
+        assert_match(/Expected an event to be reported matching:/, e.message)
+        assert_match(/name: "email.sent"/, e.message)
+        assert_match(/but none of the .* reported events matched:/, e.message)
+      end
+
+      test "assert_events_reported fails when no events reported" do
+        e = assert_raises(Minitest::Assertion) do
+          assert_events_reported([
+            { name: "user.created" },
+            { name: "email.sent" }
+          ]) do
+            # No events reported
+          end
+        end
+
+        assert_equal "Expected 2 events to be reported, but there were no events reported.", e.message
+      end
+
+      test "assert_events_reported fails when expecting duplicate events but only one reported" do
+        e = assert_raises(Minitest::Assertion) do
+          assert_events_reported([
+            { name: "user.created" },
+            { name: "user.created" }  # Expecting 2 identical events
+          ]) do
+            @reporter.notify("user.created")
+          end
+        end
+
+        assert_match(/Expected an event to be reported matching:/, e.message)
+        assert_match(/name: "user.created"/, e.message)
+        assert_match(/but none of the 1 reported events matched:/, e.message)
+      end
+
+      test "assert_events_reported passes when expecting duplicate events and both are reported" do
+        assert_events_reported([
+          { name: "user.created", payload: { id: 123 } },
+          { name: "user.created", payload: { id: 123 } }
+        ]) do
+          @reporter.notify("user.created", { id: 123 })
+          @reporter.notify("user.created", { id: 123 })
+        end
+      end
     end
   end
 end

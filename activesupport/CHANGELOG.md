@@ -1,3 +1,18 @@
+*   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
+
+    This new assertion allows testing multiple events in a single block, regardless of order:
+
+    ```ruby
+    assert_events_reported([
+      { name: "user.created", payload: { id: 123 } },
+      { name: "email.sent", payload: { to: "user@example.com" } }
+    ]) do
+      create_user_and_send_welcome_email
+    end
+    ```
+
+    *George Ma*
+
 *   Add `ActiveSupport::TimeZone#standard_name` method.
 
     ``` ruby
