@@ -235,6 +235,19 @@ module ActiveSupport
       assert_equal("Uh oh!", error.message)
     end
 
+    test "#notify with filtered parameters" do
+      previous_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:zomg]
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value", zomg: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:test_event, { key: "value", zomg: "secret" })
+      end
+    ensure
+      ActiveSupport.filter_parameters = previous_filter_parameters
+    end
+
     test "#with_debug" do
       @reporter.with_debug do
         assert_predicate @reporter, :debug_mode?
@@ -596,7 +609,9 @@ module ActiveSupport
         EventReporter::Encoders::Base.encode(@event)
       end
     end
+  end
 
+  class JsonEncoderTests < EncodersTest
     test "JSON encoder encodes event to JSON" do
       json_string = EventReporter::Encoders::JSON.encode(@event)
       parsed = ::JSON.parse(json_string)
@@ -620,13 +635,28 @@ module ActiveSupport
       assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
     end
 
-    test "MessagePack encoder encodes event to MessagePack" do
-      begin
-        require "msgpack"
-      rescue LoadError
-        skip "msgpack gem not available"
-      end
+    test "JSON encoder filters objects" do
+      previous_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:zomg]
 
+      @event[:payload] = TestEvent.new(zomg: "secret")
+      json_string = EventReporter::Encoders::JSON.encode(@event)
+      parsed = ::JSON.parse(json_string)
+
+      assert_equal({ "data" => { "zomg" => "[FILTERED]" } }, parsed["payload"])
+    ensure
+      ActiveSupport.filter_parameters = previous_filter_parameters
+    end
+  end
+
+  class MessagePackEncoderTests < EncodersTest
+    setup do
+      require "msgpack"
+    rescue LoadError
+      skip "msgpack gem not available"
+    end
+
+    test "MessagePack encoder encodes event to MessagePack" do
       msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
       parsed = ::MessagePack.unpack(msgpack_data)
 
@@ -647,6 +677,19 @@ module ActiveSupport
       assert_equal "value", parsed["payload"]["data"]
       assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
       assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
+    end
+
+    test "MessagePack encoder filters objects" do
+      previous_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:zomg]
+
+      @event[:payload] = TestEvent.new(zomg: "secret")
+      msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
+      parsed = ::MessagePack.unpack(msgpack_data)
+
+      assert_equal({ "data" => { "zomg" => "[FILTERED]" } }, parsed["payload"])
+    ensure
+      ActiveSupport.filter_parameters = previous_filter_parameters
     end
   end
 end
