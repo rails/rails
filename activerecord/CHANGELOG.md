@@ -1,3 +1,18 @@
+*   Support virtual (not persisted) generated columns on PostgreSQL 18+
+
+    PostgreSQL 18 introduces virtual (not persisted) generated columns,
+    which are now the default unless the `stored: true` option is explicitly specified on PostgreSQL 18+.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :lower_name,  type: :string,  as: "LOWER(name)", stored: false
+      t.virtual :name_length, type: :integer, as: "LENGTH(name)"
+    end
+    ```
+
+    *Yasuo Honda*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
