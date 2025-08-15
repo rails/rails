@@ -98,6 +98,15 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_nil model.reload.current_mood
   end
 
+  def test_enum_with_array_arguments
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "postgresql_enums"
+      enum :current_mood, [:sad, :ok, :happy]
+    end
+
+    assert_equal "happy", klass.create!(current_mood: :happy).current_mood
+  end
+
   def test_schema_dump
     @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy", null: false
 
