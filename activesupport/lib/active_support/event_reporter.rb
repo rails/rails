@@ -235,8 +235,8 @@ module ActiveSupport
     attr_accessor :raise_on_error
 
     ENCODERS = {
-      json: Encoders::JSON,
-      msgpack: Encoders::MessagePack
+      json: "Encoders::JSON",
+      msgpack: "Encoders::MessagePack"
     }.freeze
 
     class << self
@@ -258,9 +258,10 @@ module ActiveSupport
       #
       # * +KeyError+ - If the encoder format is not found
       def encoder(format)
-        ENCODERS.fetch(format.to_sym) do
+        coder = ENCODERS.fetch(format.to_sym) do
           raise KeyError, "Unknown encoder format: #{format.inspect}. Available formats: #{ENCODERS.keys.join(', ')}"
         end
+        self.const_get(coder)
       end
     end
 
