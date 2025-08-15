@@ -27,8 +27,6 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionView::Template::Error.new("template")
         end
-      when "/rate_limited"
-        raise ActionController::TooManyRequests.new
       else
         raise "puke!"
       end
@@ -68,10 +66,6 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
 
     get "/invalid_mimetype", headers: { "Accept" => "text/html,*", "action_dispatch.show_exceptions" => :all }
     assert_response 406
-    assert_equal "", body
-
-    get "/rate_limited", headers: { "action_dispatch.show_exceptions" => :all }
-    assert_response :too_many_requests
     assert_equal "", body
   end
 

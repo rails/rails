@@ -498,16 +498,6 @@ module ActionDispatch
       controller_instance.commit_csrf_token(self) if controller_instance.respond_to?(:commit_csrf_token)
     end
 
-    RATE_LIMIT = "action_dispatch.rate_limiting" # :nodoc:
-
-    def rate_limit
-      get_header RATE_LIMIT
-    end
-
-    def rate_limit=(value)
-      set_header RATE_LIMIT, value
-    end
-
     private
       def check_method(name)
         if name

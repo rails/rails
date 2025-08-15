@@ -73,19 +73,15 @@ class RateLimitingTest < ActionController::TestCase
 
   setup do
     RateLimitedController.cache_store.clear
-    freeze_time
   end
 
   test "exceeding basic limit" do
     get :limited
     get :limited
     assert_response :ok
-    assert_nil request.rate_limit
-    assert_nil response.retry_after
 
-    assert_raises ActionController::TooManyRequests do
-      get :limited
-    end
+    get :limited
+    assert_response :too_many_requests
   end
 
   test "notification on limit action" do
@@ -98,9 +94,7 @@ class RateLimitingTest < ActionController::TestCase
         within: 2.seconds,
         name: nil,
         by: request.remote_ip) do
-      assert_raises ActionController::TooManyRequests do
-        get :limited
-      end
+      get :limited
     end
   end
 
@@ -109,17 +103,16 @@ class RateLimitingTest < ActionController::TestCase
     get :limited
     assert_response :ok
 
-    travel 3.seconds
-    get :limited
-    get :limited
-    assert_response :ok
-
-    travel 3.seconds
-    get :limited
-    assert_response :ok
-
-    assert_raises ActionController::TooManyRequests do
+    travel_to 3.seconds.from_now do
       get :limited
+      get :limited
+      assert_response :ok
+    end
+
+    travel_to 3.seconds.from_now do
+      get :limited
+      get :limited
+      assert_response :too_many_requests
     end
   end
 
@@ -128,9 +121,10 @@ class RateLimitingTest < ActionController::TestCase
     get :limited
     assert_response :ok
 
-    travel 3.seconds
-    get :limited
-    assert_response :ok
+    travel_to Time.now + 3.seconds do
+      get :limited
+      assert_response :ok
+    end
   end
 
   test "limit by callable" do
@@ -167,22 +161,6 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :forbidden
   end
 
-  test "exceeding limit writes to the request and response" do
-    get :limited
-    get :limited
-
-    assert_nil request.rate_limit
-    assert_nil response.retry_after
-
-    assert_raises ActionController::TooManyRequests do
-      get :limited
-    end
-    assert_equal 2, request.rate_limit.count
-    assert_equal 2.seconds.from_now, request.rate_limit.retry_after
-    assert_equal 2.seconds.from_now.httpdate, response.retry_after
-    assert_equal 2.seconds.from_now.httpdate, response.headers["Retry-After"]
-  end
-
   test "cross-controller rate limit" do
     @controller = RateLimitedSharedOneController.new
     get :limited_shared_one
@@ -193,15 +171,13 @@ class RateLimitingTest < ActionController::TestCase
 
     @controller = RateLimitedSharedTwoController.new
 
-    assert_raises ActionController::TooManyRequests do
-      get :limited_shared_two
-    end
+    get :limited_shared_two
+    assert_response :too_many_requests
 
     @controller = RateLimitedSharedOneController.new
 
-    assert_raises ActionController::TooManyRequests do
-      get :limited_shared_one
-    end
+    get :limited_shared_one
+    assert_response :too_many_requests
   ensure
     RateLimitedBaseController.cache_store.clear
   end
@@ -221,9 +197,8 @@ class RateLimitingTest < ActionController::TestCase
 
     @controller = RateLimitedSharedThreeController.new
 
-    assert_raises ActionController::TooManyRequests do
-      get :limited_shared_three
-    end
+    get :limited_shared_three
+    assert_response :too_many_requests
   ensure
     RateLimitedSharedController.cache_store.clear
   end
