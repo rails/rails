@@ -14,6 +14,10 @@ module ActiveModel
           raise ArgumentError, "Expected one of :greater_than, :greater_than_or_equal_to, "\
           ":equal_to, :less_than, :less_than_or_equal_to, or :other_than option to be supplied."
         end
+
+        if options.key?(:case_sensitive) && options.keys.intersect?(COMPARE_CHECKS.keys.excluding(:equal_to, :other_than))
+          raise ArgumentError, ":case_sensitive can only be supplied with :equal_to and :other_than"
+        end
       end
 
       def validate_each(record, attr_name, value)
@@ -22,6 +26,16 @@ module ActiveModel
 
           if value.nil? || value.blank?
             return record.errors.add(attr_name, :blank, **error_options(value, option_value))
+          elsif false == options[:case_sensitive] && option == :equal_to
+            unless value.casecmp?(option_value)
+              record.errors.add(attr_name, option, **error_options(value, option_value))
+            end
+            return
+          elsif false == options[:case_sensitive] && option == :other_than
+            if value.casecmp?(option_value)
+              record.errors.add(attr_name, option, **error_options(value, option_value))
+            end
+            return
           end
 
           unless value.public_send(COMPARE_CHECKS[option], option_value)
@@ -61,6 +75,8 @@ module ActiveModel
       # * <tt>:other_than</tt> - Specifies the value must not be equal to the
       #   supplied value. The default error message for this option is _"must be
       #   other than %{count}"_.
+      # * <tt>:case_sensitive</tt> - Specifies whether :equal_to or :other_than
+      #   checks should be case-sensitive. The default is true.
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
