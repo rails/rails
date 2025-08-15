@@ -271,7 +271,6 @@
   documents:
     -
       name: The Basics of Creating Rails Plugins
-      work_in_progress: true
       url: plugins.html
       description: This guide covers how to build a plugin to extend the functionality of Rails.
     -
