@@ -13,7 +13,7 @@ module ActiveRecord
     ##
     # :singleton-method:
     # A list of tables which should not be dumped to the schema.
-    # Acceptable values are strings and regexps.
+    # Acceptable values are strings, regexps, or a hash with schema names as keys and arrays of strings or regexps as values.
     cattr_accessor :ignore_tables, default: []
 
     ##

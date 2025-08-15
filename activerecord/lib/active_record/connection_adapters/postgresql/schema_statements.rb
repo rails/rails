@@ -658,6 +658,14 @@ module ActiveRecord
           end
         end
 
+        def data_sources(include_schema: false)
+          if include_schema
+            query(data_source_sql(include_schema: true), "SCHEMA")
+          else
+            query_values(data_source_sql, "SCHEMA")
+          end
+        end
+
         def foreign_tables
           query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA")
         end
@@ -1156,11 +1164,13 @@ module ActiveRecord
               raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 
-          def data_source_sql(name = nil, type: nil)
+          def data_source_sql(name = nil, type: nil, include_schema: false)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
-            sql = +"SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql = +"SELECT"
+            sql << " n.nspname, " if include_schema
+            sql << " c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"

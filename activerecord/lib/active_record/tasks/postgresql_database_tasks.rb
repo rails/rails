@@ -49,9 +49,20 @@ module ActiveRecord
         end
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-        if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          args += ignore_tables.flat_map { |table| ["-T", table] }
+
+        if ignore_tables.present?
+          case ignore_tables
+          when Array
+            connection.data_sources.each do |table|
+              args += ["-T", table] if ignore_tables.any? { |pattern| pattern === table }
+            end
+          when Hash
+            connection.data_sources(include_schema: true).each do |(schema, table)|
+              args += ["-T", "#{schema}.#{table}"] if ignore_tables[schema] && ignore_tables[schema].any? { |pattern| pattern === table }
+            end
+          else
+            raise ArgumentError, "Expected ActiveRecord::SchemaDumper.ignore_tables to be an Array or Hash, got #{ignore_tables.class}"
+          end
         end
 
         args << db_config.database
