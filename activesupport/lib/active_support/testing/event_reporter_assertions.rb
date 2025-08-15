@@ -158,6 +158,61 @@ module ActiveSupport
           flunk(message)
         end
       end
+
+      # Asserts that the provided events were reported, regardless of order.
+      #
+      #   assert_events_reported([
+      #     { name: "user.created", payload: { id: 123 } },
+      #     { name: "email.sent", payload: { to: "user@example.com" } }
+      #   ]) do
+      #     create_user_and_send_welcome_email
+      #   end
+      #
+      # Supports the same payload and tag matching as +assert_event_reported+.
+      #
+      #   assert_events_reported([
+      #     {
+      #       name: "process.started",
+      #       payload: { id: 123 },
+      #       tags: { request_id: /[0-9]+/ }
+      #     },
+      #     { name: "process.completed" }
+      #   ]) do
+      #     Rails.event.tagged(request_id: "456") do
+      #       start_and_complete_process(123)
+      #     end
+      #   end
+      def assert_events_reported(expected_events, &block)
+        events = EventCollector.record(&block)
+
+        if events.empty? && expected_events.size > 0
+          flunk("Expected #{expected_events.size} events to be reported, but there were no events reported.")
+        end
+
+        events_copy = events.dup
+
+        expected_events.each do |expected_event|
+          name = expected_event[:name]
+          payload = expected_event[:payload] || {}
+          tags = expected_event[:tags] || {}
+
+          matching_event_index = events_copy.find_index { |event| event.matches?(name, payload, tags) }
+
+          if matching_event_index
+            events_copy.delete_at(matching_event_index)
+          else
+            message = "Expected an event to be reported matching:\n  " \
+              "name: #{name.inspect}\n  " \
+              "payload: #{payload.inspect}\n  " \
+              "tags: #{tags.inspect}\n" \
+              "but none of the #{events.size} reported events matched:\n  " \
+              "#{events.map(&:inspect).join("\n  ")}"
+            flunk(message)
+          end
+        end
+
+        assert(true)
+      end
     end
   end
 end
