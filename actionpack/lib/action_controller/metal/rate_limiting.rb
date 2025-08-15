@@ -62,12 +62,26 @@ module ActionController # :nodoc:
       end
     end
 
+    # Information derived from a request that has exceeded a rate limit
+    RateLimit = Struct.new(:count, :limit, :within, :by, :name, :scope, :cache_key)
+
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
         by = instance_exec(&by)
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
+          request.rate_limit = RateLimit.new(
+            limit: to,
+            count: count,
+            within: within,
+            by: by,
+            name: name,
+            scope: scope,
+            cache_key: cache_key
+          )
+          response.retry_after = within.from_now.httpdate
+
           ActiveSupport::Notifications.instrument("rate_limit.action_controller",
               request: request,
               count: count,

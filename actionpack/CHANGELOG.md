@@ -1,3 +1,9 @@
+*   Access rate limiting context from `ActionDispatch::Request` and `ActionDispatch::Response`
+
+    Add `ActionDispatch::Request#rate_limit` and `ActionDispatch::Response#retry_after`.
+
+    *Sean Doyle*
+
 *   Add "Copy as text" button to error pages
 
     *Mikkel Malmberg*
