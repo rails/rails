@@ -152,6 +152,23 @@ module ActiveStorage
       "#<#{self.class}#{name.present? ? " name=#{name.inspect}" : ""}>"
     end
 
+    def compute_checksum(io, **)
+      raise ArgumentError, "io must be rewindable" unless io.respond_to?(:rewind)
+
+      # Defer to Digest class's file implementation if File or base64digest if no chunk_size
+      return ActiveStorage.checksum_implementation.file(io).base64digest if io.is_a?(File)
+      return ActiveStorage.checksum_implementation.base64digest(io.read) if ActiveStorage.default_chunk_size.to_i == 0
+
+      ActiveStorage.checksum_implementation.new.tap do |checksum|
+        read_buffer = "".b
+        while io.read(ActiveStorage.default_chunk_size, read_buffer)
+          checksum << read_buffer
+        end
+
+        io.rewind
+      end.base64digest
+    end
+
     private
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
         raise NotImplementedError
