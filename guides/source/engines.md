@@ -385,7 +385,7 @@ app/views/layouts/blorgh/application.html.erb
 
 This is the default layout used by views inside the engine. It’s useful if your engine is meant to be used as a self-contained application (e.g., admin dashboards, wikis, etc.). If this engine is to be used as a stand-alone engine, then you would add any customization to its layout in this file, rather than the application's `app/views/layouts/application.html.erb` file.
 
-If you don't want to force a layout on to users of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
+If you don't want to use a specific layout in the views of the engine, then you can delete this file and reference a different layout in the controllers of your engine.
 
 #### `/bin`
 
