@@ -1094,7 +1094,8 @@ Copied migration <timestamp>_add_author_id_to_blorgh_articles.blorgh.rb from blo
 ```
 
 Notice that only _the latest_ migration was copied over. This is because the first
-two migrations were copied over the first time this command was run.
+two migrations were copied over the first time this command was run in a
+[previous section](#copying-the-migrations).
 
 Run the migration using:
 
