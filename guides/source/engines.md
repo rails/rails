@@ -1371,7 +1371,7 @@ end
 It is very important that the override _reopens_ the class or module. Using the
 `class` or `module` keywords would define them if they were not already in
 memory, which would be incorrect because the definition lives in the engine.
-Using [`class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-class_eval) as shown above ensures you are reopening.
+Using [`class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-class_eval) as shown above ensures you are reopening an existing module.
 
 #### Reopening Existing Classes Using ActiveSupport::Concern
 
