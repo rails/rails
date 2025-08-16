@@ -1749,7 +1749,7 @@ module Blorgh
 end
 ```
 
-Organize your test files under folders like `test/models` and `test/controllers` as needed.
+Tests are organized in files under folders like `test/models` and `test/controllers` similar to an application.
 
 ### Gem Dependencies
 
