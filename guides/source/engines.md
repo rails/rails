@@ -260,7 +260,7 @@ At the root of your engine, you’ll find a file named `blorgh.gemspec`. This fi
 To use this engine in a host Rails application, you reference it in the app’s `Gemfile` like so:
 
 ```ruby
-gem "blorgh", path: "engines/blorgh"
+gem "blorgh", path: "../blorgh"
 ```
 
 Then run:
@@ -270,6 +270,11 @@ bundle install
 ```
 
 This tells Bundler to treat the engine as a gem and load it accordingly.
+
+NOTE: You can also generate an engine inside your application and deploy it for
+use by that application only, instead of publishing it as a standalone gem. For
+example, placing the engine under `engines/blorgh` and referencing it in your
+`Gemfile` allows you to keep it within the same codebase.
 
 #### The Engine Entry Point: `lib/blorgh.rb`:
 
