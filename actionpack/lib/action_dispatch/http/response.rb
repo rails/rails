@@ -301,8 +301,14 @@ module ActionDispatch # :nodoc:
       prev_header_info = parsed_content_type_header
       charset = new_header_info.charset || prev_header_info.charset
       charset ||= self.class.default_charset unless prev_header_info.mime_type
-      set_content_type new_header_info.mime_type, charset
+
+      if new_header_info.mime_type == "application/json"
+        set_content_type new_header_info.mime_type, nil
+      else
+        set_content_type new_header_info.mime_type, charset
+      end
     end
+
 
     # Content type of response.
     def content_type
@@ -327,7 +333,10 @@ module ActionDispatch # :nodoc:
     #     response.charset = nil      # => 'utf-8'
     def charset=(charset)
       content_type = parsed_content_type_header.mime_type
-      if false == charset
+
+      # omit charset for pure JSON per IANA spec
+      # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type#content-type_in_a_rest_api_using_json
+      if false == charset || content_type == "application/json"
         set_content_type content_type, nil
       else
         set_content_type content_type, charset || self.class.default_charset
