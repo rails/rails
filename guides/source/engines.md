@@ -192,9 +192,7 @@ blorgh/
 │   ├── models/
 │   ├── blorgh_test.rb
 │   ├── test_helper.rb
-├── .rubocop.yml
 ├── Gemfile
-├── MIT-LICENSE
 ├── Rakefile
 ├── README.md
 ├── blorgh.gemspec
