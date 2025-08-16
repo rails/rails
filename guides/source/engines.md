@@ -1620,7 +1620,7 @@ assets manually (e.g., via `stylesheet_link_tag "blorgh/admin"`). Instead, you
 should explicitly tell Rails to precompile these assets so they’re available
 when the engine is used.
 
-To do this, you can add a precompilation hook in your engine’s engine.rb file:
+To do this, you can add a precompilation hook in your engine's engine.rb file:
 
 ```ruby
 # lib/blorgh/engine.rb
