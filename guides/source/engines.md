@@ -86,17 +86,23 @@ Generator Options](plugins.html#generator-options) section.
 
 ### Using an Engine
 
-You add an engine to your host applications `Gemfile`, and then mount it in the
-main app's routes. Once mounted, any routes, controllers, views, or assets
-defined in the engine become available at that mount point in the host
-application. We'll cover this later in the section [Using an Engine in the Host
-Application](#using-the-engine-in-a-host-application).
+You add an engine to your host application's `Gemfile`, and depending on how the
+engine is designed, you may need to mount it in the main app's routes. Mounting
+is required when the engine provides its own routes, as this makes any routes,
+controllers, views, or assets defined in the engine available at that mount
+point in the host application. We'll cover this later in the section [Using the
+Engine in a Host Application](#using-the-engine-in-a-host-application).
 
-Since a mounted engine has an isolated namespace, the host application and the
-mounted engine can have a routing helper with the same name (such as
-`articles_path`) without clashing. Along with this, controllers, models and
-table names are also namespaced. You'll see how to do this later in the [Routes
-section](#routes).
+Some engines, however, don't need to be mounted. These are often backend-only
+engines, such as those that provide Active Record models, rake tasks, or other
+internal functionality without exposing routes. In those cases, adding the gem
+to your application's Gemfile is enough to make its features available.
+
+When an engine is mounted, it has an isolated namespace. This means the host
+application and the mounted engine can have a routing helper with the same name
+(such as `articles_path`) without clashing. Along with this, controllers, models,
+and table names are also namespaced. You'll see how to do this later in the
+[Routes section](#routes).
 
 Generating an Engine
 --------------------
