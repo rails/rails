@@ -1429,6 +1429,44 @@ Rails.application.config.content_security_policy do |policy|
 end
 ```
 
+##### Using the `Report-To` and `Reporting-Endpoints` Headers to send violation reports
+
+INFO: These headers are part of the **Experimental** [`Reporting API`][], and therefore not widely supported by some browsers
+
+The [`Report-To`][] and [`Reporting-Endpoints`][] headers are used to specify a group of endpoints, for which browsers should send reports related to certain types of issues or policy violations like CSP Violations, Crash and Deprecation Reports.
+
+When present, `report-to` overrides the directive `report-uri`.
+
+While `report-to` is intended to replace the deprecated `report-uri` directive, `report-to` isn’t supported in most browsers yet. For compatibility with current browsers while also adding forward compatibility for browsers with `report-to` support, you can specify both `report-uri` and `report-to`.
+
+Use the [`report-to`][] directive to send reports to a designated URI.
+
+```ruby
+Rails.application.config.content_security_policy do |policy|
+  policy.report_to "/csp-violation-report-endpoint"
+end
+```
+
+Alternatively, you can pass a proc to define multiple endpoints that share the same configuration under a single group name.
+
+```ruby
+Rails.application.config.content_security_policy do |policy|
+  policy.report_to "default", -> {
+    {
+      default: {
+        urls: ["/csp-violation-report-endpoint", "https://example.com/csp-violation-report"],
+        max_age: 30.minutes,
+        include_subdomains: true
+      },
+
+      group_2: "https://example.com/hpkp-reports"
+    }
+  }
+end
+```
+
+INFO: Reports are delivered  **`out-of-band`** by the browser itself, rather than by your server or site, meaning the browser controls when reports are delivered to your server(s). With CSP level 2 (`report-uri`), reports are sent immediately. In contrast, with CSP level 3 (`report-to`), reports are sent at the browser’s discretion, potentially with delays of up to a minute. This approach allows reports to be batched rather than sent individually, which helps save bandwidth and is particularly considerate of users' network connections, especially on mobile devices.
+
 When migrating legacy content, you might want to report violations without
 enforcing the policy. Set the [`Content-Security-Policy-Report-Only`][]
 response header to only report violations:
@@ -1447,6 +1485,10 @@ end
 
 [`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 [`report-uri`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
+[`report-to`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-to
+[`Reporting API`]: https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API
+[`Report-To`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Report-To
+[`Reporting-Endpoints`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Reporting-Endpoints
 
 #### Adding a Nonce
 
