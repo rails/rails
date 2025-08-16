@@ -22,10 +22,10 @@ What are Engines?
 -----------------
 
 Engines can be thought of as miniature applications that encapsulate specific
-functionality and integrate with a larger Rails application. A Rails application
-is essentially a "supercharged" engine, with the `Rails::Application` class
-inheriting a lot of its behavior from `Rails::Engine`, which in turn [inherits
-from `Rails::Railtie`](engines.html#the-inheritance-hierarchy).
+functionality and integrate with a larger Rails application. An engine extends
+plugin, with the [`Rails::Engine`](https://api.rubyonrails.org/classes/Rails/Engine.html)
+class [inheriting](engines.html#the-inheritance-hierarchy) behavior from
+[`Rails::Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html).
 
 Some examples of engines in action:
 
@@ -34,6 +34,8 @@ Some examples of engines in action:
 * [Refinery CMS](https://github.com/refinery/refinerycms) which provides a CMS engine
 * [Active Storage](https://github.com/rails/rails/tree/main/activestorage) which provides file storage as an engine.
 * [Action Text](https://github.com/rails/rails/tree/main/actiontext) which provides a rich text editor as an engine.
+* [`Rails::Application`](https://api.rubyonrails.org/classes/Rails/Application.html) inheriting much of its behavior from `Rails::Engine`.
+
 
 NOTE: The main application is always the final authority in a Rails environment. While
 engines can extend or enhance the application's functionality, they are meant to
