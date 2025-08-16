@@ -1500,7 +1500,7 @@ define routes with the same names—like `articles_path`—without conflict.
 
 #### Defining Engine Routes
 
-You define routes inside the engine using the engine's route set.
+You can define routes inside the engine using the engine's route set:
 
 ```ruby
 # blorgh/config/routes.rb
