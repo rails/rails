@@ -1650,7 +1650,7 @@ For more information, read the [Asset Pipeline guide](asset_pipeline.html).
 
 When a Rails engine is generated, it includes a minimal host application inside
 the `test/dummy` directory. This "dummy app" is used solely for development and
-testing—it simulates how your engine will behave when mounted in a real
+testing—it simulates how your engine will behave when used in a real
 application. You can extend the dummy app by adding controllers, models, or
 views as needed to help you test the engine’s functionality in context.
 
