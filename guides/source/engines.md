@@ -54,11 +54,12 @@ The [`Rails Engine`](https://api.rubyonrails.org/classes/Rails/Engine.html) buil
 load paths, making it possible to package complete Rails components. Engines and
 applications also share a common directory structure.
 
-While an engine can be part of a larger Rails application, it does not require
-an [`Application`](https://api.rubyonrails.org/classes/Rails/Application.html)
-class to function. However, `Application` can extend `Engine` with additional
-responsibilities like middleware setup, configuration loading, and application
-initialization.
+While an engine is packaged like a miniature Rails application, it runs inside a
+host Rails application. The host
+[Rails::Application](https://api.rubyonrails.org/classes/Rails/Application.html)
+coordinates boot, executes engine initializers, and builds the overall
+middleware stack. Engines can also define their own configuration and contribute
+middleware, but these take effect when the host application boots.
 
 ### Engines and Plugins
 
