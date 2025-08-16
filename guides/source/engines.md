@@ -1641,7 +1641,7 @@ This ensures that these engine-specific assets will be compiled when running:
 bin/rails assets:precompile
 ```
 
-NOTE: Be sure to include the full namespaced paths (e.g., `blorgh/admin.css`)
+NOTE: Be sure to include the full namespaced paths (e.g. `blorgh/admin.css`)
 so Sprockets can locate the correct files within your engine.
 
 For more information, read the [Asset Pipeline guide](asset_pipeline.html).
