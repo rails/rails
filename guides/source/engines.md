@@ -78,10 +78,9 @@ rails plugin new <engine_name> --full
 rails plugin new <engine_name> --mountable
 ```
 
-The `--full` option tells the generator that you want to create an engine that
-needs its own models/controllers but shares the host app's namespace, while the
-`--mountable` option tells the generator that you want to create a fully
-isolated, mountable engine with its own namespace.
+The `--full` option tells the generator to create an engine that needs its own
+models/controllers but shares the host app’s namespace. The `--mountable` option
+creates a fully isolated, mountable engine with its own namespace.
 
 You can read more about the different generator options in the [Rails Plugins
 Generator Options](plugins.html#generator-options) section.
@@ -324,10 +323,10 @@ For example:
 * Engine routes are kept isolated and don’t mix with the main app’s routes. This
   is discussed later in the [Routes](#routes) section of this guide.
 
-Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
-
 NOTE: It is recommended that the `isolate_namespace` line be left within the
-`Engine` class definition. Without this isolation, files from the engine might "leak" into the host app’s namespace or identically named classes might override each other.
+`Engine` class definition. Without this isolation, files from the engine might
+"leak" into the host app’s namespace or identically named classes might override
+each other.
 
 ### Understanding the `app` Directory
 
@@ -347,7 +346,8 @@ app/assets/stylesheets/blorgh/application.css
 
 #### `app/controllers`
 
-The `controllers` folder contains a `blorgh/` subdirectory where all engine controllers live. It starts with an `application_controller.rb`:
+The `controllers` folder contains a `blorgh/` subdirectory where all engine
+controllers live. It starts with an `application_controller.rb`:
 
 ```ruby
 # app/controllers/blorgh/application_controller.rb
@@ -357,7 +357,10 @@ module Blorgh
 end
 ```
 
-This controller acts as the base for all controllers in the engine, much like `ApplicationController` does in a full app. Placing it (and all other controllers) in the `blorgh/` namespace ensures they won’t clash with similarly named controllers in the host app or other engines.
+This controller acts as the base for all controllers in the engine, much like
+`ApplicationController` does in a full app. Placing it (and all other
+controllers) in the `blorgh/` module ensures they won’t clash with similarly
+named controllers in the host app or other engines.
 
 #### Other Namespaced Directories
 
@@ -403,7 +406,7 @@ an engine that has `isolate_namespace` in the `Engine` class will be namespaced.
 The `test` directory is where tests for the engine will go. To test the engine,
 there is a cut-down version of a Rails application embedded within it at
 `test/dummy`. This application will mount the engine at `/blorgh`, which will
-make it accessible through the application only at that path.
+make it accessible through the application's routes at that path.
 
 ```ruby
 # test/dummy/config/routes.rb
@@ -540,9 +543,9 @@ an article resource as well.
 
 #### Exploring the Engine in the Browser
 
-You can explore the engine by running `bin/rails db:migrate` at the root of the
-engine. Then run `bin/rails server` in the engine's root directory to start the
-server.
+You can explore the engine by first running `bin/rails db:migrate` at the root
+of the engine. Then run `bin/rails server` in the engine's root directory to
+start the server.
 
 When you open `http://localhost:3000/blorgh/articles` you will see the default
 scaffold that has been generated.
@@ -709,7 +712,7 @@ When this form is submitted, it will attempt to perform a `POST` request to the
 about the [`form_with` helper](form_helpers.html#working-with-basic-forms) in
 the guides.
 
-However, this route doesn't exist as yet. You can create it by nesting the
+However, this route doesn't exist yet. You can create it by nesting the
 `comments` resource inside the `articles` resource in `config/routes.rb`:
 
 ```ruby
@@ -799,7 +802,7 @@ you don't already have an application to test with, you can generate one outside
 the engine directory using the `rails new` command:
 
 ```bash
-$ cd .. # Go back one folder
+$ cd .. # Exit the engine folder
 $ rails new host_application
 ```
 
