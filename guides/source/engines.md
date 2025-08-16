@@ -825,7 +825,7 @@ automatically when Rails boots. Rails will first require the engine’s entry
 point file at `lib/blorgh.rb`. This file typically sets up the namespace and
 requires additional files, including `lib/blorgh/engine.rb`, which defines the
 `Blorgh::Engine` class. This `Engine` class is responsible for hooking into the
-Rails application and mounting the engine's routes, initializers, and other
+Rails application and mounting the engine's initializers, and other
 configurations.
 
 To make the engine's functionality available within a host application, you need
@@ -912,13 +912,12 @@ $ bin/rails railties:install:migrations DATABASE=animals
 ```
 
 NOTE: These tasks are provided by
-[Railtie](https://api.rubyonrails.org/classes/Rails/Railtie.html), the Rails
-component responsible for managing how engines and plugins are integrated into
+[`ActiveRecord::Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html),
+the Rails component responsible for managing how Active Record integrates into
 an application. When run, it looks through all loaded engines and copies any
 exposed migrations into the host application's `db/migrate` folder, saving you
 from having to run a separate `install:migrations` task for each engine
 individually.
-
 
 #### Running Migrations
 
