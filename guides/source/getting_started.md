@@ -1151,7 +1151,7 @@ We can update `app/views/products/index.html.erb` to link to the new action.
 ```erb#3
 <h1>Products</h1>
 
-<%= link_to "New product", new_product_path %>
+<%= link_to "New product", products_new_path %>
 
 <div id="products">
   <% @products.each do |product| %>
@@ -1640,7 +1640,7 @@ Since only logged in users can create products, we can modify the
 the user is authenticated.
 
 ```erb
-<%= link_to "New product", new_product_path if authenticated? %>
+<%= link_to "New product", products_new_path if authenticated? %>
 ```
 
 Click the Log out button and you'll see the New link is hidden. Log in at
