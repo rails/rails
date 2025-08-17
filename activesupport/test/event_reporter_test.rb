@@ -597,12 +597,6 @@ module ActiveSupport
     end
 
     test "MessagePack encoder encodes event to MessagePack" do
-      begin
-        require "msgpack"
-      rescue LoadError
-        skip "msgpack gem not available"
-      end
-
       msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
       parsed = ::MessagePack.unpack(msgpack_data)
 
