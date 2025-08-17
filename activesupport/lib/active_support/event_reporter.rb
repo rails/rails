@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "event_reporter/encoders"
-
 module ActiveSupport
   class TagStack # :nodoc:
     EMPTY_TAGS = {}.freeze
@@ -134,7 +132,7 @@ module ActiveSupport
   #   class JSONLogSubscriber
   #     def emit(event)
   #       # event = { name: "UserCreatedEvent", payload: { UserCreatedEvent: #<UserCreatedEvent:0x111> } }
-  #       json_data = ActiveSupport::EventReporter.encoder(:json).encode(event)
+  #       json_data = ActiveSupport::EventReporter::JSONEncoder.encode(event)
   #       # => {
   #       #      "name": "UserCreatedEvent",
   #       #      "payload": {
@@ -148,7 +146,7 @@ module ActiveSupport
   #
   #   class MessagePackSubscriber
   #     def emit(event)
-  #       msgpack_data = ActiveSupport::EventReporter.encoder(:msgpack).encode(event)
+  #       msgpack_data = ActiveSupport::EventReporter::MessagePackEncoder.encode(event)
   #       BatchExporter.export(msgpack_data)
   #     end
   #   end
@@ -230,37 +228,16 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   class EventReporter
+    extend ActiveSupport::Autoload
+
+    autoload :JSONEncoder
+    autoload :MessagePackEncoder
+
     attr_reader :subscribers
     attr_accessor :raise_on_error
 
-    ENCODERS = {
-      json: Encoders::JSON,
-      msgpack: Encoders::MessagePack
-    }.freeze
-
     class << self
       attr_accessor :context_store # :nodoc:
-
-      # Lookup an encoder by name or symbol.
-      #
-      #   ActiveSupport::EventReporter.encoder(:json)
-      #   # => ActiveSupport::EventReporter::Encoders::JSON
-      #
-      #   ActiveSupport::EventReporter.encoder("msgpack")
-      #   # => ActiveSupport::EventReporter::Encoders::MessagePack
-      #
-      # ==== Arguments
-      #
-      # * +format+ - The encoder format as a symbol or string
-      #
-      # ==== Raises
-      #
-      # * +KeyError+ - If the encoder format is not found
-      def encoder(format)
-        ENCODERS.fetch(format.to_sym) do
-          raise KeyError, "Unknown encoder format: #{format.inspect}. Available formats: #{ENCODERS.keys.join(', ')}"
-        end
-      end
     end
 
     self.context_store = EventContext
