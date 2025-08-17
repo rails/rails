@@ -187,41 +187,29 @@ module ActiveSupport
     end
 
     test "#notify with event object and kwargs warns when raise_on_error is false" do
-      previous_raise_on_error = @reporter.raise_on_error
-      @reporter.raise_on_error = false
+      @reporter = EventReporter.new(@subscriber, raise_on_error: false)
 
       event = TestEvent.new("value")
 
-      _out, err = capture_io do
-        assert_called_with(@subscriber, :emit, [
-          event_matcher(name: TestEvent.name, payload: event)
-        ]) do
+      error_report = assert_error_reported do
+        assert_called_with(@subscriber, :emit, [event_matcher(name: TestEvent.name, payload: event)]) do
           @reporter.notify(event, extra: "arg")
-        rescue RailsStrictWarnings::WarningError => _e
-          # Expected warning
         end
       end
 
+      err = error_report.error.message
       assert_match(/Rails.event.notify accepts either an event object, a payload hash, or keyword arguments/, err)
-    ensure
-      @reporter.raise_on_error = previous_raise_on_error
     end
 
     test "#notify warns about subscriber errors when raise_on_error is false" do
-      previous_raise_on_error = @reporter.raise_on_error
-      @reporter.raise_on_error = false
+      @reporter = EventReporter.new(@subscriber, raise_on_error: false)
 
       @reporter.subscribe(ErrorSubscriber.new)
 
-      _out, err = capture_io do
+      error_report = assert_error_reported do
         @reporter.notify(:test_event)
-      rescue RailsStrictWarnings::WarningError => _e
-        # Expected warning
       end
-
-      assert_match(/Event reporter subscriber #{ErrorSubscriber.name} raised an error on #emit: Uh oh!/, err)
-    ensure
-      @reporter.raise_on_error = previous_raise_on_error
+      assert_equal "Uh oh!", error_report.error.message
     end
 
     test "#notify raises subscriber errors when raise_on_error is true" do

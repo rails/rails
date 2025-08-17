@@ -233,8 +233,8 @@ module ActiveSupport
     autoload :JSONEncoder
     autoload :MessagePackEncoder
 
+    attr_writer :raise_on_error # :nodoc:
     attr_reader :subscribers
-    attr_accessor :raise_on_error
 
     class << self
       attr_accessor :context_store # :nodoc:
@@ -335,13 +335,10 @@ module ActiveSupport
 
         subscriber.emit(event)
       rescue => subscriber_error
-        if raise_on_error
+        if raise_on_error?
           raise
         else
-          warn(<<~MESSAGE)
-            Event reporter subscriber #{subscriber.class.name} raised an error on #emit: #{subscriber_error.message}
-            #{subscriber_error.backtrace&.join("\n")}
-          MESSAGE
+          ActiveSupport.error_reporter.report(subscriber_error, handled: true)
         end
       end
     end
@@ -472,6 +469,10 @@ module ActiveSupport
     end
 
     private
+      def raise_on_error?
+        @raise_on_error
+      end
+
       def context_store
         self.class.context_store
       end
@@ -506,10 +507,10 @@ module ActiveSupport
           Received: #{name_or_object.inspect}, #{payload.inspect}, #{kwargs.inspect}
         MESSAGE
 
-        if raise_on_error
+        if raise_on_error?
           raise ArgumentError, message
         else
-          warn(message)
+          ActiveSupport.error_reporter.report(ArgumentError.new(message), handled: true)
         end
       end
   end
