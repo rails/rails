@@ -286,7 +286,7 @@
       name: Rails Engines Overview
       url: engines.html
       description: >
-        Engines care packaged like miniature applications that provide
+        Engines are packaged like miniature applications that provide
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
