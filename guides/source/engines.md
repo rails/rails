@@ -1378,7 +1378,7 @@ Here’s how you can do it cleanly using `ActiveSupport::Concern`:
 
 ##### Adding/Overriding methods
 
-Add the `Article#time_since_created` and override the `Article#summary` in the
+Add the `Blorgh::Article#time_since_created` and override the `Blorgh::Article#summary` in the
 host application:
 
 ```ruby
