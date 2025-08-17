@@ -1,7 +1,4 @@
-# typed: true
 # frozen_string_literal: true
-
-require_relative "event_reporter/encoders"
 
 module ActiveSupport
   class TagStack # :nodoc:
@@ -135,7 +132,7 @@ module ActiveSupport
   #   class JSONLogSubscriber
   #     def emit(event)
   #       # event = { name: "UserCreatedEvent", payload: { UserCreatedEvent: #<UserCreatedEvent:0x111> } }
-  #       json_data = ActiveSupport::EventReporter.encoder(:json).encode(event)
+  #       json_data = ActiveSupport::EventReporter::JSONEncoder.encode(event)
   #       # => {
   #       #      "name": "UserCreatedEvent",
   #       #      "payload": {
@@ -149,7 +146,7 @@ module ActiveSupport
   #
   #   class MessagePackSubscriber
   #     def emit(event)
-  #       msgpack_data = ActiveSupport::EventReporter.encoder(:msgpack).encode(event)
+  #       msgpack_data = ActiveSupport::EventReporter::MessagePackEncoder.encode(event)
   #       BatchExporter.export(msgpack_data)
   #     end
   #   end
@@ -231,37 +228,16 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   class EventReporter
-    attr_reader :subscribers
-    attr_accessor :raise_on_error
+    extend ActiveSupport::Autoload
 
-    ENCODERS = {
-      json: Encoders::JSON,
-      msgpack: Encoders::MessagePack
-    }.freeze
+    autoload :JSONEncoder
+    autoload :MessagePackEncoder
+
+    attr_writer :raise_on_error # :nodoc:
+    attr_reader :subscribers
 
     class << self
       attr_accessor :context_store # :nodoc:
-
-      # Lookup an encoder by name or symbol.
-      #
-      #   ActiveSupport::EventReporter.encoder(:json)
-      #   # => ActiveSupport::EventReporter::Encoders::JSON
-      #
-      #   ActiveSupport::EventReporter.encoder("msgpack")
-      #   # => ActiveSupport::EventReporter::Encoders::MessagePack
-      #
-      # ==== Arguments
-      #
-      # * +format+ - The encoder format as a symbol or string
-      #
-      # ==== Raises
-      #
-      # * +KeyError+ - If the encoder format is not found
-      def encoder(format)
-        ENCODERS.fetch(format.to_sym) do
-          raise KeyError, "Unknown encoder format: #{format.inspect}. Available formats: #{ENCODERS.keys.join(', ')}"
-        end
-      end
     end
 
     self.context_store = EventContext
@@ -359,13 +335,10 @@ module ActiveSupport
 
         subscriber.emit(event)
       rescue => subscriber_error
-        if raise_on_error
+        if raise_on_error?
           raise
         else
-          warn(<<~MESSAGE)
-            Event reporter subscriber #{subscriber.class.name} raised an error on #emit: #{subscriber_error.message}
-            #{subscriber_error.backtrace&.join("\n")}
-          MESSAGE
+          ActiveSupport.error_reporter.report(subscriber_error, handled: true)
         end
       end
     end
@@ -496,6 +469,10 @@ module ActiveSupport
     end
 
     private
+      def raise_on_error?
+        @raise_on_error
+      end
+
       def context_store
         self.class.context_store
       end
@@ -530,10 +507,10 @@ module ActiveSupport
           Received: #{name_or_object.inspect}, #{payload.inspect}, #{kwargs.inspect}
         MESSAGE
 
-        if raise_on_error
+        if raise_on_error?
           raise ArgumentError, message
         else
-          warn(message)
+          ActiveSupport.error_reporter.report(ArgumentError.new(message), handled: true)
         end
       end
   end

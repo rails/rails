@@ -1,4 +1,3 @@
-# typed: true
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
@@ -188,41 +187,29 @@ module ActiveSupport
     end
 
     test "#notify with event object and kwargs warns when raise_on_error is false" do
-      previous_raise_on_error = @reporter.raise_on_error
-      @reporter.raise_on_error = false
+      @reporter = EventReporter.new(@subscriber, raise_on_error: false)
 
       event = TestEvent.new("value")
 
-      _out, err = capture_io do
-        assert_called_with(@subscriber, :emit, [
-          event_matcher(name: TestEvent.name, payload: event)
-        ]) do
+      error_report = assert_error_reported do
+        assert_called_with(@subscriber, :emit, [event_matcher(name: TestEvent.name, payload: event)]) do
           @reporter.notify(event, extra: "arg")
-        rescue RailsStrictWarnings::WarningError => _e
-          # Expected warning
         end
       end
 
+      err = error_report.error.message
       assert_match(/Rails.event.notify accepts either an event object, a payload hash, or keyword arguments/, err)
-    ensure
-      @reporter.raise_on_error = previous_raise_on_error
     end
 
     test "#notify warns about subscriber errors when raise_on_error is false" do
-      previous_raise_on_error = @reporter.raise_on_error
-      @reporter.raise_on_error = false
+      @reporter = EventReporter.new(@subscriber, raise_on_error: false)
 
       @reporter.subscribe(ErrorSubscriber.new)
 
-      _out, err = capture_io do
+      error_report = assert_error_reported do
         @reporter.notify(:test_event)
-      rescue RailsStrictWarnings::WarningError => _e
-        # Expected warning
       end
-
-      assert_match(/Event reporter subscriber #{ErrorSubscriber.name} raised an error on #emit: Uh oh!/, err)
-    ensure
-      @reporter.raise_on_error = previous_raise_on_error
+      assert_equal "Uh oh!", error_report.error.message
     end
 
     test "#notify raises subscriber errors when raise_on_error is true" do
@@ -574,31 +561,8 @@ module ActiveSupport
       }
     end
 
-    test "looking up encoder by symbol" do
-      assert_equal EventReporter::Encoders::JSON, EventReporter.encoder(:json)
-      assert_equal EventReporter::Encoders::MessagePack, EventReporter.encoder(:msgpack)
-    end
-
-    test "looking up encoder by string" do
-      assert_equal EventReporter::Encoders::JSON, EventReporter.encoder("json")
-      assert_equal EventReporter::Encoders::MessagePack, EventReporter.encoder("msgpack")
-    end
-
-    test "looking up nonexistant encoder raises KeyError" do
-      error = assert_raises(KeyError) do
-        EventReporter.encoder(:unknown)
-      end
-      assert_equal "Unknown encoder format: :unknown. Available formats: json, msgpack", error.message
-    end
-
-    test "Base encoder raises NotImplementedError" do
-      assert_raises(NotImplementedError) do
-        EventReporter::Encoders::Base.encode(@event)
-      end
-    end
-
     test "JSON encoder encodes event to JSON" do
-      json_string = EventReporter::Encoders::JSON.encode(@event)
+      json_string = EventReporter::JSONEncoder.encode(@event)
       parsed = ::JSON.parse(json_string)
 
       assert_equal "test_event", parsed["name"]
@@ -612,7 +576,7 @@ module ActiveSupport
     test "JSON encoder serializes event objects and object tags as hashes" do
       @event[:payload] = TestEvent.new("value")
       @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      json_string = EventReporter::Encoders::JSON.encode(@event)
+      json_string = EventReporter::JSONEncoder.encode(@event)
       parsed = ::JSON.parse(json_string)
 
       assert_equal "value", parsed["payload"]["data"]
@@ -621,13 +585,7 @@ module ActiveSupport
     end
 
     test "MessagePack encoder encodes event to MessagePack" do
-      begin
-        require "msgpack"
-      rescue LoadError
-        skip "msgpack gem not available"
-      end
-
-      msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
+      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
       parsed = ::MessagePack.unpack(msgpack_data)
 
       assert_equal "test_event", parsed["name"]
@@ -641,7 +599,7 @@ module ActiveSupport
     test "MessagePack encoder serializes event objects and object tags as hashes" do
       @event[:payload] = TestEvent.new("value")
       @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      msgpack_data = EventReporter::Encoders::MessagePack.encode(@event)
+      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
       parsed = ::MessagePack.unpack(msgpack_data)
 
       assert_equal "value", parsed["payload"]["data"]

@@ -56,7 +56,7 @@
     ```ruby
     class MySubscriber
       def emit(event)
-        encoded_event = ActiveSupport::EventReporter.encoder(:json).encode(event)
+        encoded_event = ActiveSupport::EventReporter::JSONEncoder.encode(event)
         StructuredLogExporter.export(encoded_event)
       end
     end
