@@ -91,7 +91,7 @@ You add an engine to your host application's `Gemfile`, and depending on how the
 engine is designed, you may need to mount it in the main app's routes. Mounting
 is required when the engine provides its own routes, as this makes any routes,
 controllers, views, or assets defined in the engine available at that mount
-point in the host application. We'll cover this later in the section [Using the
+point in the host application. This is covered later in the section [Using the
 Engine in a Host Application](#using-the-engine-in-a-host-application).
 
 Some engines, however, don't need to be mounted. These are often backend-only
@@ -108,9 +108,9 @@ and table names are also namespaced. You'll see how to do this later in the
 Generating an Engine
 --------------------
 
-In the following example, we'll be building an engine, called "blorgh" that
+In the following example, you will be building an engine, called "blorgh" that
 provides blogging functionality to its host applications, allowing for new
-articles and comments to be created. We'll be using the [`--mountable`
+articles and comments to be created. It will use the [`--mountable`
 option](plugins.html#generator-options) to generate the engine.
 
 To generate an engine, you will need to run the plugin generator and pass it
@@ -121,7 +121,7 @@ create a "mountable" engine, running this command in a terminal:
 $ rails plugin new blorgh --mountable
 ```
 
-The `--mountable` option will allow our engine to behave like a self-contained mini-application that can be easily integrated into a host Rails application without polluting its global namespace. It will:
+The `--mountable` option allows the engine to behave like a self-contained mini-application that can be easily integrated into a host Rails application without polluting its global namespace. It will:
 
 - namespace all controllers, routes, views, helpers, and assets under the `Blorgh` module, preventing conflicts with similarly named components in the host app.
 - isolate routing to the engine, allowing you to mount it at a specific path in the host app (e.g., `/blorgh`), while keeping its internal route structure independent.
@@ -585,7 +585,7 @@ rather than visiting `/articles`. This means that instead of visiting
 
 ### Generating a Comments Resource
 
-Now that the engine can create new articles, let's add the ability to comment.
+Now that the engine can create new articles, add the ability to comment.
 To do this, you'll need to generate a comment model, a comment controller, and
 then modify the articles scaffold to display comments and allow people to create
 new ones.
@@ -866,8 +866,7 @@ SELECT "blorgh_articles".* FROM "blorgh_articles" /*action='index',application='
 ```
 
 This is because the engine's migrations haven't been copied over to the host
-application's database yet. We'll walk through how to do this in the next
-section.
+application's database yet. The next section explains how to do this.
 
 ### Engine Setup
 
@@ -975,13 +974,13 @@ might want each `article` or `comment` to have an associated `author`. While the
 engine sets up the `author` relationship, the actual model, `User` in this case,
 comes from the host application.
 
-In this section, we'll walk through how to associate an `Article` from the
-engine with a `User` from the host application. For simplicity, we'll assume the
-host application uses a model called `User`, but there could be a case where a
-different host application calls this class something different, such as
-`Person`. For this reason, the engine should not hardcode associations
-specifically for a `User` class. Instead, it should be configurable. This is
-what we'll do in the [next section](#configuring-the-engine-to-use-a-custom-class).
+This section explains how to associate an `Article` from the engine with a
+`User` from the host application. For simplicity, assume the host application
+uses a model called `User`, but there could be a case where a different host
+application calls this class something different, such as `Person`. For this
+reason, the engine should not hardcode associations specifically for a `User`
+class. Instead, it should be configurable. This is covered in the [next
+section](#configuring-the-engine-to-use-a-custom-class).
 
 
 #### Generating a User Model in the Host Application
@@ -1041,7 +1040,7 @@ for authors) and associate it with the article before it is saved. It should
 also define an `attr_accessor` for `author_name` to provide getter and setter
 methods for this attribute.
 
-Lets start by adding the `attr_accessor` for `author_name`, the association for
+Start by adding the `attr_accessor` for `author_name`, the association for
 the author and the `before_validation` call into `app/models/blorgh/article.rb`.
 
 ```ruby
@@ -1066,7 +1065,7 @@ end
 
 For now, this setup allows the engine to associate an author name with the
 `User` model defined by the host application, even though it introduces a
-coupling that we’ll later aim to remove. It will be made more configurable in
+coupling that will be removed later. It will be made more configurable in
 the [next section](#configuring-the-engine-to-use-a-custom-class).
 
 There also needs to be a way of associating the records in the `blorgh_articles`
@@ -1369,7 +1368,8 @@ Using [`class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-cl
 
 While [`Class#class_eval`](https://api.rubyonrails.org/classes/Module.html#method-i-class_eval) is useful for making simple runtime changes to a class, more complex modifications—especially those involving multiple modules with dependencies—are often better handled using [`ActiveSupport::Concern`](https://api.rubyonrails.org/classes/ActiveSupport/Concern.html). It provides a structured way to define module behavior and dependencies, ensuring consistent load order and making it easier to organize and compose reusable code.
 
-Let’s say you want to extend the `Blorgh::Article` model from the host application by:
+Suppose you want to extend the `Blorgh::Article` model from the host application
+by:
 
 - Adding a new instance method: `time_since_created`
 - Overriding the existing `summary` method
