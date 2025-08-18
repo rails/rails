@@ -193,7 +193,7 @@ module ActionController
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
     end
 
-    add :md do |md, options|
+    add :markdown do |md, options|
       self.content_type = :md if media_type.nil?
       md.respond_to?(:to_markdown) ? md.to_markdown(options) : md
     end
