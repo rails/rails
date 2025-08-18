@@ -1,3 +1,7 @@
+*   Fix removal of PostgreSQL version comments in `structure.sql` for latest PostgreSQL versions which include `\restrict`
+
+    *Brendan Weibrecht*
+
 *   Allow setting `schema_format` in database configuration.
 
     ```
