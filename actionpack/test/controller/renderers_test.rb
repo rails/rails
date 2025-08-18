@@ -31,7 +31,7 @@ class RenderersTest < ActionController::TestCase
   end
 
   class MarkdownRenderable
-    def to_markdown(*options)
+    def to_markdown
       "# This is markdown"
     end
   end

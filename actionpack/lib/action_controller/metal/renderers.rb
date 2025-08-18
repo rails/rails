@@ -195,7 +195,7 @@ module ActionController
 
     add :markdown do |md, options|
       self.content_type = :md if media_type.nil?
-      md.respond_to?(:to_markdown) ? md.to_markdown(options) : md
+      md.respond_to?(:to_markdown) ? md.to_markdown : md
     end
   end
 end
