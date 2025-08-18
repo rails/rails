@@ -1,3 +1,7 @@
+*   Fix removal of PostgreSQL version comments in `structure.sql` for latest PostgreSQL versions which include `\restrict`
+
+    *Brendan Weibrecht*
+
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 
     ```ruby
