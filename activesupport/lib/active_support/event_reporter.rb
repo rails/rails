@@ -98,19 +98,19 @@ module ActiveSupport
   # If an event object is passed to the +notify+ API, it will be passed through to subscribers as-is, and the name of the
   # object's class will be used as the event name.
   #
-  # class UserCreatedEvent
-  #   def initialize(id:, name:)
-  #     @id = id
-  #     @name = name
-  #   end
+  #   class UserCreatedEvent
+  #     def initialize(id:, name:)
+  #       @id = id
+  #       @name = name
+  #     end
   #
-  #   def to_h
-  #     {
-  #       id: @id,
-  #       name: @name
-  #     }
+  #     def to_h
+  #       {
+  #         id: @id,
+  #         name: @name
+  #       }
+  #     end
   #   end
-  # end
   #
   #   Rails.event.notify(UserCreatedEvent.new(id: 123, name: "John Doe"))
   #   # Emits event:
@@ -147,6 +147,7 @@ module ActiveSupport
   #   #    name: "user_created",
   #   #    payload: { id: 123 },
   #   #    tags: { graphql: true },
+  #   #    context: {},
   #   #    timestamp: 1738964843208679035,
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }
@@ -165,6 +166,7 @@ module ActiveSupport
   #   #  {
   #   #    name: "user_created",
   #   #    payload: { id: 123 },
+  #   #    tags: {},
   #   #    context: { request_id: "abcd123", user_agent: TestAgent" },
   #   #    timestamp: 1738964843208679035,
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
@@ -227,6 +229,7 @@ module ActiveSupport
     #   name: String (The name of the event)
     #   payload: Hash, Object (The payload of the event, or the event object itself)
     #   tags: Hash (The tags of the event)
+    #   context: Hash (The context of the event)
     #   timestamp: Float (The timestamp of the event, in nanoseconds)
     #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
     #
@@ -251,6 +254,7 @@ module ActiveSupport
     #     #    name: "user.created",
     #     #    payload: { id: 123 },
     #     #    tags: {},
+    #     #    context: {},
     #     #    timestamp: 1738964843208679035,
     #     #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #     #  }
@@ -263,6 +267,7 @@ module ActiveSupport
     #   #    name: "UserCreatedEvent",
     #   #    payload: #<UserCreatedEvent:0x111>,
     #   #    tags: {},
+    #   #    context: {},
     #   #    timestamp: 1738964843208679035,
     #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
@@ -365,6 +370,7 @@ module ActiveSupport
     #   #    name: "user.created",
     #   #    payload: { id: 123 },
     #   #    tags: { graphql: true },
+    #   #    context: {},
     #   #    timestamp: 1738964843208679035,
     #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
@@ -383,6 +389,7 @@ module ActiveSupport
     #   #    name: "user.created",
     #   #    payload: { id: 123 },
     #   #    tags: { section: "admin", graphql: true },
+    #   #    context: {},
     #   #    timestamp: 1738964843208679035,
     #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
@@ -399,6 +406,7 @@ module ActiveSupport
     #   #    name: "user.created",
     #   #    payload: { id: 123 },
     #   #    tags: { "GraphqlTag": #<GraphqlTag:0x111> },
+    #   #    context: {},
     #   #    timestamp: 1738964843208679035,
     #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
@@ -423,6 +431,7 @@ module ActiveSupport
     #   #    tags: { graphql: true },
     #   #    context: { user_agent: "TestAgent", job_id: "abc123" },
     #   #    timestamp: 1738964843208679035
+    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
     #   #  }
     def set_context(context)
       context_store.set_context(context)
