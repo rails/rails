@@ -560,51 +560,5 @@ module ActiveSupport
         source_location: { filepath: "/path/to/file.rb", lineno: 42, label: "test_method" }
       }
     end
-
-    test "JSON encoder encodes event to JSON" do
-      json_string = EventReporter::JSONEncoder.encode(@event)
-      parsed = ::JSON.parse(json_string)
-
-      assert_equal "test_event", parsed["name"]
-      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
-      assert_equal({ "section" => "admin" }, parsed["tags"])
-      assert_equal({ "user_id" => 456 }, parsed["context"])
-      assert_equal 1738964843208679035, parsed["timestamp"]
-      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
-    end
-
-    test "JSON encoder serializes event objects and object tags as hashes" do
-      @event[:payload] = TestEvent.new("value")
-      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      json_string = EventReporter::JSONEncoder.encode(@event)
-      parsed = ::JSON.parse(json_string)
-
-      assert_equal "value", parsed["payload"]["data"]
-      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
-      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
-    end
-
-    test "MessagePack encoder encodes event to MessagePack" do
-      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
-      parsed = ::MessagePack.unpack(msgpack_data)
-
-      assert_equal "test_event", parsed["name"]
-      assert_equal({ "id" => 123, "message" => "hello" }, parsed["payload"])
-      assert_equal({ "section" => "admin" }, parsed["tags"])
-      assert_equal({ "user_id" => 456 }, parsed["context"])
-      assert_equal 1738964843208679035, parsed["timestamp"]
-      assert_equal({ "filepath" => "/path/to/file.rb", "lineno" => 42, "label" => "test_method" }, parsed["source_location"])
-    end
-
-    test "MessagePack encoder serializes event objects and object tags as hashes" do
-      @event[:payload] = TestEvent.new("value")
-      @event[:tags] = { "HttpRequestTag": HttpRequestTag.new("GET", 200) }
-      msgpack_data = EventReporter::MessagePackEncoder.encode(@event)
-      parsed = ::MessagePack.unpack(msgpack_data)
-
-      assert_equal "value", parsed["payload"]["data"]
-      assert_equal "GET", parsed["tags"]["HttpRequestTag"]["http_method"]
-      assert_equal 200, parsed["tags"]["HttpRequestTag"]["http_status"]
-    end
   end
 end

@@ -124,32 +124,7 @@ module ActiveSupport
   # An event is any Ruby object representing a schematized event. While payload hashes allow arbitrary,
   # implicitly-structured data, event objects are intended to enforce a particular schema.
   #
-  # ==== Default Encoders
-  #
-  # Rails provides default encoders for common serialization formats. Event objects and tags MUST
-  # implement +to_h+ to be serialized.
-  #
-  #   class JSONLogSubscriber
-  #     def emit(event)
-  #       # event = { name: "UserCreatedEvent", payload: { UserCreatedEvent: #<UserCreatedEvent:0x111> } }
-  #       json_data = ActiveSupport::EventReporter::JSONEncoder.encode(event)
-  #       # => {
-  #       #      "name": "UserCreatedEvent",
-  #       #      "payload": {
-  #       #        "id": 123,
-  #       #        "name": "John Doe"
-  #       #      }
-  #       #    }
-  #       Rails.logger.info(json_data)
-  #     end
-  #   end
-  #
-  #   class MessagePackSubscriber
-  #     def emit(event)
-  #       msgpack_data = ActiveSupport::EventReporter::MessagePackEncoder.encode(event)
-  #       BatchExporter.export(msgpack_data)
-  #     end
-  #   end
+  # Subscribers are responsible for serializing events to their desired format.
   #
   # ==== Debug Events
   #
@@ -228,11 +203,6 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   class EventReporter
-    extend ActiveSupport::Autoload
-
-    autoload :JSONEncoder
-    autoload :MessagePackEncoder
-
     attr_writer :raise_on_error # :nodoc:
     attr_reader :subscribers
 
