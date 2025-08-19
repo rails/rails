@@ -78,6 +78,7 @@ module ActiveRecord
   autoload :Scoping
   autoload :SecurePassword
   autoload :SecureToken
+  autoload :SelectedColumns
   autoload :Serialization
   autoload :SignedId
   autoload :Store
