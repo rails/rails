@@ -50,19 +50,7 @@
     ```
 
     Events are emitted to subscribers. Applications register subscribers to
-    control how events are serialized and emitted. Rails provides several default
-    encoders that can be used to serialize events to common formats:
-
-    ```ruby
-    class MySubscriber
-      def emit(event)
-        encoded_event = ActiveSupport::EventReporter::JSONEncoder.encode(event)
-        StructuredLogExporter.export(encoded_event)
-      end
-    end
-
-    Rails.event.subscribe(MySubscriber.new)
-    ```
+    control how events are serialized and emitted.
 
     *Adrianna Chang*
 
