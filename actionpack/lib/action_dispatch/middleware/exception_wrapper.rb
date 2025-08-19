@@ -18,8 +18,8 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      "ActionController::InvalidAuthenticityToken"         => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActionController::InvalidCrossOriginRequest"        => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
@@ -178,7 +178,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      Rack::Utils.status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
     end
 
     def show?(request)

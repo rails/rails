@@ -31,12 +31,25 @@ task :test do
   run_without_aborting(*tasks)
 end
 
+adapters = %w( mysql2 trilogy postgresql sqlite3 sqlite3_mem )
+
 namespace :test do
   task :isolated do
     tasks = defined?(JRUBY_VERSION) ?
       %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
       %w(isolated_test_mysql2 isolated_test_trilogy isolated_test_sqlite3 isolated_test_postgresql)
     run_without_aborting(*tasks)
+  end
+
+  desc "Run Active Job integration tests for all adapters"
+  task "integration:active_job" do
+    errors = []
+    adapters.each do |adapter|
+      Rake::Task["test:integration:active_job:#{adapter}"].invoke
+    rescue Exception
+      errors << adapter
+    end
+    abort "Errors running integration for #{errors.join(', ')}" if errors.any?
   end
 
   Rake::TestTask.new(:arel) do |t|
@@ -57,7 +70,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem ).each do |adapter|
+adapters.each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]

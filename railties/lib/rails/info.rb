@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "cgi/escape"
-require "cgi/util" if RUBY_VERSION < "3.5"
+require "active_support/core_ext/erb/util"
 
 module Rails
   # This module helps build the runtime properties that are displayed in
@@ -44,11 +43,11 @@ module Rails
       def to_html
         (+"<table>").tap do |table|
           properties.each do |(name, value)|
-            table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
+            table << %(<tr><td class="name">#{ERB::Util.html_escape(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
-              "<ul>" + value.map { |v| "<li>#{CGI.escapeHTML(v.to_s)}</li>" }.join + "</ul>"
+              "<ul>" + value.map { |v| "<li>#{ERB::Util.html_escape(v.to_s)}</li>" }.join + "</ul>"
             else
-              CGI.escapeHTML(value.to_s)
+              ERB::Util.html_escape(value.to_s)
             end
             table << %(<td class="value">#{formatted_value}</td></tr>)
           end

@@ -1156,6 +1156,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /main/
+    assert_file ".github/workflows/ci.yml", /branches: \[ main \]/
   ensure
     if !current_default_branch.strip.empty?
       `git config --global init.defaultBranch #{current_default_branch}`
@@ -1171,6 +1172,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /master/
+    assert_file ".github/workflows/ci.yml", /branches: \[ master \]/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
       `git config --global --unset init.defaultBranch`

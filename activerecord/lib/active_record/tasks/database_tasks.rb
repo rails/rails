@@ -45,7 +45,7 @@ module ActiveRecord
       # Example:
       #   ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
       #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
-      #     postgres: '--no-tablespaces'
+      #     postgresql: '--no-tablespaces'
       #   }
       mattr_accessor :structure_dump_flags, instance_accessor: false
 

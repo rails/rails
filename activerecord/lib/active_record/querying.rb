@@ -46,8 +46,8 @@ module ActiveRecord
     #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
     #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
     #
-    # Note that building your own SQL query string from user input may expose your application to
-    # injection attacks (https://guides.rubyonrails.org/security.html#sql-injection).
+    # Note that building your own SQL query string from user input {may expose your application to
+    # injection attacks}[https://guides.rubyonrails.org/security.html#sql-injection].
     def find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
       result = with_connection do |c|
         _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry)
@@ -55,7 +55,7 @@ module ActiveRecord
       _load_from_sql(result, &block)
     end
 
-    # Same as <tt>#find_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
+    # Same as #find_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
       with_connection do |c|
         _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
@@ -112,7 +112,7 @@ module ActiveRecord
       end
     end
 
-    # Same as <tt>#count_by_sql</tt> but perform the query asynchronously and returns an ActiveRecord::Promise.
+    # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
       with_connection do |c|
         c.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)

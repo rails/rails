@@ -213,6 +213,19 @@ Additional keys may be added by the caller.
 }
 ```
 
+#### `rate_limit.action_controller`
+
+| Key          | Value                                         |
+| ------------ | --------------------------------------------- |
+| `:request`   | The [`ActionDispatch::Request`][] object      |
+| `:count`     | Number of requests made                       |
+| `:to`        | Maximum number of requests allowed            |
+| `:within`    | Time window for the rate limit                |
+| `:by`        | Identifier for the rate limit (e.g. IP)       |
+| `:name`      | Name of the rate limit                        |
+| `:scope`     | Scope of the rate limit                       |
+| `:cache_key` | The cache key used for storing the rate limit |
+
 ### Action Controller: Caching
 
 #### `write_fragment.action_controller`

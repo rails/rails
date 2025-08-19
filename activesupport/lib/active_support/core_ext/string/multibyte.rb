@@ -12,12 +12,12 @@ class String
   # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsulated string.
   #
   #   >> "ǉ".mb_chars.upcase.to_s
-  #   => "Ǉ"
+  #   # => "Ǉ"
   #
   # NOTE: Ruby 2.4 and later support native Unicode case mappings:
   #
   #   >> "ǉ".upcase
-  #   => "Ǉ"
+  #   # => "Ǉ"
   #
   # == \Method chaining
   #

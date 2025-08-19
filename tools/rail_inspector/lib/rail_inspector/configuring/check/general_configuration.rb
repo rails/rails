@@ -21,7 +21,7 @@ module RailInspector
             APP_CONFIG_CONST = "Rails::Application::Configuration"
 
             def app_config_tree
-              @checker.parse(APPLICATION_CONFIGURATION_PATH)
+              @checker.files.application_configuration.parse
             end
         end
 

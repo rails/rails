@@ -28,10 +28,6 @@ module ActiveSupport
         @isolation_level = level
       end
 
-      def unique_id
-        self[:__id__] ||= Object.new
-      end
-
       def [](key)
         if state = @scope.current.active_support_execution_state
           state[key]

@@ -170,7 +170,7 @@ module ActionView
 
         # Creates an entry tag for a specific record and prefills the id using class and id.
         #
-        # Options:
+        # ==== Options
         #
         # * <tt>:published</tt>: Time first published. Defaults to the created_at attribute on the record if one such exists.
         # * <tt>:updated</tt>: Time of update. Defaults to the updated_at attribute on the record if one such exists.

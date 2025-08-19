@@ -529,8 +529,13 @@ module Rails
         using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
-      def capture_command(command, pattern)
-        `#{command}`[pattern]
+      def capture_command(command, pattern = nil)
+        output = `#{command}`
+        if pattern
+          output[pattern]
+        else
+          output
+        end
       rescue SystemCallError
         nil
       end
@@ -760,11 +765,13 @@ module Rails
       end
 
       def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
+        @user_default_branch ||= capture_command("git config init.defaultbranch").strip.presence || "main"
       end
 
       def git_init_command
-        return "git init" if user_default_branch.strip.present?
+        if capture_command("git config init.defaultbranch").present?
+          return "git init"
+        end
 
         git_version = `git --version`[/\d+\.\d+\.\d+/]
 

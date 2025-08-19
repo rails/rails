@@ -113,6 +113,18 @@ class FrameworkDefaultTest < Minitest::Test
     assert_equal("1", config["8.0"]["Regexp.timeout"])
   end
 
+  def test_post_release
+    config = config_for_defaults <<~RUBY
+      case target_version.to_s
+      when "8.1"
+        load_defaults "8.0"
+      end
+    RUBY
+
+    assert_includes config, "8.1"
+    assert_equal({}, config["8.1"])
+  end
+
   private
     def wrapped_defaults(defaults)
       <<~RUBY

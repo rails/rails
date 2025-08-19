@@ -99,7 +99,7 @@ lists where you should announce:
 * [rubyonrails-talk](https://discuss.rubyonrails.org/c/rubyonrails-talk)
 
 Use Markdown format for your announcement. Remember to ask people to report
-issues with the release candidate to the rails-core mailing list.
+issues with the release candidate to the rubyonrails-core forum.
 
 NOTE: For patch releases, there's a `rake announce` task to generate the release
 post. It supports multiple patch releases too:

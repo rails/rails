@@ -24,7 +24,7 @@ module ActiveRecord
     # The \SQLite3 adapter works with the sqlite3[https://sparklemotion.github.io/sqlite3-ruby/]
     # driver.
     #
-    # Options:
+    # ==== Options
     #
     # * +:database+ (String): Filesystem path to the database file.
     # * +:statement_limit+ (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)

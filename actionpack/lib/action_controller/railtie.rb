@@ -13,8 +13,10 @@ module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
     config.action_controller.raise_on_open_redirects = false
+    config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
     config.action_controller.wrap_parameters_by_default = false
+    config.action_controller.allowed_redirect_hosts = []
 
     config.eager_load_namespaces << AbstractController
     config.eager_load_namespaces << ActionController

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
+require "active_support/core_ext/module/delegation"
 require "active_support/i18n"
 
 module ActiveSupport
@@ -29,44 +30,59 @@ module ActiveSupport
     # before any of the rules that may already have been loaded.
     class Inflections
       @__instance__ = Concurrent::Map.new
+      @__en_instance__ = nil
 
-      class Uncountables < Array
+      class Uncountables # :nodoc:
+        include Enumerable
+
+        delegate :each, :pop, :empty?, :to_s, :==, :to_a, :to_ary, to: :@members
+
         def initialize
-          @regex_array = []
-          super
+          @members = []
+          @pattern = nil
         end
 
         def delete(entry)
-          super entry
-          @regex_array.delete(to_regex(entry))
+          @members.delete(entry)
+          @pattern = nil
         end
 
-        def <<(*word)
-          add(word)
+        def <<(word)
+          word = word.downcase
+          @members << word
+          @pattern = nil
+          self
+        end
+
+        def flatten
+          @members.dup
         end
 
         def add(words)
           words = words.flatten.map(&:downcase)
-          concat(words)
-          @regex_array += words.map { |word| to_regex(word) }
+          @members.concat(words)
+          @pattern = nil
           self
         end
 
         def uncountable?(str)
-          @regex_array.any? { |regex| regex.match? str }
-        end
-
-        private
-          def to_regex(string)
-            /\b#{::Regexp.escape(string)}\Z/i
+          if @pattern.nil?
+            members_pattern = Regexp.union(@members.map { |w| /#{Regexp.escape(w)}/i })
+            @pattern = /\b#{members_pattern}\Z/i
           end
+          @pattern.match?(str)
+        end
       end
 
       def self.instance(locale = :en)
+        return @__en_instance__ ||= new if locale == :en
+
         @__instance__[locale] ||= new
       end
 
       def self.instance_or_fallback(locale)
+        return @__en_instance__ ||= new if locale == :en
+
         I18n.fallbacks[locale].each do |k|
           return @__instance__[k] if @__instance__.key?(k)
         end

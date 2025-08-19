@@ -38,10 +38,19 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_event_reporter_context_store" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.event_reporter_context_store
+          ActiveSupport.event_reporter.context_store = klass
+        end
+      end
+    end
+
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.clear
+        ActiveSupport.event_reporter.clear_context
       end
 
       app.executor.to_run do
@@ -51,6 +60,7 @@ module ActiveSupport
       app.executor.to_complete do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.pop
+        ActiveSupport.event_reporter.clear_context
       end
 
       ActiveSupport.on_load(:active_support_test_case) do

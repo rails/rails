@@ -1,3 +1,57 @@
+*   Add "Copy as text" button to error pages
+
+    *Mikkel Malmberg*
+
+*   Add `scope:` option to `rate_limit` method.
+
+    Previously, it was not possible to share a rate limit count between several controllers, since the count was by
+    default separate for each controller.
+
+    Now, the `scope:` option solves this problem.
+
+    ```ruby
+    class APIController < ActionController::API
+      rate_limit to: 2, within: 2.seconds, scope: "api"
+    end
+
+    class API::PostsController < APIController
+      # ...
+    end
+
+    class API::UsersController < APIController
+      # ...
+    end
+    ```
+
+    *ArthurPV*, *Kamil Hanus*
+
+*   Add support for `rack.response_finished` callbacks in ActionDispatch::Executor.
+
+    The executor middleware now supports deferring completion callbacks to later
+    in the request lifecycle by utilizing Rack's `rack.response_finished` mechanism,
+    when available. This enables applications to define `rack.response_finished` callbacks
+    that may rely on state that would be cleaned up by the executor's completion callbacks.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
+*   Produce a log when `rescue_from` is invoked.
+
+    *Steven Webb*, *Jean Boussier*
+
+*   Allow hosts redirects from `hosts` Rails configuration
+
+    ```ruby
+    config.action_controller.allowed_redirect_hosts << "example.com"
+    ```
+
+    *Kevin Robatel*
+
+*   `rate_limit.action_controller` notification has additional payload
+
+    additional values: count, to, within, by, name, cache_key
+
+    *Jonathan Rochkind*
+
 *   Add JSON support to the built-in health controller.
 
     The health controller now responds to JSON requests with a structured response

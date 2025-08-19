@@ -387,7 +387,7 @@ environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
-documentation](https://www.rubydoc.info/gems/rack/Rack/Sendfile).
+documentation](https://rack.github.io/rack/main/Rack/Sendfile.html).
 
 Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:

@@ -50,7 +50,7 @@ authentication`. Here are all of the files the generator modifies and new files
 it adds:
 
 ```bash
-$ rails generate authentication
+$ bin/rails generate authentication
       invoke  erb
       create    app/views/passwords/new.html.erb
       create    app/views/passwords/edit.html.erb

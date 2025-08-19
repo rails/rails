@@ -368,7 +368,7 @@ module ActionDispatch
         end
       end
 
-      # Returns whether this request is using the standard port
+      # Returns whether this request is using the standard port.
       #
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #     req.standard_port? # => true
@@ -403,7 +403,7 @@ module ActionDispatch
         standard_port? ? "" : ":#{port}"
       end
 
-      # Returns the requested port, such as 8080, based on SERVER_PORT
+      # Returns the requested port, such as 8080, based on SERVER_PORT.
       #
       #     req = ActionDispatch::Request.new 'SERVER_PORT' => '80'
       #     req.server_port # => 80

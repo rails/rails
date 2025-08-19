@@ -45,7 +45,7 @@ module ApplicationTests
             if @user.save
               redirect_to user_url(@user), notice: "User was successfully created."
             else
-              render :new, status: :unprocessable_entity
+              render :new, status: #{ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect}
             end
           end
 
