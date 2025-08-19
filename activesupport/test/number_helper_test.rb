@@ -159,6 +159,37 @@ module ActiveSupport
         end
       end
 
+      def test_from_delimited
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal(12345678, number_helper.number_from_delimited("12,345,678"))
+          assert_equal(0, number_helper.number_from_delimited("0"))
+          assert_equal(123, number_helper.number_from_delimited("123"))
+          assert_equal(123456, number_helper.number_from_delimited("123,456"))
+          assert_equal(123456.78, number_helper.number_from_delimited("123,456.78"))
+          assert_equal(123456.789, number_helper.number_from_delimited("123,456.789"))
+          assert_equal(123456.78901, number_helper.number_from_delimited("123,456.78901"))
+          assert_equal(123456789.78901, number_helper.number_from_delimited("123,456,789.78901"))
+          assert_equal(0.78901, number_helper.number_from_delimited("0.78901"))
+          assert_equal(123456.78, number_helper.number_from_delimited("1,23,456.78", delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/))
+          assert_equal(123456.78, number_helper.number_from_delimited("123,456.78".html_safe))
+          assert_nil(number_helper.number_from_delimited(""))
+          assert_equal(-12345678, number_helper.number_from_delimited("-12,345,678"))
+          assert_equal(-123.45, number_helper.number_from_delimited("-123.45"))
+          assert_equal(12345, number_helper.number_from_delimited(" 12,345 "))
+          assert_equal(12345.78, number_helper.number_from_delimited(" 12,345.78 "))
+          assert_equal(1234567890123456, number_helper.number_from_delimited("1,234,567,890,123,456"))
+          assert_equal(0.000001, number_helper.number_from_delimited("0.000001"))
+        end
+      end
+
+      def test_from_delimited_with_options_hash
+        [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
+          assert_equal 12345678, number_helper.number_from_delimited("12 345 678", delimiter: " ")
+          assert_equal 12345678.05, number_helper.number_from_delimited("12,345,678-05", separator: "-")
+          assert_equal 12345678.05, number_helper.number_from_delimited("12.345.678,05", separator: ",", delimiter: ".")
+        end
+      end
+
       def test_to_rounded
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("-111.235", number_helper.number_to_rounded(-111.2346))
@@ -409,6 +440,7 @@ module ActiveSupport
           assert_nil number_helper.number_to_currency(nil)
           assert_nil number_helper.number_to_percentage(nil)
           assert_nil number_helper.number_to_delimited(nil)
+          assert_nil number_helper.number_from_delimited(nil)
           assert_nil number_helper.number_to_rounded(nil)
           assert_nil number_helper.number_to_human_size(nil)
           assert_nil number_helper.number_to_human(nil)
@@ -429,6 +461,9 @@ module ActiveSupport
           assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_delimited(1, options)
+          assert_equal({ "raise" => true }, options)
+
+          number_helper.number_from_delimited("1", options)
           assert_equal({ "raise" => true }, options)
 
           number_helper.number_to_rounded(1, options)
