@@ -1,3 +1,13 @@
+*   Add `ActiveRecord::Base.only_columns`
+
+    Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
+    to ignore.
+
+    Can be useful when working with a legacy or shared database schema, or to make safe schema change
+    in two deploys rather than three.
+
+    *Anton Kandratski*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
