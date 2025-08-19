@@ -145,19 +145,35 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_one
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :ship
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :ship
+  end
+
+  def test_should_add_the_same_callbacks_multiple_times_for_overriden_has_one
+    assert_method_redefined_when_adding_callbacks_with_overriden_association_for Pirate, :has_one, :ship
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_belongs_to
-    assert_no_difference_when_adding_callbacks_twice_for Ship, :pirate
+    assert_method_not_redefined_when_adding_callbacks_twice_for Ship, :pirate
+  end
+
+  def test_should_add_the_same_callbacks_multiple_times_for_overriden_belongs_to
+    assert_method_redefined_when_adding_callbacks_with_overriden_association_for Ship, :belongs_to, :pirate
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_many
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :birds
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :birds
+  end
+
+  def test_should_add_the_same_callbacks_multiple_times_for_overriden_has_many
+    assert_method_redefined_when_adding_callbacks_with_overriden_association_for Pirate, :has_many, :birds
   end
 
   def test_should_not_add_the_same_callbacks_multiple_times_for_has_and_belongs_to_many
-    assert_no_difference_when_adding_callbacks_twice_for Pirate, :parrots
+    assert_method_not_redefined_when_adding_callbacks_twice_for Pirate, :parrots
+  end
+
+  def test_should_add_the_same_callbacks_multiple_times_for_overriden_has_and_belongs_to_many
+    assert_method_redefined_when_adding_callbacks_with_overriden_association_for Pirate, :has_and_belongs_to_many, :parrots
   end
 
   def test_cyclic_autosaves_do_not_add_multiple_validations
@@ -169,17 +185,26 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   end
 
   private
-    def assert_no_difference_when_adding_callbacks_twice_for(model, association_name)
-      reflection = model.reflect_on_association(association_name)
+    def assert_method_not_redefined_when_adding_callbacks_twice_for(model, association_name)
+      reflection = model._reflect_on_association(association_name)
       assert_not_nil reflection
-      assert_no_difference "callbacks_for_model(#{model.name}).length" do
+      assert_not_called(model, :define_method) do
         model.send(:add_autosave_association_callbacks, reflection)
       end
     end
 
-    def callbacks_for_model(model)
-      model.instance_variables.grep(/_callbacks$/).flat_map do |ivar|
-        model.instance_variable_get(ivar)
+    def assert_method_redefined_when_adding_callbacks_with_overriden_association_for(model, association_method, association_name)
+      class_name = "#{model.name}WithOverriden#{association_name.to_s.camelize}"
+      model = Class.new(model) # avoid redefining associations on the original model
+      Object.const_set(class_name, model) # ensure model class has a name
+
+      reflection = model._reflect_on_association(association_name)
+      assert_not_nil reflection
+      model.send(:add_autosave_association_callbacks, reflection)
+
+      times = association_method == :has_and_belongs_to_many ? 3 : 1 # HABTM also defines for the join model
+      assert_called(model, :define_method, times: times) do
+        model.send(association_method, association_name)
       end
     end
 end
