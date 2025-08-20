@@ -1,3 +1,25 @@
+*   Use target model's `destroy_association_async_job` when destroying associations.
+
+    When using `dependent: :destroy_async`, Rails now respects the target model's
+    `destroy_association_async_job` configuration instead of always using the owner
+    model's job.
+
+    ```ruby
+    class Parent < ApplicationRecord
+      self.destroy_association_async_job = ParentDestroyJob
+      has_many :children, dependent: :destroy_async
+    end
+
+    class Child < ApplicationRecord
+      self.destroy_association_async_job = ChildDestroyJob
+    end
+
+    # When parent.destroy is called, ChildDestroyJob will be used
+    # to destroy the children (previously used ParentDestroyJob)
+    ```
+
+    *Thibault Gautriaud*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
