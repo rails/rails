@@ -438,4 +438,264 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
+
+  class ChildCustomDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class ParentCustomDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class HasOneChildDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class HasOneParentDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class BelongsToTargetDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class BelongsToOwnerDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class ThroughTargetDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  class ThroughSourceDestroyJob < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :call_count, default: 0
+
+    def perform(**options)
+      self.class.call_count += 1
+      super
+    end
+  end
+
+  test "uses child model's destroy_association_async_job when available" do
+    # Save original jobs
+    original_essay_job = EssayDestroyAsync.destroy_association_async_job
+    original_book_job = BookDestroyAsync.destroy_association_async_job
+
+    # Reset counters
+    ChildCustomDestroyJob.call_count = 0
+    ParentCustomDestroyJob.call_count = 0
+
+    # Set custom jobs
+    EssayDestroyAsync.destroy_association_async_job = ChildCustomDestroyJob
+    BookDestroyAsync.destroy_association_async_job = ParentCustomDestroyJob
+
+    # Create parent with children
+    parent = BookDestroyAsync.create!(name: "Parent Book")
+    EssayDestroyAsync.create!(name: "Child Essay 1", book_id: parent.id)
+    EssayDestroyAsync.create!(name: "Child Essay 2", book_id: parent.id)
+
+    # Destroy parent should use child's job
+    assert_enqueued_jobs 1 do
+      parent.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, ChildCustomDestroyJob.call_count, "Child's custom job should have been used"
+    assert_equal 0, ParentCustomDestroyJob.call_count, "Parent's custom job should not have been used for children"
+
+    # Verify children were destroyed
+    assert_equal 0, EssayDestroyAsync.where(book_id: parent.id).count
+  ensure
+    # Restore original jobs
+    EssayDestroyAsync.destroy_association_async_job = original_essay_job
+    BookDestroyAsync.destroy_association_async_job = original_book_job
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "falls back to parent's destroy_association_async_job when child has none" do
+    # Save original jobs
+    original_essay_job = EssayDestroyAsync.destroy_association_async_job
+    original_book_job = BookDestroyAsync.destroy_association_async_job
+
+    # Reset counter
+    ParentCustomDestroyJob.call_count = 0
+
+    # Set parent job only (child has none)
+    EssayDestroyAsync.destroy_association_async_job = nil
+    BookDestroyAsync.destroy_association_async_job = ParentCustomDestroyJob
+
+    # Create parent with children
+    parent = BookDestroyAsync.create!(name: "Parent Book")
+    EssayDestroyAsync.create!(name: "Child Essay", book_id: parent.id)
+
+    # Destroy parent should fall back to parent's job
+    assert_enqueued_jobs 1 do
+      parent.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, ParentCustomDestroyJob.call_count, "Parent's custom job should be used as fallback"
+
+    # Verify children were destroyed
+    assert_equal 0, EssayDestroyAsync.where(book_id: parent.id).count
+  ensure
+    # Restore original jobs
+    EssayDestroyAsync.destroy_association_async_job = original_essay_job
+    BookDestroyAsync.destroy_association_async_job = original_book_job
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "uses child model's destroy_association_async_job for has_one association" do
+    # Save original jobs
+    original_content_job = Content.destroy_association_async_job
+    original_book_job = BookDestroyAsync.destroy_association_async_job
+
+    # Reset counters
+    HasOneChildDestroyJob.call_count = 0
+    HasOneParentDestroyJob.call_count = 0
+
+    # Set custom jobs
+    Content.destroy_association_async_job = HasOneChildDestroyJob
+    BookDestroyAsync.destroy_association_async_job = HasOneParentDestroyJob
+
+    # Create parent with child
+    parent = BookDestroyAsync.create!(name: "Test Book")
+    Content.create!(book_destroy_async_id: parent.id, title: "Test Content")
+
+    # Destroy parent should use child's job
+    assert_enqueued_jobs 1 do
+      parent.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, HasOneChildDestroyJob.call_count, "Child's custom job should have been used for has_one"
+    assert_equal 0, HasOneParentDestroyJob.call_count, "Parent's custom job should not have been used"
+
+    # Verify child was destroyed
+    assert_equal 0, Content.where(book_destroy_async_id: parent.id).count
+  ensure
+    # Restore original jobs
+    Content.destroy_association_async_job = original_content_job
+    BookDestroyAsync.destroy_association_async_job = original_book_job
+    Content.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "uses target model's destroy_association_async_job for belongs_to association" do
+    # Save original jobs
+    original_author_job = Author.destroy_association_async_job
+    original_essay_job = EssayDestroyAsync.destroy_association_async_job
+
+    # Reset counters
+    BelongsToTargetDestroyJob.call_count = 0
+    BelongsToOwnerDestroyJob.call_count = 0
+
+    # Set custom jobs
+    Author.destroy_association_async_job = BelongsToTargetDestroyJob
+    EssayDestroyAsync.destroy_association_async_job = BelongsToOwnerDestroyJob
+
+    # Create owner with target
+    target = Author.create!(name: "Test Author")
+    owner = EssayDestroyAsync.create!(name: "Test Essay", writer_id: target.id, writer_type: "Author")
+
+    # Destroy owner should use target's job
+    assert_enqueued_jobs 1 do
+      owner.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, BelongsToTargetDestroyJob.call_count, "Target's custom job should have been used for belongs_to"
+    assert_equal 0, BelongsToOwnerDestroyJob.call_count, "Owner's custom job should not have been used"
+
+    # Verify target was destroyed
+    assert_nil Author.find_by(id: target.id)
+  ensure
+    # Restore original jobs
+    Author.destroy_association_async_job = original_author_job
+    EssayDestroyAsync.destroy_association_async_job = original_essay_job
+    EssayDestroyAsync.delete_all
+    Author.delete_all
+  end
+
+  test "uses target model's destroy_association_async_job for has_many :through association" do
+    # Save original jobs
+    original_tag_job = Tag.destroy_association_async_job
+    original_book_job = BookDestroyAsync.destroy_association_async_job
+
+    # Reset counters
+    ThroughTargetDestroyJob.call_count = 0
+    ThroughSourceDestroyJob.call_count = 0
+
+    # Set custom jobs
+    Tag.destroy_association_async_job = ThroughTargetDestroyJob
+    BookDestroyAsync.destroy_association_async_job = ThroughSourceDestroyJob
+
+    # Create source with targets through join
+    source = BookDestroyAsync.create!(name: "Test Book")
+    tag1 = Tag.create!(name: "Tag 1")
+    tag2 = Tag.create!(name: "Tag 2")
+    source.tags << [tag1, tag2]
+
+    # Destroy source should use target's job
+    assert_enqueued_jobs 1 do
+      source.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, ThroughTargetDestroyJob.call_count,
+                 "Target's custom job should have been used for has_many :through"
+    assert_equal 0, ThroughSourceDestroyJob.call_count, "Source's custom job should not have been used"
+
+    # Verify targets were destroyed
+    assert_equal 0, Tag.where(id: [tag1.id, tag2.id]).count
+  ensure
+    # Restore original jobs
+    Tag.destroy_association_async_job = original_tag_job
+    BookDestroyAsync.destroy_association_async_job = original_book_job
+    Tag.delete_all
+    Tagging.delete_all
+    BookDestroyAsync.delete_all
+  end
 end
