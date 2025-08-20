@@ -1,3 +1,26 @@
+*   Remove unnecessary calls to the GCP metadata server.
+
+    Calling Google::Auth.get_application_default triggers an explicit call to
+    the metadata server - given it was being called for significant number of
+    file operations, it can lead to considerable tail latencies and even metadata
+    server overloads. Instead, it's preferable (and significantly more efficient)
+    that applications use:
+
+    ```ruby
+    Google::Apis::RequestOptions.default.authorization = Google::Auth.get_application_default(...)
+    ```
+
+    In the cases applications do not set that, the GCP libraries automatically determine credentials.
+
+    This also enables using credentials other than those of the associated GCP
+    service account like when using impersonation.
+
+    *Alex Coomans*
+
+*   Direct upload progress accounts for server processing time.
+
+    *Jeremy Daer*
+
 *   Delegate `ActiveStorage::Filename#to_str` to `#to_s`
 
     Supports checking String equality:

@@ -3,6 +3,38 @@
 require "delegate"
 
 module ActionMailer
+  class << self
+    # Enqueue many emails at once to be delivered through Active Job.
+    # When the individual job runs, it will send the email using +deliver_now+.
+    def deliver_all_later(*deliveries, **options)
+      _deliver_all_later("deliver_now", *deliveries, **options)
+    end
+
+    # Enqueue many emails at once to be delivered through Active Job.
+    # When the individual job runs, it will send the email using +deliver_now!+.
+    # That means that the message will be sent bypassing checking +perform_deliveries+
+    # and +raise_delivery_errors+, so use with caution.
+    def deliver_all_later!(*deliveries, **options)
+      _deliver_all_later("deliver_now!", *deliveries, **options)
+    end
+
+    private
+      def _deliver_all_later(delivery_method, *deliveries, **options)
+        deliveries.flatten!
+
+        jobs = deliveries.map do |delivery|
+          mailer_class = delivery.mailer_class
+          delivery_job = mailer_class.delivery_job
+
+          delivery_job
+            .new(mailer_class.name, delivery.action.to_s, delivery_method, params: delivery.params, args: delivery.args)
+            .set(options)
+        end
+
+        ActiveJob.perform_all_later(jobs)
+      end
+  end
+
   # = Action Mailer \MessageDelivery
   #
   # The +ActionMailer::MessageDelivery+ class is used by
@@ -17,6 +49,8 @@ module ActionMailer
   #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
+    attr_reader :mailer_class, :action, :params, :args # :nodoc:
+
     def initialize(mailer_class, action, *args) # :nodoc:
       @mailer_class, @action, @args = mailer_class, action, args
 

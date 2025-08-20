@@ -117,7 +117,7 @@ module ActionView
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
@@ -139,6 +139,8 @@ module ActionView
           }.merge!(options)
           if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_scripts)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
           content_tag("script", "", tag_options)
         }.join("\n").html_safe
@@ -209,7 +211,7 @@ module ActionView
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         integrity = options["integrity"]
 
         sources_tags = sources.uniq.map { |source|
@@ -229,6 +231,8 @@ module ActionView
           }.merge!(options)
           if tag_options["nonce"] == true || (!tag_options.key?("nonce") && auto_include_nonce_for_styles)
             tag_options["nonce"] = content_security_policy_nonce
+          elsif tag_options["nonce"] == false
+            tag_options.delete("nonce")
           end
 
           if apply_stylesheet_media_default && tag_options["media"].blank?

@@ -12,6 +12,10 @@ module ActionDispatch
 
     def call(env)
       state = @executor.run!(reset: true)
+      if response_finished = env["rack.response_finished"]
+        response_finished << proc { state.complete! }
+      end
+
       begin
         response = @app.call(env)
 
@@ -20,7 +24,11 @@ module ActionDispatch
           @executor.error_reporter.report(error, handled: false, source: "application.action_dispatch")
         end
 
-        returned = response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
+        unless response_finished
+          response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
+        end
+        returned = true
+        response
       rescue Exception => error
         request = ActionDispatch::Request.new env
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
@@ -28,7 +36,9 @@ module ActionDispatch
         @executor.error_reporter.report(wrapper.unwrapped_exception, handled: false, source: "application.action_dispatch")
         raise
       ensure
-        state.complete! unless returned
+        if !returned && !response_finished
+          state.complete!
+        end
       end
     end
   end

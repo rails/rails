@@ -39,7 +39,7 @@ module ActiveJob # :nodoc:
   #   end
   #
   # Records that are passed in are serialized/deserialized using Global
-  # ID. More information can be found in Arguments.
+  # ID. More information can be found in ActiveJob::Arguments.
   #
   # To enqueue a job to be performed as soon as the queuing system is free:
   #
@@ -49,7 +49,7 @@ module ActiveJob # :nodoc:
   #
   #   ProcessPhotoJob.set(wait_until: Date.tomorrow.noon).perform_later(photo)
   #
-  # More information can be found in ActiveJob::Core::ClassMethods#set
+  # More information can be found in ActiveJob::Core::ClassMethods#set.
   #
   # A job can also be processed immediately without sending to the queue:
   #

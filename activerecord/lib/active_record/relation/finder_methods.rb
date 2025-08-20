@@ -24,22 +24,22 @@ module ActiveRecord
     #   TravelRoute.primary_key = [:origin, :destination]
     #
     #   TravelRoute.find(["Ottawa", "London"])
-    #   => #<TravelRoute origin: "Ottawa", destination: "London">
+    #   # => #<TravelRoute origin: "Ottawa", destination: "London">
     #
     #   TravelRoute.find([["Paris", "Montreal"]])
-    #   => [#<TravelRoute origin: "Paris", destination: "Montreal">]
+    #   # => [#<TravelRoute origin: "Paris", destination: "Montreal">]
     #
     #   TravelRoute.find(["New York", "Las Vegas"], ["New York", "Portland"])
-    #   => [
-    #        #<TravelRoute origin: "New York", destination: "Las Vegas">,
-    #        #<TravelRoute origin: "New York", destination: "Portland">
-    #      ]
+    #   # => [
+    #   #      #<TravelRoute origin: "New York", destination: "Las Vegas">,
+    #   #      #<TravelRoute origin: "New York", destination: "Portland">
+    #   #    ]
     #
     #   TravelRoute.find([["Berlin", "London"], ["Barcelona", "Lisbon"]])
-    #   => [
-    #        #<TravelRoute origin: "Berlin", destination: "London">,
-    #        #<TravelRoute origin: "Barcelona", destination: "Lisbon">
-    #      ]
+    #   # => [
+    #   #      #<TravelRoute origin: "Berlin", destination: "London">,
+    #   #      #<TravelRoute origin: "Barcelona", destination: "Lisbon">
+    #   #    ]
     #
     # NOTE: The returned records are in the same order as the ids you provide.
     # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
@@ -424,12 +424,13 @@ module ActiveRecord
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name, key)
       elsif Array.wrap(ids).size == 1
-        error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
+        id = Array.wrap(ids)[0]
+        error = "Couldn't find #{name} with '#{key}'=#{id.inspect}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
         error = +"Couldn't find all #{name.pluralize} with '#{key}': "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
-        error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
+        error << "(#{ids.map(&:inspect).join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
+        error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.map(&:inspect).join(', ')}." if not_found_ids
         raise RecordNotFound.new(error, name, key, ids)
       end
     end
@@ -638,8 +639,27 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && !_order_columns.empty?
-          order(_order_columns.map { |column| table[column].asc })
+        if order_values.empty?
+          if !_order_columns.empty?
+            return order(_order_columns.map { |column| table[column].asc })
+          end
+
+          if ActiveRecord.raise_on_missing_required_finder_order_columns
+            raise MissingRequiredOrderError, <<~MSG.squish
+              Relation has no order values, and #{model} has no order columns to use as a default.
+              Set at least one of `implicit_order_column`, `query_constraints` or `primary_key` on
+              the model when no `order `is specified on the relation.
+            MSG
+          else
+            ActiveRecord.deprecator.warn(<<~MSG)
+              Calling order dependent finder methods (e.g. `#first`, `#second`) without `order` values on the relation,
+              and on a model (#{model}) that does not have any order columns (`implicit_order_column`, `query_constraints`,
+              or `primary_key`) to fall back on is deprecated and will raise `ActiveRecord::MissingRequiredOrderError`
+              in Rails 8.2.
+            MSG
+
+            self
+          end
         else
           self
         end

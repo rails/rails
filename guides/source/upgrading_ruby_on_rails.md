@@ -104,6 +104,60 @@ set the `queue_adapter` config to something other than `:test`, but written test
 
 If no config is provided, the `TestAdapter` will continue to be used.
 
+### `alias_attribute` now bypasses custom methods on the original attribute
+
+In Rails 7.2, `alias_attribute` now bypasses custom methods defined on the original attribute and directly accesses the underlying database value. This change was announced via deprecation warnings in Rails 7.1.
+
+**Before (Rails 7.1):**
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  alias_attribute :username, :email
+end
+
+user = User.create!(email: "test@example.com")
+user.username
+# => "custom_test@example.com"
+```
+
+**After (Rails 7.2):**
+
+```ruby
+user = User.create!(email: "test@example.com")
+user.username
+# => "test@example.com"  # Raw database value
+```
+
+If you received the deprecation warning "Since Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore", you should manually define the alias method:
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  def username
+    email  # This will call the custom email method
+  end
+end
+```
+
+Alternatively, you can use `alias_method`:
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  alias_method :username, :email
+end
+```
+
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
@@ -251,7 +305,7 @@ config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 
 ### `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
 
-Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognised key.
+Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognized key.
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = true
@@ -264,7 +318,7 @@ I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
 I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
 ```
 
-If you don't want this behaviour, you can set `config.i18n.raise_on_missing_translations = false`:
+If you don't want this behavior, you can set `config.i18n.raise_on_missing_translations = false`:
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = false

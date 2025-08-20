@@ -15,7 +15,7 @@ module ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
-        if level = app.config.active_support.delete(:isolation_level)
+        if level = app.config.active_support.isolation_level
           ActiveSupport::IsolatedExecutionState.isolation_level = level
         end
       end
@@ -38,19 +38,35 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.reset_execution_context" do |app|
-      app.reloader.before_class_unload { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_run              { ActiveSupport::ExecutionContext.clear }
-      app.executor.to_complete         { ActiveSupport::ExecutionContext.clear }
+    initializer "active_support.set_event_reporter_context_store" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.event_reporter_context_store
+          ActiveSupport.event_reporter.context_store = klass
+        end
+      end
     end
 
-    initializer "active_support.reset_all_current_attributes_instances" do |app|
-      app.reloader.before_class_unload { ActiveSupport::CurrentAttributes.clear_all }
-      app.executor.to_run              { ActiveSupport::CurrentAttributes.reset_all }
-      app.executor.to_complete         { ActiveSupport::CurrentAttributes.reset_all }
+    initializer "active_support.reset_execution_context" do |app|
+      app.reloader.before_class_unload do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.clear
+        ActiveSupport.event_reporter.clear_context
+      end
+
+      app.executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      app.executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+        ActiveSupport.event_reporter.clear_context
+      end
 
       ActiveSupport.on_load(:active_support_test_case) do
         if app.config.active_support.executor_around_test_case
+          ActiveSupport::ExecutionContext.nestable = true
+
           require "active_support/executor/test_helper"
           include ActiveSupport::Executor::TestHelper
         else

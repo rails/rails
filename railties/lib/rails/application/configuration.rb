@@ -358,6 +358,19 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.escape_json_responses = false
+            action_controller.action_on_path_relative_redirect = :raise
+          end
+
+          if respond_to?(:active_record)
+            active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+          end
+
+          if respond_to?(:action_view)
+            action_view.remove_hidden_field_autocomplete = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

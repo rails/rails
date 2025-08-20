@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/callbacks"
+require "active_support/execution_context"
 require "active_support/core_ext/object/with"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
@@ -108,9 +109,9 @@ module ActiveSupport
       # ==== Options
       #
       # * <tt>:default</tt> - The default value for the attributes. If the value
-      # is a proc or lambda, it will be called whenever an instance is
-      # constructed. Otherwise, the value will be duplicated with +#dup+.
-      # Default values are re-assigned when the attributes are reset.
+      #   is a proc or lambda, it will be called whenever an instance is
+      #   constructed. Otherwise, the value will be duplicated with +#dup+.
+      #   Default values are re-assigned when the attributes are reset.
       def attribute(*names, default: NOT_SET)
         invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
         if invalid_attribute_names.any?
@@ -153,13 +154,11 @@ module ActiveSupport
 
       delegate :set, :reset, to: :instance
 
-      def reset_all # :nodoc:
-        current_instances.each_value(&:reset)
-      end
-
       def clear_all # :nodoc:
-        reset_all
-        current_instances.clear
+        if instances = current_instances
+          instances.values.each(&:reset)
+          instances.clear
+        end
       end
 
       private
@@ -168,7 +167,7 @@ module ActiveSupport
         end
 
         def current_instances
-          IsolatedExecutionState[:current_attributes_instances] ||= {}
+          ExecutionContext.current_attributes_instances
         end
 
         def current_instances_key

@@ -579,14 +579,14 @@ To use the Rails model generator for a table using UUID as the primary key, pass
 For example:
 
 ```bash
-$ rails generate model Device --primary-key-type=uuid kind:string
+$ bin/rails generate model Device --primary-key-type=uuid kind:string
 ```
 
 When building a model with a foreign key that will reference this UUID, treat
 `uuid` as the native field type, for example:
 
 ```bash
-$ rails generate model Case device_id:uuid
+$ bin/rails generate model Case device_id:uuid
 ```
 
 Indexing

@@ -44,6 +44,10 @@ module TestCaseHelpers
       job_file(id).exist?
     end
 
+    def continuable_job_started(id = @id)
+      job_file("#{id}.started").exist?
+    end
+
     def job_data(id)
       Marshal.load(File.binread(job_file(id)))
     end

@@ -171,6 +171,8 @@ module ActionDispatch # :nodoc:
       worker_src:                 "worker-src"
     }.freeze
 
+    HASH_SOURCE_ALGORITHM_PREFIXES = ["sha256-", "sha384-", "sha512-"].freeze
+
     DEFAULT_NONCE_DIRECTIVES = %w[script-src style-src].freeze
 
     private_constant :MAPPINGS, :DIRECTIVES, :DEFAULT_NONCE_DIRECTIVES
@@ -305,7 +307,13 @@ module ActionDispatch # :nodoc:
           case source
           when Symbol
             apply_mapping(source)
-          when String, Proc
+          when String
+            if hash_source?(source)
+              "'#{source}'"
+            else
+              source
+            end
+          when Proc
             source
           else
             raise ArgumentError, "Invalid content security policy source: #{source.inspect}"
@@ -373,6 +381,10 @@ module ActionDispatch # :nodoc:
 
       def nonce_directive?(directive, nonce_directives)
         nonce_directives.include?(directive)
+      end
+
+      def hash_source?(source)
+        source.start_with?(*HASH_SOURCE_ALGORITHM_PREFIXES)
       end
   end
 end

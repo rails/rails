@@ -1,3 +1,136 @@
+*   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
+
+    This new assertion allows testing multiple events in a single block, regardless of order:
+
+    ```ruby
+    assert_events_reported([
+      { name: "user.created", payload: { id: 123 } },
+      { name: "email.sent", payload: { to: "user@example.com" } }
+    ]) do
+      create_user_and_send_welcome_email
+    end
+    ```
+
+    *George Ma*
+
+*   Add `ActiveSupport::TimeZone#standard_name` method.
+
+    ``` ruby
+    zone = ActiveSupport::TimeZone['Hawaii']
+    # Old way
+    ActiveSupport::TimeZone::MAPPING[zone.name]
+    # New way
+    zone.standard_name # => 'Pacific/Honolulu'
+    ```
+
+    *Bogdan Gusiev*
+
+*   Add Structured Event Reporter, accessible via `Rails.event`.
+
+    The Event Reporter provides a unified interface for producing structured events in Rails
+    applications:
+
+    ```ruby
+    Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    ```
+
+    It supports adding tags to events:
+
+    ```ruby
+    Rails.event.tagged("graphql") do
+      # Event includes tags: { graphql: true }
+      Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    end
+    ```
+
+    As well as context:
+    ```ruby
+    # All events will contain context: {request_id: "abc123", shop_id: 456}
+    Rails.event.set_context(request_id: "abc123", shop_id: 456)
+    ```
+
+    Events are emitted to subscribers. Applications register subscribers to
+    control how events are serialized and emitted.
+
+    *Adrianna Chang*
+
+*   Make `ActiveSupport::Logger` `#freeze`-friendly.
+
+    *Joshua Young*
+
+*   Make `ActiveSupport::Gzip.compress` deterministic based on input.
+
+    `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
+    causing consecutive calls with the same input data to have different output
+    if called during different seconds. It now always sets the timestamp to `0`
+    so that the output is identical for any given input.
+
+    *Rob Brackett*
+
+*   Given an array of `Thread::Backtrace::Location` objects, the new method
+    `ActiveSupport::BacktraceCleaner#clean_locations` returns an array with the
+    clean ones:
+
+    ```ruby
+    clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    ```
+
+    Filters and silencers receive strings as usual. However, the `path`
+    attributes of the locations in the returned array are the original,
+    unfiltered ones, since locations are immutable.
+
+    *Xavier Noria*
+
+*   Improve `CurrentAttributes` and `ExecutionContext` state managment in test cases.
+
+    Previously these two global state would be entirely cleared out whenever calling
+    into code that is wrapped by the Rails executor, typically Action Controller or
+    Active Job helpers:
+
+    ```ruby
+    test "#index works" do
+      CurrentUser.id = 42
+      get :index
+      CurrentUser.id == nil
+    end
+    ```
+
+    Now re-entering the executor properly save and restore that state.
+
+    *Jean Boussier*
+
+*   The new method `ActiveSupport::BacktraceCleaner#first_clean_location`
+    returns the first clean location of the caller's call stack, or `nil`.
+    Locations are `Thread::Backtrace::Location` objects. Useful when you want to
+    report the application-level location where something happened as an object.
+
+    *Xavier Noria*
+
+*   FileUpdateChecker and EventedFileUpdateChecker ignore changes in Gem.path now.
+
+    *Ermolaev Andrey*, *zzak*
+
+*   The new method `ActiveSupport::BacktraceCleaner#first_clean_frame` returns
+    the first clean frame of the caller's backtrace, or `nil`. Useful when you
+    want to report the application-level frame where something happened as a
+    string.
+
+    *Xavier Noria*
+
+*   Always clear `CurrentAttributes` instances.
+
+    Previously `CurrentAttributes` instance would be reset at the end of requests.
+    Meaning its attributes would be re-initialized.
+
+    This is problematic because it assume these objects don't hold any state
+    other than their declared attribute, which isn't always the case, and
+    can lead to state leak across request.
+
+    Now `CurrentAttributes` instances are abandoned at the end of a request,
+    and a new instance is created at the start of the next request.
+
+    *Jean Boussier*, *Janko Marohnić*
+
 *   Add public API for `before_fork_hook` in parallel testing.
 
     Introduces a public API for calling the before fork hooks implemented by parallel testing.

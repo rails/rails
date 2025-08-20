@@ -95,6 +95,10 @@ their gem, or as a stand-alone gem. For discussion about this see the
 following PRs: [23311](https://github.com/rails/rails/issues/23311#issuecomment-176275718),
 [21406](https://github.com/rails/rails/pull/21406#issuecomment-138813484), and [#32285](https://github.com/rails/rails/pull/32285).
 
+## Continuations
+
+Continuations allow jobs to be interrupted and resumed. See more at ActiveJob::Continuation.
+
 
 ## Download and installation
 
@@ -126,6 +130,6 @@ Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed on the rails-core mailing list here:
+Feature requests should be discussed on the rubyonrails-core forum here:
 
 * https://discuss.rubyonrails.org/c/rubyonrails-core

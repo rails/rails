@@ -204,4 +204,6 @@ module ActiveModel
         [@base, @attribute, @raw_type, @options.except(*CALLBACKS_OPTIONS)]
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_model_error, Error)
 end

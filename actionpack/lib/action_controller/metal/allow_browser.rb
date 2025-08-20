@@ -14,7 +14,7 @@ module ActionController # :nodoc:
       # aren't reporting a user-agent header, will be allowed access.
       #
       # A browser that's blocked will by default be served the file in
-      # public/406-unsupported-browser.html with a HTTP status code of "406 Not
+      # public/406-unsupported-browser.html with an HTTP status code of "406 Not
       # Acceptable".
       #
       # In addition to specifically named browser versions, you can also pass

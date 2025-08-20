@@ -1139,6 +1139,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved?
   end
 
+  def test_update_column_touch_option
+    topic = Topic.find(1)
+
+    assert_changes -> { topic.updated_at } do
+      travel(1.second) do
+        topic.update_column(:title, "super_title", touch: true)
+      end
+    end
+  end
+
+  def test_update_column_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_column(:title, "super_title", touch: { time: new_updated_at })
+    end
+  end
+
   def test_update_column_should_not_use_setter_method
     dev = Developer.find(1)
     dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
@@ -1228,6 +1247,53 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.reload
     assert_predicate topic, :approved?
     assert_equal "Sebastian Topic", topic.title
+  end
+
+  def test_update_columns_touch_option_updates_timestamps
+    topic = Topic.find(1)
+
+    assert_changes -> { topic.updated_at } do
+      travel(1.second) do
+        topic.update_columns(title: "super_title", touch: true)
+      end
+    end
+  end
+
+  def test_update_columns_touch_option_explicit_column_names
+    topic = Topic.find(1)
+
+    assert_changes -> { [topic.updated_at, topic.written_on] } do
+      travel(1.second) do
+        topic.update_columns(title: "super_title", touch: :written_on)
+      end
+    end
+  end
+
+  def test_update_columns_touch_option_not_overwrite_explicit_attribute
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", updated_at: new_updated_at, touch: true)
+    end
+  end
+
+  def test_update_columns_touch_option_not_overwrite_explicit_attribute_with_string_key
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", "updated_at" => new_updated_at, touch: true)
+    end
+  end
+
+  def test_update_columns_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", touch: { time: new_updated_at })
+    end
   end
 
   def test_update_columns_should_not_use_setter_method

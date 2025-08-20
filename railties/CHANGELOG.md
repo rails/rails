@@ -1,3 +1,23 @@
+*   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
+
+    ```bash
+    $ bin/rails credentials:fetch kamal_registry.password
+    ```
+
+    *Matthew Nguyen*, *Jean Boussier*
+
+*   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
+
+    Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
+    which regenerated the hash on each test run. Now generates a static hash with a comment
+    showing how to recreate it.
+
+    *Nate Smith*, *Cassia Scheffer*
+
+*   Broaden the `.gitignore` entry when adding a credentials key to ignore all key files.
+
+    *Greg Molnar*
+
 *   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
 
     *TangRufus*
@@ -103,5 +123,9 @@
 *   Only include PermissionsPolicy::Middleware if policy is configured.
 
     *Petrik de Heus*
+
+*   Only add browser restrictions for a new Rails app when using importmap.
+
+    *Lucas Dohmen*
 
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.
