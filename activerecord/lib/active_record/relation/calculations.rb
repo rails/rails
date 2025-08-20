@@ -216,7 +216,7 @@ module ActiveRecord
     def calculate(operation, column_name)
       operation = operation.to_s.downcase
 
-      if @none
+      if !@to_sql && @none
         case operation
         when "count", "sum"
           result = group_values.any? ? Hash.new : 0
@@ -293,7 +293,7 @@ module ActiveRecord
     #
     # See also #ids.
     def pluck(*column_names)
-      if @none
+      if !@to_sql && @none
         if @async
           return Promise::Complete.new([])
         else
@@ -301,7 +301,7 @@ module ActiveRecord
         end
       end
 
-      if loaded? && all_attributes?(column_names)
+      if !@to_sql && loaded? && all_attributes?(column_names)
         result = records.pluck(*column_names)
         if @async
           return Promise::Complete.new(result)
@@ -318,6 +318,8 @@ module ActiveRecord
         relation = spawn
         columns = relation.arel_columns(column_names)
         relation.select_values = columns
+        return relation.to_sql if @to_sql
+
         result = skip_query_cache_if_necessary do
           if where_clause.contradiction? && !possible_aggregation?(column_names)
             ActiveRecord::Result.empty(async: @async)
@@ -354,12 +356,17 @@ module ActiveRecord
     #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
     #   # => [ 'David', 'david@loudthinking.com' ]
     def pick(*column_names)
-      if loaded? && all_attributes?(column_names)
+      if !@to_sql && loaded? && all_attributes?(column_names)
         result = records.pick(*column_names)
         return @async ? Promise::Complete.new(result) : result
       end
 
-      limit(1).pluck(*column_names).then(&:first)
+      result = limit(1).pluck(*column_names)
+      if @to_sql
+        result
+      else
+        result.then(&:first)
+      end
     end
 
     # Same as #pick, but performs the query asynchronously and returns an
@@ -375,7 +382,7 @@ module ActiveRecord
     def ids
       primary_key_array = Array(primary_key)
 
-      if loaded?
+      if !@to_sql && loaded?
         result = records.map do |record|
           if primary_key_array.one?
             record._read_attribute(primary_key_array.first)
@@ -394,6 +401,7 @@ module ActiveRecord
       columns = arel_columns(primary_key_array)
       relation = spawn
       relation.select_values = columns
+      return relation.to_sql if @to_sql
 
       result = if relation.where_clause.contradiction?
         ActiveRecord::Result.empty
@@ -483,7 +491,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
         if build_count_subquery?(operation, column_name, distinct)
           # Shortcut when limit is zero.
-          return 0 if limit_value == 0
+          return 0 if !@to_sql && limit_value == 0
 
           relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
@@ -499,6 +507,7 @@ module ActiveRecord
 
           query_builder = relation.arel
         end
+        return relation.to_sql if @to_sql
 
         query_result = if relation.where_clause.contradiction?
           if @async
@@ -565,6 +574,7 @@ module ActiveRecord
 
           relation.group_values  = group_fields
           relation.select_values = select_values
+          return relation.to_sql if @to_sql
 
           result = skip_query_cache_if_necessary do
             connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)

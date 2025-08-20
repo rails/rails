@@ -101,6 +101,7 @@ module ActiveRecord
     autoload :AutosaveAssociation
     autoload :ConnectionAdapters
     autoload :DisableJoinsAssociationRelation
+    autoload :ExplainProxy
     autoload :FutureResult
     autoload :LegacyYamlAdapter
     autoload :Promise
@@ -109,6 +110,7 @@ module ActiveRecord
     autoload :StatementCache
     autoload :TableMetadata
     autoload :Transaction
+    autoload :ToSQLProxy
     autoload :Type
 
     autoload_under "relation" do
@@ -119,6 +121,7 @@ module ActiveRecord
       autoload :PredicateBuilder
       autoload :QueryMethods
       autoload :SpawnMethods
+      autoload :ToSQL
     end
   end
 
