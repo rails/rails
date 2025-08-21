@@ -80,19 +80,22 @@ TIP: You can follow along by browsing the Rails [source
 code](https://github.com/rails/rails) and use the `t` key binding to open file
 finder inside GitHub and find files quickly.
 
-Each section below is dedicated to the following lines from the main files involved in initialization:
+Each section below is dedicated to specific lines in the main files involved in running the `bin/rails server` command:
 
-* `require_relative "application"` in `config/environment.rb`
-* `require_relative "boot"` in `config/application.rb`
+* `bin/rails` script
+* `require_relative "boot"` in `bin/rails` script
+*  Requiring `application.rb` in `ServerCommand#perform`
 * `require "rails/all"` in `config/application.rb`
 * `Rails.application.initialize!` back in `config/environment.rb`
 
-How `bin/rails server` Command Works
-------------------------------------
+These sections will focus on the "booting" part of the initialization process. We cover "starting the web server" part in the last section.
 
-Let's start with what happens when we run `bin/rails server`. This section will focus on the "booting" part of the initialization process (we cover the "starting the web server" later).
+The `bin/rails` Script
+----------------------
 
-### The `bin/rails` Script
+Let's start with what happens when we run `bin/rails server` command. 
+
+INFO: TL;DR; In broad strokes, it loads the `config/application.rb` and eventually gets to loading `config/environment.rb` which runs the `Rails.application.initialize!` method.
 
 The `bin/rails` Ruby script is in the `bin` directory of your Rails application.
 This file contains only three lines:
@@ -104,10 +107,10 @@ require_relative "../config/boot"
 require "rails/commands"
 ```
 
-The `APP_PATH` constant will be used later in `rails/commands`. The
-second line requires the `boot.rb` file in the `config` directory in your Rails
-application. And the last line requires something called `rails/commands`.
-Let's see what both of those `requires` do next.
+The `APP_PATH` constant will be used later in `rails/commands`. The second line
+requires the `boot.rb` file in the `config` directory. And the last line
+requires something called `rails/commands`. Let's see what both of those
+`requires` do next.
 
 ### Requiring "config/boot" from "bin/rails" Script
 
@@ -130,81 +133,22 @@ The second line, `require "bundler/setup"`, makes all gems in your `Gemfile` ava
 
 The last line in `boot.rb` is for performance, it speeds up boot time by caching expensive operations (This line is optional but recommended for performance, especially in development and test environments.)
 
-Once `config/boot.rb` has finished, the next line in the `bin/rails` script is
-to require `rails/commands`. Let's look at what `rails/commands` is for.
+Once requiring `config/boot.rb` has finished, the next line in the `bin/rails`
+script is to require `rails/commands`. Let's look at what `rails/commands` is
+for.
 
-### Requiring "rails/commands" from "bin/rails" Script
+### Requiring `application.rb` in `ServerCommand#perform`
 
-The line `require "rails/commands"` in `bin/rails` loads the Rails command dispatcher. It parses your CLI arguments and routes the command to the correct sub-command like `server`, `console`, `generate`, etc. It's the entry point to all command-line interactions with a Rails app.
+The line `require "rails/commands"` in `bin/rails` script loads the Rails command dispatcher. It parses your CLI arguments and routes the command to the correct sub-command like `server`, `console`, `generate`, etc. It's the entry point to all command-line interactions with a Rails app.
 
 In the case of `bin/rails server`, the `ARGV` array simply contains `server`
-which will be passed over:
+which will be passed over to `server_command.rb`:
+
+With the `server` command, Rails will run the following `perform` method in the `ServerCommand` class:
 
 ```ruby
-require "rails/command"
+# railties/lib/rails/commands/server/server_command.rb
 
-aliases = {
-  "g"  => "generate",
-  "d"  => "destroy",
-  "c"  => "console",
-  "s"  => "server",
-  "db" => "dbconsole",
-  "r"  => "runner",
-  "t"  => "test"
-}
-
-command = ARGV.shift
-command = aliases[command] || command
-
-Rails::Command.invoke command, ARGV
-```
-
-If we had used `s` rather than `server`, Rails would have used the `aliases`
-defined here to find the matching command. Next, we see what the `require "rails/command"` does.
-
-#### `rails/command.rb`
-
-When one types a Rails command, `invoke` tries to lookup a command for the given
-namespace and executes the command if found.
-
-If Rails doesn't recognize the command, it hands the reins over to Rake to run a
-task of the same name.
-
-TODO: not sure if this whole `invoke` is needed, truncate
-```ruby
-module Rails
-  module Command
-    class << self
-      def invoke(full_namespace, args = [], **config)
-        args = ["--help"] if rails_new_with_no_path?(args)
-
-        full_namespace = full_namespace.to_s
-        namespace, command_name = split_namespace(full_namespace)
-        command = find_by_namespace(namespace, command_name)
-
-        with_argv(args) do
-          if command && command.all_commands[command_name]
-            command.perform(command_name, args, config)
-          else
-            invoke_rake(full_namespace, args, config)
-          end
-        end
-      rescue UnrecognizedCommandError => error
-        if error.name == full_namespace && command && command_name == full_namespace
-          command.perform("help", [], config)
-        else
-          puts error.detailed_message
-        end
-        exit(1)
-      end
-    end
-  end
-end
-```
-
-With the `server` command, Rails will further run the following code:
-
-```ruby
 module Rails
   module Command
     class ServerCommand < Base # :nodoc:
@@ -274,8 +218,7 @@ module MyAmazingApp
 end
 ```
 
-TODO: transition to environment.rb?
-At this point, the application is defined and configured but *not initialized*. The initialization happens from `config/environment.rb`. The `environment.rb` file is the entry point for Rails initialization.
+At this point, the application is defined and configured but *not initialized*. The initialization happens from `config/environment.rb`.
 
 The Entry Point: `config/environment.rb`
 ---------------------------------------
@@ -312,9 +255,6 @@ This file requires `config/boot.rb`:
 ```ruby
 require_relative "boot"
 ```
-
-But only if it hasn't been required before, which would be the case in
-`bin/rails server` but **wouldn't** be the case with Passenger.
 
 Then the fun begins!
 
@@ -538,6 +478,22 @@ After booting the application is done, the second part of the initialization pro
 Starting the Server
 -------------------
 
+`Rails::Server#start` calls `super()` which is `Rackup::Server#start`, which loads `config.ru` which requires `config/environment.rb`. And we're back!
+
+```ruby
+# server_command.rb
+    def start(after_stop_callback = nil)
+      trap(:INT) { exit }
+      create_tmp_directories
+      setup_dev_caching
+      log_to_stdout if options[:log_stdout]
+
+      super()
+    ensure
+      after_stop_callback.call if after_stop_callback
+    end
+```
+
 ### Rack: lib/rack/server.rb
 
 Last time we left when the `app` method was being defined:
@@ -588,7 +544,7 @@ end
 ```
 
 Remember, `build_app` was called (by `wrapped_app`) in the last line of
-`Rackup::Server#start`. Here's how it looked like when we left:
+[`Rackup::Server#start`](https://www.rubydoc.info/gems/rack/1.5.5/Rack/Server#start-instance_method). Here's how it looked like when we left:
 
 ```ruby
 server.run(wrapped_app, **options, &block)
