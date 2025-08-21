@@ -81,19 +81,9 @@ module ActiveSupport
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }
   #
-  # ==== Filtered Subscriptions
-  #
-  # Subscribers can be configured with an optional filter proc to only receive a subset of events:
-  #
-  #   # Only receive events with names starting with "user."
-  #   Rails.event.subscribe(user_subscriber) { |event| event[:name].start_with?("user.") }
-  #
-  #   # Only receive events with specific payload types
-  #   Rails.event.subscribe(audit_subscriber) { |event| event[:payload].is_a?(AuditEvent) }
-  #
   # The +notify+ API can receive either an event name and a payload hash, or an event object. Names are coerced to strings.
   #
-  # ==== Event Objects
+  # === Event Objects
   #
   # If an event object is passed to the +notify+ API, it will be passed through to subscribers as-is, and the name of the
   # object's class will be used as the event name.
@@ -104,7 +94,7 @@ module ActiveSupport
   #       @name = name
   #     end
   #
-  #     def to_h
+  #     def serialize
   #       {
   #         id: @id,
   #         name: @name
@@ -124,16 +114,82 @@ module ActiveSupport
   # An event is any Ruby object representing a schematized event. While payload hashes allow arbitrary,
   # implicitly-structured data, event objects are intended to enforce a particular schema.
   #
-  # Subscribers are responsible for serializing events to their desired format.
+  # Subscribers are responsible for serializing event objects.
   #
-  # ==== Debug Events
+  # === Subscribers
+  #
+  # Subscribers must implement the +emit+ method, which will be called with the event hash.
+  #
+  # The event hash has the following keys:
+  #
+  #   name: String (The name of the event)
+  #   payload: Hash, Object (The payload of the event, or the event object itself)
+  #   tags: Hash (The tags of the event)
+  #   context: Hash (The context of the event)
+  #   timestamp: Float (The timestamp of the event, in nanoseconds)
+  #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+  #
+  # Subscribers are responsible for encoding events to their desired format before emitting them to their
+  # target destination, such as a streaming platform, a log device, or an alerting service.
+  #
+  #   class JSONEventSubscriber
+  #     def emit(event)
+  #       json_data = JSON.generate(event)
+  #       LogExporter.export(json_data)
+  #     end
+  #   end
+  #
+  #   class LogSubscriber
+  #     def emit(event)
+  #       payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
+  #       source_location = event[:source_location]
+  #       log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
+  #       Rails.logger.info(log)
+  #     end
+  #   end
+  #
+  # Note that event objects are passed through to subscribers as-is, and may need to be serialized before being encoded:
+  #
+  #   class UserCreatedEvent
+  #     def initialize(id:, name:)
+  #       @id = id
+  #       @name = name
+  #     end
+  #
+  #     def serialize
+  #       {
+  #         id: @id,
+  #         name: @name
+  #       }
+  #     end
+  #   end
+  #
+  #   class LogSubscriber
+  #     def emit(event)
+  #       payload = event[:payload]
+  #       json_data = JSON.generate(payload.serialize)
+  #       LogExporter.export(json_data)
+  #     end
+  #   end
+  #
+  # ==== Filtered Subscriptions
+  #
+  # Subscribers can be configured with an optional filter proc to only receive a subset of events:
+  #
+  #   # Only receive events with names starting with "user."
+  #   Rails.event.subscribe(user_subscriber) { |event| event[:name].start_with?("user.") }
+  #
+  #   # Only receive events with specific payload types
+  #   Rails.event.subscribe(audit_subscriber) { |event| event[:payload].is_a?(AuditEvent) }
+  #
+  # === Debug Events
   #
   # You can use the +debug+ method to report an event that will only be reported if the
   # event reporter is in debug mode:
   #
   #   Rails.event.debug("my_debug_event", { foo: "bar" })
   #
-  # ==== Tags
+  # === Tags
   #
   # To add additional context to an event, separate from the event payload, you can add
   # tags via the +tagged+ method:
@@ -152,7 +208,7 @@ module ActiveSupport
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }
   #
-  # ==== Context Store
+  # === Context Store
   #
   # You may want to attach metadata to every event emitted by the reporter. While tags
   # provide domain-specific context for a series of events, context is scoped to the job / request
