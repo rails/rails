@@ -17,24 +17,75 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-What happens when you execute `bin/rails server` to start your Rails
-application? This guide goes through the method calls required to boot up the
-Ruby on Rails stack, explaining each part in detail along the way. It also
-explains how you can execute code by hooking into the initialization process and
-covers examples of Load Hooks and Initialization Hooks. This guide also briefly
-covers Railties and Engines as they relate to the initialization process.
+What happens when you execute the `bin/rails server` command in your Rails
+application? How is it that all the components of the Rails framework (e.g.
+Active Record, Active Job, etc.) are all configured and available to use in the
+context of a Rails application?
+
+This guide walks through what's involved in booting up the entire Ruby
+on Rails stack and what's available in what order. It also explains how you can
+execute custom code by hooking into the initialization process. Lastly, this
+guide briefly covers Railties and Engines as they relate to the initialization
+process.
 
 NOTE: Paths in this guide are relative to the root of a Rails application unless
 otherwise specified.
+
+Overview
+--------
+
+At a high level, the Rails initialization process has two parts: 
+
+* Booting the framework.
+* Starting the server.
+
+The booting part happens with majority of the `bin/rails` commands but only
+`bin/rails server` also starts the server. For example, `bin/rails console`
+boots the application but does not start the server. Rake tasks, such as
+`bin/rails db:migrate` also boot the application.
+
+The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you rarely open or modify, the last familiar file is where your application is defined and configured.
+
+Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb`. This file is the public interface for booting a Rails application. For example, if you have this line in a Ruby script, it will boot the Rails application:
+
+```ruby
+require "config/environment"
+```
+
+For Rake tasks, they can do the same by depending on the `:environment` task provided by Rails.
+
+TODO: when are different things available. Rails.env, Rails.root, Rails.logger, etc.
+
+┌──────────────────────┐
+│ Rails.application    │  <-- defines Rails.env, Rails.root
+└──────────────────────┘
+        ↓
+┌──────────────────────┐
+│ Framework config     │  <-- Rails.configuration, public_path, autoloaders
+└──────────────────────┘
+        ↓
+┌──────────────────────┐
+│ Built-in initializers│  <-- logger, cache, secrets, credentials
+└──────────────────────┘
+        ↓
+┌──────────────────────┐
+│ Custom initializers  │  <-- your config/initializers/*.rb
+└──────────────────────┘
+        ↓
+┌──────────────────────┐
+│ After initialize     │  <-- routing, encryptors, reloader
+└──────────────────────┘
 
 TIP: You can follow along by browsing the Rails [source
 code](https://github.com/rails/rails) and use the `t` key binding to open file
 finder inside GitHub and find files quickly.
 
-At a high level, the Rails initialization process has two parts: booting the
-framework and starting the server. The booting part happens with all `bin/rails`
-commands but only `bin/rails server` also starts the server. For example,
-`bin/rails console` boots the application but does not start the server.
+Each section below is dedicated to the following lines from the main files involved in initialization:
+
+* `require_relative "application"` in `config/environment.rb`
+* `require_relative "boot"` in `config/application.rb`
+* `require "rails/all"` in `config/application.rb`
+* `Rails.application.initialize!` back in `config/environment.rb`
 
 How `bin/rails server` Command Works
 ------------------------------------
@@ -267,7 +318,7 @@ But only if it hasn't been required before, which would be the case in
 
 Then the fun begins!
 
-What "rails/all" is
+What is "rails/all"
 -------------------
 
 The next line in `config/application.rb` is:
@@ -303,11 +354,10 @@ end
 ```
 
 This is where all the Rails frameworks are loaded and thus made available to the
-application. We won't go into detail of what happens inside each of those
-frameworks, but you're encouraged to try and explore them on your own.
+application. Common functionality like Rails engines, I18n and Rails
+configuration are all being defined here.
 
-For now, just keep in mind that common functionality like Rails engines, I18n
-and Rails configuration are all being defined here.
+In the next section, we see what a `Railtie` is and how it helps the above framework components  initialize.
 
 The Fun Part with `Rails.application.initialize!`
 -------------------------------------------------
@@ -357,8 +407,9 @@ class Rails::Engine < Rails::Railtie
 end
 ```
 
-Engines can have `config/initializers` and `config/routes.rb`
-A Rails application ships with a bunch of Engines, such as ActiveStorage::Engine, SolidCache::Engine, Turbo::Engine.
+Engines can have `config/initializers` and `config/routes.rb` A Rails
+application ships with a bunch of Engines, such as ActiveStorage::Engine,
+SolidCache::Engine, Turbo::Engine.
 
 A Rails application is a subclass of Rails Engine.
 
@@ -432,12 +483,12 @@ There are two parts to the initialization process: booting and starting the
 server. We have been talking about booting. Now we star the server. After this
 is done we go back to `Rackup::Server`.
 
-Hooks
------
+Hooking Into the Initialization Process
+---------------------------------------
 
-### Load Hooks
+### Lazy Load Hooks
 
-The purpose of Load Hooks is to do something when the application loads certain parts of the Rails framework. For example:
+The purpose of [Lazy Load Hooks](https://api.rubyonrails.org/v8.0/classes/ActiveSupport/LazyLoadHooks.html) is to do something when the application loads certain parts of the Rails framework. For example:
 
 ```ruby
 # config/initializers/my_active_record_extension.rb
@@ -445,6 +496,22 @@ ActiveSupport.on_load(:active_record) do
   include MyActiveRecordExtension
 end
 ```
+
+The Rails framework is responsible for loading the components and when a specific component (e.g. Active Record above), you can be notified with `ActiveSupport.on_load`.
+
+Registering a hook that has already run results in that hook executing immediately. This allows hooks to be nested for code that relies on multiple lazily loaded components:
+
+```ruby
+initializer "action_text.renderer" do
+  ActiveSupport.on_load(:action_controller_base) do
+    ActiveSupport.on_load(:action_text_content) do
+      self.default_renderer = Class.new(ActionController::Base).renderer
+    end
+  end
+end
+```
+
+TIP: You can search the Rails source code for `ActiveSupport.run_load_hooks` for all the components that support lazy load hooks.
 
 ### Initialization Hooks
 
@@ -457,6 +524,14 @@ Rails.application.configure do
   end
 end
 ```
+
+Some other Initialization Hooks are:
+
+* `config.before_configuration`
+* `config.before_initialize`
+* `config.to_prepare`
+* `config.before_eager_load`
+* `config.after_routes_loaded`
 
 After booting the application is done, the second part of the initialization process is starting a web server (for the `bin/rails server` command).
 
@@ -554,8 +629,8 @@ We won't dig into the server configuration itself, but this is the last piece of
 our journey in the Rails initialization process.
 
 This high level overview will help you understand when your code is executed and
-how, and overall become a better Rails developer. If you still want to know
-more, the Rails source code itself is probably the best place to go next.
+how. If you still want to know more, the Rails source code is the best place to
+go next.
 
 
 **********OLD VERSION**********
