@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
-require "active_storage/downloader"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
 
@@ -89,7 +88,7 @@ module ActiveStorage
     end
 
     def open(*args, **options, &block)
-      ActiveStorage::Downloader.new(self).open(*args, **options, &block)
+      download_and_verify_tempfile(*args, **options, &block)
     end
 
     # Concatenate multiple files into a single "composed" file.
@@ -196,6 +195,28 @@ module ActiveStorage
       def content_disposition_with(type: "inline", filename:)
         disposition = (type.to_s.presence_in(%w( attachment inline )) || "inline")
         ActionDispatch::Http::ContentDisposition.format(disposition: disposition, filename: filename.sanitized)
+      end
+
+      def download_and_verify_tempfile(key, checksum: nil, verify: true, name: "ActiveStorage-", tmpdir: nil)
+        file = Tempfile.open(name, tmpdir)
+        begin
+          file.binmode
+          download(key) { |chunk| file.write(chunk) }
+          file.flush
+          file.rewind
+
+          verify_integrity_of(file, checksum: checksum) if verify
+          yield file
+        ensure
+          file.close!
+        end
+      end
+
+      def verify_integrity_of(file, checksum:)
+        actual_checksum = compute_checksum(file)
+        unless actual_checksum == checksum
+          raise ActiveStorage::IntegrityError, "Checksum verification failed expecting #{checksum}, but downloaded file having #{actual_checksum}"
+        end
       end
   end
 end
