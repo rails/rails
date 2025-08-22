@@ -1,3 +1,7 @@
+*   Make `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
+
+    *Gannon McGibbon*
+
 *   Make `ActiveSupport::Logger` `#freeze`-friendly.
 
     *Joshua Young*

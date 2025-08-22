@@ -11,7 +11,8 @@ module ActiveSupport
         # This class wraps up local storage for middlewares. Only the middleware method should
         # construct them.
         class Middleware # :nodoc:
-          attr_reader :name, :cache
+          attr_reader :name
+          attr_accessor :cache
 
           def initialize(name, cache)
             @name = name
