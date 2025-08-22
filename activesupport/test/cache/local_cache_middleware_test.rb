@@ -60,6 +60,18 @@ module ActiveSupport
             assert_throws(:warden) { middleware.call({}) }
             assert_nil cache.local_cache
           end
+
+          def test_local_cache_middlewre_can_reassign_cache
+            cache = Cache.new
+            new_cache = Cache.new
+            middleware = Middleware.new("<3", cache).new(->(env) {
+              assert cache.local_cache, "should have a cache"
+              throw :warden
+            })
+            middleware.cache = new_cache
+
+            assert_same(new_cache, middleware.cache)
+          end
         end
       end
     end
