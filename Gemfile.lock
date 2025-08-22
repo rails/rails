@@ -33,6 +33,7 @@ PATH
     actionpack (7.2.2.2)
       actionview (= 7.2.2.2)
       activesupport (= 7.2.2.2)
+      cgi
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4, < 3.2)
@@ -99,6 +100,7 @@ PATH
     railties (7.2.2.2)
       actionpack (= 7.2.2.2)
       activesupport (= 7.2.2.2)
+      cgi
       irb (~> 1.13)
       rackup (>= 1.0.0)
       rake (>= 12.2)
@@ -375,6 +377,10 @@ GEM
     nio4r (2.7.3)
     nokogiri (1.18.8-aarch64-linux-gnu)
       racc (~> 1.4)
+    nokogiri (1.18.8-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.8-x86_64-linux-gnu)
+      racc (~> 1.4)
     os (1.1.4)
     parallel (1.24.0)
     parser (3.3.2.0)
@@ -505,6 +511,10 @@ GEM
       fugit (~> 1.1, >= 1.1.6)
     sass-embedded (1.77.4-aarch64-linux-gnu)
       google-protobuf (>= 3.25, < 5.0)
+    sass-embedded (1.77.4-arm64-darwin)
+      google-protobuf (>= 3.25, < 5.0)
+    sass-embedded (1.77.4-x86_64-linux-gnu)
+      google-protobuf (>= 3.25, < 5.0)
     sdoc (2.6.1)
       rdoc (>= 5.0)
     securerandom (0.4.1)
@@ -570,6 +580,10 @@ GEM
       prettier_print (>= 1.2.0)
     tailwindcss-rails (2.6.0-aarch64-linux)
       railties (>= 7.0.0)
+    tailwindcss-rails (2.6.0-arm64-darwin)
+      railties (>= 7.0.0)
+    tailwindcss-rails (2.6.0-x86_64-linux)
+      railties (>= 7.0.0)
     terser (1.2.2)
       execjs (>= 0.3.0, < 3)
     thor (1.3.1)
@@ -613,6 +627,8 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  arm64-darwin-24
+  x86_64-linux
 
 DEPENDENCIES
   aws-sdk-s3
