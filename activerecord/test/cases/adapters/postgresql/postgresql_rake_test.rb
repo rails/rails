@@ -373,14 +373,17 @@ module ActiveRecord
           statement
           -- lower comment
           \\unrestrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+
+          other_statement
         SQL
         expected_dump_sql = <<~SQL
           statement
           -- lower comment
+          other_statement
         SQL
         File.write(@filename, raw_dump_sql)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        assert_equal expected_dump_sql, File.readlines(@filename).first(2).join
+        assert_equal expected_dump_sql, File.readlines(@filename).first(3).join
       end
     end
 
