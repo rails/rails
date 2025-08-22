@@ -13,6 +13,7 @@ module RailsStrictWarnings # :nodoc:
     # Expected non-verbose warning emitted by Rails.
     /Ignoring .*\.yml because it has expired/,
     /Failed to validate the schema cache because/,
+    /Called deprecated method `upload_stream` of Aws::S3::Object. Use `Aws::S3::TransferManager#upload_stream` instead./,
   )
 
   SUPPRESSED_WARNINGS = Regexp.union(
