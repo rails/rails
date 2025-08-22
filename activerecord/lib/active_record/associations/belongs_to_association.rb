@@ -162,9 +162,15 @@ module ActiveRecord
         end
 
         def stale_state
-          Array(reflection.foreign_key).filter_map do |fk|
-            owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
-          end.presence
+          foreign_key = reflection.foreign_key
+          if foreign_key.is_a?(Array)
+            attributes = foreign_key.map do |fk|
+              owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+            end
+            attributes if attributes.any?
+          else
+            owner._read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
+          end
         end
     end
   end
