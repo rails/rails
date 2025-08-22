@@ -1,3 +1,7 @@
+*   Fix stale associaton detection for polymophic `belong_to`.
+
+    *François Beaurain*, *Thomas Crambert*
+
 *   Fix removal of PostgreSQL version comments in `structure.sql` for latest PostgreSQL versions which include `\restrict`
 
     *Brendan Weibrecht*
