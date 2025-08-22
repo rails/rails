@@ -95,7 +95,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.query_log_tags_format`](#config-active-record-query-log-tags-format): `:sqlcommenter`
 - [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `true`
 - [`config.active_record.run_after_transaction_callbacks_in_order_defined`](#config-active-record-run-after-transaction-callbacks-in-order-defined): `true`
-- [`config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`](#config-active-record-run-commit-callbacks-on-first-saved-instances-in-transaction): `false`
 - [`config.active_record.sqlite3_adapter_strict_strings_by_default`](#config-active-record-sqlite3-adapter-strict-strings-by-default): `true`
 - [`config.active_support.cache_format_version`](#config-active-support-cache-format-version): `7.1`
 - [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json_allow_marshal`
@@ -1421,26 +1420,6 @@ database.
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
-
-#### `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
-
-When multiple Active Record instances change the same record within a transaction, Rails runs `after_commit` or `after_rollback` callbacks for only one of them. This option specifies how Rails chooses which instance receives the callbacks.
-
-When `true`, transactional callbacks are run on the first instance to save, even though its instance state may be stale.
-
-When `false`, transactional callbacks are run on the instances with the freshest instance state. Those instances are chosen as follows:
-
-- In general, run transactional callbacks on the last instance to save a given record within the transaction.
-- There are two exceptions:
-    - If the record is created within the transaction, then updated by another instance, `after_create_commit` callbacks will be run on the second instance. This is instead of the `after_update_commit` callbacks that would naively be run based on that instance’s state.
-    - If the record is destroyed within the transaction, then `after_destroy_commit` callbacks will be fired on the last destroyed instance, even if a stale instance subsequently performed an update (which will have affected 0 rows).
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
 
 #### `config.active_record.default_column_serializer`
 

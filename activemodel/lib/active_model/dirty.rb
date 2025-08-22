@@ -262,7 +262,7 @@ module ActiveModel
     end
 
     def as_json(options = {}) # :nodoc:
-      except = [*options[:except], "mutations_from_database", "mutations_before_last_save"]
+      except = [*options[:except], "mutations_from_database", "mutations_before_last_save", "transaction_mutations_before_last_save"]
       options = options.merge except: except
       super(options)
     end
@@ -273,6 +273,7 @@ module ActiveModel
       unless defined?(@attributes)
         mutations_from_database.finalize_changes
       end
+      transaction_mutations_before_last_save
       @mutations_before_last_save = mutations_from_database
       forget_attribute_assignments
       @mutations_from_database = nil
@@ -326,6 +327,7 @@ module ActiveModel
       @mutations_before_last_save = nil
       forget_attribute_assignments
       @mutations_from_database = nil
+      @transaction_mutations_before_last_save = nil
     end
 
     def clear_attribute_changes(attr_names)
@@ -373,6 +375,7 @@ module ActiveModel
         super
         @mutations_before_last_save = nil
         @mutations_from_database = nil
+        @transaction_mutations_before_last_save = nil
       end
 
       def clear_attribute_change(attr_name)
@@ -417,6 +420,27 @@ module ActiveModel
           __send__("#{attr_name}=", attribute_was(attr_name))
           clear_attribute_change(attr_name)
         end
+      end
+
+      def merge_transaction_changes_from!(record)
+        record.__send__(:mutations_before_last_save).changes.each do |attr_name, changes|
+          @attributes.write_from_user(attr_name, changes.last)
+        end
+        mutations_before_last_save.merge_attributes_changes!(@attributes)
+      end
+
+      def apply_transaction_mutations_before_last_save!
+        @mutations_before_last_save = @transaction_mutations_before_last_save
+        @transaction_mutations_before_last_save = nil
+      end
+
+      def transaction_mutations_before_last_save
+        @transaction_mutations_before_last_save =
+          if @transaction_mutations_before_last_save
+            @transaction_mutations_before_last_save.merge_attributes_changes!(@attributes)
+          else
+            mutations_from_database
+          end
       end
   end
 end

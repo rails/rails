@@ -357,8 +357,6 @@ module ActiveRecord
 
             earlier_saved_candidate = candidates[record]
 
-            next if earlier_saved_candidate && record.class.run_commit_callbacks_on_first_saved_instances_in_transaction
-
             # If the candidate instance destroyed itself in the database, then
             # instances which were added to the transaction afterwards, and which
             # think they updated themselves, are wrong. They should not replace
@@ -373,7 +371,12 @@ module ActiveRecord
 
             # The last instance to save itself is likeliest to have internal
             # state that matches what's committed to the database
-            candidates[record] = record
+            candidates[record] =
+              if earlier_saved_candidate && !record.destroyed?
+                earlier_saved_candidate.__send__(:merge_transaction_changes_from!, record) && earlier_saved_candidate
+              else
+                record
+              end
           end
         end
     end

@@ -2922,32 +2922,6 @@ module ApplicationTests
       ActiveRecord.deprecated_associations_options = original_options
     end
 
-    test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction is false by default for new apps" do
-      app "development"
-
-      assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
-    end
-
-    test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction is true by default for upgraded apps" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app "development"
-
-      assert_equal true, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
-    end
-
-    test "ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction can be configured via config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction" do
-      remove_from_config '.*config\.load_defaults.*\n'
-
-      app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
-        Rails.application.config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction = false
-      RUBY
-
-      app "development"
-
-      assert_equal false, ActiveRecord::Base.run_commit_callbacks_on_first_saved_instances_in_transaction
-    end
-
     test "config.active_record.use_legacy_signed_id_verifier is :generate_and_verify by default for new apps" do
       app "development"
 

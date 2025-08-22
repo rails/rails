@@ -1,3 +1,80 @@
+*   Aggregate `saved_changes` across multiple updates within a transaction.
+
+    When updating different fields of the same record multiple times inside a single transaction, Rails previously reset the dirty fields on each update. As a result, the `saved_changes` hash available in `after_commit` only reflected the *last* update, even if multiple attributes had been changed during the transaction.
+    This caused two main inconsistencies:
+
+    * **Multiple instances of the same record:**
+      When two separate Active Record instances updated different fields of the same record within the same transaction, only one field change was visible in `saved_changes` inside `after_commit`.
+
+    * **Multiple updates on the same instance:**
+      When calling `update!` multiple times on the same record instance, changing different fields each time, `saved_changes` only contained the final update instead of all changes applied during the transaction.
+
+    Rails now **aggregates all changes across updates within a transaction**.
+    When the transaction commits, the `saved_changes` hash correctly reflects the full set of modifications performed during the transaction, regardless of whether they were made from different instances or through multiple updates on the same instance.
+
+    #### Before (multiple instances)
+
+    ```ruby
+    class User < ApplicationRecord
+      after_commit -> { puts "saved_changes: #{saved_changes.inspect}" }
+    end
+
+    User.transaction do
+      User.find(1).update!(name: "Alice")
+      User.find(1).update!(email: "alice@example.com")
+    end
+
+    # => saved_changes: { "email" => [nil, "alice@example.com"] }
+    # "name" change is lost
+    ```
+
+    #### After (multiple instances)
+
+    ```ruby
+    # => saved_changes: {
+    #      "name"  => [nil, "Alice"],
+    #      "email" => [nil, "alice@example.com"]
+    #    }
+    # both changes are preserved
+    ```
+
+    #### Before (same instance, multiple updates)
+
+    ```ruby
+    User.transaction do
+      user = User.find(1)
+
+      user.update!(name: "Alice")
+      user.update!(email: "alice@example.com")
+    end
+
+    # => saved_changes: { "email" => [nil, "alice@example.com"] }
+    # "name" change is lost
+    ```
+
+    #### After (same instance, multiple updates)
+
+    ```ruby
+    # => saved_changes: {
+    #      "name"  => [nil, "Alice"],
+    #      "email" => [nil, "alice@example.com"]
+    #    }
+    # both changes are preserved
+    ```
+
+    * **Removal of `run_commit_callbacks_on_first_saved_instances_in_transaction`**
+
+    ```ruby
+    config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction
+    ```
+
+    The configuration option is no longer needed and has been removed. Rails now consistently runs transactional callbacks on the instances with the freshest state, making this parameter redundant.
+
+    Fixes #51046, #49898, #45280
+
+    *Kazakbai Bolotbek_uulu*
+
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
