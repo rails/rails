@@ -2,7 +2,9 @@
 
 require "abstract_unit"
 require "active_job"
+require "mailers/base_mailer"
 require "mailers/delayed_mailer"
+require "mailers/params_mailer"
 
 class MessageDeliveryTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -133,6 +135,67 @@ class MessageDeliveryTest < ActiveSupport::TestCase
 
     assert_raise RuntimeError do
       @mail.deliver_later
+    end
+  end
+
+  test "deliver_all_later enqueues multiple deliveries" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_kwargs(argument: 1)
+
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", params: nil, args: [1]]) do
+      assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_kwargs", "deliver_now", params: nil, args: [argument: 1]]) do
+        ActionMailer.deliver_all_later(mail1, mail2)
+      end
+    end
+  end
+
+  test "deliver_all_later! enqueues multiple deliveries" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_kwargs(argument: 1)
+
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now!", params: nil, args: [1]]) do
+      assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_kwargs", "deliver_now!", params: nil, args: [argument: 1]]) do
+        ActionMailer.deliver_all_later!(mail1, mail2)
+      end
+    end
+  end
+
+  test "deliver_all_later enqueues multiple deliveries with correct jobs" do
+    old_delivery_job = BaseMailer.delivery_job
+    BaseMailer.delivery_job = DummyJob
+
+    mail1 = DelayedMailer.test_message
+    mail2 = BaseMailer.welcome
+
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", params: nil, args: []]) do
+      assert_performed_with(job: DummyJob, args: ["BaseMailer", "welcome", "deliver_now", params: nil, args: []]) do
+        ActionMailer.deliver_all_later(mail1, mail2)
+      end
+    end
+  ensure
+    BaseMailer.delivery_job = old_delivery_job
+  end
+
+  test "deliver_all_later enqueues multiple deliveries with custom options" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", params: nil, args: [1]], queue: "another_queue") do
+      assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", params: nil, args: [2]], queue: "another_queue") do
+        ActionMailer.deliver_all_later(mail1, mail2, queue: :another_queue)
+      end
+    end
+  end
+
+  test "deliver_all_later enqueues parameterized emails" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = ParamsMailer.with(inviter: "david@basecamp.com", invitee: "jason@basecamp.com").invitation
+
+    assert_performed_with(job: ActionMailer::MailDeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", params: nil, args: [1]]) do
+      assert_performed_with(job: ActionMailer::MailDeliveryJob,
+                            args: ["ParamsMailer", "invitation", "deliver_now", args: [], params: { inviter: "david@basecamp.com", invitee: "jason@basecamp.com" }]) do
+        ActionMailer.deliver_all_later(mail1, mail2)
+      end
     end
   end
 

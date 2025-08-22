@@ -31,6 +31,72 @@ module ActiveStorage::Blob::Representable
   # Raises ActiveStorage::InvariableError if the variant processor cannot
   # transform the blob. To determine whether a blob is variable, call
   # ActiveStorage::Blob#variable?.
+  #
+  # ==== Options
+  #
+  # Options are defined by the {image_processing gem}[https://github.com/janko/image_processing],
+  # and depend on which variant processor you are using:
+  # {Vips}[https://github.com/janko/image_processing/blob/master/doc/vips.md] or
+  # {MiniMagick}[https://github.com/janko/image_processing/blob/master/doc/minimagick.md].
+  # However, both variant processors support the following options:
+  #
+  # [+:resize_to_limit+]
+  #   Downsizes the image to fit within the specified dimensions while retaining
+  #   the original aspect ratio. Will only resize the image if it's larger than
+  #   the specified dimensions.
+  #
+  #       user.avatar.variant(resize_to_limit: [100, 100])
+  #
+  # [+:resize_to_fit+]
+  #   Resizes the image to fit within the specified dimensions while retaining
+  #   the original aspect ratio. Will downsize the image if it's larger than the
+  #   specified dimensions or upsize if it's smaller.
+  #
+  #       user.avatar.variant(resize_to_fit: [100, 100])
+  #
+  # [+:resize_to_fill+]
+  #   Resizes the image to fill the specified dimensions while retaining the
+  #   original aspect ratio. If necessary, will crop the image in the larger
+  #   dimension.
+  #
+  #       user.avatar.variant(resize_to_fill: [100, 100])
+  #
+  # [+:resize_and_pad+]
+  #   Resizes the image to fit within the specified dimensions while retaining
+  #   the original aspect ratio. If necessary, will pad the remaining area with
+  #   transparent color if source image has alpha channel, black otherwise.
+  #
+  #       user.avatar.variant(resize_and_pad: [100, 100])
+  #
+  # [+:crop+]
+  #   Extracts an area from an image. The first two arguments are the left and
+  #   top edges of area to extract, while the last two arguments are the width
+  #   and height of the area to extract.
+  #
+  #       user.avatar.variant(crop: [20, 50, 300, 300])
+  #
+  # [+:rotate+]
+  #   Rotates the image by the specified angle.
+  #
+  #       user.avatar.variant(rotate: 90)
+  #
+  # Some options, including those listed above, can accept additional
+  # processor-specific values which can be passed as a trailing hash:
+  #
+  #     <!-- Vips supports configuring `crop` for many of its transformations -->
+  #     <%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
+  #
+  # If migrating an existing application between MiniMagick and Vips, you will
+  # need to update processor-specific options:
+  #
+  #     <!-- MiniMagick -->
+  #     <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg,
+  #           sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
+  #
+  #     <!-- Vips -->
+  #     <%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg,
+  #           saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
+  #
   def variant(transformations)
     if variable?
       variant_class.new(self, ActiveStorage::Variation.wrap(transformations).default_to(default_variant_transformations))

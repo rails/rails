@@ -382,6 +382,37 @@ class LoggerTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
   end
 
+  def test_logger_freeze
+    logger = @logger.clone
+    logger.freeze
+
+    assert_nothing_raised do
+      assert_equal Logger::DEBUG, logger.level
+
+      logger.debug "I am frozen 1"
+      assert_includes @output.string, "I am frozen 1"
+
+      logger.debug { "I am frozen 2" }
+      assert_includes @output.string, "I am frozen 2"
+
+      logger.add Logger::INFO, "I am frozen 3"
+      assert_includes @output.string, "I am frozen 3"
+
+      logger.silence do
+        logger.debug "I am frozen 4"
+      end
+      assert_not_includes @output.string, "I am frozen 4"
+    end
+
+    assert_raises FrozenError do
+      logger.level = Logger::INFO
+    end
+
+    assert_raises FrozenError do
+      logger.formatter = Logger::Formatter.new
+    end
+  end
+
   def test_temporarily_logging_at_a_noisier_level
     @logger.level = Logger::INFO
 

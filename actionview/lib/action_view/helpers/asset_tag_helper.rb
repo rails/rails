@@ -117,7 +117,7 @@ module ActionView
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
         preload_links = []
         use_preload_links_header = options["preload_links_header"].nil? ? preload_links_header : options.delete("preload_links_header")
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
@@ -211,7 +211,7 @@ module ActionView
         preload_links = []
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
-        nopush = options["nopush"].nil? ? true : options.delete("nopush")
+        nopush = options["nopush"].nil? || options.delete("nopush")
         integrity = options["integrity"]
 
         sources_tags = sources.uniq.map { |source|

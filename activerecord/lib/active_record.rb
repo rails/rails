@@ -53,6 +53,7 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
+  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -87,7 +88,6 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
-  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -109,6 +109,7 @@ module ActiveRecord
     autoload :Result
     autoload :StatementCache
     autoload :TableMetadata
+    autoload :Transaction
     autoload :Type
 
     autoload_under "relation" do

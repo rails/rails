@@ -969,7 +969,7 @@ module ActiveRecord
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
     #
-    # === Examples
+    # ==== Examples
     #
     #   # Touch all records
     #   Person.all.touch_all
