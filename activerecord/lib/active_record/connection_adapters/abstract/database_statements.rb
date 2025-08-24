@@ -354,7 +354,7 @@ module ActiveRecord
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
-          if isolation
+          if isolation && current_transaction.isolation != isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield current_transaction.user_transaction
