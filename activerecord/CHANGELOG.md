@@ -1,3 +1,18 @@
+*   Support virtual (not persisted) generated columns on PostgreSQL 18+
+
+    PostgreSQL 18 introduces virtual (not persisted) generated columns,
+    which are now the default unless the `stored: true` option is explicitly specified on PostgreSQL 18+.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :lower_name,  type: :string,  as: "LOWER(name)", stored: false
+      t.virtual :name_length, type: :integer, as: "LENGTH(name)"
+    end
+    ```
+
+    *Yasuo Honda*
+
 *   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
     so sensitive information is not leaked.
 
