@@ -153,7 +153,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
         def test_added_check_constraint_ensures_valid_values
           @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check"
 
-          assert_raises(ActiveRecord::StatementInvalid) do
+          assert_raises(ActiveRecord::CheckViolation) do
             Trade.create(quantity: -1)
           end
         end
@@ -164,7 +164,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
             @connection.add_check_constraint :trades, "quantity > 0", name: "quantity_check", validate: false
 
-            assert_raises(ActiveRecord::StatementInvalid) do
+            assert_raises(ActiveRecord::CheckViolation) do
               Trade.create(quantity: -1)
             end
           end
@@ -309,6 +309,24 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
           end
 
           assert_equal 0, @connection.check_constraints("trades").size
+        end
+
+        def test_check_constraint_violation_on_insert
+          @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+
+          assert_raises(ActiveRecord::CheckViolation) do
+            Trade.create(price: -10, quantity: 5)
+          end
+        end
+
+        def test_check_constraint_violation_on_update
+          @connection.add_check_constraint :trades, "price > 0", name: "price_check"
+
+          trade = Trade.create(price: 100, quantity: 5)
+
+          assert_raises(ActiveRecord::CheckViolation) do
+            trade.update(price: -10)
+          end
         end
       end
     end
