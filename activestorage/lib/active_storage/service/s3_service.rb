@@ -11,11 +11,13 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket
+    attr_reader :client, :transfer_manager, :bucket
     attr_reader :multipart_upload_threshold, :upload_options
 
     def initialize(bucket:, upload: {}, public: false, **options)
       @client = Aws::S3::Resource.new(**options)
+      @s3_client = @client.client
+      @transfer_manager = Aws::S3::TransferManager.new(client: @s3_client) if defined?(Aws::S3::TransferManager)
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
@@ -100,13 +102,19 @@ module ActiveStorage
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
       content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
 
-      object_for(destination_key).upload_stream(
+      upload_stream_options = {
         content_type: content_type,
         content_disposition: content_disposition,
         part_size: MINIMUM_UPLOAD_PART_SIZE,
         metadata: custom_metadata,
         **upload_options
-      ) do |out|
+      }
+      if transfer_manager
+        upload_stream_options[:bucket] = bucket.name
+        upload_stream_options[:key] = destination_key
+      end
+
+      (transfer_manager || object_for(destination_key)).upload_stream(**upload_stream_options) do |out|
         source_keys.each do |source_key|
           stream(source_key) do |chunk|
             IO.copy_stream(StringIO.new(chunk), out)
@@ -126,7 +134,6 @@ module ActiveStorage
         object_for(key).public_url(**client_opts)
       end
 
-
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
@@ -139,11 +146,22 @@ module ActiveStorage
       def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
         part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
 
-        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, metadata: custom_metadata, **upload_options) do |out|
+        upload_stream_options = {
+          content_type: content_type,
+          content_disposition: content_disposition,
+          part_size: part_size,
+          metadata: custom_metadata,
+          **upload_options
+        }
+        if transfer_manager
+          upload_stream_options[:bucket] = bucket.name
+          upload_stream_options[:key] = key
+        end
+
+        (transfer_manager || object_for(key)).upload_stream(**upload_stream_options) do |out|
           IO.copy_stream(io, out)
         end
       end
-
 
       def object_for(key)
         bucket.object(key)
