@@ -644,7 +644,7 @@ class CalculationsTest < ActiveRecord::TestCase
   end
 
   def test_should_count_with_manual_distinct_select_and_distinct
-    assert_equal 4, Account.select("DISTINCT accounts.firm_id").distinct(true).count
+    assert_equal 4, Account.select("DISTINCT accounts.firm_id").distinct.count
   end
 
   def test_should_count_manual_select_with_group_with_count_all

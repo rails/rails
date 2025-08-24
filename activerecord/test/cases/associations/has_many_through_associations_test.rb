@@ -1362,7 +1362,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create(post_id: post2.id, person_id: person3.id)
     Reader.create(post_id: post2.id, person_id: person4.id)
 
-    active_persons = Person.joins(:readers).joins(:posts).distinct(true).where("posts.title" => "active")
+    active_persons = Person.joins(:readers).joins(:posts).distinct.where("posts.title" => "active")
 
     assert_equal 10, active_persons.map(&:followers_count).reduce(:+)
     assert_equal 10, active_persons.sum(:followers_count)

@@ -821,6 +821,20 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       assert first.end > second.end
     end
 
+    def test_lock_with_true_argument_deprecation
+      person = Person.find 1
+      assert_deprecated(ActiveRecord.deprecator) { person.lock!(true) }
+      assert_not_deprecated(ActiveRecord.deprecator) { person.lock!("FOR UPDATE") }
+      assert_not_deprecated(ActiveRecord.deprecator) { person.lock!(Arel.sql("FOR UPDATE")) }
+    end
+
+    def test_with_lock_with_true_argument_deprecation
+      person = Person.find 1
+      assert_deprecated(ActiveRecord.deprecator) { person.with_lock(true) { } }
+      assert_not_deprecated(ActiveRecord.deprecator) { person.with_lock("FOR UPDATE") { } }
+      assert_not_deprecated(ActiveRecord.deprecator) { person.with_lock(Arel.sql("FOR UPDATE")) { } }
+    end
+
     private
       def duel(&block)
         t0, t1, t2, t3 = nil, nil, nil, nil
@@ -952,6 +966,14 @@ class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
     ActiveRecord::Base.while_preventing_writes do
       assert_raises(ActiveRecord::ReadOnlyError) do
         Person.lock.find_by id: 1
+      end
+    end
+  end
+
+  def test_relation_unscope_lock_when_preventing_writes
+    ActiveRecord::Base.while_preventing_writes do
+      assert_nothing_raised do
+        Person.lock.unscope_lock.find_by id: 1
       end
     end
   end

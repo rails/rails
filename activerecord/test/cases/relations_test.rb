@@ -1067,11 +1067,11 @@ class RelationTest < ActiveRecord::TestCase
   def test_count_with_distinct
     posts = Post.all
 
-    assert_equal 4, posts.distinct(true).count(:comments_count)
-    assert_equal 11, posts.distinct(false).count(:comments_count)
+    assert_equal 4, posts.distinct.count(:comments_count)
+    assert_equal 11, posts.unscope_distinct.count(:comments_count)
 
-    assert_equal 4, posts.distinct(true).select(:comments_count).count
-    assert_equal 11, posts.distinct(false).select(:comments_count).count
+    assert_equal 4, posts.distinct.select(:comments_count).count
+    assert_equal 11, posts.unscope_distinct.select(:comments_count).count
   end
 
   def test_size_with_distinct
@@ -1842,9 +1842,9 @@ class RelationTest < ActiveRecord::TestCase
       assert_equal ["Foo"], query.distinct.map(&:name)
     end
     assert_queries_match(/DISTINCT/) do
-      assert_equal ["Foo"], query.distinct(true).map(&:name)
+      assert_equal ["Foo"], query.distinct.map(&:name)
     end
-    assert_equal ["Foo", "Foo"], query.distinct(true).distinct(false).map(&:name)
+    assert_equal ["Foo", "Foo"], query.distinct.unscope_distinct.map(&:name)
   end
 
   def test_doesnt_add_having_values_if_options_are_blank
@@ -2497,6 +2497,33 @@ class RelationTest < ActiveRecord::TestCase
       authors = Author.public_send(method, [""])
       assert_empty authors.public_send(:"#{method}_values")
     end
+  end
+
+  def test_lock_with_boolean_or_nil_argument_deprecation
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.lock(nil).to_a }
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.lock(true).to_a }
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.lock(false).to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.lock.to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.lock("FOR UPDATE").to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.lock(Arel.sql("FOR UPDATE")).to_a }
+  end
+
+  def test_readonly_with_argument_deprecation
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.readonly(true).to_a }
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.readonly(false).to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.readonly.to_a }
+  end
+
+  def test_strict_loading_with_argument_deprecation
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.strict_loading(true).to_a }
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.strict_loading(false).to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.strict_loading.to_a }
+  end
+
+  def test_distinct_with_argument_deprecation
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.distinct(true).to_a }
+    assert_deprecated(ActiveRecord.deprecator) { Post.all.distinct(false).to_a }
+    assert_not_deprecated(ActiveRecord.deprecator) { Post.all.distinct.to_a }
   end
 
   private

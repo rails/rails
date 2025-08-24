@@ -129,7 +129,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
       Developer.all.each { |d| assert_predicate d, :strict_loading? }
-      Developer.strict_loading(false).each { |d| assert_not d.strict_loading? }
+      Developer.unscope_strict_loading.each { |d| assert_not d.strict_loading? }
     end
   end
 
@@ -380,7 +380,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
     assert dev.strict_loading_audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
 
-    dev = Developer.eager_load(:strict_loading_audit_logs).strict_loading(false).first
+    dev = Developer.eager_load(:strict_loading_audit_logs).unscope_strict_loading.first
 
     assert dev.audit_logs.none?(&:strict_loading?), "Expected no audit logs to be strict_loading"
   end
@@ -397,7 +397,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_predicate dev, :strict_loading?
     assert dev.audit_logs.all?(&:strict_loading?), "Expected all audit logs to be strict_loading"
 
-    dev = Developer.eager_load(:audit_logs).strict_loading(false).first
+    dev = Developer.eager_load(:audit_logs).unscope_strict_loading.first
 
     assert_not_predicate dev, :strict_loading?
     assert dev.audit_logs.none?(&:strict_loading?), "Expected no audit logs to be strict_loading"

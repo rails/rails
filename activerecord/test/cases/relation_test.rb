@@ -227,9 +227,9 @@ module ActiveRecord
       assert_equal Relation::WhereClause.new([Arel.sql("(foo = ?)", "bar")]), relation.where_clause
     end
 
-    def test_merging_readonly_false
+    def test_merging_unscope_readonly
       relation = Relation.new(FakeKlass)
-      readonly_false_relation = relation.readonly(false)
+      readonly_false_relation = relation.unscope_readonly
       # test merging in both directions
       assert_equal false, relation.merge(readonly_false_relation).readonly_value
       assert_equal false, readonly_false_relation.merge(relation).readonly_value
