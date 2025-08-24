@@ -7,6 +7,8 @@ class CallbackMailer < ActionMailer::Base
   cattr_accessor :around_deliver_instance
   cattr_accessor :abort_before_deliver
   cattr_accessor :around_handles_error
+  cattr_accessor :callback_with_only_option
+  cattr_accessor :callback_with_except_option
 
   rescue_from CallbackMailerError do |error|
     @@rescue_from_error = error
@@ -18,6 +20,14 @@ class CallbackMailer < ActionMailer::Base
 
   after_deliver do
     @@after_deliver_instance = self
+  end
+
+  before_deliver only: :test_message do
+    @@callback_with_only_option << action_name
+  end
+
+  before_deliver except: [:test_message, :non_existent_action] do
+    @@callback_with_except_option << action_name
   end
 
   around_deliver do |mailer, block|
