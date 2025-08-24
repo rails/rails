@@ -29,13 +29,8 @@ module ActionController
       yield
     end
 
-    # Because of the above, we need to prevent the clearing of thread locals, since
-    # no new thread is actually spawned in the test environment.
-    alias_method :original_clean_up_thread_locals, :clean_up_thread_locals
-
-    silence_redefinition_of_method :clean_up_thread_locals
-    def clean_up_thread_locals(*args) # :nodoc:
-    end
+    # Since we removed threading from ActionController::Live, these methods are no longer needed
+    # The test environment now runs in the main thread without thread management
 
     # Avoid a deadlock from the queue filling up
     Buffer.queue_size = nil
