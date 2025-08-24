@@ -1,3 +1,8 @@
+*   Fix associations not respecting the `:primary_key` option when the association is a `has_one` or any
+    association with a custom scope.
+
+    *Joshua Young*
+
 *   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
     so sensitive information is not leaked.
 
@@ -489,6 +494,7 @@
     ```ruby
     serialize :config, coder: ActiveRecord::Coder::JSON.new(symbolize_names: true)
     ```
+
     *matthaigh27*
 
 *   Deprecate using `insert_all`/`upsert_all` with unpersisted records in associations.
