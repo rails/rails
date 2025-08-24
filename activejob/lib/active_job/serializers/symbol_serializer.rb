@@ -4,7 +4,7 @@ module ActiveJob
   module Serializers
     class SymbolSerializer < ObjectSerializer # :nodoc:
       def serialize(argument)
-        super("value" => argument.to_s)
+        super("value" => argument.name)
       end
 
       def deserialize(argument)

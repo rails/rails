@@ -89,7 +89,10 @@ module ActiveJob
         when ActiveSupport::HashWithIndifferentAccess
           serialize_indifferent_hash(argument)
         when Hash
-          symbol_keys = argument.each_key.grep(Symbol).map!(&:to_s)
+          symbol_keys = argument.keys
+          symbol_keys.select! { |k| k.is_a?(Symbol) }
+          symbol_keys.map!(&:name)
+
           aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
             RUBY2_KEYWORDS_KEY
           else
