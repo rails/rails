@@ -64,7 +64,7 @@ module ActiveJob
         RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
         OBJECT_SERIALIZER_KEY, OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
-      ]
+      ].to_set
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
@@ -89,7 +89,10 @@ module ActiveJob
         when ActiveSupport::HashWithIndifferentAccess
           serialize_indifferent_hash(argument)
         when Hash
-          symbol_keys = argument.each_key.grep(Symbol).map!(&:to_s)
+          symbol_keys = argument.keys
+          symbol_keys.select! { |k| k.is_a?(Symbol) }
+          symbol_keys.map!(&:name)
+
           aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
             RUBY2_KEYWORDS_KEY
           else
@@ -159,10 +162,12 @@ module ActiveJob
 
       def serialize_hash_key(key)
         case key
-        when *RESERVED_KEYS
+        when RESERVED_KEYS
           raise SerializationError.new("Can't serialize a Hash with reserved key #{key.inspect}")
-        when String, Symbol
-          key.to_s
+        when String
+          key
+        when Symbol
+          key.name
         else
           raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}")
         end
