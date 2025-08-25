@@ -200,6 +200,39 @@ module Arel
           }
         end
       end
+
+      describe "ValuesTable" do
+        before do
+          @rows = [[1, "one"], [2, "two"]]
+          @column_types = [FakeRecord::Column.new("id", :integer), FakeRecord::Column.new("name", :string)]
+        end
+
+        describe "MySQL syntax" do
+          it "outputs default sqlite column aliases if none given" do
+            values_table = Arel::ValuesTable.new(:data, @rows)
+
+            _(compile(values_table)).must_be_like %{
+              (VALUES ROW(1, 'one'), ROW(2, 'two')) "data" ("column1", "column2")
+            }
+          end
+
+          it "outputs column aliases if given" do
+            values_table = Arel::ValuesTable.new(:data, @rows, column_aliases: %i[id name])
+
+            _(compile(values_table)).must_be_like %{
+              (VALUES ROW(1, 'one'), ROW(2, 'two')) "data" ("id", "name")
+            }
+          end
+
+          it "ignores column_types" do
+            values_table = Arel::ValuesTable.new(:data, @rows, column_types: @column_types)
+
+            _(compile(values_table)).must_be_like %{
+              (VALUES ROW(1, 'one'), ROW(2, 'two')) "data" ("column1", "column2")
+            }
+          end
+        end
+      end
     end
   end
 end
