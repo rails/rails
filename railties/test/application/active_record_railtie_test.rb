@@ -71,6 +71,8 @@ module ApplicationTests
     test "filter_parameters are inherited from AR parent classes" do
       app "development"
 
+      ActiveRecord::Base.filter_attributes += [ "expires_at" ]
+
       class ApplicationRecord < ActiveRecord::Base
         self.abstract_class = true
         self.filter_attributes += [ "expires_at" ]
@@ -84,6 +86,7 @@ module ApplicationTests
       assert_includes Rails.application.config.filter_parameters, "credit_card.expires_at"
       assert_includes Rails.application.config.filter_parameters, "credit_card.digits"
       assert_not_includes Rails.application.config.filter_parameters, "application_record.expires_at"
+      assert_not_includes Rails.application.config.filter_parameters, "base.expires_at"
     end
   end
 end
