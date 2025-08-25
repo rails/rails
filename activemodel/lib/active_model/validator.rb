@@ -140,6 +140,7 @@ module ActiveModel
     def initialize(options)
       @attributes = Array(options.delete(:attributes))
       raise ArgumentError, ":attributes cannot be blank" if @attributes.empty?
+      options.transform_keys!(ignore_if_nil: :allow_nil, ignore_if_blank: :allow_blank)
       super
       check_validity!
     end
