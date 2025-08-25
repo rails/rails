@@ -31,6 +31,7 @@ module ActiveSupport
       autoload :RoundingHelper
       autoload :NumberToRoundedConverter
       autoload :NumberToDelimitedConverter
+      autoload :NumberFromDelimitedConverter
       autoload :NumberToHumanConverter
       autoload :NumberToHumanSizeConverter
       autoload :NumberToPhoneConverter
@@ -263,6 +264,47 @@ module ActiveSupport
     #
     def number_to_delimited(number, options = {})
       NumberToDelimitedConverter.convert(number, options)
+    end
+
+    # Formats +number+ by removing thousand groupings.
+    #
+    #   number_from_delimited("12,345,678")      # => 12345678
+    #   number_from_delimited("123,456")         # => 123456"
+    #   number_from_delimited("12,345,678.9876") # => 12345678.9876
+    #   number_from_delimited("12x34")           # => "12x34"
+    #
+    #   number_from_delimited("12.345.678,9876", delimiter: ".", separator: ",")
+    #   # => 12345678.9876
+    #
+    # ==== Options
+    #
+    # [+:locale+]
+    #   The locale to use for formatting. Defaults to the current locale.
+    #
+    #     number_from_delimited("12 345 678,05", locale: :fr)
+    #     # => 12345678.05
+    #
+    # [+:delimiter+]
+    #   The thousands delimiter. Defaults to <tt>","</tt>.
+    #
+    #     number_from_delimited("12.345.678", delimiter: ".")
+    #     # => 12345678
+    #
+    # [+:separator+]
+    #   The decimal separator. Defaults to <tt>"."</tt>.
+    #
+    #     number_from_delimited("12,345,678 05", separator: " ")
+    #     # => 12345678.05
+    #
+    # [+:delimiter_pattern+]
+    #   A regexp to determine the placement of delimiters. Helpful when using
+    #   currency formats like INR.
+    #
+    #     number_from_delimited("1,23,456.78", delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)
+    #     # => 123456.78
+    #
+    def number_from_delimited(number, options = {})
+      NumberFromDelimitedConverter.convert(number, options)
     end
 
     # Formats +number+ to a specific level of precision.
