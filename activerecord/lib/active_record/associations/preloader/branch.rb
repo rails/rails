@@ -8,7 +8,7 @@ module ActiveRecord
         attr_reader :scope, :associate_by_default
         attr_writer :preloaded_records
 
-        def initialize(association:, children:, parent:, associate_by_default:, scope:)
+        def initialize(association:, children:, parent:, associate_by_default:, scope:, load_columns: {})
           @association = if association
             begin
               @association = association.to_sym
@@ -19,7 +19,7 @@ module ActiveRecord
           @parent = parent
           @scope = scope
           @associate_by_default = associate_by_default
-
+          @load_columns = load_columns
           @children = build_children(children)
           @loaders = nil
         end
@@ -101,7 +101,15 @@ module ActiveRecord
 
             [klass, reflection_scope]
           end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+            normalize_columns_list(rhs_klass, reflection)
+            if @load_columns&.dig(rhs_klass.table_name.to_sym)&.any?
+              if reflection_scope.nil?
+                reflection_scope = rhs_klass.select(*@load_columns[rhs_klass.table_name.to_sym])
+              else
+                reflection_scope = reflection_scope.select(*@load_columns[rhs_klass.table_name.to_sym])
+              end
+            end
+            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default, load_columns: @load_columns)
           end
         end
 
@@ -132,7 +140,8 @@ module ActiveRecord
                   association: parent,
                   children: child,
                   associate_by_default: associate_by_default,
-                  scope: scope
+                  scope: scope,
+                  load_columns: @load_columns
                 )
               }
             }
@@ -146,6 +155,34 @@ module ActiveRecord
               ThroughAssociation
             else
               Association
+            end
+          end
+
+          def normalize_columns_list(rhs_klass, reflection)
+            return unless @load_columns
+
+            table_name = rhs_klass.table_name.to_sym
+            columns_list = Array(@load_columns[table_name])
+            columns_list = columns_list.map(&:to_s) & rhs_klass.column_names
+            if columns_list.any?
+              columns_list.unshift(rhs_klass.primary_key)
+              columns_list << rhs_klass.inheritance_column
+              if reflection.options[:through]
+                through_table_name = reflection.through_reflection.klass.table_name.to_sym
+                if @load_columns.key?(through_table_name)
+                  @load_columns[through_table_name] << reflection.through_reflection.foreign_key
+                  @load_columns[through_table_name] << reflection.source_reflection.foreign_key
+                end
+              end
+              columns_list << reflection.foreign_key
+              columns_list << reflection.type if reflection.options.key?(:as)
+              self.children.map(&:association).each do |association|
+                child_reflection = rhs_klass.reflect_on_association(association.to_sym)
+                columns_list << child_reflection.foreign_key if child_reflection.macro == :belongs_to
+              end
+              @load_columns[table_name] = columns_list.map(&:to_s) & rhs_klass.column_names
+            else
+              @load_columns.delete(table_name)
             end
           end
       end
