@@ -119,5 +119,11 @@ module ActiveJob
         LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
       end
     end
+
+    initializer "active_job.rate_limit_cache_store" do
+      ActiveSupport.on_load(:active_job) do
+        ActiveJob.rate_limit_cache_store ||= ::Rails.cache
+      end
+    end
   end
 end
