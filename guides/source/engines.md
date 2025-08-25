@@ -929,10 +929,10 @@ Copied migration <timestamp_1>_create_blorgh_articles.blorgh.rb from blorgh
 Copied migration <timestamp_2>_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
-INFO: When run for the first time, it copies over all the migrations from the
-engine. When run the next time, it will only copy over migrations that haven't
-been copied over already. This is useful if you want to revert the migrations
-from the engine.
+INFO: When run for the first time, `bin/rails blorgh:install:migrations` copies
+over all the migrations from the engine. When run the next time, it will only
+copy over migrations that haven't been copied over already. This is useful if
+you want to revert the migrations from the engine.
 
 #### Migrations for Multiple Engines
 
@@ -950,7 +950,7 @@ each engine individually.
 
 If your engine stores its migrations in the non-default location, you can
 specify a custom path in the source engine for the migrations using
-`MIGRATIONS_PATH`.
+`MIGRATIONS_PATH`:
 
 ```bash
 $ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
@@ -959,7 +959,7 @@ $ bin/rails railties:install:migrations MIGRATIONS_PATH=db_blorgh
 #### Migrations for Multiple Databases
 
 If you have multiple databases within an engine, you can specify the target
-database by specifying the `DATABASE` option.
+database by specifying the `DATABASE` option:
 
 ```bash
 $ bin/rails railties:install:migrations DATABASE=animals
@@ -975,7 +975,7 @@ individually.
 
 #### Running Migrations
 
-To run these migrations within the context of the application, run
+To run these migrations within the context of the application, run:
 
 ```bash
 $ bin/rails db:migrate
@@ -1051,10 +1051,20 @@ Add the `author_name` text field to the
 be added above the `title` field with the following code:
 
 ```html+erb
-<div class="field">
-  <%= form.label :author_name %><br>
-  <%= form.text_field :author_name %>
-</div>
+<%= form_with(model: article) do |form| %>
+  <%# ... %>
+
+  <div class="field">
+    <%= form.label :author_name %><br>
+    <%= form.text_field :author_name %>
+  </div>
+
+  <div>
+    <%= form.label :title, style: "display: block" %>
+    <%= form.text_field :title %>
+  </div>
+  <%# ... %>
+<% end %>
 ```
 
 The author's name should also be displayed on the article's page. Add this code
@@ -1085,7 +1095,7 @@ methods for this attribute.
 Start by adding the `attr_accessor` for `author_name`, the association for the
 author and the `before_validation` call into `app/models/blorgh/article.rb`.
 
-```ruby
+```ruby#7-10
 # app/models/blorgh/article.rb
 module Blorgh
   class Article < ApplicationRecord
@@ -1124,7 +1134,7 @@ $ bin/rails generate migration add_author_id_to_blorgh_articles author_id:intege
 
 #### Copying and Running the Migration in the Host Application
 
-As discussed in the [Copying the migrations](#copying-the-migrations) section,
+As discussed in the [Copying the Migrations](#copying-the-migrations) section,
 this new migration will need to be copied to the host application:
 
 ```bash
@@ -1160,7 +1170,7 @@ the `User` record from the host application:
 irb> article = Blorgh::Article.last
 => #<Blorgh::Article id: 1, title: "Hello, World!", text: "This is a test article.", created_at: "2025-07-16 19:04:54.552457000 +0000", updated_at: "2025-07-16 19:04:54.552457000 +0000", author_id: 1>
 
-irb> user = User.find(article.author_id)
+irb> user = article.author
 => #<User id: 1, name: "Fake Author 1", created_at: "2025-07-16 19:04:54.542709000 +0000", updated_at: "2025-07-16 19:04:54.542709000 +0000">
 ```
 
@@ -1250,7 +1260,9 @@ The line `self.author = User.find_or_create_by(name: author_name)` in the
 ```ruby
 # app/models/blorgh/article.rb
 
-self.author = Blorgh.author_class_name.constantize.find_or_create_by(name: author_name)
+def set_author
+  self.author = Blorgh.author_class_name.constantize.find_or_create_by(name: author_name)
+end
 ```
 
 To save having to call `constantize` on the `author_class_name` result all the
@@ -1324,11 +1336,12 @@ engines!
 If you wish to use an initializer - code that should run before the engine is
 loaded - the place for it is the `config/initializers` folder. This directory's
 functionality is explained in the [Initializers
-section](configuring.html#initializers) of the Configuring guide, and works
-precisely the same way as the `config/initializers` directory inside an
-application. The same thing goes if you want to use a standard initializer.
+section](configuring.html#initializers) of the Configuring Rails Applications
+guide, and works precisely the same way as the `config/initializers` directory
+inside an application. The same thing goes if you want to use a standard
+initializer.
 
-For locales, simply place the locale files in the `config/locales` directory,
+For locales, simply place the [locale files in the `config/locales` directory](i18n.html#providing-translations-for-internationalized-strings),
 just like you would in an application.
 
 Improving the Engine
@@ -1357,7 +1370,7 @@ module HostApplication
   class Application < Rails::Application
     # ...
 
-    overrides = "#{Rails.root}/app/overrides"
+    overrides = Rails.root.join("app/overrides")
     Rails.autoloaders.main.ignore(overrides)
 
     config.to_prepare do
@@ -1438,51 +1451,15 @@ by:
 
 Here’s how you can do it cleanly using `ActiveSupport::Concern`:
 
-##### Adding/Overriding methods
-
-Add the `Blorgh::Article#time_since_created` and override the
-`Blorgh::Article#summary` in the host application:
-
-```ruby
-# host_application/app/models/blorgh/article.rb
-class Blorgh::Article < ApplicationRecord
-  include Blorgh::Concerns::Models::Article
-
-  def time_since_created
-    Time.current - created_at
-  end
-
-  def summary
-    "#{title} - #{truncate(text)}"
-  end
-end
-```
-
-##### Setting Up the Engine’s Base Model
-
-Set up the engine’s base model:
-
-```ruby
-# blorgh/app/models/blorgh/article.rb
-module Blorgh
-  class Article < ApplicationRecord
-    include Blorgh::Concerns::Models::Article
-  end
-end
-```
-
 ##### Defining a Concern
 
-You can define a concern to contain engine-level behavior:
+First, define a concern that contains the shared behavior:
 
 ```ruby
 # blorgh/lib/concerns/models/article.rb
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
 
-  # `included do` causes the block to be evaluated in the context
-  # in which the module is included (i.e. Blorgh::Article),
-  # rather than in the module itself.
   included do
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
@@ -1507,6 +1484,41 @@ module Blorgh::Concerns::Models::Article
 end
 ```
 
+##### Setting Up the Engine’s Base Model
+
+Next, include the concern in the engine’s `Article` model. This ensures that
+engine users who don’t override the model still benefit from the concern’s
+behavior:
+
+```ruby
+# blorgh/app/models/blorgh/article.rb
+module Blorgh
+  class Article < ApplicationRecord
+    include Blorgh::Concerns::Models::Article
+  end
+end
+```
+
+##### Extending in the Host Application
+
+Finally, the host application can override and extend the model by reopening it.
+Here we add a new instance method and override the existing `summary` method:
+
+```ruby
+# host_application/app/models/blorgh/article.rb
+class Blorgh::Article < ApplicationRecord
+  include Blorgh::Concerns::Models::Article
+
+  def time_since_created
+    Time.current - created_at
+  end
+
+  def summary
+    "#{title} - #{truncate(text)}"
+  end
+end
+```
+
 ### Autoloading and Engines
 
 Please check the [Autoloading and Reloading
@@ -1527,10 +1539,7 @@ find it, it will then look inside the engine.
 
 You can override this view in the host application by creating a new file at
 `app/views/blorgh/articles/index.html.erb`. Then you can completely change what
-this view would normally output.
-
-Try this now by creating a new file at
-`app/views/blorgh/articles/index.html.erb` and put this content in it:
+this view would normally output, like the following:
 
 ```html+erb
 <h1>Articles</h1>
@@ -1660,8 +1669,8 @@ assets as dependencies within other stylesheets using a `require` directive:
 
 This allows engine styles to be bundled into application-wide stylesheets.
 
-INFO: Remember that in order to use languages like Sass or CoffeeScript, you
-should add the relevant library to your engine's `.gemspec`.
+INFO: Remember that in order to use languages like Sass or Haml, you should add
+the relevant library to your engine's `.gemspec`.
 
 ### Separate Assets and Precompiling
 
@@ -1704,15 +1713,15 @@ For more information, read the [Asset Pipeline guide](asset_pipeline.html).
 
 ### Writing Tests
 
+The `test/` directory works just like it does in a standard Rails application.
+You can write unit tests, functional tests, and integration tests to ensure your
+engine behaves as expected.
+
 When a Rails engine is generated, it includes a minimal host application inside
 the `test/dummy` directory. This "dummy app" is used solely for development and
 testing—it simulates how your engine will behave when used in a real
 application. You can extend the dummy app by adding controllers, models, or
 views as needed to help you test the engine’s functionality in context.
-
-The `test/` directory works just like it does in a standard Rails application.
-You can write unit tests, functional tests, and integration tests to ensure your
-engine behaves as expected.
 
 #### Functional and Integration Tests
 
@@ -1804,9 +1813,6 @@ module Blorgh
   end
 end
 ```
-
-Tests are organized in files under folders like `test/models` and
-`test/controllers` similar to an application.
 
 ### Gem Dependencies
 
