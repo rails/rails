@@ -74,7 +74,7 @@ class ActiveStorage::Variant
     "variants/#{blob.key}/#{OpenSSL::Digest::SHA256.hexdigest(variation.key)}"
   end
 
-  # Returns the URL of the blob variant on the service. See {ActiveStorage::Blob#url} for details.
+  # Returns the URL of the blob variant on the service. See ActiveStorage::Blob#url for details.
   #
   # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
