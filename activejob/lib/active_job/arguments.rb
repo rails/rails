@@ -26,6 +26,27 @@ module ActiveJob
   class SerializationError < ArgumentError; end
 
   module Arguments
+    module GlobalID # :nodoc:
+      extend self
+
+      GLOBALID_KEY = "_aj_globalid"
+
+      def serialized?(argument)
+        argument.is_a?(Hash) && argument.size == 1 && argument.include?(GLOBALID_KEY)
+      end
+
+      def serialize(argument)
+        { GLOBALID_KEY => argument.to_global_id.to_s }
+      rescue URI::GID::MissingModelIdError
+        raise SerializationError, "Unable to serialize #{argument.class} " \
+          "without an id. (Maybe you forgot to call save?)"
+      end
+
+      def deserialize(hash)
+        ::GlobalID.parse(hash[GLOBALID_KEY])
+      end
+    end
+
     extend self
     # Serializes a set of arguments. Intrinsic types that can safely be
     # serialized without mutation are returned as-is. Arrays/Hashes are
@@ -47,7 +68,7 @@ module ActiveJob
 
     private
       # :nodoc:
-      GLOBALID_KEY = "_aj_globalid"
+      GLOBALID_KEY = Arguments::GlobalID::GLOBALID_KEY
       # :nodoc:
       SYMBOL_KEYS_KEY = "_aj_symbol_keys"
       # :nodoc:
@@ -82,7 +103,7 @@ module ActiveJob
               argument
             end
           end
-        when GlobalID::Identification
+        when ::GlobalID::Identification
           convert_to_global_id_hash(argument)
         when Array
           argument.map { |arg| serialize_argument(arg) }
@@ -112,7 +133,7 @@ module ActiveJob
 
       def deserialize_argument(argument)
         case argument
-        when nil, true, false, String, Integer, Float
+        when nil, true, false, String, Integer, Float, ::GlobalID::Identification
           argument
         when Array
           argument.map { |arg| deserialize_argument(arg) }
@@ -130,11 +151,11 @@ module ActiveJob
       end
 
       def serialized_global_id?(hash)
-        hash.size == 1 && hash.include?(GLOBALID_KEY)
+        Arguments::GlobalID.serialized?(hash)
       end
 
       def deserialize_global_id(hash)
-        GlobalID::Locator.locate hash[GLOBALID_KEY]
+        Arguments::GlobalID.deserialize(hash).find
       end
 
       def custom_serialized?(hash)
@@ -193,10 +214,7 @@ module ActiveJob
       end
 
       def convert_to_global_id_hash(argument)
-        { GLOBALID_KEY => argument.to_global_id.to_s }
-      rescue URI::GID::MissingModelIdError
-        raise SerializationError, "Unable to serialize #{argument.class} " \
-          "without an id. (Maybe you forgot to call save?)"
+        Arguments::GlobalID.serialize(argument)
       end
   end
 end
