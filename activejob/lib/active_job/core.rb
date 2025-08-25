@@ -55,6 +55,9 @@ module ActiveJob
     # Track whether the adapter received the job successfully.
     attr_writer :successfully_enqueued # :nodoc:
 
+    # Arbitrary key-value headers attached to jobs
+    attr_accessor :headers
+
     def successfully_enqueued?
       @successfully_enqueued
     end
@@ -108,7 +111,8 @@ module ActiveJob
       @priority   = self.class.priority
       @executions = 0
       @exception_executions = {}
-      @timezone   = Time.zone&.name
+      @timezone = Time.zone&.name
+      @headers = {}
     end
     ruby2_keywords(:initialize)
 
@@ -128,6 +132,7 @@ module ActiveJob
         "timezone"   => timezone,
         "enqueued_at" => Time.now.utc.iso8601(9),
         "scheduled_at" => scheduled_at ? scheduled_at.utc.iso8601(9) : nil,
+        "headers" => headers
       }
     end
 
@@ -169,6 +174,7 @@ module ActiveJob
       self.timezone             = job_data["timezone"] || Time.zone&.name
       self.enqueued_at          = Time.iso8601(job_data["enqueued_at"]) if job_data["enqueued_at"]
       self.scheduled_at         = Time.iso8601(job_data["scheduled_at"]) if job_data["scheduled_at"]
+      self.headers              = job_data["headers"] || {}
     end
 
     # Configures the job with the given options.
@@ -179,6 +185,10 @@ module ActiveJob
       self.priority     = options[:priority].to_i if options[:priority]
 
       self
+    end
+
+    def set_header(name, value)
+      headers[name] = value
     end
 
     private

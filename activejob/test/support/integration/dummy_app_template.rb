@@ -22,7 +22,8 @@ class TestJob < ActiveJob::Base
       f.write Marshal.dump({
         "locale" => I18n.locale.to_s || "en",
         "timezone" => Time.zone&.name || "UTC",
-        "executed_at" => Time.now.to_r
+        "executed_at" => Time.now.to_r,
+        "headers" => headers
       })
     end
     File.rename(Rails.root.join("tmp/\#{x}.new"), Rails.root.join("tmp/\#{x}"))

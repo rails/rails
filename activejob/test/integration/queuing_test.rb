@@ -106,6 +106,19 @@ class QueuingTest < ActiveSupport::TestCase
     pass
   end
 
+  test "should allow adding arbitrary headers to jobs" do
+    job = TestJob.new(@id)
+    job.set_header("hello", "world")
+    job.enqueue
+    wait_for_jobs_to_finish_for(1.seconds)
+    assert_job_executed
+
+    data = job_data(@id)
+    headers = data["headers"]
+
+    assert_equal "world", headers["hello"]
+  end
+
   if adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
     test "should supply a provider_job_id when available for immediate jobs" do
       test_job = TestJob.perform_later @id
