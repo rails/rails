@@ -67,6 +67,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal comments(:greetings), Comment.where(author: [nil]).first
   end
 
+  def test_where_on_polymorphic_association_with_invalid_value
+    assert_raises(ArgumentError, match: /"invalid" is not a valid author/) do
+      Comment.where(author: "invalid")
+    end
+  end
+
   def test_where_on_polymorphic_association_with_empty_array
     assert_empty Comment.where(author: [])
   end
