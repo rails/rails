@@ -1,3 +1,14 @@
+*   Rate limiting calls `cache_key` on `by:` if the object responds to it.
+
+    ```ruby
+    class CommentsController < ApplicationController
+      # Cache key in the store would be `rate-limit:comments:user/1`
+      rate_limit to: 2, within: 2.seconds, by: -> { current_user }
+    end
+    ```
+
+    *Daniel Sabourin*
+
 *   Add a configuration for `ActionDispatch::ExceptionWrapper.silent_exceptions` at `config.action_dispatch.silent_exceptions`.
 
     Exceptions on this list do not fall back to framework-level backtraces when there is no application backtrace.
