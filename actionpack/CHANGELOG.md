@@ -1,3 +1,7 @@
+*   Add headers to engine routes inspection command
+
+    *Petrik de Heus*
+
 *   Add "Copy as text" button to error pages
 
     *Mikkel Malmberg*
