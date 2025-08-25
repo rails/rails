@@ -1,3 +1,22 @@
+*   Allow `by:` to return an object. If that object responds to `cache_key`,
+    that `cache_key` is used instead of the object in memory, which you'd rarely want
+
+    ```ruby
+    class CommentsController < ActionController::API
+      # Cache key in the store would be `rate-limit:comments:user/1`
+      rate_limit to: 2, within: 2.seconds, by: { current_user }
+
+      private
+
+      # Substitute however you load your user object (potentially using Devise)
+      def current_user
+        User.find(1)
+      end
+    end
+    ```
+
+    *Daniel Sabourin*
+
 *   Add headers to engine routes inspection command
 
     *Petrik de Heus*
