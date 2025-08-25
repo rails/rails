@@ -35,7 +35,8 @@ module ActionController
   # You **must** call close on your stream when you're finished, otherwise the
   # socket may be left open forever.
   #
-  # Actions are executed in the main thread, ensuring proper isolation and avoiding threading issues.
+  # Actions are executed in a separate thread than the main thread, allowing for non-blocking streaming
+  # while maintaining proper thread isolation to prevent connection state corruption.
   #
   # Note that Rails includes `Rack::ETag` by default, which will buffer your
   # response. As a result, streaming responses may not work properly with Rack
@@ -266,28 +267,51 @@ module ActionController
     end
 
     def process(name)
-      # Execute the action directly in the current thread
-      ActiveSupport::Dependencies.interlock.running do
-        begin
-          super(name)
-        rescue => e
-          if @_response.committed?
-            begin
-              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-              @_response.stream.call_on_error
-            rescue => exception
-              log_error(exception)
-            ensure
-              log_error(e)
-              @_response.stream.close
+      t1 = Thread.current
+      locals = t1.keys.map { |key| [key, t1[key]] }
+
+      error = nil
+      # This processes the action in a child thread. It lets us return the response
+      # code and headers back up the Rack stack, and still process the body in
+      # parallel with sending data to the client.
+      new_controller_thread {
+        ActiveSupport::Dependencies.interlock.running do
+          t2 = Thread.current
+
+          # Since we're processing the view in a different thread, copy the thread locals
+          # from the main thread to the child thread, but avoid sharing execution state
+          locals.each { |k, v| t2[k] = v }
+          
+          # FIXED: Don't share execution state to prevent connection corruption
+          # ActiveSupport::IsolatedExecutionState.share_with(t1)  # REMOVED
+
+          begin
+            super(name)
+          rescue => e
+            if @_response.committed?
+              begin
+                @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+                @_response.stream.call_on_error
+              rescue => exception
+                log_error(exception)
+              ensure
+                log_error(e)
+                @_response.stream.close
+              end
+            else
+              error = e
             end
-          else
-            raise e
+          ensure
+            # FIXED: Don't clear execution state to prevent corruption
+            # ActiveSupport::IsolatedExecutionState.clear  # REMOVED
+            
+            # Clean up thread locals to prevent memory leaks
+            clean_up_thread_locals(locals, t2)
           end
-        ensure
-          @_response.commit!
         end
-      end
+      }
+
+      raise error if error
     end
 
     def response_body=(body)
@@ -338,10 +362,22 @@ module ActionController
     end
 
     private
-      # Execute the controller action directly in the current thread.
+      # Spawn a new thread to serve up the controller in. This is to get around the
+      # fact that Rack isn't based around IOs and we need to use a thread to stream
+      # data from the response bodies. Nobody should call this method except in Rails
+      # internals. Seriously!
       def new_controller_thread # :nodoc:
-        # Execute directly in current thread - no threading needed
-        yield
+        # FIXED: Use simple Thread.new instead of complex thread pool to avoid state sharing issues
+        Thread.new do
+          t2 = Thread.current
+          t2.abort_on_exception = true
+          yield
+        end
+      end
+
+      # Ensure we clean up any thread locals we copied so that the thread can be reused.
+      def clean_up_thread_locals(locals, thread) # :nodoc:
+        locals.each { |k, _| thread[k] = nil }
       end
 
       def log_error(exception)
