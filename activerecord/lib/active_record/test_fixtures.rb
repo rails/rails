@@ -222,6 +222,8 @@ module ActiveRecord
             end
           end
         end
+
+        _apply_isolation_skip
       end
 
       def teardown_transactional_fixtures
@@ -234,6 +236,13 @@ module ActiveRecord
         end
         @fixture_connection_pools.clear
         teardown_shared_connection_pool
+      end
+
+      def _apply_isolation_skip
+        @fixture_connection_pools.each do |pool|
+          conn = pool.lease_connection
+          conn.extend(TransactionIsolationSkip) unless conn.singleton_class.include?(TransactionIsolationSkip)
+        end
       end
 
       # Shares the writing connection pool with connections on
@@ -341,6 +350,19 @@ module ActiveRecord
         end
 
         return_single_record ? instances.first : instances
+      end
+
+      module TransactionIsolationSkip # :nodoc:
+        def transaction(**options, &block)
+          if options.key?(:isolation) && current_transaction.open?
+            # Fixture transactions are depth 1 and non-joinable
+            if transaction_manager.open_transactions == 1 && !current_transaction.joinable?
+              current_transaction.instance_variable_set(:@isolation_level, options[:isolation])
+              options = options.except(:isolation)
+            end
+          end
+          super(**options, &block)
+        end
       end
   end
 end
