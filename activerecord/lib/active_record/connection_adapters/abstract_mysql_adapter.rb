@@ -838,6 +838,7 @@ module ActiveRecord
         CR_SERVER_LOST          = 2013
         ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
+        ER_CHECK_CONSTRAINT_VIOLATED = 3819
         ER_CLIENT_INTERACTION_TIMEOUT = 4031
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -870,6 +871,8 @@ module ActiveRecord
             RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when ER_CHECK_CONSTRAINT_VIOLATED
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT

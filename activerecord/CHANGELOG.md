@@ -1,3 +1,7 @@
+*   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
+
+    *Ryuta Kamizono*
+
 *   Add `ActiveRecord::ExclusionViolation` error class for exclusion constraint violations.
 
     When an exclusion constraint is violated in PostgreSQL, the error will now be raised
