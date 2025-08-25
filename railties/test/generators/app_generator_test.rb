@@ -484,6 +484,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "pg", '"~> 1.1"'
   end
 
+  def test_config_postgres_database
+    run_generator([destination_root, "-d", "postgres"])
+    assert_file "config/database.yml", /postgresql/
+    assert_gem "pg", '"~> 1.1"'
+  end
+
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
     assert_gem "puma", /"\W+ \d/
@@ -1465,6 +1471,36 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_devcontainer_postgresql
     run_generator [ destination_root, "--devcontainer", "-d", "postgresql" ]
+
+    assert_compose_file do |compose_config|
+      assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
+
+      expected_postgres_config = {
+        "image" => "postgres:16.1",
+        "restart" => "unless-stopped",
+        "networks" => ["default"],
+        "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+        "environment" => {
+          "POSTGRES_USER" => "postgres",
+          "POSTGRES_PASSWORD" => "postgres"
+        }
+      }
+
+      assert_equal expected_postgres_config, compose_config["services"]["postgres"]
+      assert_includes compose_config["volumes"].keys, "postgres-data"
+    end
+    assert_devcontainer_json_file do |content|
+      assert_equal "postgres", content["containerEnv"]["DB_HOST"]
+      assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/postgres-client"
+      assert_includes content["forwardPorts"], 5432
+    end
+    assert_file("config/database.yml") do |content|
+      assert_match(/host: <%= ENV\["DB_HOST"\] %>/, content)
+    end
+  end
+
+  def test_devcontainer_postgres
+    run_generator [ destination_root, "--devcontainer", "-d", "postgres" ]
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
