@@ -62,27 +62,27 @@ module ActiveRecord
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
