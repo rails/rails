@@ -1,3 +1,11 @@
+*   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
+
+    If the cache client at `Rails.cache` of a booted application changes, the corresponding
+    mounted middleware needs to update in order for request-local caches to be setup properly.
+    Otherwise, redundant cache operations will erroneously hit the datastore.
+
+    *Gannon McGibbon*
+
 *   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
 
     This new assertion allows testing multiple events in a single block, regardless of order:
