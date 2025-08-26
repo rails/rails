@@ -1197,15 +1197,15 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block) # :doc:
+        def log(intent, type_casted_binds = [], &block) # :doc:
           instrumenter.instrument(
             "sql.active_record",
-            sql:               sql,
-            name:              name,
-            binds:             binds,
+            sql:               intent.sql,
+            name:              intent.name,
+            binds:             intent.binds,
             type_casted_binds: type_casted_binds,
-            async:             async,
-            allow_retry:       allow_retry,
+            async:             intent.async,
+            allow_retry:       intent.allow_retry,
             connection:        self,
             transaction:       current_transaction.user_transaction.presence,
             affected_rows:     0,
@@ -1213,7 +1213,7 @@ module ActiveRecord
             &block
           )
         rescue ActiveRecord::StatementInvalid => ex
-          raise ex.set_query(sql, binds)
+          raise ex.set_query(intent.sql, intent.binds)
         end
 
         def instrumenter # :nodoc:
