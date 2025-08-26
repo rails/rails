@@ -14,7 +14,7 @@ module ActionView
             add_default_name_and_id(html_options)
 
             if placeholder_required?(html_options)
-              raise ArgumentError, "include_blank cannot be false for a required field." if options[:include_blank] == false
+              raise ArgumentError, "include_blank cannot be false for the required field: #{html_options["name"]}" if options[:include_blank] == false
               options[:include_blank] ||= true unless options[:prompt]
             end
 
