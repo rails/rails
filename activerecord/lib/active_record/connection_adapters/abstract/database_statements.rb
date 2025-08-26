@@ -80,47 +80,15 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
         arel = arel_from_relation(arel)
+        intent = QueryIntent.new(
+          arel: arel,
+          name: name,
+          binds: binds,
+          prepare: preparable,
+          allow_retry: allow_retry
+        )
 
-        if async && async_enabled?
-          if current_transaction.joinable?
-            raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
-          end
-
-          intent = QueryIntent.new(
-            arel: arel,
-            name: name,
-            binds: binds,
-            prepare: preparable,
-            async: true,
-            allow_retry: allow_retry
-          )
-
-          # Compile Arel on original thread for async execution
-          compile_arel_in_intent(intent)
-
-          future_result = (async && FutureResult::SelectAll).new(pool, intent)
-          if supports_concurrent_connections? && !current_transaction.joinable?
-            future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
-          else
-            future_result.execute!(self)
-          end
-          future_result
-        else
-          intent = QueryIntent.new(
-            arel: arel,
-            name: name,
-            binds: binds,
-            prepare: preparable,
-            allow_retry: allow_retry
-          )
-
-          result = cast_result(raw_execute(intent))
-          if async
-            FutureResult.wrap(result)
-          else
-            result
-          end
-        end
+        select(intent, async: async && FutureResult::SelectAll)
       rescue ::RangeError
         ActiveRecord::Result.empty(async: async)
       end
@@ -762,22 +730,16 @@ module ActiveRecord
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false)
+        def select(intent, async: false)
           if async && async_enabled?
             if current_transaction.joinable?
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the original thread
-            sql = preprocess_query(sql)
-            intent = QueryIntent.new(
-              processed_sql: sql,
-              name: name,
-              binds: binds,
-              prepare: prepare,
-              async: true,
-              allow_retry: allow_retry
-            )
+            # Compile Arel and preprocess SQL on original thread for async execution
+            compile_arel_in_intent(intent)
+            intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
+
             future_result = async.new(pool, intent)
             if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
@@ -786,7 +748,7 @@ module ActiveRecord
             end
             future_result
           else
-            result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
+            result = raw_exec_query(intent)
             if async
               FutureResult.wrap(result)
             else
