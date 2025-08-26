@@ -20,22 +20,19 @@ After reading this guide, you will know:
 What is Caching?
 ----------------
 
-Caching means storing content generated during the request-response cycle and
-reusing it when responding to similar requests. It's like keeping your favorite
-coffee mug right on your desk instead of in the kitchen cabinet — it’s ready
-when you need it, saving you time and effort.
+Caching means storing the result of work done during a request and reusing it
+for later requests. This avoids repeating the same queries, rendering, or
+calculations and makes responses faster.
 
-Caching is one of the most effective ways to boost an application's performance.
-It allows websites running on modest infrastructure — a single server with a
-single database — to sustain thousands of concurrent users.
+It is a key technique for handling many users with limited resources. Even a
+single server with one database can support heavy traffic when caching is used
+effectively.
 
-Rails provides a set of caching features out of the box which allows you to not
-only cache data, but also to tackle challenges like cache expiration, cache
-dependencies, and cache invalidation.
+Rails provides built-in caching features. These let you cache data or parts of
+views and manage when cached content should expire or be replaced.
 
-This guide will explore Rails' comprehensive caching strategies, from fragment
-caching to SQL caching. With these techniques, your Rails application can serve
-millions of views while keeping response times low and server bills manageable.
+This guide explains the main caching approaches in Rails, including fragment
+caching and SQL caching, and shows how they can be applied in practice.
 
 Types of Caching
 ----------------
