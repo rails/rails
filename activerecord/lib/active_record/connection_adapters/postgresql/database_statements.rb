@@ -139,12 +139,12 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, intent, notification_payload:)
+          def perform_query(raw_connection, intent)
             update_typemap_for_default_timezone
             result = if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.sql, intent.binds, raw_connection)
-                notification_payload[:statement_name] = stmt_key
+                intent.notification_payload[:statement_name] = stmt_key
                 raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
@@ -171,8 +171,8 @@ module ActiveRecord
 
             verified!
 
-            notification_payload[:affected_rows] = result.cmd_tuples
-            notification_payload[:row_count] = result.ntuples
+            intent.notification_payload[:affected_rows] = result.cmd_tuples
+            intent.notification_payload[:row_count] = result.ntuples
             result
           end
 

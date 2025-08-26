@@ -567,15 +567,16 @@ module ActiveRecord
         def raw_execute(intent)
           intent.type_casted_binds = type_casted_binds(intent.binds)
           log(intent) do |notification_payload|
+            intent.notification_payload = notification_payload
             with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
-              result = perform_query(conn, intent, notification_payload: notification_payload)
+              result = perform_query(conn, intent)
               handle_warnings(result, intent.sql)
               result
             end
           end
         end
 
-        def perform_query(raw_connection, intent, notification_payload:)
+        def perform_query(raw_connection, intent)
           raise NotImplementedError
         end
 

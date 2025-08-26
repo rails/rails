@@ -83,7 +83,7 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, intent, notification_payload:)
+          def perform_query(raw_connection, intent)
             total_changes_before_query = raw_connection.total_changes
             affected_rows = nil
 
@@ -128,8 +128,8 @@ module ActiveRecord
             end
             verified!
 
-            notification_payload[:affected_rows] = affected_rows
-            notification_payload[:row_count] = result&.length || 0
+            intent.notification_payload[:affected_rows] = affected_rows
+            intent.notification_payload[:row_count] = result&.length || 0
             result
           end
 

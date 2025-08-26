@@ -48,7 +48,7 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, intent, notification_payload:)
+          def perform_query(raw_connection, intent)
             reset_multi_statement = if intent.batch && !multi_statements_enabled?
               raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
               true
@@ -110,8 +110,8 @@ module ActiveRecord
               end
             end
 
-            notification_payload[:affected_rows] = @affected_rows_before_warnings
-            notification_payload[:row_count] = result&.size || 0
+            intent.notification_payload[:affected_rows] = @affected_rows_before_warnings
+            intent.notification_payload[:row_count] = result&.size || 0
 
             raw_connection.abandon_results!
 

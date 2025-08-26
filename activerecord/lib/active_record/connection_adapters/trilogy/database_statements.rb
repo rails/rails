@@ -10,7 +10,7 @@ module ActiveRecord
         end
 
         private
-          def perform_query(raw_connection, intent, notification_payload:)
+          def perform_query(raw_connection, intent)
             reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
               true
@@ -30,8 +30,8 @@ module ActiveRecord
             end
             verified!
 
-            notification_payload[:affected_rows] = result.affected_rows
-            notification_payload[:row_count] = result.count
+            intent.notification_payload[:affected_rows] = result.affected_rows
+            intent.notification_payload[:row_count] = result.count
             result
           ensure
             if reset_multi_statement && active?
