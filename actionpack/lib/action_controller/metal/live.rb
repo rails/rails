@@ -282,7 +282,12 @@ module ActionController
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          # REMOVED: ActiveSupport::IsolatedExecutionState.share_with(t1) - connection shared
+          
+          # NOTE: IsolatedExecutionState.share_with is needed for CurrentAttributes to work properly
+          # The original issue was not with this call itself, but with database connection state corruption
+          # that happened due to complex thread pool management. By using simple Thread.new and
+          # proper cleanup, we avoid the connection sharing issues while preserving CurrentAttributes functionality.
+          ActiveSupport::IsolatedExecutionState.share_with(t1)
 
           begin
             super(name)
@@ -301,7 +306,10 @@ module ActionController
               error = e
             end
           ensure
-            # REMOVED: ActiveSupport::IsolatedExecutionState.clear - clearing execution state incorrectly causing connection issues between threads
+            # Clear execution state to prevent memory leaks and state corruption
+            # This is safe because we're using simple Thread.new instead of complex thread pool management
+            ActiveSupport::IsolatedExecutionState.clear
+            
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
@@ -382,7 +390,9 @@ module ActionController
         locals.each { |k, _| thread[k] = nil }
       end
 
-      # TODO: live_thread_pool_executor was causing execution state?
+      # REMOVED: live_thread_pool_executor method - The complex thread pool management was causing
+      # database connection state corruption and "double PG#close" crashes. Simple Thread.new with
+      # proper execution state management is safer and more predictable.
 
       def log_error(exception)
         logger = ActionController::Base.logger
