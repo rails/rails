@@ -42,13 +42,13 @@ module ActiveRecord
           @notice_receiver_sql_warnings = []
         end
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
           else
-            result = internal_exec_query(sql, name, binds)
+            result = raw_exec_query(intent)
             unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(sql)
+              table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
                 pk = primary_key(table_ref) if pk.nil?
                 pk = suppress_composite_primary_key(pk)

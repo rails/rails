@@ -3,9 +3,9 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
-      attr_reader :arel, :raw_sql, :name, :binds, :prepare, :allow_retry,
+      attr_reader :arel, :name, :prepare, :allow_retry,
                   :materialize_transactions, :batch
-      attr_accessor :async, :processed_sql, :type_casted_binds, :notification_payload
+      attr_accessor :raw_sql, :binds, :async, :processed_sql, :type_casted_binds, :notification_payload
 
       def initialize(arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)

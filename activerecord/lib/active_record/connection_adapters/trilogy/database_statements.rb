@@ -4,9 +4,14 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql, _binds = sql_for_insert(sql, pk, binds, returning)
-          internal_execute(sql, name)
+        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+          sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
+          intent.raw_sql = sql
+          intent.binds = binds
+
+          # AbstractAdapter calls raw_exec_query (returning an AR::Result), but
+          # our last_inserted_id needs the raw Trilogy result object
+          raw_execute(intent)
         end
 
         private

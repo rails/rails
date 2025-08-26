@@ -96,7 +96,9 @@ module ActiveRecord
       def test_exec_insert
         with_example_table do
           vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
-          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
+          assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
+          end
 
           result = @conn.exec_query(
             "select number from ex where number = ?", "SQL", vals)
@@ -109,7 +111,9 @@ module ActiveRecord
       def test_exec_insert_with_quote
         with_example_table do
           vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
-          @conn.exec_insert("insert into \"ex\" (number) VALUES (?)", "SQL", vals)
+          assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into \"ex\" (number) VALUES (?)", "SQL", vals)
+          end
 
           result = @conn.exec_query(
             "select number from \"ex\" where number = ?", "SQL", vals)
@@ -536,7 +540,9 @@ module ActiveRecord
           insert_returning: false,
         )
         with_example_table do
-          result = @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
+          end
           expect = @conn.query("select max(id) from ex").first.first
           assert_equal expect.to_i, result.rows.first.first
         end
@@ -551,7 +557,9 @@ module ActiveRecord
           insert_returning: false,
         )
         with_example_table do
-          result = @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
+          end
           expect = @conn.query("select max(id) from ex").first.first
           assert_equal expect.to_i, result.rows.first.first
         end
