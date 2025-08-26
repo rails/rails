@@ -139,13 +139,13 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, intent, type_casted_binds, notification_payload:)
+          def perform_query(raw_connection, intent, notification_payload:)
             update_typemap_for_default_timezone
             result = if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.sql, intent.binds, raw_connection)
                 notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -166,7 +166,7 @@ module ActiveRecord
             elsif intent.binds.nil? || intent.binds.empty?
               raw_connection.async_exec(intent.sql)
             else
-              raw_connection.exec_params(intent.sql, type_casted_binds)
+              raw_connection.exec_params(intent.sql, intent.type_casted_binds)
             end
 
             verified!

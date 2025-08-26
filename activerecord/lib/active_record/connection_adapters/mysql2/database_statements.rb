@@ -48,7 +48,7 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, intent, type_casted_binds, notification_payload:)
+          def perform_query(raw_connection, intent, notification_payload:)
             reset_multi_statement = if intent.batch && !multi_statements_enabled?
               raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
               true
@@ -71,7 +71,7 @@ module ActiveRecord
               retry_count = 1
               begin
                 stmt = @statements[intent.sql] ||= raw_connection.prepare(intent.sql)
-                result = stmt.execute(*type_casted_binds)
+                result = stmt.execute(*intent.type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
               rescue ::Mysql2::Error => error
                 @statements.delete(intent.sql)
@@ -92,7 +92,7 @@ module ActiveRecord
               stmt = raw_connection.prepare(intent.sql)
 
               begin
-                result = stmt.execute(*type_casted_binds)
+                result = stmt.execute(*intent.type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
 
                 # Ref: https://github.com/brianmario/mysql2/pull/1383

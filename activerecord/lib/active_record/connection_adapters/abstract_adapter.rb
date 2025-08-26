@@ -1197,13 +1197,13 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(intent, type_casted_binds = [], &block) # :doc:
+        def log(intent, &block) # :doc:
           instrumenter.instrument(
             "sql.active_record",
             sql:               intent.sql,
             name:              intent.name,
             binds:             intent.binds,
-            type_casted_binds: type_casted_binds,
+            type_casted_binds: intent.type_casted_binds,
             async:             intent.async,
             allow_retry:       intent.allow_retry,
             connection:        self,

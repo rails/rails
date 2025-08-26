@@ -83,7 +83,7 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, intent, type_casted_binds, notification_payload:)
+          def perform_query(raw_connection, intent, notification_payload:)
             total_changes_before_query = raw_connection.total_changes
             affected_rows = nil
 
@@ -99,7 +99,7 @@ module ActiveRecord
               end
               begin
                 unless intent.binds.nil? || intent.binds.empty?
-                  stmt.bind_params(type_casted_binds)
+                  stmt.bind_params(intent.type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step

@@ -5,6 +5,7 @@ module ActiveRecord
     class QueryIntent # :nodoc:
       attr_reader :sql, :name, :binds, :prepare, :async, :allow_retry,
                   :materialize_transactions, :batch
+      attr_accessor :type_casted_binds
 
       def initialize(sql:, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -16,7 +17,7 @@ module ActiveRecord
         @allow_retry = allow_retry
         @materialize_transactions = materialize_transactions
         @batch = batch
-        freeze
+        @type_casted_binds = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -29,7 +30,8 @@ module ActiveRecord
           async: async,
           allow_retry: allow_retry,
           materialize_transactions: materialize_transactions,
-          batch: batch
+          batch: batch,
+          type_casted_binds: type_casted_binds
         }
       end
 
