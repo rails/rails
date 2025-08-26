@@ -145,7 +145,17 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
-            raw_execute(sql, name, batch: true, **kwargs)
+            intent = QueryIntent.new(
+              sql: sql,
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            raw_execute(intent)
           end
 
           def build_truncate_statement(table_name)

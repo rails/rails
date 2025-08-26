@@ -16,7 +16,17 @@ module ActiveRecord
         private
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true, **kwargs)
+              intent = QueryIntent.new(
+                sql: statement,
+                name: name,
+                batch: true,
+                binds: kwargs[:binds] || [],
+                prepare: kwargs[:prepare] || false,
+                async: kwargs[:async] || false,
+                allow_retry: kwargs[:allow_retry] || false,
+                materialize_transactions: kwargs[:materialize_transactions] != false
+              )
+              raw_execute(intent)
             end
           end
 
