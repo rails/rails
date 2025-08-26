@@ -301,9 +301,7 @@ module ActionController
               error = e
             end
           ensure
-            # Clear execution state to prevent memory leaks and state corruption
             ActiveSupport::IsolatedExecutionState.clear
-
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
