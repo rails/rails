@@ -177,7 +177,7 @@ module ActiveRecord
       first_begin_failed = false
       @connection.singleton_class.define_method(:perform_query) do |raw_connection, intent, *args, **kwargs|
         # Simulates the first BEGIN attempt failing
-        if intent.sql.include?("BEGIN") && !first_begin_failed
+        if intent.processed_sql.include?("BEGIN") && !first_begin_failed
           first_begin_failed = true
           raise ActiveRecord::ConnectionFailed, "Simulated failure"
         end

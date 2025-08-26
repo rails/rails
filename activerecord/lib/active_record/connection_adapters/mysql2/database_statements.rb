@@ -17,7 +17,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
               intent = QueryIntent.new(
-                sql: statement,
+                processed_sql: statement,
                 name: name,
                 batch: true,
                 binds: kwargs[:binds] || [],
@@ -60,7 +60,7 @@ module ActiveRecord
 
             result = nil
             if intent.binds.nil? || intent.binds.empty?
-              result = raw_connection.query(intent.sql)
+              result = raw_connection.query(intent.processed_sql)
               # Ref: https://github.com/brianmario/mysql2/pull/1383
               # As of mysql2 0.5.6 `#affected_rows` might raise Mysql2::Error if a prepared statement
               # from that same connection was GCed while `#query` released the GVL.
@@ -70,11 +70,11 @@ module ActiveRecord
             elsif intent.prepare
               retry_count = 1
               begin
-                stmt = @statements[intent.sql] ||= raw_connection.prepare(intent.sql)
+                stmt = @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
                 result = stmt.execute(*intent.type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
               rescue ::Mysql2::Error => error
-                @statements.delete(intent.sql)
+                @statements.delete(intent.processed_sql)
                 # Sometimes for an unknown reason, we get that error.
                 # It suggest somehow that the prepared statement was deallocated
                 # but the client doesn't know it.
@@ -89,7 +89,7 @@ module ActiveRecord
                 raise
               end
             else
-              stmt = raw_connection.prepare(intent.sql)
+              stmt = raw_connection.prepare(intent.processed_sql)
 
               begin
                 result = stmt.execute(*intent.type_casted_binds)

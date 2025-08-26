@@ -1027,10 +1027,10 @@ module ActiveRecord
           # If using Active Record's time zone support configure the connection
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
-            intent = QueryIntent.new(sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
+            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
             raw_execute(intent)
           else
-            intent = QueryIntent.new(sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
+            intent = QueryIntent.new(processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
             raw_execute(intent)
           end
         end
