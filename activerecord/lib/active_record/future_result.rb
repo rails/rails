@@ -168,23 +168,10 @@ module ActiveRecord
       end
 
       def exec_query(connection, intent, async: false)
-        # Create a new intent with the actual async execution mode for accurate logging
-        if intent.async != async
-          actual_intent = ConnectionAdapters::QueryIntent.new(
-            sql: intent.sql,
-            name: intent.name,
-            binds: intent.binds,
-            prepare: intent.prepare,
-            async: async,
-            allow_retry: intent.allow_retry,
-            materialize_transactions: intent.materialize_transactions,
-            batch: intent.batch
-          )
-        else
-          actual_intent = intent
-        end
+        # Update intent with actual async execution mode for accurate logging
+        intent.async = async
 
-        connection.raw_exec_query(actual_intent)
+        connection.raw_exec_query(intent)
       end
 
       class SelectAll < FutureResult # :nodoc:

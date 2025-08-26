@@ -574,8 +574,9 @@ module ActiveRecord
           materialize_transactions = intent.materialize_transactions
           batch = intent.batch
 
-          type_casted_binds = type_casted_binds(binds)
+          intent.type_casted_binds = type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
+            intent.notification_payload = notification_payload
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
               handle_warnings(result, sql)

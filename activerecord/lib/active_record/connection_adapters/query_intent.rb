@@ -3,8 +3,9 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
-      attr_reader :sql, :name, :binds, :prepare, :async, :allow_retry,
+      attr_reader :sql, :name, :binds, :prepare, :allow_retry,
                   :materialize_transactions, :batch
+      attr_accessor :async, :type_casted_binds, :notification_payload
 
       def initialize(sql:, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -16,7 +17,8 @@ module ActiveRecord
         @allow_retry = allow_retry
         @materialize_transactions = materialize_transactions
         @batch = batch
-        freeze
+        @type_casted_binds = nil
+        @notification_payload = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -29,7 +31,9 @@ module ActiveRecord
           async: async,
           allow_retry: allow_retry,
           materialize_transactions: materialize_transactions,
-          batch: batch
+          batch: batch,
+          type_casted_binds: type_casted_binds,
+          notification_payload: notification_payload
         }
       end
 
