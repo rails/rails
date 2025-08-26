@@ -307,7 +307,7 @@ module ActiveRecord
         def schema_search_path=(schema_csv)
           return if schema_csv == @schema_search_path
           if schema_csv
-            internal_execute("SET search_path TO #{schema_csv}")
+            query_command("SET search_path TO #{schema_csv}")
             @schema_search_path = schema_csv
           end
         end
@@ -324,7 +324,7 @@ module ActiveRecord
 
         # Set the client message level.
         def client_min_messages=(level)
-          internal_execute("SET client_min_messages TO '#{level}'", "SCHEMA")
+          query_command("SET client_min_messages TO '#{level}'", "SCHEMA")
         end
 
         # Returns the sequence name for a table's primary key or some other specified key.
@@ -350,7 +350,7 @@ module ActiveRecord
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
-              internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
+              query_command("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
               @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
             end
@@ -381,7 +381,7 @@ module ActiveRecord
               end
             end
 
-            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            query_command("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
           end
         end
 

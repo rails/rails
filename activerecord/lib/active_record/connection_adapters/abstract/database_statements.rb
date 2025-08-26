@@ -119,6 +119,10 @@ module ActiveRecord
         internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
       end
 
+      def query_command(sql, name = nil, allow_retry: false, materialize_transactions: true) # :nodoc:
+        affected_rows(internal_execute(sql, name, allow_retry: allow_retry, materialize_transactions: materialize_transactions))
+      end
+
       # Determines whether the SQL statement is a write query.
       def write_query?(sql)
         raise NotImplementedError

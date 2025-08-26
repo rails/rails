@@ -17,7 +17,7 @@ module ActiveRecord
 
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", [])
+          result = query(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
@@ -34,11 +34,11 @@ module ActiveRecord
         end
 
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          internal_execute("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -57,7 +57,7 @@ module ActiveRecord
         end
 
         def reset_isolation_level # :nodoc:
-          internal_execute("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
           @previous_read_uncommitted = nil
         end
 
@@ -76,10 +76,10 @@ module ActiveRecord
               raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
             end
 
-            internal_execute("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+            query_command("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             if isolation
               @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
-              internal_execute("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+              query_command("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
 

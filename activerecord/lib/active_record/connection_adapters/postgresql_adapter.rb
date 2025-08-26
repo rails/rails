@@ -420,7 +420,7 @@ module ActiveRecord
       end
 
       def set_standard_conforming_strings
-        internal_execute("SET standard_conforming_strings = on", "SCHEMA")
+        query_command("SET standard_conforming_strings = on", "SCHEMA")
       end
 
       def supports_ddl_transactions?
@@ -489,7 +489,8 @@ module ActiveRecord
         sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
         sql << " SCHEMA #{schema}" if schema
 
-        internal_exec_query(sql).tap { reload_type_map }
+        query_command(sql)
+        reload_type_map
       end
 
       # Removes an extension from the database.
@@ -499,9 +500,8 @@ module ActiveRecord
       #   Defaults to false.
       def disable_extension(name, force: false)
         _schema, name = name.to_s.split(".").values_at(-2, -1)
-        internal_exec_query("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}").tap {
-          reload_type_map
-        }
+        query_command("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}")
+        reload_type_map
       end
 
       def extension_available?(name)
@@ -570,7 +570,8 @@ module ActiveRecord
           END
           $$;
         SQL
-        internal_exec_query(query).tap { reload_type_map }
+        query_command(query)
+        reload_type_map
       end
 
       # Drops an enum type.
@@ -586,7 +587,8 @@ module ActiveRecord
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
         SQL
-        internal_exec_query(query).tap { reload_type_map }
+        query_command(query)
+        reload_type_map
       end
 
       # Rename an existing enum type to something else.
@@ -638,7 +640,7 @@ module ActiveRecord
       # Set the authorized user for this session
       def session_auth=(user)
         clear_cache!
-        internal_execute("SET SESSION AUTHORIZATION #{user}", nil, materialize_transactions: true)
+        query_command("SET SESSION AUTHORIZATION #{user}", nil, materialize_transactions: true)
       end
 
       def use_insert_returning?
@@ -997,16 +999,16 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Set interval output format to ISO 8601 for ease of parsing by ActiveSupport::Duration.parse
-          internal_execute("SET intervalstyle = iso_8601", "SCHEMA")
+          query_command("SET intervalstyle = iso_8601", "SCHEMA")
 
           # SET statements from :variables config hash
           # https://www.postgresql.org/docs/current/static/sql-set.html
           variables.map do |k, v|
             if v == ":default" || v == :default
               # Sets the value to the global or compile default
-              internal_execute("SET SESSION #{k} TO DEFAULT", "SCHEMA")
+              query_command("SET SESSION #{k} TO DEFAULT", "SCHEMA")
             elsif !v.nil?
-              internal_execute("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
+              query_command("SET SESSION #{k} TO #{quote(v)}", "SCHEMA")
             end
           end
 
@@ -1098,8 +1100,7 @@ module ActiveRecord
                     AND castsource = #{quote column.sql_type}::regtype
                 )
               SQL
-              result = internal_execute(sql, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
-              result.getvalue(0, 0)
+              query_value(sql, "SCHEMA", allow_retry: true, materialize_transactions: false)
             end
           end
         end

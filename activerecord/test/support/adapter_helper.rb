@@ -142,7 +142,7 @@ module AdapterHelper
       connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
       sleep 0.05
     elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
-      connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
+      connection.query_command("set @@wait_timeout=1", materialize_transactions: false)
       sleep 1.2
     else
       skip("remote_disconnect unsupported")
