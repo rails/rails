@@ -180,15 +180,15 @@ module ActiveRecord
       # Executes delete +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_delete(sql, name = nil, binds = [])
-        affected_rows(internal_execute(sql, name, binds))
+      def exec_delete(intent)
+        affected_rows(raw_execute(intent))
       end
 
       # Executes update +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_update(sql, name = nil, binds = [])
-        affected_rows(internal_execute(sql, name, binds))
+      def exec_update(intent)
+        affected_rows(raw_execute(intent))
       end
 
       def exec_insert_all(sql, name) # :nodoc:
@@ -231,7 +231,7 @@ module ActiveRecord
         # Compile Arel to get SQL
         compile_arel_in_intent(intent)
 
-        exec_update(intent.raw_sql, name, intent.binds)
+        exec_update(intent)
       end
 
       # Executes the delete statement and returns the number of rows affected.
@@ -241,7 +241,7 @@ module ActiveRecord
         # Compile Arel to get SQL
         compile_arel_in_intent(intent)
 
-        exec_delete(intent.raw_sql, name, intent.binds)
+        exec_delete(intent)
       end
 
       # Executes the truncate statement.
