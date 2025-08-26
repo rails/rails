@@ -546,8 +546,8 @@ module ActiveRecord
       end
 
       # Same as raw_execute but returns an ActiveRecord::Result object.
-      def raw_exec_query(...) # :nodoc:
-        cast_result(raw_execute(...))
+      def raw_exec_query(intent) # :nodoc:
+        cast_result(raw_execute(intent))
       end
 
       # Execute a query and returns an ActiveRecord::Result
@@ -564,7 +564,16 @@ module ActiveRecord
         private_constant :DEFAULT_INSERT_VALUE
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
+        def raw_execute(intent)
+          sql = intent.sql
+          name = intent.name
+          binds = intent.binds
+          prepare = intent.prepare
+          async = intent.async
+          allow_retry = intent.allow_retry
+          materialize_transactions = intent.materialize_transactions
+          batch = intent.batch
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
@@ -610,12 +619,31 @@ module ActiveRecord
         # Same as #internal_exec_query, but yields a native adapter result
         def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
           sql = preprocess_query(sql)
-          raw_execute(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions, &block)
+          intent = QueryIntent.new(
+            sql: sql,
+            name: name,
+            binds: binds,
+            prepare: prepare,
+            async: async,
+            allow_retry: allow_retry,
+            materialize_transactions: materialize_transactions
+          )
+          raw_execute(intent, &block)
         end
 
         def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
-            raw_execute(statement, name, **kwargs)
+            intent = QueryIntent.new(
+              sql: statement,
+              name: name,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false,
+              batch: kwargs[:batch] || false
+            )
+            raw_execute(intent)
           end
         end
 
@@ -691,13 +719,15 @@ module ActiveRecord
 
             # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
-            future_result = async.new(
-              pool,
-              sql,
-              name,
-              binds,
+            intent = QueryIntent.new(
+              sql: sql,
+              name: name,
+              binds: binds,
               prepare: prepare,
+              async: true,
+              allow_retry: allow_retry
             )
+            future_result = async.new(pool, intent)
             if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
             else
