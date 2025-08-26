@@ -359,6 +359,22 @@ module ActiveRecord
           end
           yield current_transaction.user_transaction
         else
+          # If we're running inside the single, non-joinable transaction that
+          # ActiveRecord::TestFixtures starts around each example (depth == 1),
+          # an `isolation:` hint must be validated then ignored so that the
+          # adapter isn't asked to change the isolation level mid-transaction.
+          if isolation && open_transactions == 1 && !current_transaction.joinable?
+            iso = isolation.to_sym
+
+            unless transaction_isolation_levels.include?(iso)
+              raise ActiveRecord::TransactionIsolationError,
+                    "invalid transaction isolation level: #{iso.inspect}"
+            end
+
+            current_transaction.isolation = iso
+            isolation = nil
+          end
+
           within_new_transaction(isolation: isolation, joinable: joinable, &block)
         end
       rescue ActiveRecord::Rollback
