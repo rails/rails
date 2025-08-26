@@ -282,7 +282,7 @@ module ActionController
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          
+
           # NOTE: IsolatedExecutionState.share_with is needed for CurrentAttributes to work properly
           # The original issue was not with this call itself, but with database connection state corruption
           # that happened due to complex thread pool management. By using simple Thread.new and
@@ -309,7 +309,7 @@ module ActionController
             # Clear execution state to prevent memory leaks and state corruption
             # This is safe because we're using simple Thread.new instead of complex thread pool management
             ActiveSupport::IsolatedExecutionState.clear
-            
+
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
