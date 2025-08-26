@@ -143,7 +143,7 @@ module ActiveRecord
             update_typemap_for_default_timezone
             result = if intent.prepare
               begin
-                stmt_key = prepare_statement(intent.sql, intent.binds, raw_connection)
+                stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
                 intent.notification_payload[:statement_name] = stmt_key
                 raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
               rescue PG::FeatureNotSupported => error
@@ -155,7 +155,7 @@ module ActiveRecord
                   else
                     @lock.synchronize do
                       # outside of transactions we can simply flush this query and retry
-                      @statements.delete sql_key(intent.sql)
+                      @statements.delete sql_key(intent.processed_sql)
                     end
                     retry
                   end
@@ -164,9 +164,9 @@ module ActiveRecord
                 raise
               end
             elsif intent.binds.nil? || intent.binds.empty?
-              raw_connection.async_exec(intent.sql)
+              raw_connection.async_exec(intent.processed_sql)
             else
-              raw_connection.exec_params(intent.sql, intent.type_casted_binds)
+              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             end
 
             verified!
@@ -203,7 +203,7 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil, **kwargs)
             intent = QueryIntent.new(
-              sql: combine_multi_statements(statements),
+              processed_sql: combine_multi_statements(statements),
               name: name,
               batch: true,
               binds: kwargs[:binds] || [],

@@ -987,7 +987,7 @@ module ActiveRecord
 
           # ...and send them all in one query
           intent = QueryIntent.new(
-            sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
+            processed_sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
             name: "SCHEMA"
           )
           raw_execute(intent)

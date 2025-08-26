@@ -19,7 +19,7 @@ module ActiveRecord
 
     test "message contains no sql" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
-      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(sql: sql, name: Book.name)
+      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(processed_sql: sql, name: Book.name)
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.lease_connection.send(:log, intent) do
           Book.lease_connection.send(:with_raw_connection) do
@@ -33,7 +33,7 @@ module ActiveRecord
     test "statement and binds are set on select" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
       binds = [Minitest::Mock.new, Minitest::Mock.new]
-      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(sql: sql, name: Book.name, binds: binds)
+      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(processed_sql: sql, name: Book.name, binds: binds)
       error = assert_raises(ActiveRecord::StatementInvalid) do
         Book.lease_connection.send(:log, intent) do
           Book.lease_connection.send(:with_raw_connection) do

@@ -171,7 +171,7 @@ module ActiveRecord
         # Create a new intent with the actual async execution mode for accurate logging
         if intent.async != async
           actual_intent = ConnectionAdapters::QueryIntent.new(
-            sql: intent.sql,
+            processed_sql: intent.processed_sql,
             name: intent.name,
             binds: intent.binds,
             prepare: intent.prepare,

@@ -24,7 +24,7 @@ module ActiveRecord
               raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
             end
 
-            result = raw_connection.query(intent.sql)
+            result = raw_connection.query(intent.processed_sql)
             while raw_connection.more_results_exist?
               raw_connection.next_result
             end
@@ -62,7 +62,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
               intent = QueryIntent.new(
-                sql: statement,
+                processed_sql: statement,
                 name: name,
                 batch: true,
                 binds: kwargs[:binds] || [],

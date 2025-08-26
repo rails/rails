@@ -1200,7 +1200,7 @@ module ActiveRecord
         def log(intent, &block) # :doc:
           instrumenter.instrument(
             "sql.active_record",
-            sql:               intent.sql,
+            sql:               intent.processed_sql,
             name:              intent.name,
             binds:             intent.binds,
             type_casted_binds: intent.type_casted_binds,
@@ -1213,7 +1213,7 @@ module ActiveRecord
             &block
           )
         rescue ActiveRecord::StatementInvalid => ex
-          raise ex.set_query(intent.sql, intent.binds)
+          raise ex.set_query(intent.processed_sql, intent.binds)
         end
 
         def instrumenter # :nodoc:

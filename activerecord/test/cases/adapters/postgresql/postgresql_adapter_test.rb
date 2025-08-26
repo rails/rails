@@ -527,8 +527,7 @@ module ActiveRecord
 
       def test_raise_error_when_cannot_translate_exception
         assert_raise TypeError do
-          intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(sql: nil)
-          @connection.send(:log, intent) { @connection.execute(nil) }
+          @connection.execute(:not_a_query)
         end
       end
 

@@ -565,12 +565,13 @@ module ActiveRecord
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(intent)
+          intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
           intent.type_casted_binds = type_casted_binds(intent.binds)
           log(intent) do |notification_payload|
             intent.notification_payload = notification_payload
             with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
               result = perform_query(conn, intent)
-              handle_warnings(result, intent.sql)
+              handle_warnings(result, intent.processed_sql)
               result
             end
           end
@@ -610,9 +611,8 @@ module ActiveRecord
 
         # Same as #internal_exec_query, but yields a native adapter result
         def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
-          sql = preprocess_query(sql)
           intent = QueryIntent.new(
-            sql: sql,
+            raw_sql: sql,
             name: name,
             binds: binds,
             prepare: prepare,
@@ -626,7 +626,7 @@ module ActiveRecord
         def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
             intent = QueryIntent.new(
-              sql: statement,
+              processed_sql: statement,
               name: name,
               binds: kwargs[:binds] || [],
               prepare: kwargs[:prepare] || false,
@@ -712,7 +712,7 @@ module ActiveRecord
             # We make sure to run query transformers on the original thread
             sql = preprocess_query(sql)
             intent = QueryIntent.new(
-              sql: sql,
+              processed_sql: sql,
               name: name,
               binds: binds,
               prepare: prepare,

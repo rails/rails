@@ -88,14 +88,14 @@ module ActiveRecord
             affected_rows = nil
 
             if intent.batch
-              raw_connection.execute_batch2(intent.sql)
+              raw_connection.execute_batch2(intent.processed_sql)
             else
               stmt = if intent.prepare
-                @statements[intent.sql] ||= raw_connection.prepare(intent.sql)
-                @statements[intent.sql].reset!
+                @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                @statements[intent.processed_sql].reset!
               else
                 # Don't cache statements if they are not prepared.
-                raw_connection.prepare(intent.sql)
+                raw_connection.prepare(intent.processed_sql)
               end
               begin
                 unless intent.binds.nil? || intent.binds.empty?
@@ -146,7 +146,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
             intent = QueryIntent.new(
-              sql: sql,
+              processed_sql: sql,
               name: name,
               batch: true,
               binds: kwargs[:binds] || [],
