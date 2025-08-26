@@ -139,11 +139,11 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+          def perform_query(raw_connection, intent, type_casted_binds, notification_payload:)
             update_typemap_for_default_timezone
-            result = if prepare
+            result = if intent.prepare
               begin
-                stmt_key = prepare_statement(sql, binds, raw_connection)
+                stmt_key = prepare_statement(intent.sql, intent.binds, raw_connection)
                 notification_payload[:statement_name] = stmt_key
                 raw_connection.exec_prepared(stmt_key, type_casted_binds)
               rescue PG::FeatureNotSupported => error
@@ -155,7 +155,7 @@ module ActiveRecord
                   else
                     @lock.synchronize do
                       # outside of transactions we can simply flush this query and retry
-                      @statements.delete sql_key(sql)
+                      @statements.delete sql_key(intent.sql)
                     end
                     retry
                   end
@@ -163,10 +163,10 @@ module ActiveRecord
 
                 raise
               end
-            elsif binds.nil? || binds.empty?
-              raw_connection.async_exec(sql)
+            elsif intent.binds.nil? || intent.binds.empty?
+              raw_connection.async_exec(intent.sql)
             else
-              raw_connection.exec_params(sql, type_casted_binds)
+              raw_connection.exec_params(intent.sql, type_casted_binds)
             end
 
             verified!

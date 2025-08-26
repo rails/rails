@@ -568,14 +568,14 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(intent.binds)
           log(intent, type_casted_binds) do |notification_payload|
             with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
-              result = perform_query(conn, intent.sql, intent.binds, type_casted_binds, prepare: intent.prepare, notification_payload: notification_payload, batch: intent.batch)
+              result = perform_query(conn, intent, type_casted_binds, notification_payload: notification_payload)
               handle_warnings(result, intent.sql)
               result
             end
           end
         end
 
-        def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch:)
+        def perform_query(raw_connection, intent, type_casted_binds, notification_payload:)
           raise NotImplementedError
         end
 
