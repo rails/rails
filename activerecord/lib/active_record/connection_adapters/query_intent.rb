@@ -3,16 +3,17 @@
 module ActiveRecord
   module ConnectionAdapters
     class QueryIntent # :nodoc:
-      attr_reader :raw_sql, :name, :binds, :prepare, :allow_retry,
+      attr_reader :arel, :raw_sql, :name, :binds, :prepare, :allow_retry,
                   :materialize_transactions, :batch
       attr_accessor :async, :processed_sql, :type_casted_binds, :notification_payload
 
-      def initialize(raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
+      def initialize(arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
-        if raw_sql.nil? && processed_sql.nil?
-          raise ArgumentError, "Either raw_sql or processed_sql must be provided"
+        if arel.nil? && raw_sql.nil? && processed_sql.nil?
+          raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
         end
 
+        @arel = arel
         @raw_sql = raw_sql
         @name = name
         @binds = binds
@@ -26,9 +27,24 @@ module ActiveRecord
         @notification_payload = nil
       end
 
+      # Returns true if this QueryIntent contains an Arel AST that needs compilation
+      def needs_arel_compilation?
+        @arel && !@raw_sql && !@processed_sql
+      end
+
+      # Sets the results of Arel compilation
+      # Called by the adapter after running to_sql_and_binds
+      def set_compiled_result(raw_sql:, binds:, prepare:, allow_retry:)
+        @raw_sql = raw_sql
+        @binds = binds
+        @prepare = prepare
+        @allow_retry = allow_retry
+      end
+
       # Returns a hash representation of the QueryIntent for debugging/introspection
       def to_h
         {
+          arel: arel,
           raw_sql: raw_sql,
           processed_sql: processed_sql,
           name: name,

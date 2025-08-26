@@ -51,6 +51,15 @@ module ActiveRecord
       end
       private :to_sql_and_binds
 
+      # Compiles Arel in the given QueryIntent if needed
+      def compile_arel_in_intent(intent) # :nodoc:
+        return unless intent.needs_arel_compilation?
+
+        sql, binds, preparable, allow_retry = to_sql_and_binds(intent.arel, intent.binds, intent.prepare, intent.allow_retry)
+        intent.set_compiled_result(raw_sql: sql, binds: binds, prepare: preparable, allow_retry: allow_retry)
+      end
+      private :compile_arel_in_intent
+
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
@@ -71,13 +80,15 @@ module ActiveRecord
       # Returns an ActiveRecord::Result instance.
       def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
         arel = arel_from_relation(arel)
-        sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
-
-        select(sql, name, binds,
-          prepare: prepared_statements && preparable,
-          async: async && FutureResult::SelectAll,
+        intent = QueryIntent.new(
+          arel: arel,
+          name: name,
+          binds: binds,
+          prepare: preparable,
           allow_retry: allow_retry
         )
+
+        select(intent, async: async && FutureResult::SelectAll)
       rescue ::RangeError
         ActiveRecord::Result.empty(async: async)
       end
@@ -196,8 +207,12 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # an array of is returned from the method representing values of the specified columns from the inserted row.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
-        sql, binds = to_sql_and_binds(arel, binds)
-        value = exec_insert(sql, name, binds, pk, sequence_name, returning: returning)
+        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+
+        # Compile Arel to get SQL for sql_for_insert processing
+        compile_arel_in_intent(intent)
+
+        value = exec_insert(intent.raw_sql, name, intent.binds, pk, sequence_name, returning: returning)
 
         return returning_column_values(value) unless returning.nil?
 
@@ -207,14 +222,22 @@ module ActiveRecord
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
-        sql, binds = to_sql_and_binds(arel, binds)
-        exec_update(sql, name, binds)
+        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+
+        # Compile Arel to get SQL
+        compile_arel_in_intent(intent)
+
+        exec_update(intent.raw_sql, name, intent.binds)
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
-        sql, binds = to_sql_and_binds(arel, binds)
-        exec_delete(sql, name, binds)
+        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+
+        # Compile Arel to get SQL
+        compile_arel_in_intent(intent)
+
+        exec_delete(intent.raw_sql, name, intent.binds)
       end
 
       # Executes the truncate statement.
@@ -565,6 +588,10 @@ module ActiveRecord
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(intent)
+          # Handle Arel compilation if needed
+          compile_arel_in_intent(intent)
+
+          # Handle SQL preprocessing if needed
           intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
           intent.type_casted_binds = type_casted_binds(intent.binds)
           log(intent) do |notification_payload|
@@ -703,22 +730,16 @@ module ActiveRecord
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false)
+        def select(intent, async: false)
           if async && async_enabled?
             if current_transaction.joinable?
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # We make sure to run query transformers on the original thread
-            sql = preprocess_query(sql)
-            intent = QueryIntent.new(
-              processed_sql: sql,
-              name: name,
-              binds: binds,
-              prepare: prepare,
-              async: true,
-              allow_retry: allow_retry
-            )
+            # Compile Arel and preprocess SQL on original thread for async execution
+            compile_arel_in_intent(intent)
+            intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
+
             future_result = async.new(pool, intent)
             if supports_concurrent_connections? && !current_transaction.joinable?
               future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
@@ -727,7 +748,7 @@ module ActiveRecord
             end
             future_result
           else
-            result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
+            result = raw_exec_query(intent)
             if async
               FutureResult.wrap(result)
             else
