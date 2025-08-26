@@ -282,7 +282,7 @@ module ActionController
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          ActiveSupport::IsolatedExecutionState.share_with(t1)
+          # REMOVED: ActiveSupport::IsolatedExecutionState.share_with(t1) - connection shared
 
           begin
             super(name)
@@ -301,7 +301,7 @@ module ActionController
               error = e
             end
           ensure
-            ActiveSupport::IsolatedExecutionState.clear
+            # REMOVED: ActiveSupport::IsolatedExecutionState.clear - clearing execution state incorrectly causing connection issues between threads
             clean_up_thread_locals(locals, t2)
 
             @_response.commit!
@@ -369,7 +369,8 @@ module ActionController
       # data from the response bodies. Nobody should call this method except in Rails
       # internals. Seriously!
       def new_controller_thread # :nodoc:
-        ActionController::Live.live_thread_pool_executor.post do
+        # TODO: Use simple Thread.new instead of thread pool to avoid sharing states between threads is valid here?
+        Thread.new do
           t2 = Thread.current
           t2.abort_on_exception = true
           yield
@@ -381,9 +382,7 @@ module ActionController
         locals.each { |k, _| thread[k] = nil }
       end
 
-      def self.live_thread_pool_executor
-        @live_thread_pool_executor ||= Concurrent::CachedThreadPool.new(name: "action_controller.live")
-      end
+      # TODO: live_thread_pool_executor was causing execution state?
 
       def log_error(exception)
         logger = ActionController::Base.logger
