@@ -168,9 +168,13 @@ module ActiveRecord
       # Some adapters support the `returning` keyword argument which allows to control the result of the query:
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
-      def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
-        sql, binds = sql_for_insert(sql, pk, binds, returning)
-        internal_exec_query(sql, name, binds)
+      def exec_insert(intent, pk = nil, sequence_name = nil, returning: nil)
+        # Call sql_for_insert and write results back to intent
+        sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
+        intent.raw_sql = sql
+        intent.binds = binds
+
+        raw_exec_query(intent)
       end
 
       # Executes delete +sql+ statement in the context of this connection using
@@ -209,10 +213,10 @@ module ActiveRecord
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
         intent = QueryIntent.new(arel: arel, name: name, binds: binds)
 
-        # Compile Arel to get SQL for sql_for_insert processing
+        # Compile Arel before calling exec_insert
         compile_arel_in_intent(intent)
 
-        value = exec_insert(intent.raw_sql, name, intent.binds, pk, sequence_name, returning: returning)
+        value = exec_insert(intent, pk, sequence_name, returning: returning)
 
         return returning_column_values(value) unless returning.nil?
 

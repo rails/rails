@@ -4,9 +4,13 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql, _binds = sql_for_insert(sql, pk, binds, returning)
-          internal_execute(sql, name)
+        def exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+          # Call sql_for_insert and write results back to intent
+          sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
+          intent.raw_sql = sql
+          intent.binds = binds
+
+          raw_execute(intent)
         end
 
         private

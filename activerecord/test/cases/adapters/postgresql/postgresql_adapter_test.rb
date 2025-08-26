@@ -172,28 +172,32 @@ module ActiveRecord
 
       def test_exec_insert_with_returning_disabled
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id", "postgresql_partitioned_table_parent_id_seq")
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(raw_sql: "insert into postgresql_partitioned_table_parent (number) VALUES (1)", name: nil, binds: [])
+        result = connection.exec_insert(intent, "id", "postgresql_partitioned_table_parent_id_seq")
         expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent (number) VALUES (1)", nil, [], "id")
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(raw_sql: "insert into postgresql_partitioned_table_parent (number) VALUES (1)", name: nil, binds: [])
+        result = connection.exec_insert(intent, "id")
         expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert("insert into postgresql_partitioned_table_parent DEFAULT VALUES", nil, [], "id")
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(raw_sql: "insert into postgresql_partitioned_table_parent DEFAULT VALUES", name: nil, binds: [])
+        result = connection.exec_insert(intent, "id")
         expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
         assert_equal expect.to_i, result.rows.first.first
       end
 
       def test_exec_insert_default_values_quoted_schema_with_returning_disabled_and_no_sequence_name_given
         connection = connection_without_insert_returning
-        result = connection.exec_insert('insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', nil, [], "id")
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(raw_sql: 'insert into "public"."postgresql_partitioned_table_parent" DEFAULT VALUES', name: nil, binds: [])
+        result = connection.exec_insert(intent, "id")
         expect = connection.query("select max(id) from postgresql_partitioned_table_parent").first.first
         assert_equal expect.to_i, result.rows.first.first
       end
