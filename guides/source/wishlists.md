@@ -585,7 +585,7 @@ And the `edit` view at `app/views/wishlists/edit.html.erb`:
 
 ```erb
 <h1>Edit Wishlist</h1>
-<%= render "form", locals: {wishlist: @wishlist} %>
+<%= render "form", locals: { wishlist: @wishlist } %>
 ```
 
 Along with the `_form` partial at `app/views/wishlists/_form.html.erb`:
