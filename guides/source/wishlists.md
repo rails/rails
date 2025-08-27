@@ -412,7 +412,7 @@ $ bin/rails runner "Wishlist.destroy_all"
 Try visiting a product and adding it to a Wishlist now.
 
 The first problem is the select box will be empty. The form will not submit a
-`wishlist_id` param to the server and that will cause ActiveRecord to raise an
+`wishlist_id` param to the server and that will cause Active Record to raise an
 error.
 
 ```bash
