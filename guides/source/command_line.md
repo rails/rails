@@ -840,12 +840,12 @@ The `db:migrate` command is one of the most frequently run command in a Rails ap
 The `db:migrate:up` command runs the "up" method and the `db:migrate:down` command run the "down" method for a given migration VERSION argument.
 
 ```bash
-$ bin/rails db:migrate:down VERSION=VERSION=20250812120000
+$ bin/rails db:migrate:down VERSION=20250812120000
 ```
 
 The `db:rollback` command rolls the schema back to the previous version (or you can specify steps with the `STEP=n` argument).
 
-The `db:migrate:redo` command rolls back the database one migration and re-migrate up. It is a combination of the above two commands.
+The `db:migrate:redo` command rolls back the database one migration and re-migrates up. It is a combination of the above two commands.
 
 There is also a `db:migrate:status` command, which shows which migrations have been run and which are still pending:
 
@@ -860,13 +860,13 @@ database: db/development.sqlite3
   down    20250812120000  Add age to users
 ```
 
-NOTE: Please see the [Migration Guide](active_record_migrations.html) for explanation of concepts related database migrations.
+NOTE: Please see the [Migration Guide](active_record_migrations.html) for an explanation of concepts related to database migrations.
 
 ### Schema Management
 
 There are two main commands that help with managing the database schema in your Rails application: `db:schema:dump` and `db:schema:load`.
 
-**The `db:schema:dump` command** reads your database’s current schema and writes it out to the `db/schema.rb` file (or `db/structure.sql` if you’ve configured schema format to `sql`). After running migrations, Rails automatically calls `schema:dump` so your schema file is always up to date (and doesn't need to be modified manually).
+**The `db:schema:dump` command** reads your database’s current schema and writes it out to the `db/schema.rb` file (or `db/structure.sql` if you’ve configured the schema format to `sql`). After running migrations, Rails automatically calls `schema:dump` so your schema file is always up to date (and doesn't need to be modified manually).
 
 The schema file is a blueprint of your database and it is useful for setting up new environments for tests or development. It’s version-controlled, so you can see changes to the schema over time.
 
@@ -880,7 +880,7 @@ You can think of `db:schema:dump` as the one that *writes* the `schema.rb` file 
 
 #### `bin/rails db:version`
 
-The `bin/rails db:version` command is tells you the current version of the database, can be useful for troubleshooting:
+The `bin/rails db:version` command will show you the current version of the database, which can be useful for troubleshooting.
 
 ```bash
 $ bin/rails db:version
@@ -891,7 +891,7 @@ Current version: 20250806173936
 
 #### `db:fixtures:load`
 
-The `db:fixtures:load` command loads fixtures into the current environment's database. To load specific fixtures, you can use `FIXTURES=x,y`. To load from subdirectory in `test/fixtures`, use `FIXTURES_DIR=z`.
+The `db:fixtures:load` command loads fixtures into the current environment's database. To load specific fixtures, you can use `FIXTURES=x,y`. To load from a subdirectory in `test/fixtures`, use `FIXTURES_DIR=z`.
 
 ```bash
 $ bin/rails db:fixtures:load
@@ -920,14 +920,14 @@ The `db:encryption:init` command generates a set of keys for configuring Active 
 Running Tests
 -------------
 
-The `bin/rails test` command helsp you the different types of tests in your application. The `bin/rails test --help` output has good examples of the different options for this command:
+The `bin/rails test` command helps you run the different types of tests in your application. The `bin/rails test --help` output has good examples of the different options for this command:
 
 ```bash
 You can run a single test by appending a line number to a filename:
 
   bin/rails test test/models/user_test.rb:27
 
-You can run multiple tests with in a line range by appending the line range to a filename:
+You can run multiple tests within a line range by appending the line range to a filename:
 
   bin/rails test test/models/user_test.rb:10-20
 
@@ -1064,14 +1064,14 @@ active_record_encryption:
 secret_key_base: 6013280bda2fcbdbeda1732859df557a067ac81c423855aedba057f7a9b14161442d9cadfc7e48109c79143c5948de848ab5909ee54d04c34f572153466fc589
 ```
 
-You can learn about credentials in the [Rails Security Guide](security.html#custom-credentials)
+You can learn about credentials in the [Rails Security Guide](security.html#custom-credentials).
 
-TIP: Checkout the detailed description for this command in the output of `bin/rails credentials --help`.
+TIP: Check out the detailed description for this command in the output of `bin/rails credentials --help`.
 
 Custom Rake Tasks
 -----------------
 
-Custom rake tasks have a `.rake` extension and are placed in `lib/tasks` folder
+Custom rake tasks have a `.rake` extension and are placed in the `lib/tasks` folder
 in your Rails application. You can create these custom rake tasks with the
 `bin/rails generate task` command.
 
