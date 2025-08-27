@@ -661,7 +661,7 @@ First, let's add a button to `app/views/wishlists/show.html.erb`:
 <h1><%= @wishlist.name %></h1>
 <% if authenticated? && @wishlist.user == Current.user %>
   <%= link_to "Edit", edit_wishlist_path(@wishlist) %>
-  <%= button_to "Delete", @wishlist, method: :delete, data: {turbo_confirm: "Are you sure?"} %>
+  <%= button_to "Delete", @wishlist, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
 <% end %>
 
 <%= tag.button "Copy to clipboard", data: { controller: :clipboard, action: "clipboard#copy", clipboard_text_value: wishlist_url(@wishlist) } %>
