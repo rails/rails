@@ -978,7 +978,7 @@ submits to the `index` action so it can be used for displaying all records or a
 filtered set of records.
 
 To make this work, we need to apply these filters in our SQL query with
-ActiveRecord. Update the controller to include these filters:
+Active Record. Update the controller to include these filters:
 
 ```ruby#4-5
 class Store::WishlistsController < Store::BaseController
