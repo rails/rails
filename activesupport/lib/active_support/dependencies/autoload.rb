@@ -79,4 +79,4 @@ module ActiveSupport
       @_inflector_loaded = true
     end
   end
-end 
+end
