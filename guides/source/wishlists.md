@@ -752,7 +752,7 @@ button:
     <small>Added <%= l it.created_at, format: :long %></small>
 
     <% if authenticated? && @wishlist.user == Current.user %>
-      <%= button_to "Remove", [@wishlist, it], method: :delete, data: {turbo_confirm: "Are you sure?"} %>
+      <%= button_to "Remove", [ @wishlist, it ], method: :delete, data: { turbo_confirm: "Are you sure?" } %>
     <% end %>
   </div>
 <% end %>
