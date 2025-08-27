@@ -1183,6 +1183,8 @@ it out!
 Now that we've added filters, we can add links to the Product show page for
 viewing wishlists and subscribers for a specific product.
 
+Open `app/views/store/products/show.html.erb` and add the links:
+
 ```erb#18-21
 <p><%= link_to "Back", store_products_path %></p>
 
