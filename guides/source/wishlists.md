@@ -251,7 +251,7 @@ store(dev)> wishlist = Wishlist.find("1-example-wishlist")
  updated_at: "2025-07-22 15:21:29.036470000 +0000">
 ```
 
-It worked! But how? I thought we had to use Integers to find records?
+It worked! But how? Didn't we have to use Integers to find records?
 
 The way we're using `to_param` takes advantage of how Ruby converts Strings to
 Integers. Let's convert that param to an integer using `to_i` in the console:
