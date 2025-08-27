@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-# OPTIMIZATION: Defer heavy inflector loading until actually needed
-# This should reduce the 79.83 ms autoload bottleneck significantly
-
 module ActiveSupport
   # = Active Support \Autoload
   #
@@ -29,9 +26,9 @@ module ActiveSupport
   module Autoload
     def autoload(const_name, path = @_at_path)
       unless path
-        # OPTIMIZATION: Load inflector only when we need to generate paths
+        # Load inflector only when we need to generate paths
         load_inflector_if_needed
-        
+
         full = [name, @_under_path, const_name.to_s].compact.join("::")
         path = Inflector.underscore(full)
       end
@@ -74,7 +71,7 @@ module ActiveSupport
 
     private
 
-    # OPTIMIZATION: Lazy load inflector methods only when needed
+    # Lazy load inflector methods only when needed
     def load_inflector_if_needed
       return if defined?(@_inflector_loaded) && @_inflector_loaded
       
