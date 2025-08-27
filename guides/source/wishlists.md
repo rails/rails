@@ -1239,23 +1239,23 @@ shoes:
   inventory_count: 0
 ```
 
-### Testing `to_param`
+### Testing `filter_by`
 
-Our Wishlist model's friendly URLs are an important feature, so let's start by
-writing a test for it.
+Our Wishlist model's `filter_by` method is important to ensure it's filtering records correctly.
 
-Open `test/models/wishlist_test.rb` and add this test:
+Open `test/models/wishlist_test.rb` and add this test to start:
 
 ```ruby
 require "test_helper"
 
 class WishlistTest < ActiveSupport::TestCase
-  test "has friendly urls" do
-    wishlist = users(:one).wishlists.create!(name: "This is an example wishlist")
-    assert_equal "#{wishlist.id}-this-is-an-example", wishlist.to_param
+  test "filter_by with no filters" do
+    assert_equal Wishlist.all, Wishlist.filter_by({})
   end
 end
 ```
+
+This test ensures that `filter_by` returns all records when no filters are applied.
 
 Then run the test:
 
@@ -1272,7 +1272,106 @@ Finished in 0.290295s, 3.4448 runs/s, 3.4448 assertions/s.
 1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-Great!
+Great! Next, we need to test the `user_id` filter. Let's add another test:
+
+```ruby#8-12
+require "test_helper"
+
+class WishlistTest < ActiveSupport::TestCase
+  test "filter_by with no filters" do
+    assert_equal Wishlist.all, Wishlist.filter_by({})
+  end
+
+  test "filter_by with user_id" do
+    wishlists = Wishlist.filter_by(user_id: users(:one).id)
+    assert_includes wishlists, wishlists(:one)
+    assert_not_includes wishlists, wishlists(:two)
+  end
+end
+```
+
+This test runs the query and asserts the wishlist for the user is returned but
+not wishlists for another user.
+
+Let's run the test file again:
+
+```bash
+$ bin/rails test test/models/wishlist_test.rb
+Running 2 tests in a single process (parallelization threshold is 50)
+Run options: --seed 48224
+
+# Running:
+
+..
+
+Finished in 0.292714s, 6.8326 runs/s, 17.0815 assertions/s.
+2 runs, 5 assertions, 0 failures, 0 errors, 0 skips
+```
+
+Perfect! Both tests are passing.
+
+Finally, let's add a test for wishlists with a specific product.
+
+For this test, we need to add a unique product to one of our wishlists so it can
+be filtered.
+
+Open `test/fixtures/wishlist_products.yml` and add the following:
+
+```yaml#9-11
+one:
+  product: tshirt
+  wishlist: one
+
+two:
+  product: tshirt
+  wishlist: two
+
+three:
+  product: shoes
+  wishlist: two
+```
+
+Then add the following test to `test/models/wishlist_test.rb`:
+
+```ruby
+require "test_helper"
+
+class WishlistTest < ActiveSupport::TestCase
+  test "filter_by with no filters" do
+    assert_equal Wishlist.all, Wishlist.filter_by({})
+  end
+
+  test "filter_by with user_id" do
+    wishlists = Wishlist.filter_by(user_id: users(:one).id)
+    assert_includes wishlists, wishlists(:one)
+    assert_not_includes wishlists, wishlists(:two)
+  end
+
+  test "filter_by with product_id" do
+    wishlists = Wishlist.filter_by(product_id: products(:shoes).id)
+    assert_includes wishlists, wishlists(:two)
+    assert_not_includes wishlists, wishlists(:one)
+  end
+end
+```
+
+This test filters by a specific product and ensures the correct wishlist is
+returned and wishlists without that product are not.
+
+Let's run this test file again to ensure they are all passing:
+
+```ruby
+bin/rails test test/models/wishlist_test.rb
+Running 3 tests in a single process (parallelization threshold is 50)
+Run options: --seed 27430
+
+# Running:
+
+...
+
+Finished in 0.320054s, 9.3734 runs/s, 28.1203 assertions/s.
+3 runs, 9 assertions, 0 failures, 0 errors, 0 skips
+```
 
 ### Testing Wishlist CRUD
 
@@ -1338,9 +1437,11 @@ wishlist.
 ```ruby
 test "view a wishlist" do
   user = users(:one)
+  wishlist = user.wishlists.first
   sign_in_as user
-  get wishlist_path(user.wishlists.first)
+  get wishlist_path(wishlist)
   assert_response :success
+  assert_select "h1", text: wishlist.name
 end
 ```
 
@@ -1348,9 +1449,11 @@ A user should also be able to view other user's wishlists, so let's test that:
 
 ```ruby
 test "view a wishlist as another user" do
+  wishlist = wishlists(:two)
   sign_in_as users(:one)
-  get wishlist_path(wishlists(:two))
+  get wishlist_path(wishlist)
   assert_response :success
+  assert_select "h1", text: wishlist.name
 end
 ```
 
@@ -1358,8 +1461,10 @@ And guests should be able to view wishlists too:
 
 ```ruby
 test "view a wishlist as a guest" do
-  get wishlist_path(wishlists(:one))
+  wishlist = wishlists(:one)
+  get wishlist_path(wishlist)
   assert_response :success
+  assert_select "h1", text: wishlist.name
 end
 ```
 
