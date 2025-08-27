@@ -1081,7 +1081,7 @@ class Store::SubscribersController < Store::BaseController
 
   def destroy
     @subscriber.destroy
-    redirect_to store_subscribers_path, notice: "Subscriber has been removed."
+    redirect_to store_subscribers_path, notice: "Subscriber has been removed.", status: :see_other
   end
 
   private
