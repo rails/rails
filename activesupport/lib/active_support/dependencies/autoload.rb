@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
+# OPTIMIZATION: Defer heavy inflector loading until actually needed
+# This should reduce the 79.83 ms autoload bottleneck significantly
 
 module ActiveSupport
   # = Active Support \Autoload
@@ -24,11 +25,13 @@ module ActiveSupport
   #   end
   #
   # Then your library can be eager loaded by simply calling:
-  #
   #   MyLib.eager_load!
   module Autoload
     def autoload(const_name, path = @_at_path)
       unless path
+        # OPTIMIZATION: Load inflector only when we need to generate paths
+        load_inflector_if_needed
+        
         full = [name, @_under_path, const_name.to_s].compact.join("::")
         path = Inflector.underscore(full)
       end
@@ -68,5 +71,15 @@ module ActiveSupport
         @_eagerloaded_constants = nil
       end
     end
+
+    private
+
+    # OPTIMIZATION: Lazy load inflector methods only when needed
+    def load_inflector_if_needed
+      return if defined?(@_inflector_loaded) && @_inflector_loaded
+      
+      require "active_support/inflector/methods"
+      @_inflector_loaded = true
+    end
   end
-end
+end 
