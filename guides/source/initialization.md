@@ -46,7 +46,7 @@ boots the application but does *not* start the server. Rake tasks, such as
 
 The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you usually don't open or modify, the last familiar file is where your application is defined and configured.
 
-Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb`. This file is the public interface for booting a Rails application. For example, if you have this line in a Ruby script, it will boot the Rails application:
+Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb`. This file is the public interface for booting a Rails application. For example, if you have this line in a Ruby script, it will boot the Rails application (which is what the `config.ru` file has, as we'll see in a [later section](#loading-configenvironmentrb-from-configru):
 
 ```ruby
 require "config/environment"
@@ -249,18 +249,18 @@ require "rails"
 end
 ```
 
-Common Rails functionality, such as X Y and Z is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#the-fun-part-with-railsapplicationinitialize) section below.
+Common Rails functionality, such as X Y and Z is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
 
 We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components.
 
-At this point, we're done with the `config/applicatiion.rb` file, the application is defined and configured but *not initialized* yet. The initialization call happens from `config/environment.rb`. Let's see how we get there next.
+At this point, we're done with loading `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-applicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
-Loading `config/environment.rb`
-------------------------------
+Loading `config/environment.rb` from `config.ru`
+-----------------------------------------------
 
-When running `bin/rails server` a Rack based application is run, which uses the
-`config.ru` file. The `require` line for `config/environment.rb` in `config.ru`
-is the first to run:
+After `ServerCommand#perform` in `server_command.rb` file, we come to the [`start`](https://github.com/rails/rails/blob/36bd50c82b46046c9f352e06fa552221586028d8/railties/lib/rails/commands/server/server_command.rb#L32) method in that class. That method calls the `Rackup::Server#start` method (via `super()`), which is what loads the `config.ru` file.
+
+And voila, the `require` line for `config/environment.rb` is the first line in `config.ru`:
 
 ```ruby
 # config.ru
@@ -271,7 +271,7 @@ run Rails.application
 Rails.application.load_server
 ```
 
-### `config/environment.rb`
+The `config/environment.rb` file, generated in all new Rails applications, contains this:
 
 ```ruby
 # Load the Rails application.
@@ -281,16 +281,12 @@ require_relative "application"
 Rails.application.initialize!
 ```
 
-This file is the common file required by `config.ru` (`bin/rails server`) and
-Passenger. This is where these two ways to run the server meet; everything
-before this point has been Rack and Rails setup.
+This file begins with requiring `config/application.rb`, but coming from the `bin/rails` Ruby script, we have already required `application.rb`. Therefore, this require will have no effect (as `require` in Ruby is idempotent).
 
-This file begins with requiring `config/application.rb`, but coming from the `bin/rails` Ruby script, we have already in the require for `application.rb`. Therefore, this second require will have not effect (`require` in Ruby is idempotent).
+At this point, a number of things have happened but we have barely done any actual initialization. Finally, we get to the fun part of initialization!
 
-At this point, a number of things have happened but we have barely done any actual initialization. That comes next.
-
-The Fun Part with `Rails.application.initialize!`
--------------------------------------------------
+`Rails.application.initialize!`
+------------------------------
 
 All of the things that happen when you call `initialize!`:
 
@@ -393,7 +389,6 @@ Now back to the the `initialize!` method that is called from `config/environment
 
 ### The `initialize!` call
 
-
 The rest of `config/application.rb` defines the configuration for the
 `Rails::Application` which will be used once the application is fully
 initialized. When `config/application.rb` has finished loading Rails and defined
@@ -443,15 +438,13 @@ the middleware stack) are run last. The `railtie` initializers are the
 initializers which have been defined on the `Rails::Application` itself and are
 run between the `bootstrap` and `finisher`.
 
-NOTE: In terms of what's available when, Active Support is loaded in the Bootstrap initializers phase. So that implies that Active Support is not available in `application.rb` but it is avaiable in `config/initializers`.
+NOTE: In terms of what's available when, Active Support is loaded in the Bootstrap initializers phase. So that implies that Active Support is not available in `application.rb` but it is available in `config/initializers`.
 
 NOTE: Do not confuse Railtie initializers overall with the
 [load_config_initializers](configuring.html#using-initializer-files) initializer
 instance or its associated config initializers in `config/initializers`.
 
-There are two parts to the initialization process: booting and starting the
-server. We have been talking about booting. Now we start the server. After this
-is done we go back to `Rackup::Server`.
+
 
 Hooking Into the Initialization Process
 ---------------------------------------
@@ -503,7 +496,13 @@ Some other Initialization Hooks are:
 * `config.before_eager_load`
 * `config.after_routes_loaded`
 
+
+TODO: say 'tada' we're done with booting and then transition to server.
 After booting the application is done, the second part of the initialization process is starting a web server (for the `bin/rails server` command).
+
+There are two parts to the initialization process: booting and starting the
+server. We have been talking about booting. Now we start the server. After this
+is done we go back to `Rackup::Server`.
 
 Starting the Server
 -------------------
