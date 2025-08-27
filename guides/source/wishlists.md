@@ -593,7 +593,7 @@ Along with the `_form` partial at `app/views/wishlists/_form.html.erb`:
 ```erb
 <%= form_with model: @wishlist do |form| %>
   <% if form.object.errors.any? %>
-    <div><%= form.object.errors.full_messages.first %></div>
+    <div><%= form.object.errors.full_messages.to_sentence %></div>
   <% end %>
 
   <div>
@@ -1182,6 +1182,8 @@ it out!
 
 Now that we've added filters, we can add links to the Product show page for
 viewing wishlists and subscribers for a specific product.
+
+Open `app/views/store/products/show.html.erb` and add the links:
 
 ```erb#18-21
 <p><%= link_to "Back", store_products_path %></p>
