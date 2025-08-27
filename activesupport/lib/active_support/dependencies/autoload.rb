@@ -70,13 +70,12 @@ module ActiveSupport
     end
 
     private
+      # Lazy load inflector methods only when needed
+      def load_inflector_if_needed
+        return if defined?(@_inflector_loaded) && @_inflector_loaded
 
-    # Lazy load inflector methods only when needed
-    def load_inflector_if_needed
-      return if defined?(@_inflector_loaded) && @_inflector_loaded
-      
-      require "active_support/inflector/methods"
-      @_inflector_loaded = true
-    end
+        require "active_support/inflector/methods"
+        @_inflector_loaded = true
+      end
   end
 end
