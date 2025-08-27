@@ -796,7 +796,7 @@ In `app/views/wishlists/show.html.erb`, add the following:
 <h1><%= @wishlist.name %></h1>
 <% if authenticated? && @wishlist.user == Current.user %>
   <%= link_to "Edit", edit_wishlist_path(@wishlist) %>
-  <%= button_to "Delete", @wishlist, method: :delete, data: {turbo_confirm: "Are you sure?"} %>
+  <%= button_to "Delete", @wishlist, method: :delete, data: { turbo_confirm: "Are you sure?" } %>
 <% end %>
 
 <h3><%= pluralize @wishlist.products_count, "Product" %></h3>
