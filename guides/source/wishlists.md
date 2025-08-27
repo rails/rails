@@ -950,7 +950,7 @@ Lastly, add the link to the sidebar layout:
 <%= render template: "layouts/application" %>
 ```
 
-Now we can view wishlists in the admin area
+Now we can view wishlists in the admin area.
 
 ### Filtering Wishlists
 
