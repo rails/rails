@@ -593,7 +593,7 @@ Along with the `_form` partial at `app/views/wishlists/_form.html.erb`:
 ```erb
 <%= form_with model: @wishlist do |form| %>
   <% if form.object.errors.any? %>
-    <div><%= form.object.errors.full_messages.first %></div>
+    <div><%= form.object.errors.full_messages.to_sentence %></div>
   <% end %>
 
   <div>
