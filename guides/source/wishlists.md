@@ -807,7 +807,7 @@ In `app/views/wishlists/show.html.erb`, add the following:
 
     <% if authenticated? && @wishlist.user == Current.user %>
       <% if (other_wishlists = Current.user.wishlists.excluding(@wishlist)) && other_wishlists.any? %>
-        <%= form_with url: [@wishlist, it], method: :patch do |form| %>
+        <%= form_with url: [ @wishlist, it ], method: :patch do |form| %>
           <%= form.collection_select :new_wishlist_id, other_wishlists, :id, :name %>
           <%= form.submit "Move" %>
         <% end %>
