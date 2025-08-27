@@ -578,7 +578,7 @@ Next let's create the `new` view at `app/views/wishlists/new.html.erb`:
 
 ```erb
 <h1>New Wishlist</h1>
-<%= render "form", locals: {wishlist: @wishlist} %>
+<%= render "form", locals: { wishlist: @wishlist } %>
 ```
 
 And the `edit` view at `app/views/wishlists/edit.html.erb`:
