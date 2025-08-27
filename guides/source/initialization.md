@@ -283,13 +283,17 @@ Rails.application.initialize!
 
 This file begins with requiring `config/application.rb`, but coming from the `bin/rails` Ruby script, we have already required `application.rb`. Therefore, this require will have no effect (as `require` in Ruby is idempotent).
 
-At this point, a number of things have happened but we have barely done any actual initialization. Finally, we get to the fun part of initialization!
+Finally, with the second line, we get to the most important method of the initialization process. A number of things have happened by this point in the `bin/rails server` journey but we have barely done any actual initialization. Now we get to the fun part in the next section!
 
 `Rails.application.initialize!`
 ------------------------------
 
-All of the things that happen when you call `initialize!`:
+The main idea behind initialization is to allow components to register code to be executed during the Rails booting process. This is done with Railties and Engines, which allow components to register initializers. Here is an overview of all of the things that happen when you call `initialize!`:
 
+In order to understand the `initialize!` call, we need to take brief detour and cover Railties and Engines, then we'll come back to the `initialize!` method.
+
+Here is a preview of everything that happens during the `initialize!` call:
+TODO: update this sketch
 ```
 Rails.application.initialize!
 │
@@ -303,13 +307,15 @@ Rails.application.initialize!
 └── Run after_initialize hooks
 ```
 
-In order to understand this `initialize!` call, we need to understand what Railties and Engines. So let's take a little detour and we'll come back to the `initialize!` method.
-
 ### Railties
 
-`Rails::Railtie.initializer` most important method of the talk. It allows a component to register code to be executed during Rails initialization. The initializers are executed in the order  in which they are registered. Including custom initializers that are defined in the `config/initializers` directory of your application.
+A Railtie is simply a class that extends `Rails::Railtie`. In practice, it allows different parts of the framework (or third-party gems) to integrate with Rails by providing hooks for configuration, initialization, and runtime execution.
 
-Example of an initializer that is registered within the `ActiveRecord::Railtie` class:
+For example, Railtie allows a component like ActiveRecord to be responsible for it's own initialization. Active Record is a library that can be used outside of the Rails framework. But by defining a `Railtie` class within the `ActiveRecord` module, the Active Record component is able to hook into Rails.
+
+It does this by registering blocks of code to run during Rails initialization using the `initializer "name" do ... end` method provided by the `Rails::Railtie` class.
+
+Here's an example of an initializer that is registered by the `ActiveRecord::Railtie` class:
 
 ```ruby
 module ActiveRecord
@@ -326,6 +332,8 @@ module ActiveRecord
 end
 ```
 
+This initializer configures the database and establishes a connection with the database during the boot process.
+
 Here's another example of an initializer from `ActiveJob::Railtie`:
 
 ```ruby
@@ -341,23 +349,7 @@ module ActiveJob
 end
 ```
 
----
-
-What is a Railtie? "Railtie is the foundation for extending and configuring Rails. It allows different parts of the framework (or third-party gems) to integrate with Rails by providing hooks for configuration, initialization, and runtime execution."
-
-Railtie allows the component (e.g ActiveRecord) to be responsible for it's own configuration, it's own initialization. Active Record, for example is a library that can be used outside of the Rails framework. But by defining a `class Railtie` within the `ActiveRecord` module, the Active Record component is able to hook into Rails.
-
-These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` is called.
-
-TODO Documentation needed - which of the 300 listed with `bin/rails initializer` is public interface.
-
--   `initializer "name" do ... end` is a method that registers code to run during Rails initialization.
-
--   It’s defined in `Rails::Railtie`, which is the foundation for `Rails::Application` and `Rails::Engine`.
-
--   These initializers **are executed in order** when `Rails.application.initialize!` runs.
-
--   They allow gems like **Active Record** to hook into the Rails initialization process.
+There are dozens of initializers registered for each sub-component. These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` is called. During the `initialize!` call, the initializers are executed in the order in which they are registered. That call also includes running custom initializers that are defined in the `config/initializers` directory of your application.
 
 ### Engines
 
