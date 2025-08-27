@@ -199,8 +199,8 @@ Wishlists are often shared with friends and family. By default, the ID in the
 URL for a `Wishlist` is a simple Integer. This means we can't easily look at the
 URL to determine which `Wishlist` it's for.
 
-Active Record uses `to_param` method that can be used for generating pretty
-URLs. Let's try it out by creating the `to_param` method in our model:
+Active Record has a `to_param` class method that can be used for generating pretty
+URLs. Let's try it out in our model:
 
 ```ruby#6-8
 class Wishlist < ApplicationRecord
