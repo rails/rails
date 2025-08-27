@@ -220,7 +220,7 @@ This is where **your** application class is defined as a subclass of [`Rails::Ap
 
 The first line `require_relative "boot"` in `application.rb` does nothing in this sequence, coming from `bin/rails` script. This is because `boot.rb` is already loaded and Ruby's `require` does not reload it.
 
-But we do we the `require "rails/all"` which loads all the components of the Rails framework. Let's see how next.
+But we do the important `require "rails/all"` line. Next, let's what that does.
 
 ### `require "rails/all"`
 
@@ -249,15 +249,11 @@ require "rails"
 end
 ```
 
-So we know what is happening in the `require rails/all` call. It is loading all the `Railties` and the `Engines`. As a side effect of all those requires, the initializers are being registered. They are not run (yet), but loaded and ready.
+Common Rails functionality, such as X Y and Z is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#the-fun-part-with-railsapplicationinitialize) section below.
 
-This is where all the Rails frameworks are loaded and thus made available to the
-application. Common functionality like Rails engines, I18n and Rails
-configuration are all being defined here.
+We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components.
 
-In the next section, we see what a `Railtie` is and how it helps the above framework components  initialize.
-
-At this point, the application is defined and configured but *not initialized*. The initialization happens from `config/environment.rb`.
+At this point, we're done with the `config/applicatiion.rb` file, the application is defined and configured but *not initialized* yet. The initialization call happens from `config/environment.rb`. Let's see how we get there next.
 
 Loading `config/environment.rb`
 ------------------------------
@@ -349,9 +345,6 @@ module ActiveJob
 end
 ```
 
-
-
-
 ---
 
 What is a Railtie? "Railtie is the foundation for extending and configuring Rails. It allows different parts of the framework (or third-party gems) to integrate with Rails by providing hooks for configuration, initialization, and runtime execution."
@@ -396,7 +389,7 @@ end
 
 So a Rails application is an Engine, which is a Railtie. Rails application has autoloaders, an Engine does not have autoloaders.
 
-Now back to the the `initialize!` method that is called from `config/environment.rb`. is in rails/railties/lib/rails/application.rb
+Now back to the the `initialize!` method that is called from `config/environment.rb`.
 
 ### The `initialize!` call
 
@@ -457,7 +450,7 @@ NOTE: Do not confuse Railtie initializers overall with the
 instance or its associated config initializers in `config/initializers`.
 
 There are two parts to the initialization process: booting and starting the
-server. We have been talking about booting. Now we star the server. After this
+server. We have been talking about booting. Now we start the server. After this
 is done we go back to `Rackup::Server`.
 
 Hooking Into the Initialization Process
@@ -619,7 +612,7 @@ end
 ```
 
 We won't dig into the server configuration itself, but this is the last piece of
-our journey in the Rails initialization process.
+our journey in the Rails initialization process with the `bin/rails server`  command.
 
 This high level overview will help you understand when your code is executed and
 how. If you still want to know more, the Rails source code is the best place to
