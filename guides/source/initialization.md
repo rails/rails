@@ -353,46 +353,36 @@ There are dozens of initializers registered for each sub-component. These initia
 
 ### Engines
 
-Engines can hook into a Rails applications (as they are Railties) but they are also a small Rails applications, as they can have routes/models/views/controllers and such.
+A Rails Engine is a subclass of `Rails::Railtie`. Engines can also hook into a
+Rails applications (as they are Railties) but they are also a mini Rails
+applications. Engines can have models, views, controllers as well as
+`config/initializers` and `config/routes.rb` A Rails application ships with a
+bunch of Engines, such as `ActiveStorage::Engine`, `SolidCache::Engine`,
+`Turbo::Engine`.
 
-So what about a Rails Engine? A Rails Engine is a subclass of `Rails::Railtie`.
-
-```ruby
-class Rails::Engine < Rails::Railtie
-
-end
-```
-
-Engines can have `config/initializers` and `config/routes.rb` A Rails
-application ships with a bunch of Engines, such as ActiveStorage::Engine,
-SolidCache::Engine, Turbo::Engine.
-
-A Rails application is a subclass of Rails Engine.
+Your Rails application is a subclass of Rails Engine.
 
 ```ruby
+# config/application.rb
+
 class Rails::Application < Rails::Engine
 
 end
 ```
 
-So a Rails application is an Engine, which is a Railtie. Rails application has autoloaders, an Engine does not have autoloaders.
+So a Rails application is an Engine, which is a Railtie. But they are not exactly the same, there are some differences. For example, a Rails application has autoloaders, an Engine does not have autoloaders.
 
-Now back to the the `initialize!` method that is called from `config/environment.rb`.
+TIP: You can see a list of all initializer registered for an applicaiton with `bin/rails initializers` command.
+
+So now we know what role Railties and Engines play in the Rails initialization process. Back to the the `initialize!` method that is called from `config/environment.rb`.
 
 ### The `initialize!` call
-
-The rest of `config/application.rb` defines the configuration for the
-`Rails::Application` which will be used once the application is fully
-initialized. When `config/application.rb` has finished loading Rails and defined
-the application namespace, we go back to `config/environment.rb`. Here, the
-application is initialized with `Rails.application.initialize!`, which is
-defined in `rails/application.rb`.
-
-### `railties/lib/rails/application.rb`
 
 The `initialize!` method looks like this:
 
 ```ruby
+# railties/lib/rails/application.rb
+
 def initialize!(group = :default) # :nodoc:
   raise "Application has been already initialized." if @initialized
   run_initializers(group, self)
@@ -401,12 +391,11 @@ def initialize!(group = :default) # :nodoc:
 end
 ```
 
-You can only initialize an app once. The Railtie
-[initializers](configuring.html#initializers) are run through the
-`run_initializers` method which is defined in
-`railties/lib/rails/initializable.rb`:
+The `run_initializers` method looks like this:
 
 ```ruby
+# railties/lib/rails/initializable.rb
+
 def run_initializers(group = :default, *args)
   return if instance_variable_defined?(:@ran)
   initializers.tsort_each do |initializer|
@@ -416,27 +405,32 @@ def run_initializers(group = :default, *args)
 end
 ```
 
-The `run_initializers` code itself is tricky. What Rails is doing here is
-traversing all the class ancestors looking for those that respond to an
-`initializers` method. It then sorts the ancestors by name, and runs them. For
-example, the `Engine` class will make all the engines available by providing an
-`initializers` method on them.
+The `run_initializers` code runs all of the initializers registered by the Engine and Railtie classes, as well as other groups of initializers (as defined in `Boostrap` and `Finisher`):
 
-The `Rails::Application` class, as defined in
-`railties/lib/rails/application.rb` defines `bootstrap`, `railtie`, and
-`finisher` initializers. The `bootstrap` initializers prepare the application
-(like initializing the logger) while the `finisher` initializers (like building
-the middleware stack) are run last. The `railtie` initializers are the
-initializers which have been defined on the `Rails::Application` itself and are
-run between the `bootstrap` and `finisher`.
+```ruby
+# railties/lib/rails/application.rb
 
-NOTE: In terms of what's available when, Active Support is loaded in the Bootstrap initializers phase. So that implies that Active Support is not available in `application.rb` but it is available in `config/initializers`.
+def initializers
+	Bootstrap.initializers_for(self) +
+	railties_initializers(super) +
+	Finisher.initializers_for(self)
+end
+```
 
+The `bootstrap` initializers prepare the application (like initializing the
+logger) while the `finisher` initializers (like building the middleware stack)
+are run last. The `railtie` initializers are the initializers which have been
+defined on the `Rails::Application` itself and are run between the `bootstrap`
+and `finisher`.
+
+TODO remove this and add a note about when/how config/initializers are loaded.
 NOTE: Do not confuse Railtie initializers overall with the
 [load_config_initializers](configuring.html#using-initializer-files) initializer
 instance or its associated config initializers in `config/initializers`.
 
+At the end of the `Rails.application.initialize!` call the Rails framework and application are loaded and initialized! (We're also at the end of the `config/environment.rb` file). Now all that is left to do is start the server.
 
+Before that, let's see how you can add custom code to the initialization process.
 
 Hooking Into the Initialization Process
 ---------------------------------------
