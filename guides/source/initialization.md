@@ -446,7 +446,7 @@ ActiveSupport.on_load(:active_record) do
 end
 ```
 
-The Rails framework is responsible for loading the components and when a specific component (e.g. Active Record above), you can be notified with `ActiveSupport.on_load`.
+The Rails framework is responsible for loading the components and when a specific component (e.g. Active Record above) is done loading, you can choose to be notified with the `ActiveSupport.on_load` helper.
 
 Registering a hook that has already run results in that hook executing immediately. This allows hooks to be nested for code that relies on multiple lazily loaded components:
 
@@ -464,7 +464,7 @@ TIP: You can search the Rails source code for `ActiveSupport.run_load_hooks` for
 
 ### Initialization Hooks
 
-Initialization Hooks are things like `after_initialized` and `before_initialed`. You specify them in your application's `configure` block inside your environment specific configuration file (e.g. development.rb):
+Initialization Hooks are things like `after_initialize` and `before_initialize`. You specify them in your application's `configure` block inside your environment specific configuration file (e.g. development.rb):
 
 ```ruby
 Rails.application.configure do
@@ -482,12 +482,7 @@ Some other Initialization Hooks are:
 * `config.before_eager_load`
 * `config.after_routes_loaded`
 
-
-TODO: say 'tada' we're done with booting and then transition to server.
-After booting the application is done, the second part of the initialization process is starting a web server (for the `bin/rails server` command).
-
-There are two parts to the initialization process: booting and starting the
-server. We have been talking about booting. Now we start the server. After this
+Now that we have covered hooks and we have finished booting the application, we're ready to talk about starting the server. After this
 is done we go back to `Rackup::Server`.
 
 Starting the Server
