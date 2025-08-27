@@ -253,8 +253,8 @@ store(dev)> wishlist = Wishlist.find("1-example-wishlist")
 
 It worked! But how? Didn't we have to use Integers to find records?
 
-The way we're using `to_param` takes advantage of how Ruby converts Strings to
-Integers. Let's convert that param to an integer using `to_i` in the console:
+The way we're using `to_param` takes advantage of [how Ruby converts Strings to
+Integers](https://docs.ruby-lang.org/en/master/String.html#method-i-to_i). Let's convert that param to an integer using `to_i` in the console:
 
 ```irb
 store(dev)> "1-example-wishlist".to_i
