@@ -43,7 +43,7 @@ This model has 3 attributes:
 - `user:belongs_to` which associates the Wishlist with the `User` record who
   owns it
 - `name` which we'll also use for friendly URLs
-- `products_count` for the counter cache we'll add to count how many products
+- `products_count` for the [counter cache](https://guides.rubyonrails.org/association_basics.html#counter-cache) we'll add to count how many products
   are on the Wishlist
 
 To associate a `Wishlist` with multiple `Products`, we need to add a table to
