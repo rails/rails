@@ -3,13 +3,13 @@
 The Rails Command Line
 ======================
 
-After reading this guide, you will know how to use the Rails command:
+After reading this guide, you will know how to use the Rails command line:
 
 * To create a Rails application.
 * To generate models, controllers, tests, and database migrations.
 * To start a development server.
 * To inspect a Rails application through an interactive shell.
-* To add and edit credentials to an application.
+* To add and edit credentials.
 
 --------------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ Overview
 
 The Rails command line is a powerful part of the Ruby on Rails framework. It is what allows you to quickly start a new application by generating boiler plate code (that follows convention over configuration). This guide includes an overview of Rails commands that allow you to manage all aspects of your web application, including the database.
 
-You can get a list of rails commands available to you, which will often depend on your current directory, by typing `bin/rails --help`. Each command has a description, and should help you find the thing you need.
+You can get a list of commands available to you, which will often depend on your current directory, by typing `bin/rails --help`. Each command has a description to help clarify what it does.
 
 ```bash
 $ bin/rails --help
@@ -41,7 +41,7 @@ All commands can be run with -h (or --help) for more information.
 In addition to those commands, there are:
 ```
 
-The output of `bin/rails --help` then proceeds to list all commands in alphabetical order, with a short description of each. Something like this:
+The output of `bin/rails --help` then proceeds to list all commands in alphabetical order, with a short description of each:
 
 ```bash
 In addition to those commands, there are:
@@ -66,7 +66,7 @@ yarn:install                       Install all JavaScript dependencies as ...
 zeitwerk:check                     Check project structure for Zeitwerk ...
 ```
 
-In addition to `rails --help`, running a particular command from the list above with `--help` can be also be useful. For example, you can learn about the options that can be used with `rails routes`:
+In addition to `bin/rails --help`, running any command from the list above with the `--help` flag can also be useful. For example, you can learn about the options that can be used with `bin/rails routes`:
 
 ```bash
 $ bin/rails routes --help
@@ -105,7 +105,7 @@ Description:
     ...
 ```
 
-Some of the most commonly used command are:
+Some of the most commonly used commands are:
 
 * `bin/rails console`
 * `bin/rails server`
@@ -117,7 +117,7 @@ Some of the most commonly used command are:
 * `bin/rails dbconsole`
 * `rails new app_name`
 
-We'll cover the above commands (and more) in details in this guide, starting with the command for creating a new application.
+We'll cover the above commands (and more) in the following sections, starting with the command for creating a new application.
 
 Creating a New Rails Application
 --------------------------------
@@ -126,7 +126,7 @@ We can create a brand new Rails application using the `rails new` command. The f
 
 INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already. For more step-by-step instructions, see [Installing Ruby on Rails](install_ruby_on_rails.html) guide.
 
-With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run the simple application right out of the box:
+With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run a simple application right out of the box:
 
 ```bash
 $ rails new my_app
@@ -157,7 +157,7 @@ $ rails new booknotes --database=postgresql
 ...
 ```
 
-The main difference is the content of the `config/database.yml` file, with PostgreSQL option, it looks like this:
+The main difference is the content of the `config/database.yml` file. With the PostgreSQL option, it looks like this:
 
 ```yaml
 # PostgreSQL. Versions 9.3 and up are supported.
@@ -214,7 +214,7 @@ TIP: You can get a full list of what can be skipped in the options section of `r
 Starting a Rails Application
 ----------------------------
 
-We can start a newly created Rails application using the `bin/rails server` command, which launches the [Puma](https://github.com/puma/puma) web server that comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
+We can start a Rails application using the `bin/rails server` command, which launches the [Puma](https://github.com/puma/puma) web server that comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
 
 ```bash
 $ cd my_app
@@ -275,7 +275,7 @@ Rails:
 ...
 ```
 
-NOTE: When you add certain gems to your application, they may install more generators. You can also create your own generators, see [Generators guide](generators.html) for more.
+NOTE: When you add certain gems to your application, they may install more generators. You can also create your own generators, see the [Generators guide](generators.html) for more information.
 
 The purpose of Rails' built-in generators is to save you time by freeing you from having to write repetitive boilerplate code that is necessary for the application to work.
 
