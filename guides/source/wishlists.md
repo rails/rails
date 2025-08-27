@@ -515,7 +515,7 @@ class WishlistsController < ApplicationController
   def create
     @wishlist = Current.user.wishlists.new(wishlist_params)
     if @wishlist.save
-      redirect_to @wishlist, status: :see_other, notice: "Your wishlist was created successfully."
+      redirect_to @wishlist, notice: "Your wishlist was created successfully."
     else
       render :new, status: :unprocessable_entity
     end
