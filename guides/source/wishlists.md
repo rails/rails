@@ -214,7 +214,7 @@ class Wishlist < ApplicationRecord
 end
 ```
 
-This returns a String for the URL param made up of the `id` and `name` joined by
+This will create a `to_param`  instance method that returns a String for the URL param made up of the `id` and `name` joined by
 hyphens. `name` is made URL safe by using
 [`squish`](https://api.rubyonrails.org/classes/String.html#method-i-squish) to
 clean up whitespace and
