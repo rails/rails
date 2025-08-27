@@ -189,7 +189,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
     migrations. Subsequent calls will run pending migrations.
     (If you need the previous behavior of running migrations from scratch instead of loading the 
     schema file, this can be done by running `db:migrate:reset` which 
-    will drop and recreate the database before running migrations)
+    _will drop and recreate the database before running migrations_)
 
 Active Storage
 --------------
