@@ -3,11 +3,10 @@
 require "helper"
 
 class AccountScopedJob < ActiveJob::Base
-  attribute :account_id, required: true
-  attribute :trace_id
+  attribute :account_id
 
   def perform
-    JobBuffer.add({ account_id:, trace_id: })
+    JobBuffer.add(account_id)
   end
 end
 
@@ -20,37 +19,32 @@ class AttributesTest < ActiveSupport::TestCase
   end
 
   test "serializes and deserializes the defined attributes" do
-    job_data = AccountScopedJob.new.set(account_id: 42, trace_id: "1337").serialize
+    job_data = AccountScopedJob.new.set(account_id: 42).serialize
     job = AccountScopedJob.new
     job.deserialize(job_data)
 
     assert_equal 42, job.account_id
-    assert_equal "1337", job.trace_id
   end
 
   test "integrates with #set" do
-    job = AccountScopedJob.new
-    job.set(account_id: 42, trace_id: "1337")
+    job = AccountScopedJob.new.set(account_id: 42)
     assert_equal 42, job.account_id
-    assert_equal "1337", job.trace_id
   end
 
-  test "attaches defines attributes to jobs" do
+  test "defines attribute accessors" do
     job = AccountScopedJob.new
-    job.trace_id = "1337"
-    job.perform_now
-    assert_equal "1337", JobBuffer.last_value[:trace_id]
+    job.account_id = 42
+    assert_equal 42, job.account_id
+  end
+
+  test "passes attributes to the job execution" do
+    AccountScopedJob.set(account_id: 42).perform_now
+    assert_equal 42, JobBuffer.last_value
   end
 
   test "defaults attributes to nil" do
-    job = AccountScopedJob.new
-    job.perform_now
-    assert_nil JobBuffer.last_value[:trace_id]
-  end
-
-  test "raises if a required attribute is not set when enqueueing" do
-    job = AccountScopedJob.new
-    assert_raises(ArgumentError) { job.enqueue }
+    AccountScopedJob.perform_now
+    assert_nil JobBuffer.last_value
   end
 
   test "raises when defining an existing attribute" do
@@ -62,9 +56,7 @@ class AttributesTest < ActiveSupport::TestCase
   end
 
   test "subclasses inherit the parent class attributes" do
-    job = SubClassedJob.new
-    job.set(account_id: 42, trace_id: "1337")
+    job = SubClassedJob.new.set(account_id: 42)
     assert_equal 42, job.account_id
-    assert_equal "1337", job.trace_id
   end
 end

@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+require 'set'
+
 module ActiveJob
+  # = Active Job \Attributes
+  #
   # Allows defining custom job attributes that will be serialized and deserialized along with
   # the job arguments. Useful for cross-cutting concerns.
-  #
-  # Example:
   #
   #   module ShardedJob
   #     extend ActiveSupport::Concern
   #
   #     included do
-  #       attribute :shard, required: true
+  #       attribute :shard
   #       attribute :class_name
   #
   #       around_perform do |job, block|
@@ -42,12 +44,12 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     class_methods do
-      def attribute(name, required: false)
+      def attribute(name)
         if respond_to?(name)
           raise ArgumentError, "Attribute #{name} is already defined"
         end
 
-        attributes[name.to_s] = { required: }
+        attributes.add(name.to_s)
         attr_accessor name
       end
 
@@ -59,14 +61,14 @@ module ActiveJob
           if superclass.respond_to?(:attributes)
             superclass.attributes.dup
           else
-            {}
+            Set.new
           end
       end
     end
 
     def set(options = {})
       options.each_key do |name|
-        if self.class.attributes.key?(name.to_s)
+        if self.class.attributes.include?(name.to_s)
           send("#{name}=", options.delete(name))
         end
       end
@@ -75,14 +77,8 @@ module ActiveJob
     end
 
     def serialize
-      attr_data = self.class.attributes.each_with_object({}) do |(name, options), hash|
-        value = send(name)
-
-        if options[:required] && value.nil?
-          raise ArgumentError, "Missing required attribute: #{name}"
-        end
-
-        hash[name.to_s] = value
+      attr_data = self.class.attributes.each_with_object({}) do |name, hash|
+        hash[name.to_s] = send(name)
       end
       super.merge("attributes" => serialize_arguments(attr_data))
     end
