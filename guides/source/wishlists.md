@@ -28,11 +28,11 @@ Let's get started!
 Wishlist Models
 ---------------
 
-Our e-commerce store has Products and Users that we built in the previous
+Our e-commerce store has products and users that we built in the previous
 tutorials. These are the foundations we need to build Wishlists. Each wishlist
-belongs to a user and contains a list of Products.
+belongs to a user and contains a list of products.
 
-Let's start by creating the Wishlist model.
+Let's start by creating the `Wishlist` model.
 
 ```bash
 $ bin/rails generate model Wishlist user:belongs_to name products_count:integer
@@ -40,7 +40,7 @@ $ bin/rails generate model Wishlist user:belongs_to name products_count:integer
 
 This model has 3 attributes:
 
-- `user:belongs_to` which associates the Wishlist with the `User` record who
+- `user:belongs_to` which associates the `Wishlist` with the `User` record who
   owns it
 - `name` which we'll also use for friendly URLs
 - `products_count` for the [counter cache](https://guides.rubyonrails.org/association_basics.html#counter-cache) we'll add to count how many products
@@ -172,7 +172,7 @@ end
 ```
 
 We've specified a column name to update on the associated models. For the
-Product model, we want to use the `wishlists_count` column and for `Wishlist` we
+`Product` model, we want to use the `wishlists_count` column and for `Wishlist` we
 want to use `products_count`. These counter caches update anytime a
 `WishlistProduct` is created or destroyed.
 
@@ -288,7 +288,7 @@ method name to be called for generating the param. We're telling it to use the
 One additional thing `to_param` does is truncate values longer than 20
 characters word by word.
 
-Let's reload our code in the Rails console and test out a long Wishlist name.
+Let's reload our code in the Rails console and test out a long `Wishlist` name.
 
 ```irb
 store(dev)> reload!
@@ -303,7 +303,7 @@ Alright, close the Rails console and start implementing wishlists in the UI.
 
 ## Adding Products To Wishlists
 
-The first place a user will probably use wishlists is on the Product show page.
+The first place a user will probably use wishlists is on the `Product` show page.
 They'll likely be browsing products and want to save one for later. Let's begin
 by building that first.
 
@@ -395,12 +395,12 @@ The `create` action is also simpler than normal. If a product is already on the
 wishlist, the `wishlist_product` record will fail to create but we don't need to
 notify the user of this error so we can redirect to the wishlist in either case.
 
-Log in as the user we created a Wishlist for earlier and add a product to the
+Log in as the user we created a wishlist for earlier and add a product to the
 wishlist.
 
 ### Default Wishlist
 
-This works fine since we created a `Wishlist` in the Rails console, but what
+This works fine since we created a wishlist in the Rails console, but what
 happens when the user doesn't have any wishlists?
 
 Run the following to delete all wishlists in the database:
@@ -409,7 +409,7 @@ Run the following to delete all wishlists in the database:
 $ bin/rails runner "Wishlist.destroy_all"
 ```
 
-Try visiting a product and adding it to a Wishlist now.
+Try visiting a product and adding it to a wishlist now.
 
 The first problem is the select box will be empty. The form will not submit a
 `wishlist_id` param to the server and that will cause Active Record to raise an
@@ -421,7 +421,7 @@ ActiveRecord::RecordNotFound (Couldn't find Wishlist without an ID):
 app/controllers/products/wishlists_controller.rb:16:in 'Products::WishlistsController#set_wishlist'
 ```
 
-In this case, we should automatically create a Wishlist if the user doesn't have
+In this case, we should automatically create a wishlist if the user doesn't have
 any. This has the added bonus of slowly introducing the user to wishlists.
 
 Update `set_wishlist` in the controller to find or create a wishlist:
@@ -474,7 +474,7 @@ wishlists. Update `app/views/products/_wishlist.html.erb` with the following:
 
 ## Managing Wishlists
 
-Next, we need to be able to view and manage our wishlists
+Next, we need to be able to view and manage our wishlists.
 
 ### Wishlists Controller
 
@@ -854,7 +854,7 @@ Test this out by creating a second wishlist and moving a product back and forth.
 
 ## Adding Wishlists To Admin
 
-Wishlists will be helpful to view in the admin area to get an idea of which
+Viewing wishlists in the admin area will be helpful to get an idea of which
 products are popular.
 
 To start, let's add wishlists to the store namespace routes in
@@ -888,8 +888,7 @@ end
 We only need the index and show actions here because as admins, we don't want to
 mess with user's wishlists.
 
-Now let's create the views for these actions.
-
+Now let's add the views for these actions.
 Create `app/views/store/wishlists/index.html.erb` with:
 
 ```erb
@@ -955,7 +954,7 @@ Now we can view wishlists in the admin area.
 ### Filtering Wishlists
 
 To get a better look at data in the admin area, it's helpful to have filters. We
-can filter wishlists by `User` or by `Product`.
+can filter wishlists by user or by product.
 
 Update `app/views/store/wishlists/index.html.erb` by adding the following form:
 
@@ -998,7 +997,7 @@ Active Record queries are lazy evaluated which means SQL queries aren't executed
 until you ask for the results. This allows our controller to build up the query
 step-by-step and include filters if needed.
 
-Try filtering wishlists to a specific User or Product or both.
+Try filtering wishlists to a specific user or product or both.
 
 ### Refactoring Filters
 
@@ -1045,7 +1044,7 @@ results
 
 ## Adding Subscribers To Admin
 
-While we're here, we should also add the ability to view Subscribers in the
+While we're here, we should also add the ability to view subscribers in the
 admin too. This is helpful to know how many people are waiting for a product to
 go back in stock.
 
@@ -1228,7 +1227,7 @@ two:
   wishlist: two
 ```
 
-Let's also add another product fixture in `test/fixtures/products.yml` to test
+Let's also add another `Product` fixture in `test/fixtures/products.yml` to test
 with:
 
 ```yaml#5-7
@@ -1243,7 +1242,8 @@ shoes:
 
 ### Testing `filter_by`
 
-Our Wishlist model's `filter_by` method is important to ensure it's filtering records correctly.
+The `Wishlist` model's `filter_by` method is important to ensure it's filtering
+records correctly.
 
 Open `test/models/wishlist_test.rb` and add this test to start:
 
@@ -1257,7 +1257,8 @@ class WishlistTest < ActiveSupport::TestCase
 end
 ```
 
-This test ensures that `filter_by` returns all records when no filters are applied.
+This test ensures that `filter_by` returns all records when no filters are
+applied.
 
 Then run the test:
 
@@ -1541,7 +1542,7 @@ test "cannot add product to another user's wishlist" do
 end
 ```
 
-In this case, we sign in as one user and POST with the ID of a wishlist from
+In this case, we sign in as one user and `POST` with the ID of a wishlist from
 another user. To ensure this is working correctly, we assert that no new
 `WishlistProduct` records were created and we also make sure the response was a
 404 Not Found.
