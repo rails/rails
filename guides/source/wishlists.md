@@ -813,7 +813,7 @@ In `app/views/wishlists/show.html.erb`, add the following:
         <% end %>
       <% end %>
 
-      <%= button_to "Remove", [@wishlist, it], method: :delete, data: {turbo_confirm: "Are you sure?"} %>
+      <%= button_to "Remove", [ @wishlist, it ], method: :delete, data: { turbo_confirm: "Are you sure?" } %>
     <% end %>
   </div>
 <% end %>
