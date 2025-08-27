@@ -456,7 +456,7 @@ The `bin/rails console` command loads a full Rails environment (including models
 
 The Rails Console can be useful for testing out ideas by prototyping with code and for creating and updating records in the database without needing to use a browser.
 
-The Rails Console has several useful features. For example, if you wish to test out some code without changing any data, you can do use `sandbox` mode with `bin/rails console --sandbox`. The `sandbox` mode wraps all database operations in a transaction that rolls back when you exit:
+The Rails Console has several useful features. For example, if you wish to test out some code without changing any data, you can use `sandbox` mode with `bin/rails console --sandbox`. The `sandbox` mode wraps all database operations in a transaction that rolls back when you exit:
 
 ```bash
 $ bin/rails console --sandbox
@@ -490,7 +490,7 @@ With the `app` method you can access named route helpers:
 You can also use the `app` object to make requests of your application without starting a real server:
 
 ```irb
->> app.get "/", headers: { "Host" => "localhost" }
+> app.get "/", headers: { "Host" => "localhost" }
 Started GET "/" for 127.0.0.1 at 2025-08-11 11:11:34 -0500
 ...
 
@@ -560,7 +560,7 @@ booknotes_development=# \dt
  ...
 ```
 
-The `dbconsole` command is a very convenient shorthand, it's equivalent to running the `psql` command (or `myslq` or `sqlite`) with the appropriate arguments from your `database.yml`:
+The `dbconsole` command is a very convenient shorthand, it's equivalent to running the `psql` command (or `mysql` or `sqlite`) with the appropriate arguments from your `database.yml`:
 
 ```bash
 psql -h <host> -p <port> -U <username> <database_name>
@@ -647,7 +647,7 @@ Inspecting an Application
 
 ### `bin/rails routes`
 
-The `bin/rails routes` commands lists all defined routes in your application, including the URI Pattern and HTTP verb, as well as the Controller Action it maps to.
+The `bin/rails routes` command lists all defined routes in your application, including the URI Pattern and HTTP verb, as well as the Controller Action it maps to.
 
 ```bash
 $ bin/rails routes
@@ -709,7 +709,7 @@ Booknotes::Application.set_clear_dependencies_hook
 Booknotes::Application.enable_yjit
 ```
 
-This command can be useful when initializers depend on each other and the order in which they are run matter. Using this command, you can see what's run before/after and discover the relationship between initializers. Rails runs framework initializers first and then application ones defined in `config/initializers`.
+This command can be useful when initializers depend on each other and the order in which they are run matters. Using this command, you can see what's run before/after and discover the relationship between initializers. Rails runs framework initializers first and then application ones, defined in `config/initializers`.
 
 ### `bin/rails middleware`
 
@@ -729,7 +729,7 @@ This can be useful to see which middleware Rails includes and which ones are add
 
 ### `bin/rails stats`
 
-The `bin/rails stats` command is show you things like lines of code (LOC) and number of classes and methods for various compents in your applicaiton.
+The `bin/rails stats` command shows you things like lines of code (LOC) and the number of classes and methods for various components in your application.
 
 ```bash
 $ bin/rails stats
@@ -777,7 +777,7 @@ Monterrey
 Saskatchewan
 ```
 
-This can be useful when setting `config.time_zone` in `config/application.rb`, you need an exact Rails time zone name and spelling(e.g., "Pacific Time (US & Canada)") or validating user input or debugging.
+This can be useful when setting `config.time_zone` in `config/application.rb`, when you need an exact Rails time zone name and spelling (e.g., "Pacific Time (US & Canada)"), to validate user input or when debugging.
 
 Managing Assets
 ---------------
