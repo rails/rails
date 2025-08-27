@@ -681,7 +681,7 @@ What do these data attributes do? Let's break down each one:
 
 - `data-controller` tells Stimulus to connect to `clipboard_controller.js`
 - `data-action` tells Stimulus when the button is clicked to call the
-  `clipboard` controller's `copy()` function
+  `clipboard` controller's `copy()` method
 - `data-clipboard-text-value` tells the Stimulus controller it has some data
   called `text` that it can use
 
