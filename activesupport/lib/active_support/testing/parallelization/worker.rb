@@ -78,6 +78,8 @@ module ActiveSupport
         end
 
         def after_fork
+          ActiveSupport::TestCase.parallel_worker_id = @number
+
           Parallelization.after_fork_hooks.each do |cb|
             cb.call(@number)
           end

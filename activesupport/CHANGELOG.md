@@ -1,3 +1,8 @@
+*   Create `parallel_worker_id` helper for running parallel tests. This allows users to
+    know which worker they are currently running in.
+
+    *Nick Schwaderer*
+    
 *   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
 
     If the cache client at `Rails.cache` of a booted application changes, the corresponding
