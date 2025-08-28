@@ -54,28 +54,6 @@ require "config/environment"
 
 For Rake tasks, they can do the same by depending on the `:environment` task provided by Rails.
 
-TODO: when are different things available. Rails.env, Rails.root, Rails.logger, etc.
-
-┌──────────────────────┐
-│ Rails.application    │  <-- defines Rails.env, Rails.root
-└──────────────────────┘
-        ↓
-┌──────────────────────┐
-│ Framework config     │  <-- Rails.configuration, public_path, autoloaders
-└──────────────────────┘
-        ↓
-┌──────────────────────┐
-│ Built-in initializers│  <-- logger, cache, secrets, credentials
-└──────────────────────┘
-        ↓
-┌──────────────────────┐
-│ Custom initializers  │  <-- your config/initializers/*.rb
-└──────────────────────┘
-        ↓
-┌──────────────────────┐
-│ After initialize     │  <-- routing, encryptors, reloader
-└──────────────────────┘
-
 TIP: You can follow along by browsing the Rails [source
 code](https://github.com/rails/rails) and use the `t` key binding to open file
 finder inside GitHub and find files quickly.
@@ -249,7 +227,7 @@ require "rails"
 end
 ```
 
-Common Rails functionality, such as X Y and Z is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
+Common Rails functionality is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
 
 We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components.
 
@@ -292,8 +270,10 @@ The main idea behind initialization is to allow components to register code to b
 
 In order to understand the `initialize!` call, we need to take brief detour and cover Railties and Engines, then we'll come back to the `initialize!` method.
 
-Here is a preview of everything that happens during the `initialize!` call:
-TODO: update this sketch
+Here is a sketch of everything that happens during the `initialize!` call:
+
+TODO: update this draft sketch
+
 ```
 Rails.application.initialize!
 │
@@ -303,7 +283,6 @@ Rails.application.initialize!
 │   └── Load config/initializers/*.rb
 │
 ├── Build middleware stack
-├── Prepare app classes
 └── Run after_initialize hooks
 ```
 
@@ -423,12 +402,9 @@ are run last. The `railtie` initializers are the initializers which have been
 defined on the `Rails::Application` itself and are run between the `bootstrap`
 and `finisher`.
 
-TODO remove this and add a note about when/how config/initializers are loaded.
-NOTE: Do not confuse Railtie initializers overall with the
-[load_config_initializers](configuring.html#using-initializer-files) initializer
-instance or its associated config initializers in `config/initializers`.
+The [custom initializers](configuring.html#using-initializer-files) in your application under `config/initializers` are also run as part of the `initialize!` call. They are registered via [`load_config_initializer`](https://github.com/rails/rails/blob/36bd50c82b46046c9f352e06fa552221586028d8/railties/lib/rails/engine.rb#L643) in `Rails::Engine` Railtie. They are run in alphabetical order by file names in that directory.
 
-At the end of the `Rails.application.initialize!` call the Rails framework and application are loaded and initialized! We're also at the end of the `config/environment.rb` file.
+At the end of the `Rails.application.initialize!` call, the Rails framework and application are loaded and initialized! We're also at the end of the `config/environment.rb` file.
 
 Now all that is left to do is start the server. Before that, let's see how you can add custom code to the initialization process.
 
