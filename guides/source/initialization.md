@@ -428,9 +428,9 @@ NOTE: Do not confuse Railtie initializers overall with the
 [load_config_initializers](configuring.html#using-initializer-files) initializer
 instance or its associated config initializers in `config/initializers`.
 
-At the end of the `Rails.application.initialize!` call the Rails framework and application are loaded and initialized! (We're also at the end of the `config/environment.rb` file). Now all that is left to do is start the server.
+At the end of the `Rails.application.initialize!` call the Rails framework and application are loaded and initialized! We're also at the end of the `config/environment.rb` file.
 
-Before that, let's see how you can add custom code to the initialization process.
+Now all that is left to do is start the server. Before that, let's see how you can add custom code to the initialization process.
 
 Hooking Into the Initialization Process
 ---------------------------------------
@@ -482,16 +482,20 @@ Some other Initialization Hooks are:
 * `config.before_eager_load`
 * `config.after_routes_loaded`
 
-Now that we have covered hooks and we have finished booting the application, we're ready to talk about starting the server. After this
-is done we go back to `Rackup::Server`.
-
 Starting the Server
 -------------------
 
-`Rails::Server#start` calls `super()` which is `Rackup::Server#start`, which loads `config.ru` which requires `config/environment.rb`. And we're back!
+Once the application is booted, the `bin/rails server` command is also responsible for starting the web server.
+
+This process starts when the `ServerCommand#perform` method (which [loaded `application.rb`](#requiring-applicationrb-in-servercommandperform)) calls `server.start()`.
+
+This is a call to `Rails::Server#start`, which calls `Rackup::Server#start` (via `super()` as `Rails::Server` extends `Rackup::Server`). (which loads `config.ru` which requires `config/environment.rb` as we saw earlier).
 
 ```ruby
 # server_command.rb
+module Rails
+  class Server < Rackup::Server
+    ...
     def start(after_stop_callback = nil)
       trap(:INT) { exit }
       create_tmp_directories
@@ -502,11 +506,13 @@ Starting the Server
     ensure
       after_stop_callback.call if after_stop_callback
     end
+  end
+end
 ```
 
 ### Rack: lib/rack/server.rb
 
-Last time we left when the `app` method was being defined:
+The Rack server builds the Rack `app` object and invokes `server.run()`.
 
 ```ruby
 module Rackup
@@ -533,8 +539,21 @@ module Rackup
 end
 ```
 
-At this point `app` is the Rails app itself (a middleware), and what happens
-next is Rack will call all the provided middlewares:
+At this point, the Rack `app` is your Rails app, an instance of `Rails::Application`, including the middleware. What make this a Rack app is that `Rails::Application` implements the Rack interface with a `call(env)` method:
+
+```ruby
+# railties/lib/rails/engine.rb
+
+# Define the Rack API for this engine.
+def call(env)
+  req = build_request env
+  app.call req.env
+end
+```
+
+NOTE: The `call(env)` method is defined in `Rails::Engine` which `Rails::Application` extends.
+
+Next, Rack will call all the provided middlewares:
 
 ```ruby
 module Rackup
@@ -553,51 +572,44 @@ module Rackup
 end
 ```
 
-Remember, `build_app` was called (by `wrapped_app`) in the last line of
-[`Rackup::Server#start`](https://www.rubydoc.info/gems/rack/1.5.5/Rack/Server#start-instance_method). Here's how it looked like when we left:
+And finally, the last line of `Rackup::Server#start` method is to start the server:
 
 ```ruby
 server.run(wrapped_app, **options, &block)
 ```
 
-At this point, the implementation of `server.run` will depend on the server
-you're using. For example, if you were using Puma, here's what the `run` method
-would look like:
+The implementation of `server.run` will depend on the server you're using. For
+example, here is `run` method from the Puma server would look like:
 
 ```ruby
-module Rack
-  module Handler
-    module Puma
-      # ...
-      def self.run(app, options = {})
-        conf = self.config(app, options)
+# lib/rack/handler/puma.rb
 
-        log_writer = options.delete(:Silent) ? ::Puma::LogWriter.strings : ::Puma::LogWriter.stdio
+module Puma
+  module RackHandler
+    # ...
+    def run(app, **options)
+      conf = self.config(app, options)
 
-        launcher = ::Puma::Launcher.new(conf, log_writer: log_writer, events: @events)
+      log_writer = options.delete(:Silent) ? ::Puma::LogWriter.strings : ::Puma::LogWriter.stdio
 
-        yield launcher if block_given?
-        begin
-          launcher.run
-        rescue Interrupt
-          puts "* Gracefully stopping, waiting for requests to finish"
-          launcher.stop
-          puts "* Goodbye!"
-        end
+      launcher = ::Puma::Launcher.new(conf, log_writer: log_writer, events: @events)
+
+      yield launcher if block_given?
+      begin
+        launcher.run
+      rescue Interrupt
+        puts "* Gracefully stopping, waiting for requests to finish"
+        launcher.stop
+        puts "* Goodbye!"
       end
-      # ...
     end
+    # ...
   end
 end
 ```
 
 We won't dig into the server configuration itself, but this is the last piece of
 our journey in the Rails initialization process with the `bin/rails server`  command.
-
-This high level overview will help you understand when your code is executed and
-how. If you still want to know more, the Rails source code is the best place to
-go next.
-
 
 **********OLD VERSION**********
 
