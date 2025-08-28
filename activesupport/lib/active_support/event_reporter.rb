@@ -387,6 +387,8 @@ module ActiveSupport
           ActiveSupport.error_reporter.report(subscriber_error, handled: true)
         end
       end
+
+      nil
     end
 
     # Temporarily enables debug mode for the duration of the block.
