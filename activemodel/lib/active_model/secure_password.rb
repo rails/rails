@@ -164,12 +164,13 @@ module ActiveModel
 
         # Only generate tokens for records that are capable of doing so (Active Records, not vanilla Active Models)
         if reset_token && respond_to?(:generates_token_for)
+          reset_token_expires_in ||= DEFAULT_RESET_TOKEN_EXPIRES_IN
+
+          define_method(:reset_token_expires_in) { reset_token_expires_in }
+
           generates_token_for :"#{attribute}_reset", expires_in: reset_token_expires_in do
             public_send(:"#{attribute}_salt")&.last(10)
           end
-
-          reset_token_expires_in ||= DEFAULT_RESET_TOKEN_EXPIRES_IN
-          define_method(:reset_token_expires_in) { reset_token_expires_in }
 
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
             silence_redefinition_of_method :find_by_#{attribute}_reset_token
