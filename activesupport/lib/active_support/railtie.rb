@@ -41,7 +41,7 @@ module ActiveSupport
     initializer "active_support.set_event_reporter_context_store" do |app|
       config.after_initialize do
         if klass = app.config.active_support.event_reporter_context_store
-          ActiveSupport.event_reporter.context_store = klass
+          ActiveSupport::EventReporter.context_store = klass
         end
       end
     end
