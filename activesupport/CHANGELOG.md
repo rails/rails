@@ -1,3 +1,8 @@
+*   Allow getting and setting of `options[:namespace]` in `ActiveSupport::Cache::Store`
+    after initialize.
+
+    *Nick Schwaderer*
+
 *   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
 
     If the cache client at `Rails.cache` of a booted application changes, the corresponding
