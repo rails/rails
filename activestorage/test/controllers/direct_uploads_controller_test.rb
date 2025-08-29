@@ -160,6 +160,30 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     end
   end
 
+  test "creating new direct upload with custom key prefix" do
+    checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
+    key_prefix = "uploads/42/custom"
+
+    post rails_direct_uploads_url, params: {
+      blob: {
+        filename: "hello.txt",
+        byte_size: 6,
+        checksum: checksum,
+        content_type: "text/plain",
+        key: key_prefix
+      }
+    }
+
+    response.parsed_body.tap do |details|
+      final_key = details["key"]
+
+      expected_prefix = key_prefix.ends_with?("/") ? key_prefix : "#{key_prefix}/"
+
+      assert final_key.start_with?(expected_prefix), "Expected key to start with #{expected_prefix}, got #{final_key.inspect}"
+      assert_equal final_key, ActiveStorage::Blob.find(details["id"]).key
+    end
+  end
+
   test "creating new direct upload does not include root in json" do
     checksum = ActiveStorage.checksum_implementation.base64digest("Hello")
     metadata = {
