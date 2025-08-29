@@ -797,13 +797,13 @@ module ActiveSupport
       end
 
       # Get the current namespace
-      def get_namespace
+      def namespace
         @options[:namespace]
       end
 
       # Set the current namespace. Note, this will be ignored if custom
       # options are passed to cache wills with a namespace key.
-      def set_namespace(namespace)
+      def namespace=(namespace)
         @options[:namespace] = namespace
       end
 
