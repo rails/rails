@@ -1141,6 +1141,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
   end
 end
 
+class NonTransactionalQueryCacheExpiryTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def test_truncate
+    Task.cache do
+      assert_called(ActiveRecord::Base.connection_pool.query_cache, :clear, times: 1) do
+        Task.with_connection { |c| c.truncate(Task.table_name) }
+      end
+    end
+  end
+end
+
 class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
   # We need current_transaction to return the null transaction.
   self.use_transactional_tests = false
