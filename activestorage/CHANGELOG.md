@@ -1,6 +1,6 @@
 ## Rails 7.1.5.2 (August 13, 2025) ##
 
-    Remove dangerous transformations
+*   Remove dangerous transformations
 
     [CVE-2025-24293]
 
