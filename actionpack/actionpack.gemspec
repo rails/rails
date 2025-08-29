@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency "cgi"
   s.add_dependency "nokogiri", ">= 1.8.5"
   s.add_dependency "racc"
-  s.add_dependency "rack", ">= 2.2.4", "< 3.2"
+  s.add_dependency "rack", ">= 2.2.4", "< 3.3"
   s.add_dependency "rack-session", ">= 1.0.1"
   s.add_dependency "rack-test", ">= 0.6.3"
   s.add_dependency "rails-html-sanitizer", "~> 1.6"
