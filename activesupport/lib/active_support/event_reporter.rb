@@ -314,7 +314,7 @@ module ActiveSupport
     #   # or
     #   Rails.event.unsubscribe(MyEventSubscriber)
     def unsubscribe(subscriber)
-      @subscribers.delete_if { |s| s[:subscriber] === subscriber }
+      @subscribers.delete_if { |s| subscriber === s[:subscriber] }
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:
