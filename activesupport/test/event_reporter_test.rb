@@ -72,7 +72,9 @@ module ActiveSupport
     end
 
     test "#unsubscribe" do
+      first_subscriber = @subscriber
       second_subscriber = EventSubscriber.new
+
       @reporter.subscribe(second_subscriber)
       @reporter.notify(:test_event, key: "value")
 
@@ -86,7 +88,12 @@ module ActiveSupport
         @reporter.notify(:another_event, key: "value")
       end
 
+      assert event_matcher(name: "another_event", payload: { key: "value" }).call(first_subscriber.events.last)
+
+      @reporter.unsubscribe(EventSubscriber)
       @reporter.notify(:last_event, key: "value")
+
+      assert_empty first_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
       assert_empty second_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
     end
 
