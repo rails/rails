@@ -248,6 +248,11 @@ module ActiveSupport
       assert_not_predicate @reporter, :debug_mode?
     end
 
+    test "#debug_mode? returns true when debug_mode=true is set" do
+      @reporter.debug_mode = true
+      assert_predicate @reporter, :debug_mode?
+    end
+
     test "#with_debug works with nested calls" do
       @reporter.with_debug do
         assert_predicate @reporter, :debug_mode?

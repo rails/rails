@@ -265,15 +265,18 @@ module ActiveSupport
     # event emission, or when unexpected arguments are passed to +notify+.
     attr_writer :raise_on_error
 
+    attr_writer :debug_mode # :nodoc:
+
     class << self
       attr_accessor :context_store # :nodoc:
     end
 
     self.context_store = EventContext
 
-    def initialize(*subscribers, raise_on_error: false, tags: nil)
+    def initialize(*subscribers, raise_on_error: false)
       @subscribers = []
       subscribers.each { |subscriber| subscribe(subscriber) }
+      @debug_mode = false
       @raise_on_error = raise_on_error
     end
 
@@ -384,6 +387,8 @@ module ActiveSupport
           ActiveSupport.error_reporter.report(subscriber_error, handled: true)
         end
       end
+
+      nil
     end
 
     # Temporarily enables debug mode for the duration of the block.
@@ -400,9 +405,10 @@ module ActiveSupport
       Fiber[:event_reporter_debug_mode] = prior
     end
 
-    # Check if debug mode is currently enabled.
+    # Check if debug mode is currently enabled. Debug mode is enabled on the reporter
+    # via +with_debug+, and in local environments.
     def debug_mode?
-      Fiber[:event_reporter_debug_mode]
+      @debug_mode || Fiber[:event_reporter_debug_mode]
     end
 
     # Report an event only when in debug mode. For example:
