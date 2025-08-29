@@ -10,9 +10,9 @@ module ActiveRecord
 
       class << self
         def included(base) # :nodoc:
-          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
+          dirties_query_cache base, :exec_query, :execute, :truncate,
             :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
-            :exec_insert_all
+            :exec_insert, :exec_insert_all, :exec_delete, :exec_update
 
           base.set_callback :checkin, :after, :unset_query_cache!
         end
