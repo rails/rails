@@ -9,6 +9,8 @@ module ActiveModel
     # Hence need to put a restriction on password length.
     MAX_PASSWORD_LENGTH_ALLOWED = 72
 
+    DEFAULT_RESET_TOKEN_EXPIRES_IN = 15.minutes
+
     class << self
       attr_accessor :min_cost # :nodoc:
     end
@@ -115,7 +117,7 @@ module ActiveModel
       #
       #   # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
       #   User.find_by_password_reset_token!(token)
-      def has_secure_password(attribute = :password, validations: true, reset_token: true, reset_token_expires_in: 15.minutes)
+      def has_secure_password(attribute = :password, validations: true, reset_token: true, reset_token_expires_in: nil)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
@@ -166,6 +168,7 @@ module ActiveModel
             public_send(:"#{attribute}_salt")&.last(10)
           end
 
+          reset_token_expires_in ||= DEFAULT_RESET_TOKEN_EXPIRES_IN
           define_method(:reset_token_expires_in) { reset_token_expires_in }
 
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
