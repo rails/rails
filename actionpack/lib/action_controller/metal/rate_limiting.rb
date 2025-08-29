@@ -16,7 +16,9 @@ module ActionController # :nodoc:
       # Rate limits are by default unique to the ip address making the request, but
       # you can provide your own identity function by passing a callable in the `by:`
       # parameter. It's evaluated within the context of the controller processing the
-      # request.
+      # request. If the callable returns an object that responds to `cache_key`, its
+      # value will be used as the cache key. This is useful if you want the rate limit
+      # to be scoped by an individual user, instead of their ip address.
       #
       # By default, rate limits are scoped to the controller's path. If you want to
       # share rate limits across multiple controllers, you can provide your own scope,
@@ -57,6 +59,10 @@ module ActionController # :nodoc:
       #       rate_limit to: 3, within: 2.seconds, name: "short-term"
       #       rate_limit to: 10, within: 5.minutes, name: "long-term"
       #     end
+      #
+      #     class CommentsController < ApplicationController
+      #       rate_limit to: 5, within: 1.minute, by: -> { current_user }, only: :create
+      #     end
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { head :too_many_requests }, store: cache_store, name: nil, scope: nil, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name, scope: scope || controller_path) }, **options
       end
@@ -65,6 +71,7 @@ module ActionController # :nodoc:
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
         by = instance_exec(&by)
+        by = by.cache_key if by.respond_to?(:cache_key)
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to

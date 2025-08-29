@@ -2,6 +2,16 @@
 
 require "abstract_unit"
 
+class DummyKey
+  def initialize(key)
+    @key = key
+  end
+
+  def cache_key
+    @key
+  end
+end
+
 class RateLimitedController < ActionController::Base
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
   rate_limit to: 2, within: 2.seconds, only: :limited
@@ -13,6 +23,11 @@ class RateLimitedController < ActionController::Base
 
   rate_limit to: 2, within: 2.seconds, by: -> { params[:rate_limit_key] }, with: -> { head :forbidden }, only: :limited_with
   def limited_with
+    head :ok
+  end
+
+  rate_limit to: 2, within: 2.seconds, by: -> { DummyKey.new(params[:rate_limit_object]) }, only: :limited_with_object
+  def limited_with_object
     head :ok
   end
 end
@@ -120,6 +135,16 @@ class RateLimitingTest < ActionController::TestCase
     assert_response :forbidden
 
     get :limited_with, params: { rate_limit_key: "other" }
+    assert_response :ok
+  end
+
+  test "limit by object" do
+    get :limited_with_object, params: { rate_limit_object: "user/1" }
+    get :limited_with_object, params: { rate_limit_object: "user/1" }
+    get :limited_with_object, params: { rate_limit_object: "user/1" }
+    assert_response :too_many_requests
+
+    get :limited_with_object, params: { rate_limit_object: "user/2" }
     assert_response :ok
   end
 
