@@ -218,6 +218,16 @@ module Rails
               assert_not_includes compose_config.keys, "volumes"
             end
           end
+
+          test "adds containerEnv property to devcontainer when missing" do
+            copy_devcontainer_no_env_file
+
+            run_generator ["--to", "postgresql"]
+
+            assert_devcontainer_json_file do |content|
+              assert_equal "postgres", content["containerEnv"]["DB_HOST"]
+            end
+          end
         end
       end
     end
