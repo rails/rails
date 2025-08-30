@@ -345,5 +345,6 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "password reset token duration" do
     assert_equal "password_reset-token-3600", @slow_pilot.password_reset_token
+    assert_equal 1.hour, @slow_pilot.password_reset_token_expires_in
   end
 end
