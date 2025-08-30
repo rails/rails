@@ -1,3 +1,7 @@
+*   Allow `postgres` as an alias for `postgresql` in rails generators
+
+    *Ali Ismayilov*
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash
