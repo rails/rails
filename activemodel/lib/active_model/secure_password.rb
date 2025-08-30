@@ -167,9 +167,8 @@ module ActiveModel
         if reset_token && respond_to?(:generates_token_for)
           reset_token_expires_in = reset_token.is_a?(Hash) ? reset_token[:expires_in] : DEFAULT_RESET_TOKEN_EXPIRES_IN
 
-          define_method(:"#{attribute}_reset_token_expires_in") do
-            reset_token_expires_in
-          end
+          silence_redefinition_of_method(:"#{attribute}_reset_token_expires_in")
+          define_method(:"#{attribute}_reset_token_expires_in") { reset_token_expires_in }
 
           generates_token_for :"#{attribute}_reset", expires_in: reset_token_expires_in do
             public_send(:"#{attribute}_salt")&.last(10)
