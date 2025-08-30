@@ -181,7 +181,7 @@ module ActiveSupport # :nodoc:
         end                                             # end
 
         def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
-          @html_unsafe = true                           #   @html_unsafe = false
+          @html_unsafe = true                           #   @html_unsafe = true
           if block                                      #   if block
             super(*args) { |*params|                    #     super(*args) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)

@@ -1,3 +1,16 @@
+*   Create `parallel_worker_id` helper for running parallel tests. This allows users to
+    know which worker they are currently running in.
+
+    *Nick Schwaderer*
+
+*   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
+
+    If the cache client at `Rails.cache` of a booted application changes, the corresponding
+    mounted middleware needs to update in order for request-local caches to be setup properly.
+    Otherwise, redundant cache operations will erroneously hit the datastore.
+
+    *Gannon McGibbon*
+
 *   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
 
     This new assertion allows testing multiple events in a single block, regardless of order:
@@ -50,18 +63,18 @@
     ```
 
     Events are emitted to subscribers. Applications register subscribers to
-    control how events are serialized and emitted. Rails provides several default
-    encoders that can be used to serialize events to common formats:
+    control how events are serialized and emitted. Subscribers must implement
+    an `#emit` method, which receives the event hash:
 
     ```ruby
-    class MySubscriber
+    class LogSubscriber
       def emit(event)
-        encoded_event = ActiveSupport::EventReporter::JSONEncoder.encode(event)
-        StructuredLogExporter.export(encoded_event)
+        payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
+        source_location = event[:source_location]
+        log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
+        Rails.logger.info(log)
       end
     end
-
-    Rails.event.subscribe(MySubscriber.new)
     ```
 
     *Adrianna Chang*
