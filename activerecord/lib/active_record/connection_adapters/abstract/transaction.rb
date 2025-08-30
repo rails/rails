@@ -156,6 +156,10 @@ module ActiveRecord
         @isolation_level
       end
 
+      def isolation=(isolation) # :nodoc:
+        @isolation_level = isolation
+      end
+
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
         @connection = connection
@@ -424,6 +428,10 @@ module ActiveRecord
       # Delegates to parent transaction's isolation level
       def isolation
         @parent_transaction.isolation
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
       end
 
       def materialize!
