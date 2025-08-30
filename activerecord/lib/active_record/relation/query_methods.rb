@@ -1213,6 +1213,7 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
+      value = Integer(value) unless value.nil?
       self.limit_value = value
       self
     end
@@ -1757,7 +1758,7 @@ module ActiveRecord
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
+        arel.take(build_cast_value("LIMIT", limit_value)) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
         arel.group(*arel_columns(group_values)) unless group_values.empty?
 
