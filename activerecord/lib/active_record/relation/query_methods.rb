@@ -1592,12 +1592,8 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
-    def arel(conn = nil, aliases: nil) # :nodoc:
-      @arel ||= if conn
-        build_arel(conn, aliases)
-      else
-        with_connection { |c| build_arel(c, aliases) }
-      end
+    def arel(aliases = nil) # :nodoc:
+      @arel ||= build_arel(aliases)
     end
 
     def construct_join_dependency(associations, join_type) # :nodoc:
@@ -1751,7 +1747,7 @@ module ActiveRecord
         raise UnmodifiableRelation if @loaded || @arel
       end
 
-      def build_arel(connection, aliases = nil)
+      def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
         build_joins(arel.join_sources, aliases)
