@@ -16,10 +16,9 @@ module ActiveJob
         klass.new(value, parts.to_h)
       end
 
-      private
-        def klass
-          ActiveSupport::Duration
-        end
+      def klass
+        ActiveSupport::Duration
+      end
     end
   end
 end

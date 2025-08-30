@@ -35,10 +35,9 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       MyString.new(hash["value"])
     end
 
-    private
-      def klass
-        MyString
-      end
+    def klass
+      MyString
+    end
   end
 
   class StringWithoutSerializer < String
@@ -133,7 +132,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_instance_of MyString, deserialized
     assert_equal my_string, deserialized
   ensure
-    ActiveJob::Serializers._additional_serializers = original_serializers
+    ActiveJob::Serializers.serializers = original_serializers
   end
 
   test "serialize a String subclass object without a serializer" do

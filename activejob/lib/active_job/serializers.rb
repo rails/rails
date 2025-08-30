@@ -20,15 +20,15 @@ module ActiveJob
     autoload :RangeSerializer
     autoload :BigDecimalSerializer
 
-    mattr_accessor :_additional_serializers
-    self._additional_serializers = Set.new
+    @serializers = Set.new
+    @serializers_index = {}
 
     class << self
       # Returns serialized representative of the passed object.
       # Will look up through all known serializers.
       # Raises ActiveJob::SerializationError if it can't find a proper serializer.
       def serialize(argument)
-        serializer = serializers.detect { |s| s.serialize?(argument) }
+        serializer = @serializers_index[argument.class] || serializers.find { |s| s.serialize?(argument) }
         raise SerializationError.new("Unsupported argument type: #{argument.class.name}") unless serializer
         serializer.serialize(argument)
       end
@@ -47,24 +47,45 @@ module ActiveJob
       end
 
       # Returns list of known serializers.
-      def serializers
-        self._additional_serializers
+      attr_reader :serializers
+
+      def serializers=(serializers)
+        @serializers = serializers
+        index_serializers
       end
 
       # Adds new serializers to a list of known serializers.
       def add_serializers(*new_serializers)
-        self._additional_serializers += new_serializers.flatten
+        new_serializers = new_serializers.flatten
+        @serializers += new_serializers
+        index_serializers
+        @serializers
       end
+
+      private
+        def index_serializers
+          @serializers_index.clear
+          serializers.each do |s|
+            if s.respond_to?(:klass)
+              @serializers_index[s.klass] = s
+            elsif s.respond_to?(:klass, true)
+              ActiveJob.deprecator.warn(<<~MSG.squish)
+                #{s.klass.name}#klass method should be public.
+              MSG
+              @serializers_index[s.send(:klass)] = s
+            end
+          end
+        end
     end
 
-    add_serializers SymbolSerializer,
-      DurationSerializer,
-      DateTimeSerializer,
-      DateSerializer,
-      TimeWithZoneSerializer,
-      TimeSerializer,
-      ModuleSerializer,
-      RangeSerializer,
-      BigDecimalSerializer
+    add_serializers SymbolSerializer.instance,
+      DurationSerializer.instance,
+      DateTimeSerializer.instance,
+      DateSerializer.instance,
+      TimeWithZoneSerializer.instance,
+      TimeSerializer.instance,
+      ModuleSerializer.instance,
+      RangeSerializer.instance,
+      BigDecimalSerializer.instance
   end
 end
