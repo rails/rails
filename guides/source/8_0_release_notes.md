@@ -90,7 +90,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Deprecate requiring `"rails/console/methods"`.
 
 *   Deprecate modifying `STATS_DIRECTORIES` in favor of
-    `Rails::CodeStatistics.registery_directory`.
+    `Rails::CodeStatistics.register_directory`.
 
 *   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
