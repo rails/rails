@@ -45,6 +45,11 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   setup do
     @person = Person.find("5")
+    @original_serializers = ActiveJob::Serializers.serializers
+  end
+
+  teardown do
+    ActiveJob::Serializers.serializers = @original_serializers
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
@@ -109,6 +114,8 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   test "serialize a ActionController::Parameters" do
+    ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
+
     parameters = Parameters.new(a: 1)
 
     assert_equal(

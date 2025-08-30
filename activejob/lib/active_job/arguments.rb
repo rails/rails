@@ -67,11 +67,7 @@ module ActiveJob
         result[aj_hash_key] = symbol_keys
         result
       else
-        if argument.respond_to?(:permitted?) && argument.respond_to?(:to_h)
-          serialize_indifferent_hash(argument.to_h)
-        else
-          Serializers.serialize(argument)
-        end
+        Serializers.serialize(argument)
       end
     end
 

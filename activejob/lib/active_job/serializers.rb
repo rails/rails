@@ -19,6 +19,7 @@ module ActiveJob
     autoload :ModuleSerializer
     autoload :RangeSerializer
     autoload :BigDecimalSerializer
+    autoload :ActionControllerParametersSerializer
 
     @serializers = Set.new
     @serializers_index = {}
@@ -57,6 +58,14 @@ module ActiveJob
       # Adds new serializers to a list of known serializers.
       def add_serializers(*new_serializers)
         new_serializers = new_serializers.flatten
+        new_serializers.map! do |s|
+          if s.is_a?(Class) && s < ObjectSerializer
+            s.instance
+          else
+            s
+          end
+        end
+
         @serializers += new_serializers
         index_serializers
         @serializers
