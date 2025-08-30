@@ -45,7 +45,8 @@ module ActiveModel
       # is automatically configured when +reset_token+ is set to true (which it is by default)
       # and the object responds to +generates_token_for+ (which Active Records do).
       #
-      # Finally, the reset token expiry time can be customized with `reset_token_expires_in`.
+      # Finally, the reset token expiry time can be customized by passing a hash to
+      # `has_secure_password` like so: `has_secure_password reset_token: { expires_in: 1.hour }`
       #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
@@ -117,7 +118,7 @@ module ActiveModel
       #
       #   # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
       #   User.find_by_password_reset_token!(token)
-      def has_secure_password(attribute = :password, validations: true, reset_token: true, reset_token_expires_in: nil)
+      def has_secure_password(attribute = :password, validations: true, reset_token: true)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
@@ -164,7 +165,7 @@ module ActiveModel
 
         # Only generate tokens for records that are capable of doing so (Active Records, not vanilla Active Models)
         if reset_token && respond_to?(:generates_token_for)
-          reset_token_expires_in ||= DEFAULT_RESET_TOKEN_EXPIRES_IN
+          reset_token_expires_in = reset_token.is_a?(Hash) ? reset_token[:expires_in] : DEFAULT_RESET_TOKEN_EXPIRES_IN
 
           define_method(:"#{attribute}_reset_token_expires_in") do
             reset_token_expires_in

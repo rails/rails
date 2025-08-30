@@ -11,5 +11,5 @@ class SlowPilot
     "#{purpose}-token-#{@@expires_in}"
   end
 
-  has_secure_password reset_token_expires_in: 1.hour
+  has_secure_password reset_token: { expires_in: 1.hour }
 end
