@@ -1,3 +1,7 @@
+*   The `allow_unauthenticated_access` before action in the authentication generator will attempt to populate `Current.session`
+
+    *Tony Drake*
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash
