@@ -8,6 +8,7 @@ module ActiveJob
   module Serializers # :nodoc:
     extend ActiveSupport::Autoload
 
+    autoload :ClassBasedSerializer
     autoload :ObjectSerializer
     autoload :TimeObjectSerializer
     autoload :SymbolSerializer
@@ -55,16 +56,26 @@ module ActiveJob
       def add_serializers(*new_serializers)
         self._additional_serializers += new_serializers.flatten
       end
+
+      # Adds a new serializer that will be used to serialize a specific class. These serializers do not consider
+      # ancestors, and will only be used if the class matches exactly. Class-based serializer lookups are much faster
+      # than regular serializer lookups, which have to iterate through all serializers to find one that can handle the
+      # given object. Most regular serializers call the object's `#is_a?` method to determine if they can handle the
+      # object, which can incur a performance penalty.
+      def add_class_based_serializer(klass, serializer)
+        ClassBasedSerializer.add_serializer(klass, serializer)
+      end
     end
 
-    add_serializers SymbolSerializer,
-      DurationSerializer,
-      DateTimeSerializer,
-      DateSerializer,
-      TimeWithZoneSerializer,
-      TimeSerializer,
-      ModuleSerializer,
-      RangeSerializer,
-      BigDecimalSerializer
+    add_serializers ClassBasedSerializer.instance,
+      SymbolSerializer.instance,
+      DurationSerializer.instance,
+      DateTimeSerializer.instance,
+      DateSerializer.instance,
+      TimeWithZoneSerializer.instance,
+      TimeSerializer.instance,
+      ModuleSerializer.instance,
+      RangeSerializer.instance,
+      BigDecimalSerializer.instance
   end
 end

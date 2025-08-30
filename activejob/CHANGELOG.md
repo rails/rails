@@ -1,3 +1,14 @@
+*   Improve performance of ActiveJob serializers
+
+    Introduces a new `add_class_based_serializer` method on `ActiveJob::Serializers`
+    that allows specifying a custom class and serializer pair. These serializers are
+    used to serialize a specific class and, unlike existing serializers, do not consider
+    ancestors of the given class when determining if they can handle an object.
+    Class-based serializer lookups are much faster than regular serializer lookups, which
+    work by iterating over all serializers to find one that can handle the given object.
+
+    *Cameron Dutro*
+
 *   Allow jobs to the interrupted and resumed with Continuations
 
     A job can use Continuations by including the `ActiveJob::Continuable`
