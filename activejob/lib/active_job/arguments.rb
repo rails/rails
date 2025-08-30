@@ -31,8 +31,44 @@ module ActiveJob
     # serialized without mutation are returned as-is. Arrays/Hashes are
     # serialized element by element. All other types are serialized using
     # GlobalID.
-    def serialize(arguments)
-      arguments.map { |argument| serialize_argument(argument) }
+    def serialize(argument)
+      case argument
+      when nil, true, false, Integer, Float # Types that can hardly be subclassed
+        argument
+      when String
+        if argument.class == String
+          argument
+        else
+          begin
+            Serializers.serialize(argument)
+          rescue SerializationError
+            argument
+          end
+        end
+      when Symbol
+        { OBJECT_SERIALIZER_KEY => "ActiveJob::Serializers::SymbolSerializer", "value" => argument.name }
+      when GlobalID::Identification
+        convert_to_global_id_hash(argument)
+      when Array
+        argument.map { |arg| serialize(arg) }
+      when ActiveSupport::HashWithIndifferentAccess
+        serialize_indifferent_hash(argument)
+      when Hash
+        symbol_keys = argument.keys
+        symbol_keys.select! { |k| k.is_a?(Symbol) }
+        symbol_keys.map!(&:name)
+
+        aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
+          RUBY2_KEYWORDS_KEY
+        else
+          SYMBOL_KEYS_KEY
+        end
+        result = serialize_hash(argument)
+        result[aj_hash_key] = symbol_keys
+        result
+      else
+        Serializers.serialize(argument)
+      end
     end
 
     # Deserializes a set of arguments. Intrinsic types that can safely be
@@ -68,48 +104,6 @@ module ActiveJob
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
-      def serialize_argument(argument)
-        case argument
-        when nil, true, false, Integer, Float # Types that can hardly be subclassed
-          argument
-        when String
-          if argument.class == String
-            argument
-          else
-            begin
-              Serializers.serialize(argument)
-            rescue SerializationError
-              argument
-            end
-          end
-        when GlobalID::Identification
-          convert_to_global_id_hash(argument)
-        when Array
-          argument.map { |arg| serialize_argument(arg) }
-        when ActiveSupport::HashWithIndifferentAccess
-          serialize_indifferent_hash(argument)
-        when Hash
-          symbol_keys = argument.keys
-          symbol_keys.select! { |k| k.is_a?(Symbol) }
-          symbol_keys.map!(&:name)
-
-          aj_hash_key = if Hash.ruby2_keywords_hash?(argument)
-            RUBY2_KEYWORDS_KEY
-          else
-            SYMBOL_KEYS_KEY
-          end
-          result = serialize_hash(argument)
-          result[aj_hash_key] = symbol_keys
-          result
-        else
-          if argument.respond_to?(:permitted?) && argument.respond_to?(:to_h)
-            serialize_indifferent_hash(argument.to_h)
-          else
-            Serializers.serialize(argument)
-          end
-        end
-      end
-
       def deserialize_argument(argument)
         case argument
         when nil, true, false, String, Integer, Float
@@ -143,7 +137,7 @@ module ActiveJob
 
       def serialize_hash(argument)
         argument.each_with_object({}) do |(key, value), hash|
-          hash[serialize_hash_key(key)] = serialize_argument(value)
+          hash[serialize_hash_key(key)] = serialize(value)
         end
       end
 
