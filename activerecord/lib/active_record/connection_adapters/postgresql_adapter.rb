@@ -2,6 +2,9 @@
 
 gem "pg", "~> 1.1"
 require "pg"
+if PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
+  warn "pg gem version #{PG::VERSION} is incompatible with libpq of PostgreSQL #{PG.library_version / 10000}. Please upgrade to pg 1.6.0 or later."
+end
 
 require "active_support/core_ext/object/try"
 require "active_record/connection_adapters/abstract_adapter"
@@ -665,9 +668,6 @@ module ActiveRecord
       def check_version # :nodoc:
         if database_version < 9_03_00 # < 9.3
           raise "Your version of PostgreSQL (#{database_version}) is too old. Active Record supports PostgreSQL >= 9.3."
-        end
-        if database_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0")
-          warn "pg gem version #{PG::VERSION} is known to be incompatible with PostgreSQL 18+. Please upgrade to pg 1.6.0 or later."
         end
       end
 
