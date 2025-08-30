@@ -82,6 +82,8 @@ module ActiveJob
               argument
             end
           end
+        when Symbol
+          { OBJECT_SERIALIZER_KEY => "ActiveJob::Serializers::SymbolSerializer", "value" => argument.name }
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
         when Array
