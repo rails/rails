@@ -1,18 +1,39 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
+
+require "active_storage/analyzer/image_analyzer"
+require "active_storage/previewer/poppler_pdf_previewer"
 
 class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   setup do
     @user = User.create!(name: "Josh")
+
+    @was_content_types = ActiveStorage.content_types_allowed_inline
+    @was_previewers = ActiveStorage.previewers
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+    @was_web_content_types = ActiveStorage.web_image_content_types
+
+    ActiveStorage.content_types_allowed_inline = %w(image/jpeg)
+    ActiveStorage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer]
+    ActiveStorage.variable_content_types = %w(image/jpeg image/png)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+    ActiveStorage.web_image_content_types = %(image/jpeg)
   end
 
   teardown do
     ActiveStorage::Blob.all.each(&:delete)
+
+    ActiveStorage.content_types_allowed_inline = @was_content_types
+    ActiveStorage.previewers = @previous_previewers
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+    ActiveStorage.web_image_content_types = @was_web_content_types
   end
+
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -819,25 +840,27 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "raises error when global service configuration is missing" do
-    Rails.configuration.active_storage.stub(:service, nil) do
-      error = assert_raises RuntimeError do
-        User.class_eval do
+    with_service(nil) do
+      msg = <<~MSG.squish
+        Missing Active Storage service name.
+        Specify Active Storage service name for config.active_storage.service in config/environments/test.rb
+      MSG
+      assert_raises(RuntimeError, match: msg) do
+        Class.new(ActiveRecord::Base) do
           has_many_attached :featured_photos
         end
       end
-
-      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
     end
   end
 
   test "raises error when misconfigured service is passed" do
     error = assert_raises ArgumentError do
-      User.class_eval do
+      Class.new(ActiveRecord::Base) do
         has_many_attached :featured_photos, service: :unknown
       end
     end
 
-    assert_match(/Cannot configure service :unknown for User#featured_photos/, error.message)
+    assert_match(/Cannot configure service :unknown for (.*)#featured_photos/, error.message)
   end
 
   test "raises error when misconfigured service is defined at runtime" do
