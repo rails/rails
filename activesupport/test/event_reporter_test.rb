@@ -248,6 +248,17 @@ module ActiveSupport
       assert_equal("Uh oh!", error.message)
     end
 
+    test "#notify with filtered payloads" do
+      filter = ActiveSupport::ParameterFilter.new([:zomg], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { key: "value", zomg: "[FILTERED]" })
+        ]) do
+          @reporter.notify(:test_event, { key: "value", zomg: "secret" })
+        end
+      end
+    end
+
     test "#with_debug" do
       @reporter.with_debug do
         assert_predicate @reporter, :debug_mode?
