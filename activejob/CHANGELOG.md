@@ -1,3 +1,9 @@
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
 *   Allow jobs to the interrupted and resumed with Continuations
 
     A job can use Continuations by including the `ActiveJob::Continuable`
