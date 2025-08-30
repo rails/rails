@@ -44,6 +44,16 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   class StringWithoutSerializer < String
   end
 
+  class ClassArgumentSerializer < ActiveJob::Serializers::ObjectSerializer
+    def serialize(argument)
+      super({})
+    end
+
+    def deserialize(_hash)
+      ClassArgument.new
+    end
+  end
+
   setup do
     @person = Person.find("5")
   end
@@ -134,6 +144,18 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_equal my_string, deserialized
   ensure
     ActiveJob::Serializers._additional_serializers = original_serializers
+  end
+
+  test "serialize a custom object by class" do
+    original_serializers = ActiveJob::Serializers::ClassBasedSerializer.serializers
+    ActiveJob::Serializers.add_class_based_serializer(ClassArgument, ClassArgumentSerializer.instance)
+
+    instance = ClassArgument.new
+    serialized = ActiveJob::Arguments.serialize([instance])
+    deserialized = ActiveJob::Arguments.deserialize(JSON.load(JSON.dump(serialized))).first
+    assert_instance_of ClassArgument, deserialized
+  ensure
+    ActiveJob::Serializers::ClassBasedSerializer.serializers = original_serializers
   end
 
   test "serialize a String subclass object without a serializer" do

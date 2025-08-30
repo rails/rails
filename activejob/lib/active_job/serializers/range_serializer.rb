@@ -14,10 +14,9 @@ module ActiveJob
         klass.new(*Arguments.deserialize(hash.values_at(*KEYS)))
       end
 
-      private
-        def klass
-          ::Range
-        end
+      def klass
+        ::Range
+      end
     end
   end
 end

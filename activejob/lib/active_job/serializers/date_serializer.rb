@@ -11,10 +11,9 @@ module ActiveJob
         Date.iso8601(hash["value"])
       end
 
-      private
-        def klass
-          Date
-        end
+      def klass
+        Date
+      end
     end
   end
 end
