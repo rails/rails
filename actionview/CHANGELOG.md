@@ -1,3 +1,17 @@
+*   Add `datalist_tag` to create `datalist` form elements.
+
+    Example:
+
+        datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+                     ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+        => <datalist id="countries_datalist" class="sa-countries-sample">
+             <option value="Argentina">Argentina</option>
+             <option value="Brazil" class="brazilian_option">Brazil</option>
+             <option value="CL" disabled="disabled">Chile</option>
+           </datalist>
+
+    *Willian Gustavo Veiga*
+
 *   Allow `current_page?` to match against specific HTTP method(s) with a `method:` option.
 
     *Ben Sheldon*
