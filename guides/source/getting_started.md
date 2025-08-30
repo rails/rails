@@ -2354,7 +2354,9 @@ subscribers and how notifications are sent.
 
 Extracting code into concerns also helps make features reusable. For example, we
 could introduce a new model that also needs subscriber notifications. This
-module could be used in multiple models to provide the same functionality.
+module could be used in multiple models to provide the same functionality. 
+In this case, we would save the concern under `app/models/concerns/` instead of
+`app/models/product/`.
 
 ### Unsubscribe Links
 
