@@ -56,11 +56,9 @@ module ActiveModel
       self.class.new(attributes.transform_values(&:deep_dup))
     end
 
-      attr_reader :attributes
-    protected
+    attr_reader :attributes
 
     private
-
       def all_initialized?
         attributes.values.all? { |v| v.initialized? }
       end
