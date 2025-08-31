@@ -1,3 +1,7 @@
+*   Move `LIMIT` validation from query generation to when `limit()` is called.
+
+    *Hartley McGuire*, *Shuyang*
+
 *   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
 
     *Ryuta Kamizono*
