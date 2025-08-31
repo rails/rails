@@ -1620,14 +1620,16 @@ module ActiveRecord
 
         case opts
         when String
+          retryable = opts.respond_to?(:retryable) ? opts.retryable : false
+
           if rest.empty?
-            parts = [Arel.sql(opts)]
+            parts = opts.is_a?(Arel::Nodes::SqlLiteral) ? [opts] : [Arel.sql(opts, retryable: retryable)]
           elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
-            parts = [build_named_bound_sql_literal(opts, rest.first)]
+            parts = [build_named_bound_sql_literal(opts, rest.first, retryable: retryable)]
           elsif opts.include?("?")
-            parts = [build_bound_sql_literal(opts, rest)]
+            parts = [build_bound_sql_literal(opts, rest, retryable: retryable)]
           else
-            parts = [Arel.sql(model.sanitize_sql([opts, *rest]))]
+            parts = [Arel.sql(model.sanitize_sql([opts, *rest]), retryable: retryable)]
           end
         when Hash
           opts = opts.transform_keys do |key|
@@ -1679,7 +1681,7 @@ module ActiveRecord
         spawn.async!
       end
 
-      def build_named_bound_sql_literal(statement, values)
+      def build_named_bound_sql_literal(statement, values, retryable: false)
         bound_values = values.transform_values do |value|
           if ActiveRecord::Relation === value
             Arel.sql(value.to_sql)
@@ -1693,13 +1695,13 @@ module ActiveRecord
         end
 
         begin
-          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values, retryable: retryable)
         rescue Arel::BindError => error
           raise ActiveRecord::PreparedStatementInvalid, error.message
         end
       end
 
-      def build_bound_sql_literal(statement, values)
+      def build_bound_sql_literal(statement, values, retryable: false)
         bound_values = values.map do |value|
           if ActiveRecord::Relation === value
             Arel.sql(value.to_sql)
@@ -1713,7 +1715,7 @@ module ActiveRecord
         end
 
         begin
-          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
+          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil, retryable: retryable)
         rescue Arel::BindError => error
           raise ActiveRecord::PreparedStatementInvalid, error.message
         end

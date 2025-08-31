@@ -758,7 +758,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_BoundSqlLiteral(o, collector)
-          collector.retryable = false
+          collector.retryable &&= o.retryable
           bind_index = 0
 
           new_bind = lambda do |value|
