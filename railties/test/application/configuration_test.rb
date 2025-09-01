@@ -3238,7 +3238,11 @@ module ApplicationTests
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
-      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
+      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer
+        def klass
+          nil
+        end
+      end
 
       app_file "config/initializers/custom_serializers.rb", <<-RUBY
       Rails.application.config.active_job.custom_serializers << DummySerializer
@@ -3246,7 +3250,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_includes ActiveJob::Serializers.serializers, DummySerializer
+      assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do

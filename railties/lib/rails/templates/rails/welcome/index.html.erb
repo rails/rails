@@ -35,6 +35,14 @@
       text-align: center;
     }
 
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1a1a1a;
+        background-image: url(data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjEwMjQiIHZpZXdCb3g9IjAgMCAxNDQwIDEwMjQiIHdpZHRoPSIxNDQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0xNDQwIDUxMC4wMDA2NDh2LTUxMC4wMDA2NDhoLTE0NDB2Mzg0LjAwMDY0OGM0MTcuMzExOTM5IDEzMS4xNDIxNzkgODkxIDE3MS41MTMgMTQ0MCAxMjZ6IiBmaWxsPSIjMzMzIi8+PC9zdmc+);
+        color: #e0e0e0;
+      }
+    }
+
     nav {
       font-size: 0;
       height: 20vw;
@@ -56,6 +64,13 @@
 
     nav a:hover {
       background: #261B23;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      nav a {
+        background: #D30001;
+        filter: drop-shadow(0 20px 13px rgb(255 255 255 / 0.03)) drop-shadow(0 8px 5px rgb(255 255 255 / 0.08));
+      }
     }
 
     nav a img {

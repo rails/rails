@@ -13,6 +13,7 @@ Mime::Type.register "text/calendar", :ics
 Mime::Type.register "text/csv", :csv
 Mime::Type.register "text/vcard", :vcf
 Mime::Type.register "text/vtt", :vtt, %w(vtt)
+Mime::Type.register "text/markdown", :md, [], %w(md markdown)
 
 Mime::Type.register "image/png", :png, [], %w(png)
 Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe pjpeg)

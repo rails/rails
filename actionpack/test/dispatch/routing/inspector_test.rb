@@ -41,6 +41,7 @@ module ActionDispatch
           "         blog      /blog                    Blog::Engine",
           "",
           "Routes for Blog::Engine:",
+          "Prefix Verb URI Pattern     Controller#Action",
           "  cart GET  /cart(.:format) cart#show"
         ], output
       end

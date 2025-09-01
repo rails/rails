@@ -52,6 +52,14 @@ module ActiveJob
       end
     end
 
+    initializer "active_job.action_controller_parameters" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:action_controller) do
+          ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
+        end
+      end
+    end
+
     initializer "active_job.set_configs" do |app|
       options = app.config.active_job
       options.queue_adapter ||= (Rails.env.test? ? :test : :async)

@@ -287,7 +287,7 @@ $ bin/rails console
 
 ```irb
 irb> 10.requests_per_hour
-=> #<struct ApiBoost::RateLimit requests=10, per=:hour>
+=> #<data ApiBoost::RateLimit requests=10, per=:hour>
 ```
 
 The dummy application automatically loads your plugin, so any extensions you add

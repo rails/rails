@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/deprecated_associations_test_helpers"
+require "models/attachment"
 require "models/developer"
 require "models/project"
 require "models/company"
@@ -1451,6 +1452,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal touch_time, car.reload.wheels_owned_at
+  end
+
+  def test_polymorphic_stale_state_handles_nil_foreign_keys_correctly
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "records"
+
+      has_one :attachment, as: :record
+
+      def self.polymorphic_name
+        "Blob"
+      end
+    end
+
+    assert_nothing_raised { Attachment.create!(record: klass.build, record_type: "Document") }
   end
 
   def test_build_with_conditions

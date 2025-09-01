@@ -236,13 +236,13 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
+          types = extract_types_for(keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
             if Arel::Nodes::SqlLiteral === value
               value
             elsif primary_keys.include?(key) && value.nil?
-              connection.default_insert_value(column_from_key(key))
+              connection.default_insert_value(model.columns_hash[key])
             else
               ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
             end
@@ -308,8 +308,8 @@ module ActiveRecord
             format_columns(insert_all.keys_including_timestamps)
           end
 
-          def extract_types_from_columns_on(table_name, keys:)
-            columns = @model.schema_cache.columns_hash(table_name)
+          def extract_types_for(keys)
+            columns = @model.columns_hash
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
@@ -327,10 +327,6 @@ module ActiveRecord
 
           def quote_column(column)
             connection.quote_column_name(column)
-          end
-
-          def column_from_key(key)
-            model.schema_cache.columns_hash(model.table_name)[key]
           end
       end
   end

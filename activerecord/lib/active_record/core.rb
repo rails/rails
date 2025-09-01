@@ -357,6 +357,8 @@ module ActiveRecord
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
         @filter_attributes = filter_attributes
+
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
       end
 
       def inspection_filter # :nodoc:

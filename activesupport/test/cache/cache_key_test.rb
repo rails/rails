@@ -78,6 +78,16 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal "foo/bar/baz", ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
   end
 
+  def test_set_and_get_namespace
+    cache = ActiveSupport::Cache::MemoryStore.new
+    assert_nil cache.namespace
+    cache.namespace = "test"
+    assert_equal "test", cache.namespace
+
+    cache.namespace = "test2"
+    assert_equal "test2", cache.namespace
+  end
+
   private
     def with_env(kv)
       old_values = {}

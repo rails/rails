@@ -354,7 +354,7 @@ module ActiveRecord
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
         if !requires_new && current_transaction.joinable?
-          if isolation
+          if isolation && current_transaction.isolation != isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
           end
           yield current_transaction.user_transaction
@@ -500,20 +500,6 @@ module ActiveRecord
 
       def empty_insert_statement_value(primary_key = nil)
         "DEFAULT VALUES"
-      end
-
-      # Sanitizes the given LIMIT parameter in order to prevent SQL injection.
-      #
-      # The +limit+ may be anything that can evaluate to a string via #to_s. It
-      # should look like an integer, or an Arel SQL literal.
-      #
-      # Returns Integer and Arel::Nodes::SqlLiteral limits as is.
-      def sanitize_limit(limit)
-        if limit.is_a?(Integer) || limit.is_a?(Arel::Nodes::SqlLiteral)
-          limit
-        else
-          Integer(limit)
-        end
       end
 
       # Fixture value is quoted by Arel, however scalar values
