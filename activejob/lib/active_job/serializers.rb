@@ -80,7 +80,7 @@ module ActiveJob
             elsif s.respond_to?(:klass, true)
               klass = s.send(:klass)
               ActiveJob.deprecator.warn(<<~MSG.squish)
-                #{klass.name}#klass method should be public.
+                #{s.class.name}#klass method should be public.
               MSG
               @serializers_index[klass] = s
             end
