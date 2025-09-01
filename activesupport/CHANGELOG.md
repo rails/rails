@@ -1,3 +1,12 @@
+*   Automatically isolate cache namespaces in tests.
+
+    Each test now automatically gets a unique cache namespace via `Rails.cache`
+    to prevent cache key collisions. This eliminates the need for manual cache clearing
+    in teardown blocks for cache stores that support namespaces. It also greatly helps
+    parallel tests working together.
+
+    *Nick Schwaderer*
+
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
 
     Can be used as an alternative to `Store#clear` in some situations such as parallel
