@@ -329,6 +329,16 @@ module ActionDispatch
           path = location.path
           location.query ? "#{path}?#{location.query}" : path
         end
+
+        def _with_routes(...)
+          super do
+            if controller
+              controller.send(:_with_routes, ...)
+            else
+              yield
+            end
+          end
+        end
     end
 
     module Runner

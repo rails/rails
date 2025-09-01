@@ -238,6 +238,11 @@ module TestGenerationPrefix
       verify_redirect "http://www.example.com/foo"
     end
 
+    test "[ENGINE] mounted_helpers doesn't use SCRIPT_NAME from request" do
+      get "/pure-awesomeness/blog/posts/1"
+      assert_equal "/", integration_session.main_app.root_path
+    end
+
     # Inside Application
     test "[APP] generating engine's route includes prefix" do
       get "/generate"
