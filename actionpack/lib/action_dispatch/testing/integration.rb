@@ -329,6 +329,16 @@ module ActionDispatch
           path = location.path
           location.query ? "#{path}?#{location.query}" : path
         end
+
+        def _with_routes(routes, &block)
+          super(routes) do
+            if controller
+              controller.send(:_with_routes, routes, &block)
+            else
+              yield
+            end
+          end
+        end
     end
 
     module Runner
@@ -360,10 +370,11 @@ module ActionDispatch
       end
 
       def create_session(app)
+        available_url_helpers = available_url_helpers?(app)
         klass = APP_SESSIONS[app] ||= Class.new(Integration::Session) {
           # If the app is a Rails app, make url_helpers available on the session. This
           # makes app.url_for and app.foo_path available in the console.
-          if app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
+          if available_url_helpers
             include app.routes.url_helpers
             include app.routes.mounted_helpers
           end
@@ -434,13 +445,20 @@ module ActionDispatch
       end
 
     private
+      def available_url_helpers?(app)
+        app.respond_to?(:routes) && app.routes.is_a?(ActionDispatch::Routing::RouteSet)
+      end
+
       def respond_to_missing?(method, _)
-        integration_session.respond_to?(method) || super
+        (available_url_helpers?(app) && integration_session.main_app.respond_to?(method)) ||
+          integration_session.respond_to?(method) || super
       end
 
       # Delegate unhandled messages to the current session instance.
       def method_missing(method, ...)
-        if integration_session.respond_to?(method)
+        if available_url_helpers?(app) && integration_session.main_app.respond_to?(method)
+          integration_session.main_app.public_send(method, ...)
+        elsif integration_session.respond_to?(method)
           integration_session.public_send(method, ...).tap do
             copy_session_variables!
           end
@@ -653,6 +671,12 @@ module ActionDispatch
       extend ActiveSupport::Concern
       def url_options
         integration_session.url_options
+      end
+
+      def _with_routes(routes, &block)
+        super(routes) do
+          integration_session.send(:_with_routes, routes, &block)
+        end
       end
     end
 
