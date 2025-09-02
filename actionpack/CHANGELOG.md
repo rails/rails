@@ -1,3 +1,10 @@
+*   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
+
+    Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.
+    By default, Action Dispatch rescues the error and responds with a `429 Too Many Requests` status.
+
+    *Sean Doyle*
+
 *   Add .md/.markdown as Markdown extensions and add a default `markdown:` renderer:
 
     ```ruby
