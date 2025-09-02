@@ -3250,6 +3250,10 @@ module ApplicationTests
 
       app "development"
 
+      assert_nothing_raised do
+        ActiveJob::Base
+      end
+
       assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
     end
 
@@ -3268,7 +3272,7 @@ module ApplicationTests
     end
 
     test "config.active_job.enqueue_after_transaction_commit is deprecated" do
-      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
       Rails.application.config.active_job.enqueue_after_transaction_commit = :always
       RUBY
 
