@@ -211,6 +211,18 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       assert_begin_isolation_level_event(events, isolation: "REPEATABLE READ")
     end
 
+    test "specifying the same isolation level should not raise an error" do
+      assert_nothing_raised do
+        Tag.transaction(isolation: :read_committed) do
+          Tag.create!
+
+          Tag.transaction(isolation: :read_committed) do
+            Tag.create!
+          end
+        end
+      end
+    end
+
     # We are testing that a nonrepeatable read does not happen
     if ActiveRecord::Base.lease_connection.transaction_isolation_levels.include?(:repeatable_read)
       test "repeatable read" do

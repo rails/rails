@@ -261,8 +261,11 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   class EventReporter
-    attr_writer :raise_on_error # :nodoc:
-    attr_reader :subscribers
+    # Sets whether to raise an error if a subscriber raises an error during
+    # event emission, or when unexpected arguments are passed to +notify+.
+    attr_writer :raise_on_error
+
+    attr_writer :debug_mode # :nodoc:
 
     class << self
       attr_accessor :context_store # :nodoc:
@@ -270,9 +273,10 @@ module ActiveSupport
 
     self.context_store = EventContext
 
-    def initialize(*subscribers, raise_on_error: false, tags: nil)
+    def initialize(*subscribers, raise_on_error: false)
       @subscribers = []
       subscribers.each { |subscriber| subscribe(subscriber) }
+      @debug_mode = false
       @raise_on_error = raise_on_error
     end
 
@@ -298,8 +302,19 @@ module ActiveSupport
       unless subscriber.respond_to?(:emit)
         raise ArgumentError, "Event subscriber #{subscriber.class.name} must respond to #emit"
       end
-
       @subscribers << { subscriber: subscriber, filter: filter }
+    end
+
+    # Unregister an event subscriber. Accepts either a subscriber or a class.
+    #
+    #   subscriber = MyEventSubscriber.new
+    #   Rails.event.subscribe(subscriber)
+    #
+    #   Rails.event.unsubscribe(subscriber)
+    #   # or
+    #   Rails.event.unsubscribe(MyEventSubscriber)
+    def unsubscribe(subscriber)
+      @subscribers.delete_if { |s| subscriber === s[:subscriber] }
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:
@@ -358,7 +373,7 @@ module ActiveSupport
         event[:source_location] = source_location
       end
 
-      subscribers.each do |subscriber_entry|
+      @subscribers.each do |subscriber_entry|
         subscriber = subscriber_entry[:subscriber]
         filter = subscriber_entry[:filter]
 
@@ -372,6 +387,8 @@ module ActiveSupport
           ActiveSupport.error_reporter.report(subscriber_error, handled: true)
         end
       end
+
+      nil
     end
 
     # Temporarily enables debug mode for the duration of the block.
@@ -388,9 +405,10 @@ module ActiveSupport
       Fiber[:event_reporter_debug_mode] = prior
     end
 
-    # Check if debug mode is currently enabled.
+    # Check if debug mode is currently enabled. Debug mode is enabled on the reporter
+    # via +with_debug+, and in local environments.
     def debug_mode?
-      Fiber[:event_reporter_debug_mode]
+      @debug_mode || Fiber[:event_reporter_debug_mode]
     end
 
     # Report an event only when in debug mode. For example:

@@ -1,3 +1,23 @@
+*   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
+
+    Can be used as an alternative to `Store#clear` in some situations such as parallel
+    testing.
+
+    *Nick Schwaderer*
+
+*   Create `parallel_worker_id` helper for running parallel tests. This allows users to
+    know which worker they are currently running in.
+
+    *Nick Schwaderer*
+
+*   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
+
+    If the cache client at `Rails.cache` of a booted application changes, the corresponding
+    mounted middleware needs to update in order for request-local caches to be setup properly.
+    Otherwise, redundant cache operations will erroneously hit the datastore.
+
+    *Gannon McGibbon*
+
 *   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
 
     This new assertion allows testing multiple events in a single block, regardless of order:

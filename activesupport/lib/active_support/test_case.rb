@@ -23,7 +23,22 @@ module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    # Class variable to store the parallel worker ID
+    @@parallel_worker_id = nil
+
     class << self
+      # Returns the current parallel worker ID if tests are running in parallel,
+      # nil otherwise.
+      #
+      #   ActiveSupport::TestCase.parallel_worker_id # => 2
+      def parallel_worker_id
+        @@parallel_worker_id
+      end
+
+      def parallel_worker_id=(value) # :nodoc:
+        @@parallel_worker_id = value
+      end
+
       # Sets the order in which test cases are run.
       #
       #   ActiveSupport::TestCase.test_order = :random # => :random
@@ -173,6 +188,11 @@ module ActiveSupport
     end
 
     alias_method :method_name, :name
+
+    # Returns the current parallel worker ID if tests are running in parallel
+    def parallel_worker_id
+      self.class.parallel_worker_id
+    end
 
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown

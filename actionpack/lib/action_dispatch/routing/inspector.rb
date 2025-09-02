@@ -89,7 +89,10 @@ module ActionDispatch
 
         @engines.each do |name, engine_routes|
           formatter.section_title "Routes for #{name}"
-          formatter.section engine_routes
+          if engine_routes.any?
+            formatter.header engine_routes
+            formatter.section engine_routes
+          end
         end
 
         formatter.result

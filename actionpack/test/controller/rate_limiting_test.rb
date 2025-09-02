@@ -66,8 +66,9 @@ class RateLimitingTest < ActionController::TestCase
     get :limited
     assert_response :ok
 
-    get :limited
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited
+    end
   end
 
   test "notification on limit action" do
@@ -80,25 +81,27 @@ class RateLimitingTest < ActionController::TestCase
         within: 2.seconds,
         name: nil,
         by: request.remote_ip) do
-      get :limited
+      assert_raises ActionController::TooManyRequests do
+        get :limited
+      end
     end
   end
 
   test "multiple rate limits" do
+    freeze_time
     get :limited
     get :limited
     assert_response :ok
 
-    travel_to 3.seconds.from_now do
-      get :limited
-      get :limited
-      assert_response :ok
-    end
+    travel 3.seconds
+    get :limited
+    get :limited
+    assert_response :ok
 
-    travel_to 3.seconds.from_now do
+    travel 3.seconds
+    get :limited
+    assert_raises ActionController::TooManyRequests do
       get :limited
-      get :limited
-      assert_response :too_many_requests
     end
   end
 
@@ -140,13 +143,15 @@ class RateLimitingTest < ActionController::TestCase
 
     @controller = RateLimitedSharedTwoController.new
 
-    get :limited_shared_two
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited_shared_two
+    end
 
     @controller = RateLimitedSharedOneController.new
 
-    get :limited_shared_one
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited_shared_one
+    end
   ensure
     RateLimitedBaseController.cache_store.clear
   end
@@ -166,8 +171,9 @@ class RateLimitingTest < ActionController::TestCase
 
     @controller = RateLimitedSharedThreeController.new
 
-    get :limited_shared_three
-    assert_response :too_many_requests
+    assert_raises ActionController::TooManyRequests do
+      get :limited_shared_three
+    end
   ensure
     RateLimitedSharedController.cache_store.clear
   end

@@ -48,17 +48,17 @@ module ActiveSupport
 
     test "#subscribe" do
       reporter = ActiveSupport::EventReporter.new
-      reporter.subscribe(@subscriber)
-      assert_equal([{ subscriber: @subscriber, filter: nil }], reporter.subscribers)
+      subscribers = reporter.subscribe(@subscriber)
+      assert_equal([{ subscriber: @subscriber, filter: nil }], subscribers)
     end
 
     test "#subscribe with filter" do
       reporter = ActiveSupport::EventReporter.new
 
       filter = ->(event) { event[:name].start_with?("user.") }
-      reporter.subscribe(@subscriber, &filter)
+      subscribers = reporter.subscribe(@subscriber, &filter)
 
-      assert_equal([{ subscriber: @subscriber, filter: filter }], reporter.subscribers)
+      assert_equal([{ subscriber: @subscriber, filter: filter }], subscribers)
     end
 
     test "#subscribe raises ArgumentError when sink doesn't respond to emit" do
@@ -69,6 +69,32 @@ module ActiveSupport
       end
 
       assert_equal "Event subscriber Object must respond to #emit", error.message
+    end
+
+    test "#unsubscribe" do
+      first_subscriber = @subscriber
+      second_subscriber = EventSubscriber.new
+
+      @reporter.subscribe(second_subscriber)
+      @reporter.notify(:test_event, key: "value")
+
+      assert event_matcher(name: "test_event", payload: { key: "value" }).call(second_subscriber.events.last)
+
+      @reporter.unsubscribe(second_subscriber)
+
+      assert_not_called(second_subscriber, :emit, [
+        event_matcher(name: "another_event")
+      ]) do
+        @reporter.notify(:another_event, key: "value")
+      end
+
+      assert event_matcher(name: "another_event", payload: { key: "value" }).call(first_subscriber.events.last)
+
+      @reporter.unsubscribe(EventSubscriber)
+      @reporter.notify(:last_event, key: "value")
+
+      assert_empty first_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
+      assert_empty second_subscriber.events.select(&event_matcher(name: "last_event", payload: { key: "value" }))
     end
 
     test "#notify with name" do
@@ -227,6 +253,11 @@ module ActiveSupport
         assert_predicate @reporter, :debug_mode?
       end
       assert_not_predicate @reporter, :debug_mode?
+    end
+
+    test "#debug_mode? returns true when debug_mode=true is set" do
+      @reporter.debug_mode = true
+      assert_predicate @reporter, :debug_mode?
     end
 
     test "#with_debug works with nested calls" do

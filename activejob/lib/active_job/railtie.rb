@@ -19,7 +19,7 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      config.after_initialize do
+      ActiveSupport.on_load(:active_job) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end
@@ -48,6 +48,14 @@ module ActiveJob
 
             ActiveJob::Base.enqueue_after_transaction_commit = value
           end
+        end
+      end
+    end
+
+    initializer "active_job.action_controller_parameters" do |app|
+      ActiveSupport.on_load(:active_job) do
+        ActiveSupport.on_load(:action_controller) do
+          ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
         end
       end
     end

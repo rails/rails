@@ -74,6 +74,26 @@
 
     *Kazakbai Bolotbek_uulu*
 
+*   Move `LIMIT` validation from query generation to when `limit()` is called.
+
+    *Hartley McGuire*, *Shuyang*
+
+*   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
+
+    *Ryuta Kamizono*
+
+*   Add `ActiveRecord::ExclusionViolation` error class for exclusion constraint violations.
+
+    When an exclusion constraint is violated in PostgreSQL, the error will now be raised
+    as `ActiveRecord::ExclusionViolation` instead of the generic `ActiveRecord::StatementInvalid`,
+    making it easier to handle these specific constraint violations in application code.
+
+    This follows the same pattern as other constraint violation error classes like
+    `RecordNotUnique` for unique constraint violations and `InvalidForeignKey` for
+    foreign key constraint violations.
+
+    *Ryuta Kamizono*
+
 *   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
     so sensitive information is not leaked.
 

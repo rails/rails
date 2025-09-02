@@ -1,3 +1,10 @@
+*   `ActiveJob::Serializers::ObjectSerializers#klass` method is now public.
+
+    Custom Active Job serializers must have a public `#klass` method too.
+    The returned class will be index allowing for faster serialization.
+
+    *Jean Boussier*
+
 *   Allow jobs to the interrupted and resumed with Continuations
 
     A job can use Continuations by including the `ActiveJob::Continuable`

@@ -1,3 +1,37 @@
+*   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
+
+    Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.
+    By default, Action Dispatch rescues the error and responds with a `429 Too Many Requests` status.
+
+    *Sean Doyle*
+
+*   Add .md/.markdown as Markdown extensions and add a default `markdown:` renderer:
+
+    ```ruby
+    class Page
+      def to_markdown
+        body
+      end
+    end
+
+    class PagesController < ActionController::Base
+      def show
+        @page = Page.find(params[:id])
+
+        respond_to do |format|
+          format.html
+          format.md { render markdown: @page }
+        end
+      end
+    end
+    ```
+
+    *DHH*
+
+*   Add headers to engine routes inspection command
+
+    *Petrik de Heus*
+
 *   Add "Copy as text" button to error pages
 
     *Mikkel Malmberg*

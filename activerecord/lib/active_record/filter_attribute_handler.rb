@@ -62,7 +62,7 @@ module ActiveRecord
 
       def apply_filter(klass, list)
         list.each do |attribute|
-          next if klass.abstract_class?
+          next if klass.abstract_class? || klass == Base
 
           klass_name = klass.name ? klass.model_name.element : nil
           filter = [klass_name, attribute.to_s].compact.join(".")
