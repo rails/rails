@@ -557,7 +557,7 @@ GEM
       google-protobuf (~> 4.31)
     sass-embedded (1.91.0-x86_64-linux-gnu)
       google-protobuf (~> 4.31)
-    sdoc (2.6.1)
+    sdoc (2.6.2)
       rdoc (>= 5.0)
     securerandom (0.4.1)
     selenium-webdriver (4.35.0)
