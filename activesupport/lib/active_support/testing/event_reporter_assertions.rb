@@ -50,15 +50,18 @@ module ActiveSupport
             true
           end
 
-          def record
+          def record(debug_mode: ActiveSupport.event_reporter.debug_mode?)
             subscribe
             events = []
             event_recorders << events
+            original_debug_mode = ActiveSupport.event_reporter.debug_mode?
+            ActiveSupport.event_reporter.debug_mode = debug_mode
             begin
               yield
               events
             ensure
               event_recorders.delete_if { |r| events.equal?(r) }
+              ActiveSupport.event_reporter.debug_mode = original_debug_mode
             end
           end
 
@@ -98,8 +101,21 @@ module ActiveSupport
       #   assert_no_event_reported("user.created") do
       #     service_that_does_not_report_events.perform
       #   end
-      def assert_no_event_reported(name = nil, payload: {}, tags: {}, &block)
-        events = EventCollector.record(&block)
+      #
+      # By default, debug mode will be turned off within this assertion so production behaviour
+      # can be tested.
+      #
+      #   assert_no_event_reported do
+      #     Rails.event.debug("user.created")
+      #   end
+      #
+      # But debug mode can be turned on to test debugging behaviour.
+      #
+      #   assert_no_event_reported(debug_mode: true) do
+      #     Rails.event.debug("user.created")
+      #   end
+      def assert_no_event_reported(name = nil, payload: {}, tags: {}, debug_mode: false, &block)
+        events = EventCollector.record(debug_mode: debug_mode, &block)
 
         if name.nil?
           assert_predicate(events, :empty?)
