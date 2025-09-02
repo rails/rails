@@ -82,6 +82,6 @@ class ActiveStorage::Variation
 
   private
     def transformer
-      ActiveStorage.variant_transformer.new(transformations.except(:format))
+      ActiveStorage::Transformers::ImageProcessingTransformer.new(transformations.except(:format))
     end
 end

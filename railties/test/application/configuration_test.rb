@@ -4143,21 +4143,13 @@ module ApplicationTests
 
       app "development"
 
-      assert_nil ActiveStorage.variant_processor
+      assert_equal :mini_magick, ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do
       app "development"
 
       assert_equal :vips, ActiveStorage.variant_processor
-    end
-
-    test "ActiveStorage.analyzers doesn't contain nil when variant_processor = nil" do
-      add_to_config "config.active_storage.variant_processor = nil"
-
-      app "development"
-
-      assert_not_includes ActiveStorage.analyzers, nil
     end
 
     test "ActiveStorage.supported_image_processing_methods can be configured via config.active_storage.supported_image_processing_methods" do
