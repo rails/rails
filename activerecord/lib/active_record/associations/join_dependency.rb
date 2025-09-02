@@ -68,10 +68,11 @@ module ActiveRecord
         end
       end
 
-      def initialize(base, table, associations, join_type)
+      def initialize(base, table, associations, join_type, load_columns: {})
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_type = join_type
+        @load_columns = load_columns
       end
 
       def base_klass
@@ -170,10 +171,33 @@ module ActiveRecord
             column_names = if join_part == join_root && !join_root_alias
               primary_key = join_root.primary_key
               primary_key ? [primary_key] : []
+            elsif join_part != join_root && @load_columns&.any?
+              rhs_klass = join_part.reflection.klass
+              table_name = rhs_klass.table_name.to_sym
+              columns_list = Array(@load_columns[table_name])
+              columns_list = columns_list.map(&:to_s) & join_part.column_names
+              if columns_list.any?
+                columns_list.unshift(join_root.primary_key)
+                columns_list << rhs_klass.inheritance_column
+                if join_part.reflection.options[:through]
+                  through_table_name = join_part.reflection.through_reflection.klass.table_name.to_sym
+                  if @load_columns.key?(through_table_name)
+                    @load_columns[through_table_name] << join_part.reflection.through_reflection.foreign_key
+                    @load_columns[through_table_name] << join_part.reflection.source_reflection.foreign_key
+                  end
+                end
+                columns_list << join_part.reflection.foreign_key
+                columns_list << join_part.reflection.type if join_part.reflection.options.key?(:as)
+                join_part.children.map(&:reflection).each do |child_reflection|
+                  columns_list << child_reflection.foreign_key if child_reflection.macro == :belongs_to
+                end
+                @load_columns[table_name] = columns_list.map(&:to_s) & join_part.column_names
+              else
+                join_part.column_names
+              end
             else
               join_part.column_names
             end
-
             columns = column_names.each_with_index.map { |column_name, j|
               Aliases::Column.new column_name, "t#{i}_r#{j}"
             }
