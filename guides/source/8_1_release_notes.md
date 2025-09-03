@@ -66,6 +66,22 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "[foo]" => { "bar" => "baz" } }
     ```
 
+*   Remove deprecated support for using semicolons as a query string separator.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar"], ["baz", "quux"]]
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar;baz=quux"]]
+    ```
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.

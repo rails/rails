@@ -62,7 +62,9 @@ module ActionDispatch
       unless app.config.action_dispatch.ignore_leading_brackets.nil?
         ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
       end
-      ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
+      unless app.config.action_dispatch.strict_query_string_separator.nil?
+        ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
+      end
 
       ActiveSupport.on_load(:action_dispatch_request) do
         self.ignore_accept_header = app.config.action_dispatch.ignore_accept_header

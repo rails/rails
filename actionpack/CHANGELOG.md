@@ -1,3 +1,21 @@
+*   Remove deprecated support for using semicolons as a query string separator.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar"], ["baz", "quux"]]
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar;baz=quux"]]
+    ```
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support to skipping over leading brackets in parameter names in the parameter parser.
 
     Before:
