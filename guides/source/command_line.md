@@ -782,7 +782,7 @@ This can be useful when setting `config.time_zone` in `config/application.rb`, w
 Managing Assets
 ---------------
 
-The `bin/rails assets:` commands allow you to manage assets in the `app/assets` directory.
+The `bin/rails assets:*` commands allow you to manage assets in the `app/assets` directory.
 
 You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
@@ -801,7 +801,7 @@ bin/rails db:create              # Create the database from DATABASE_URL or
 bin/rails db:drop                # Drop the database from DATABASE_URL or
 bin/rails db:encryption:init     # Generate a set of keys for configuring
 bin/rails db:environment:set     # Set the environment value for the database
-bin/rails db:fixtures:load       # Load fixtures into the current environment's
+bin/rails db:fixtures:load       # Load fixtures into the current environments
 bin/rails db:migrate             # Migrate the database (options: VERSION=x,
 bin/rails db:migrate:down        # Run the "down" for a given migration VERSION
 bin/rails db:migrate:redo        # Roll back the database one migration and
@@ -827,17 +827,17 @@ TIP: You can also see the `db:` commands, which are rake tasks, in the Rails [so
 
 The `db:create` and `db:drop` commands create or delete the database for the current environment (or all environments with the `db:create:all`, `db:drop:all`)
 
-The `db:seed` commands loads sample data from `db/seeds.rb` and the `db:seed:replant` command truncates tables of each database for current environment and then load the seed data.
+The `db:seed` command loads sample data from `db/seeds.rb` and the `db:seed:replant` command truncates tables of each database for the current environment and then loads the seed data.
 
-The `db:setup` command create all databases, load all schemas, and initialize with the seed data (does not drop databases first, like the `db:reset` command below).
+The `db:setup` command creates all databases, loads all schemas, and initializes with the seed data (it does not drop databases first, like the `db:reset` command below).
 
-The `db:reset` command drops and recreates all databases from their schema for the current environment and loads the seed data. (so it's a combination of the above command).
+The `db:reset` command drops and recreates all databases from their schema for the current environment and loads the seed data (so it's a combination of the above commands).
 
 ### Migrations
 
-The `db:migrate` command is one of the most frequently run command in a Rails application and it migrates the database by running all new (not yet run) migrations.
+The `db:migrate` command is one of the most frequently run commands in a Rails application; it migrates the database by running all new (not yet run) migrations.
 
-The `db:migrate:up` command runs the "up" method and the `db:migrate:down` command run the "down" method for a given migration VERSION argument.
+The `db:migrate:up` command runs the "up" method and the `db:migrate:down` command runs the "down" method for the migration specified by the VERSION argument.
 
 ```bash
 $ bin/rails db:migrate:down VERSION=20250812120000
@@ -870,9 +870,9 @@ There are two main commands that help with managing the database schema in your 
 
 The schema file is a blueprint of your database and it is useful for setting up new environments for tests or development. It’s version-controlled, so you can see changes to the schema over time.
 
-**The `db:schema:load` command** drops and recreates the database schema from `db/schema.rb` (or `db/structure.sql`). It does this directly, *without* replay each migration one at a time.
+**The `db:schema:load` command** drops and recreates the database schema from `db/schema.rb` (or `db/structure.sql`). It does this directly, *without* replaying each migration one at a time.
 
-The command is useful for quickly resetting a database to the current schema without replaying years of migrations one by one. For example, running `db:setup` calls `db:schema:load` after creating the database and before seeding it.
+This command is useful for quickly resetting a database to the current schema without running years of migrations one by one. For example, running `db:setup` also calls `db:schema:load` after creating the database and before seeding it.
 
 You can think of `db:schema:dump` as the one that *writes* the `schema.rb` file and `db:schema:load` as the one that *reads* that file.
 
@@ -939,7 +939,7 @@ You can run multiple files and directories at the same time:
 Rails comes with a testing framework called Minitest and there are also Minitest options you can use with the `test` command:
 
 ```bash
-# Runs only tests whose names match the regex /validation/
+# Only run tests whose names match the regex /validation/
 $ bin/rails test -n /validation/
 ```
 
@@ -1038,7 +1038,7 @@ It can be useful for setting the secret key in your application's `config/creden
 
 The `credentials` commands provide access to encrypted credentials, so you can
 safely store access tokens, database passwords, and the like inside the
-app without relying on a mess of environment variables.
+app without relying on a bunch of environment variables.
 
 To add values to the encrypted YML file `config/credentials.yml.enc`, you can use the `credentials:edit` command:
 
@@ -1048,7 +1048,7 @@ $ bin/rails credentials:edit
 
 This opens the decrypted credentials in an editor (set by `$VISUAL` or `$EDITOR`) for editing. When saved, the content is encrypted automatically.
 
-You can also use the `:show` command to view the decrypted credential file, which may look something like this (don't worry this is from a sample application and not sensitive data):
+You can also use the `:show` command to view the decrypted credential file, which may look something like this (This is from a sample application and not sensitive data):
 
 ```bash
 $ bin/rails credentials:show
