@@ -23,7 +23,7 @@ What is Active Storage?
 -----------------------
 
 Active Storage facilitates uploading files to a cloud storage service like
-Amazon S3, Google Cloud Storage, or Microsoft Azure Storage and attaching those
+Amazon S3, or Google Cloud Storage and attaching those
 files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
@@ -135,11 +135,6 @@ google:
   service: GCS
   # ...
   bucket: your_own_bucket-<%= Rails.env %>
-
-azure:
-  service: AzureStorage
-  # ...
-  container: your_container_name-<%= Rails.env %>
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -214,25 +209,6 @@ digitalocean:
 ```
 
 There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
-
-### Microsoft Azure Storage Service
-
-Declare an Azure Storage service in `config/storage.yml`:
-
-```yaml
-# Use bin/rails credentials:edit to set the Azure Storage secret (as azure_storage:storage_access_key)
-azure:
-  service: AzureStorage
-  storage_account_name: your_account_name
-  storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
-  container: your_container_name-<%= Rails.env %>
-```
-
-Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
-
-```ruby
-gem "azure-storage-blob", "~> 2.0", require: false
-```
 
 ### Google Cloud Storage Service
 
@@ -369,7 +345,7 @@ public_gcs:
   public: true
 ```
 
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
 
@@ -1093,7 +1069,6 @@ To make direct uploads to a third-party service work, you’ll need to configure
 
 * [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html)
 * [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
-* [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
 
 Take care to allow:
 
@@ -1102,9 +1077,7 @@ Take care to allow:
 * The following headers:
   * `Content-Type`
   * `Content-MD5`
-  * `Content-Disposition` (except for Azure Storage)
-  * `x-ms-blob-content-disposition` (for Azure Storage only)
-  * `x-ms-blob-type` (for Azure Storage only)
+  * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
 
 No CORS configuration is required for the Disk service since it shares your app’s origin.
@@ -1141,19 +1114,6 @@ No CORS configuration is required for the Disk service since it shares your app�
     "maxAgeSeconds": 3600
   }
 ]
-```
-
-#### Example: Azure Storage CORS Configuration
-
-```xml
-<Cors>
-  <CorsRule>
-    <AllowedOrigins>https://www.example.com</AllowedOrigins>
-    <AllowedMethods>PUT</AllowedMethods>
-    <AllowedHeaders>Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
-    <MaxAgeInSeconds>3600</MaxAgeInSeconds>
-  </CorsRule>
-</Cors>
 ```
 
 ### Direct Upload JavaScript Events

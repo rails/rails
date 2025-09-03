@@ -134,6 +134,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `:azure` storage service.
+
 ### Deprecations
 
 ### Notable changes

@@ -1,3 +1,7 @@
+*   Remove deprecated `:azure` storage service.
+
+    *Rafael Mendonça França*
+
 *   Remove unnecessary calls to the GCP metadata server.
 
     Calling Google::Auth.get_application_default triggers an explicit call to
