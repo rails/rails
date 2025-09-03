@@ -31,7 +31,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::Static",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
-      "ActiveSupport::Cache::Strategy::LocalCache",
       "Rack::Runtime",
       "Rack::MethodOverride",
       "ActionDispatch::RequestId",
@@ -66,7 +65,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "ActionDispatch::Static",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
-      "ActiveSupport::Cache::Strategy::LocalCache",
       "Rack::Runtime",
       "Rack::MethodOverride",
       "ActionDispatch::RequestId",
@@ -99,7 +97,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "Rack::Sendfile",
       "ActionDispatch::Static",
       "ActionDispatch::Executor",
-      "ActiveSupport::Cache::Strategy::LocalCache",
       "Rack::Runtime",
       "ActionDispatch::RequestId",
       "ActionDispatch::RemoteIp",
@@ -319,6 +316,8 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "Rails.cache does respond to middleware" do
+    add_to_config "config.local_cache_store_strategy = :middleware"
+
     boot!
     assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[4]
     assert_equal "Rack::Runtime", middleware[5]

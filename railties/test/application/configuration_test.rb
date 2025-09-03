@@ -4348,6 +4348,8 @@ module ApplicationTests
     end
 
     test "app starts with LocalCache middleware" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app "development"
 
       assert(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
@@ -4358,6 +4360,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be moved via app config" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       # you can't move Rails.cache.middleware as it doesn't exist yet
       add_to_config "config.middleware.move_after(Rails::Rack::Logger, ActiveSupport::Cache::Strategy::LocalCache)"
 
@@ -4369,6 +4373,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be moved via initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app_file "config/initializers/move_local_cache_middleware.rb", <<~RUBY
         Rails.application.config.middleware.move_after(Rails::Rack::Logger, Rails.cache.middleware)
       RUBY
@@ -4381,6 +4387,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be removed via app config" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       # you can't delete Rails.cache.middleware as it doesn't exist yet
       add_to_config "config.middleware.delete(ActiveSupport::Cache::Strategy::LocalCache)"
 
@@ -4390,6 +4398,8 @@ module ApplicationTests
     end
 
     test "LocalCache middleware can be removed via initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
       app_file "config/initializers/remove_local_cache_middleware.rb", <<~RUBY
         Rails.application.config.middleware.delete(Rails.cache.middleware)
       RUBY
@@ -4397,6 +4407,54 @@ module ApplicationTests
       app "development"
 
       assert_not(Rails.application.config.middleware.map(&:name).include?("ActiveSupport::Cache::Strategy::LocalCache"))
+    end
+
+    test "LocalCache middleware can be removed via configuration" do
+      add_to_config "config.local_cache_store_strategy = false"
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+    end
+
+    test "LocalCache middleware can be removed via configuration in initializer" do
+      app_file "config/initializers/remove_local_cache_middleware.rb", <<~RUBY
+        Rails.configuration.local_cache_store_strategy = false
+      RUBY
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+    end
+
+    test "LocalCache executor hook can be enabled via configuration" do
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+
+      assert_nil Rails.cache.send(:local_cache)
+      Rails.application.executor.wrap do
+        assert_not_nil Rails.cache.send(:local_cache)
+      end
+      assert_nil Rails.cache.send(:local_cache)
+    end
+
+    test "LocalCache executor hook can be enabled via configuration in initializer" do
+      add_to_config "config.local_cache_store_strategy = :middleware"
+
+      app_file "config/initializers/new_framework_defaults.rb", <<~RUBY
+        Rails.configuration.local_cache_store_strategy = :executor
+      RUBY
+
+      app "development"
+
+      assert_not_includes Rails.application.config.middleware.map(&:name), "ActiveSupport::Cache::Strategy::LocalCache"
+
+      assert_nil Rails.cache.send(:local_cache)
+      Rails.application.executor.wrap do
+        assert_not_nil Rails.cache.send(:local_cache)
+      end
+      assert_nil Rails.cache.send(:local_cache)
     end
 
     test "custom middleware with overridden names can be added, moved, or deleted" do

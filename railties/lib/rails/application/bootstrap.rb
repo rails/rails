@@ -77,15 +77,15 @@ module Rails
       end
 
       # Initialize cache early in the stack so railties can make use of it.
-      initializer :initialize_cache, group: :all do
+      initializer :initialize_cache, group: :all do |app|
         cache_format_version = config.active_support.delete(:cache_format_version)
         ActiveSupport.cache_format_version = cache_format_version if cache_format_version
 
-        unless Rails.cache
-          Rails.cache = ActiveSupport::Cache.lookup_store(*config.cache_store)
+        Rails.cache ||= ActiveSupport::Cache.lookup_store(*config.cache_store)
 
-          if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
+        config.after_initialize do
+          if config.local_cache_store_strategy == :executor
+            Rails.cache.install_executor_hooks(app.executor) if Rails.cache.respond_to?(:install_executor_hooks)
           end
         end
       end
