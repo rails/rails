@@ -1,3 +1,7 @@
+*   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `:retries` option for the SQLite3 adapter.
 
     *Rafael Mendonça França*

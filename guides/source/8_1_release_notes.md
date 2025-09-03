@@ -121,6 +121,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Remove deprecated `:retries` option for the SQLite3 adapter.
 
+*   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
+
 ### Deprecations
 
 ### Notable changes
