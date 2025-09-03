@@ -16,7 +16,7 @@ After reading this guide, you will know how to use the Rails command line:
 Overview
 --------
 
-The Rails command line is a powerful part of the Ruby on Rails framework. It is what allows you to quickly start a new application by generating boiler plate code (that follows convention over configuration). This guide includes an overview of Rails commands that allow you to manage all aspects of your web application, including the database.
+The Rails command line is a powerful part of the Ruby on Rails framework. It allows you to quickly start a new application by generating boilerplate code (that follows Rails conventions). This guide includes an overview of Rails commands that allow you to manage all aspects of your web application, including the database.
 
 You can get a list of commands available to you, which will often depend on your current directory, by typing `bin/rails --help`. Each command has a description to help clarify what it does.
 
@@ -124,7 +124,7 @@ Creating a New Rails Application
 
 We can create a brand new Rails application using the `rails new` command. The first argument to `rails new` is the application name.
 
-INFO: You can install the rails gem by typing `gem install rails`, if you don't have it already. For more step-by-step instructions, see [Installing Ruby on Rails](install_ruby_on_rails.html) guide.
+INFO: You will need the rails gem installed in order to run the `rails new` command. You can do this by typing `gem install rails` - for more step-by-step instructions, see the [Installing Ruby on Rails](install_ruby_on_rails.html) guide.
 
 With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run a simple application right out of the box:
 
@@ -211,7 +211,7 @@ Active Storage because they depend on Active Storage functionality.
 
 TIP: You can get a full list of what can be skipped in the options section of `rails new --help` command.
 
-Starting a Rails Application
+Starting a Rails Application Server
 ----------------------------
 
 We can start a Rails application using the `bin/rails server` command, which launches the [Puma](https://github.com/puma/puma) web server that comes bundled with Rails. You'll use this any time you want to access your application through a web browser.
@@ -235,7 +235,7 @@ Use Ctrl-C to stop
 
 With just two commands we have a Rails application up and running. The `server` command starts the application listening on port 3000 by default. You can open your browser to [http://localhost:3000](http://localhost:3000) to see a basic Rails application running.
 
-INFO: You can also use the alias "s" to start the server: `bin/rails s`.
+INFO: Most common commands have a shortcut aliases. To start the server you can use the alias "s": `bin/rails s`.
 
 You can run the application on a different port using the `-p` option. You can also change the environment using `-e` (default is `development`).
 
@@ -277,7 +277,7 @@ Rails:
 
 NOTE: When you add certain gems to your application, they may install more generators. You can also create your own generators, see the [Generators guide](generators.html) for more information.
 
-The purpose of Rails' built-in generators is to save you time by freeing you from having to write repetitive boilerplate code that is necessary for the application to work.
+The purpose of Rails' built-in generators is to save you time by freeing you from having to write repetitive boilerplate code.
 
 Let's add a controller with the `controller` generator.
 
@@ -419,7 +419,7 @@ INFO: The scaffold generate test files, though you will need to modify them and 
 
 ### Undoing Code Generation with `bin/rails destroy`
 
-Imagine you had a typo when using the `generate` command for a model (or controller or scaffold or anything), it would be tedious to manually delete each file that was created by the generator. Rails provides a `destroy` command for that reason. You can think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
+Imagine you made a typing error when using the `generate` command for a model (or controller or scaffold or anything), it would be tedious to manually delete each file that was created by the generator. Rails provides a `destroy` command for that reason. You can think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
 
 INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
 
@@ -511,7 +511,7 @@ The `app` object exposes methods like `app.cookies`, `app.session`, `app.post`, 
 
 #### The `helper` Object
 
-The `helper` object in the Rails console is your direct portal into Rails’ view layer. The `helper` object lets you use view-related formatting and utility methods right in the console, without having to render a view. As well custom helpers defined in your application (i.e. in `app/helpers`).
+The `helper` object in the Rails console is your direct portal into Rails’ view layer. It allows you to test out view-related formatting and utility methods in the console, as well as custom helpers defined in your application (i.e. in `app/helpers`).
 
 ```irb
 > helper.time_ago_in_words 3.days.ago
