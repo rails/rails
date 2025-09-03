@@ -4110,6 +4110,37 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "ActiveStorage.analyzers default value" do
+      app "development"
+
+      assert_equal [
+        ActiveStorage::Analyzer::ImageAnalyzer::Vips,
+        ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
+        ActiveStorage::Analyzer::VideoAnalyzer,
+        ActiveStorage::Analyzer::AudioAnalyzer
+      ], ActiveStorage.analyzers
+    end
+
+    test "ActiveStorage.analyzers can be configured to be an empty array" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = []
+      RUBY
+
+      app "development"
+
+      assert_empty ActiveStorage.analyzers
+    end
+
+    test "ActiveStorage.analyzers can be configured to custom analyzers" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ]
+      RUBY
+
+      app "development"
+
+      assert_equal [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ], ActiveStorage.analyzers
+    end
+
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -4147,7 +4178,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_nil ActiveStorage.variant_processor
+      assert_equal :mini_magick, ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do
