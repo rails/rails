@@ -3,54 +3,6 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
-    class ExplainProxy  # :nodoc:
-      def initialize(relation, options)
-        @relation = relation
-        @options  = options
-      end
-
-      def inspect
-        exec_explain { @relation.send(:exec_queries) }
-      end
-
-      def average(column_name)
-        exec_explain { @relation.average(column_name) }
-      end
-
-      def count(column_name = nil)
-        exec_explain { @relation.count(column_name) }
-      end
-
-      def first(limit = nil)
-        exec_explain { @relation.first(limit) }
-      end
-
-      def last(limit = nil)
-        exec_explain { @relation.last(limit) }
-      end
-
-      def maximum(column_name)
-        exec_explain { @relation.maximum(column_name) }
-      end
-
-      def minimum(column_name)
-        exec_explain { @relation.minimum(column_name) }
-      end
-
-      def pluck(*column_names)
-        exec_explain { @relation.pluck(*column_names) }
-      end
-
-      def sum(identity_or_column = nil)
-        exec_explain { @relation.sum(identity_or_column) }
-      end
-
-      private
-        def exec_explain(&block)
-          @relation.exec_explain(@relation.collecting_queries_for_explain { block.call }, @options)
-        end
-    end
-
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope, :optimizer_hints, :annotate,
@@ -65,10 +17,11 @@ module ActiveRecord
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
     include Enumerable
-    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
+    include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, ToSQL, Delegation
     include SignedId::RelationMethods, TokenFor::RelationMethods
 
     attr_reader :table, :model, :loaded, :predicate_builder
+    attr_writer :to_sql # :nodoc:
     attr_accessor :skip_preloading_value
     alias :klass :model
     alias :loaded? :loaded
@@ -91,6 +44,7 @@ module ActiveRecord
       @future_result = nil
       @records = nil
       @async = false
+      @to_sql = false
       @none = false
     end
 
@@ -1213,7 +1167,7 @@ module ActiveRecord
       @future_result&.cancel
       @future_result = nil
       @delegate_to_model = false
-      @to_sql = @arel = @loaded = @should_eager_load = nil
+      @arel = @loaded = @should_eager_load = nil
       @offsets = @take = nil
       @cache_keys = nil
       @cache_versions = nil
@@ -1226,16 +1180,7 @@ module ActiveRecord
     #   User.where(name: 'Oscar').to_sql
     #   # SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
-      @to_sql ||= if eager_loading?
-        apply_join_dependency do |relation, join_dependency|
-          relation = join_dependency.apply_column_aliases(relation)
-          relation.to_sql
-        end
-      else
-        model.with_connection do |conn|
-          conn.unprepared_statement { conn.to_sql(arel) }
-        end
-      end
+      ToSQLProxy.new(self)
     end
 
     # Returns a hash of where conditions.
@@ -1419,6 +1364,8 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
+        return to_sql if @to_sql
+
         if lock_value && model.current_preventing_writes
           raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
         end
