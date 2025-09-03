@@ -1,3 +1,7 @@
+*   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
+
+    *Rafael Mendonça França*
+
 *   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
 
     *Rafael Mendonça França*

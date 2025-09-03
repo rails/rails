@@ -167,6 +167,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
 
+*   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
+
 ### Deprecations
 
 ### Notable changes
