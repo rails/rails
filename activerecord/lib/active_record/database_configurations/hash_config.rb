@@ -38,9 +38,7 @@ module ActiveRecord
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
-        ActiveRecord.deprecator.warn(<<~MSG) if @configuration_hash[:pool]
-          The pool option is deprecated and will be removed in Rails 8.2. Use max_connections instead.
-        MSG
+        validate_configuration!
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -208,6 +206,21 @@ module ActiveRecord
           # Reap every 20 seconds by default, but run more often as necessary to
           # meet other configured timeouts.
           [20, idle_timeout, max_age, keepalive].compact.min
+        end
+
+        def validate_configuration!
+          if configuration_hash[:pool] && configuration_hash[:max_connections]
+            pool_val = configuration_hash[:pool].to_i
+            max_conn_val = configuration_hash[:max_connections].to_i
+
+            if pool_val != max_conn_val
+              raise "Ambiguous configuration: 'pool' (#{pool_val}) and 'max_connections' (#{max_conn_val}) are set to different values. Prefer just 'max_connections'."
+            end
+          end
+
+          if configuration_hash[:pool] && configuration_hash[:min_connections]
+            raise "Ambiguous configuration: when setting 'min_connections', use 'max_connections' instead of 'pool'."
+          end
         end
     end
   end

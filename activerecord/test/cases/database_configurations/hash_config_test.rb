@@ -5,11 +5,8 @@ require "cases/helper"
 module ActiveRecord
   class DatabaseConfigurations
     class HashConfigTest < ActiveRecord::TestCase
-      def test_pool_config_raises_deprecation
-        config = nil
-        assert_deprecated ActiveRecord.deprecator do
-          config = HashConfig.new("default_env", "primary", pool: 6, adapter: "abstract")
-        end
+      def test_pool_config_works_without_deprecation
+        config = HashConfig.new("default_env", "primary", pool: 6, adapter: "abstract")
         assert_equal 6, config.max_connections
       end
 
@@ -17,6 +14,23 @@ module ActiveRecord
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_deprecated ActiveRecord.deprecator do
           assert_equal 5, config.pool
+        end
+      end
+
+      def test_raises_when_pool_and_max_connections_have_different_values
+        assert_raises(RuntimeError, match: /Ambiguous configuration.*pool.*6.*max_connections.*10/) do
+          HashConfig.new("default_env", "primary", pool: 6, max_connections: 10, adapter: "abstract")
+        end
+      end
+
+      def test_allows_pool_and_max_connections_when_same_value
+        config = HashConfig.new("default_env", "primary", pool: 6, max_connections: 6, adapter: "abstract")
+        assert_equal 6, config.max_connections
+      end
+
+      def test_raises_when_pool_and_min_connections_are_set
+        assert_raises(RuntimeError, match: /Ambiguous configuration.*min_connections.*max_connections.*instead/) do
+          HashConfig.new("default_env", "primary", pool: 6, min_connections: 2, adapter: "abstract")
         end
       end
 
