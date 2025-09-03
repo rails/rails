@@ -1,3 +1,13 @@
+*   Add `reset_token: { expires_in: ... }` option to `has_secure_password`.
+
+    Allows configuring the expiry duration of password reset tokens (default remains 15 minutes for backwards compatibility).
+
+    ```ruby
+    has_secure_password reset_token: { expires_in: 1.hour }
+    ```
+
+    *Jevin Sew*
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*
