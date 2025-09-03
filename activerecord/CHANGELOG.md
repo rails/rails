@@ -1,3 +1,7 @@
+*   Remove deprecated `:retries` option for the SQLite3 adapter.
+
+    *Rafael Mendonça França*
+
 *   Introduce new database configuration options `keepalive`, `max_age`, and
     `min_connections` -- and rename `pool` to `max_connections` to match.
 
