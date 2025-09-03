@@ -1,9 +1,34 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
-class ActiveStorage::Representations::RedirectControllerWithVariantsTest < ActionDispatch::IntegrationTest
+require "active_storage/previewer/poppler_pdf_previewer"
+
+class RedirectControllerTestCase < ActionDispatch::IntegrationTest
+  setup do
+    @was_inline_content_types = ActiveStorage.content_types_allowed_inline
+    @was_previewers = ActiveStorage.previewers
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+    @was_web_content_types = ActiveStorage.web_image_content_types
+
+    ActiveStorage.content_types_allowed_inline = %(image/png image/jpeg)
+    ActiveStorage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer]
+    ActiveStorage.variable_content_types = %(image/png image/jpeg)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+    ActiveStorage.web_image_content_types = %(image/png image/jpeg)
+  end
+
+  teardown do
+    ActiveStorage.content_types_allowed_inline = @was_inline_content_types
+    ActiveStorage.previewers = @previous_previewers
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+    ActiveStorage.web_image_content_types = @was_web_content_types
+  end
+end
+
+class ActiveStorage::Representations::RedirectControllerWithVariantsTest < RedirectControllerTestCase
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
   end
@@ -42,7 +67,7 @@ class ActiveStorage::Representations::RedirectControllerWithVariantsTest < Actio
   end
 end
 
-class ActiveStorage::Representations::RedirectControllerWithVariantsWithStrictLoadingTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithVariantsWithStrictLoadingTest < RedirectControllerTestCase
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
     @blob.variant(resize_to_limit: [100, 100]).processed
@@ -67,7 +92,7 @@ class ActiveStorage::Representations::RedirectControllerWithVariantsWithStrictLo
   end
 end
 
-class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < RedirectControllerTestCase
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
   end
@@ -107,7 +132,7 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsTest < Actio
   end
 end
 
-class ActiveStorage::Representations::RedirectControllerWithPreviewsWithStrictLoadingTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithPreviewsWithStrictLoadingTest < RedirectControllerTestCase
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
     @blob.preview(resize_to_limit: [100, 100]).processed.send(:variant).processed
@@ -133,7 +158,7 @@ class ActiveStorage::Representations::RedirectControllerWithPreviewsWithStrictLo
   end
 end
 
-class ActiveStorage::Representations::RedirectControllerWithOpenRedirectTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::RedirectControllerWithOpenRedirectTest < RedirectControllerTestCase
   if SERVICE_CONFIGURATIONS[:s3]
     test "showing existing variant stored in s3" do
       with_raise_on_open_redirects(:s3) do

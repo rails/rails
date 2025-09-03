@@ -1,10 +1,32 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "minitest/mock"
 
-class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDispatch::IntegrationTest
+require "active_storage/previewer/poppler_pdf_previewer"
+
+class ProxyControllerTestCase < ActionDispatch::IntegrationTest
+  setup do
+    @was_content_types = ActiveStorage.content_types_allowed_inline
+    @was_previewers = ActiveStorage.previewers
+    @was_variable_content_types = ActiveStorage.variable_content_types
+    @was_variant_transformer = ActiveStorage.variant_transformer
+
+    ActiveStorage.content_types_allowed_inline = %w(image/png)
+    ActiveStorage.previewers = [ActiveStorage::Previewer::PopplerPDFPreviewer]
+    ActiveStorage.variable_content_types = %w(image/png image/jpeg)
+    ActiveStorage.variant_transformer = ActiveStorage::Transformers::ImageMagick
+  end
+
+  teardown do
+    ActiveStorage.content_types_allowed_inline = @was_content_types
+    ActiveStorage.previewers = @previous_previewers
+    ActiveStorage.variable_content_types = @was_variable_content_types
+    ActiveStorage.variant_transformer = @was_variant_transformer
+  end
+end
+
+class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ProxyControllerTestCase
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
     @transformations = { resize_to_limit: [100, 100] }
@@ -23,6 +45,7 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
   end
 
   test "showing variant inline" do
+
     get rails_blob_representation_proxy_url(
       filename: @blob.filename,
       signed_blob_id: @blob.signed_id,
@@ -34,17 +57,15 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
   end
 
   test "showing untracked variant" do
-    without_variant_tracking do
-      get rails_blob_representation_proxy_url(
-        disposition: :attachment,
-        filename: @blob.filename,
-        signed_blob_id: @blob.signed_id,
-        variation_key: ActiveStorage::Variation.encode(@transformations))
+    get rails_blob_representation_proxy_url(
+      disposition: :attachment,
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(@transformations))
 
-      assert_response :ok
-      assert_match(/^attachment/, response.headers["Content-Disposition"])
-      assert_equal @blob.variant(@transformations).download, response.body
-    end
+    assert_response :ok
+    assert_match(/^attachment/, response.headers["Content-Disposition"])
+    assert_equal @blob.variant(@transformations).download, response.body
   end
 
   test "showing variant with invalid signed blob ID" do
@@ -76,7 +97,7 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsTest < ActionDi
   end
 end
 
-class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadingTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadingTest < ProxyControllerTestCase
   setup do
     @blob = create_file_blob filename: "racecar.jpg"
     @transformations = { resize_to_limit: [100, 100] }
@@ -130,7 +151,7 @@ class ActiveStorage::Representations::ProxyControllerWithVariantsWithStrictLoadi
   end
 end
 
-class ActiveStorage::Representations::ProxyControllerWithPreviewsTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::ProxyControllerWithPreviewsTest < ProxyControllerTestCase
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
     @transformations = { resize_to_limit: [100, 100] }
@@ -166,7 +187,7 @@ class ActiveStorage::Representations::ProxyControllerWithPreviewsTest < ActionDi
   end
 end
 
-class ActiveStorage::Representations::ProxyControllerWithPreviewsWithStrictLoadingTest < ActionDispatch::IntegrationTest
+class ActiveStorage::Representations::ProxyControllerWithPreviewsWithStrictLoadingTest < ProxyControllerTestCase
   setup do
     @blob = create_file_blob filename: "report.pdf", content_type: "application/pdf"
     @transformations = { resize_to_limit: [100, 100] }

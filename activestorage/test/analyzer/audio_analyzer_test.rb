@@ -1,11 +1,19 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 require "active_storage/analyzer/audio_analyzer"
 
 class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
+  setup do
+    @previous_analyzers = ActiveStorage.analyzers
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::AudioAnalyzer]
+  end
+
+  teardown do
+    ActiveStorage.analyzers = @previous_analyzers
+  end
+
   test "analyzing an audio" do
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
     metadata = extract_metadata_from(blob)
