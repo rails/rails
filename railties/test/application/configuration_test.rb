@@ -3273,7 +3273,7 @@ module ApplicationTests
 
     test "config.active_job.enqueue_after_transaction_commit is deprecated" do
       app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
-      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      Rails.application.config.active_job.enqueue_after_transaction_commit = true
       RUBY
 
       app "production"
@@ -3282,7 +3282,7 @@ module ApplicationTests
         ActiveRecord::Base
       end
 
-      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do

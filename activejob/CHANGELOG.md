@@ -1,3 +1,11 @@
+*   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
+
+    *Rafael Mendonça França*
+
 *   `ActiveJob::Serializers::ObjectSerializers#klass` method is now public.
 
     Custom Active Job serializers must have a public `#klass` method too.

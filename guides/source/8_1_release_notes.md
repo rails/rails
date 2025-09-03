@@ -163,6 +163,10 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Removals
 
+*   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
+
+*   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
+
 ### Deprecations
 
 ### Notable changes
