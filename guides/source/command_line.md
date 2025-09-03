@@ -122,11 +122,11 @@ We'll cover the above commands (and more) in the following sections, starting wi
 Creating a New Rails Application
 --------------------------------
 
-We can create a brand new Rails application using the `rails new` command. The first argument to `rails new` is the application name.
+We can create a brand new Rails application using the `rails new` command.
 
 INFO: You will need the rails gem installed in order to run the `rails new` command. You can do this by typing `gem install rails` - for more step-by-step instructions, see the [Installing Ruby on Rails](install_ruby_on_rails.html) guide.
 
-With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run a simple application right out of the box:
+With the `new` command, Rails will set up the entire default directory structure along with all the code needed to run a sample application right out of the box. The first argument to `rails new` is the application name:
 
 ```bash
 $ rails new my_app
@@ -143,7 +143,7 @@ $ rails new my_app
         run  bundle install
 ```
 
-You can also pass options to the `new` command to modify its default behavior.
+You can pass options to the `new` command to modify its default behavior. You can also create [application templates](generators.html#application-templates) and use them with the `new` command.
 
 ### Configure a Different Database
 
@@ -347,7 +347,7 @@ Now let's use the generator to add models to our application.
 
 ### Generating Models
 
-The Rails model generator command has a very detailed "Description" section that is worth perusing. Here is the basic usage:
+The Rails model generator command has a very detailed "Description" section that is worth reading. Here is the basic usage:
 
 ```bash
 $ bin/rails generate model
@@ -447,8 +447,8 @@ $ rails destroy model Artcle title:string body:text
       remove      test/fixtures/artcles.yml
 ```
 
-Debugging and Interacting with a Rails Application
---------------------------------------------------
+Interacting with a Rails Application
+------------------------------------
 
 ### The Rails Console
 
@@ -528,8 +528,11 @@ The `helper` object in the Rails console is your direct portal into Rails’ vie
 
 > helper.link_to("Home", "/")
 => "<a href=\"/\">Home</a>"
+```
 
-# Assuming a custom_helper method defined in a app/helpers/*_helper.rb file.
+Assuming a `custom_helper` method is defined in a `app/helpers/*_helper.rb` file:
+
+```irb
 > helper.custom_helper
 "testing custom_helper"
 ```
@@ -634,9 +637,7 @@ $ bin/rails runner --skip-executor lib/long_running_script.rb
 
 The `bin/rails boot` command is a low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run.
 
-The `boot` command boots the application and exits, does nothing else. So what is it useful for then?
-
-It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
+The `boot` command boots the application and exits, does nothing else. It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
 
 It can also be useful for timing application initialization. You can profile how long your application takes to boot by wrapping `bin/rails boot` in a profiler.
 
@@ -821,7 +822,7 @@ bin/rails db:version             # Retrieve the current schema version number
 bin/rails test:db                # Reset the database and run `bin/rails test`
 ```
 
-TIP: You can also see the `db:` commands, which are rake tasks, in the Rails [source code](activerecord/lib/active_record/railties/databases.rake).
+TIP: You can also see the `db:` commands, which are rake tasks, in the Rails [source code](https://github.com/rails/rails/blob/main/activerecord/lib/active_record/railties/databases.rake).
 
 ### Database Setup
 
