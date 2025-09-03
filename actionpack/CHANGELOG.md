@@ -1,3 +1,7 @@
+*   Remove deprecated support to a route to multiple paths.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated support for using semicolons as a query string separator.
 
     Before:

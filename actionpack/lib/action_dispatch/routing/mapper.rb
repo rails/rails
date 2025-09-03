@@ -1833,7 +1833,7 @@ module ActionDispatch
         # [match](rdoc-ref:Base#match).
         #
         #     match 'path', to: 'controller#action', via: :post
-        #     match 'path', 'otherpath', on: :member, via: :get
+        #     match 'otherpath', on: :member, via: :get
         def match(*path_or_actions, as: DEFAULT, via: nil, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
           if path_or_actions.grep(Hash).any? && (deprecated_options = path_or_actions.extract_options!)
             as = assign_deprecated_option(deprecated_options, :as, :match) if deprecated_options.key?(:as)
@@ -1851,10 +1851,7 @@ module ActionDispatch
             assign_deprecated_options(deprecated_options, mapping, :match)
           end
 
-          ActionDispatch.deprecator.warn(<<-MSG.squish) if path_or_actions.count > 1
-            Mapping a route with multiple paths is deprecated and
-            will be removed in Rails 8.1. Please use multiple method calls instead.
-          MSG
+          raise ArgumentError, "Wrong number of arguments (expect 1, got #{path_or_actions.count})" if path_or_actions.count > 1
 
           if path_or_actions.none? && mapping.any?
             hash_path, hash_to = mapping.find { |key, _| key.is_a?(String) }

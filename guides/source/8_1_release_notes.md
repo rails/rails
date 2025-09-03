@@ -82,6 +82,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     # => [["foo", "bar;baz=quux"]]
     ```
 
+*   Remove deprecated support to a route to multiple paths.
+
 ### Deprecations
 
 *   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
