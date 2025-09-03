@@ -59,7 +59,9 @@ module ActionDispatch
         ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
       end
 
-      ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
+      unless app.config.action_dispatch.ignore_leading_brackets.nil?
+        ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
+      end
       ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
 
       ActiveSupport.on_load(:action_dispatch_request) do

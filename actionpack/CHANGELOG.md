@@ -1,3 +1,25 @@
+*   Remove deprecated support to skipping over leading brackets in parameter names in the parameter parser.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "foo" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "foo" => { "bar" => "baz" } }
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "[foo]" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "[foo]" => { "bar" => "baz" } }
+    ```
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
+
+    *Rafael Mendonça França*
+
 *   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
 
     Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.
