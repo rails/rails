@@ -1,3 +1,12 @@
+*   Add retryable option to `Arel.sql` with bind parameter support.
+
+    ```ruby
+    User.where(Arel.sql('name LIKE ?', search_term, retryable: true))
+    Post.where(Arel.sql('id = :id', retryable: true), { id: 1 })
+    ```
+
+    *euglena1215*
+
 *   Move `LIMIT` validation from query generation to when `limit()` is called.
 
     *Hartley McGuire*, *Shuyang*
