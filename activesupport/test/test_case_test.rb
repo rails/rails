@@ -566,7 +566,7 @@ class SetupAndTeardownTest < ActiveSupport::TestCase
   teardown :foo, :sentinel
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo], self.class._setup_callbacks.map(&:filter)
+    assert_equal [:isolate_cache_namespace, :reset_callback_record, :foo], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo], @called_back
     assert_equal [:foo, :sentinel], self.class._teardown_callbacks.map(&:filter)
   end
@@ -596,7 +596,7 @@ class SubclassSetupAndTeardownTest < SetupAndTeardownTest
   teardown :bar
 
   def test_inherited_setup_callbacks
-    assert_equal [:reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:filter)
+    assert_equal [:isolate_cache_namespace, :reset_callback_record, :foo, :bar], self.class._setup_callbacks.map(&:filter)
     assert_equal [:foo, :bar], @called_back
     assert_equal [:foo, :sentinel, :bar], self.class._teardown_callbacks.map(&:filter)
   end

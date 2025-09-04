@@ -17,6 +17,7 @@ require "active_support/testing/file_fixtures"
 require "active_support/testing/parallelization"
 require "active_support/testing/parallelize_executor"
 require "active_support/testing/notification_assertions"
+require "active_support/testing/cache_isolation"
 require "concurrent/utility/processor_counter"
 
 module ActiveSupport
@@ -197,6 +198,7 @@ module ActiveSupport
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     prepend ActiveSupport::Testing::TestsWithoutAssertions
+    prepend ActiveSupport::Testing::CacheIsolation
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
     include ActiveSupport::Testing::EventReporterAssertions
