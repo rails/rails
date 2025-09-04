@@ -339,8 +339,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection_pool.connections.each do |conn|
         assert_cache :off, conn
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -830,13 +828,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
-    end
-
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor

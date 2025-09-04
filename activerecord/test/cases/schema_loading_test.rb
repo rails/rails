@@ -69,8 +69,6 @@ class SchemaLoadingTest < ActiveRecord::TestCase
         klass.load_schema
       end
       assert_equal 1, klass.load_schema_calls
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -81,12 +79,5 @@ class SchemaLoadingTest < ActiveRecord::TestCase
         self.table_name = :lock_without_defaults
         yield self if block_given?
       end
-    end
-
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
     end
 end
