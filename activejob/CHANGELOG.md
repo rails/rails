@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Deprecate built-in `sidekiq` adapter.
 
     If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.

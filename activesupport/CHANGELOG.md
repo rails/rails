@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
 
     Can be used as an alternative to `Store#clear` in some situations such as parallel

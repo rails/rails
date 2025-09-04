@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add `deliver_all_later` to enqueue multiple emails at once.
 
     ```ruby

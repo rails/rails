@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash

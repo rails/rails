@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
 
     *Rafael Mendonça França*

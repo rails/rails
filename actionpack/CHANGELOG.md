@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Remove deprecated support to a route to multiple paths.
 
     *Rafael Mendonça França*
