@@ -163,7 +163,7 @@ GEM
     beaneater (1.1.3)
     benchmark (0.4.1)
     benchmark-ips (2.10.0)
-    bigdecimal (3.2.2)
+    bigdecimal (3.2.3)
     bindex (0.8.1)
     bootsnap (1.15.0)
       msgpack (~> 1.2)
