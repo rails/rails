@@ -1,3 +1,9 @@
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
 *   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
 
     *Rafael Mendonça França*
