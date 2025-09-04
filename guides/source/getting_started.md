@@ -1178,6 +1178,8 @@ Let's create `app/views/products/new.html.erb` to render the form for this new
     <%= form.submit %>
   </div>
 <% end %>
+
+<%= link_to "Cancel", products_path %>
 ```
 
 In this view, we are using the Rails `form_with` helper to generate an HTML form
