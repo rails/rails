@@ -21,3 +21,5 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
       })
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_direct_uploads_controller, ActiveStorage::DirectUploadsController
