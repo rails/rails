@@ -573,7 +573,7 @@ module ActiveSupport
           @name = name
           @config = {
             scope: [:kind],
-            terminator: default_terminator
+            terminator: DEFAULT_TERMINATOR
           }.merge!(config)
           @chain = []
           @all_callbacks = nil
@@ -661,8 +661,8 @@ module ActiveSupport
             @chain.delete_if { |c| callback.duplicates?(c) }
           end
 
-          def default_terminator
-            Proc.new do |target, result_lambda|
+          class DefaultTerminator # :nodoc:
+            def call(target, result_lambda)
               terminate = true
               catch(:abort) do
                 result_lambda.call
@@ -671,6 +671,7 @@ module ActiveSupport
               terminate
             end
           end
+          DEFAULT_TERMINATOR = DefaultTerminator.new.freeze
       end
 
       module ClassMethods
