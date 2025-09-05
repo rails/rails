@@ -251,7 +251,8 @@ class StaticTest < ActiveSupport::TestCase
     headers = {
       "access-control-allow-origin" => "http://rubyonrails.org",
       "cache-control"               => "public, max-age=60",
-      "x-custom-header"             => "I'm a teapot"
+      "x-custom-header"             => "I'm a teapot",
+      "x-callable-header"           => lambda { |request| request.path }
     }
 
     @app = build_app(DummyApp, @root, headers: headers)
@@ -261,6 +262,7 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "http://rubyonrails.org", response.headers["access-control-allow-origin"]
     assert_equal "public, max-age=60",     response.headers["cache-control"]
     assert_equal "I'm a teapot",           response.headers["x-custom-header"]
+    assert_equal "/foo/bar.html",          response.headers["x-callable-header"]
   end
 
   def test_ignores_unknown_http_methods
