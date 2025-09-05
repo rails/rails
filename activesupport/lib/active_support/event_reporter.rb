@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/parameter_filter"
+
 module ActiveSupport
   class TagStack # :nodoc:
     EMPTY_TAGS = {}.freeze
@@ -260,6 +262,12 @@ module ActiveSupport
   #   #    name: "user.created",
   #   #    payload: { id: 123 },
   #   #  }
+  #
+  # ==== Security
+  #
+  # When reporting events, Hash-based payloads are automatically filtered to remove sensitive data based on {Rails.application.filter_parameters}[https://guides.rubyonrails.org/configuring.html#config-filter-parameters].
+  #
+  # If an {event object}[rdoc-ref:EventReporter@Event+Objects] is given instead, subscribers will need to filter sensitive data themselves, e.g. with ActiveSupport::ParameterFilter.
   class EventReporter
     # Sets whether to raise an error if a subscriber raises an error during
     # event emission, or when unexpected arguments are passed to +notify+.
@@ -530,6 +538,13 @@ module ActiveSupport
         self.class.context_store
       end
 
+      def payload_filter
+        @payload_filter ||= begin
+          mask = ActiveSupport::ParameterFilter::FILTERED
+          ActiveSupport::ParameterFilter.new(ActiveSupport.filter_parameters, mask: mask)
+        end
+      end
+
       def resolve_name(name_or_object)
         case name_or_object
         when String, Symbol
@@ -544,9 +559,9 @@ module ActiveSupport
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
           if kwargs.any?
-            kwargs.transform_keys(&:to_sym)
+            payload_filter.filter(kwargs.transform_keys(&:to_sym))
           elsif payload
-            payload.transform_keys(&:to_sym)
+            payload_filter.filter(payload.transform_keys(&:to_sym))
           end
         else
           handle_unexpected_args(name_or_object, payload, kwargs) if payload || kwargs.any?
