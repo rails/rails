@@ -20,8 +20,8 @@ Rails.application.configure do
   # Cache digest stamped assets for far-future expiry.
   # Short cache for others: robots.txt, sitemap.xml, 404.html, etc.
   config.public_file_server.headers = {
-    "cache-control" => lambda do |path, _|
-      if path.start_with?("/assets/")
+    "cache-control" => lambda do |request|
+      if request.path.start_with?("/assets/")
         # Files in /assets/ are expected to be fully immutable.
         # If the content change the URL too.
         "public, immutable, max-age=#{1.year.to_i}"
