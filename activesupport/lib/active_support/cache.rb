@@ -18,6 +18,7 @@ module ActiveSupport
     autoload :FileStore,        "active_support/cache/file_store"
     autoload :MemoryStore,      "active_support/cache/memory_store"
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
+    autoload :MultiStore,       "active_support/cache/multi_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
 
