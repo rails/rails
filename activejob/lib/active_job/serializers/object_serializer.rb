@@ -35,8 +35,7 @@ module ActiveJob
 
       # Serializes an argument to a JSON primitive type.
       def serialize(hash)
-        hash[Arguments::OBJECT_SERIALIZER_KEY] = self.class.name
-        hash
+        { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
       end
 
       # Deserializes an argument from a JSON primitive type.
