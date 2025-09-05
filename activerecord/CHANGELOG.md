@@ -1,3 +1,9 @@
+*   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
+    when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
+    Rollback still runs, but may take longer.
+
+    *Yasuo Honda*, *Lars Kanis*
+
 *   Fix stale associaton detection for polymophic `belong_to`.
 
     *Florent Beaurain*, *Thomas Crambert*
@@ -16,10 +22,6 @@
     Useful in multi-database setups to have different formats per-database.
 
     *T S Vallender*
-
-*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
-
-    *Yasuo Honda*
 
 *   Use ntuples to populate row_count instead of count for Postgres
 
