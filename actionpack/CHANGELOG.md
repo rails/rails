@@ -1,3 +1,12 @@
+*   Fix `Rails.application.reload_routes!` from clearing almost all routes.
+
+    When calling `Rails.application.reload_routes!` inside a middleware of
+    a Rake task, it was possible under certain conditions that all routes would be cleared.
+    If ran inside a middleware, this would result in getting a 404 on most page you visit.
+    This issue was only happening in development.
+
+    *Edouard Chin*
+
 *   Address `rack 3.2` deprecations warnings.
 
     ```
