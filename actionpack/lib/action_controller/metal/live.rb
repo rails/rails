@@ -282,29 +282,29 @@ module ActionController
           # Since we're processing the view in a different thread, copy the thread locals
           # from the main thread to the child thread. :'(
           locals.each { |k, v| t2[k] = v }
-          ActiveSupport::IsolatedExecutionState.share_with(t1)
+          ActiveSupport::IsolatedExecutionState.share_with(t1) do
 
-          begin
-            super(name)
-          rescue => e
-            if @_response.committed?
-              begin
-                @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-                @_response.stream.call_on_error
-              rescue => exception
-                log_error(exception)
-              ensure
-                log_error(e)
-                @_response.stream.close
+            begin
+              super(name)
+            rescue => e
+              if @_response.committed?
+                begin
+                  @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+                  @_response.stream.call_on_error
+                rescue => exception
+                  log_error(exception)
+                ensure
+                  log_error(e)
+                  @_response.stream.close
+                end
+              else
+                error = e
               end
-            else
-              error = e
-            end
-          ensure
-            ActiveSupport::IsolatedExecutionState.clear
-            clean_up_thread_locals(locals, t2)
+            ensure
+              clean_up_thread_locals(locals, t2)
 
-            @_response.commit!
+              @_response.commit!
+            end
           end
         end
       }
