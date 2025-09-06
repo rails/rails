@@ -112,6 +112,7 @@ module ActiveRecord
     # * +max_age+: number of seconds the pool will allow the connection to
     #   exist before retiring it at next checkin. (default Float::INFINITY).
     # * +max_connections+: maximum number of connections the pool may manage (default 5).
+    #   Set to +nil+ or -1 for unlimited connections.
     # * +min_connections+: minimum number of connections the pool will open and maintain (default 0).
     # * +pool_jitter+: maximum reduction factor to apply to +max_age+ and
     #   +keepalive+ intervals (default 0.2; range 0.0-1.0).
@@ -1223,7 +1224,7 @@ module ActiveRecord
           do_checkout = synchronize do
             return if self.discarded?
 
-            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_connections && (!block_given? || yield)
+            if @threads_blocking_new_connections.zero? && (@max_connections.nil? || (@connections.size + @now_connecting) < @max_connections) && (!block_given? || yield)
               if @connections.size > 0 || @original_context != ActiveSupport::IsolatedExecutionState.context
                 @activated = true
               end
