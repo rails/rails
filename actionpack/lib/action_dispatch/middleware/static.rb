@@ -55,6 +55,7 @@ module ActionDispatch
     def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
+      @headers = headers
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
@@ -84,11 +85,18 @@ module ActionDispatch
         @file_server.call(request.env).tap do |status, headers, body|
           # Omit content-encoding/type/etc headers for 304 Not Modified
           if status != 304
-            headers.update(content_headers)
+            headers.update(compute_headers(request, content_headers))
           end
         end
       ensure
         request.path_info = original
+      end
+
+      def compute_headers(request, content_headers)
+        computed = @headers.transform_values do |value|
+          value.respond_to?(:call) ? value.call(request) : value
+        end
+        computed.merge(content_headers)
       end
 
       # Match a URI path to a static file to be served.
