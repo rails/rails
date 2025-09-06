@@ -876,13 +876,16 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
+    @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
     @connection = ActiveRecord::Base.connection
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
   end
 
   teardown do
     @connection.drop_table "trains", if_exists: true
     @connection.drop_table "transportation_modes", if_exists: true
     @connection.drop_table "vehicles", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = @previous_unlogged_tables
   end
 
   def test_list_partition_options_is_dumped
