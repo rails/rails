@@ -3,20 +3,20 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [ <%= user_default_branch %> ]
+    branches: [main]
 
 jobs:
-<%- unless skip_brakeman? -%>
   scan_ruby:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
 
       - name: Scan for common Rails security vulnerabilities using static analysis
@@ -25,42 +25,40 @@ jobs:
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
 
-<% end -%>
-<%- unless skip_importmap? -%>
   scan_js:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: bin/importmap audit
 
-<% end -%>
-<%- unless skip_rubocop? -%>
   lint:
     runs-on: ubuntu-latest
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
 
       - name: Prepare RuboCop cache
         uses: actions/cache@v4
         env:
-          DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
+          DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', 'Gemfile.lock') }}
         with:
           path: ${{ env.RUBOCOP_CACHE_ROOT }}
           key: rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
@@ -70,21 +68,10 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
-<% end -%>
-<% unless skip_test? -%>
   test:
     runs-on: ubuntu-latest
 
-    <%- if options[:database] == "sqlite3" -%>
-    # services:
-    #  redis:
-    #    image: valkey/valkey:8
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    <%- else -%>
     services:
-<%= database_service_yaml(indentation: 2, line_width: 100) %>
 
       # redis:
       #   image: valkey/valkey:8
@@ -92,49 +79,27 @@ jobs:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
-    <%- end -%>
     steps:
-      <%- unless ci_packages.empty? -%>
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
-
-      <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
-      <%- unless skip_bun? -%>
-
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: <%= bun_version %>
-      <%- end -%>
 
       - name: Run tests
         env:
           RAILS_ENV: test
-          <%= database_url_yaml %>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
-  <%- unless skip_system_test? -%>
 
   system-test:
     runs-on: ubuntu-latest
 
-    <%- if options[:database] == "sqlite3" -%>
-    # services:
-    #  redis:
-    #    image: valkey/valkey:8
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    <%- else -%>
     services:
-<%= database_service_yaml(indentation: 2, line_width: 100) %>
 
       # redis:
       #   image: valkey/valkey:8
@@ -142,34 +107,22 @@ jobs:
       #     - 6379:6379
       #   options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
 
-    <%- end -%>
     steps:
-      <%- unless ci_packages.empty? -%>
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y <%= ci_packages.join(" ") %>
-
-      <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
-      <%- unless skip_bun? -%>
-
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: <%= bun_version %>
-      <%- end -%>
 
       - name: Run System Tests
         env:
           RAILS_ENV: test
-          <%= database_url_yaml %>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test:system
+        run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -178,5 +131,3 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
-  <%- end -%>
-<%- end -%>
