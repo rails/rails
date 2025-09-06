@@ -5059,6 +5059,27 @@ module ApplicationTests
       assert_equal 5, Regexp.timeout
     end
 
+    test "action_controller.logger defaults to Rails.logger" do
+      restore_default_config
+
+      app "development"
+      assert_equal Rails.application.config.action_controller.logger, Rails.logger
+    end
+
+    test "action_controller.logger can be disabled by assigning nil" do
+      add_to_config "config.action_controller.logger = nil"
+
+      app "development"
+      assert_nil Rails.application.config.action_controller.logger
+    end
+
+    test "action_controller.logger can be disabled by assigning false" do
+      add_to_config "config.action_controller.logger = false"
+
+      app "development"
+      assert_equal false, Rails.application.config.action_controller.logger
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
