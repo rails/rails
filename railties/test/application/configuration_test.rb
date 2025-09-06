@@ -5059,6 +5059,50 @@ module ApplicationTests
       assert_equal 5, Regexp.timeout
     end
 
+    test "action_controller.logger defaults to Rails.logger" do
+      restore_default_config
+      add_to_config "config.logger = Logger.new(STDOUT, level: Logger::INFO)"
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_equal Rails.application.config.action_controller.logger, Rails.logger
+      assert output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning nil" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = nil
+      RUBY
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_nil Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning false" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = false
+      RUBY
+
+      app "development"
+      output = capture(:stdout) do
+        get "/"
+      end
+
+
+      assert_equal false, Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
