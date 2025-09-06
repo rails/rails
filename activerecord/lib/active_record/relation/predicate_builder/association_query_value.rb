@@ -3,24 +3,24 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      def initialize(associated_table, value)
-        @associated_table = associated_table
+      def initialize(reflection, value)
+        @reflection = reflection
         @value = value
       end
 
       def queries
-        if associated_table.join_foreign_key.is_a?(Array)
+        if reflection.join_foreign_key.is_a?(Array)
           id_list = ids
           id_list = id_list.pluck(primary_key) if id_list.is_a?(Relation)
 
-          id_list.map { |ids_set| associated_table.join_foreign_key.zip(ids_set).to_h }
+          id_list.map { |ids_set| reflection.join_foreign_key.zip(ids_set).to_h }
         else
-          [ associated_table.join_foreign_key => ids ]
+          [ reflection.join_foreign_key => ids ]
         end
       end
 
       private
-        attr_reader :associated_table, :value
+        attr_reader :reflection, :value
 
         def ids
           case value
@@ -37,15 +37,15 @@ module ActiveRecord
         end
 
         def primary_key
-          associated_table.join_primary_key
+          reflection.join_primary_key
         end
 
         def primary_type
-          associated_table.join_primary_type
+          reflection.join_primary_type
         end
 
         def polymorphic_name
-          associated_table.polymorphic_name_association
+          reflection.polymorphic_name
         end
 
         def select_clause?
