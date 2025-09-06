@@ -1,3 +1,12 @@
+*   Move responsibility for checksum implementation determination to storage service
+
+    The storage service should be able to implement any method for opening, calculating and
+    validating checksums.
+    Add default_chunk_size configuration option to control amount of data to be processed
+    at a time while calculating checksums in an ActiveStorage::Service class.
+
+    *Matt Pasquini*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated `:azure` storage service.
