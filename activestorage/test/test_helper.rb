@@ -129,6 +129,16 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
+  has_one_attached :avatar_with_immediate_variants do |attachable|
+    attachable.variant :immediate_thumb, resize_to_limit: [1, 1], generation: :immediate
+  end
+  has_one_attached :avatar_with_delayed_variants do |attachable|
+    attachable.variant :delayed_thumb, resize_to_limit: [2, 2], generation: :delayed
+  end
+  has_one_attached :avatar_with_on_demand_variants do |attachable|
+    attachable.variant :on_demand_thumb, resize_to_limit: [3, 3], generation: :on_demand
+    attachable.variant :default_thumb, resize_to_limit: [4, 4]
+  end
   has_one_attached :avatar_with_preprocessed do |attachable|
     attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
   end
