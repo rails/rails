@@ -476,6 +476,13 @@ module ActiveRecord
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
 
+  ##
+  # :singleton-method: validate_enums_by_default
+  # Controls whether to automatically validate <tt>enum</tt> attributes.
+  # Defaults to <tt>false</tt>.
+  singleton_class.attr_accessor :validate_enums_by_default
+  self.validate_enums_by_default = false
+
   def self.deprecated_associations_options=(options)
     raise ArgumentError, "deprecated_associations_options must be a hash" unless options.is_a?(Hash)
 
