@@ -263,7 +263,7 @@ module ActiveSupport
   #   #    payload: { id: 123 },
   #   #  }
   #
-  # ==== Security
+  # === Security
   #
   # When reporting events, Hash-based payloads are automatically filtered to remove sensitive data based on {Rails.application.filter_parameters}[https://guides.rubyonrails.org/configuring.html#config-filter-parameters].
   #
