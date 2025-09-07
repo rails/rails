@@ -1,3 +1,14 @@
+*   Introduce `ActiveRecord.validate_enums_by_default` to control `enum` validation.
+    Set any value acceptable by the enum validate option. `false` by default.
+
+    ```ruby
+    config.active_record.validate_enums_by_default = true
+    config.active_record.validate_enums_by_default = false
+    config.active_record.validate_enums_by_default = {allow_nil: true}
+    ```
+
+    *Julien Bourdeau*
+
 *   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
     when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
     Rollback still runs, but may take longer.
