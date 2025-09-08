@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+p [:load_test_case]
+puts caller
+
 require "minitest"
 require "active_support/testing/tagged_logging"
 require "active_support/testing/setup_and_teardown"

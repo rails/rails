@@ -1120,6 +1120,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerfile_bootsnap_precompile_is_single_threaded
+    skip "bootsnap not included on JRuby" if defined?(JRUBY_VERSION)
+    run_generator [destination_root, "--no-skip-bootsnap"]
+    assert_gem "bootsnap"
+    assert_file "Dockerfile" do |content|
+      assert_match(/bootsnap precompile -j 1 --gemfile/, content)
+      assert_match(/bootsnap precompile -j 1 app\/ lib\//, content)
+    end
+  end
+
   def test_inclusion_of_ruby_version
     run_generator
 
