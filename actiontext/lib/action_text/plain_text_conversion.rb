@@ -123,7 +123,7 @@ module ActionText
         end
       end
 
-      class BottomUpReducer
+      class BottomUpReducer # :nodoc:
         def initialize(node)
           @node = node
           @values = {}
