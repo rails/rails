@@ -1,3 +1,7 @@
+*   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
+
+    *Roberto Miranda*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated support to a route to multiple paths.

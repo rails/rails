@@ -57,7 +57,8 @@ module ActionController
       paths   = app.config.paths
       options = app.config.action_controller
 
-      options.logger      ||= Rails.logger
+      options.logger = options.fetch(:logger, Rails.logger)
+
       options.cache_store ||= Rails.cache
 
       options.javascripts_dir ||= paths["public/javascripts"].first
