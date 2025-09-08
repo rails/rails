@@ -9,6 +9,10 @@ module TestUnit # :nodoc:
         template "test/fixtures/users.yml"
         template "test/models/user_test.rb"
       end
+
+      def create_mailer_preview_files
+        template "test/mailers/previews/passwords_mailer_preview.rb" if defined?(ActionMailer::Railtie)
+      end
     end
   end
 end

@@ -110,6 +110,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/models/user_test.rb"
   end
 
+  def mailer_preview_is_skipped_if_test_framework_is_given
+    generator([destination_root], ["-t", "rspec"])
+
+    run_generator_instance
+
+    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+  end
+
   def test_connection_class_skipped_without_action_cable
     old_value = ActionCable.const_get(:Engine)
     ActionCable.send(:remove_const, :Engine)
