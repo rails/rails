@@ -1,3 +1,83 @@
+*   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
+
+    *Roberto Miranda*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated support to a route to multiple paths.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using semicolons as a query string separator.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar"], ["baz", "quux"]]
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar;baz=quux"]]
+    ```
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to skipping over leading brackets in parameter names in the parameter parser.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "foo" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "foo" => { "bar" => "baz" } }
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "[foo]" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "[foo]" => { "bar" => "baz" } }
+    ```
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
+
+    *Rafael Mendonça França*
+
+*   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
+
+    Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.
+    By default, Action Dispatch rescues the error and responds with a `429 Too Many Requests` status.
+
+    *Sean Doyle*
+
+*   Add .md/.markdown as Markdown extensions and add a default `markdown:` renderer:
+
+    ```ruby
+    class Page
+      def to_markdown
+        body
+      end
+    end
+
+    class PagesController < ActionController::Base
+      def show
+        @page = Page.find(params[:id])
+
+        respond_to do |format|
+          format.html
+          format.md { render markdown: @page }
+        end
+      end
+    end
+    ```
+
+    *DHH*
+
 *   Add headers to engine routes inspection command
 
     *Petrik de Heus*

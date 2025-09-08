@@ -1,3 +1,19 @@
+*   Reverted the incorrect default `config.public_file_server.headers` config.
+
+    If you created a new application using Rails `8.1.0.beta1`, make sure to regenerate
+    `config/environments/production.rb`, or to manually edit the `config.public_file_server.headers`
+    configuration to just be:
+
+    ```ruby
+    # Cache assets for far-future expiry since they are all digest stamped.
+    config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+    ```
+
+    *Jean Boussier*
+
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash
@@ -123,9 +139,5 @@
 *   Only include PermissionsPolicy::Middleware if policy is configured.
 
     *Petrik de Heus*
-
-*   Only add browser restrictions for a new Rails app when using importmap.
-
-    *Lucas Dohmen*
 
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

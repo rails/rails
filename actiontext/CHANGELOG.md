@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Forward `fill_in_rich_text_area` options to Capybara
 
     ```ruby

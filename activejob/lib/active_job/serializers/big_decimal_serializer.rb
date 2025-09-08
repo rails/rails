@@ -13,10 +13,9 @@ module ActiveJob
         BigDecimal(hash["value"])
       end
 
-      private
-        def klass
-          BigDecimal
-        end
+      def klass
+        BigDecimal
+      end
     end
   end
 end

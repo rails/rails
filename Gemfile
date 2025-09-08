@@ -64,7 +64,7 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
+  gem "sdoc"
   gem "rdoc", "< 6.10"
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
@@ -103,7 +103,6 @@ group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
-  gem "sucker_punch", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -124,7 +123,6 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end

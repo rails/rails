@@ -625,7 +625,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -1040,7 +1040,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -1233,7 +1233,7 @@ module ActiveRecord
         end
       else
         model.with_connection do |conn|
-          conn.unprepared_statement { conn.to_sql(arel(conn)) }
+          conn.unprepared_statement { conn.to_sql(arel) }
         end
       end
     end

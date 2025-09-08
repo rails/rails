@@ -11,10 +11,9 @@ module ActiveJob
         argument["value"].to_sym
       end
 
-      private
-        def klass
-          Symbol
-        end
+      def klass
+        Symbol
+      end
     end
   end
 end

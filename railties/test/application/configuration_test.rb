@@ -3238,7 +3238,11 @@ module ApplicationTests
     end
 
     test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
-      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
+      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer
+        def klass
+          nil
+        end
+      end
 
       app_file "config/initializers/custom_serializers.rb", <<-RUBY
       Rails.application.config.active_job.custom_serializers << DummySerializer
@@ -3246,7 +3250,11 @@ module ApplicationTests
 
       app "development"
 
-      assert_includes ActiveJob::Serializers.serializers, DummySerializer
+      assert_nothing_raised do
+        ActiveJob::Base
+      end
+
+      assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
     end
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
@@ -3264,8 +3272,8 @@ module ApplicationTests
     end
 
     test "config.active_job.enqueue_after_transaction_commit is deprecated" do
-      app_file "config/initializers/custom_serializers.rb", <<-RUBY
-      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
+      Rails.application.config.active_job.enqueue_after_transaction_commit = true
       RUBY
 
       app "production"
@@ -3274,7 +3282,7 @@ module ApplicationTests
         ActiveRecord::Base
       end
 
-      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do
@@ -5049,6 +5057,50 @@ module ApplicationTests
       add_to_config "Regexp.timeout = 5"
       app "development"
       assert_equal 5, Regexp.timeout
+    end
+
+    test "action_controller.logger defaults to Rails.logger" do
+      restore_default_config
+      add_to_config "config.logger = Logger.new(STDOUT, level: Logger::INFO)"
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_equal Rails.application.config.action_controller.logger, Rails.logger
+      assert output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning nil" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = nil
+      RUBY
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_nil Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning false" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = false
+      RUBY
+
+      app "development"
+      output = capture(:stdout) do
+        get "/"
+      end
+
+
+      assert_equal false, Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
     end
 
     private

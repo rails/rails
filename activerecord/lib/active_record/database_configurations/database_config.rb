@@ -48,7 +48,11 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def pool
+      def min_connections
+        raise NotImplementedError
+      end
+
+      def max_connections
         raise NotImplementedError
       end
 

@@ -1,3 +1,31 @@
+*   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
+    when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
+    Rollback still runs, but may take longer.
+
+    *Yasuo Honda*, *Lars Kanis*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:retries` option for the SQLite3 adapter.
+
+    *Rafael Mendonça França*
+
+*   Introduce new database configuration options `keepalive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
+*   Move `LIMIT` validation from query generation to when `limit()` is called.
+
+    *Hartley McGuire*, *Shuyang*
+
 *   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
 
     *Ryuta Kamizono*
@@ -48,10 +76,6 @@
     ```
 
     *Kir Shatrov*
-
-*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
-
-    *Yasuo Honda*
 
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 

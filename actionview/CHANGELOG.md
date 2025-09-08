@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Allow `current_page?` to match against specific HTTP method(s) with a `method:` option.
 
     *Ben Sheldon*
