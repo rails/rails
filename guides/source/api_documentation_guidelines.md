@@ -129,6 +129,7 @@ Spell software names correctly. When in doubt, please have a look at some author
 # npm
 # PostgreSQL
 # RSpec
+# TLS/SSL
 ```
 
 Use the article "an" for "SQL":
