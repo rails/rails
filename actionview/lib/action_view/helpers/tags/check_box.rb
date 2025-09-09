@@ -57,7 +57,13 @@ module ActionView
           end
 
           def hidden_field_for_checkbox(options)
-            @unchecked_value ? tag("input", options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")) : "".html_safe
+            if @unchecked_value
+              tag_options = options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)
+              tag_options["autocomplete"] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+              tag("input", tag_options)
+            else
+              "".html_safe
+            end
           end
       end
     end
