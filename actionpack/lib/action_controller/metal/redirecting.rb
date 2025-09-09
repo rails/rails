@@ -227,7 +227,7 @@ module ActionController
     #     url_from("http://example.com/profile")  # => "http://example.com/profile"
     #     url_from("http://evil.com/profile")     # => nil
     #
-    # Subdomains are not considered part of the same host:
+    # Subdomains are included in the evaluation of the host and are not considered internal.
     #
     #     # If request.host is on https://example.com or https://app.example.com, you'd get:
     #     url_from("https://dev.example.com/profile") # => nil
