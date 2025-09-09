@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "rails/generators/database/devcontainer"
+require "rails/generators/database/ci"
+
 module Rails
   module Generators
     class Database
@@ -12,19 +15,6 @@ module Rails
 
         def port
           3306
-        end
-
-        def service
-          {
-            "image" => "mysql/mysql-server:8.0",
-            "restart" => "unless-stopped",
-            "environment" => {
-              "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
-              "MYSQL_ROOT_HOST" => "%"
-            },
-            "volumes" => ["mysql-data:/var/lib/mysql"],
-            "networks" => ["default"],
-          }
         end
 
         def socket
@@ -53,18 +43,6 @@ module Rails
 
         def port
           3306
-        end
-
-        def service
-          {
-            "image" => "mariadb:10.5",
-            "restart" => "unless-stopped",
-            "networks" => ["default"],
-            "volumes" => ["mariadb-data:/var/lib/mysql"],
-            "environment" => {
-              "MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" => "true",
-            },
-          }
         end
       end
 
@@ -100,9 +78,14 @@ module Rails
         raise NotImplementedError
       end
 
-      def service
-        raise NotImplementedError
+      def devcontainer
+        "#{Rails::Generators::Devcontainer}::#{self.class.name.demodulize}".constantize.new
       end
+
+      def ci
+        "#{Rails::Generators::Ci}::#{self.class.name.demodulize}".constantize.new
+      end
+
 
       def port
         raise NotImplementedError
@@ -134,7 +117,7 @@ module Rails
       end
 
       def volume
-        return unless service
+        return unless devcontainer.service
 
         "#{name}-data"
       end
@@ -170,19 +153,6 @@ module Rails
 
         def template
           "config/databases/postgresql.yml"
-        end
-
-        def service
-          {
-            "image" => "postgres:16.1",
-            "restart" => "unless-stopped",
-            "networks" => ["default"],
-            "volumes" => ["postgres-data:/var/lib/postgresql/data"],
-            "environment" => {
-              "POSTGRES_USER" => "postgres",
-              "POSTGRES_PASSWORD" => "postgres"
-            }
-          }
         end
 
         def port
@@ -239,10 +209,6 @@ module Rails
           "config/databases/sqlite3.yml"
         end
 
-        def service
-          nil
-        end
-
         def port
           nil
         end
@@ -275,7 +241,8 @@ module Rails
       class Null < Database
         def name; end
         def template; end
-        def service; end
+        def devcontainer; end
+        def ci; end
         def port; end
         def volume; end
         def base_package; end

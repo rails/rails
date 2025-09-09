@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/base"
+require "rails/generators/rails/db/system/change/github/ci_generator"
 require "yaml"
 require "json"
 
@@ -57,6 +58,10 @@ module Rails
 
             edit_devcontainer_json
             edit_compose_yaml
+          end
+
+          def edit_ci_yml
+            Db::System::Change::Github::CiGenerator.new([], database: options[:database]).invoke_all
           end
 
           private
@@ -129,8 +134,8 @@ module Rails
                 compose_config["services"]["rails-app"]["depends_on"]&.delete(database.name)
               end
 
-              if database.service
-                compose_config["services"][database.name] = database.service
+              if database.devcontainer.service
+                compose_config["services"][database.name] = database.devcontainer.service
                 compose_config["volumes"] = { database.volume => nil }.merge(compose_config["volumes"] || {})
                 compose_config["services"]["rails-app"]["depends_on"] = [
                   database.name,
@@ -149,13 +154,13 @@ module Rails
               db_name = database.name
 
               if container_env["DB_HOST"]
-                if database.service
+                if database.devcontainer.service
                   container_env["DB_HOST"] = db_name
                 else
                   container_env.delete("DB_HOST")
                 end
               else
-                if database.service
+                if database.devcontainer.service
                   container_env["DB_HOST"] = db_name
                 end
               end
