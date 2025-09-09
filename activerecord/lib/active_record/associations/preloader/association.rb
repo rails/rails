@@ -101,7 +101,7 @@ module ActiveRecord
 
         attr_reader :klass
 
-        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default)
+        def initialize(klass, owners, reflection, preload_scope, reflection_scope, associate_by_default, load_columns: {})
           @klass         = klass
           @owners        = owners.uniq(&:__id__)
           @reflection    = reflection
@@ -109,6 +109,7 @@ module ActiveRecord
           @reflection_scope = reflection_scope
           @associate     = associate_by_default || !preload_scope || preload_scope.empty_scope?
           @model         = owners.first && owners.first.class
+          @load_columns  = load_columns
           @run = false
         end
 
@@ -293,6 +294,10 @@ module ActiveRecord
 
           def build_scope
             scope = klass.scope_for_association
+
+            if @load_columns&.dig(table_name.to_sym)&.any?
+              scope = scope._select!(*@load_columns[table_name.to_sym])
+            end
 
             if reflection.type && !reflection.through_reflection?
               scope.where!(reflection.type => model.polymorphic_name)
