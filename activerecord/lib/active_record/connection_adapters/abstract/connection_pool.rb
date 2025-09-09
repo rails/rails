@@ -929,7 +929,7 @@ module ActiveRecord
         # Each connection will only be processed once per call to this method,
         # but (particularly in the async case) there is no protection against
         # a second call to this method starting to work through the list
-        # before the first call has completed. (Though regular pool behaviour
+        # before the first call has completed. (Though regular pool behavior
         # will prevent two instances from working on the same specific
         # connection at the same time.)
         def sequential_maintenance(candidate_selector, &maintenance_work)

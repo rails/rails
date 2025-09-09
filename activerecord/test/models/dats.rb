@@ -13,6 +13,6 @@ module DATS
   require_relative "dats/category"
   require_relative "dats/comment"
   require_relative "dats/car"
-  require_relative "dats/tyre"
+  require_relative "dats/tire"
   require_relative "dats/bulb"
 end

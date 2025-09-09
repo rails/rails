@@ -331,7 +331,7 @@ I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 ```
 
-Alternatively, you can customise the `I18n.exception_handler`.
+Alternatively, you can customize the `I18n.exception_handler`.
 See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
 
 `AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were

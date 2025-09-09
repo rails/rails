@@ -48,7 +48,7 @@ module ActiveRecord
     # way of creating a namespace for tables in a shared database. By default, the prefix is the
     # empty string.
     #
-    # If you are organising your models within modules you can add a prefix to the models within
+    # If you are organizing your models within modules you can add a prefix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_prefix which
     # returns your chosen prefix.
 
@@ -65,7 +65,7 @@ module ActiveRecord
     # Works like +table_name_prefix=+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
     # "people_basecamp"). By default, the suffix is the empty string.
     #
-    # If you are organising your models within modules, you can add a suffix to the models within
+    # If you are organizing your models within modules, you can add a suffix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_suffix which
     # returns your chosen suffix.
 
