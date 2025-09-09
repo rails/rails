@@ -1,3 +1,12 @@
+*   Optimize `ActionDispatch::Http::URL.build_host_url` when protocol is included in host.
+
+    When using URL helpers with a host that includes the protocol (e.g., `{ host: "https://example.com" }`),
+    skip unnecessary protocol normalization and string duplication since the extracted protocol is already
+    in the correct format. This eliminates 2 string allocations per URL generation and provides a ~10%
+    performance improvement for this case.
+
+    *Joshua Young*, *Hartley McGuire*
+
 *   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
 
     *Roberto Miranda*
