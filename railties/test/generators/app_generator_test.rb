@@ -669,6 +669,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_ci_workflow_includes_db_test_prepare_by_default
+    run_generator
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/db:test:prepare test/, content)
+      assert_match(/db:test:prepare test:system/, content)
+    end
+  end
+
+  def test_ci_workflow_does_not_include_db_test_prepare_when_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+    run_app_update
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/db:test:prepare/, content)
+      assert_match(/bin\/rails test/, content)
+      assert_match(/bin\/rails test:system/, content)
+    end
+  end
+
   def test_ci_files_are_skipped_if_required
     run_generator [destination_root, "--skip-ci"]
 
