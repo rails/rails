@@ -1,3 +1,11 @@
+*   Exclude `asset_path` configuration from Kamal `deploy.yml` for API applications.
+
+    API applications don't serve assets, so the `asset_path` configuration in `deploy.yml`
+    is not needed and can cause 404 errors on in-flight requests. The asset_path is now
+    only included for regular Rails applications that serve assets.
+
+    *Saiqul Haq*
+
 *   Reverted the incorrect default `config.public_file_server.headers` config.
 
     If you created a new application using Rails `8.1.0.beta1`, make sure to regenerate
