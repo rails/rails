@@ -1,0 +1,27 @@
+name: "rails-bot: More Info Needed"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  more-info-needed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+    - uses: actions/stale@v9
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        days-before-stale: 14
+        days-before-close: 0 # Close immediately
+        operations-per-run: 100
+        stale-issue-label: "more-information-needed"
+        close-issue-message: >
+          This issue has been automatically closed because there has been no follow-up
+          response from the original author. We currently don't have enough
+          information in order to take action. Please reach out if you have any additional
+          information that will help us move this issue forward.
+        only-labels: "more-information-needed"
+        only-pr-labels: false
