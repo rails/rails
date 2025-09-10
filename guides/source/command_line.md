@@ -1097,7 +1097,7 @@ You can group tasks by placing them in namespaces:
 namespace :db do
   desc "This task has something to do with the database"
   task :my_db_task do
-    ...
+    # ...
   end
 end
 ```
@@ -1115,6 +1115,6 @@ If you need to interact with your application models, perform database queries, 
 
 ```ruby
 task task_that_requires_app_code: [:environment] do
-  User.create!
+  puts User.count
 end
 ```
