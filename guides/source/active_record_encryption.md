@@ -45,7 +45,7 @@ Active Record Encryption also uses compression by default, which can offer up to
 ## Setup
 
 To start using Active Record Encryption, you need to generate keys and declare
-attributes you want to encrypt in the Model.
+attributes you want to encrypt in the model.
 
 ### Generate Encryption Key
 
@@ -136,8 +136,7 @@ that queries (such as `WHERE title = "Encryption"`) on encrypted values are not
 possible, since the same value can result in a different encrypted value that
 does not match the previously stored ciphertext.
 
-If you need to query the encrypted `email` field on the `Author` model below,
-you can use deterministic encryption:
+You can use deterministic encryption if you need to query using encrypted values. For example, the `email` field on the `Author` model below:
 
 ```ruby
 class Author < ApplicationRecord
@@ -156,7 +155,7 @@ above.
 The `:deterministic` option allows for querying by trading off lesser security.
 The data is still encrypted but the determinism makes crypto-analysis easier.
 For this reason, non-deterministic encryption is recommended for all data unless
-you need to query by an attribute.
+you need to query by the encrypted attribute.
 
 NOTE: In non-deterministic mode, Active Record uses
 [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)-[GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode)
@@ -188,7 +187,7 @@ end
 When using `:downcase`, the original case is lost.
 
 You can use the `:ignore_case` option when you want to preserve the original
-case for displaying and ignore the case only when querying data:
+case for displaying but ignore the case when querying data:
 
 ```ruby
 class Label
@@ -251,8 +250,8 @@ In order to support unique validations, you'll need to enable extended queries. 
 config.active_record.encryption.extend_queries = true
 ```
 
-Then, the uniqueness constraint can be specified normally, along with
-encryption:
+Once extended queries are enabled, the uniqueness constraint can be specified
+normally, along with encryption:
 
 ```ruby
 class Person
