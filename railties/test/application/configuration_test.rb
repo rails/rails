@@ -5068,7 +5068,7 @@ module ApplicationTests
         get "/"
       end
 
-      assert_equal Rails.application.config.action_controller.logger, Rails.logger
+      assert_equal Rails.logger, Rails.application.config.action_controller.logger
       assert output.include?("Processing by Rails::WelcomeController#index as HTML")
     end
 
