@@ -775,6 +775,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_kamal_deploy_yml_includes_asset_path_for_regular_apps
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      assert_match(/asset_path: \/rails\/public\/assets/, content)
+    end
+  end
+
   def test_usage_read_from_file
     assert_called(File, :read, returns: "USAGE FROM FILE") do
       assert_equal "USAGE FROM FILE", Rails::Generators::AppGenerator.desc
