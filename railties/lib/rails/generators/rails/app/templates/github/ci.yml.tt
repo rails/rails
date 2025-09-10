@@ -142,7 +142,7 @@ jobs:
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails <%= skip_active_record? ? "" : "db:test:prepare " %>test
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test
   <%- unless options[:api] || options[:skip_system_test] -%>
 
   system-test:
@@ -215,7 +215,7 @@ jobs:
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails <%= skip_active_record? ? "" : "db:test:prepare " %>test:system
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
