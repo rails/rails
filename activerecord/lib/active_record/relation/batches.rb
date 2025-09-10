@@ -437,7 +437,7 @@ module ActiveRecord
             values = records.pluck(*cursor)
             values_size = values.size
             values_last = values.last
-            yielded_relation = where(cursor => values).order(batch_orders.to_h)
+            yielded_relation = where(cursor => values)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
             # Efficiently peak at the last value for the next batch using offset and limit.
@@ -455,14 +455,14 @@ module ActiveRecord
             # Finally, build the yielded relation if at least one value found.
             if values_last
               yielded_relation = apply_finish_limit(batch_relation, cursor, values_last, batch_orders)
-              yielded_relation = yielded_relation.except(:limit).reorder(batch_orders.to_h)
+              yielded_relation = yielded_relation.except(:limit, :order)
               yielded_relation.skip_query_cache!(false)
             end
           else
             values = batch_relation.pluck(*cursor)
             values_size = values.size
             values_last = values.last
-            yielded_relation = where(cursor => values).order(batch_orders.to_h)
+            yielded_relation = where(cursor => values)
           end
 
           break if values_size == 0
