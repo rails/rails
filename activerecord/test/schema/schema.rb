@@ -196,7 +196,7 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
     t.integer :bulbs_count
-    t.integer :custom_tyres_count
+    t.integer :custom_tires_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -1272,7 +1272,7 @@ ActiveRecord::Schema.define do
     t.float :pitch
   end
 
-  create_table :tyres, force: true do |t|
+  create_table :tires, force: true do |t|
     t.integer :car_id
   end
 

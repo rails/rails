@@ -3675,7 +3675,7 @@ development:
   use_metadata_table: false
 ```
 
-#### Configuring Retry Behaviour
+#### Configuring Retry Behavior
 
 By default, Rails will automatically reconnect to the database server and retry certain queries
 if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number
