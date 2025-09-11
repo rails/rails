@@ -20,7 +20,7 @@ module ActionMailer
 
     private
       def _deliver_all_later(delivery_method, *deliveries, **options)
-        deliveries.flatten!
+        deliveries = deliveries.first if deliveries.first.is_a?(Array)
 
         jobs = deliveries.map do |delivery|
           mailer_class = delivery.mailer_class

@@ -160,6 +160,16 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     end
   end
 
+  test "deliver_all_later does not inline process the mailers" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+
+    ActionMailer.deliver_all_later(mail1, mail2)
+
+    assert_not mail1.processed?
+    assert_not mail2.processed?
+  end
+
   test "deliver_all_later enqueues multiple deliveries with correct jobs" do
     old_delivery_job = BaseMailer.delivery_job
     BaseMailer.delivery_job = DummyJob
