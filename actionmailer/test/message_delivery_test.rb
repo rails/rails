@@ -168,6 +168,14 @@ class MessageDeliveryTest < ActiveSupport::TestCase
 
     assert_not mail1.processed?
     assert_not mail2.processed?
+
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+
+    ActionMailer.deliver_all_later([mail1, mail2])
+
+    assert_not mail1.processed?
+    assert_not mail2.processed?
   end
 
   test "deliver_all_later enqueues multiple deliveries with correct jobs" do
