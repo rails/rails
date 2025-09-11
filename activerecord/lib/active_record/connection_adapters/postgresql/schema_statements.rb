@@ -435,16 +435,13 @@ module ActiveRecord
         def primary_keys(table_name) # :nodoc:
           query_values(<<~SQL, "SCHEMA")
             SELECT a.attname
-              FROM (
-                     SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
-                       FROM pg_index
-                      WHERE indrelid = #{quote(quote_table_name(table_name))}::regclass
-                        AND indisprimary
-                   ) i
-              JOIN pg_attribute a
-                ON a.attrelid = i.indrelid
-               AND a.attnum = i.indkey[i.idx]
-             ORDER BY i.idx
+            FROM pg_index i
+            JOIN pg_attribute a
+              ON a.attrelid = i.indrelid
+              AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
+              AND i.indisprimary
+            ORDER BY array_position(i.indkey, a.attnum)
           SQL
         end
 
