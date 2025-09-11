@@ -1,3 +1,7 @@
+*   Show engine routes in `/rails/info/routes` as well.
+
+    *Petrik de Heus*
+
 *   Exclude `asset_path` configuration from Kamal `deploy.yml` for API applications.
 
     API applications don't serve assets, so the `asset_path` configuration in `deploy.yml`
