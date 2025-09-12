@@ -23,7 +23,7 @@ decryption of attributes when saving and retrieving data.
 
 ## Why Encrypt Data at the Application Level?
 
-Encrypting specific attributes at the application-level adds an additional
+Encrypting specific attributes at the application level adds an additional
 security layer. For example, if someone gains access to your application logs or
 database backup, the encrypted data remains unreadable. It also helps avoid
 accidental exposure of sensitive information in your application console or
@@ -37,11 +37,6 @@ data access in the Rails console. You can also take advantage of automatic
 [parameter filtering](#filtering-params-named-as-encrypted-columns) for
 encrypted fields.
 
-NOTE: Encryption requires extra storage space because the encrypted value will
-be larger than the original value. This overhead is negligible at larger sizes.
-Active Record Encryption also uses compression by default, which can offer up to
-30% storage savings over the unencrypted version for larger payloads.
-
 ## Setup
 
 To start using Active Record Encryption, you need to generate keys and declare
@@ -53,27 +48,22 @@ You can generate a random key set by running `bin/rails db:encryption:init`:
 
 ```bash
 $ bin/rails db:encryption:init
-```
+Add this entry to the credentials of the target environment: 
 
-Then, add the keys to the credentials file of the target environment:
-
-```yml
-# config/credentials.yml
 active_record_encryption:
-  primary_key: EGY8WhulUOXixybod7ZWwMIL68R9o5kC
-  deterministic_key: aPA5XyALhf75NNnMzaspW7akTfZp0lPY
-  key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
+  primary_key: YehXdfzxVKpoLvKseJMJIEGs2JxerkB8
+  deterministic_key: uhtk2DYS80OweAPnMLtrV2FhYIXaceAy
+  key_derivation_salt: g7Q66StqUQDQk9SJ81sWbYZXgiRogBwS
 ```
 
 These values can be stored by copying and pasting the generated values into your
-existing [Rails credentials](/security.html#custom-credentials). Then, you can
-set the credentials in a config file:
+existing [Rails credentials](/security.html#custom-credentials) file using `bin/rails credentials:edit`. Then, you refer to these credentials in a config file:
 
 ```ruby
 # config/application.rb
-config.active_record.encryption.primary_key = Rails.application.credentials.dig(:active_record_encryption, :primary_key)
-config.active_record.encryption.deterministic_key = Rails.application.credentials.dig(:active_record_encryption, :deterministic_key)
-config.active_record.encryption.key_derivation_salt = Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt)
+config.active_record.encryption.primary_key = credentials.dig(:active_record_encryption, :primary_key)
+config.active_record.encryption.deterministic_key = credentials.dig(:active_record_encryption, :deterministic_key)
+config.active_record.encryption.key_derivation_salt = credentials.dig(:active_record_encryption, :key_derivation_salt)
 ```
 
 Alternatively, these values can be configured from other sources, such as
@@ -114,17 +104,23 @@ Active Record Encryption will transparently encrypt these attributes before
 saving them to the database and will decrypt them upon retrieval. For example:
 
 ```ruby
-article = Article.create title: "Encrypt it all!"
+article = Article.create(title: "Encrypt it all!")
 article.title # => "Encrypt it all!"
 ```
 
 However, in the Rails console, the executed SQL looks like this:
 
 ```sql
-INSERT INTO `articles` (`title`) VALUES ('{\"p\":\"n7J0/ol+a7DRMeaE\",\"h\":{\"iv\":\"DXZMDWUKfp3bg/Yu\",\"at\":\"X1/YjMHbHD4talgF9dt61A==\"}}')
+INSERT INTO "articles" ("title", "created_at", "updated_at")
+VALUES ('{"p":"oq+RFYW8CucALxnJ6ccx","h":{"iv":"3nrJAIYcN1+YcGMQ","at":"JBsw7uB90yAyWbQ8E3krjg=="}}', ...) RETURNING "id"
 ```
 
 The value inserted is the encrypted value for the `title` attribute.
+
+NOTE: Encryption requires extra storage space because the encrypted value will
+be larger than the original value. This overhead is negligible at larger sizes.
+Active Record Encryption also uses compression by default, which can offer up to
+30% storage savings over the unencrypted version for larger payloads.
 
 ### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
 
