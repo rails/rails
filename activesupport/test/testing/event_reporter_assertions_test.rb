@@ -85,6 +85,16 @@ module ActiveSupport
         end
       end
 
+      test "#assert_no_event_reported ingores debug by default" do
+        original_debug_mode = @reporter.debug_mode?
+        @reporter.debug_mode = true
+        assert_no_event_reported do
+          @reporter.debug("user.created")
+        end
+      ensure
+        @reporter.debug_mode = original_debug_mode
+      end
+
       test "#assert_event_reported fails when event is not reported" do
         e = assert_raises(Minitest::Assertion) do
           assert_event_reported("user.created") do
