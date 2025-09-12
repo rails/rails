@@ -5,8 +5,8 @@ module ActiveJob
     class RangeSerializer < ObjectSerializer
       def serialize(range)
         super(
-          "begin" => Arguments.serialize(range.begin),
-          "end" => Arguments.serialize(range.end),
+          "begin" => Arguments.serialize_argument(range.begin),
+          "end" => Arguments.serialize_argument(range.end),
           "exclude_end" => range.exclude_end?, # Always boolean, no need to serialize
         )
       end

@@ -4,7 +4,7 @@ module ActiveJob
   module Serializers
     class ActionControllerParametersSerializer < ObjectSerializer
       def serialize(argument)
-        Arguments.serialize(argument.to_h.with_indifferent_access)
+        Arguments.serialize_argument(argument.to_h.with_indifferent_access)
       end
 
       def deserialize(hash)

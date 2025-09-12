@@ -31,7 +31,11 @@ module ActiveJob
     # serialized without mutation are returned as-is. Arrays/Hashes are
     # serialized element by element. All other types are serialized using
     # GlobalID.
-    def serialize(argument)
+    def serialize(arguments)
+      arguments.map { |argument| serialize_argument(argument) }
+    end
+
+    def serialize_argument(argument) # :nodoc:
       case argument
       when nil, true, false, Integer, Float # Types that can hardly be subclassed
         argument
@@ -50,7 +54,7 @@ module ActiveJob
       when GlobalID::Identification
         convert_to_global_id_hash(argument)
       when Array
-        argument.map { |arg| serialize(arg) }
+        argument.map { |arg| serialize_argument(arg) }
       when ActiveSupport::HashWithIndifferentAccess
         serialize_indifferent_hash(argument)
       when Hash
@@ -137,7 +141,7 @@ module ActiveJob
 
       def serialize_hash(argument)
         argument.each_with_object({}) do |(key, value), hash|
-          hash[serialize_hash_key(key)] = serialize(value)
+          hash[serialize_hash_key(key)] = serialize_argument(value)
         end
       end
 
