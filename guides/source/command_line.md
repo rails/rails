@@ -415,7 +415,7 @@ $ bin/rails generate scaffold model post title:string body:text
 
 At this point, you can run `bin/rails db:migrate` to create the `post` table (see [Managing the Database](#managing-the-database) for more on that command). Then, if you start the Rails server with `bin/rails server` and navigate to [http://localhost:3000/posts](http://localhost:3000/posts), you will be able to interact with the `post` resource - see a list of posts, create new posts, as well as edit and delete them.
 
-INFO: The scaffold generate test files, though you will need to modify them and actually add test cases for your code. See the [Testing guide](testing.html) for an in-depth look at creating and running tests.
+INFO: The scaffold generates test files, though you will need to modify them and actually add test cases for your code. See the [Testing guide](testing.html) for an in-depth look at creating and running tests.
 
 ### Undoing Code Generation with `bin/rails destroy`
 
