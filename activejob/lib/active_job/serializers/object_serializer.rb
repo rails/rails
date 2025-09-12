@@ -28,6 +28,11 @@ module ActiveJob
         delegate :serialize?, :serialize, :deserialize, to: :instance
       end
 
+      def initialize
+        super
+        @template = { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.freeze
+      end
+
       # Determines if an argument should be serialized by a serializer.
       def serialize?(argument)
         argument.is_a?(klass)
@@ -35,7 +40,7 @@ module ActiveJob
 
       # Serializes an argument to a JSON primitive type.
       def serialize(hash)
-        { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
+        @template.merge(hash)
       end
 
       # Deserializes an argument from a JSON primitive type.
