@@ -669,6 +669,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_ci_includes_seed_step_by_default
+    run_generator [destination_root]
+
+    assert_file "config/ci.rb" do |content|
+      assert_match(/step "Tests: Seeds", "env RAILS_ENV=test bin\/rails db:seed:replant"/, content)
+    end
+  end
+
+  def test_config_ci_does_not_include_seed_step_when_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/step "Tests: Seeds"/, content)
+      assert_no_match(/bin\/rails db:seed:replant/, content)
+    end
+  end
+
   def test_ci_workflow_includes_db_test_prepare_by_default
     run_generator
     assert_file ".github/workflows/ci.yml" do |content|
