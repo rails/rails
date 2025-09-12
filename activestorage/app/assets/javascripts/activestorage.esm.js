@@ -508,7 +508,7 @@ function toArray(value) {
 }
 
 class BlobRecord {
-  constructor(file, checksum, url, customHeaders = {}) {
+  constructor(file, checksum, url, customHeaders = {}, key = null) {
     this.file = file;
     this.attributes = {
       filename: file.name,
@@ -516,6 +516,8 @@ class BlobRecord {
       byte_size: file.size,
       checksum: checksum
     };
+    if (key)
+      this.attributes.key = key;
     this.xhr = new XMLHttpRequest;
     this.xhr.open("POST", url, true);
     this.xhr.responseType = "json";
@@ -607,12 +609,13 @@ class BlobUpload {
 let id = 0;
 
 class DirectUpload {
-  constructor(file, url, delegate, customHeaders = {}) {
+  constructor(file, url, delegate, customHeaders = {}, key = null) {
     this.id = ++id;
     this.file = file;
     this.url = url;
     this.delegate = delegate;
     this.customHeaders = customHeaders;
+    this.key = key;
   }
   create(callback) {
     FileChecksum.create(this.file, ((error, checksum) => {
@@ -620,7 +623,7 @@ class DirectUpload {
         callback(error);
         return;
       }
-      const blob = new BlobRecord(this.file, checksum, this.url, this.customHeaders);
+      const blob = new BlobRecord(this.file, checksum, this.url, this.customHeaders, this.key);
       notify(this.delegate, "directUploadWillCreateBlobWithXHR", blob.xhr);
       blob.create((error => {
         if (error) {
@@ -651,7 +654,7 @@ class DirectUploadController {
   constructor(input, file) {
     this.input = input;
     this.file = file;
-    this.directUpload = new DirectUpload(this.file, this.url, this);
+    this.directUpload = new DirectUpload(this.file, this.url, this, {}, this.input.dataset.key);
     this.dispatch("initialize");
   }
   start(callback) {
