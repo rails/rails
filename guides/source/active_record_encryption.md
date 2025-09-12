@@ -34,7 +34,7 @@ in your code. This enables precise access control throughout your application
 and any connected services. For example, you can use tools like
 [console1984](https://github.com/basecamp/console1984) to restrict decrypted
 data access in the Rails console. You can also take advantage of automatic
-[parameter filtering](#filtering-params-named-as-encrypted-columns) for
+[parameter filtering](#filtering-params-named-as-encrypted-attributes) for
 encrypted fields.
 
 ## Setup
@@ -157,7 +157,7 @@ NOTE: In non-deterministic mode, Active Record uses
 [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)-[GCM](https://en.wikipedia.org/wiki/Galois/Counter_Mode)
 with a 256-bits key and a random initialization vector. In deterministic mode,
 it also uses AES-GCM, but the initialization vector is not random. It is
-generated as an a function of the key and the plaintext content
+generated as a function of the key and the plaintext content
 ([HMAC](https://en.wikipedia.org/wiki/HMAC)-SHA-256 digest of the two).
 
 NOTE: If you do not define a `deterministic_key`, then you have effectively
@@ -262,9 +262,9 @@ NOTE: If you want to ignore the case for uniqueness, make sure to use the
 
 #### Unique Indexes
 
-In order to support unique indexes on deterministically encrypted columns, it’s
-important to ensure that a given plaintext always produces the same ciphertext.
-This consistency is what makes indexing and querying possible.
+In order to support unique indexes on deterministically encrypted attributes,
+it’s important to ensure that a given plaintext always produces the same
+ciphertext. This consistency is what makes indexing and querying possible.
 
 One thing Rails does to help is that, by default, deterministic attributes will
 use the oldest available encryption scheme when multiple encryption schemes are
@@ -280,9 +280,9 @@ end
 In order for unique indexes to work, you will have to ensure that the encryption
 properties for the underlying attributes don't change.
 
-### Filtering Params Named as Encrypted Columns
+### Filtering Params Named as Encrypted Attributes
 
-Encrypted columns are configured to be automatically
+Encrypted attributes are configured to be automatically
 [filtered](configuring.html#config-filter-parameters) out of the Rails logs. So
 sensitive information, like encrypted emails or credit card numbers, isn't
 stored in your logs. For example, if you are filtering the `email` field, you
@@ -297,7 +297,7 @@ following configuration:
 config.active_record.encryption.add_to_filter_parameters = false
 ```
 
-When filtering is enabled, if you want to exclude specific columns from
+When filtering is enabled, if you want to exclude specific attributes from
 automatic filtering, you can use this configuration:
 
 ```ruby
@@ -367,8 +367,7 @@ config.active_record.encryption.forced_encoding_for_deterministic_encryption = n
 Active Record Encryption compresses encrypted payloads by default. This can save
 up to 30% of the storage space for larger payloads.
 
-You can disable compression by setting `compress` option when encrypting
-attributes:
+You can disable compression by setting the `compress` option to `false` when encrypting attributes:
 
 ```ruby
 class Article < ApplicationRecord
@@ -407,8 +406,7 @@ config.active_record.encryption.compressor = ZstdCompressor
 
 ### Using the API
 
-Active Record Encryption is meant to be used declaratively, but there is also an
-API for debugging or advance use cases.
+Active Record Encryption is meant to be used declaratively, but there is also an API for debugging or advanced use cases.
 
 You can encrypt and decrypt all relevant attributes of an `article` model like
 this:
