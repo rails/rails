@@ -37,8 +37,6 @@ You must specify a command. The most common commands are:
   plugin new   Create a new Rails railtie or engine
 
 All commands can be run with -h (or --help) for more information.
-
-In addition to those commands, there are:
 ```
 
 The output of `bin/rails --help` then proceeds to list all commands in alphabetical order, with a short description of each:
