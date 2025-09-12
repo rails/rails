@@ -816,6 +816,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_empty output
   end
 
+  def test_quiet_option_quiets_rails_commands
+    generator = generator_class.new(
+      [File.join(destination_root, "myapp")], ["--quiet"], destination_root: destination_root
+    )
+
+    generator.stub :bundle_install?, -> { caller.grep(/run_(hotwire|solid)/).any? } do
+      output = capture(:stdout) { generator.invoke_all }
+      assert_empty output
+    end
+  end
+
   def test_force_option_overwrites_every_file_except_master_key
     run_generator [File.join(destination_root, "myapp")]
     output = run_generator [File.join(destination_root, "myapp"), "--force"]
