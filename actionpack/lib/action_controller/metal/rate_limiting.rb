@@ -45,7 +45,12 @@ module ActionController # :nodoc:
       #
       #     class SignupsController < ApplicationController
       #       rate_limit to: 1000, within: 10.seconds,
-      #         by: -> { request.domain }, with: -> { redirect_to busy_controller_url, alert: "Too many signups on domain!" }, only: :new
+      #         by: -> { request.domain }, with: :redirect_to_busy, only: :new
+      #
+      #       private
+      #         def redirect_to_busy
+      #           redirect_to busy_controller_url, alert: "Too many signups on domain!"
+      #         end
       #     end
       #
       #     class APIController < ApplicationController
@@ -65,7 +70,8 @@ module ActionController # :nodoc:
 
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
-        by = instance_exec(&by)
+        by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
+
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)
         if count && count > to
@@ -78,7 +84,7 @@ module ActionController # :nodoc:
               name: name,
               scope: scope,
               cache_key: cache_key) do
-            instance_exec(&with)
+            with.is_a?(Symbol) ? send(with) : instance_exec(&with)
           end
         end
       end
