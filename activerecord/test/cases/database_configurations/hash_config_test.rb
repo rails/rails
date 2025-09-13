@@ -64,19 +64,39 @@ module ActiveRecord
         assert_equal 600, config.keepalive
       end
 
-      def test_max_connections_default_when_nil
+      def test_max_connections_unlimited_when_nil
         config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
-        assert_equal 5, config.max_connections
+        assert_nil config.max_connections
+      end
+
+      def test_max_connections_unlimited_when_negative_one
+        config = HashConfig.new("default_env", "primary", max_connections: "-1", adapter: "abstract")
+        assert_nil config.max_connections
+      end
+
+      def test_max_connections_zero_means_zero
+        config = HashConfig.new("default_env", "primary", max_connections: "0", adapter: "abstract")
+        assert_equal 0, config.max_connections
       end
 
       def test_max_connections_overrides_with_value
-        config = HashConfig.new("default_env", "primary", max_connections: "0", adapter: "abstract")
-        assert_equal 0, config.max_connections
+        config = HashConfig.new("default_env", "primary", max_connections: "10", adapter: "abstract")
+        assert_equal 10, config.max_connections
       end
 
       def test_when_no_max_connections_uses_default
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal 5, config.max_connections
+      end
+
+      def test_max_threads_fallback_when_unlimited_connections
+        config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
+        assert_equal 5, config.max_threads
+      end
+
+      def test_max_threads_fallback_when_negative_connections
+        config = HashConfig.new("default_env", "primary", max_connections: -1, adapter: "abstract")
+        assert_equal 5, config.max_threads
       end
 
       def test_min_connections_default_when_nil
