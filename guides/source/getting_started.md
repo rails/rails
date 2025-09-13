@@ -2133,7 +2133,9 @@ following:
 <% end %>
 ```
 
-Then update `app/views/products/show.html.erb` to render this partial after the
+NOTE: `inventory_count?` is query method created by Active Record. Active Record adds query methods for all attributes. For numeric attributes these methods  return `true` for all non-zero number, and `false` otherwise.
+
+Next update `app/views/products/show.html.erb` to render this partial after the
 `cache` block.
 
 ```erb
