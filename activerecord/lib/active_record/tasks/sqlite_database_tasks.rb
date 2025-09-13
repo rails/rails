@@ -16,6 +16,8 @@ module ActiveRecord
       end
 
       def drop
+        connection.disconnect!
+
         db_path = db_config.database
         file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
         FileUtils.rm(file)
