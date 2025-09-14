@@ -8,12 +8,7 @@ require "active_record/connection_adapters/abstract/connection_pool/reaper"
 
 module ActiveRecord
   module ConnectionAdapters
-    module AbstractPool # :nodoc:
-    end
-
     class NullPool # :nodoc:
-      include ConnectionAdapters::AbstractPool
-
       class NullConfig
         def method_missing(...)
           nil
@@ -229,7 +224,6 @@ module ActiveRecord
 
       include MonitorMixin
       prepend QueryCache::ConnectionPoolConfiguration
-      include ConnectionAdapters::AbstractPool
 
       attr_accessor :automatic_reconnect, :checkout_timeout
       attr_reader :db_config, :max_connections, :min_connections, :max_age, :keepalive, :reaper, :pool_config, :async_executor, :role, :shard
