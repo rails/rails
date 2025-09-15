@@ -40,5 +40,6 @@ class ExtractTest < ActiveSupport::TestCase
     assert_equal [], new_empty_array
     assert_equal [], empty_array
     assert_equal array_id, empty_array.object_id
+    assert_not_same new_empty_array, empty_array
   end
 end
