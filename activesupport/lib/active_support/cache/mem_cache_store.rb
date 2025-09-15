@@ -43,6 +43,17 @@ module ActiveSupport
 
       ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
 
+      DEFAULT_ERROR_HANDLER = -> (fallback:, exception:) do
+        if logger
+          logger.error("DalliError (#{exception}): #{exception.message}, returned #{fallback.inspect}")
+        end
+        ActiveSupport.error_reporter&.report(
+          exception,
+          severity: :warning,
+          source: "mem_cache_store.active_support",
+        )
+      end
+
       # Creates a new Dalli::Client instance with specified addresses and options.
       # If no addresses are provided, we give nil to Dalli::Client, so it uses its fallbacks:
       # - ENV["MEMCACHE_SERVERS"] (if defined)
@@ -80,6 +91,9 @@ module ActiveSupport
           options[:skip_nil] = !options.delete(:cache_nils)
         end
         options[:max_key_size] ||= MAX_KEY_SIZE
+
+        @error_handler = options.delete(:error_handler) || DEFAULT_ERROR_HANDLER
+
         super(options)
 
         unless [String, Dalli::Client, NilClass].include?(addresses.first.class)
@@ -275,12 +289,7 @@ module ActiveSupport
         def rescue_error_with(fallback)
           yield
         rescue Dalli::DalliError, ConnectionPool::Error, ConnectionPool::TimeoutError => error
-          logger.error("DalliError (#{error}): #{error.message}") if logger
-          ActiveSupport.error_reporter&.report(
-            error,
-            severity: :warning,
-            source: "mem_cache_store.active_support",
-          )
+          @error_handler&.call(fallback: fallback, exception: error)
           fallback
         end
     end
