@@ -48,7 +48,7 @@ module ActiveRecord
       end
 
       # = Active Record MySQL Adapter \Index Definition
-      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
         attr_accessor :enabled
 
         def initialize(*args, **kwargs)
