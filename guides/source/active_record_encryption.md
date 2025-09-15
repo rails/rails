@@ -115,7 +115,19 @@ INSERT INTO "articles" ("title", "created_at", "updated_at")
 VALUES ('{"p":"oq+RFYW8CucALxnJ6ccx","h":{"iv":"3nrJAIYcN1+YcGMQ","at":"JBsw7uB90yAyWbQ8E3krjg=="}}', ...) RETURNING "id"
 ```
 
-The value inserted is the encrypted value for the `title` attribute.
+The value inserted is a JSON object that contains the encrypted value for the `title` attribute. More specifically, the JSON object stores two keys: `p` for payload and `h` for headers. The ciphertext, which is compressed and encoded in Base64, is stored as the payload. The `h` key stores metadata needed to decrypt the value. The `iv` value is the initialization vector and `at` is authentication tag (used to ensure the ciphertext has not been tampered with).
+
+When looking at the `Article` in the Rails console, the encrypted attribute `title` will also be filtered:
+
+```irb
+irb> Article.first
+  Article Load (0.1ms)  SELECT "articles".* FROM "articles" ORDER BY "articles"."id" ASC LIMIT ?  [["LIMIT", 1]]
+=> #<Article:0x00007f83fd9533b8
+    id: 1,
+    title: "[FILTERED]",
+    created_at: Fri, 12 Sep 2025 16:57:45.753372000 UTC +00:00,
+    updated_at: Fri, 12 Sep 2025 16:57:45.753372000 UTC +00:00>
+```
 
 NOTE: Encryption requires extra storage space because the encrypted value will
 be larger than the original value. This overhead is negligible at larger sizes.
@@ -287,7 +299,7 @@ Encrypted attributes are configured to be automatically
 sensitive information, like encrypted emails or credit card numbers, isn't
 stored in your logs. For example, if you are filtering the `email` field, you
 will see something like this in the logs: `Parameters: {"email"=>"[FILTERED]",
-...}`
+...}`.
 
 In case you need to disable filtering of encrypted parameters, you can use the
 following configuration:
