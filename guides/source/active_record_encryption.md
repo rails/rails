@@ -185,12 +185,35 @@ end
 
 ### Support for Unencrypted Data
 
-To ease migrations of unencrypted data, the library includes the option `config.active_record.encryption.support_unencrypted_data`. When set to `true`:
+To ease migrations of unencrypted data, the library includes the options
 
-* Trying to read encrypted attributes that are not encrypted will work normally, without raising any error.
-* Queries with deterministically encrypted attributes will include the "clear text" version of them to support finding both encrypted and unencrypted content. You need to set `config.active_record.encryption.extend_queries = true` to enable this.
+```ruby
+config.active_record.encryption.support_unencrypted_data = true
+```
 
-**This option is meant to be used during transition periods** while clear data and encrypted data must coexist. Both are set to `false` by default, which is the recommended goal for any application: errors will be raised when working with unencrypted data.
+and
+
+```ruby
+class User < ApplicationRecord
+  encrypts :email, support_unencrypted_data: true
+end
+```
+
+When set to `true`, Rails will be more forgiving:
+
+* **Reading**: If a supposedly encrypted attribute contains unencrypted data(plain text), it will be returned as-is instead of raising an error.
+* **Querying With deterministic encryption**: Normally, encrypted queries match only encrypted data. With this option `config.active_record.encryption.extend_queries = true`, Rails also searches for both encrypted and unencrypted values.
+  * **Example**: If you query `User.find_by(email: "johndoe@example.com")`, Rails will generate a query that looks for both the encrypted `"johndoe@example.com"` and the clear-text `"johndoe@example.com"`.
+
+This is designed for transition periods:
+
+* When you first add encryption to an existing application, your DB will have a mix of encrypted and unencrypted data.
+* These options let your app keep working while you gradually encrypt existing data.
+
+Once all data is encrypted, both options should be set back to `false` to ensure maximum security.
+
+* `support_unencrypted_data = false` → Rails will error if it finds clear text where encryption is expected.
+* `extend_queries = false` → Queries will only look for encrypted content.
 
 ### Support for Previous Encryption Schemes
 
