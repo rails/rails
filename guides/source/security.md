@@ -145,6 +145,9 @@ the `/passwords/new` path and routes to the passwords controller. The `new`
 method of the `PasswordsController` class runs through the flow for sending a
 password reset email.
 
+The link is valid for 15 minutes by default, but this can be configured with
+`has_secure_password`.
+
 The mailers for *reset password* are also set up by the generator at
 `app/mailers/password_mailer.rb` and render the following email to send to the
 user:
