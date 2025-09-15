@@ -176,6 +176,8 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          return predicates if columns.empty?
+
           attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
           non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
 
