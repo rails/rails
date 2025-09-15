@@ -1,3 +1,12 @@
+*   Remove deprecated support for `to_time` to preserve the system local time. It will now always preserve the receiver
+    timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
 *   Standardize event name formatting in `assert_event_reported` error messages.
 
     The event name in failure messages now uses `.inspect` (e.g., `name: "user.created"`)

@@ -503,13 +503,7 @@ module ActiveSupport
     # with the same UTC offset as +self+ or in the local system timezone
     # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      if preserve_timezone == :zone
-        @to_time_with_timezone ||= getlocal(time_zone)
-      elsif preserve_timezone
-        @to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @to_time_with_system_offset ||= getlocal
-      end
+      @to_time_with_timezone ||= getlocal(time_zone)
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
