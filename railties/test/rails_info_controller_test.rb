@@ -89,6 +89,8 @@ class InfoControllerTest < ActionController::TestCase
       get "/rails/info/routes" => "rails/info#routes"
     end
 
+    assert_kind_of(Rails::Engine::LazyRouteSet, Rails.application.routes)
+
     get :routes
 
     assert_select("table tr") do
