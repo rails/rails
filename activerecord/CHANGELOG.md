@@ -1,3 +1,10 @@
+*   Fix false positive change detection involving STI and polymorhic has one relationships.
+
+    Polymorphic `has_one` relationships would always be considered changed when defined in a STI child
+    class, causing nedless extra autosaves.
+
+    *David Fritsch*
+
 *   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
     when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
     Rollback still runs, but may take longer.
