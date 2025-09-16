@@ -302,13 +302,12 @@ module ActionDispatch # :nodoc:
       charset = new_header_info.charset || prev_header_info.charset
       charset ||= self.class.default_charset unless prev_header_info.mime_type
 
-      if new_header_info.mime_type == "application/json"
-        set_content_type new_header_info.mime_type, nil
-      else
+      set_content_type new_header_info.mime_type, nil
+
+      if require_charset?(new_header_info.mime_type)
         set_content_type new_header_info.mime_type, charset
       end
     end
-
 
     # Content type of response.
     def content_type
@@ -334,11 +333,9 @@ module ActionDispatch # :nodoc:
     def charset=(charset)
       content_type = parsed_content_type_header.mime_type
 
-      # omit charset for pure JSON per IANA spec
-      # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Type#content-type_in_a_rest_api_using_json
-      if false == charset || content_type == "application/json"
-        set_content_type content_type, nil
-      else
+      # omit charset by default
+      set_content_type content_type, nil
+      if content_type.nil? || charset && require_charset?(content_type)
         set_content_type content_type, charset || self.class.default_charset
       end
     end
@@ -498,6 +495,10 @@ module ActionDispatch # :nodoc:
       (?<mime_type>[^;\s]+\s*(?:;\s*(?:(?!charset)[^;\s])+)*)?
       (?:;\s*charset=(?<quote>"?)(?<charset>[^;\s]+)\k<quote>)?
     /x # :nodoc:
+
+    def require_charset?(mime_type)
+      %w(text/html text/plain application/xml).include?(mime_type)
+    end
 
     def parse_content_type(content_type)
       if content_type && match = CONTENT_TYPE_PARSER.match(content_type)

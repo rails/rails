@@ -385,7 +385,7 @@
 
     *Petrik de Heus*
 
-*   Omit `charset=utf-8` for `Content-Type: application/json`, per IANA spec (#55063) – @rebase-master
+*   Omit `charset=utf-8` by default and allow only white-listed mime-types – @rebase-master
 
     *Mansoor Khan*
 
