@@ -157,8 +157,8 @@ module ActiveJob
       self.exception_executions = job_data["exception_executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone&.name
-      self.enqueued_at          = deserialize_time(job_data["enqueued_at"])
-      self.scheduled_at         = deserialize_time(job_data["scheduled_at"])
+      self.enqueued_at          = deserialize_time(job_data["enqueued_at"]) if job_data["enqueued_at"]
+      self.scheduled_at         = deserialize_time(job_data["scheduled_at"]) if job_data["scheduled_at"]
     end
 
     # Configures the job with the given options.
@@ -202,7 +202,7 @@ module ActiveJob
       def deserialize_time(time)
         if time.is_a?(Time)
           time
-        elsif time
+        else
           Time.iso8601(time)
         end
       end
