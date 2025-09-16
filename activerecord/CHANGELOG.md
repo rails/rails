@@ -1,3 +1,10 @@
+*   Fix false positive change detection involving STI and polymorhic has one relationships.
+
+    Polymorphic `has_one` relationships would always be considered changed when defined in a STI child
+    class, causing nedless extra autosaves.
+
+    *David Fritsch*
+
 *   Fix stale associaton detection for polymophic `belong_to`.
 
     *Florent Beaurain*, *Thomas Crambert*
