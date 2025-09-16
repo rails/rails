@@ -3642,6 +3642,19 @@ module ApplicationTests
       assert_equal true, ActionDispatch::Http::Cache::Request.strict_freshness
     end
 
+    test "config.action_dispatch.verbose_redirect_logs is true in development" do
+      build_app
+      app "development"
+
+      assert ActionDispatch.verbose_redirect_logs
+    end
+
+    test "config.action_dispatch.verbose_redirect_logs is false in production" do
+      build_app
+      app "production"
+
+      assert_not ActionDispatch.verbose_redirect_logs
+    end
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
