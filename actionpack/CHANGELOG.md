@@ -1,3 +1,10 @@
+*   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
+
+    Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
+    mounted at "/".
+
+    *Mike Dalessio*
+
 *   Fix `Rails.application.reload_routes!` from clearing almost all routes.
 
     When calling `Rails.application.reload_routes!` inside a middleware of
