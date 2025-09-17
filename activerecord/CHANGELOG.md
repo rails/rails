@@ -1,3 +1,11 @@
+*   Use `PG::Connection#close_prepared` (protocol level Close) to deallocate
+    prepared statements when available.
+
+    To enable its use, you must have pg >= 1.6.0, libpq >= 17, and a PostgreSQL
+    database version >= 17.
+
+    *Hartley McGuire*, *Andrew Jackson*
+
 *   Fix query cache for pinned connections in multi threaded transactional tests
 
     When a pinned connection is used across separate threads, they now use a separate cache store
