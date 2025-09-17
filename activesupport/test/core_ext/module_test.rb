@@ -497,6 +497,41 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal 1, event.foo
   end
 
+  def test_delegate_to_private_self_class_method_and_use_it_inside_instance
+    Developer.class_eval do
+      class << self
+        private def private_info
+          "Private info"
+        end
+      end
+
+      delegate :private_info, to: :class
+
+      def developer_private_info
+        private_info
+      end
+    end
+
+    developer = Developer.new(@david)
+
+    assert_raise(NoMethodError) { developer.developer_private_info }
+  end
+
+
+  def test_delegate_to_private_method_and_use_it_inside_instance
+    Developer.class_eval do
+      delegate :private_name, to: :client
+
+      def client_private_name
+        private_name
+      end
+    end
+
+    developer = Developer.new(@david)
+
+    assert_raise(NoMethodError) { developer.client_private_name }
+  end
+
   def test_private_delegate
     location = Class.new do
       def initialize(place)
@@ -664,6 +699,32 @@ class ModuleTest < ActiveSupport::TestCase
     assert_equal(-1, d.instance_method(:kwargs_with_block).arity)
     assert_equal(-1, d.instance_method(:opt_kwargs).arity)
     assert_equal(-1, d.instance_method(:opt_kwargs_with_block).arity)
+    assert_nothing_raised do
+      d.new.zero
+      d.new.zero_with_block
+      d.new.zero_with_implicit_block { }
+      d.new.one(1)
+      d.new.one_with_block(1)
+      d.new.two(1, 2)
+      d.new.opt(1, 2, 3)
+      d.new.kwargs(a: 1, b: 2)
+      d.new.kwargs_with_block(a: 1, b: 2, c: 3)
+      d.new.opt_kwargs(a: 1)
+      d.new.opt_kwargs_with_block(a: 1, b: 2, c: 3)
+    end
+  end
+
+  def test_delegation_arity_methods_from_another_class_instance
+    d = Class.new do
+      delegate :zero, :zero_with_block, :zero_with_implicit_block, :one, :one_with_block, :two, :opt,
+               :kwargs, :kwargs_with_block, :opt_kwargs, :opt_kwargs_with_block, to: :arity_class
+
+      private
+        def arity_class
+          ArityTester
+        end
+    end
+
     assert_nothing_raised do
       d.new.zero
       d.new.zero_with_block

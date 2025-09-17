@@ -1,5 +1,17 @@
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
+*   Fix issue with method visibility being ignored when delegating methods with arguments using `...` in Ruby versions 3.4.0 to 3.4.2.
+
+    Add explicit behavior for these Ruby versions:
+
+    ```ruby
+      RUBY_VERSION >= "3.4.0" && RUBY_VERSION <= "3.4.2" ? "*args, **kwargs, &block" : "..."
+    ```
+
+    In the old implementation, it was possible to call private methods of another class through delegation.
+
+    *Georgiy Melnikov*
+
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
 
     Can be used as an alternative to `Store#clear` in some situations such as parallel

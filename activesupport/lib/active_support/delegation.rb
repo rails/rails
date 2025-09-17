@@ -93,14 +93,14 @@ module ActiveSupport
                 parameters = method_object.parameters
 
                 if parameters.map(&:first).intersect?([:opt, :rest, :keyreq, :key, :keyrest])
-                  "..."
+                  RUBY_VERSION >= "3.4.0" && RUBY_VERSION <= "3.4.2" ? "*args, **kwargs, &block" : "..."
                 else
                   defn = parameters.filter_map { |type, arg| arg if type == :req }
                   defn << "&"
                   defn.join(", ")
                 end
               else
-                "..."
+                RUBY_VERSION >= "3.4.0" && RUBY_VERSION <= "3.4.2" ? "*args, **kwargs, &block" : "..."
               end
             end
 
