@@ -1,3 +1,12 @@
+*   Add structured events for Action View:
+    - `action_view.render_template`
+    - `action_view.render_partial`
+    - `action_view.render_layout`
+    - `action_view.render_collection`
+    - `action_view.render_start`
+
+    *Gannon McGibbon*
+
 *   Fix label with `for` option not getting prefixed by form `namespace` value
 
     *Abeid Ahmed*, *Hartley McGuire*
