@@ -4,6 +4,10 @@
 
     *Yasuo Honda*, *Lars Kanis*
 
+*   Don't add `id_value` attribute alias when attribute/column with that name already exists.
+
+    *Rob Lewis*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
