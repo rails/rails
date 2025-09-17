@@ -184,7 +184,7 @@ module ActiveSupport
     # is a Proc, it will be invoked when each key is evaluated so that you can
     # use application logic to invalidate keys.
     #
-    #   cache.namespace = -> { @last_mod_time }  # Set the namespace to a variable
+    #   cache.options[:namespace] = -> { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
     class Store
