@@ -968,6 +968,12 @@ location.
 <%= image_tag user.avatar.variant(resize_to_limit: [100, 100]) %>
 ```
 
+WARNING: It should be considered unsafe to provide arbitrary user supplied
+transformations or parameters to variant processors. This can potentially
+enable command injection vulnerabilities in your app. It is also recommended
+to implement a strict [ImageMagick security policy](https://imagemagick.org/script/security-policy.php)
+when MiniMagick is the variant processor of choice.
+
 If a variant is requested, Active Storage will automatically apply
 transformations depending on the image's format:
 
