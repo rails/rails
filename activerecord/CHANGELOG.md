@@ -1,3 +1,18 @@
+*   Add support for integer shard keys.
+    ```ruby
+    # Now accepts symbols as shard keys.
+    ActiveRecord::Base.connects_to(shards: {
+      1: { writing: :primary_shard_one, reading: :primary_shard_one },
+      2: { writing: :primary_shard_two, reading: :primary_shard_two},
+    })
+
+    ActiveRecord::Base.connected_to(shard: 1) do
+      # ..
+    end
+    ```
+
+    *Nony Dutton*
+
 *   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
     when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
     Rollback still runs, but may take longer.
