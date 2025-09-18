@@ -1,3 +1,7 @@
+*   Don't add `id_value` attribute alias when attribute/column with that name already exists.
+
+    *Rob Lewis*
+
 *   Fix false positive change detection involving STI and polymorhic has one relationships.
 
     Polymorphic `has_one` relationships would always be considered changed when defined in a STI child
@@ -11,7 +15,7 @@
 
     *Yasuo Honda*, *Lars Kanis*
 
-*   Fix stale associaton detection for polymophic `belong_to`.
+*   Fix stale association detection for polymorphic `belongs_to`.
 
     *Florent Beaurain*, *Thomas Crambert*
 
