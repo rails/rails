@@ -147,7 +147,13 @@ module ActiveSupport
             json_value = value.as_json
             # Handle objects returning self from as_json
             if json_value.equal?(value)
-              next ::JSON::Fragment.new(::JSON.generate(json_value))
+              if JSON_NATIVE_TYPES.include?(json_value.class)
+                # If the callback is invoked for a native type,
+                # it means it is hash keys, e.g. { 1 => true }
+                next json_value.to_s
+              else
+                next ::JSON::Fragment.new(::JSON.generate(json_value))
+              end
             end
             # Handle objects not returning JSON-native types from as_json
             count = 5
