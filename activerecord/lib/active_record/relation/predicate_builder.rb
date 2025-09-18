@@ -99,7 +99,7 @@ module ActiveRecord
           elsif value.is_a?(Hash) && !table.has_column?(key)
             table.associated_table(key, &block)
               .predicate_builder.expand_from_hash(value.stringify_keys)
-          elsif (associated_reflection = table.associated_with?(key))
+          elsif (associated_reflection = table.associated_with(key))
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
             #
