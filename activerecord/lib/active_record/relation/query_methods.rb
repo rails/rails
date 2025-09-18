@@ -1750,7 +1750,7 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        build_joins(arel.join_sources, aliases)
+        build_joins(arel, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -1873,7 +1873,9 @@ module ActiveRecord
         return buckets, Arel::Nodes::InnerJoin
       end
 
-      def build_joins(join_sources, aliases = nil)
+      def build_joins(arel = nil, aliases = nil)
+        join_sources = arel&.join_sources || []
+
         return join_sources if joins_values.empty? && left_outer_joins_values.empty?
 
         buckets, join_type = build_join_buckets
@@ -1888,7 +1890,14 @@ module ActiveRecord
         unless named_joins.empty? && stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
           join_dependency = construct_join_dependency(named_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
+
+          join_dependency.join_constraints(stashed_joins, alias_tracker, references_values).each do |join_data|
+            join_sources.concat(join_data[:joins]) unless join_data[:joins].empty?
+
+            join_data[:where_conditions].each do |where_condition|
+              arel&.where(where_condition) unless where_condition.blank?
+            end
+          end
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
