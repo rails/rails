@@ -159,6 +159,12 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
+  create_table :book_identifiers, id: :integer, force: true do |t|
+    t.references :book
+    t.string :id_type, null: false
+    t.string :id_value, null: false
+  end
+
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
