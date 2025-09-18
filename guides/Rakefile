@@ -10,12 +10,6 @@ namespace :guides do
       ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
 
-    desc "Generate .mobi file"
-    task :kindle do
-      warn("DEPRECATION WARNING: The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead.")
-      Rake::Task["guides:generate:epub"].invoke
-    end
-
     desc "Generate .epub file"
     task :epub do
       ENV["EPUB"] = "1"

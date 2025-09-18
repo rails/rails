@@ -1,4 +1,11 @@
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
+*   Removes deprecated APIs and dependencies that were scheduled to be removed in Rails 8.1.
+
+    Removes `Benchmark.ms`, `rake guides:generate:kindle`, `bin/rake stats` and
+    removes `benchmark` from Active Support dependencies.
+    Fixes #55639
+
+    *Shiva Bhusal*
 
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
 
