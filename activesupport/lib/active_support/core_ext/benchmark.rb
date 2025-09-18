@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "benchmark"
+return if Benchmark.respond_to?(:ms)
 
 class << Benchmark
   # Benchmark realtime in milliseconds.
