@@ -147,12 +147,6 @@ module ActiveRecord
             end
         end
 
-        def checkout_and_verify(connection)
-          super
-          connection.query_cache ||= query_cache
-          connection
-        end
-
         # Disable the query cache within the block.
         def disable_query_cache(dirties: true)
           cache = query_cache
@@ -209,15 +203,19 @@ module ActiveRecord
         end
       end
 
-      attr_accessor :query_cache
+      attr_writer :query_cache
 
       def initialize(*)
         super
         @query_cache = nil
       end
 
+      def query_cache
+        @query_cache || pool.query_cache
+      end
+
       def query_cache_enabled
-        @query_cache&.enabled?
+        query_cache&.enabled?
       end
 
       # Enable the query cache within the block.
@@ -256,7 +254,7 @@ module ActiveRecord
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
-        if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
+        if query_cache_enabled && !(arel.respond_to?(:locked) && arel.locked)
           sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
@@ -280,7 +278,7 @@ module ActiveRecord
 
           result = nil
           @lock.synchronize do
-            result = @query_cache[key]
+            result = query_cache[key]
           end
 
           if result
@@ -299,7 +297,7 @@ module ActiveRecord
           hit = true
 
           @lock.synchronize do
-            result = @query_cache.compute_if_absent(key) do
+            result = query_cache.compute_if_absent(key) do
               hit = false
               yield
             end

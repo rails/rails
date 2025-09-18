@@ -300,7 +300,6 @@ class QueryCacheTest < ActiveRecord::TestCase
 
         thread_1_connection = ActiveRecord::Base.lease_connection
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
-        assert_cache :off, thread_1_connection
 
         started = Concurrent::Event.new
         checked = Concurrent::Event.new
@@ -323,17 +322,16 @@ class QueryCacheTest < ActiveRecord::TestCase
 
             ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
           }.call({})
+
+          assert_cache :off, thread_2_connection
         }
 
         started.wait
 
         thread_1_connection = ActiveRecord::Base.lease_connection
         assert_not_equal thread_1_connection, thread_2_connection
-        assert_cache :dirty, thread_2_connection
         checked.set
         thread.join
-
-        assert_cache :off, thread_2_connection
       }.call({})
 
       ActiveRecord::Base.connection_pool.connections.each do |conn|
@@ -755,7 +753,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       thread_a = Thread.new do
         middleware { |env|
-          assert_cache :dirty # The cache is shared with the main thread
+          assert_cache :clean
 
           Post.first
           assert_cache :dirty

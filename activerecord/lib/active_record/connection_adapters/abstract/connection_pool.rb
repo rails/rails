@@ -31,6 +31,7 @@ module ActiveRecord
       end
 
       def schema_cache; end
+      def query_cache; end
       def connection_descriptor; end
       def checkin(_); end
       def remove(_); end

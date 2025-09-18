@@ -1,3 +1,10 @@
+*   Fix query cache for pinned connections in transactional tests
+
+    When a pinned connection is used across separate threads, they now use a separate cache store
+    for each thread.
+
+    *Heinrich Lee Yu*
+
 *   Fix time attribute dirty tracking with timezone conversions.
 
     Time-only attributes now maintain a fixed date of 2000-01-01 during timezone conversions,
