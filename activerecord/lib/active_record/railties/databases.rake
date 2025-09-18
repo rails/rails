@@ -466,8 +466,7 @@ db_namespace = namespace :db do
 
     desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(schema_format, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ENV["SCHEMA_FORMAT"], ENV["SCHEMA"])
     end
 
     namespace :dump do
