@@ -19,7 +19,7 @@ module ActiveRecord
       klass&.columns_hash&.key?(column_name)
     end
 
-    def associated_with?(table_name)
+    def associated_with(table_name)
       klass&._reflect_on_association(table_name)
     end
 
