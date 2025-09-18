@@ -1743,7 +1743,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_gem_for_active_storage
-      assert_file "Gemfile", /^# gem "image_processing"/
+      assert_gem "image_processing"
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped
