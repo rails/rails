@@ -87,6 +87,8 @@ bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 Once the keys are generated and stored, you can start using Active Record
 Encryption by declaring attributes to be encrypted.
 
+## Basic Usage
+
 ### Declare Encrypted Attributes
 
 The [`encrypts`
@@ -174,8 +176,6 @@ generated as a function of the key and the plaintext content
 
 NOTE: If you do not define a `deterministic_key`, then you have effectively
 disabled deterministic encryption.
-
-## Basic Usage
 
 ### Ignoring Case
 
@@ -336,15 +336,17 @@ options configured.
 
 ### Fixtures
 
-You can get Rails fixtures encrypted automatically by adding this option to your
-`test.rb`:
+To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `test.rb` file: 
 
 ```ruby
 config.active_record.encryption.encrypt_fixtures = true
 ```
 
-When enabled, all the encryptable attributes will be encrypted according to the
-encryption settings defined in the model.
+Without this setting, Rails would load fixture values as is. This wouldn't work
+for encrypted attributes and Active Record Encryption expects a JSON value in
+that column. However, when `encrypt_fixtures` is enabled, all the encryptable
+attributes will be automatically encrypted  and also seamlessly decrypted,
+according to the encryption settings defined in the model.
 
 #### Action Text Fixtures
 
