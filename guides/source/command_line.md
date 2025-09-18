@@ -80,7 +80,7 @@ Options:
 List all the defined routes
 ```
 
-Most Rails command line subcommands can all be run with `--help` (or `-h`) and the output can be very informative. For example `bin/rails generate model --help` prints two pages of description, in addition to usage and options:
+Most Rails command line subcommands can be run with `--help` (or `-h`) and the output can be very informative. For example `bin/rails generate model --help` prints two pages of description, in addition to usage and options:
 
 ```bash
 $ rails generate model --help
@@ -241,7 +241,7 @@ You can run the application on a different port using the `-p` option. You can a
 $ bin/rails server -e production -p 4000
 ```
 
-The `-b` option binds Rails to the specified IP, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
+The `-b` option binds Rails to the specified IP address, by default it is localhost. You can run a server as a daemon by passing a `-d` option.
 
 Generating Code
 ---------------
@@ -635,7 +635,7 @@ $ bin/rails runner --skip-executor lib/long_running_script.rb
 
 The `bin/rails boot` command is a low-level Rails command whose entire job is to boot your Rails application. Specifically it loads `config/boot.rb` and `config/application.rb` files so that the application environment is ready to run.
 
-The `boot` command boots the application and exits, does nothing else. It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
+The `boot` command boots the application and exits — it does nothing else. It can be useful for debugging boot problems. If your app fails to start and you want to isolate the boot phase (without running migrations, starting the server, etc.), `bin/rails boot` can be a simple test.
 
 It can also be useful for timing application initialization. You can profile how long your application takes to boot by wrapping `bin/rails boot` in a profiler.
 
@@ -650,9 +650,9 @@ The `bin/rails routes` command lists all defined routes in your application, inc
 
 ```bash
 $ bin/rails routes
-  Prefix  Verb  URI Pattern  Controller#Action
-  books GET    /books(:format) books#index
-  books POST   /books(:format) books#create
+  Prefix  Verb  URI Pattern     Controller#Action
+  books   GET   /books(:format) books#index
+  books   POST  /books(:format) books#create
   ...
   ...
 ```
@@ -661,7 +661,7 @@ This can be useful for tracking down a routing issue, or simply getting an overv
 
 ```bash
 # Only shows routes handled by the UsersController
-bin/rails routes -c users
+bin/rails routes --controller users
 
 # Show routes handled by namespace Admin::UsersController
 bin/rails routes -c admin/users
@@ -759,7 +759,7 @@ $ bin/rails stats
 
 ### `bin/rails time:zones:all`
 
-The`bin/rails time:zones:all` command is a Rake task that prints the complete list of time zones that Active Support knows about, along with their UTC offsets followed by the Rails timezone identifiers.
+The`bin/rails time:zones:all` command prints the complete list of time zones that Active Support knows about, along with their UTC offsets followed by the Rails timezone identifiers.
 
 As an example, you can use `bin/rails time:zones:local` to see your system's timezone:
 
