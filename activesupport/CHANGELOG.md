@@ -1,3 +1,7 @@
+*   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unnecessary reloads with time travel test helpers
+
+    *Jan Grodowski*
+
 *   Fix `ActiveSupport::HashWithIndifferentAccess#tranform_keys!` to handle collisions.
 
     If the transformation would result in a key equal to another not yet transformed one,

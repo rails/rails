@@ -120,7 +120,7 @@ module ActiveSupport
       # healthy to consider this edge case because with mtimes in the future
       # reloading is not triggered.
       def max_mtime(paths)
-        time_now = Time.now
+        time_now = Time.at(0, Process.clock_gettime(Process::CLOCK_REALTIME, :nanosecond), :nanosecond)
         max_mtime = nil
 
         # Time comparisons are performed with #compare_without_coercion because
