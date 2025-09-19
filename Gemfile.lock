@@ -510,11 +510,14 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.9.1)
       fugit (~> 1.1, >= 1.1.6)
-    sass-embedded (1.77.4-aarch64-linux-gnu)
+    sass-embedded (1.76.0)
       google-protobuf (>= 3.25, < 5.0)
-    sass-embedded (1.77.4-arm64-darwin)
+      rake (>= 13.0.0)
+    sass-embedded (1.76.0-aarch64-linux-gnu)
       google-protobuf (>= 3.25, < 5.0)
-    sass-embedded (1.77.4-x86_64-linux-gnu)
+    sass-embedded (1.76.0-arm64-darwin)
+      google-protobuf (>= 3.25, < 5.0)
+    sass-embedded (1.76.0-x86_64-linux-gnu)
       google-protobuf (>= 3.25, < 5.0)
     sdoc (2.6.1)
       rdoc (>= 5.0)
@@ -629,6 +632,7 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-24
+  ruby
   x86_64-linux
 
 DEPENDENCIES
@@ -692,6 +696,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   rubyzip (~> 2.0)
+  sass-embedded (< 1.77)
   sdoc
   selenium-webdriver (>= 4.20.0)
   sidekiq
