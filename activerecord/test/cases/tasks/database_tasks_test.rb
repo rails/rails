@@ -451,7 +451,7 @@ module ActiveRecord
           }
         }
       }
-      
+
       with_stubbed_configurations(configurations) do
         ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
           ActiveRecord::Tasks::DatabaseTasks.dump_all
