@@ -393,6 +393,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDumpSchemaTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def test_ensure_db_dir
       Dir.mktmpdir do |dir|
         ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
@@ -403,8 +405,10 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
           end
 
           assert File.file?(path)
@@ -424,8 +428,10 @@ module ActiveRecord
           FileUtils.rm_rf(dir)
           assert_not File.file?(path)
 
-          ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, "") do # Do not actually dump for test performances
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
           end
 
           assert File.file?(path)
@@ -433,6 +439,54 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.clear_cache!
+    end
+
+    def test_dump_all_only_dumps_same_schema_once
+      counter = 0
+
+      configurations = {
+        "test" => {
+          primary: {
+            schema_dump: "structure.sql",
+          },
+          secondary: {
+            schema_dump: "structure.sql",
+          }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
+        end
+      end
+      assert_equal 1, counter
+    end
+
+    def test_dump_all_handles_path_normalization_for_deduplication
+      counter = 0
+
+      configurations = {
+        "test" => {
+          primary: {
+            schema_dump: "structure.sql",
+          },
+          secondary: {
+            schema_dump: "db/structure.sql",
+          }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
+        end
+      end
+      assert_equal 1, counter
     end
   end
 

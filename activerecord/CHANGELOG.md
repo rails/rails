@@ -1,3 +1,12 @@
+*   Optimize schema dumping to prevent duplicate file generation.
+
+    `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files
+    have already been dumped and skips dumping the same file multiple times.
+    This improves performance when multiple database configurations share the
+    same schema dump path.
+
+    *Mikey Gough*, *Hartley McGuire*
+
 *   Add structured events for Active Record:
     - `active_record.strict_loading_violation`
     - `active_record.sql`
