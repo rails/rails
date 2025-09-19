@@ -477,11 +477,16 @@ $ rails destroy model Artcle title:string body:text
 Interacting with a Rails Application
 ------------------------------------
 
-### The Rails Console
+### `bin/rails console`
 
 The `bin/rails console` command loads a full Rails environment (including models, database, etc.) into an interactive IRB style shell. It is a powerful feature of the Ruby on Rails framework as it allows you to interact with, debug and explore your entire application at the command line.
 
 The Rails Console can be useful for testing out ideas by prototyping with code and for creating and updating records in the database without needing to use a browser.
+
+```bash
+$ bin/rails console 
+my-app(dev):001:0> Post.create(title: 'First!')
+```
 
 The Rails Console has several useful features. For example, if you wish to test out some code without changing any data, you can use `sandbox` mode with `bin/rails console --sandbox`. The `sandbox` mode wraps all database operations in a transaction that rolls back when you exit:
 
@@ -489,7 +494,7 @@ The Rails Console has several useful features. For example, if you wish to test 
 $ bin/rails console --sandbox
 Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
-irb(main):001:0>
+my-app(dev):001:0>
 ```
 
 The `sandbox` option is great for safely testing destructive changes without affecting your database.
@@ -508,20 +513,20 @@ Inside the Rails Console you have access to the `app` and `helper` instances.
 With the `app` method you can access named route helpers:
 
 ```irb
-> app.root_path
+my-app(dev)> app.root_path
 => "/"
-> app.edit_user_path
+my-app(dev)> app.edit_user_path
 => "profile/edit"
 ```
 
 You can also use the `app` object to make requests of your application without starting a real server:
 
 ```irb
-> app.get "/", headers: { "Host" => "localhost" }
+my-app(dev)> app.get "/", headers: { "Host" => "localhost" }
 Started GET "/" for 127.0.0.1 at 2025-08-11 11:11:34 -0500
 ...
 
-> app.response.status
+my-app(dev)> app.response.status
 => 200
 ```
 
@@ -530,7 +535,7 @@ NOTE: You have to pass the "Host" header with the `app.get` request above, becau
 The reason you can "make requests" like above is because the `app` object is the same one that Rails uses for integration tests:
 
 ```irb
-> app.class
+my-app(dev)> app.class
 => ActionDispatch::Integration::Session
 ```
 
@@ -541,26 +546,26 @@ The `app` object exposes methods like `app.cookies`, `app.session`, `app.post`, 
 The `helper` object in the Rails console is your direct portal into Rails’ view layer. It allows you to test out view-related formatting and utility methods in the console, as well as custom helpers defined in your application (i.e. in `app/helpers`).
 
 ```irb
-> helper.time_ago_in_words 3.days.ago
+my-app(dev)> helper.time_ago_in_words 3.days.ago
 => "3 days"
 
-> helper.l(Date.today)
+my-app(dev)> helper.l(Date.today)
 => "2025-08-11"
 
-> helper.pluralize(3, "child")
+my-app(dev)> helper.pluralize(3, "child")
 => "3 children"
 
-> helper.truncate("This is a very long sentence", length: 22)
+my-app(dev)> helper.truncate("This is a very long sentence", length: 22)
 => "This is a very long..."
 
-> helper.link_to("Home", "/")
+my-app(dev)> helper.link_to("Home", "/")
 => "<a href=\"/\">Home</a>"
 ```
 
 Assuming a `custom_helper` method is defined in a `app/helpers/*_helper.rb` file:
 
 ```irb
-> helper.custom_helper
+my-app(dev)> helper.custom_helper
 "testing custom_helper"
 ```
 
