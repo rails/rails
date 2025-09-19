@@ -84,7 +84,7 @@ For more information on changes made to Rails 8.1 please see the [release notes]
 
 ### The table columns inside `schema.rb` are now sorted alphabetically.
 
-ActiveRecord now alphabetically sorts table columns in schema.rb by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. structure.sql can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
+Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
