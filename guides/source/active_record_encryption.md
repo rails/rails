@@ -142,9 +142,10 @@ By default, Active Record Encryption is non-deterministic, which means that
 encrypting the same value with the same key twice will result in *different*
 encrypted values (aka ciphertexts). The non-deterministic approach improves
 security by making crypto-analysis of ciphertexts harder. However, it also means
-that queries (such as `WHERE title = "Encryption"`) on encrypted values are not
-possible, since the same value can result in a different encrypted value that
-does not match the previously stored ciphertext.
+that queries (such as `WHERE title = "Encrypt it all!"`) on encrypted values are
+not possible, since the same plaintext value can result in a different encrypted
+value that does not match the encrypted value previously stored in the JSON
+document.
 
 You can use deterministic encryption if you need to query using encrypted values. For example, the `email` field on the `Author` model below:
 
@@ -158,9 +159,35 @@ Author.find_by_email("tolkien@email.com")
 ```
 
 The `:deterministic` option generates initialization vectors in a deterministic
-way, meaning it will produce the same encrypted output given the same input
-value. This makes querying encrypted attributes possible, like the `email`
-above.
+way, meaning it will produce the same encrypted output given the same plaintext
+input value. This makes querying encrypted attributes possible by string
+equality comparison. For example, notice that the `p` and `iv` key in the JSON
+document have the same value when we create and when we query an Author's email:
+
+```ruby
+> author = Author.create(name: "J.R.R. Tolkien", email: "tolkien@email.com")
+  TRANSACTION (0.1ms)  begin transaction
+  Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "J.R.R. Tolkien"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:08:40.104634"], ["updated_at", "2025-09-19 18:08:40.104634"]]
+  TRANSACTION (0.1ms)  commit transaction
+
+> Author.find_by_email("tolkien@email.com")
+  Author Load (0.1ms)  SELECT "authors".* FROM "authors" WHERE "authors"."email" = ? LIMIT ?  [["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["LIMIT", 1]]
+=> #<Author:0x00007f8a396289d0
+    id: 3,
+    name: "J.R.R. Tolkien",
+    email: "[FILTERED]",
+    created_at: Fri, 19 Sep 2025 18:08:40.104634000 UTC +00:00,
+    updated_at: Fri, 19 Sep 2025 18:08:40.104634000 UTC +00:00>
+```
+
+In the above example, the initialization vector, `iv`, has the value `"NgqthINGlvoN+fhP"` for the same string. Even if you use the same email string in a different model instance (or different attribute with deterministic encryption), it will map to the same `p` and `iv` values:
+
+```ruby
+> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
+  TRANSACTION (0.1ms)  begin transaction
+  Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "Different Author"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:20:11.291969"], ["updated_at", "2025-09-19 18:20:11.291969"]]
+  TRANSACTION (0.1ms)  commit transaction
+```
 
 The `:deterministic` option allows for querying by trading off lesser security.
 The data is still encrypted but the determinism makes crypto-analysis easier.
