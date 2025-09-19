@@ -195,6 +195,20 @@
         checkNoMatch(fuzzySection, noFuzzyMatch);
       })
     })
+
+    // Persist the search query in query field across page reloads
+    if (window.sessionStorage) {
+      searchElem.value = sessionStorage.getItem('query');
+      window.oninput = function(event){
+        if (event.target === searchElem) {
+          sessionStorage.setItem('query', searchElem.value);
+        }
+      }
+
+      if (searchElem.value.length > 0) {
+        searchElem.onkeyup();
+      }
+    }
   }
 
   // Enables functionality to toggle between `_path` and `_url` helper suffixes

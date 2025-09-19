@@ -1,3 +1,7 @@
+*   Persist the search query in `/rails/info/routes` across page reloads.
+
+    *Aleksandr Borisov*
+
 *   Show engine routes in `/rails/info/routes` as well.
 
     *Petrik de Heus*
