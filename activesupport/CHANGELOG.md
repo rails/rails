@@ -1,3 +1,18 @@
+*   Add `Symbol` class support for inflections
+
+    New inflections include:
+
+    * `camelize` (and its `camelcase` alias)
+    * `dasherize`
+    * `underscore`
+
+    ```ruby
+    :firstName.underscore           # => :first_name
+    :first_name.camelcase(:lower)   # => :firstName
+    ```
+
+    *Sean Doyle*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
