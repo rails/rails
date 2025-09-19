@@ -396,7 +396,11 @@ module ActiveRecord
         end
 
         def enqueue_destroy_association(options)
-          job_class = owner.class.destroy_association_async_job
+          job_class = if (custom_job_class = options.delete(:destroy_job))
+            custom_job_class.is_a?(String) ? custom_job_class.safe_constantize : custom_job_class
+          else
+            owner.class.destroy_association_async_job
+          end
 
           if job_class
             owner._after_commit_jobs.push([job_class, options])

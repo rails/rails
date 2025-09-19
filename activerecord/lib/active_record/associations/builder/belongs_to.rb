@@ -10,7 +10,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       valid = super + [:polymorphic, :counter_cache, :optional, :default]
       valid << :class_name unless options[:polymorphic]
       valid << :foreign_type if options[:polymorphic]
-      valid << :ensuring_owner_was if options[:dependent] == :destroy_async
+      valid += [:ensuring_owner_was, :destroy_job] if options[:dependent] == :destroy_async
       valid
     end
 

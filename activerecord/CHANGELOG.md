@@ -1,3 +1,27 @@
+*   Add `destroy_job` option to association definitions for customizing async destruction.
+
+    The `destroy_job` option allows specifying a custom job class to use when destroying
+    associations with `dependent: :destroy_async`. This provides fine-grained control over
+    which job processes the destruction of associated records.
+
+    ```ruby
+    class Parent < ApplicationRecord
+      # Use a custom job for destroying children
+      has_many :children, dependent: :destroy_async, destroy_job: "CustomDestroyJob"
+
+      # Can also pass the job class directly
+      has_one :profile, dependent: :destroy_async, destroy_job: ProfileDestroyJob
+
+      # Works with belongs_to as well
+      belongs_to :organization, dependent: :destroy_async, destroy_job: OrgCleanupJob
+    end
+    ```
+
+    When not specified, the association will use the model's configured
+    `destroy_association_async_job` as before.
+
+    *Thibault Gautriaud*
+
 *   Fix time attribute dirty tracking with timezone conversions.
 
     Time-only attributes now maintain a fixed date of 2000-01-01 during timezone conversions,
