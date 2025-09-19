@@ -1,0 +1,11 @@
+awdr_isbn13:
+  book_id: 1
+  id: 1
+  id_type: "ISBN-13"
+  id_value: "979-8888651346"
+
+awdr_asin:
+  book_id: 1
+  id: 2
+  id_type: "ASIN"
+  id_value: "B0DXPFFXD9"

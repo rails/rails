@@ -43,6 +43,7 @@ module ActiveRecord
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
       attr_accessor :allow_preconnect
+      attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
 
       def pool=(value)
@@ -153,6 +154,7 @@ module ActiveRecord
         end
 
         @owner = nil
+        @pinned = false
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @allow_preconnect = true

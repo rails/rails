@@ -127,6 +127,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   The table columns inside `schema.rb` are [now sorted alphabetically.](https://github.com/rails/rails/pull/53281)
+
 Active Storage
 --------------
 
