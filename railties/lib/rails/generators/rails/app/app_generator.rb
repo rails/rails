@@ -127,8 +127,8 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
-        template "bundler-audit.yml" unless options[:skip_bundler_audit]
-        template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "bundler-audit.yml" unless skip_bundler_audit?
+        template "cable.yml" unless options[:update] || skip_action_cable?
         template "ci.rb"
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
@@ -153,7 +153,7 @@ module Rails
 
       config
 
-      if !options[:skip_action_cable] && !action_cable_config_exist
+      if !skip_action_cable? && !action_cable_config_exist
         template "config/cable.yml"
       end
 
@@ -177,7 +177,7 @@ module Rails
         remove_file "config/initializers/cors.rb"
       end
 
-      if !@options[:skip_bundler_audit] && !bundle_audit_config_exist
+      if !skip_bundler_audit? && !bundle_audit_config_exist
         template "config/bundler-audit.yml"
       end
 
