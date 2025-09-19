@@ -16,6 +16,7 @@ module ActiveStorage
 
     def initialize(bucket:, upload: {}, public: false, **options)
       @client = Aws::S3::Resource.new(**options)
+      @transfer_manager = Aws::S3::TransferManager.new(client: @client.client) if defined?(Aws::S3::TransferManager)
       @bucket = @client.bucket(bucket)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
@@ -100,7 +101,8 @@ module ActiveStorage
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
       content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
 
-      object_for(destination_key).upload_stream(
+      upload_stream(
+        key: destination_key,
         content_type: content_type,
         content_disposition: content_disposition,
         part_size: MINIMUM_UPLOAD_PART_SIZE,
@@ -116,6 +118,14 @@ module ActiveStorage
     end
 
     private
+      def upload_stream(key:, **options, &block)
+        if @transfer_manager
+          @transfer_manager.upload_stream(key: key, bucket: bucket.name, **options, &block)
+        else
+          object_for(key).upload_stream(**options, &block)
+        end
+      end
+
       def private_url(key, expires_in:, filename:, disposition:, content_type:, **client_opts)
         object_for(key).presigned_url :get, expires_in: expires_in.to_i,
           response_content_disposition: content_disposition_with(type: disposition, filename: filename),
@@ -125,7 +135,6 @@ module ActiveStorage
       def public_url(key, **client_opts)
         object_for(key).public_url(**client_opts)
       end
-
 
       MAXIMUM_UPLOAD_PARTS_COUNT = 10000
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
@@ -139,11 +148,17 @@ module ActiveStorage
       def upload_with_multipart(key, io, content_type: nil, content_disposition: nil, custom_metadata: {})
         part_size = [ io.size.fdiv(MAXIMUM_UPLOAD_PARTS_COUNT).ceil, MINIMUM_UPLOAD_PART_SIZE ].max
 
-        object_for(key).upload_stream(content_type: content_type, content_disposition: content_disposition, part_size: part_size, metadata: custom_metadata, **upload_options) do |out|
+        upload_stream(
+          key: key,
+          content_type: content_type,
+          content_disposition: content_disposition,
+          part_size: part_size,
+          metadata: custom_metadata,
+          **upload_options
+        ) do |out|
           IO.copy_stream(io, out)
         end
       end
-
 
       def object_for(key)
         bucket.object(key)
