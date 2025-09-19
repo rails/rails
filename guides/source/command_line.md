@@ -668,8 +668,6 @@ The `boot` command boots the application and exits — it does nothing else. It 
 
 It can also be useful for timing application initialization. You can profile how long your application takes to boot by wrapping `bin/rails boot` in a profiler.
 
-The `boot` command is also run internally by all commands that need the Rails application loaded (e.g. `server`, `console`, `runner`, etc.).
-
 Inspecting an Application
 -------------------------
 
@@ -686,10 +684,10 @@ $ bin/rails routes
   ...
 ```
 
-This can be useful for tracking down a routing issue, or simply getting an overview of the resources and routes that are part of a Rails application. You can also narrow down the output of the `routes` command like this:
+This can be useful for tracking down a routing issue, or simply getting an overview of the resources and routes that are part of a Rails application. You can also narrow down the output of the `routes` command with options like `--controller(-c)` or `--grep(-g)`:
 
 ```bash
-# Only shows routes handled by the UsersController
+# Only show routes where the controller name contains "users"
 bin/rails routes --controller users
 
 # Show routes handled by namespace Admin::UsersController
@@ -699,7 +697,29 @@ bin/rails routes -c admin/users
 bin/rails routes -g users
 ```
 
-There is also an option, `bin/rails routes --expanded`, that displays even more information about each route, including the line number in your `config/routes.rb` where that route is defined.
+There is also an option, `bin/rails routes --expanded`, that displays even more information about each route, including the line number in your `config/routes.rb` where that route is defined:
+
+```bash
+$ bin/rails routes --expanded
+--[ Route 1 ]--------------------------------------------------------------------------------
+Prefix            |
+Verb              |
+URI               | /assets
+Controller#Action | Propshaft::Server
+Source Location   | propshaft (1.2.1) lib/propshaft/railtie.rb:49
+--[ Route 2 ]--------------------------------------------------------------------------------
+Prefix            | about
+Verb              | GET
+URI               | /about(.:format)
+Controller#Action | posts#about
+Source Location   | /Users/bhumi/Code/try_markdown/config/routes.rb:2
+--[ Route 3 ]--------------------------------------------------------------------------------
+Prefix            | posts
+Verb              | GET
+URI               | /posts(.:format)
+Controller#Action | posts#index
+Source Location   | /Users/bhumi/Code/try_markdown/config/routes.rb:4
+```
 
 TIP: In development mode, you can also access the same routes info by going to `http://localhost:3000/rails/info/routes`
 
