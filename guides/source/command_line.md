@@ -177,7 +177,7 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 3 } %>
 
 
 development:
@@ -222,8 +222,8 @@ $ bin/rails server
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
-*  Min threads: 5
-*  Max threads: 5
+*  Min threads: 3
+*  Max threads: 3
 *  Environment: development
 *          PID: 5295
 * Listening on http://127.0.0.1:3000
@@ -370,45 +370,74 @@ The model generator adds test files as well as a migration, which you'll need to
 
 NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column).
 
+In addition to generating controllers and models separately, Rails also provides generators that add code for both at once as well as other files needed for a standard CRUD resource. There are two generator commands that do this: `resource` and `scaffold`. The `resource` command is more lightweight than `scaffold` and generates less code.
+
+### Generating Resources
+
+The `bin/rails generate resource` command generates model, migration, empty controller, routes, and tests. It does not generate views and it does not fill in the controller with CRUD methods.
+
+Here are all the files generated with the `resource` command for `post`:
+
+```ruby
+$ bin/rails generate resource post title:string body:text
+      invoke  active_record
+      create    db/migrate/20250919150856_create_posts.rb
+      create    app/models/post.rb
+      invoke    test_unit
+      create      test/models/post_test.rb
+      create      test/fixtures/posts.yml
+      invoke  controller
+      create    app/controllers/posts_controller.rb
+      invoke    erb
+      create      app/views/posts
+      invoke    test_unit
+      create      test/controllers/posts_controller_test.rb
+      invoke    helper
+      create      app/helpers/posts_helper.rb
+      invoke      test_unit
+      invoke  resource_route
+       route    resources :posts
+```
+
+Use the `resource` command when you don't need views (e.g. writing an API) or prefer to add controller actions manually.
+
 ### Generating Scaffolds
 
-In addition to generating controllers and models separately, Rails also provides a generator that adds all of the code necessary to create a resource in your application. This is called a *scaffold*.
+A Rails scaffold generates a full set of files for a resource, including a model, controller, views (HTML and JSON), routes, migration, tests, and helper files. It can be used for quickly prototyping CRUD interfaces or when you want to generate the basic structure of a resource as a starting point that you can customize.
 
-A Rails scaffold generates a full set of files for a resource, including a model, controller, views, routes, migration, tests, and helper files. It should be used for quickly prototyping CRUD interfaces or when you want to generate the basic structure of a resource as a starting point that you can customize manually.
-
-If we scaffold the `post` resource you can see all of the files mentioned above being generated:
+If you scaffold the `post` resource you can see all of the files mentioned above being generated:
 
 ```bash
-$ bin/rails generate scaffold model post title:string body:text
+$ bin/rails generate scaffold post title:string body:text
       invoke  active_record
-      create    db/migrate/20250808131823_create_models.rb
-      create    app/models/model.rb
+      create    db/migrate/20250919150748_create_posts.rb
+      create    app/models/post.rb
       invoke    test_unit
-      create      test/models/model_test.rb
-      create      test/fixtures/models.yml
+      create      test/models/post_test.rb
+      create      test/fixtures/posts.yml
       invoke  resource_route
-       route    resources :models
+       route    resources :posts
       invoke  scaffold_controller
-      create    app/controllers/models_controller.rb
-      invoke    tailwindcss
-      create      app/views/models
-      create      app/views/models/index.html.erb
-      create      app/views/models/edit.html.erb
-      create      app/views/models/show.html.erb
-      create      app/views/models/new.html.erb
-      create      app/views/models/_form.html.erb
-      create      app/views/models/_model.html.erb
+      create    app/controllers/posts_controller.rb
+      invoke    erb
+      create      app/views/posts
+      create      app/views/posts/index.html.erb
+      create      app/views/posts/edit.html.erb
+      create      app/views/posts/show.html.erb
+      create      app/views/posts/new.html.erb
+      create      app/views/posts/_form.html.erb
+      create      app/views/posts/_post.html.erb
       invoke    resource_route
       invoke    test_unit
-      create      test/controllers/models_controller_test.rb
-      create      test/system/models_test.rb
+      create      test/controllers/posts_controller_test.rb
+      create      test/system/posts_test.rb
       invoke    helper
-      create      app/helpers/models_helper.rb
+      create      app/helpers/posts_helper.rb
       invoke      test_unit
       invoke    jbuilder
-      create      app/views/models/index.json.jbuilder
-      create      app/views/models/show.json.jbuilder
-      create      app/views/models/_model.json.jbuilder
+      create      app/views/posts/index.json.jbuilder
+      create      app/views/posts/show.json.jbuilder
+      create      app/views/posts/_post.json.jbuilder
 ```
 
 At this point, you can run `bin/rails db:migrate` to create the `post` table (see [Managing the Database](#managing-the-database) for more on that command). Then, if you start the Rails server with `bin/rails server` and navigate to [http://localhost:3000/posts](http://localhost:3000/posts), you will be able to interact with the `post` resource - see a list of posts, create new posts, as well as edit and delete them.
