@@ -378,7 +378,7 @@ The `bin/rails generate resource` command generates model, migration, empty cont
 
 Here are all the files generated with the `resource` command for `post`:
 
-```ruby
+```bash
 $ bin/rails generate resource post title:string body:text
       invoke  active_record
       create    db/migrate/20250919150856_create_posts.rb
@@ -484,7 +484,7 @@ The `bin/rails console` command loads a full Rails environment (including models
 The Rails Console can be useful for testing out ideas by prototyping with code and for creating and updating records in the database without needing to use a browser.
 
 ```bash
-$ bin/rails console 
+$ bin/rails console
 my-app(dev):001:0> Post.create(title: 'First!')
 ```
 
