@@ -1,3 +1,13 @@
+*   Add `ActiveRecord::Base.only_columns`
+
+    Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
+    to ignore.
+
+    Can be useful when working with a legacy or shared database schema, or to make safe schema change
+    in two deploys rather than three.
+
+    *Anton Kandratski*
+
 *   Use `PG::Connection#close_prepared` (protocol level Close) to deallocate
     prepared statements when available.
 
