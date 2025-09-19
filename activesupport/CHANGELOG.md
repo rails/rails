@@ -1,3 +1,7 @@
+*   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unnecessary reloads with time travel test helpers
+
+    *Jan Grodowski*
+
 *   Make `ActiveSupport::Logger` `#freeze`-friendly.
 
     *Joshua Young*
