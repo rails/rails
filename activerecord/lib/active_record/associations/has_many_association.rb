@@ -49,7 +49,8 @@ module ActiveRecord
                 association_class: reflection.klass.to_s,
                 association_ids: ids_batch,
                 association_primary_key_column: primary_key_column,
-                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil),
+                destroy_job: options.fetch(:destroy_job, nil)
               )
             end
           end

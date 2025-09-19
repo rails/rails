@@ -438,4 +438,286 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
+
+  # Tests for the new destroy_job option
+
+  class CustomJobForHasMany < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :performed_count, default: 0
+    cattr_accessor :last_options
+
+    def perform(options)
+      self.class.performed_count += 1
+      self.class.last_options = options
+      super
+    end
+  end
+
+  class CustomJobForHasOne < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :performed_count, default: 0
+    cattr_accessor :last_options
+
+    def perform(options)
+      self.class.performed_count += 1
+      self.class.last_options = options
+      super
+    end
+  end
+
+  class CustomJobForBelongsTo < ActiveRecord::DestroyAssociationAsyncJob
+    cattr_accessor :performed_count, default: 0
+    cattr_accessor :last_options
+
+    def perform(options)
+      self.class.performed_count += 1
+      self.class.last_options = options
+      super
+    end
+  end
+
+  test "has_many association uses custom destroy_job when specified" do
+    # Reset counter
+    CustomJobForHasMany.performed_count = 0
+    CustomJobForHasMany.last_options = nil
+
+    # Create custom model with destroy_job option
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :essays_with_custom_job,
+               class_name: "EssayDestroyAsync",
+               foreign_key: :book_id,
+               dependent: :destroy_async,
+               destroy_job: CustomJobForHasMany
+    end
+
+    book = book_class.create!(name: "Test Book")
+    essay1 = EssayDestroyAsync.create!(name: "Essay 1", book_id: book.id)
+    essay2 = EssayDestroyAsync.create!(name: "Essay 2", book_id: book.id)
+
+    assert_enqueued_with(job: CustomJobForHasMany) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasMany.performed_count
+    assert_equal [essay1.id, essay2.id].sort, CustomJobForHasMany.last_options[:association_ids].sort
+    assert_equal 0, EssayDestroyAsync.where(book_id: book.id).count
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many association uses custom destroy_job specified as string" do
+    # Reset counter
+    CustomJobForHasMany.performed_count = 0
+
+    # Create custom model with destroy_job option as string
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :essays_with_custom_job_string,
+               class_name: "EssayDestroyAsync",
+               foreign_key: :book_id,
+               dependent: :destroy_async,
+               destroy_job: "DestroyAssociationAsyncTest::CustomJobForHasMany"
+    end
+
+    book = book_class.create!(name: "Test Book")
+    EssayDestroyAsync.create!(name: "Essay 1", book_id: book.id)
+
+    assert_enqueued_with(job: CustomJobForHasMany) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasMany.performed_count
+    assert_equal 0, EssayDestroyAsync.where(book_id: book.id).count
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_one association uses custom destroy_job when specified" do
+    # Reset counter
+    CustomJobForHasOne.performed_count = 0
+    CustomJobForHasOne.last_options = nil
+
+    # Create custom model with destroy_job option
+    book_class = Class.new(BookDestroyAsync) do
+      has_one :content_with_custom_job,
+              class_name: "Content",
+              foreign_key: :book_destroy_async_id,
+              dependent: :destroy_async,
+              destroy_job: CustomJobForHasOne
+    end
+
+    book = book_class.create!(name: "Test Book")
+    content = Content.create!(book_destroy_async_id: book.id, title: "Test Content")
+
+    assert_enqueued_with(job: CustomJobForHasOne) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasOne.performed_count
+    assert_equal [content.id], CustomJobForHasOne.last_options[:association_ids]
+    assert_equal 0, Content.where(book_destroy_async_id: book.id).count
+  ensure
+    Content.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "belongs_to association uses custom destroy_job when specified" do
+    # Reset counter
+    CustomJobForBelongsTo.performed_count = 0
+    CustomJobForBelongsTo.last_options = nil
+
+    # Create custom model with destroy_job option
+    essay_class = Class.new(EssayDestroyAsync) do
+      belongs_to :writer_with_custom_job,
+                 class_name: "Author",
+                 foreign_key: :writer_id,
+                 polymorphic: true,
+                 dependent: :destroy_async,
+                 destroy_job: CustomJobForBelongsTo
+    end
+
+    author = Author.create!(name: "Test Author")
+    essay = essay_class.create!(name: "Test Essay", writer_id: author.id, writer_type: "Author")
+
+    assert_enqueued_with(job: CustomJobForBelongsTo) do
+      essay.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForBelongsTo.performed_count
+    assert_equal [author.id], CustomJobForBelongsTo.last_options[:association_ids]
+    assert_nil Author.find_by(id: author.id)
+  ensure
+    EssayDestroyAsync.delete_all
+    Author.delete_all
+  end
+
+  test "has_many through association uses custom destroy_job when specified" do
+    # Reset counter
+    CustomJobForHasMany.performed_count = 0
+    CustomJobForHasMany.last_options = nil
+
+    # Create custom model with destroy_job option for through association
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :tags_with_custom_job,
+               through: :taggings,
+               source: :tag,
+               dependent: :destroy_async,
+               destroy_job: CustomJobForHasMany
+    end
+
+    book = book_class.create!(name: "Test Book")
+    tag1 = Tag.create!(name: "Tag 1")
+    tag2 = Tag.create!(name: "Tag 2")
+    book.tags << [tag1, tag2]
+
+    assert_enqueued_with(job: CustomJobForHasMany) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasMany.performed_count
+    assert_equal [tag1.id, tag2.id].sort, CustomJobForHasMany.last_options[:association_ids].sort
+    assert_equal 0, Tag.where(id: [tag1.id, tag2.id]).count
+  ensure
+    Tag.delete_all
+    Tagging.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "destroy_job option takes precedence over model's destroy_association_async_job" do
+    # Save original job
+    original_job = BookDestroyAsync.destroy_association_async_job
+
+    # Reset counter
+    CustomJobForHasMany.performed_count = 0
+
+    # Set a default job on the model
+    BookDestroyAsync.destroy_association_async_job = ActiveRecord::DestroyAssociationAsyncJob
+
+    # Create custom model with destroy_job option that should override the model's default
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :essays_override,
+               class_name: "EssayDestroyAsync",
+               foreign_key: :book_id,
+               dependent: :destroy_async,
+               destroy_job: CustomJobForHasMany
+    end
+
+    book = book_class.create!(name: "Test Book")
+    EssayDestroyAsync.create!(name: "Essay 1", book_id: book.id)
+
+    # Should use CustomJobForHasMany, not the model's default
+    assert_enqueued_with(job: CustomJobForHasMany) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasMany.performed_count
+  ensure
+    # Restore original job
+    BookDestroyAsync.destroy_association_async_job = original_job
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "falls back to model's destroy_association_async_job when destroy_job not specified" do
+    # Create custom model without destroy_job option
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :essays_fallback,
+               class_name: "EssayDestroyAsync",
+               foreign_key: :book_id,
+               dependent: :destroy_async
+    end
+
+    book = book_class.create!(name: "Test Book")
+    EssayDestroyAsync.create!(name: "Essay 1", book_id: book.id)
+
+    # Should use the model's default job
+    assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob) do
+      book.destroy
+    end
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "destroy_job option with ensuring_owner_was works correctly" do
+    # Reset counter
+    CustomJobForHasMany.performed_count = 0
+    CustomJobForHasMany.last_options = nil
+
+    # Create custom model with both destroy_job and ensuring_owner_was
+    book_class = Class.new(BookDestroyAsync) do
+      has_many :essays_with_ensuring,
+               class_name: "EssayDestroyAsync",
+               foreign_key: :book_id,
+               dependent: :destroy_async,
+               destroy_job: CustomJobForHasMany,
+               ensuring_owner_was: :destroyed?
+    end
+
+    book = book_class.create!(name: "Test Book")
+    EssayDestroyAsync.create!(name: "Essay 1", book_id: book.id)
+
+    assert_enqueued_with(job: CustomJobForHasMany) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs
+
+    assert_equal 1, CustomJobForHasMany.performed_count
+    assert_equal :destroyed?, CustomJobForHasMany.last_options[:ensuring_owner_was_method]
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
 end

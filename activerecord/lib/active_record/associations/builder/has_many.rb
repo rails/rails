@@ -10,7 +10,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       valid = super + [:counter_cache, :join_table, :index_errors, :as, :through]
       valid += [:foreign_type] if options[:as]
       valid += [:source, :source_type, :disable_joins] if options[:through]
-      valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async
+      valid += [:ensuring_owner_was, :destroy_job] if options[:dependent] == :destroy_async
       valid
     end
 
