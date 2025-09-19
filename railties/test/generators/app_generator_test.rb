@@ -1401,6 +1401,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_option :skip_active_storage
     assert_option :skip_bootsnap
     assert_option :skip_brakeman
+    assert_option :skip_bundler_audit
     assert_option :skip_ci
     assert_option :skip_dev_gems
     assert_option :skip_docker

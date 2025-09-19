@@ -317,6 +317,7 @@ module Rails
             :skip_active_storage,
             :skip_bootsnap,
             :skip_brakeman,
+            :skip_bundler_audit,
             :skip_ci,
             :skip_dev_gems,
             :skip_docker,
