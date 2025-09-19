@@ -1,3 +1,11 @@
+*   Optionally skip bundler-audit.
+
+    Skips adding the `bin/bundler-audit` & `config/bundler-audit.yml` if the gem is not installed when `bin/rails app:update` runs.
+
+    Passes an option to `--skip-bundler-audit` when new apps are generated & adds that same option to the `--minimal` generator flag.
+
+    *Jill Klang*
+
 *   Show engine routes in `/rails/info/routes` as well.
 
     *Petrik de Heus*
