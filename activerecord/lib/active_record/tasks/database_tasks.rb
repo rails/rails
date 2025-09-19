@@ -429,13 +429,15 @@ module ActiveRecord
 
       def dump_all
         seen_schemas = []
-        
+
         with_temporary_pool_for_each do |pool|
           db_config = pool.db_config
-          next if seen_schemas.include?(db_config.schema_dump)
+          schema_path = schema_dump_path(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+
+          next if seen_schemas.include?(schema_path)
 
           ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
-          seen_schemas << db_config.schema_dump
+          seen_schemas << schema_path
         end
       end
 

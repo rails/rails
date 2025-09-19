@@ -452,9 +452,39 @@ module ActiveRecord
         }
       }
 
-      with_stubbed_configurations(configurations) do
-        ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
-          ActiveRecord::Tasks::DatabaseTasks.dump_all
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "/db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
+        end
+      end
+      assert_equal 1, counter
+    end
+
+    def test_dump_all_handles_path_normalization_for_deduplication
+      counter = 0
+
+      configurations = {
+        "test" => {
+          primary: {
+            adapter: "sqlite3",
+            database: ":memory:",
+            schema_dump: "structure.sql",
+          },
+          secondary: {
+            adapter: "sqlite3",
+            database: ":memory:",
+            schema_dump: "db/structure.sql",
+          }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        with_stubbed_configurations(configurations) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:dump_schema, proc { counter += 1 }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_all
+          end
         end
       end
       assert_equal 1, counter
