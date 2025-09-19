@@ -38,6 +38,7 @@ module ActiveRecord
 
       def schema_cache; end
       def connection_class; end
+      def query_cache; end
       def checkin(_); end
       def remove(_); end
       def async_executor; end
@@ -342,6 +343,7 @@ module ActiveRecord
         end
 
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        @pinned_connection.pinned = true
         @pinned_connection.verify! # eagerly validate the connection
         @pinned_connection.begin_transaction joinable: false, _lazy: false
       end
@@ -364,6 +366,7 @@ module ActiveRecord
           end
 
           if @pinned_connection.nil?
+            connection.pinned = false
             connection.steal!
             connection.lock_thread = nil
             checkin(connection)
