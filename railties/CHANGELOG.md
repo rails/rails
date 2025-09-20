@@ -1,3 +1,7 @@
+*   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
+
+    *Jan Grodowski*
+
 *   Show engine routes in `/rails/info/routes` as well.
 
     *Petrik de Heus*

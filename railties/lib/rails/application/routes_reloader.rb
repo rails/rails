@@ -48,7 +48,7 @@ module Rails
             hash[dir.to_s] = %w(rb)
           end
 
-          ActiveSupport::FileUpdateChecker.new(paths, dirs) { reload! }
+          Rails.application.config.file_watcher.new(paths, dirs) { reload! }
         end
       end
 
