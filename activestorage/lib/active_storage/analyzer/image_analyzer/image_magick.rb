@@ -11,6 +11,10 @@ module ActiveStorage
   # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
   # the {ImageMagick}[http://www.imagemagick.org] system library.
   class Analyzer::ImageAnalyzer::ImageMagick < Analyzer::ImageAnalyzer
+    def self.accept?(blob)
+      super && ActiveStorage.variant_processor == :mini_magick
+    end
+
     private
       def read_image
         download_blob_to_tempfile do |file|
