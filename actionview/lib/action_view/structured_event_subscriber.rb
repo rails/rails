@@ -19,6 +19,7 @@ module ActionView
         gc: event.gc_time.round(1),
       )
     end
+    debug_only :render_template
 
     def render_partial(event)
       emit_debug_event("action_view.render_partial",
@@ -29,6 +30,7 @@ module ActionView
         cache_hit: event.payload[:cache_hit],
       )
     end
+    debug_only :render_partial
 
     def render_layout(event)
       emit_event("action_view.render_layout",
@@ -37,6 +39,7 @@ module ActionView
         gc: event.gc_time.round(1),
       )
     end
+    debug_only :render_layout
 
     def render_collection(event)
       emit_debug_event("action_view.render_collection",
@@ -48,6 +51,7 @@ module ActionView
         count: event.payload[:count],
       )
     end
+    debug_only :render_collection
 
     module Utils # :nodoc:
       private

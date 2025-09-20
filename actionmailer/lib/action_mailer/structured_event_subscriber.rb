@@ -26,6 +26,7 @@ module ActionMailer
         )
       end
     end
+    debug_only :deliver
 
     # An email was generated.
     def process(event)
@@ -35,6 +36,7 @@ module ActionMailer
         duration: event.duration.round(1),
       )
     end
+    debug_only :process
   end
 end
 

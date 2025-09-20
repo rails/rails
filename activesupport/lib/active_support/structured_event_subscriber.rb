@@ -29,6 +29,41 @@ module ActiveSupport
   # it will properly dispatch the event (+ActiveSupport::Notifications::Event+) to the +start_processing+ method.
   # The subscriber can then emit a structured event via the +emit_event+ method.
   class StructuredEventSubscriber < Subscriber
+    class_attribute :debug_methods, instance_accessor: false, default: [] # :nodoc:
+
+    DEBUG_CHECK = proc { !ActiveSupport.event_reporter.debug_mode? }
+
+    class << self
+      def attach_to(...) # :nodoc:
+        result = super
+        set_silenced_events
+        result
+      end
+
+      private
+        def set_silenced_events
+          if subscriber
+            subscriber.silenced_events = debug_methods.to_h { |method| ["#{method}.#{namespace}", DEBUG_CHECK] }
+          end
+        end
+
+        def debug_only(method)
+          self.debug_methods << method
+          set_silenced_events
+        end
+    end
+
+    def initialize
+      super
+      @silenced_events = {}
+    end
+
+    def silenced?(event)
+      @silenced_events[event]&.call
+    end
+
+    attr_writer :silenced_events # :nodoc:
+
     # Emit a structured event via Rails.event.notify.
     #
     # ==== Arguments
