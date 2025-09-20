@@ -12,7 +12,7 @@ begin
   gem "ruby-vips"
   require "ruby-vips"
 rescue LoadError => error
-  raise error unless error.message.include?("ruby-vips")
+  raise error unless error.message.match?(/libvips|ruby-vips/)
 end
 
 module ActiveStorage
