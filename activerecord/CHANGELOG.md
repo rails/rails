@@ -3,6 +3,24 @@
     `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files have already been dumped and skips dumping the same file multiple times. This improves performance when multiple database configurations share the same schema dump path.
 
     *Mikey Gough*, *Hartley McGuire*
+    
+*   Add `ActiveRecord::Base.only_columns`
+
+    Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
+    to ignore.
+
+    Can be useful when working with a legacy or shared database schema, or to make safe schema change
+    in two deploys rather than three.
+
+    *Anton Kandratski*
+
+*   Use `PG::Connection#close_prepared` (protocol level Close) to deallocate
+    prepared statements when available.
+
+    To enable its use, you must have pg >= 1.6.0, libpq >= 17, and a PostgreSQL
+    database version >= 17.
+
+    *Hartley McGuire*, *Andrew Jackson*
 
 *   Fix query cache for pinned connections in multi threaded transactional tests
 

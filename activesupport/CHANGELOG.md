@@ -1,3 +1,7 @@
+*   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
+
+    *Jan Grodowski*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
