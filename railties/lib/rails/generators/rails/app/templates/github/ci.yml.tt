@@ -75,7 +75,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    <%- if options[:database] == "sqlite3" -%>
+    <%- if database.adapter == "sqlite3" -%>
     # services:
     #  redis:
     #    image: valkey/valkey:8
@@ -84,7 +84,7 @@ jobs:
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     <%- else -%>
     services:
-      <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+      <%- if database.adapter == "mysql" || database.adapter == "trilogy" -%>
       mysql:
         image: mysql
         env:
@@ -92,7 +92,7 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      <%- elsif options[:database] == "postgresql" -%>
+      <%- elsif database.adapter == "postgresql" -%>
       postgres:
         image: postgres
         env:
@@ -133,11 +133,11 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          <%- if options[:database] == "mysql" -%>
+          <%- if database.adapter == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
-          <%- elsif options[:database] == "trilogy" -%>
+          <%- elsif database.adapter == "trilogy" -%>
           DATABASE_URL: trilogy://127.0.0.1:3306
-          <%- elsif options[:database] == "postgresql" -%>
+          <%- elsif database.adapter == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
@@ -148,7 +148,7 @@ jobs:
   system-test:
     runs-on: ubuntu-latest
 
-    <%- if options[:database] == "sqlite3" -%>
+    <%- if database.adapter == "sqlite3" -%>
     # services:
     #  redis:
     #    image: valkey/valkey:8
@@ -157,7 +157,7 @@ jobs:
     #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     <%- else -%>
     services:
-      <%- if options[:database] == "mysql" || options[:database] == "trilogy" -%>
+      <%- if database.adapter == "mysql" || database.adapter == "trilogy" -%>
       mysql:
         image: mysql
         env:
@@ -165,7 +165,7 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      <%- elsif options[:database] == "postgresql" -%>
+      <%- elsif database.adapter == "postgresql" -%>
       postgres:
         image: postgres
         env:
@@ -206,11 +206,11 @@ jobs:
       - name: Run System Tests
         env:
           RAILS_ENV: test
-          <%- if options[:database] == "mysql" -%>
+          <%- if database.adapter == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
-          <%- elsif options[:database] == "trilogy" -%>
+          <%- elsif database.adapter == "trilogy" -%>
           DATABASE_URL: trilogy://127.0.0.1:3306
-          <%- elsif options[:database] == "postgresql" -%>
+          <%- elsif database.adapter == "postgresql" -%>
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
