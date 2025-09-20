@@ -7,6 +7,7 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
 
 require "action_mailer/log_subscriber"
+require "action_mailer/structured_event_subscriber"
 require "action_mailer/rescuable"
 
 module ActionMailer

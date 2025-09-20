@@ -1,3 +1,7 @@
+*   Add structured events for Active Storage.
+
+    *Gannon McGibbon*
+
 *   Allow analyzers and variant transformer to be fully configurable
 
     ```ruby

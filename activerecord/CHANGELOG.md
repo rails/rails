@@ -1,3 +1,7 @@
+*   Add structured events for Active Record.
+
+    *Gannon McGibbon*
+
 *   Add `ActiveRecord::Base.only_columns`
 
     Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
