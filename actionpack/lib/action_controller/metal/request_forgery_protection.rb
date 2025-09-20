@@ -258,7 +258,23 @@ module ActionController # :nodoc:
     end
 
     module ProtectionMethods
+      module CrossOriginRequestStrategy
+        extend self
+
+        def handle_cross_origin_request(controller = nil)
+          controller ||= @controller
+
+          if controller.logger && controller.log_warning_on_csrf_failure
+            controller.logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING
+          end
+
+          raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
+        end
+      end
+
       class NullSession
+        include CrossOriginRequestStrategy
+
         def initialize(controller)
           @controller = controller
         end
@@ -301,6 +317,8 @@ module ActionController # :nodoc:
       end
 
       class ResetSession
+        include CrossOriginRequestStrategy
+
         def initialize(controller)
           @controller = controller
         end
@@ -311,6 +329,8 @@ module ActionController # :nodoc:
       end
 
       class Exception
+        include CrossOriginRequestStrategy
+
         attr_accessor :warning_message
 
         def initialize(controller)
@@ -434,11 +454,25 @@ module ActionController # :nodoc:
       # forgery protection enabled for this request) then also verify that we aren't
       # serving an unauthorized cross-origin response.
       def verify_same_origin_request # :doc:
-        if marked_for_same_origin_verification? && non_xhr_javascript_response?
-          if logger && log_warning_on_csrf_failure
-            logger.warn CROSS_ORIGIN_JAVASCRIPT_WARNING
-          end
-          raise ActionController::InvalidCrossOriginRequest, CROSS_ORIGIN_JAVASCRIPT_WARNING
+        return unless marked_for_same_origin_verification? && non_xhr_javascript_response?
+
+        protection_strategy = forgery_protection_strategy.new(self)
+
+        if protection_strategy.respond_to?(:handle_cross_origin_request)
+          protection_strategy.handle_cross_origin_request
+        else
+          ActionController.deprecator.warn(<<~MSG)
+            Custom CSRF strategy now need to implement the `handle_cross_origin_request` method.
+            Rails now calls the strategy when a Cross Origin request is detected.
+
+            To fix this warning, implement the `handle_cross_origin_request` method in the
+            #{protection_strategy.class.name} strategy class.
+
+            The current behaviour is unchanged, a 422 response will be returned. In future
+            Rails version, an error will be raised.
+          MSG
+
+          ProtectionMethods::CrossOriginRequestStrategy.handle_cross_origin_request(self)
         end
       end
 

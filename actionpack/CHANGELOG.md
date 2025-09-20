@@ -1,3 +1,19 @@
+*   Rails now call `handle_cross_origin_request` when a cross origin request is detected.
+
+    Previously, when a cross origin request was detected, Rails would log an error and
+    raise a `ActionController::InvalidCrossOriginRequest` (which would get turned
+    into a 422 response).
+    Now, a custom strategy can implement the `handle_cross_origin_request` method to perform
+    the logic they want, similar to the existent `handle_unverified_request`.
+
+    Applications using Rails built-in strategies such as `:exception`, `:null_session` or
+    `:reset_sesssion` will get the same behaviour as before.
+
+    Applications using a custom strategy will get the same behaviour as before but
+    a deprecation warning in the event where they haven't implemented `handle_cross_origin_request`.
+
+    *Edouard Chin*
+
 *   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
 
     Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
