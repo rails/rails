@@ -1,3 +1,9 @@
+*   Optimize schema dumping to prevent duplicate file generation.
+
+    `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files have already been dumped and skips dumping the same file multiple times. This improves performance when multiple database configurations share the same schema dump path.
+
+    *Mikey Gough*, *Hartley McGuire*
+    
 *   Add `ActiveRecord::Base.only_columns`
 
     Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
