@@ -16,6 +16,7 @@ module ActiveRecord
         name: reflection.name,
       )
     end
+    debug_only :strict_loading_violation
 
     def sql(event)
       payload = event.payload
@@ -52,6 +53,7 @@ module ActiveRecord
         binds: binds,
       )
     end
+    debug_only :sql
 
     private
       def type_casted_binds(casted_binds)

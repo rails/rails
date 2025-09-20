@@ -6,8 +6,18 @@ require "active_support/testing/event_reporter_assertions"
 class StructuredEventSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::EventReporterAssertions
 
+  class TestSubscriber < ActiveSupport::StructuredEventSubscriber
+    class DebugOnlyError < StandardError
+    end
+
+    def debug_only_event(event)
+      raise DebugOnlyError
+    end
+    debug_only :debug_only_event
+  end
+
   def setup
-    @subscriber = ActiveSupport::StructuredEventSubscriber.new
+    @subscriber = TestSubscriber.new
   end
 
   def test_emit_event_calls_event_reporter_notify
@@ -69,5 +79,19 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     end
     assert_match(/undefined method (`|')error_event'/, error_report.error.message)
     assert_equal "error_event.test", error_report.source
+  end
+
+  def test_debug_only_methods
+    ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
+
+    assert_no_error_reported do
+      ActiveSupport::Notifications.instrument("debug_only_event.test")
+    end
+
+    assert_error_reported(TestSubscriber::DebugOnlyError) do
+      ActiveSupport.event_reporter.with_debug do
+        ActiveSupport::Notifications.instrument("debug_only_event.test")
+      end
+    end
   end
 end

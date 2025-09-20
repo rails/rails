@@ -47,6 +47,7 @@ module ActiveStorage
         exist: event.payload[:exist],
       )
     end
+    debug_only :service_exist
 
     def service_url(event)
       emit_debug_event("active_storage.service_url",
@@ -54,6 +55,7 @@ module ActiveStorage
         url: event.payload[:url],
       )
     end
+    debug_only :service_url
 
     def service_mirror(event)
       emit_debug_event("active_storage.service_mirror",
@@ -61,6 +63,7 @@ module ActiveStorage
         checksum: event.payload[:checksum],
       )
     end
+    debug_only :service_mirror
   end
 end
 

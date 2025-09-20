@@ -81,6 +81,7 @@ module ActionController
         params:
       )
     end
+    debug_only :unpermitted_parameters
 
     %w(write_fragment read_fragment exist_fragment? expire_fragment).each do |method|
       class_eval <<-METHOD, __FILE__, __LINE__ + 1
