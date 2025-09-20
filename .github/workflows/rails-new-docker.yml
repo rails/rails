@@ -24,6 +24,7 @@ jobs:
         bundler-cache: true
     - name: Generate --dev app
       run: |
+        set -euo pipefail
         bundle exec railties/exe/rails new $APP_PATH --dev
     - name: Build image
       run: |
