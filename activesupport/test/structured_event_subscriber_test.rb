@@ -6,8 +6,17 @@ require "active_support/testing/event_reporter_assertions"
 class StructuredEventSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::EventReporterAssertions
 
+  class TestEventReporterSubscriber
+    def emit(payload)
+    end
+  end
+
   class TestSubscriber < ActiveSupport::StructuredEventSubscriber
     class DebugOnlyError < StandardError
+    end
+
+    def event(event)
+      emit_event("test.event", **event.payload)
     end
 
     def debug_only_event(event)
@@ -84,6 +93,9 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
   def test_debug_only_methods
     ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
 
+    event_reporter_subscriber = TestEventReporterSubscriber.new
+    ActiveSupport.event_reporter.subscribe(event_reporter_subscriber)
+
     assert_no_error_reported do
       ActiveSupport::Notifications.instrument("debug_only_event.test")
     end
@@ -93,5 +105,20 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
         ActiveSupport::Notifications.instrument("debug_only_event.test")
       end
     end
+  ensure
+    ActiveSupport.event_reporter.unsubscribe(event_reporter_subscriber)
+  end
+
+  def test_no_event_reporter_subscribers
+    ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
+
+    old_subscribers = ActiveSupport.event_reporter.subscribers.dup
+    ActiveSupport.event_reporter.subscribers.clear
+
+    assert_not_called @subscriber, :emit_event do
+      ActiveSupport::Notifications.instrument("event.test")
+    end
+  ensure
+    ActiveSupport.event_reporter.subscribers.push(*old_subscribers)
   end
 end
