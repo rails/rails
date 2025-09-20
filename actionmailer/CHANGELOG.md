@@ -1,3 +1,20 @@
+*   Add `assert_part` and `assert_no_part` to `ActionMailer::TestCase`
+
+    ```ruby
+    test "assert MyMailer.welcome HTML and text parts" do
+      mail = MyMailer.welcome("Hello, world")
+
+      assert_part :text, mail do |text|
+        assert_includes text, "Hello, world"
+      end
+      assert_part :html, mail do |html|
+        assert_dom html.root, "p", "Hello, world"
+      end
+    end
+    ```
+
+    *Sean Doyle*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `deliver_all_later` to enqueue multiple emails at once.
