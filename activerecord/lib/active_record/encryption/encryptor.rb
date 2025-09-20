@@ -94,6 +94,18 @@ module ActiveRecord
       private
         DECRYPT_ERRORS = [OpenSSL::Cipher::CipherError, Errors::EncryptedContentIntegrity, Errors::Decryption]
         ENCODING_ERRORS = [EncodingError, Errors::Encoding]
+
+        # This threshold cannot be changed.
+        #
+        # Users can search for attributes encrypted with `deterministic: true`.
+        # That is possible because we are able to generate the message for the
+        # given clear text deterministically, and with that perform a regular
+        # string lookup in SQL.
+        #
+        # Problem is, messages may have a "c" header that is present or not
+        # depending on whether compression was applied on encryption. If this
+        # threshold was modified, the message generated for lookup could vary
+        # for the same clear text, and searches on exisiting data could fail.
         THRESHOLD_TO_JUSTIFY_COMPRESSION = 140.bytes
 
         def default_key_provider
