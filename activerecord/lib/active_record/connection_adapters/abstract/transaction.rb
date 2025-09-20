@@ -113,6 +113,7 @@ module ActiveRecord
       def open?; false; end
       def joinable?; false; end
       def isolation; nil; end
+      def isolation=(isolation); end
       def add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
@@ -124,6 +125,7 @@ module ActiveRecord
       def after_commit; yield; end
       def after_rollback; end
       def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
+      def fixture_transaction?; false; end
     end
 
     class Transaction # :nodoc:
@@ -154,6 +156,19 @@ module ActiveRecord
       # Returns the isolation level if it was explicitly set, nil otherwise
       def isolation
         @isolation_level
+      end
+
+      def isolation=(isolation) # :nodoc:
+        unless fixture_transaction?
+          raise ActiveRecord::TransactionIsolationError, "isolation level can only be set for fixture transactions"
+        end
+
+        if isolation && !connection.transaction_isolation_levels.key?(isolation.to_sym)
+          raise ActiveRecord::TransactionIsolationError,
+                "invalid transaction isolation level: #{isolation.to_sym.inspect}"
+        end
+
+        @isolation_level = isolation
       end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
@@ -333,6 +348,10 @@ module ActiveRecord
       def full_rollback?; true; end
       def joinable?; @joinable; end
 
+      def fixture_transaction?
+        !joinable?
+      end
+
       protected
         def append_callbacks(callbacks) # :nodoc:
           (@callbacks ||= []).concat(callbacks)
@@ -421,10 +440,7 @@ module ActiveRecord
         @savepoint_name = savepoint_name
       end
 
-      # Delegates to parent transaction's isolation level
-      def isolation
-        @parent_transaction.isolation
-      end
+      delegate :isolation, :isolation=, to: :@parent_transaction
 
       def materialize!
         connection.create_savepoint(savepoint_name)
@@ -632,6 +648,12 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
+        old_isolation = current_transaction.isolation
+        if isolation && open_transactions == 1 && current_transaction.fixture_transaction?
+          current_transaction.isolation = isolation.to_sym
+          isolation = nil
+        end
+
         isolation ||= @connection.pool.pool_transaction_isolation_level
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
@@ -664,6 +686,10 @@ module ActiveRecord
             @connection.throw_away!
             transaction&.incomplete!
           end
+        end
+      ensure
+        if open_transactions == 1 && current_transaction.fixture_transaction?
+          current_transaction.isolation = old_isolation
         end
       end
 
