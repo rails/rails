@@ -59,7 +59,7 @@ module ActiveSupport
     end
 
     def silenced?(event)
-      @silenced_events[event]&.call
+      ActiveSupport.event_reporter.subscribers.none? || @silenced_events[event]&.call
     end
 
     attr_writer :silenced_events # :nodoc:

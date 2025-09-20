@@ -275,6 +275,8 @@ module ActiveSupport
 
     attr_writer :debug_mode # :nodoc:
 
+    attr_reader :subscribers # :nodoc
+
     class << self
       attr_accessor :context_store # :nodoc:
     end
