@@ -99,6 +99,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*  Deprecate `render` calls with `:renderable` objects that respond to `#render_in` without keyword arguments.
+
 ### Notable changes
 
 Action Mailer
