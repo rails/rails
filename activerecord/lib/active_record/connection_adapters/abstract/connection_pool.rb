@@ -315,8 +315,9 @@ module ActiveRecord
       # held in a cache keyed by a thread.
       def lease_connection
         lease = connection_lease
-        lease.sticky = true
         lease.connection ||= checkout
+        lease.sticky = true
+        lease.connection
       end
 
       def permanent_lease? # :nodoc:
