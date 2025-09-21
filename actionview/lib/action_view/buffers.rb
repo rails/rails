@@ -45,7 +45,7 @@ module ActionView
         @raw_buffer << if value.html_safe?
           value
         else
-          CGI.escapeHTML(value)
+          ERB::Util.unwrapped_html_escape(value)
         end
       end
       self

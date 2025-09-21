@@ -859,7 +859,7 @@ end
 
 class PessimisticLockingWhilePreventingWritesTest < ActiveRecord::TestCase
   CUSTOM_LOCK = if current_adapter?(:SQLite3Adapter)
-    true # no-op
+    "FOR UPDATE" # no-op
   else
     "FOR SHARE"
   end

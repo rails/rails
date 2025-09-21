@@ -190,6 +190,15 @@ module ActiveRecord
       end
     end
 
+    def with_temporary_connection_pool(&block)
+      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
+
+      pool_config.stub(:pool, new_pool, &block)
+    ensure
+      new_pool&.disconnect!
+    end
+
     def with_postgresql_datetime_type(type)
       adapter = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)

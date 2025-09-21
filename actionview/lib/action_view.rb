@@ -91,6 +91,9 @@ module ActionView
   autoload :CacheExpiry
   autoload :TestCase
 
+  singleton_class.attr_accessor :render_tracker
+  self.render_tracker = :regex
+
   def self.eager_load!
     super
     ActionView::Helpers.eager_load!

@@ -12,7 +12,7 @@ module ActiveSupport
         if s.html_safe?
           s
         else
-          super(ActiveSupport::Multibyte::Unicode.tidy_bytes(s))
+          super(s)
         end
       end
       alias :unwrapped_html_escape :html_escape # :nodoc:
@@ -61,7 +61,7 @@ class ERB
     #   html_escape_once('&lt;&lt; Accept & Checkout')
     #   # => "&lt;&lt; Accept &amp; Checkout"
     def html_escape_once(s)
-      ActiveSupport::Multibyte::Unicode.tidy_bytes(s.to_s).gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
+      s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
     end
 
     module_function :html_escape_once

@@ -18,7 +18,7 @@ module ActionView
             properties[:preamble]   ||= ""
             properties[:postamble]  ||= "#{properties[:bufvar]}"
 
-            # Tell Eruby that whether template will be compiled with `frozen_string_literal: true`
+            # Tell Erubi whether the template will be compiled with `frozen_string_literal: true`
             properties[:freeze_template_literals] = !Template.frozen_string_literal
 
             properties[:escapefunc] = ""

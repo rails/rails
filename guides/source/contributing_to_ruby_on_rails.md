@@ -364,6 +364,37 @@ $ cd actionmailer
 $ bin/test
 ```
 
+#### Running Component Tests from the Repository Root
+
+You can also run component test suites from the repository root using rake tasks:
+
+```bash
+$ bundle exec rake actionpack:test
+$ bundle exec rake actionpack:isolated
+
+# Active Record adapters (from the repo root)
+$ bundle exec rake activerecord:sqlite3:test
+$ bundle exec rake activerecord:sqlite3:isolated
+$ bundle exec rake activerecord:mysql2:test
+$ bundle exec rake activerecord:trilogy:test
+$ bundle exec rake activerecord:postgresql:test
+
+# Active Record integration tests (Active Job integration across adapters)
+$ bundle exec rake activerecord:integration
+
+# Active Job adapters
+$ bundle exec rake activejob:sidekiq:test
+$ bundle exec rake activejob:sidekiq:isolated
+$ bundle exec rake activejob:sidekiq:integration
+
+# All Active Job integration tests
+$ bundle exec rake activejob:integration
+```
+
+Notes:
+
+- Not all frameworks define an isolated test task. For example, `activestorage:isolated` is not supported and will exit with an error.
+
 #### For a Specific Directory
 
 You can run tests only for a specific directory of a particular component
@@ -461,11 +492,40 @@ $ bundle exec rake db:postgresql:build
 
 This is not necessary for SQLite3.
 
+From the repository root, equivalent database management tasks are available under the `activerecord:db` namespace:
+
+```bash
+# Create both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:create
+
+# Drop both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:drop
+
+# Rebuild both MySQL and PostgreSQL test databases
+$ bundle exec rake activerecord:db:rebuild
+
+# Manage MySQL databases only
+$ bundle exec rake activerecord:db:mysql:build
+$ bundle exec rake activerecord:db:mysql:drop
+$ bundle exec rake activerecord:db:mysql:rebuild
+
+# Manage PostgreSQL databases only
+$ bundle exec rake activerecord:db:postgresql:build
+$ bundle exec rake activerecord:db:postgresql:drop
+$ bundle exec rake activerecord:db:postgresql:rebuild
+```
+
 This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake test:sqlite3
+```
+
+From the repository root, the equivalent commands are available:
+
+```bash
+$ bundle exec rake activerecord:sqlite3:test
 ```
 
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
@@ -476,6 +536,14 @@ $ bundle exec rake test:trilogy
 $ bundle exec rake test:postgresql
 ```
 
+Or:
+
+```bash
+$ bundle exec rake activerecord:mysql2:test
+$ bundle exec rake activerecord:trilogy:test
+$ bundle exec rake activerecord:postgresql:test
+```
+
 Finally,
 
 ```bash
@@ -483,6 +551,18 @@ $ bundle exec rake test
 ```
 
 will now run the three of them in turn.
+
+You can run adapter-specific isolated tests, or all Active Job integration tests for Active Record, with:
+
+```bash
+# From inside activerecord
+$ bundle exec rake test:isolated:sqlite3
+$ bundle exec rake test:integration:active_job
+
+# Or repository root
+$ bundle exec rake activerecord:sqlite3:isolated
+$ bundle exec rake activerecord:integration   # runs Active Job integration across all adapters
+```
 
 You can also run any single test separately:
 

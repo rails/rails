@@ -1,8 +1,8 @@
 // Smooth scrolling (back-to-top etc.)
 @media (prefers-reduced-motion: no-preference) {
-  // This smooth scrolling behaviour does not work in tandem with scrollIntoView
+  // This smooth scrolling behavior does not work in tandem with scrollIntoView
   // for some browser-os combinations. Therefore, if JavaScript is enabled, this
-  // style is removed and the behaviour is added to the back-to-top element etc.
+  // style is removed and the behavior is added to the back-to-top element etc.
   html {
     scroll-behavior: smooth;
   }

@@ -5,6 +5,7 @@ require "jobs/gid_job"
 require "jobs/hello_job"
 require "models/person"
 require "json"
+require "active_support/json"
 
 class JobSerializationTest < ActiveSupport::TestCase
   setup do
@@ -37,6 +38,59 @@ class JobSerializationTest < ActiveSupport::TestCase
       assert_equal "es", new_job.serialize["locale"]
     ensure
       I18n.available_locales = old_locales
+    end
+  end
+
+  test "keeps scheduled_at around after deserialization if data doesnt include it" do
+    freeze_time
+
+    current_time = Time.now
+
+    job = HelloJob.new
+    serialized_job = job.serialize
+    job.set(wait_until: current_time)
+
+    job.deserialize(serialized_job)
+
+    assert_equal current_time, job.scheduled_at
+  end
+
+  test "deserializes enqueued_at when ActiveSupport.parse_json_times is true" do
+    freeze_time
+
+    Time.use_zone "US/Eastern" do
+      with_parse_json_times(true) do
+        current_time = Time.now
+
+        job = HelloJob.new
+        serialized_job = job.serialize
+        payload = ActiveSupport::JSON.decode(serialized_job.to_json)
+
+        new_job = HelloJob.new
+        new_job.deserialize(payload)
+
+        assert_equal current_time, new_job.enqueued_at
+      end
+    end
+  end
+
+  test "deserializes scheduled_at when ActiveSupport.parse_json_times is true" do
+    freeze_time
+
+    Time.use_zone "US/Eastern" do
+      with_parse_json_times(true) do
+        current_time = Time.now
+
+        job = HelloJob.new
+        job.scheduled_at = current_time
+        serialized_job = job.serialize
+        payload = ActiveSupport::JSON.decode(serialized_job.to_json)
+
+        new_job = HelloJob.new
+        new_job.deserialize(payload)
+
+        assert_equal current_time, new_job.scheduled_at
+      end
     end
   end
 
@@ -122,4 +176,13 @@ class JobSerializationTest < ActiveSupport::TestCase
 
     assert_equal job.serialize, deserialized_job.serialize
   end
+
+  private
+    def with_parse_json_times(value)
+      old_value = ActiveSupport.parse_json_times
+      ActiveSupport.parse_json_times = value
+      yield
+    ensure
+      ActiveSupport.parse_json_times = old_value
+    end
 end

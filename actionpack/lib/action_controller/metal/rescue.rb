@@ -13,6 +13,15 @@ module ActionController # :nodoc:
     extend ActiveSupport::Concern
     include ActiveSupport::Rescuable
 
+    module ClassMethods
+      def handler_for_rescue(exception, ...) # :nodoc:
+        if handler = super
+          ActiveSupport::Notifications.instrument("rescue_from_callback.action_controller", exception: exception)
+          handler
+        end
+      end
+    end
+
     # Override this method if you want to customize when detailed exceptions must be
     # shown. This method is only called when `consider_all_requests_local` is
     # `false`. By default, it returns `false`, but someone may set it to

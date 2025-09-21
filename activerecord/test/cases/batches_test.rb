@@ -455,36 +455,6 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  def test_in_loaded_batches_preserves_order_within_batches
-    expected_posts = Post.order(id: :desc).to_a
-    posts = []
-
-    Post.in_batches(of: 2, load: true, order: :desc) do |relation|
-      posts.concat(relation.where("1 = 1"))
-    end
-    assert_equal expected_posts, posts
-  end
-
-  def test_in_range_batches_preserves_order_within_batches
-    expected_posts = Post.order(id: :desc).to_a
-    posts = []
-
-    Post.in_batches(of: 2, order: :desc, use_ranges: true) do |relation|
-      posts.concat(relation)
-    end
-    assert_equal expected_posts, posts
-  end
-
-  def test_in_scoped_batches_preserves_order_within_batches
-    expected_posts = Post.order(id: :desc).to_a
-    posts = []
-
-    Post.where("id > 0").in_batches(of: 2, order: :desc) do |relation|
-      posts.concat(relation)
-    end
-    assert_equal expected_posts, posts
-  end
-
   def test_in_batches_if_not_loaded_executes_more_queries
     assert_queries_count(@total + 2) do
       Post.in_batches(of: 1, load: false) do |relation|
@@ -689,6 +659,13 @@ class EachTest < ActiveRecord::TestCase
 
     assert_queries_match(/#{quoted_posts_id} > .+ AND #{quoted_posts_id} <= .+/i) do
       relations.each { |relation| assert_kind_of Post, relation.first }
+    end
+  end
+
+  def test_in_batches_no_subqueries_for_whole_tables_batching
+    quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
+    assert_queries_match(/DELETE FROM #{Regexp.escape(quote_table_name("posts"))} WHERE #{quoted_posts_id} > .+ AND #{quoted_posts_id} <=/i) do
+      Post.in_batches(of: 2).delete_all
     end
   end
 

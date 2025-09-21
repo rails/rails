@@ -18,9 +18,9 @@ module ActiveSupport
       # See http://www.json.org for more info.
       #
       #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
-      #   => {"team" => "rails", "players" => "36"}
+      #   # => {"team" => "rails", "players" => "36"}
       #   ActiveSupport::JSON.decode("2.39")
-      #   => 2.39
+      #   # => 2.39
       def decode(json, options = {})
         data = ::JSON.parse(json, options)
 

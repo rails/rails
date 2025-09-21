@@ -127,6 +127,7 @@ module ActionDispatch
           trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper),
           source_extracts: wrapper.source_extracts,
+          exception_message_for_copy: compose_exception_message(wrapper).join("\n"),
         )
       end
 
@@ -140,6 +141,11 @@ module ActionDispatch
         return unless logger
         return if !log_rescued_responses?(request) && wrapper.rescue_response?
 
+        message = compose_exception_message(wrapper)
+        log_array(logger, message, request)
+      end
+
+      def compose_exception_message(wrapper)
         trace = wrapper.exception_trace
 
         message = []
@@ -168,7 +174,7 @@ module ActionDispatch
           end
         end
 
-        log_array(logger, message, request)
+        message
       end
 
       def log_array(logger, lines, request)

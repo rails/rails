@@ -347,7 +347,10 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
     %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
     %(preload_link_tag '/sprite.svg') => %(<link rel="preload" href="/sprite.svg" as="image" type="image/svg+xml">),
-    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">)
+    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">),
+    %(preload_link_tag '/hero-image.jpg', fetchpriority: 'high') => %(<link rel="preload" href="/hero-image.jpg" as="image" type="image/jpeg" fetchpriority="high">),
+    %(preload_link_tag '/critical.css', fetchpriority: 'high') => %(<link rel="preload" href="/critical.css" as="style" type="text/css" fetchpriority="high">),
+    %(preload_link_tag '/background.png', fetchpriority: 'low') => %(<link rel="preload" href="/background.png" as="image" type="image/png" fetchpriority="low">)
   }
 
   VideoPathToTag = {
@@ -788,6 +791,26 @@ class AssetTagHelperTest < ActionView::TestCase
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
       assert_nil @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_links_with_fetchpriority
+    with_preload_links_header do
+      preload_link_tag("http://example.com/hero.jpg", fetchpriority: "high")
+      preload_link_tag("http://example.com/background.png", fetchpriority: "low")
+      expected = "<http://example.com/hero.jpg>; rel=preload; as=image; type=image/jpeg; fetchpriority=high,<http://example.com/background.png>; rel=preload; as=image; type=image/png; fetchpriority=low"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_preload_link_tag_fetchpriority_html_and_header_consistency
+    with_preload_links_header do
+      html_tag = preload_link_tag("http://example.com/critical.css", fetchpriority: "high")
+      # Verify HTML tag includes fetchpriority
+      assert_match(/fetchpriority="high"/, html_tag)
+
+      expected_header = "<http://example.com/critical.css>; rel=preload; as=style; type=text/css; fetchpriority=high"
+      assert_equal expected_header, @response.headers["link"]
     end
   end
 

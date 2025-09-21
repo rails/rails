@@ -301,7 +301,7 @@ module ActiveRecord
 
     # Checkouts a connection from the pool, yield it and then check it back in.
     # If a connection was already leased via #lease_connection or a parent call to
-    # #with_connection, that same connection is yieled.
+    # #with_connection, that same connection is yielded.
     # If #lease_connection is called inside the block, the connection won't be checked
     # back in.
     # If #connection is called inside the block, the connection won't be checked back in

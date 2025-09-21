@@ -192,19 +192,19 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_invalid_limit
     assert_raises(ArgumentError) do
-      Topic.limit("asdfadf").to_a
+      Topic.limit("asdfadf")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").to_a
+      Topic.limit("1 select * from schema")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").to_a
+      Topic.limit("1, 7 procedure help()")
     end
   end
 
@@ -1831,6 +1831,31 @@ class BasicsTest < ActiveRecord::TestCase
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
+  end
+
+  test "permitted columns have attribute methods" do
+    assert_respond_to OnlyColumnsDeveloper.new, OnlyColumnsDeveloper.primary_key
+    assert_respond_to OnlyColumnsDeveloper.new, :name
+    assert_respond_to OnlyColumnsDeveloper.new, :name=
+    assert_respond_to OnlyColumnsDeveloper.new, :name?
+    assert_respond_to OnlyColumnsDeveloper.new, :salary
+    assert_respond_to OnlyColumnsDeveloper.new, :salary=
+    assert_respond_to OnlyColumnsDeveloper.new, :salary?
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id?
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id?
+  end
+
+  test "not permitted columns have not attribute methods" do
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name?
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at?
   end
 
   test "ignored columns are stored as an array of string" do

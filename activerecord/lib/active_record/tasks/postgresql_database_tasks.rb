@@ -99,6 +99,13 @@ module ActiveRecord
           tempfile = Tempfile.open("uncommented_structure.sql")
           begin
             File.foreach(filename) do |line|
+              next if line.start_with?("\\restrict ")
+
+              if line.start_with?("\\unrestrict ")
+                removing_comments = true
+                next
+              end
+
               unless removing_comments && (line.start_with?(SQL_COMMENT_BEGIN) || line.blank?)
                 tempfile << line
                 removing_comments = false

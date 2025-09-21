@@ -181,7 +181,7 @@ module ActiveSupport # :nodoc:
         end                                             # end
 
         def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
-          @html_unsafe = true                           #   @html_unsafe = false
+          @html_unsafe = true                           #   @html_unsafe = true
           if block                                      #   if block
             super(*args) { |*params|                    #     super(*args) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
@@ -196,14 +196,14 @@ module ActiveSupport # :nodoc:
 
     private
       def explicit_html_escape_interpolated_argument(arg)
-        (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+        (!html_safe? || arg.html_safe?) ? arg : ERB::Util.unwrapped_html_escape(arg)
       end
 
       def implicit_html_escape_interpolated_argument(arg)
         if !html_safe? || arg.html_safe?
           arg
         else
-          CGI.escapeHTML(arg.to_str)
+          ERB::Util.unwrapped_html_escape(arg.to_str)
         end
       end
 

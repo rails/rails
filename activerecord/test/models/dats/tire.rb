@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 # DATS = Deprecated Associations Test Suite.
-class DATS::Tyre < ActiveRecord::Base
+class DATS::Tire < ActiveRecord::Base
 end

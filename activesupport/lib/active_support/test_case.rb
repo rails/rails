@@ -6,6 +6,7 @@ require "active_support/testing/setup_and_teardown"
 require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
+require "active_support/testing/event_reporter_assertions"
 require "active_support/testing/deprecation"
 require "active_support/testing/declarative"
 require "active_support/testing/isolation"
@@ -22,7 +23,22 @@ module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    # Class variable to store the parallel worker ID
+    @@parallel_worker_id = nil
+
     class << self
+      # Returns the current parallel worker ID if tests are running in parallel,
+      # nil otherwise.
+      #
+      #   ActiveSupport::TestCase.parallel_worker_id # => 2
+      def parallel_worker_id
+        @@parallel_worker_id
+      end
+
+      def parallel_worker_id=(value) # :nodoc:
+        @@parallel_worker_id = value
+      end
+
       # Sets the order in which test cases are run.
       #
       #   ActiveSupport::TestCase.test_order = :random # => :random
@@ -173,11 +189,17 @@ module ActiveSupport
 
     alias_method :method_name, :name
 
+    # Returns the current parallel worker ID if tests are running in parallel
+    def parallel_worker_id
+      self.class.parallel_worker_id
+    end
+
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::EventReporterAssertions
     include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing

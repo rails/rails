@@ -797,7 +797,7 @@ Testing Generators
 ------------------
 
 Rails provides testing helper methods via
-[`Rails::Generators::Testing::Behaviour`][], such as:
+[`Rails::Generators::Testing::Behavior`][], such as:
 
 * [`run_generator`][]
 
@@ -824,7 +824,7 @@ In addition to those, Rails also provides additional assertions via
 [`rails_command`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
 [`rake`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
 [`route`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
-[`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
+[`Rails::Generators::Testing::Behavior`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
 [`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
 [`Rails::Generators::Testing::Assertions`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
 [`add_source`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source

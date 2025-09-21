@@ -11,11 +11,12 @@ module ActiveSupport
         # This class wraps up local storage for middlewares. Only the middleware method should
         # construct them.
         class Middleware # :nodoc:
-          attr_reader :name, :local_cache_key
+          attr_reader :name
+          attr_accessor :cache
 
-          def initialize(name, local_cache_key)
+          def initialize(name, cache)
             @name = name
-            @local_cache_key = local_cache_key
+            @cache = cache
             @app = nil
           end
 
@@ -25,18 +26,17 @@ module ActiveSupport
           end
 
           def call(env)
-            LocalCacheRegistry.set_cache_for(local_cache_key, LocalStore.new)
+            cache.new_local_cache
             response = @app.call(env)
             response[2] = ::Rack::BodyProxy.new(response[2]) do
-              LocalCacheRegistry.set_cache_for(local_cache_key, nil)
+              cache.unset_local_cache
             end
             cleanup_on_body_close = true
             response
           rescue Rack::Utils::InvalidParameterError
             [400, {}, []]
           ensure
-            LocalCacheRegistry.set_cache_for(local_cache_key, nil) unless
-              cleanup_on_body_close
+            cache.unset_local_cache unless cleanup_on_body_close
           end
         end
       end

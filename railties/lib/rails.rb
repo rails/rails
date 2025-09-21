@@ -93,6 +93,14 @@ module Rails
       ActiveSupport.error_reporter
     end
 
+    # Returns the ActiveSupport::EventReporter of the current \Rails project,
+    # otherwise it returns +nil+ if there is no project.
+    #
+    #   Rails.event.notify("my_event", { message: "Hello, world!" })
+    def event
+      ActiveSupport.event_reporter
+    end
+
     # Returns all \Rails groups for loading based on:
     #
     # * The \Rails environment;

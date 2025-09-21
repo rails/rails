@@ -27,6 +27,20 @@ class SQLite3JSONTest < ActiveRecord::SQLite3TestCase
     assert_equal '{"list":[]}', klass.new.with_defaults_before_type_cast
   end
 
+  def test_invalid_json_can_be_updated
+    model = klass.create!
+    @connection.execute("UPDATE #{klass.table_name} SET payload = '---'")
+
+    model.reload
+    assert_equal "---", model.payload_before_type_cast
+    assert_error_reported(JSON::ParserError) do
+      assert_nil model.payload
+    end
+
+    model.update(payload: "no longer invalid")
+    assert_equal("no longer invalid", model.payload)
+  end
+
   private
     def column_type
       :json

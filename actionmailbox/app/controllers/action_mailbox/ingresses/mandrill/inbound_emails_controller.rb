@@ -22,7 +22,7 @@ module ActionMailbox
       head :ok
     rescue JSON::ParserError => error
       logger.error error.message
-      head :unprocessable_entity
+      head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     end
 
     def health_check

@@ -140,7 +140,7 @@ module ActiveRecord
         # silently cast unsupported types to +String+:
         #
         #   >> JSON.parse(JSON.dump(Struct.new(:foo)))
-        #   => "#<Class:0x000000013090b4c0>"
+        #   # => "#<Class:0x000000013090b4c0>"
         #
         # ==== Examples
         #

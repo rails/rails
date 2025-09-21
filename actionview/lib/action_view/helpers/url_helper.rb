@@ -341,8 +341,9 @@ module ActionView
         inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
         if params
           to_form_params(params).each do |param|
-            inner_tags.safe_concat tag(:input, type: "hidden", name: param[:name], value: param[:value],
-                                       autocomplete: "off")
+            options = { type: "hidden", name: param[:name], value: param[:value] }
+            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            inner_tags.safe_concat tag(:input, **options)
           end
         end
         html = content_tag("form", inner_tags, form_options)
@@ -538,24 +539,47 @@ module ActionView
       #   current_page?('http://www.example.com/shop/checkout?order=desc&page=1')
       #   # => true
       #
-      # Let's say we're in the <tt>http://www.example.com/products</tt> action with method POST in case of invalid product.
+      # Different actions may share the same URL path but have a different HTTP method. Let's say we
+      # sent a POST to <tt>http://www.example.com/products</tt> and rendered a validation error.
       #
       #   current_page?(controller: 'product', action: 'index')
       #   # => false
       #
+      #   current_page?(controller: 'product', action: 'create')
+      #   # => false
+      #
+      #   current_page?(controller: 'product', action: 'create', method: :post)
+      #   # => true
+      #
+      #   current_page?(controller: 'product', action: 'index', method: [:get, :post])
+      #   # => true
+      #
       # We can also pass in the symbol arguments instead of strings.
       #
-      def current_page?(options = nil, check_parameters: false, **options_as_kwargs)
+      def current_page?(options = nil, check_parameters: false, method: :get, **options_as_kwargs)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
                 "in a #request method"
         end
 
-        return false unless request.get? || request.head?
+        if options.is_a?(Hash)
+          check_parameters = options.delete(:check_parameters) { check_parameters }
+          method = options.delete(:method) { method }
+        else
+          options ||= options_as_kwargs
+        end
 
-        options ||= options_as_kwargs
-        check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
+        method_matches = case method
+        when :get
+          request.get? || request.head?
+        when Array
+          method.include?(request.method_symbol) || (method.include?(:get) && request.head?)
+        else
+          method == request.method_symbol
+        end
+        return false unless method_matches
+
         url_string = URI::RFC2396_PARSER.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
@@ -751,14 +775,18 @@ module ActionView
               else
                 token
               end
-            tag(:input, type: "hidden", name: request_forgery_protection_token.to_s, value: token, autocomplete: "off")
+            options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
+            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            tag(:input, **options)
           else
             ""
           end
         end
 
         def method_tag(method)
-          tag("input", type: "hidden", name: "_method", value: method.to_s, autocomplete: "off")
+          options = { type: "hidden", name: "_method", value: method.to_s }
+          options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+          tag("input", **options)
         end
 
         # Returns an array of hashes each containing :name and :value keys

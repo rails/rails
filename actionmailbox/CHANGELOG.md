@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add `reply_to_address` extension method on `Mail::Message`.
 
     *Mr0grog*

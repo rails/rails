@@ -56,17 +56,6 @@ class UnsignedTypeTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
-  test "deprecate unsigned_float and unsigned_decimal" do
-    @connection.change_table("unsigned_types") do |t|
-      assert_deprecated(ActiveRecord.deprecator) do
-        t.unsigned_float :unsigned_float_t
-      end
-      assert_deprecated(ActiveRecord.deprecator) do
-        t.unsigned_decimal :unsigned_decimal_t
-      end
-    end
-  end
-
   test "schema dump includes unsigned option" do
     schema = dump_table_schema "unsigned_types"
     assert_match %r{t\.integer\s+"unsigned_integer",\s+unsigned: true$}, schema

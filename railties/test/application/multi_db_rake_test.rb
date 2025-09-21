@@ -36,7 +36,7 @@ module ApplicationTests
       app_file "config/database.yml", <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000

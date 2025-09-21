@@ -257,7 +257,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "-write": "/tmp/file.erb" }).processed
+        blob.variant(resize: { "-write": "/tmp/file.erb" }).processed
       end
     end
   end
@@ -266,11 +266,11 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "something": { "-write": "/tmp/file.erb" } }).processed
+        blob.variant(resize: { "something": { "-write": "/tmp/file.erb" } }).processed
       end
 
       assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument) do
-        blob.variant(saver: { "something": ["-write", "/tmp/file.erb"] }).processed
+        blob.variant(resize: { "something": ["-write", "/tmp/file.erb"] }).processed
       end
     end
   end

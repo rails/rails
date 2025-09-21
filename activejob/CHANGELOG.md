@@ -1,3 +1,4 @@
+
 *   Add rate limiting functionality for Active Job
 
     Similar to ActionController's rate limit feature, jobs can now limit
@@ -12,6 +13,33 @@
     ```
 
     *heka1024*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
+*   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
+
+    *Rafael Mendonça França*
+
+*   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
+
+    *Rafael Mendonça França*
+
+*   `ActiveJob::Serializers::ObjectSerializers#klass` method is now public.
+
+    Custom Active Job serializers must have a public `#klass` method too.
+    The returned class will be index allowing for faster serialization.
+
+    *Jean Boussier*
 
 *   Allow jobs to the interrupted and resumed with Continuations
 

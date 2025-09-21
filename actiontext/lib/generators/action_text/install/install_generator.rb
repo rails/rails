@@ -47,18 +47,6 @@ module ActionText
           "app/views/layouts/action_text/contents/_content.html.erb"
       end
 
-      def enable_image_processing_gem
-        if (gemfile_path = Pathname(destination_root).join("Gemfile")).exist?
-          say "Ensure image_processing gem has been enabled so image uploads will work (remember to bundle!)"
-          image_processing_regex = /gem ["']image_processing["']/
-          if File.readlines(gemfile_path).grep(image_processing_regex).any?
-            uncomment_lines gemfile_path, image_processing_regex
-          else
-            run "bundle add --skip-install image_processing"
-          end
-        end
-      end
-
       def create_migrations
         rails_command "railties:install:migrations FROM=active_storage,action_text", inline: true
       end

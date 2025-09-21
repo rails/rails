@@ -653,7 +653,7 @@ module ActiveRecord
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
-      def test_ignores_warnings_when_behaviour_ignore
+      def test_ignores_warnings_when_behavior_ignore
         with_db_warnings_action(:ignore) do
           # libpq prints a warning to stderr from C, so we need to stub
           # the whole file descriptors, not just Ruby's $stdout/$stderr.
@@ -665,7 +665,7 @@ module ActiveRecord
         end
       end
 
-      def test_logs_warnings_when_behaviour_log
+      def test_logs_warnings_when_behavior_log
         with_db_warnings_action(:log) do
           sql_warning = "[ActiveRecord::SQLWarning] PostgreSQL SQL warning (01000)"
 
@@ -675,7 +675,7 @@ module ActiveRecord
         end
       end
 
-      def test_raises_warnings_when_behaviour_raise
+      def test_raises_warnings_when_behavior_raise
         with_db_warnings_action(:raise) do
           error = assert_raises(ActiveRecord::SQLWarning) do
             @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
@@ -684,7 +684,7 @@ module ActiveRecord
         end
       end
 
-      def test_reports_when_behaviour_report
+      def test_reports_when_behavior_report
         with_db_warnings_action(:report) do
           error_reporter = ActiveSupport::ErrorReporter.new
           subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
@@ -700,7 +700,7 @@ module ActiveRecord
         end
       end
 
-      def test_warnings_behaviour_can_be_customized_with_a_proc
+      def test_warnings_behavior_can_be_customized_with_a_proc
         warning_message = nil
         warning_level = nil
         warning_action = ->(warning) do

@@ -36,7 +36,7 @@ require "models/ship"
 require "models/ship_part"
 require "models/treasure"
 require "models/parrot"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/subscription"
 require "models/zine"
@@ -2910,17 +2910,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "associations autosaves when object is already persisted" do
     bulb = Bulb.create!
-    tyre = Tyre.create!
+    tire = Tire.create!
 
     car = Car.create!(name: "honda") do |c|
       c.bulbs << bulb
-      c.tyres << tyre
+      c.tires << tire
     end
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
     assert_equal 1, car.bulbs.count
-    assert_equal 1, car.tyres.count
+    assert_equal 1, car.tires.count
   end
 
   test "associations replace in memory when records have the same id" do
@@ -3297,60 +3297,60 @@ class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   test "<association>" do
-    assert_not_deprecated_association(:tyres) do
-      @car.tyres
+    assert_not_deprecated_association(:tires) do
+      @car.tires
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyres)) do
-      assert_equal @car.tyres, @car.deprecated_tyres
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires)) do
+      assert_equal @car.tires, @car.deprecated_tires
     end
   end
 
   test "<association>=" do
-    tyre = DATS::Tyre.new
+    tire = DATS::Tire.new
 
-    assert_not_deprecated_association(:tyres) do
-      @car.tyres = [tyre]
+    assert_not_deprecated_association(:tires) do
+      @car.tires = [tire]
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyres=)) do
-      @car.deprecated_tyres = [tyre]
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires=)) do
+      @car.deprecated_tires = [tire]
     end
-    assert_equal [tyre], @car.deprecated_tyres
+    assert_equal [tire], @car.deprecated_tires
   end
 
   test "<singular_association>_ids" do
-    assert_not_deprecated_association(:tyres) do
-      @car.tyre_ids
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyre_ids)) do
-      assert_equal @car.tyre_ids, @car.deprecated_tyre_ids
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids)) do
+      assert_equal @car.tire_ids, @car.deprecated_tire_ids
     end
   end
 
   test "<singular_association>_ids=" do
-    tyre = @car.tyres.create!
+    tire = @car.tires.create!
 
-    assert_not_deprecated_association(:tyres) do
-      @car.tyre_ids = [tyre.id]
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids = [tire.id]
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_method(:deprecated_tyre_ids=)) do
-      @car.deprecated_tyre_ids = [tyre.id]
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids=)) do
+      @car.deprecated_tire_ids = [tire.id]
     end
-    assert_equal [tyre.id], @car.deprecated_tyre_ids
+    assert_equal [tire.id], @car.deprecated_tire_ids
   end
 
   test "destroy (not deprecated)" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @car.destroy
     end
     assert_predicate @car, :destroyed?
   end
 
   test "destroy (deprecated)" do
-    assert_deprecated_association(:deprecated_tyres, context: context_for_dependent) do
+    assert_deprecated_association(:deprecated_tires, context: context_for_dependent) do
       @car.destroy
     end
     assert_predicate @car, :destroyed?
