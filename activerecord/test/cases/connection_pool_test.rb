@@ -1477,6 +1477,25 @@ module ActiveRecord
         pool&.disconnect!
       end
 
+      def test_checkout_callback_error_does_not_affect_permanent_lease_and_active_connection_state
+        checkout_error = StandardError.new("error during checkout")
+        proc_to_raise = -> { raise checkout_error }
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.set_callback(:checkout, :after, proc_to_raise)
+
+        assert_predicate @pool, :permanent_lease?
+        assert_not_predicate @pool, :active_connection?
+
+        error = assert_raises StandardError do
+          @pool.lease_connection
+        end
+        assert_same checkout_error, error
+
+        assert_predicate @pool, :permanent_lease?
+        assert_not_predicate @pool, :active_connection?
+      ensure
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.skip_callback(:checkout, :after, proc_to_raise)
+      end
+
       private
         def active_connections(pool)
           pool.connections.find_all(&:in_use?)
