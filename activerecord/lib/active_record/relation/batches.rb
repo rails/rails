@@ -271,7 +271,7 @@ module ActiveRecord
       batch_limit = of
 
       if limit_value
-        remaining   = limit_value
+        remaining   = limit_value.to_i
         batch_limit = remaining if remaining < batch_limit
       end
 
