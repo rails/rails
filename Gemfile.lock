@@ -202,6 +202,7 @@ GEM
     dotenv (3.1.8)
     drb (2.2.3)
     ed25519 (1.4.0)
+    erb (5.0.2)
     erubi (1.13.1)
     et-orbi (1.3.0)
       tzinfo
@@ -473,7 +474,8 @@ GEM
     rb-inotify (0.11.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.9.1)
+    rdoc (6.14.2)
+      erb
       psych (>= 4.0.0)
     redcarpet (3.2.3)
     redis (5.4.1)
@@ -749,7 +751,6 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)
-  rdoc (< 6.10)
   redcarpet (~> 3.2.3)
   redis (>= 4.0.1)
   redis-namespace
