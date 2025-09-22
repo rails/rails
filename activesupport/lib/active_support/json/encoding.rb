@@ -46,6 +46,8 @@ module ActiveSupport
       def encode(value, options = nil)
         if options.nil? || options.empty?
           Encoding.encode_without_options(value)
+        elsif options == { escape: false }.freeze
+          Encoding.encode_without_escape(value)
         else
           Encoding.json_encoder.new(options).encode(value)
         end
@@ -164,7 +166,14 @@ module ActiveSupport
 
 
           def initialize(options = nil)
-            @options = options ? options.dup.freeze : {}.freeze
+            if options
+              options = options.dup
+              @escape = options.delete(:escape) { true }
+              @options = options.freeze
+            else
+              @escape = true
+              @options = {}.freeze
+            end
           end
 
           # Encode the given object into a JSON string
@@ -173,7 +182,7 @@ module ActiveSupport
 
             json = CODER.dump(value)
 
-            return json unless @options.fetch(:escape, true)
+            return json unless @escape
 
             # Rails does more escaping than the JSON gem natively does (we
             # escape \u2028 and \u2029 and optionally >, <, & to work around
@@ -209,10 +218,15 @@ module ActiveSupport
         def json_encoder=(encoder)
           @json_encoder = encoder
           @encoder_without_options = encoder.new
+          @encoder_without_escape = encoder.new(escape: false)
         end
 
         def encode_without_options(value) # :nodoc:
           @encoder_without_options.encode(value)
+        end
+
+        def encode_without_escape(value) # :nodoc:
+          @encoder_without_escape.encode(value)
         end
       end
 
