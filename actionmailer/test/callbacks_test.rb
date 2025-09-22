@@ -11,11 +11,14 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
   setup do
     @previous_delivery_method = ActionMailer::Base.delivery_method
     ActionMailer::Base.delivery_method = :test
+    CallbackMailer.raise_on_missing_callback_actions = false
     CallbackMailer.rescue_from_error = nil
     CallbackMailer.after_deliver_instance = nil
     CallbackMailer.around_deliver_instance = nil
     CallbackMailer.abort_before_deliver = nil
     CallbackMailer.around_handles_error = nil
+    CallbackMailer.callback_with_only_option = []
+    CallbackMailer.callback_with_except_option = []
   end
 
   teardown do
@@ -82,5 +85,28 @@ class ActionMailerCallbacksTest < ActiveSupport::TestCase
 
     assert_kind_of CallbackMailer, CallbackMailer.after_deliver_instance
     assert_nil CallbackMailer.rescue_from_error
+  end
+
+  test "callback with only option is executed according to the option's value" do
+    CallbackMailer.test_raise_action.deliver_now
+    assert_empty CallbackMailer.callback_with_only_option
+
+    CallbackMailer.test_message.deliver_now
+    assert_equal ["test_message"], CallbackMailer.callback_with_only_option
+  end
+
+  test "callback with except option is executed according to the option's value" do
+    CallbackMailer.test_raise_action.deliver_now
+    assert_equal ["test_raise_action"], CallbackMailer.callback_with_except_option
+
+    CallbackMailer.test_message.deliver_now
+    assert_equal ["test_raise_action"], CallbackMailer.callback_with_except_option
+  end
+
+  test "callback" do
+    CallbackMailer.raise_on_missing_callback_actions = true
+
+    error = assert_raises(AbstractController::ActionNotFound) { CallbackMailer.test_raise_action.deliver_now }
+    assert_match(/The non_existent_action action could not be found/, error.message)
   end
 end

@@ -2721,6 +2721,10 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `ActionMailer::MailDeliveryJob` |
 | 6.0                   | `"ActionMailer::MailDeliveryJob"` |
 
+#### `config.action_mailer.raise_on_missing_callback_actions`
+
+Mirrors `config.action_controller.raise_on_missing_callback_actions`, but applies to mailers. Defaults to `false`.
+
 ### Configuring Active Support
 
 There are a few configuration options available in Active Support:
