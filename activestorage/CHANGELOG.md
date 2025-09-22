@@ -1,3 +1,12 @@
+*   Address deprecation of `Aws::S3::Object#upload_stream` in `ActiveStorage::Service::S3Service`.
+
+    *Joshua Young*
+
+*   Fix `config.active_storage.touch_attachment_records` to work with eager loading.
+
+    *fatkodima*
+
+
 ## Rails 8.0.2.1 (August 13, 2025) ##
 
 *   Remove dangerous transformations

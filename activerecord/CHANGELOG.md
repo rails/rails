@@ -11,7 +11,7 @@
 
     *Rob Lewis*
 
-*   Fix false positive change detection involving STI and polymorhic has one relationships.
+*   Fix false positive change detection involving STI and polymorphic has one relationships.
 
     Polymorphic `has_one` relationships would always be considered changed when defined in a STI child
     class, causing nedless extra autosaves.
@@ -85,6 +85,14 @@
 
     *Joshua Young*
 
+*   Fix inline `has_and_belongs_to_many` fixtures for tables with composite primary keys.
+
+    *fatkodima*
+
+*   Fix migration log message for down operations.
+
+    *Bernardo Barreto*
+
 *   Prepend `extra_flags` in postgres' `structure_load`
 
     When specifying `structure_load_flags` with a postgres adapter, the flags
@@ -92,6 +100,10 @@
     This caused issues with flags not being taken into account by postgres.
 
     *Alice Loeser*
+
+*   Fix `annotate` comments to propagate to `update_all`/`delete_all`.
+
+    *fatkodima*
 
 *   Fix checking whether an unpersisted record is `include?`d in a strictly
     loaded `has_and_belongs_to_many` association.
@@ -115,6 +127,10 @@
     or `TypeError: wrong argument type nil (expected PG::TypeMap)`.
 
     *Jean Boussier*
+
+*   Fix stale state for composite foreign keys in belongs_to associations.
+
+    *Varun Sharma*
 
 
 ## Rails 8.0.2.1 (August 13, 2025) ##

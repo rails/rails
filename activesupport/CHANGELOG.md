@@ -2,9 +2,17 @@
 
     *Jan Grodowski*
 
+*   Fix `ActiveSupport::BroadcastLogger` from executing a block argument for each logger (tagged, info, etc.).
+
+    *Jared Armstrong*
+
 *   Make `ActiveSupport::Logger` `#freeze`-friendly.
 
     *Joshua Young*
+
+*   Fix `ActiveSupport::HashWithIndifferentAccess#transform_keys!` removing defaults.
+
+    *Hartley McGuire*
 
 *   Fix `ActiveSupport::HashWithIndifferentAccess#tranform_keys!` to handle collisions.
 
@@ -32,6 +40,14 @@
     This method specifically wasn't handling network errors like other codepaths.
 
     *Alessandro Dal Grande*
+
+*   Fix configuring `RedisCacheStore` with `raw: true`.
+
+    *fatkodima*
+
+*   Fix `Enumerable#sole` for infinite collections.
+
+    *fatkodima*
 
 
 ## Rails 8.0.2.1 (August 13, 2025) ##

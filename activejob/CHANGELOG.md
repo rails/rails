@@ -1,3 +1,12 @@
+*   Include the actual Active Job locale when serializing rather than I18n locale.
+
+    *Adrien S*
+
+*   Fix `retry_job` instrumentation when using `:test` adapter for Active Job.
+
+    *fatkodima*
+
+
 ## Rails 8.0.2.1 (August 13, 2025) ##
 
 *   No changes.

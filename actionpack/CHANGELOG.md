@@ -21,17 +21,13 @@
     Please use :unprocessable_content instead.
     ```
 
-    Rails API will transparently convert one into the other for the forseable future.
+    Rails API will transparently convert one into the other for the foreseeable future.
 
     *Earlopain*, *Jean Boussier*
 
+*   Support hash-source in Content Security Policy.
 
-## Rails 8.0.2.1 (August 13, 2025) ##
-
-*   No changes.
-
-
-## Rails 8.0.2 (March 12, 2025) ##
+    *madogiwa*
 
 *   Always return empty body for HEAD requests in `PublicExceptions` and
     `DebugExceptions`.
@@ -39,6 +35,11 @@
     This is required by `Rack::Lint` (per RFC9110).
 
     *Hartley McGuire*
+
+
+## Rails 8.0.2.1 (August 13, 2025) ##
+
+*   No changes.
 
 ## Rails 8.0.2 (March 12, 2025) ##
 

@@ -1,3 +1,7 @@
+*   Fix `polymorphic_url` and `polymorphic_path` not working when routes are not loaded.
+
+    *Édouard Chin*
+
 *   Fix Rails console to not override user defined IRB_NAME.
 
     Only change the prompt name if it hasn't been customized in `.irbrc`.

@@ -5,9 +5,13 @@
     javascript_include_tag "application", type: "module"
     ```
 
-    Previously, only the string value was recoginized.
+    Previously, only the string value was recognized.
 
     *Jean Boussier*
+
+*   Fix `excerpt` helper with non-whitespace separator.
+
+    *Jonathan Hefner*
 
 
 ## Rails 8.0.2.1 (August 13, 2025) ##
