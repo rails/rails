@@ -1,3 +1,15 @@
+*   Fix `javascript_include_tag` `type` option to accept either strings and symbols.
+
+    ```ruby
+    javascript_include_tag "application", type: :module
+    javascript_include_tag "application", type: "module"
+    ```
+
+    Previously, only the string value was recoginized.
+
+    *Jean Boussier*
+
+
 ## Rails 8.0.2.1 (August 13, 2025) ##
 
 *   No changes.

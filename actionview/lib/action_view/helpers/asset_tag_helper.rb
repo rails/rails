@@ -119,7 +119,7 @@ module ActionView
         crossorigin = options.delete("crossorigin")
         crossorigin = "anonymous" if crossorigin == true
         integrity = options["integrity"]
-        rel = options["type"] == "module" ? "modulepreload" : "preload"
+        rel = options["type"] == "module" || options["type"] == :module ? "modulepreload" : "preload"
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_javascript(source, path_options)
@@ -361,7 +361,7 @@ module ActionView
         crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
         integrity = options[:integrity]
         nopush = options.delete(:nopush) || false
-        rel = mime_type == "module" ? "modulepreload" : "preload"
+        rel = mime_type == "module" || mime_type == :module ? "modulepreload" : "preload"
 
         link_tag = tag.link(
           rel: rel,
