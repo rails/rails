@@ -85,6 +85,7 @@ class RequestForgeryProtectionControllerUsingException < ActionController::Base
 end
 
 class RequestForgeryProtectionControllerUsingNullSession < ActionController::Base
+  include RequestForgeryProtectionActions
   protect_from_forgery with: :null_session
 
   def signed
@@ -119,6 +120,22 @@ class RequestForgeryProtectionControllerUsingCustomStrategy < ActionController::
   end
 
   protect_from_forgery only: %w(index meta same_origin_js negotiate_same_origin), with: CustomStrategy
+end
+
+class RequestForgeryProtectionControllerUsingCustomLogStrategy < ActionController::Base
+  include RequestForgeryProtectionActions
+
+  class CustomLogStrategy
+    def initialize(controller)
+      @controller = controller
+    end
+
+    def handle_cross_origin_request
+      @controller.logger.warn("Cross origin request detected")
+    end
+  end
+
+  protect_from_forgery only: %w(same_origin_js), with: CustomLogStrategy
 end
 
 class PrependProtectForgeryBaseController < ActionController::Base
@@ -734,6 +751,19 @@ class RequestForgeryProtectionControllerUsingResetSessionTest < ActionController
       assert_match(/#{regexp}/, @response.body)
     end
   end
+
+  test "raise an error and log on unsafe cross origin request" do
+    old_logger = ActionController::Base.logger
+    io = StringIO.new
+    ActionController::Base.logger = Logger.new(io)
+
+    assert_cross_origin_blocked { get :same_origin_js }
+    io.rewind
+
+    assert_match(/Security warning: an embedded <script>/, io.read)
+  ensure
+    ActionController::Base.logger = old_logger
+  end
 end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
@@ -762,6 +792,21 @@ class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController:
     post :try_to_reset_session
     assert_response :ok
   end
+
+  test "raise an error and log on unsafe cross origin request" do
+    old_logger = ActionController::Base.logger
+    io = StringIO.new
+    ActionController::Base.logger = Logger.new(io)
+
+    assert_raises(ActionController::InvalidCrossOriginRequest) do
+      get :same_origin_js
+    end
+    io.rewind
+
+    assert_match(/Security warning: an embedded <script>/, io.read)
+  ensure
+    ActionController::Base.logger = old_logger
+  end
 end
 
 class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::TestCase
@@ -786,13 +831,64 @@ class RequestForgeryProtectionControllerUsingExceptionTest < ActionController::T
       end
     end
   end
+
+  def test_raise_an_error_and_log_on_unsafe_cross_origin_request
+    old_logger = ActionController::Base.logger
+    io = StringIO.new
+    ActionController::Base.logger = Logger.new(io)
+
+    assert_cross_origin_blocked { get :same_origin_js }
+    io.rewind
+
+    assert_match(/Security warning: an embedded <script>/, io.read)
+  ensure
+    ActionController::Base.logger = old_logger
+  end
 end
 
 class RequestForgeryProtectionControllerUsingCustomStrategyTest < ActionController::TestCase
   include RequestForgeryProtectionTests
 
+  def test_raise_an_error_and_log_when_a_strategy_doesnt_implement_handle_cross_origin_request
+    old_logger = ActionController::Base.logger
+    io = StringIO.new
+    ActionController::Base.logger = Logger.new(io)
+
+    expected_deprecation = /Custom CSRF strategy now need to implement the `handle_cross_origin_request`/
+    assert_deprecated(expected_deprecation, ActionController.deprecator) do
+      assert_cross_origin_blocked do
+        get :same_origin_js
+      end
+    end
+
+    io.rewind
+
+    assert_match(/Security warning: an embedded <script>/, io.read)
+  ensure
+    ActionController::Base.logger = old_logger
+  end
+
   def assert_blocked(&block)
     assert_raises(RequestForgeryProtectionControllerUsingCustomStrategy::FakeException, &block)
+  end
+end
+
+class RequestForgeryProtectionControllerUsingCustomLogStrategyTest < ActionController::TestCase
+  def test_log_only_on_unsafe_cross_origin_request
+    old_logger = ActionController::Base.logger
+    io = StringIO.new
+    ActionController::Base.logger = Logger.new(io)
+
+    get :same_origin_js
+    assert_response(:ok)
+
+    io.rewind
+    logs = io.read
+
+    assert_no_match(/Security warning: an embedded <script>/, logs)
+    assert_match(/Cross origin request detected/, logs)
+  ensure
+    ActionController::Base.logger = old_logger
   end
 end
 
