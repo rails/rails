@@ -48,6 +48,29 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.stub(method_name, mock, &block)
       assert_mock(mock)
     end
+
+    def with_stubbed_configurations(configurations = @configurations, env: "test")
+      old_configurations = ActiveRecord::Base.configurations
+      ActiveRecord::Base.configurations = configurations
+      ActiveRecord::Tasks::DatabaseTasks.env = env
+
+      yield
+    ensure
+      ActiveRecord::Base.configurations = old_configurations
+      ActiveRecord::Tasks::DatabaseTasks.env = nil
+    end
+
+    def with_stubbed_configurations_establish_connection(&block)
+      with_stubbed_configurations do
+        # To refrain from connecting to a newly created empty DB in
+        # sqlite3_mem tests
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
+      end
+    end
+
+    def config_for(env_name, name)
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
+    end
   end
 
   ADAPTERS_TASKS = {
@@ -414,6 +437,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
 
@@ -485,18 +510,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        # To refrain from connecting to a newly created empty DB in
-        # sqlite3_mem tests
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
@@ -606,20 +619,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
@@ -727,20 +726,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations_establish_connection(&block)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil, &block)
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
@@ -758,6 +743,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     def setup
       @configurations = { development: { "adapter" => "abstract", "database" => "my-db" } }
 
@@ -829,16 +816,6 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
@@ -916,20 +893,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
@@ -1024,20 +987,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksMigrationTestCase < ActiveRecord::TestCase
@@ -1469,20 +1418,6 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = @configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
@@ -1703,6 +1638,8 @@ module ActiveRecord
   end
 
   class DatabaseTasksCheckSchemaFileMethods < ActiveRecord::TestCase
+    include DatabaseTasksHelper
+
     setup do
       @configurations = { "development" => { "adapter" => "abstract", "database" => "my-db" } }
     end
@@ -1795,19 +1732,5 @@ module ActiveRecord
         end
       end
     end
-
-    private
-      def config_for(env_name, name)
-        ActiveRecord::Base.configurations.configs_for(env_name: env_name, name: name)
-      end
-
-      def with_stubbed_configurations(configurations = @configurations)
-        old_configurations = ActiveRecord::Base.configurations
-        ActiveRecord::Base.configurations = configurations
-
-        yield
-      ensure
-        ActiveRecord::Base.configurations = old_configurations
-      end
   end
 end
