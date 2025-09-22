@@ -1,3 +1,18 @@
+*   Add support for integer shard keys.
+    ```ruby
+    # Now accepts symbols as shard keys.
+    ActiveRecord::Base.connects_to(shards: {
+      1: { writing: :primary_shard_one, reading: :primary_shard_one },
+      2: { writing: :primary_shard_two, reading: :primary_shard_two},
+    })
+
+    ActiveRecord::Base.connected_to(shard: 1) do
+      # ..
+    end
+    ```
+
+    *Nony Dutton*
+
 *   Add `ActiveRecord::Base.only_columns`
 
     Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
