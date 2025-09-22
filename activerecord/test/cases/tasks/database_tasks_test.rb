@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "tempfile"
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 require "models/course"
@@ -478,6 +479,19 @@ module ActiveRecord
 
     def test_creates_configurations_with_blank_hosts
       @configurations["development"]["host"] = nil
+
+      with_stubbed_configurations_establish_connection do
+        assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
+      end
+    end
+
+    def test_creates_configurations_with_local_socket_host
+      file = Tempfile.new(".PG.5432")
+      file.write("puppy doggy")  # Not actually a socket, but it's fine.
+
+      @configurations["development"]["host"] = file.path
 
       with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do

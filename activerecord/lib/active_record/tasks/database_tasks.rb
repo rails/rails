@@ -615,7 +615,7 @@ module ActiveRecord
 
         def local_database?(db_config)
           host = db_config.host
-          host.blank? || LOCAL_HOSTS.include?(host)
+          host.blank? || LOCAL_HOSTS.include?(host) || File.exist?(host)
         end
 
         def schema_sha1(file)
