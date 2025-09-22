@@ -1,3 +1,14 @@
+*   Fix `javascript_include_tag` `type` option to accept either strings and symbols.
+
+    ```ruby
+    javascript_include_tag "application", type: :module
+    javascript_include_tag "application", type: "module"
+    ```
+
+    Previously, only the string value was recoginized.
+
+    *Jean Boussier*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
