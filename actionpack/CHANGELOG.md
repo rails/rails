@@ -1,3 +1,25 @@
+*   Accept render options and block in `render` calls made with `:renderable`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello, <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    ApplicationController.render(Greeting.new)                                        # => "Hello, World"
+    ApplicationController.render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ApplicationController.render(renderable: Greeting.new)                            # => "Hello, World"
+    ApplicationController.render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+
+    *Sean Doyle*
+
 *   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
 
     Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
