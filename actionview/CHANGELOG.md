@@ -1,3 +1,7 @@
+*   Fix label with `for` option not getting prefixed by form `namespace` value
+
+    *Abeid Ahmed*, *Hartley McGuire*
+
 *   Fix `javascript_include_tag` `type` option to accept either strings and symbols.
 
     ```ruby
