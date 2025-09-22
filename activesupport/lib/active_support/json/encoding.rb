@@ -140,20 +140,17 @@ module ActiveSupport
           end
       end
 
-      if defined?(::JSON::Coder)
+      # ruby/json 2.14.x yields non-String keys but doesn't let us know it's a key
+      if defined?(::JSON::Coder) && !::JSON::VERSION.start_with?("2.14.")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new do |value|
+          CODER = ::JSON::Coder.new do |value, is_key|
             json_value = value.as_json
+            # Keep compatibility by calling to_s on non-String keys
+            next json_value.to_s if is_key
             # Handle objects returning self from as_json
             if json_value.equal?(value)
-              if JSON_NATIVE_TYPES.include?(json_value.class)
-                # If the callback is invoked for a native type,
-                # it means it is hash keys, e.g. { 1 => true }
-                next json_value.to_s
-              else
-                next ::JSON::Fragment.new(::JSON.generate(json_value))
-              end
+              next ::JSON::Fragment.new(::JSON.generate(json_value))
             end
             # Handle objects not returning JSON-native types from as_json
             count = 5
@@ -222,7 +219,7 @@ module ActiveSupport
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
       self.json_encoder =
-        if defined?(::JSON::Coder)
+        if defined?(JSONGemCoderEncoder)
           JSONGemCoderEncoder
         else
           JSONGemEncoder
