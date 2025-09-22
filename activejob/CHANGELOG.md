@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Include the actual Active Job locale when serializing rather than I18n locale.
 
     *Adrien S*

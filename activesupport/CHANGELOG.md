@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unnecessary reloads with time travel test helpers
 
     *Jan Grodowski*

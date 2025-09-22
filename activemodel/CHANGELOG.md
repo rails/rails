@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Fix `has_secure_password` to perform confirmation validation of the password even when blank.
 
     The validation was incorrectly skipped when the password only contained whitespace characters.

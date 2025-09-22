@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Address deprecation of `Aws::S3::Object#upload_stream` in `ActiveStorage::Service::S3Service`.
 
     *Joshua Young*

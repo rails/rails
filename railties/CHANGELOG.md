@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Fix `polymorphic_url` and `polymorphic_path` not working when routes are not loaded.
 
     *Édouard Chin*

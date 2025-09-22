@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Fixed compatibility with `redis` gem `5.4.1`
 
     *Jean Boussier*

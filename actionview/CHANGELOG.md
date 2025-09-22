@@ -1,3 +1,5 @@
+## Rails 8.0.3 (September 22, 2025) ##
+
 *   Fix label with `for` option not getting prefixed by form `namespace` value
 
     *Abeid Ahmed*, *Hartley McGuire*
