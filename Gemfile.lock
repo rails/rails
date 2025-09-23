@@ -569,7 +569,7 @@ GEM
       google-protobuf (~> 4.31)
     sass-embedded (1.91.0-x86_64-linux-gnu)
       google-protobuf (~> 4.31)
-    sdoc (2.6.3)
+    sdoc (2.6.4)
       rdoc (>= 5.0)
     securerandom (0.4.1)
     selenium-webdriver (4.35.0)
@@ -779,7 +779,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   rubyzip (~> 2.0)
-  sdoc
+  sdoc (~> 2.6.4)
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
