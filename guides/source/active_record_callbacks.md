@@ -183,25 +183,25 @@ section](active_record_callbacks.html#after-commit-and-after-rollback) for
 examples using these two callbacks.
 
 [`after_create`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_create
 [`after_commit`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_commit
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_commit
 [`after_rollback`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_rollback
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_rollback
 [`after_save`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_save
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_save
 [`after_validation`]:
-    https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-after_validation
+    https://api.rubyonrails.org/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-after_validation
 [`around_create`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_create
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_create
 [`around_save`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_save
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_save
 [`before_create`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_create
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_create
 [`before_save`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_save
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_save
 [`before_validation`]:
-    https://api.rubyonrails.org/classes/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
+    https://api.rubyonrails.org/ActiveModel/Validations/Callbacks/ClassMethods.html#method-i-before_validation
 
 There are examples below that show how to use these callbacks. We've grouped
 them by the operation they are associated with, and lastly show how they can be
@@ -211,11 +211,11 @@ used in combination.
 
 Validation callbacks are triggered whenever the record is validated directly via
 the
-[`valid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-valid-3F)
+[`valid?`](https://api.rubyonrails.org/ActiveModel/Validations.html#method-i-valid-3F)
 ( or its alias
-[`validate`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-validate))
+[`validate`](https://api.rubyonrails.org/ActiveModel/Validations.html#method-i-validate))
 or
-[`invalid?`](https://api.rubyonrails.org/classes/ActiveModel/Validations.html#method-i-invalid-3F)
+[`invalid?`](https://api.rubyonrails.org/ActiveModel/Validations.html#method-i-invalid-3F)
 method, or indirectly via `create`, `update`, or `save`. They are called before
 and after the validation phase.
 
@@ -349,11 +349,11 @@ around the object is updated.
 * [`after_commit`][] / [`after_rollback`][]
 
 [`after_update`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_update
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_update
 [`around_update`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_update
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_update
 [`before_update`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_update
 
 WARNING: The `after_save` callback is triggered on both create and update
 operations. However, it consistently executes after the more specific callbacks
@@ -457,11 +457,11 @@ destroyed.
 * [`after_commit`][] / [`after_rollback`][]
 
 [`after_destroy`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_destroy
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_destroy
 [`around_destroy`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_destroy
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-around_destroy
 [`before_destroy`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-before_destroy
 
 Find [examples for using `after_commit` /
 `after_rollback`](#after-commit-and-after-rollback).
@@ -545,15 +545,15 @@ You have initialized an object!
 ```
 
 [`after_find`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_find
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_find
 [`after_initialize`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_initialize
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_initialize
 
 ### `after_touch`
 
 The [`after_touch`][] callback will be called whenever an Active Record object
 is touched. You can [read more about `touch` in the API
-docs](https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-touch).
+docs](https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-touch).
 
 ```ruby
 class User < ApplicationRecord
@@ -604,7 +604,7 @@ Book/Library was touched
 ```
 
 [`after_touch`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_touch
+    https://api.rubyonrails.org/ActiveRecord/Callbacks/ClassMethods.html#method-i-after_touch
 
 Running Callbacks
 -----------------
@@ -801,41 +801,41 @@ to bypass. Bypassing them without understanding the potential implications may
 lead to invalid data.
 
 [`decrement!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
+    https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-decrement-21
 [`decrement_counter`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
+    https://api.rubyonrails.org/ActiveRecord/CounterCache/ClassMethods.html#method-i-decrement_counter
 [`delete`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-delete
+    https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-delete
 [`delete_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_all
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-delete_all
 [`delete_by`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-delete_by
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-delete_by
 [`increment!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-increment-21
+    https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-increment-21
 [`increment_counter`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
+    https://api.rubyonrails.org/ActiveRecord/CounterCache/ClassMethods.html#method-i-increment_counter
 [`insert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-insert
 [`insert!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert-21
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-insert-21
 [`insert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-insert_all
 [`insert_all!`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-insert_all-21
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-insert_all-21
 [`touch_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-touch_all
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-touch_all
 [`update_column`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_column
+    https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-update_column
 [`update_columns`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-update_columns
+    https://api.rubyonrails.org/ActiveRecord/Persistence.html#method-i-update_columns
 [`update_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_all
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-update_all
 [`update_counters`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-update_counters
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-update_counters
 [`upsert`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-upsert
 [`upsert_all`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
+    https://api.rubyonrails.org/ActiveRecord/Relation.html#method-i-upsert_all
 
 Suppressing Saving
 ------------------
@@ -847,7 +847,7 @@ to skip saving specific records during certain operations without permanently di
 the callbacks or introducing complex conditional logic.
 
 Rails provides a mechanism to prevent saving records using the
-[`ActiveRecord::Suppressor` module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html).
+[`ActiveRecord::Suppressor` module](https://api.rubyonrails.org/ActiveRecord/Suppressor.html).
 By using this module, you can wrap a block of code where you want to avoid
 saving records of a specific type that otherwise would be saved by the code block.
 
@@ -1329,13 +1329,13 @@ NOTE: This applies to all `after_*_commit` variations too, such as
 `after_destroy_commit`.
 
 [`after_create_commit`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_create_commit
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_create_commit
 [`after_destroy_commit`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_destroy_commit
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_destroy_commit
 [`after_save_commit`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_save_commit
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_save_commit
 [`after_update_commit`]:
-    https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
+    https://api.rubyonrails.org/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
 
 ### Per transaction callback
 
@@ -1374,7 +1374,7 @@ end
 A callback registered to `after_all_transactions_commit` will be triggered after the outermost transaction is committed. If any of the currently open transactions is rolled back, the block is never called.
 In the event that there are no open transactions at the time a callback is registered, the block will be yielded immediately.
 
-[`ActiveRecord.after_all_transactions_commit`]: https://api.rubyonrails.org/classes/ActiveRecord.html#method-c-after_all_transactions_commit
+[`ActiveRecord.after_all_transactions_commit`]: https://api.rubyonrails.org/ActiveRecord.html#method-c-after_all_transactions_commit
 
 Callback Objects
 ----------------
