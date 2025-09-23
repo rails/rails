@@ -139,12 +139,28 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.where(["price = %?", price]).sole
-    def sole
+    #   Product.where(["price = %?", price]).count                  # => 0
+    #   Product.where(["price = %?", price]).sole                   # => raise RecordNotFound
+    #   Product.where(["price = %?", price]).sole(allow_nil: true)  # => nil
+    #
+    #   Product.where(["price = %?", price]).count                  # => 1
+    #   Product.where(["price = %?", price]).sole                   # => #<Product ...>
+    #   Product.where(["price = %?", price]).sole(allow_nil: true)  # => #<Product ...>
+    #
+    #   Product.where(["price = %?", price]).count                  # => 2+
+    #   Product.where(["price = %?", price]).sole                   # => raise SoleRecordExceeded
+    #   Product.where(["price = %?", price]).sole(allow_nil: true)  # => raise SoleRecordExceeded
+    #
+    # ==== Options
+    #
+    # [+:allow_nil+]
+    #   Whether to return `nil` or raise ActiveRecord::RecordNotFound,
+    #   if no record is found. Defaults to false.
+    def sole(allow_nil: false)
       found, undesired = take(2)
 
       if found.nil?
-        raise_record_not_found_exception!
+        raise_record_not_found_exception! unless allow_nil
       elsif undesired.nil?
         found
       else

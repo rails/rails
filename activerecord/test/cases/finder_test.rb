@@ -773,20 +773,32 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_sole
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole(allow_nil: true)
     assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").sole(allow_nil: false)
     assert_equal topics(:first), Topic.find_sole_by("title = 'The First Topic'")
   end
 
-  def test_sole_failing_none
+  def test_sole_with_none
+    assert_nil Topic.where("title = 'This title does not exist'").sole(allow_nil: true)
     assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.where("title = 'This title does not exist'").sole
+    end
+    assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
+      Topic.where("title = 'This title does not exist'").sole(allow_nil: false)
     end
     assert_raises ActiveRecord::RecordNotFound, match: "Couldn't find Topic" do
       Topic.find_sole_by("title = 'This title does not exist'")
     end
   end
 
-  def test_sole_failing_many
+  def test_sole_with_many
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
+      Topic.where("author_name = 'Carl'").sole(allow_nil: true)
+    end
+    assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
+      Topic.where("author_name = 'Carl'").sole(allow_nil: false)
+    end
     assert_raises ActiveRecord::SoleRecordExceeded, match: "Wanted only one Topic" do
       Topic.where("author_name = 'Carl'").sole
     end
@@ -800,7 +812,9 @@ class FinderTest < ActiveRecord::TestCase
     expected_topic = topics(:first)
 
     assert_no_queries do
+      assert_equal expected_topic, relation.sole(allow_nil: true)
       assert_equal expected_topic, relation.sole
+      assert_equal expected_topic, relation.sole(allow_nil: false)
     end
   end
 

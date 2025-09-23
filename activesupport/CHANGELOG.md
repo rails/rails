@@ -1,3 +1,21 @@
+*   Add optional `:allow_nil` flag to `#sole` method with defaults to `false`.
+    When `allow_nil: true` no exception will raise if enumerable has no items.
+    ```ruby
+    [].sole                       # => raise SoleItemExpectedError
+    [].sole(allow_nil: false)     # => raise SoleItemExpectedError
+    [].sole(allow_nil: true)      # => nil
+
+    [1].sole                      # => 1
+    [1].sole(allow_nil: false)    # => 1
+    [1].sole(allow_nil: true)     # => 1
+
+    [1, 2].sole                   # => raise SoleItemExpectedError
+    [1, 2].sole(allow_nil: false) # => raise SoleItemExpectedError
+    [1, 2].sole(allow_nil: true)  # => raise SoleItemExpectedError
+    ```
+
+    *Alexey Zapparov*
+
 *   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
 
     *Jan Grodowski*

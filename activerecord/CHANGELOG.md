@@ -1,3 +1,30 @@
+*   Add optional `:allow_nil` flag to `#sole` method with defaults to `false`.
+    When `allow_nil: true` no exception will raise if collection has no records.
+    ```ruby
+    topics = Topic.where(title: "Title Does Not Exist")
+
+    topics.count                  # => 0
+    topics.sole                   # => raise RecordNotFound
+    topics.sole(allow_nil: false) # => raise RecordNotFound
+    topics.sole(allow_nil: true)  # => nil
+
+    topics = Topic.where(title: "The First Topic")
+
+    topics.count                  # => 1
+    topics.sole                   # => #<Topic ...>
+    topics.sole(allow_nil: false) # => #<Topic ...>
+    topics.sole(allow_nil: true)  # => #<Topic ...>
+
+    topics = Topic.all
+
+    topics.count                  # => 2+
+    topics.sole                   # => raise SoleRecordExceeded
+    topics.sole(allow_nil: false) # => raise SoleRecordExceeded
+    topics.sole(allow_nil: true)  # => raise SoleRecordExceeded
+    ```
+
+    *Alexey Zapparov*
+
 *   Add support for integer shard keys.
     ```ruby
     # Now accepts symbols as shard keys.

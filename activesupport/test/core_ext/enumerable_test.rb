@@ -395,10 +395,24 @@ class EnumerableTests < ActiveSupport::TestCase
     expected_raise = Enumerable::SoleItemExpectedError
 
     assert_raise(expected_raise) { GenericEnumerable.new([]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new([]).sole(allow_nil: false) }
+    assert_nil GenericEnumerable.new([]).sole(allow_nil: true)
+
     assert_equal 1, GenericEnumerable.new([1]).sole
+    assert_equal 1, GenericEnumerable.new([1]).sole(allow_nil: false)
+    assert_equal 1, GenericEnumerable.new([1]).sole(allow_nil: true)
+
     assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole(allow_nil: false) }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, 2]).sole(allow_nil: true) }
+
     assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole(allow_nil: false) }
+    assert_raise(expected_raise) { GenericEnumerable.new([1, nil]).sole(allow_nil: true) }
+
     assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
+    assert_raise(expected_raise) { GenericEnumerable.new(1..).sole(allow_nil: false) }
+    assert_raise(expected_raise) { GenericEnumerable.new(1..).sole(allow_nil: true) }
   end
 
   def test_doesnt_bust_constant_cache

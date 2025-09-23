@@ -205,10 +205,20 @@ module Enumerable
   # Returns the sole item in the enumerable. If there are no items, or more
   # than one item, raises Enumerable::SoleItemExpectedError.
   #
-  #   ["x"].sole          # => "x"
-  #   Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
-  #   { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
-  def sole
+  #   ["x"].sole                            # => "x"
+  #   Set.new.sole                          # => Enumerable::SoleItemExpectedError: no item found
+  #   { a: 1, b: 2 }.sole                   # => Enumerable::SoleItemExpectedError: multiple items found
+  #
+  #   ["x"].sole(allow_nil: true)           # => "x"
+  #   Set.new.sole(allow_nil: true)         # => nil
+  #   { a: 1, b: 2 }.sole(allow_nilw: true) # => Enumerable::SoleItemExpectedError: multiple items found
+  #
+  # ==== Options
+  #
+  # [+:allow_nil+]
+  #   Whether to return `nil` or raise Enumerable::SoleItemExpectedError,
+  #   when there are no items. Defaults to false.
+  def sole(allow_nil: false)
     result = nil
     found = false
 
@@ -224,7 +234,7 @@ module Enumerable
     if found
       result
     else
-      raise SoleItemExpectedError, "no item found"
+      raise SoleItemExpectedError, "no item found" unless allow_nil
     end
   end
 end

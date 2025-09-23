@@ -290,13 +290,25 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_sole
     assert_equal 1, (1..1).sole
+    assert_equal 1, (1..1).sole(allow_nil: false)
+    assert_equal 1, (1..1).sole(allow_nil: true)
 
     assert_raises(Enumerable::SoleItemExpectedError, match: "no item found") do
       (2..1).sole
     end
+    assert_raises(Enumerable::SoleItemExpectedError, match: "no item found") do
+      (2..1).sole(allow_nil: false)
+    end
+    assert_nil (2..1).sole(allow_nil: true)
 
     assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
       (..1).sole
+    end
+    assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
+      (..1).sole(allow_nil: false)
+    end
+    assert_raises(Enumerable::SoleItemExpectedError, match: "infinite range '..1' cannot represent a sole item") do
+      (..1).sole(allow_nil: true)
     end
   end
 end
