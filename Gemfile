@@ -62,7 +62,7 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", github: "rails/sdoc", branch: "stable"
+  gem "sdoc"
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
