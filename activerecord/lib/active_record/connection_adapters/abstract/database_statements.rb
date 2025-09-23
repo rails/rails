@@ -436,13 +436,16 @@ module ActiveRecord
         end
       end
 
+      TRANSACTION_ISOLATION_LEVELS = {
+        read_uncommitted: "READ UNCOMMITTED",
+        read_committed:   "READ COMMITTED",
+        repeatable_read:  "REPEATABLE READ",
+        serializable:     "SERIALIZABLE"
+      }.freeze
+      private_constant :TRANSACTION_ISOLATION_LEVELS
+
       def transaction_isolation_levels
-        {
-          read_uncommitted: "READ UNCOMMITTED",
-          read_committed:   "READ COMMITTED",
-          repeatable_read:  "REPEATABLE READ",
-          serializable:     "SERIALIZABLE"
-        }
+        TRANSACTION_ISOLATION_LEVELS
       end
 
       # Begins the transaction with the isolation level set. Raises an error by
