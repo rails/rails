@@ -1,3 +1,19 @@
+
+*   Add rate limiting functionality for Active Job
+
+    Similar to ActionController's rate limit feature, jobs can now limit
+    their execution frequency using the `rate_limit` method.
+    This helps prevent resource overload and respect third-party API limits.
+
+    ```ruby
+    class ExternalApiCallJob < ApplicationJob
+        rate_limit to: 10, within: 1.second, name: "burst"
+        rate_limit to: 1000, within: 1.hour, name: "sustained"
+    end
+    ```
+
+    *heka1024*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Deprecate built-in `sidekiq` adapter.
