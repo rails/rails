@@ -15,7 +15,7 @@ module ActiveRecord
     Event = Struct.new(:duration, :payload)
 
     def run(*)
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         super
       end
     end

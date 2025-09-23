@@ -129,7 +129,7 @@ module ActionController
     end
 
     def test_unpermitted_parameters
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         assert_event_reported("action_controller.unpermitted_parameters", payload: {
           controller: Another::StructuredEventSubscribersController.name,
           action: "unpermitted_parameters",

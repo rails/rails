@@ -64,7 +64,7 @@ module ActiveStorage
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         assert_event_reported("active_storage.service_exist", payload: { key: /.*/, exist: true }) do
           user.avatar.service.exist? user.avatar.key
         end
@@ -75,7 +75,7 @@ module ActiveStorage
       blob = create_blob(filename: "avatar.jpg")
       user = User.create!(name: "Test", avatar: blob)
 
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         assert_event_reported("active_storage.service_url", payload: { key: /.*/, url: /.*/ }) do
           user.avatar.url
         end
@@ -98,7 +98,7 @@ module ActiveStorage
       service = ActiveStorage::Service.configure :mirror, config
       service.upload blob.key, StringIO.new(blob.download), checksum: blob.checksum
 
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         assert_event_reported("active_storage.service_mirror", payload: { key: /.*/, url: /.*/ }) do
           service.mirror blob.key, checksum: blob.checksum
         end
