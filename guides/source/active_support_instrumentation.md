@@ -42,7 +42,28 @@ For example, if you want to subscribe to the `process_action.action_controller` 
 
 A single event can have multiple subscribers.
 
-You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
+Publishing an event
+-------------------
+
+As mentioned [above](#introduction-to-instrumentation), an event is generated when a hook is triggered within the Rails framework, or you can create your own events. An instrumenter is the object that is used for emitting these events.
+
+To publish an event, with a block, you can call [`ActiveSupport::Notifications.instrument`][] with a `name`, `payload`, and a block, like below:
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: "data" do
+  # do your custom stuff here
+end
+```
+
+When called with a block, Active Support measures the block’s execution (start time, end time, and duration), then emits the event with that data plus your payload. The event is sent after the block finishes. We'll describe how to subscribe to this event [later on](#subscribing-to-an-event).
+
+To publish an event without a block:
+
+```ruby
+ActiveSupport::Notifications.instrument "my.custom.event", this: "data"
+```
+
+In this case, no code is measured. The event is emitted immediately with the payload you provide. This is useful when you just need to notify subscribers that something happened, without executing or measuring a block of code.
 
 Subscribing to an Event
 -----------------------
