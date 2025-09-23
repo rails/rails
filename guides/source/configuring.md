@@ -3136,6 +3136,14 @@ The value must respond to Ruby's `Digest` interface.
 | --------------------- | --------------------------------------- |
 | (original)            | `OpenSSL::Digest::MD5` or `Digest::MD5` |
 
+#### `config.active_storage.default_chunk_size`
+
+Default amount of data to be used to calculate file hashes at a time.
+
+| Starting with version | The default value is |
+| --------------------- | ---------------------|
+| (original)            | 5.megabytes          |
+
 #### `config.active_storage.variant_processor`
 
 Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.

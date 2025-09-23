@@ -152,6 +152,7 @@ module ActiveStorage
         if app.config.active_storage.checksum_implementation
           ActiveStorage.checksum_implementation = app.config.active_storage.checksum_implementation
         end
+        ActiveStorage.default_chunk_size = app.config.active_storage.default_chunk_size || 5242880
       end
     end
 
