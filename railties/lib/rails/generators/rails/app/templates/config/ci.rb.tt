@@ -6,7 +6,9 @@ CI.run do
   step "Style: Ruby", "bin/rubocop"
 <% end -%>
 
+<% unless options.skip_bundler_audit? -%>
   step "Security: Gem audit", "bin/bundler-audit"
+<% end -%>
 <% if using_node? -%>
   step "Security: Yarn vulnerability audit", "yarn audit"
 <% end -%>
