@@ -173,8 +173,10 @@ module ActiveRecord
             connection_latch.count_down
             load_interlock_latch.wait
 
-            ActiveSupport::Dependencies.interlock.loading do
-              able_to_load = true
+            assert_deprecated(/ActiveSupport::Dependencies::Interlock#loading is deprecated/, ActiveSupport.deprecator) do
+              ActiveSupport::Dependencies.interlock.loading do
+                able_to_load = true
+              end
             end
           end
         end

@@ -5,6 +5,7 @@ require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/concurrency/thread_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -190,9 +191,9 @@ module ActiveRecord
         @lock =
         case lock_thread
         when Thread
-          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+          ActiveSupport::Concurrency::ThreadMonitor.new
         when Fiber
-          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+          ::Monitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
