@@ -82,22 +82,34 @@ module ActionController
     end
     debug_only :unpermitted_parameters
 
-    %w(write_fragment read_fragment exist_fragment? expire_fragment).each do |method|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        # frozen_string_literal: true
-        def #{method}(event)
-          return unless ActionController::Base.enable_fragment_cache_logging
-
-          key = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
-
-          emit_event("action_controller.fragment_cache",
-            method: "#{method}",
-            key: key,
-            duration_ms: event.duration.round(1)
-          )
-        end
-      METHOD
+    def write_fragment(event)
+      fragment_cache(__method__, event)
     end
+
+    def read_fragment(event)
+      fragment_cache(__method__, event)
+    end
+
+    def exist_fragment?(event)
+      fragment_cache(__method__, event)
+    end
+
+    def expire_fragment(event)
+      fragment_cache(__method__, event)
+    end
+
+    private
+      def fragment_cache(method_name, event)
+        return unless ActionController::Base.enable_fragment_cache_logging
+
+        key = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
+
+        emit_event("action_controller.fragment_cache",
+          method: "#{method_name}",
+          key: key,
+          duration_ms: event.duration.round(1)
+        )
+      end
   end
 end
 

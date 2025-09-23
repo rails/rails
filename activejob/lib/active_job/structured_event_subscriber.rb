@@ -6,67 +6,47 @@ module ActiveJob
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     def enqueue(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object] || job.enqueue_error
+      exception = event.payload[:exception_object] || job.enqueue_error
+      payload = {
+        job_class: job.class.name,
+        job_id: job.job_id,
+        queue: job.queue_name,
+        aborted: event.payload[:aborted],
+      }
 
-      if ex
-        emit_event("active_job.enqueue_failed",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          exception_class: ex.class.name,
-          exception_message: ex.message
-        )
-      elsif event.payload[:aborted]
-        emit_event("active_job.enqueue_aborted",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name
-        )
-      else
-        payload = {
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-        }
-        if job.class.log_arguments?
-          payload[:arguments] = job.arguments
-        end
-        emit_event("active_job.enqueued", payload)
+      if exception
+        payload[:exception_class] = exception.class.name
+        payload[:exception_message] = exception.message
       end
+
+      if job.class.log_arguments?
+        payload[:arguments] = job.arguments
+      end
+
+      emit_event("active_job.enqueued", payload)
     end
 
     def enqueue_at(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object] || job.enqueue_error
+      exception = event.payload[:exception_object] || job.enqueue_error
+      payload = {
+        job_class: job.class.name,
+        job_id: job.job_id,
+        queue: job.queue_name,
+        scheduled_at: job.scheduled_at,
+        aborted: event.payload[:aborted],
+      }
 
-      if ex
-        emit_event("active_job.enqueue_failed",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          scheduled_at: job.scheduled_at,
-          exception_class: ex.class.name,
-          exception_message: ex.message
-        )
-      elsif event.payload[:aborted]
-        emit_event("active_job.enqueue_aborted",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          scheduled_at: job.scheduled_at
-        )
-      else
-        payload = {
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          scheduled_at: job.scheduled_at,
-        }
-        if job.class.log_arguments?
-          payload[:arguments] = job.arguments
-        end
-        emit_event("active_job.enqueued", payload)
+      if exception
+        payload[:exception_class] = exception.class.name
+        payload[:exception_message] = exception.message
       end
+
+      if job.class.log_arguments?
+        payload[:arguments] = job.arguments
+      end
+
+      emit_event("active_job.enqueued", payload)
     end
 
     def enqueue_all(event)
@@ -100,37 +80,26 @@ module ActiveJob
 
     def perform(event)
       job = event.payload[:job]
-      ex = event.payload[:exception_object]
+      exception = event.payload[:exception_object]
+      payload = {
+        job_class: job.class.name,
+        job_id: job.job_id,
+        queue: job.queue_name,
+        aborted: event.payload[:aborted],
+        duration: event.duration.round(2),
+      }
 
-      if ex
-        emit_event("active_job.failed",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          duration_ms: event.duration.round(2),
-          exception_class: ex.class.name,
-          exception_message: ex.message
-        )
-      elsif event.payload[:aborted]
-        emit_event("active_job.aborted",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          duration_ms: event.duration.round(2)
-        )
-      else
-        emit_event("active_job.completed",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          queue: job.queue_name,
-          duration_ms: event.duration.round(2)
-        )
+      if exception
+        payload[:exception_class] = exception.class.name
+        payload[:exception_message] = exception.message
       end
+
+      emit_event("active_job.completed", payload)
     end
 
     def enqueue_retry(event)
       job = event.payload[:job]
-      ex = event.payload[:error]
+      exception = event.payload[:error]
       wait = event.payload[:wait]
 
       emit_event("active_job.retry_scheduled",
@@ -138,33 +107,33 @@ module ActiveJob
         job_id: job.job_id,
         executions: job.executions,
         wait_seconds: wait.to_i,
-        exception_class: ex&.class&.name,
-        exception_message: ex&.message
+        exception_class: exception&.class&.name,
+        exception_message: exception&.message
       )
     end
 
     def retry_stopped(event)
       job = event.payload[:job]
-      ex = event.payload[:error]
+      exception = event.payload[:error]
 
       emit_event("active_job.retry_stopped",
         job_class: job.class.name,
         job_id: job.job_id,
         executions: job.executions,
-        exception_class: ex.class.name,
-        exception_message: ex.message
+        exception_class: exception.class.name,
+        exception_message: exception.message
       )
     end
 
     def discard(event)
       job = event.payload[:job]
-      ex = event.payload[:error]
+      exception = event.payload[:error]
 
       emit_event("active_job.discarded",
         job_class: job.class.name,
         job_id: job.job_id,
-        exception_class: ex.class.name,
-        exception_message: ex.message
+        exception_class: exception.class.name,
+        exception_message: exception.message
       )
     end
 
@@ -207,53 +176,34 @@ module ActiveJob
       job = event.payload[:job]
       step = event.payload[:step]
 
-      if step.resumed?
-        emit_event("active_job.step_resumed",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          step: step.name,
-          cursor: step.cursor,
-        )
-      else
-        emit_event("active_job.step_started",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          step: step.name,
-        )
-      end
+      emit_event("active_job.step_started",
+        job_class: job.class.name,
+        job_id: job.job_id,
+        step: step.name,
+        cursor: step.cursor,
+        resumed: step.resumed?,
+      )
     end
 
     def step(event)
       job = event.payload[:job]
       step = event.payload[:step]
-      ex = event.payload[:exception_object]
+      exception = event.payload[:exception_object]
+      payload = {
+        job_class: job.class.name,
+        job_id: job.job_id,
+        step: step.name,
+        cursor: step.cursor,
+        interrupted: event.payload[:interrupted],
+        duration: event.duration.round(2),
+      }
 
-      if event.payload[:interrupted]
-        emit_event("active_job.step_interrupted",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          step: step.name,
-          cursor: step.cursor,
-          duration: event.duration.round(2),
-        )
-      elsif ex
-        emit_event("active_job.step_errored",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          step: step.name,
-          cursor: step.cursor,
-          duration: event.duration.round(2),
-          exception_class: ex.class.name,
-          exception_message: ex.message,
-        )
-      else
-        emit_event("active_job.step",
-          job_class: job.class.name,
-          job_id: job.job_id,
-          step: step.name,
-          duration: event.duration.round(2),
-        )
+      if exception
+        payload[:exception_class] = exception.class.name
+        payload[:exception_message] = exception.message
       end
+
+      emit_event("active_job.step", payload)
     end
   end
 end
