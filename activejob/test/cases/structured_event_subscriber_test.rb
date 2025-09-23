@@ -142,15 +142,15 @@ module ActiveJob
       end
 
       assert event[:payload][:job_id].present?
-      assert event[:payload][:duration_ms].is_a?(Numeric)
+      assert event[:payload][:duration].is_a?(Numeric)
     end
 
     def test_perform_failed_job
-      event = assert_event_reported("active_job.failed", payload: {
+      event = assert_event_reported("active_job.completed", payload: {
         job_class: TestJob.name,
         queue: "default",
         exception_class: "StandardError",
-        exception_message: "Something went wrong"
+        exception_message: "Something went wrong",
       }) do
         assert_raises(StandardError) do
           TestJob.perform_now("raise_error")
@@ -158,7 +158,7 @@ module ActiveJob
       end
 
       assert event[:payload][:job_id].present?
-      assert event[:payload][:duration_ms].is_a?(Numeric)
+      assert event[:payload][:duration].is_a?(Numeric)
     end
 
     def test_enqueue_failed_job
@@ -168,7 +168,7 @@ module ActiveJob
         end
       end
 
-      assert_event_reported("active_job.enqueue_failed", payload: {
+      assert_event_reported("active_job.enqueued", payload: {
         job_class: failing_enqueue_job_class.name,
         queue: "default",
         exception_class: "StandardError",
@@ -187,9 +187,10 @@ module ActiveJob
         end
       end
 
-      assert_event_reported("active_job.enqueue_aborted", payload: {
+      assert_event_reported("active_job.enqueued", payload: {
         job_class: aborting_enqueue_job_class.name,
-        queue: "default"
+        queue: "default",
+        aborted: true,
       }) do
         aborting_enqueue_job_class.perform_later
       end
@@ -202,9 +203,10 @@ module ActiveJob
         end
       end
 
-      assert_event_reported("active_job.aborted", payload: {
+      assert_event_reported("active_job.completed", payload: {
         job_class: aborting_perform_job_class.name,
-        queue: "default"
+        queue: "default",
+        aborted: true,
       }) do
         aborting_perform_job_class.perform_now
       end
@@ -288,9 +290,10 @@ module ActiveJob
       end
 
       def test_step_resumed_job
-        event = assert_event_reported("active_job.step_resumed", payload: {
+        event = assert_event_reported("active_job.step_started", payload: {
           job_class: ContinuationJob.name,
           step: :step,
+          resumed: true,
         }) do
           ContinuationJob.perform_later(action: :resume_step)
         end
@@ -310,10 +313,11 @@ module ActiveJob
       end
 
       def test_step_interrupted_job
-        event = assert_event_reported("active_job.step_interrupted", payload: {
+        event = assert_event_reported("active_job.step", payload: {
           job_class: ContinuationJob.name,
           step: :interrupt_step,
           cursor: nil,
+          interrupted: true,
         }) do
           ContinuationJob.perform_now(action: :interrupt_step)
         end
@@ -323,7 +327,7 @@ module ActiveJob
       end
 
       def test_step_errored_job
-        event = assert_event_reported("active_job.step_errored", payload: {
+        event = assert_event_reported("active_job.step", payload: {
           job_class: ContinuationJob.name,
           step: :error_step,
           cursor: nil,

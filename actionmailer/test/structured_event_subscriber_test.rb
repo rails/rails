@@ -25,7 +25,7 @@ module ActionMailer
     end
 
     def test_deliver_is_notified
-      event = assert_event_reported("action_mailer.delivered", payload: { message_id: "123@abc", mail: /.*/ }) do
+      event = assert_event_reported("action_mailer.delivered", payload: { message_id: "123@abc", mail: /.*/, perform_deliveries: true }) do
         BaseMailer.welcome(message_id: "123@abc").deliver_now
       end
 
@@ -35,7 +35,7 @@ module ActionMailer
     end
 
     def test_deliver_message_when_perform_deliveries_is_false
-      assert_event_reported("action_mailer.delivery_skipped", payload: { message_id: "123@abc", mail: /.*/ }) do
+      assert_event_reported("action_mailer.delivered", payload: { message_id: "123@abc", mail: /.*/, perform_deliveries: false }) do
         BaseMailer.welcome_without_deliveries(message_id: "123@abc").deliver_now
       end
     ensure
@@ -47,7 +47,7 @@ module ActionMailer
       BaseMailer.delivery_method = BogusDelivery
       payload = { message_id: "123@abc", mail: /.*/, exception_class: "RuntimeError", exception_message: "failed" }
 
-      assert_event_reported("action_mailer.delivery_error", payload:) do
+      assert_event_reported("action_mailer.delivered", payload:) do
         assert_raises(RuntimeError) { BaseMailer.welcome(message_id: "123@abc").deliver_now }
       end
     ensure

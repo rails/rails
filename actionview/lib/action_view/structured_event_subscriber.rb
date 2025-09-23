@@ -15,8 +15,8 @@ module ActionView
       emit_debug_event("action_view.render_template",
         identifier: from_rails_root(event.payload[:identifier]),
         layout: from_rails_root(event.payload[:layout]),
-        duration: event.duration.round(1),
-        gc: event.gc_time.round(1),
+        duration: event.duration.round(2),
+        gc: event.gc_time.round(2),
       )
     end
     debug_only :render_template
@@ -25,8 +25,8 @@ module ActionView
       emit_debug_event("action_view.render_partial",
         identifier: from_rails_root(event.payload[:identifier]),
         layout: from_rails_root(event.payload[:layout]),
-        duration: event.duration.round(1),
-        gc: event.gc_time.round(1),
+        duration: event.duration.round(2),
+        gc: event.gc_time.round(2),
         cache_hit: event.payload[:cache_hit],
       )
     end
@@ -35,8 +35,8 @@ module ActionView
     def render_layout(event)
       emit_event("action_view.render_layout",
         identifier: from_rails_root(event.payload[:identifier]),
-        duration: event.duration.round(1),
-        gc: event.gc_time.round(1),
+        duration: event.duration.round(2),
+        gc: event.gc_time.round(2),
       )
     end
     debug_only :render_layout
@@ -45,8 +45,8 @@ module ActionView
       emit_debug_event("action_view.render_collection",
         identifier: from_rails_root(event.payload[:identifier] || "templates"),
         layout: from_rails_root(event.payload[:layout]),
-        duration: event.duration.round(1),
-        gc: event.gc_time.round(1),
+        duration: event.duration.round(2),
+        gc: event.gc_time.round(2),
         cache_hits: event.payload[:cache_hits],
         count: event.payload[:count],
       )

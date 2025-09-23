@@ -1,7 +1,5 @@
 *   Add structured events for Action Mailer:
-    - `action_mailer.delivery_error`
     - `action_mailer.delivered`
-    - `action_mailer.delivery_skipped`
     - `action_mailer.processed`
 
     *Gannon McGibbon*

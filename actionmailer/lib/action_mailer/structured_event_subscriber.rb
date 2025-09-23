@@ -6,25 +6,20 @@ module ActionMailer
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     # An email was delivered.
     def deliver(event)
-      if (exception = event.payload[:exception_object])
-        emit_debug_event("action_mailer.delivery_error",
-          message_id: event.payload[:message_id],
-          exception_class: exception.class.name,
-          exception_message:  exception.message,
-          mail: event.payload[:mail],
-        )
-      elsif event.payload[:perform_deliveries]
-        emit_debug_event("action_mailer.delivered",
-          message_id: event.payload[:message_id],
-          duration: event.duration.round(1),
-          mail: event.payload[:mail],
-        )
-      else
-        emit_debug_event("action_mailer.delivery_skipped",
-          message_id: event.payload[:message_id],
-          mail: event.payload[:mail],
-        )
+      exception = event.payload[:exception_object]
+      payload = {
+        message_id: event.payload[:message_id],
+        duration: event.duration.round(2),
+        mail: event.payload[:mail],
+        perform_deliveries: event.payload[:perform_deliveries],
+      }
+
+      if exception
+        payload[:exception_class] = exception.class.name
+        payload[:exception_message] = exception.message
       end
+
+      emit_debug_event("action_mailer.delivered", payload)
     end
     debug_only :deliver
 
@@ -33,7 +28,7 @@ module ActionMailer
       emit_debug_event("action_mailer.processed",
         mailer: event.payload[:mailer],
         action: event.payload[:action],
-        duration: event.duration.round(1),
+        duration: event.duration.round(2),
       )
     end
     debug_only :process
