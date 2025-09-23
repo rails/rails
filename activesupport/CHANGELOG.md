@@ -1,3 +1,17 @@
+*   Add `ActiveSupport::StructuredEventSubscriber` for consuming notifications and
+    emitting structured event logs. Events may be emitted with the `#emit_event`
+    or `#emit_debug_event` methods.
+
+    ```ruby
+    class MyStructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber
+      def notification(event)
+        emit_event("my.notification", data: 1)
+      end
+    end
+    ```
+
+    *Adrianna Chang*
+
 *   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
 
     *Jan Grodowski*

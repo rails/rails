@@ -1,3 +1,9 @@
+*   Add structured events for Active Record:
+    - `active_record.strict_loading_violation`
+    - `active_record.sql`
+
+    *Gannon McGibbon*
+
 *   Add support for integer shard keys.
     ```ruby
     # Now accepts symbols as shard keys.
