@@ -1,3 +1,21 @@
+*   Add support for `only` and `except` options for ActionMailer delivery callbacks.
+
+    Before:
+
+    ```ruby
+    before_deliver :perform_action, if: -> { action_name == 'reset_email' }
+    ```
+
+    After:
+
+    ```ruby
+    before_deliver :perform_action, only: :reset_email
+    ```
+
+    Added a configuration option `action_mailer.raise_on_missing_callback_actions` to mirror `action_controller.raise_on_missing_callback_actions`.
+
+    *viralpraxis*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `deliver_all_later` to enqueue multiple emails at once.

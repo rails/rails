@@ -33,7 +33,7 @@ module AbstractController
       define_callbacks :process_action,
                        terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
                        skip_after_callbacks_if_terminated: true
-      mattr_accessor :raise_on_missing_callback_actions, default: false
+      class_attribute :raise_on_missing_callback_actions, default: false
     end
 
     class ActionFilter # :nodoc:
