@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/                          fixtures/                        integration/                     models/                          test_helper.rb
+controllers/                     helpers/                         mailers/                         fixtures/                        integration/                     models/                          test_helper.rb
 ```
 
 ### Test Directories
@@ -874,8 +874,7 @@ Functional Testing for Controllers
 
 When writing functional tests, you are focusing on testing how controller
 actions handle the requests and the expected result or response. Functional
-controller tests are sometimes used in cases where system tests are not
-appropriate, e.g., to confirm an API response.
+controller tests are used to test controllers and other behavior, like API responses.
 
 ### What to Include in Your Functional Tests
 
@@ -1419,6 +1418,45 @@ does this by running tests in either a real or a headless browser (a browser
 which runs in the background without opening a visible window). System tests use
 [Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
 
+### When to Use System Tests
+
+System tests provide the most realistic testing experience as they test your
+application from a user's perspective. However, they come with important
+trade-offs:
+
+* **They are significantly slower** than unit and integration tests
+* **They can be brittle** and prone to failures from timing issues or UI changes
+* **They require more maintenance** as your UI evolves
+
+Given these trade-offs, **system tests should be reserved for critical user
+paths** rather than being created for every feature. Consider writing system
+tests for:
+
+* **Core business workflows** (e.g., user registration, checkout process,
+  payment flows)
+* **Critical user interactions** that integrate multiple components
+* **Complex JavaScript interactions** that can't be tested at lower levels
+
+For most features, integration tests provide a better balance of coverage and
+maintainability. Save system tests for scenarios where you need to verify the
+complete user experience.
+
+### Generating System Tests
+
+Rails no longer generates system tests by default when using scaffolds. This
+change reflects the best practice of using system tests sparingly. You can
+generate system tests in two ways:
+
+1. **When scaffolding**, explicitly enable system tests:
+   ```bash
+   $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+   ```
+
+2. **Generate system tests independently** for critical features:
+   ```bash
+   $ bin/rails generate system_test articles
+   ```
+
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
@@ -1552,9 +1590,9 @@ settings.
 This section will demonstrate how to add a system test to your application,
 which tests a visit to the index page to create a new blog article.
 
-If you used the scaffold generator, a system test skeleton was automatically
-created for you. If you didn't use the scaffold generator, start by creating a
-system test skeleton.
+NOTE: The scaffold generator no longer creates system tests by default. To
+include system tests when scaffolding, use the `--system-tests=true` option.
+Otherwise, create system tests manually for your critical user paths.
 
 ```bash
 $ bin/rails generate system_test articles
