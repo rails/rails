@@ -1,3 +1,11 @@
+GIT
+  remote: https://github.com/rails/sdoc.git
+  revision: ead9de6de9330a489ca1b6e012d4384d11f90750
+  branch: stable
+  specs:
+    sdoc (2.6.2)
+      rdoc (>= 5.0)
+
 PATH
   remote: .
   specs:
@@ -584,8 +592,6 @@ GEM
       google-protobuf (~> 4.29)
     sass-embedded (1.83.4-x86_64-linux-musl)
       google-protobuf (~> 4.29)
-    sdoc (2.6.2)
-      rdoc (>= 5.0)
     securerandom (0.4.1)
     selenium-webdriver (4.32.0)
       base64 (~> 0.2)
@@ -807,7 +813,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   rubyzip (~> 2.0)
-  sdoc
+  sdoc!
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers
