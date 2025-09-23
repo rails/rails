@@ -92,6 +92,7 @@ module ActionView
               end
             end
           end
+          alias_method :add_default_name_and_id_for_value, :add_default_name_and_field_for_value
 
           def add_default_name_and_field(options, field = "id")
             index = name_and_id_index(options)
@@ -104,6 +105,7 @@ module ActionView
               end
             end
           end
+          alias_method :add_default_name_and_id, :add_default_name_and_field
 
           def tag_name(multiple = false, index = nil)
             @template_object.field_name(@object_name, sanitized_method_name, multiple: multiple, index: index)
