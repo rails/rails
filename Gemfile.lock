@@ -752,7 +752,7 @@ DEPENDENCIES
   minitest-ci
   minitest-retry
   msgpack (>= 1.7.0)
-  mysql2 (~> 0.5)
+  mysql2 (~> 0.5, < 0.5.7)
   nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.3)
   prism
