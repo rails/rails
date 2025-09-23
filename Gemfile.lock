@@ -39,6 +39,7 @@ PATH
     actionpack (7.1.5.2)
       actionview (= 7.1.5.2)
       activesupport (= 7.1.5.2)
+      cgi
       nokogiri (>= 1.8.5)
       racc
       rack (>= 2.2.4)
@@ -105,6 +106,7 @@ PATH
     railties (7.1.5.2)
       actionpack (= 7.1.5.2)
       activesupport (= 7.1.5.2)
+      cgi
       irb
       rackup (>= 1.0.0)
       rake (>= 12.2)
@@ -382,6 +384,7 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
+      railties (>= 7.0.0)
     protobug (0.1.0)
     protobug_googleapis_field_behavior_protos (0.1.0)
       protobug (= 0.1.0)
@@ -547,6 +550,8 @@ GEM
       prettier_print (>= 1.2.0)
     tailwindcss-rails (2.0.21-aarch64-linux)
       railties (>= 6.0.0)
+    tailwindcss-rails (2.0.21-arm64-darwin)
+      railties (>= 6.0.0)
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
     thor (1.3.0)
@@ -591,6 +596,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  arm64-darwin-24
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
