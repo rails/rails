@@ -3,25 +3,44 @@
 Active Support Instrumentation
 ==============================
 
-Active Support is a part of core Rails that provides Ruby language extensions, utilities, and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as those inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if desired.
+[Active Support](https://api.rubyonrails.org/classes/ActiveSupport.html) is a core component of Ruby on Rails, offering a wide range of Ruby language extensions and utility classes.
 
-In this guide, you will learn how to use the Active Support's instrumentation API to measure events inside of Rails and other Ruby code.
+One of its key features is the Instrumentation API, which is described in further detail in this guide. You will learn:
 
-After reading this guide, you will know:
-
-* What instrumentation can provide.
+* What instrumentation provides.
 * How to add a subscriber to a hook.
-* The hooks inside the Rails framework for instrumentation.
-* How to build a custom instrumentation implementation.
+* The instrumentation hooks available inside Rails.
+* How to build your own custom instrumentation.
 
 --------------------------------------------------------------------------------
 
 Introduction to Instrumentation
 -------------------------------
 
-The instrumentation API provided by Active Support allows developers to provide hooks which other developers may hook into. There are [several of these](#rails-framework-hooks) within the Rails framework. With this API, developers can choose to be notified when certain events occur inside their application or another piece of Ruby code.
+The Instrumentation API provides a way to instrument code and subscribe to events that occur in your application. Instrumentation means wrapping a block of code so that, when it runs, an event is emitted with a name and optional payload. Any subscribers listening for that event will then be notified and can react, for example, by logging information, benchmarking, or performing some other action. This makes it possible to observe behavior within the Rails framework, in your own code, or even in standalone Ruby scripts.
 
-For example, there is [a hook](#sql-active-record) provided within Active Record that is called every time Active Record uses an SQL query on a database. This hook could be **subscribed** to, and used to track the number of queries during a certain action. There's [another hook](#process-action-action-controller) around the processing of an action of a controller. This could be used, for instance, to track how long a specific action has taken.
+### Hooks
+
+Hooks help us observe behavior within the Rails framework; these hooks are predefined points in the framework where an event is emitted. By subscribing to a hook, you can run your own code whenever that event occurs. There are [several hooks within the Rails framework](#rails-framework-hooks).
+
+
+For example, there is [a hook](#sql-active-record) provided within Active Record that is called every time Active Record executes a SQL query on a database. This hook can be subscribed to, and used to track the number of queries during a certain action. There's [another hook](#process-action-action-controller) which is called when processing an action of a controller. This can be used, for instance, to track how long a specific action has taken.
+
+### Events
+
+An event is a record of something that has happened, so you'd want to use events to track something that happens in your application.
+
+An event is generated when a hook is triggered. For example, when a controller action is processed, an event is generated. This event includes a name and optional data. The name is `process_action.action_controller` and the data includes the controller name, action name, and other information about the request.
+
+You are also able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
+
+### Subscribers
+
+A subscriber is a object that is used to subscribe to events. It is used to listen to events and perform some action when an event is triggered.
+
+For example, if you want to subscribe to the `process_action.action_controller` event and benchmark it, then you can create a subscriber that listens to that event. The subscriber will then be able to perform other actions when the event is triggered, such as logging the duration of the action.
+
+A single event can have multiple subscribers.
 
 You are even able to [create your own events](#creating-custom-events) inside your application which you can later subscribe to.
 
@@ -1059,3 +1078,11 @@ You should follow Rails conventions when defining your own events. The format is
 If your application is sending Tweets, you should create an event named `tweet.twitter`.
 
 [`ActiveSupport::Notifications.instrument`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument
+
+
+
+Describe when each event is triggered (not just list payload keys).
+
+Make it obvious those tables describe the payload (rename the “Key” column and add a lead-in sentence).
+
+Longer-term, aim to have Instrumentation Events in the API docs (next to the code that calls instrument), then link to them from the Guide.
