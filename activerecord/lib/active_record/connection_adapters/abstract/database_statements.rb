@@ -353,6 +353,22 @@ module ActiveRecord
       # isolation level.
       #  :args: (requires_new: nil, isolation: nil, &block)
       def transaction(requires_new: nil, isolation: nil, joinable: true, &block)
+        # If we're running inside the single, non-joinable transaction that
+        # ActiveRecord::TestFixtures starts around each example (depth == 1),
+        # an `isolation:` hint must be validated then ignored so that the
+        # adapter isn't asked to change the isolation level mid-transaction.
+        if isolation && !requires_new && open_transactions == 1 && !current_transaction.joinable?
+          iso = isolation.to_sym
+
+          unless transaction_isolation_levels.include?(iso)
+            raise ActiveRecord::TransactionIsolationError,
+                  "invalid transaction isolation level: #{iso.inspect}"
+          end
+
+          current_transaction.isolation = iso
+          isolation = nil
+        end
+
         if !requires_new && current_transaction.joinable?
           if isolation && current_transaction.isolation != isolation
             raise ActiveRecord::TransactionIsolationError, "cannot set isolation when joining a transaction"
@@ -420,13 +436,16 @@ module ActiveRecord
         end
       end
 
+      TRANSACTION_ISOLATION_LEVELS = {
+        read_uncommitted: "READ UNCOMMITTED",
+        read_committed:   "READ COMMITTED",
+        repeatable_read:  "REPEATABLE READ",
+        serializable:     "SERIALIZABLE"
+      }.freeze
+      private_constant :TRANSACTION_ISOLATION_LEVELS
+
       def transaction_isolation_levels
-        {
-          read_uncommitted: "READ UNCOMMITTED",
-          read_committed:   "READ COMMITTED",
-          repeatable_read:  "REPEATABLE READ",
-          serializable:     "SERIALIZABLE"
-        }
+        TRANSACTION_ISOLATION_LEVELS
       end
 
       # Begins the transaction with the isolation level set. Raises an error by
