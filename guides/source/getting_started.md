@@ -2067,14 +2067,13 @@ class SubscribersController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def subscriber_params
-    params.expect(subscriber: [ :email ])
-  end
+    def subscriber_params
+      params.expect(subscriber: [ :email ])
+    end
 end
 ```
 
@@ -2395,10 +2394,9 @@ class UnsubscribesController < ApplicationController
   end
 
   private
-
-  def set_subscriber
-    @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
-  end
+    def set_subscriber
+      @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
+    end
 end
 ```
 
