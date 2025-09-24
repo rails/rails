@@ -1448,11 +1448,13 @@ change reflects the best practice of using system tests sparingly. You can
 generate system tests in two ways:
 
 1. **When scaffolding**, explicitly enable system tests:
+
    ```bash
    $ bin/rails generate scaffold Article title:string body:text --system-tests=true
    ```
 
 2. **Generate system tests independently** for critical features:
+
    ```bash
    $ bin/rails generate system_test articles
    ```
