@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     def redirect(event)
       payload = event.payload
 
