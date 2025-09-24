@@ -264,6 +264,10 @@
       name: Composite Primary Keys
       url: active_record_composite_primary_keys.html
       description: This guide is an introduction to composite primary keys for database tables.
+    -
+      name: Active Record Aggregations
+      url: active_record_aggregations.html
+      description: This guide is an introduction to aggregation features in Active Record. It covers how you can treat multiple attributes as a single value objects.
 
 -
   name: Extending Rails
