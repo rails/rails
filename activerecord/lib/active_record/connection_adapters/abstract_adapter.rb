@@ -199,8 +199,8 @@ module ActiveRecord
         end
       end
 
-      def check_if_write_query(sql) # :nodoc:
-        if preventing_writes? && write_query?(sql)
+      def ensure_writes_are_allowed(sql) # :nodoc:
+        if preventing_writes?
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
       end
