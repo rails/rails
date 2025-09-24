@@ -1,10 +1,3 @@
-*   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
-
-    Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
-    mounted at "/".
-
-    *Mike Dalessio*
-
 *   Address `rack 3.2` deprecations warnings.
 
     ```
