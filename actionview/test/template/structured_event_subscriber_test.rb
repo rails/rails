@@ -35,7 +35,7 @@ module ActionView
 
     def test_render_template
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_start", payload: { identifier: "test/hello_world.erb", layout: nil }) do
             event = assert_event_reported("action_view.render_template", payload: { identifier: "test/hello_world.erb", layout: nil }) do
               @view.render(template: "test/hello_world")
@@ -50,7 +50,7 @@ module ActionView
 
     def test_render_template_with_layout
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           payload = { identifier: "test/hello_world.erb", layout: "layouts/yield" }
           assert_event_reported("action_view.render_start", payload:) do
             event = assert_event_reported("action_view.render_template", payload:) do
@@ -66,7 +66,7 @@ module ActionView
 
     def test_render_file_template
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_start", payload: { identifier: "test/hello_world.erb", layout: nil }) do
             event = assert_event_reported("action_view.render_template", payload: { identifier: "test/hello_world.erb", layout: nil }) do
               @view.render(file: "#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
@@ -81,7 +81,7 @@ module ActionView
 
     def test_render_text_template
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_start", payload: { identifier: "text template", layout: nil }) do
             event = assert_event_reported("action_view.render_template", payload: { identifier: "text template", layout: nil }) do
               @view.render(plain: "TEXT")
@@ -96,7 +96,7 @@ module ActionView
 
     def test_render_inline_template
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_start", payload: { identifier: "inline template", layout: nil }) do
             event = assert_event_reported("action_view.render_template", payload: { identifier: "inline template", layout: nil }) do
               @view.render(inline: "<%= 'TEXT' %>")
@@ -111,7 +111,7 @@ module ActionView
 
     def test_render_partial_with_implicit_path
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           payload = { identifier: "customers/_customer.html.erb", layout: nil, cache_hit: nil }
           event = assert_event_reported("action_view.render_partial", payload:) do
             @view.render(Customer.new("david"), greeting: "hi")
@@ -128,7 +128,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           payload = { identifier: "test/_cached_customer.erb", layout: nil, cache_hit: :miss }
           event = assert_event_reported("action_view.render_partial", payload:) do
             @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
@@ -147,7 +147,7 @@ module ActionView
 
         @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           payload = { identifier: "test/_cached_customer.erb", layout: nil, cache_hit: :hit }
           event = assert_event_reported("action_view.render_partial", payload:) do
             # Second render should hit cache.
@@ -165,7 +165,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_partial", payload: { identifier: "layouts/_yield_only.erb", layout: nil }) do
             @view.render(layout: "layouts/yield_only") { "hello" }
           end
@@ -181,7 +181,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           payload = { identifier: "test/_partial.html.erb", layout: "layouts/_yield_only" }
           event = assert_event_reported("action_view.render_partial", payload:) do
             @view.render(partial: "partial", layout: "layouts/yield_only")
@@ -198,7 +198,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_partial", payload: { identifier: "test/_cached_customer.erb", layout: nil }) do
             @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
           end
@@ -223,7 +223,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_partial", payload: { identifier: "test/_cached_customer.erb", layout: nil }) do
             assert_event_reported("action_view.render_partial", payload: { identifier: "test/_cached_nested_cached_customer.erb", layout: nil, cache_hit: :miss }) do
               @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
@@ -245,7 +245,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           assert_event_reported("action_view.render_partial", payload: { identifier: "test/_cached_customer.erb", layout: nil, cache_hit: :miss }) do
             @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
           end
@@ -264,7 +264,7 @@ module ActionView
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_collection", payload: { identifier: "test/_customer.erb", layout: nil, cache_hits: nil, count: 2 }) do
             @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
           end
@@ -279,7 +279,7 @@ module ActionView
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_collection", payload: { identifier: "test/_customer.erb", layout: "layouts/_yield_only", cache_hits: nil, count: 2 }) do
             @view.render(partial: "test/customer", layout: "layouts/yield_only", collection: [ Customer.new("david"), Customer.new("mary") ])
           end
@@ -294,7 +294,7 @@ module ActionView
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_collection", payload: { identifier: "customers/_customer.html.erb", layout: nil, cache_hits: nil, count: 2 }) do
             @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
           end
@@ -309,7 +309,7 @@ module ActionView
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_collection", payload: { identifier: "templates", layout: nil, cache_hits: nil, count: 2 }) do
             @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
           end
@@ -325,7 +325,7 @@ module ActionView
         set_view_cache_dependencies
         set_cache_controller
 
-        ActiveSupport.event_reporter.with_debug do
+        with_debug_event_reporting do
           event = assert_event_reported("action_view.render_collection", payload: { identifier: "customers/_customer.html.erb", layout: nil, cache_hits: 0, count: 2 }) do
             @view.render(partial: "customers/customer", collection: [ Customer.new("david"), Customer.new("mary") ], cached: true,
               locals: { greeting: "hi" })

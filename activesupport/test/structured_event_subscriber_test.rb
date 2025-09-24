@@ -39,7 +39,7 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_emit_debug_event_calls_event_reporter_debug
-    ActiveSupport.event_reporter.with_debug do
+    with_debug_event_reporting do
       assert_event_reported("test.debug", payload: { debug: "info" }) do
         @subscriber.emit_debug_event("test.debug", { debug: "info" })
       end
@@ -89,7 +89,7 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     end
 
     assert_error_reported(TestSubscriber::DebugOnlyError) do
-      ActiveSupport.event_reporter.with_debug do
+      with_debug_event_reporting do
         ActiveSupport::Notifications.instrument("debug_only_event.test")
       end
     end
