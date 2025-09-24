@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path)
 
     def start_processing(event)
