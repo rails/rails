@@ -76,11 +76,20 @@ module ActiveJob
           @serializers_index.clear
           serializers.each do |s|
             if s.respond_to?(:klass)
-              @serializers_index[s.klass] = s
+              begin
+                @serializers_index[s.klass] = s
+              rescue NotImplementedError => e
+                ActiveJob.deprecator.warn(
+                  <<~MSG.squish
+                    #{e.message}. This will raise an error in Rails 8.2.
+                  MSG
+                )
+              end
             elsif s.respond_to?(:klass, true)
               klass = s.send(:klass)
               ActiveJob.deprecator.warn(<<~MSG.squish)
                 #{s.class.name}#klass method should be public.
+                This will raise an error in Rails 8.2.
               MSG
               @serializers_index[klass] = s
             end
