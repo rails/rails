@@ -1,3 +1,7 @@
+*   Include the actual Active Job locale when serializing rather than I18n locale.
+
+    *Adrien S*
+
 *   Avoid crashing in Active Job logger when logging enqueueing errors
 
     `ActiveJob.perform_all_later` could fail with a `TypeError` when all

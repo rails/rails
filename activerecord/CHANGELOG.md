@@ -1,4 +1,20 @@
-*   Fix query cache for pinned connections in multi threaded transactional tests
+*   Prevent persisting invalid record.
+
+    *Edouard Chin*
+
+*   Fix count with group by qualified name on loaded relation.
+
+    *Ryuta Kamizono*
+
+*   Fix `sum` with qualified name on loaded relation.
+
+    *Chris Gunther*
+
+*   Fix prepared statements on mysql2 adapter.
+
+    *Jean Boussier*
+
+*   Fix query cache for pinned connections in multi threaded transactional tests.
 
     When a pinned connection is used across separate threads, they now use a separate cache store
     for each thread.
@@ -22,7 +38,7 @@
 
     *Florent Beaurain*, *Thomas Crambert*
 
-*   Fix removal of PostgreSQL version comments in `structure.sql` for latest PostgreSQL versions which include `\restrict`
+*   Fix removal of PostgreSQL version comments in `structure.sql` for latest PostgreSQL versions which include `\restrict`.
 
     *Brendan Weibrecht*
 
@@ -63,6 +79,14 @@
     ```
 
     *Joshua Young*
+
+*   Fix inline `has_and_belongs_to_many` fixtures for tables with composite primary keys.
+
+    *fatkodima*
+
+*   Fix `annotate` comments to propagate to `update_all`/`delete_all`.
+
+    *fatkodima*
 
 *   Fix checking whether an unpersisted record is `include?`d in a strictly
     loaded `has_and_belongs_to_many` association.

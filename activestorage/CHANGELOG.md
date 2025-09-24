@@ -1,3 +1,7 @@
+*   Fix `config.active_storage.touch_attachment_records` to work with eager loading.
+
+    *fatkodima*
+
 *   A Blob will no longer autosave associated Attachment.
 
     This fixes an issue where a record with an attachment would have

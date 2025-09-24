@@ -2,6 +2,14 @@
 
     *Jan Grodowski*
 
+*   Fix `ActiveSupport::BroadcastLogger` from executing a block argument for each logger (tagged, info, etc.).
+
+    *Jared Armstrong*
+
+*   Fix `ActiveSupport::HashWithIndifferentAccess#transform_keys!` removing defaults.
+
+    *Hartley McGuire*
+
 *   Fix `ActiveSupport::HashWithIndifferentAccess#tranform_keys!` to handle collisions.
 
     If the transformation would result in a key equal to another not yet transformed one,

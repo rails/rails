@@ -9,6 +9,10 @@
 
     *Jean Boussier*
 
+*   Fix `excerpt` helper with non-whitespace separator.
+
+    *Jonathan Hefner*
+
 *   Respect `html_options[:form]` when `collection_checkboxes` generates the
     hidden `<input>`.
 
