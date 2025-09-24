@@ -22,7 +22,7 @@ gem "rake", ">= 13"
 
 gem "releaser", path: "tools/releaser"
 
-gem "sprockets-rails", ">= 2.0.0"
+gem "sprockets-rails", ">= 2.0.0", require: false
 gem "propshaft", ">= 0.1.7"
 gem "capybara", ">= 3.26"
 if RUBY_VERSION < "3"
