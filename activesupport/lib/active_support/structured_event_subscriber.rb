@@ -91,12 +91,6 @@ module ActiveSupport
       handle_event_error(event.name, e)
     end
 
-    def publish_event(event)
-      super
-    rescue => e
-      handle_event_error(event.name, e)
-    end
-
     private
       def handle_event_error(name, error)
         ActiveSupport.error_reporter.report(error, source: name)

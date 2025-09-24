@@ -78,18 +78,6 @@ class StructuredEventSubscriberTest < ActiveSupport::TestCase
     assert_equal "error_event.test", error_report.source
   end
 
-  def test_publish_event_handles_errors
-    ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
-
-    event = ActiveSupport::Notifications::Event.new("error_event.test", Time.current, Time.current, "123", {})
-
-    error_report = assert_error_reported(NoMethodError) do
-      @subscriber.publish_event(event)
-    end
-    assert_match(/undefined method (`|')error_event'/, error_report.error.message)
-    assert_equal "error_event.test", error_report.source
-  end
-
   def test_debug_only_methods
     ActiveSupport::StructuredEventSubscriber.attach_to :test, @subscriber
 
