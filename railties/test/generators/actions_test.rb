@@ -569,6 +569,13 @@ class ActionsTest < Rails::Generators::TestCase
     assert_match(/1234567890/, error.message)
   end
 
+  test "rails_command with quiet option" do
+    generator(default_arguments, quiet: true)
+    assert_runs "rails new myapp", capture: true do
+      action :rails_command, "new myapp"
+    end
+  end
+
   test "route should add route" do
     run_generator
     route_commands = ['get "foo"', 'get "bar"', 'get "baz"']
