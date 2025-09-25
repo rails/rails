@@ -179,21 +179,30 @@ module ActiveRecord
         end
       end
 
-      class LeaseRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = WeakThreadKeyMap.new
-        end
-
-        def [](context)
-          @mutex.synchronize do
-            @map[context] ||= Lease.new
+      if RUBY_ENGINE == "ruby"
+        # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
+        class LeaseRegistry < WeakThreadKeyMap # :nodoc:
+          def [](context)
+            super || (self[context] = Lease.new)
           end
         end
+      else
+        class LeaseRegistry # :nodoc:
+          def initialize
+            @mutex = Mutex.new
+            @map = WeakThreadKeyMap.new
+          end
 
-        def clear
-          @mutex.synchronize do
-            @map.clear
+          def [](context)
+            @mutex.synchronize do
+              @map[context] ||= Lease.new
+            end
+          end
+
+          def clear
+            @mutex.synchronize do
+              @map.clear
+            end
           end
         end
       end
