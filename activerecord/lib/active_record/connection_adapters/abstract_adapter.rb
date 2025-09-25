@@ -53,8 +53,6 @@ module ActiveRecord
         @pool = value
       end
 
-      set_callback :checkin, :after, :enable_lazy_transactions!
-
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
           config
@@ -330,8 +328,12 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
-          @owner = nil
+          _run_checkin_callbacks do
+            @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
+            @owner = nil
+            enable_lazy_transactions!
+            unset_query_cache!
+          end
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
         end
@@ -828,8 +830,11 @@ module ActiveRecord
       end
 
       def clean! # :nodoc:
-        @raw_connection_dirty = false
-        @verified = nil
+        _run_checkout_callbacks do
+          @raw_connection_dirty = false
+          @verified = nil
+        end
+        self
       end
 
       def verified? # :nodoc:

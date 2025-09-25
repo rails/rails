@@ -651,11 +651,7 @@ module ActiveRecord
         conn.lock.synchronize do
           synchronize do
             connection_lease.clear(conn)
-
-            conn._run_checkin_callbacks do
-              conn.expire
-            end
-
+            conn.expire
             @available.add conn
           end
         end
@@ -1265,10 +1261,7 @@ module ActiveRecord
         end
 
         def checkout_and_verify(c)
-          c._run_checkout_callbacks do
-            c.clean!
-          end
-          c
+          c.clean!
         rescue Exception
           remove c
           c.disconnect!
