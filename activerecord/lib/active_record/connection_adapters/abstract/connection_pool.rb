@@ -179,21 +179,30 @@ module ActiveRecord
         end
       end
 
-      class LeaseRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = WeakThreadKeyMap.new
-        end
-
-        def [](context)
-          @mutex.synchronize do
-            @map[context] ||= Lease.new
+      if RUBY_ENGINE == "ruby"
+        # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
+        class LeaseRegistry < WeakThreadKeyMap # :nodoc:
+          def [](context)
+            super || (self[context] = Lease.new)
           end
         end
+      else
+        class LeaseRegistry # :nodoc:
+          def initialize
+            @mutex = Mutex.new
+            @map = WeakThreadKeyMap.new
+          end
 
-        def clear
-          @mutex.synchronize do
-            @map.clear
+          def [](context)
+            @mutex.synchronize do
+              @map[context] ||= Lease.new
+            end
+          end
+
+          def clear
+            @mutex.synchronize do
+              @map.clear
+            end
           end
         end
       end
@@ -651,11 +660,7 @@ module ActiveRecord
         conn.lock.synchronize do
           synchronize do
             connection_lease.clear(conn)
-
-            conn._run_checkin_callbacks do
-              conn.expire
-            end
-
+            conn.expire
             @available.add conn
           end
         end
@@ -1265,10 +1270,7 @@ module ActiveRecord
         end
 
         def checkout_and_verify(c)
-          c._run_checkout_callbacks do
-            c.clean!
-          end
-          c
+          c.clean!
         rescue Exception
           remove c
           c.disconnect!

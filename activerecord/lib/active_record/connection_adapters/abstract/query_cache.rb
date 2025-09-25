@@ -13,8 +13,6 @@ module ActiveRecord
           dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
             :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
             :exec_insert_all
-
-          base.set_callback :checkin, :after, :unset_query_cache!
         end
 
         def dirties_query_cache(base, *method_names)
