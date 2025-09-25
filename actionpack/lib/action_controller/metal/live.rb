@@ -26,18 +26,42 @@ module ActionController
   #       end
   #     end
   #
-  # There are a few caveats with this module. You **cannot** write headers after
-  # the response has been committed (Response#committed? will return truthy).
-  # Calling `write` or `close` on the response stream will cause the response
-  # object to be committed. Make sure all headers are set before calling write or
-  # close on your stream.
+  # ## Considerations
+  #
+  # ### Thread Pool Usage
+  #
+  # When you include `ActionController::Live`, all actions in that controller
+  # will be executed in separate threads from a `CachedThreadPool`, not just
+  # your streaming actions (e.g., SSE).
+  # This means non-streaming responses (e.g., HTML, JSON) will also consume
+  # threads from the pool.
+  #
+  # For streaming responses, you explicitly call `sse.close` which properly
+  # releases the thread back to the pool. However, for non-streaming
+  # responses, there's no explicit stream closure in your action code.
+  # While Rails attempts to handle this automatically, the thread may not be
+  # released immediately or completely, potentially leading to thread pool
+  # exhaustion under high load.
+  #
+  # If you have both streaming and non-streaming actions in the same
+  # controller, it's strongly recommended to separate them into different
+  # controllers to avoid thread pool exhaustion issues.
+  #
+  # ### Other Caveats
+  #
+  # You **cannot** write headers after the response has been committed
+  # (Response#committed? will return truthy). Calling `write` or `close` on
+  # the response stream will cause the response object to be committed. Make
+  # sure all headers are set before calling write or close on your stream.
   #
   # You **must** call close on your stream when you're finished, otherwise the
   # socket may be left open forever.
   #
-  # The final caveat is that your actions are executed in a separate thread than
-  # the main thread. Make sure your actions are thread safe, and this shouldn't be
-  # a problem (don't share state across threads, etc).
+  # Your actions are executed in a separate thread than the main thread. Make
+  # sure your actions are thread safe, and this shouldn't be a problem (don't
+  # share state across threads, etc).
+  #
+  # ---
   #
   # Note that Rails includes `Rack::ETag` by default, which will buffer your
   # response. As a result, streaming responses may not work properly with Rack
