@@ -34,8 +34,10 @@ module ActiveStorage
         end
       end
 
+      ROTATIONS = Set.new(%w[RightTop LeftBottom TopRight BottomLeft]).freeze
+
       def rotated_image?(image)
-        %w[ RightTop LeftBottom TopRight BottomLeft ].include?(image["%[orientation]"])
+        ROTATIONS.include?(image["%[orientation]"])
       end
   end
 end
