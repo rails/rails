@@ -1,3 +1,50 @@
+*   Add engine route filtering and better formatting in `bin/rails routes`.
+
+    Allow engine routes to be filterable in the routing inspector, and
+    improve formatting of engine routing output.
+
+    Before:
+    ```
+    > bin/rails routes -e engine_only
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+    ```
+
+    After:
+    ```
+    > bin/rails routes -e engine_only
+    Routes for application:
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+
+    Routes for Test::Engine:
+    Prefix Verb URI Pattern       Controller#Action
+    engine GET  /engine_only(.:format) a#b
+    ```
+
+    *Dennis Paagman*, *Gannon McGibbon*
+
+*   Add structured events for Action Pack and Action Dispatch:
+    - `action_dispatch.redirect`
+    - `action_controller.request_started`
+    - `action_controller.request_completed`
+    - `action_controller.callback_halted`
+    - `action_controller.rescue_from_handled`
+    - `action_controller.file_sent`
+    - `action_controller.redirected`
+    - `action_controller.data_sent`
+    - `action_controller.unpermitted_parameters`
+    - `action_controller.fragment_cache`
+
+    *Adrianna Chang*
+
+*   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
+
+    Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
+    mounted at "/".
+
+    *Mike Dalessio*
+
 *   Update `ActionController::Metal::RateLimiting` to support passing method names to `:by` and `:with`
 
     ```ruby

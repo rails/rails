@@ -41,6 +41,20 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
+  test "keeps scheduled_at around after deserialization if data doesnt include it" do
+    freeze_time
+
+    current_time = Time.now
+
+    job = HelloJob.new
+    serialized_job = job.serialize
+    job.set(wait_until: current_time)
+
+    job.deserialize(serialized_job)
+
+    assert_equal current_time, job.scheduled_at
+  end
+
   test "deserializes enqueued_at when ActiveSupport.parse_json_times is true" do
     freeze_time
 

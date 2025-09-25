@@ -46,6 +46,8 @@ module ActiveSupport
       def encode(value, options = nil)
         if options.nil? || options.empty?
           Encoding.encode_without_options(value)
+        elsif options == { escape: false }.freeze
+          Encoding.encode_without_escape(value)
         else
           Encoding.json_encoder.new(options).encode(value)
         end
@@ -140,11 +142,14 @@ module ActiveSupport
           end
       end
 
-      if defined?(::JSON::Coder)
+      # ruby/json 2.14.x yields non-String keys but doesn't let us know it's a key
+      if defined?(::JSON::Coder) && !::JSON::VERSION.start_with?("2.14.")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new do |value|
+          CODER = ::JSON::Coder.new do |value, is_key|
             json_value = value.as_json
+            # Keep compatibility by calling to_s on non-String keys
+            next json_value.to_s if is_key
             # Handle objects returning self from as_json
             if json_value.equal?(value)
               next ::JSON::Fragment.new(::JSON.generate(json_value))
@@ -161,7 +166,14 @@ module ActiveSupport
 
 
           def initialize(options = nil)
-            @options = options ? options.dup.freeze : {}.freeze
+            if options
+              options = options.dup
+              @escape = options.delete(:escape) { true }
+              @options = options.freeze
+            else
+              @escape = true
+              @options = {}.freeze
+            end
           end
 
           # Encode the given object into a JSON string
@@ -170,7 +182,7 @@ module ActiveSupport
 
             json = CODER.dump(value)
 
-            return json unless @options.fetch(:escape, true)
+            return json unless @escape
 
             # Rails does more escaping than the JSON gem natively does (we
             # escape \u2028 and \u2029 and optionally >, <, & to work around
@@ -206,17 +218,22 @@ module ActiveSupport
         def json_encoder=(encoder)
           @json_encoder = encoder
           @encoder_without_options = encoder.new
+          @encoder_without_escape = encoder.new(escape: false)
         end
 
         def encode_without_options(value) # :nodoc:
           @encoder_without_options.encode(value)
+        end
+
+        def encode_without_escape(value) # :nodoc:
+          @encoder_without_escape.encode(value)
         end
       end
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
       self.json_encoder =
-        if defined?(::JSON::Coder)
+        if defined?(JSONGemCoderEncoder)
           JSONGemCoderEncoder
         else
           JSONGemEncoder

@@ -173,8 +173,10 @@ module ActiveRecord
             connection_latch.count_down
             load_interlock_latch.wait
 
-            ActiveSupport::Dependencies.interlock.loading do
-              able_to_load = true
+            assert_deprecated(/ActiveSupport::Dependencies::Interlock#loading is deprecated/, ActiveSupport.deprecator) do
+              ActiveSupport::Dependencies.interlock.loading do
+                able_to_load = true
+              end
             end
           end
         end
@@ -1473,6 +1475,88 @@ module ActiveRecord
         pool = ConnectionPool.new(pool_config)
 
         assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:reading shard=:shard_one>/, pool.inspect)
+      ensure
+        pool&.disconnect!
+      end
+
+      def test_checkout_callback_error_does_not_affect_permanent_lease_and_active_connection_state
+        checkout_error = StandardError.new("error during checkout")
+        proc_to_raise = -> { raise checkout_error }
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.set_callback(:checkout, :after, proc_to_raise)
+
+        assert_predicate @pool, :permanent_lease?
+        assert_not_predicate @pool, :active_connection?
+
+        error = assert_raises StandardError do
+          @pool.lease_connection
+        end
+        assert_same checkout_error, error
+
+        assert_predicate @pool, :permanent_lease?
+        assert_not_predicate @pool, :active_connection?
+      ensure
+        ActiveRecord::ConnectionAdapters::AbstractAdapter.skip_callback(:checkout, :after, proc_to_raise)
+      end
+
+      def test_unlimited_connections_with_nil
+        pool = new_pool_with_options(max_connections: nil)
+
+        assert_nil pool.max_connections
+        assert_nil pool.size
+
+        # Should be able to create many connections without hitting a limit
+        connections = []
+        10.times do
+          connections << pool.checkout
+        end
+
+        assert_equal 10, connections.size
+        connections.each { |conn| pool.checkin(conn) }
+      ensure
+        pool&.disconnect!
+      end
+
+      def test_unlimited_connections_with_negative_one
+        pool = new_pool_with_options(max_connections: -1)
+
+        assert_nil pool.max_connections
+        assert_nil pool.size
+
+        # Should be able to create many connections without hitting a limit
+        connections = []
+        10.times do
+          connections << pool.checkout
+        end
+
+        assert_equal 10, connections.size
+        connections.each { |conn| pool.checkin(conn) }
+      ensure
+        pool&.disconnect!
+      end
+
+      def test_zero_connections_means_zero_limit
+        pool = new_pool_with_options(max_connections: 0)
+
+        assert_equal 0, pool.max_connections
+        assert_equal 0, pool.size
+
+        # Should not be able to create any connections
+        error = assert_raises(ActiveRecord::ConnectionTimeoutError) do
+          pool.checkout
+        end
+        assert_match(/could not obtain a connection from the pool/, error.message)
+      ensure
+        pool&.disconnect!
+      end
+
+      def test_unlimited_connections_stat_reports_nil_size
+        pool = new_pool_with_options(max_connections: nil)
+
+        stat = pool.stat
+        assert_nil stat[:size]
+        assert_equal 0, stat[:connections]
+        assert_equal 0, stat[:busy]
+        assert_equal 0, stat[:idle]
       ensure
         pool&.disconnect!
       end

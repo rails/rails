@@ -298,6 +298,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_bundler_audit
+    run_generator [ destination_root, "--skip-bundler-audit" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/bundler-audit") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_rubocop
     run_generator [ destination_root, "--skip-rubocop" ]
 
@@ -653,6 +663,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "bin/rubocop"
     assert_no_file "bin/brakeman"
+  end
+
+  def test_inclusion_of_bundler_audit
+    run_generator
+    assert_gem "bundler-audit"
+  end
+
+  def test_bundler_audit_is_skipped_if_required
+    run_generator [destination_root, "--skip-bundler-audit"]
+
+    assert_no_gem "bundler-audit"
+    assert_no_file "bin/bundler-audit"
   end
 
   def test_inclusion_of_ci_files
@@ -1379,6 +1401,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_option :skip_active_storage
     assert_option :skip_bootsnap
     assert_option :skip_brakeman
+    assert_option :skip_bundler_audit
     assert_option :skip_ci
     assert_option :skip_dev_gems
     assert_option :skip_docker
@@ -1743,7 +1766,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_gem_for_active_storage
-      assert_file "Gemfile", /^# gem "image_processing"/
+      assert_gem "image_processing"
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped

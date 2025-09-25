@@ -31,6 +31,7 @@ module ActiveRecord
       end
 
       def schema_cache; end
+      def query_cache; end
       def connection_descriptor; end
       def checkin(_); end
       def remove(_); end
@@ -111,6 +112,7 @@ module ActiveRecord
     # * +max_age+: number of seconds the pool will allow the connection to
     #   exist before retiring it at next checkin. (default Float::INFINITY).
     # * +max_connections+: maximum number of connections the pool may manage (default 5).
+    #   Set to +nil+ or -1 for unlimited connections.
     # * +min_connections+: minimum number of connections the pool will open and maintain (default 0).
     # * +pool_jitter+: maximum reduction factor to apply to +max_age+ and
     #   +keepalive+ intervals (default 0.2; range 0.0-1.0).
@@ -178,21 +180,30 @@ module ActiveRecord
         end
       end
 
-      class LeaseRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = WeakThreadKeyMap.new
-        end
-
-        def [](context)
-          @mutex.synchronize do
-            @map[context] ||= Lease.new
+      if RUBY_ENGINE == "ruby"
+        # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
+        class LeaseRegistry < WeakThreadKeyMap # :nodoc:
+          def [](context)
+            super || (self[context] = Lease.new)
           end
         end
+      else
+        class LeaseRegistry # :nodoc:
+          def initialize
+            @mutex = Mutex.new
+            @map = WeakThreadKeyMap.new
+          end
 
-        def clear
-          @mutex.synchronize do
-            @map.clear
+          def [](context)
+            @mutex.synchronize do
+              @map[context] ||= Lease.new
+            end
+          end
+
+          def clear
+            @mutex.synchronize do
+              @map.clear
+            end
           end
         end
       end
@@ -343,8 +354,9 @@ module ActiveRecord
       # held in a cache keyed by a thread.
       def lease_connection
         lease = connection_lease
-        lease.sticky = true
         lease.connection ||= checkout
+        lease.sticky = true
+        lease.connection
       end
 
       def permanent_lease? # :nodoc:
@@ -362,6 +374,7 @@ module ActiveRecord
         end
 
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        @pinned_connection.pinned = true
         @pinned_connection.verify! # eagerly validate the connection
         @pinned_connection.begin_transaction joinable: false, _lazy: false
       end
@@ -384,6 +397,7 @@ module ActiveRecord
           end
 
           if @pinned_connection.nil?
+            connection.pinned = false
             connection.steal!
             connection.lock_thread = nil
             checkin(connection)
@@ -647,11 +661,7 @@ module ActiveRecord
         conn.lock.synchronize do
           synchronize do
             connection_lease.clear(conn)
-
-            conn._run_checkin_callbacks do
-              conn.expire
-            end
-
+            conn.expire
             @available.add conn
           end
         end
@@ -1214,7 +1224,7 @@ module ActiveRecord
           do_checkout = synchronize do
             return if self.discarded?
 
-            if @threads_blocking_new_connections.zero? && (@connections.size + @now_connecting) < @max_connections && (!block_given? || yield)
+            if @threads_blocking_new_connections.zero? && (@max_connections.nil? || (@connections.size + @now_connecting) < @max_connections) && (!block_given? || yield)
               if @connections.size > 0 || @original_context != ActiveSupport::IsolatedExecutionState.context
                 @activated = true
               end
@@ -1261,10 +1271,7 @@ module ActiveRecord
         end
 
         def checkout_and_verify(c)
-          c._run_checkout_callbacks do
-            c.clean!
-          end
-          c
+          c.clean!
         rescue Exception
           remove c
           c.disconnect!

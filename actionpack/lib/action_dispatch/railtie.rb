@@ -4,6 +4,7 @@
 
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
+require "action_dispatch/structured_event_subscriber"
 require "active_support/messages/rotation_configuration"
 
 module ActionDispatch

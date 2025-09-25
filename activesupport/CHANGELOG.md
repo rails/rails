@@ -1,3 +1,30 @@
+*   Introduce `ActiveSupport::Testing::EventReporterAssertions#with_debug_event_reporting`
+    to enable event reporter debug mode in tests.
+
+    The previous way to enable debug mode is by using `#with_debug` on the
+    event reporter itself, which is too verbose. This new helper will help
+    clear up any confusion on how to test debug events.
+
+    *Gannon McGibbon*
+
+*   Add `ActiveSupport::StructuredEventSubscriber` for consuming notifications and
+    emitting structured event logs. Events may be emitted with the `#emit_event`
+    or `#emit_debug_event` methods.
+
+    ```ruby
+    class MyStructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber
+      def notification(event)
+        emit_event("my.notification", data: 1)
+      end
+    end
+    ```
+
+    *Adrianna Chang*
+
+*   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
+
+    *Jan Grodowski*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.

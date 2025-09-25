@@ -7,7 +7,7 @@ module ActionView
         def render
           include_hidden = @options.delete(:include_hidden)
           options = @options.stringify_keys
-          add_default_name_and_id(options)
+          add_default_name_and_field(options)
 
           if options["multiple"] && include_hidden
             hidden_field_for_multiple_file(options) + super

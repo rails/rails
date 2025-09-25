@@ -3,7 +3,7 @@
 require "active_support/log_subscriber"
 
 module ActiveStorage
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     def service_upload(event)
       message = "Uploaded file to key: #{key_in(event)}"
       message += " (checksum: #{event.payload[:checksum]})" if event.payload[:checksum]

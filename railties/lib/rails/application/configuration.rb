@@ -351,6 +351,10 @@ module Rails
         when "8.1"
           load_defaults "8.0"
 
+          if respond_to?(:action_controller)
+            action_controller.action_on_open_redirect = :raise
+          end
+
           # Development and test environments tend to reload code and
           # redefine methods (e.g. mocking), hence YJIT isn't generally
           # faster in these environments.

@@ -127,6 +127,8 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Notable changes
 
+*   The table columns inside `schema.rb` are [now sorted alphabetically.](https://github.com/rails/rails/pull/53281)
+
 Active Storage
 --------------
 
@@ -176,6 +178,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
 
 ### Deprecations
+
+*   Custom Active Job serializers must have a public `#klass` method.
 
 ### Notable changes
 
