@@ -187,7 +187,7 @@ module ActiveSupport
           end
       end
 
-      def group_listeners(listeners)
+      def group_listeners(listeners) # :nodoc:
         listeners.group_by(&:group_class).transform_values do |s|
           s.map(&:delegate).freeze
         end.freeze
