@@ -66,8 +66,6 @@ group :doc do
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
-  # Workaround until https://github.com/rouge-ruby/rouge/pull/2131 is merged and released
-  gem "cgi", require: false
   gem "rubyzip", "~> 2.0"
 end
 
