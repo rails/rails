@@ -1,3 +1,14 @@
+*   Add replicas to test database parallelization setup.
+
+    Setup and configuration of databases for parallel testing now includes replicas.
+
+    This fixes an issue when using a replica database, database selector middleware,
+    and non-transactional tests, where integration tests running in parallel would select
+    the base test database, i.e. `db_test`, instead of the numbered parallel worker database,
+    i.e. `db_test_{n}`.
+
+    *Adam Maas*
+
 *   Optimize schema dumping to prevent duplicate file generation.
 
     `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files
