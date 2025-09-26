@@ -17,7 +17,7 @@ What is Active Record Aggregations?
 -----------------------------------
 
 In many domains, simple columns like strings and integers are not expressive enough on their own.
-You may want to introduce a *value object* to represent a richer concept in your domain.
+You may want to introduce a [*value object*](#what-are-value-objects-questionmark) to represent a richer concept in your domain.
 
 For example:
 
@@ -26,10 +26,9 @@ For example:
 - a `Dimension` class for measurements,
 - or even complex numbers.
 
-**Active Record Aggregations** provides a way to map these value objects to database columns using
+**Active Record Aggregations** provides a way to map these `value objects` attributes to database columns using
 the [`composed_of`](https://api.rubyonrails.org/classes/ActiveRecord/Aggregations/ClassMethods.html) method.
-Value objects are immutable and represent a single value or concept. They are often used to encapsulate related
-attributes and behavior, so no getters and settings are allowed. It is used to express `is-composed-of` relationships.
+It is used to express `is-composed-of` relationships.
 
 For example:
 
@@ -40,20 +39,25 @@ For example:
 What are Value Objects?
 -----------------------
 
-Value objects are immutable and interchangeable objects that represent a single value or concept.
-This improves clarity, keeps business rules close to the data they describe, and avoids the pitfalls of using raw primitives throughout your models.
+Value objects are immutable and interchangeable objects that represent a single value or concept, so no setter methods are allowed.
+This improves clarity, keeps business rules close to the data they describe, and avoids the pitfalls of using
+raw primitive data-types throughout your models and business logic.
 They are often used to encapsulate related attributes and behavior, such as Money object can represent `$100`, and
 Address object can represent `123 Main St, Springfield, IL`.
 
 ### Value Object Comparison
 
 Any two value objects with the same attributes or calculative equal values are considered equal.
-For example, two `Money` objects with the same amount and currency are considered equal, even if they are different
-instances. Also, two money objects with different amounts but equal value when exchanged to the same currency are considered equal.
+
+For example:
+
+* two `Money` objects with the same amount and currency are considered equal, even if they are different instances.
+* Also, two money objects with different amounts but equal value when exchanged to the same currency are considered equal.
 
 While defining a value object, you typically override the `==` and `<=>` methods to compare the attributes of the objects.
+Also, you define a way to convert between different units if applicable.
 
-TIP: Entity objects like descendants of `ApplicationRecord` are not value objects, as they have a distinct identity and
+NOTE: Entity objects like descendants of `ApplicationRecord` are not value objects, as they have a distinct identity and
 lifecycle. They are uniquely identified by their primary keys or object ids.
 
 ### Benefits of Using Value Objects
@@ -156,8 +160,8 @@ You can define the `Product` model like this:
 class Product < ApplicationRecord
   composed_of :price,
               class_name: "Money",
-              mapping: [%w(price_cents amount), %w(price_currency currency)],
-              # mapping: {price_cents: :amount, price_currency: :currency}, # alternative syntax
+              mapping: { price_cents: :amount, price_currency: :currency },
+              # mapping: [%w(price_cents amount), %w(price_currency currency)],  # alternative syntax
               constructor: Proc.new { |amount, currency| Money.new(amount || 0, currency || "USD") },
               converter: Proc.new { |value| value.is_a?(Money) ? value : Money.new(value) }
 end
@@ -254,14 +258,14 @@ When you query using an aggregated attribute, Active Record will translate the q
 table columns.
 
 ```ruby
-expensive_products  = Product.where("price_cents > ?", 1000)
-# => SELECT "products".* FROM "products" WHERE (price_cents > 1000)
+Product.where(price: Money.new(2000, "USD"))
+# => SELECT "products".* FROM "products" WHERE "products"."price_cents" = 2000 AND "products"."price_currency" = 'USD'
 
-my_address          = User.where(address: Address.new("456 Elm St", "Springfield", "IL", "62702"))
+User.where(address: Address.new("456 Elm St", "Springfield", "IL", "62702"))
 # => SELECT "users".* FROM "users" WHERE "users"."street" = '456 Elm St' AND "users"."city" = 'Springfield' AND "users"."state" = 'IL' AND "users"."zip" = '62702'
 ```
 
-Please see the [caveats section below](#query-with-values-in-different-units) for more details on querying with values in different units.
+Please see the [caveats section below](#querying-for-same-value-with-different-value-attributes) for more details on querying with values in different units.
 
 Usage in Scopes and Validations
 -------------------------------
@@ -269,21 +273,26 @@ Usage in Scopes and Validations
 You can also use the aggregated attributes in scopes and validations:
 
 ```ruby
-
 class Product < ApplicationRecord
   composed_of :price,
               class_name: "Money",
               mapping: [%w(price_cents amount), %w(price_currency currency)]
   validates   :price, presence: true
-  scope       :expensive, -> { where("price_cents > ?", 1000) }
+  scope       :expensive, -> { where(price: Money.new(2000, "USD")) }
 end
 ```
 
 Since you cannot use aggregated attribute(like `price`) directly in database queries,
-you need to use the underlying table columns(like `price_cents`) in scopes.
+so you need to use the underlying table columns(like `price_cents`) in scopes for complex queries.
+
+```ruby
+  scope       :expensive, -> { where("price_cents > ?", 1000) }
+```
 
 Other Option Examples
 ---------------------
+
+Here are some examples of value objects you might build using Active Record Aggregations in your app:
 
 ```ruby
 composed_of :temperature, mapping: { reading: :celsius }
@@ -303,21 +312,79 @@ composed_of :ip_address,
 Caveats
 -------
 
-### Query with values in different units
+### Querying for Same Value with Different Value Attributes
 
-Let's say there is a product with price `Money.new(1000, "USD")` in the database.
-When you query with a different currency value like `Money.new(850, "EUR")`(lets assume `1 USD = 0.85 EUR` today),
-it will not match the product even though they are equal in value.
-
-For Example:
+Let's say we have a `Duration` value object that represents a time duration in seconds, minutes, or hours.
 
 ```ruby
-Product.create!(price: Money.new(1000, "USD"))
+class Duration
+  include Comparable
+  attr_reader :value, :unit
+  UNITS_IN_SECONDS = { sec: 1, min: 60, hr: 3600 }
 
-Product.where(price: Money.new(850, "EUR")).exists? # => false
+  def initialize(value, unit = :seconds)
+    @value, @unit = value, unit
+  end
+
+  def to_seconds
+    value * UNITS_IN_SECONDS[unit]
+  end
+
+  def ==(other_duration)
+    to_seconds == other_duration.to_seconds
+  end
+
+  def <=>(other_duration)
+    to_seconds <=> other_duration.to_seconds
+  end
+end
 ```
 
-so you need to be careful when querying with values in different units.
+while comparing two `Duration` objects, they are considered equal if they represent same duration in seconds.
+
+```ruby
+Duration.new(60, :sec) == Duration.new(1, :min)
+# => true
+
+Duration.new(7200, :sec) == Duration.new(2, :hr)
+# => true
+```
+
+Now let's define a `Task` model that has `duration_value` and `duration_unit` columns in the database, and you want
+to use a `Duration` value object to represent the duration of the task.
+
+```ruby
+class Task < ApplicationRecord
+  composed_of :duration, mapping: { duration_value: :value, duration_unit: :unit }
+end
+```
+
+When you create two `Task` records with different `Duration` objects with different units that represent the same duration,
+and later make query using one of those `Duration` objects, it will not return both records as some of us might expect.
+
+```ruby
+Duration.new(120, :min) == Duration.new(2, :hr)
+# => true
+
+Task.create duration: Duration.new(120, :min)
+# => #<Task:0x000000011f6337e0 id: 1, duration_value: 120, duration_unit: "min">
+
+Task.create duration: Duration.new(2, :hr)
+# => #<Task:0x000000011be96e18 id: 2, duration_value: 2, duration_unit: "hr">
+
+Task.where(duration: Duration.new(2, :hr))
+# => SELECT "tasks".* FROM "tasks" WHERE "tasks"."duration_value" = 2 AND "tasks"."duration_unit" = 'hr'
+# => [#<Task:0x000000011be95a18 id: 2, duration_value: 2, duration_unit: "hr">]
+```
+
+#### Workaround
+
+So to make such queries work as expected, you can choose to store the value in a single unit in the database,
+like how banks maintain accounts in a particular currency only. So whenever new transaction comes in different currency,
+it is converted to the account currency before storing. This way you can avoid such issues.
+
+In our example, we can store the duration in seconds only and convert it back to the desired unit when reading.
+
 
 ### Dirty Tracking Method for Aggregated Attributes
 
