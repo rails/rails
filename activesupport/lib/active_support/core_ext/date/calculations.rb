@@ -56,6 +56,12 @@ class Date
     #   Date.upcoming_date(12, 25)  # => Date for next Christmas (Dec 25)
     #   Date.upcoming_date(1, 1)    # => Date for next New Year's Day (Jan 1)
     def upcoming_date(month, day)
+      begin
+        ::Date.new(2000, month, day)  # Test with a leap year to allow Feb 29
+      rescue Date::Error => e
+        raise ArgumentError, "Invalid date: month #{month}, day #{day}. #{e.message}"
+      end
+
       today = ::Time.zone&.now || ::Time.now
 
       begin
