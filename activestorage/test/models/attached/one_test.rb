@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "active_support/testing/method_call_assertions"
+
+require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -10,6 +11,8 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   setup do
     @user = User.create!(name: "Josh")
+
+    ActiveStorage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips]
   end
 
   teardown do
@@ -761,25 +764,27 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   end
 
   test "raises error when global service configuration is missing" do
-    Rails.configuration.active_storage.stub(:service, nil) do
-      error = assert_raises RuntimeError do
-        User.class_eval do
+    with_service(nil) do
+      msg = <<~MSG.squish
+        Missing Active Storage service name.
+        Specify Active Storage service name for config.active_storage.service in config/environments/test.rb
+      MSG
+      assert_raises(RuntimeError, match: msg) do
+        Class.new(ActiveRecord::Base) do
           has_one_attached :featured_photo
         end
       end
-
-      assert_match(/Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config\/environments\/test.rb/, error.message)
     end
   end
 
   test "raises error when misconfigured service is passed" do
     error = assert_raises ArgumentError do
-      User.class_eval do
+      Class.new(ActiveRecord::Base) do
         has_one_attached :featured_photo, service: :unknown
       end
     end
 
-    assert_match(/Cannot configure service :unknown for User#featured_photo/, error.message)
+    assert_match(/Cannot configure service :unknown for (.*)#featured_photo/, error.message)
   end
 
   test "raises error when misconfigured service is defined at runtime" do
