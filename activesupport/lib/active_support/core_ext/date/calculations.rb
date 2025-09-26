@@ -48,6 +48,29 @@ class Date
     def current
       ::Time.zone ? ::Time.zone.today : ::Date.today
     end
+
+    # Returns the upcoming date for the specified month and day.
+    # If the date has already passed this year, returns the date for next year.
+    # Uses the configured time zone when <tt>Time.zone</tt> is set.
+    #
+    #   Date.upcoming_date(12, 25)  # => Date for next Christmas (Dec 25)
+    #   Date.upcoming_date(1, 1)    # => Date for next New Year's Day (Jan 1)
+    def upcoming_date(month, day)
+      today = ::Time.zone&.now || ::Time.now
+
+      begin
+        current_year_date = ::Date.new(today.year, month, day)
+        return current_year_date if current_year_date >= today.to_date
+      rescue Date::Error
+        # Invalid date for current year (e.g., Feb 29 in non-leap year)
+      end
+
+      (today.year + 1..Float::INFINITY).lazy.each do |year|
+        return ::Date.new(year, month, day)
+      rescue Date::Error
+        next
+      end
+    end
   end
 
   # Converts Date to a Time (or DateTime if necessary) with the time portion set to the beginning of the day (0:00)
