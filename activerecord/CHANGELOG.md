@@ -1,3 +1,8 @@
+*   Fix invalid records being autosaved when distantly associated records are marked for deletion.
+
+    *Ian Terrell*, *axlekb AB*
+
+
 ## Rails 8.0.3 (September 22, 2025) ##
 
 *   Fix query cache for pinned connections in multi threaded transactional tests
