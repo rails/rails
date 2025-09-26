@@ -1,3 +1,14 @@
+*   Add replicas to test database parallelization setup.
+
+    Setup and configuration of databases for parallel testing now includes replicas.
+
+    This fixes an issue when using a replica database, database selector middleware,
+    and non-transactional tests, where integration tests running in parallel would select
+    the base test database, i.e. `db_test`, instead of the numbered parallel worker database,
+    i.e. `db_test_{n}`.
+
+    *Adam Maas*
+
 *   Support virtual (not persisted) generated columns on PostgreSQL 18+
 
     PostgreSQL 18 introduces virtual (not persisted) generated columns,
