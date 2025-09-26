@@ -1,3 +1,7 @@
+*   Fix invalid records being autosaved when distantly associated records are marked for deletion.
+
+    *Ian Terrell*, *axlekb AB*
+
 *   Prevent persisting invalid record.
 
     *Edouard Chin*

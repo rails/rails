@@ -340,7 +340,7 @@ module ActiveRecord
         context = validation_context if custom_validation_context?
         return true if record.valid?(context)
 
-        if record.changed? || record.new_record? || context
+        if context || record.changed_for_autosave?
           associated_errors = record.errors.objects
         else
           # If there are existing invalid records in the DB, we should still be able to reference them.

@@ -2367,3 +2367,58 @@ class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveReco
     end
   end
 end
+
+class TestAutosaveAssociationWithNestedAttributes < ActiveRecord::TestCase
+  class Part < ActiveRecord::Base
+    self.table_name = "ship_parts"
+  end
+
+  class Ship < ActiveRecord::Base
+    self.table_name = "ships"
+    has_many :parts, class_name: Part.name
+    accepts_nested_attributes_for :parts, allow_destroy: true
+
+    validate :has_at_least_two_parts
+    def has_at_least_two_parts
+      current_parts = parts.select { |p| !p.marked_for_destruction? }
+      errors.add(:parts, "must have at least two parts") if current_parts.size < 2
+    end
+  end
+
+  class Pirate < ActiveRecord::Base
+    self.table_name = "pirates"
+    has_many :ships, class_name: Ship.name
+    accepts_nested_attributes_for :ships, allow_destroy: true
+  end
+
+  def test_should_be_invalid_when_nested_attributes_deletion_breaks_validation
+    pirate = Pirate.create!
+    ship = pirate.ships.new
+    2.times do |i|
+      ship.parts.build
+    end
+    part = ship.parts.first
+    ship.save!
+
+    deletion_params = {
+      "ships_attributes" => {
+        "0" => {
+          "id" => ship.id,
+          "parts_attributes" => {
+            "0" => {
+              "id" => part.id,
+              "_destroy" => "1",
+            },
+          }
+        }
+      }
+    }
+
+    assert_not pirate.update(deletion_params)
+    assert_nothing_raised do
+      part.reload
+    end
+    assert_includes pirate.errors[:"ships.parts"], "must have at least two parts"
+    assert_includes ship.errors[:parts], "must have at least two parts"
+  end
+end
