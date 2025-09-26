@@ -439,6 +439,20 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_upcoming_date_with_invalid_parameters
+    assert_raises(ArgumentError, "Invalid date: month 13, day 1") do
+      Date.upcoming_date(13, 1)
+    end
+
+    assert_raises(ArgumentError, "Invalid date: month 1, day 32") do
+      Date.upcoming_date(1, 32)
+    end
+
+    assert_raises(ArgumentError, "Invalid date: month 100, day 100") do
+      Date.upcoming_date(100, 100)
+    end
+  end
+
   def test_date_advance_should_not_change_passed_options_hash
     options = { years: 3, months: 11, days: 2 }
     Date.new(2005, 2, 28).advance(options)
