@@ -275,7 +275,7 @@ module Rails
 
     def devcontainer
       devcontainer_options = {
-        database: options[:database],
+        database: database.adapter,
         redis: options[:skip_solid] && !(options[:skip_action_cable] && options[:skip_active_job]),
         kamal: !options[:skip_kamal],
         system_test: depends_on_system_test?,
