@@ -12,6 +12,19 @@
 
     *Victor Cobos*
 
+*   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
+
+    Previously, calling `class_attribute` on an instance's singleton class would raise
+    a `NameError` when accessing the attribute through the instance.
+
+    ```ruby
+    object = MyClass.new
+    object.singleton_class.class_attribute :foo, default: "bar"
+    object.foo # previously raised NameError, now returns "bar"
+    ```
+
+    *Joshua Young*
+
 *   Introduce `ActiveSupport::Testing::EventReporterAssertions#with_debug_event_reporting`
     to enable event reporter debug mode in tests.
 
