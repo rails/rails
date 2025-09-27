@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/user"
 require "models/pilot"
+require "models/slow_pilot"
 require "models/visitor"
 
 class SecurePasswordTest < ActiveModel::TestCase
@@ -14,6 +15,7 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user = User.new
     @visitor = Visitor.new
     @pilot = Pilot.new
+    @slow_pilot = SlowPilot.new
 
     # Simulate loading an existing user from the DB
     @existing_user = User.new
@@ -339,5 +341,10 @@ class SecurePasswordTest < ActiveModel::TestCase
 
     assert_equal "finding-for-password_reset-by-999", Pilot.find_by_password_reset_token("999")
     assert_equal "finding-for-password_reset-by-999!", Pilot.find_by_password_reset_token!("999")
+  end
+
+  test "password reset token duration" do
+    assert_equal "password_reset-token-3600", @slow_pilot.password_reset_token
+    assert_equal 1.hour, @slow_pilot.password_reset_token_expires_in
   end
 end
