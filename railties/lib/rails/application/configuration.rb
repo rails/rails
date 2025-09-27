@@ -267,7 +267,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -350,10 +350,6 @@ module Rails
           Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
         when "8.1"
           load_defaults "8.0"
-
-          if respond_to?(:action_controller)
-            action_controller.action_on_open_redirect = :raise
-          end
 
           # Development and test environments tend to reload code and
           # redefine methods (e.g. mocking), hence YJIT isn't generally
