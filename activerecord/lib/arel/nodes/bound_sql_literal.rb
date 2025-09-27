@@ -3,9 +3,9 @@
 module Arel # :nodoc: all
   module Nodes
     class BoundSqlLiteral < NodeExpression
-      attr_reader :sql_with_placeholders, :positional_binds, :named_binds
+      attr_reader :sql_with_placeholders, :positional_binds, :named_binds, :retryable
 
-      def initialize(sql_with_placeholders, positional_binds, named_binds)
+      def initialize(sql_with_placeholders, positional_binds, named_binds, retryable: false)
         has_positional = !(positional_binds.nil? || positional_binds.empty?)
         has_named = !(named_binds.nil? || named_binds.empty?)
 
@@ -30,6 +30,7 @@ module Arel # :nodoc: all
         end
 
         @sql_with_placeholders = sql_with_placeholders
+        @retryable = retryable
         if has_positional
           @positional_binds = positional_binds
           @named_binds = nil
