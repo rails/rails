@@ -63,6 +63,24 @@ module DateAndTime
       !WEEKEND_DAYS.include?(wday)
     end
 
+    # Returns true if the date/time falls within the current week.
+    def this_week?
+      ::Date.current.all_week.include?(to_date)
+    end
+    alias_method :in_this_week?, :this_week?
+
+    # Returns true if the date/time falls within the current month.
+    def this_month?
+      ::Date.current.all_month.include?(to_date)
+    end
+    alias_method :in_this_month?, :this_month?
+
+    # Returns true if the date/time falls within the current year.
+    def this_year?
+      ::Date.current.all_year.include?(to_date)
+    end
+    alias_method :in_this_year?, :this_year?
+
     # Returns true if the date/time falls before <tt>date_or_time</tt>.
     def before?(date_or_time)
       self < date_or_time

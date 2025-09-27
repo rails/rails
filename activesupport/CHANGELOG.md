@@ -1,3 +1,16 @@
+*   Introduce `in_this_week?`, `in_this_month?`, and `in_this_year?` methods to Date/Time
+
+    Similar to `today?`, `tomorrow?`, and `yesterday?`, these methods are useful to
+    query time instances against the current period.
+
+    ```ruby
+    unless some_date.in_this_week?
+    link_to "See week recap", week_recap_path(some_date)
+    end
+    ```
+
+    *Matheus Richard*
+
 *   Introduce `ActiveSupport::Testing::EventReporterAssertions#with_debug_event_reporting`
     to enable event reporter debug mode in tests.
 
