@@ -72,7 +72,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   test "#perform_later wait for transactions to complete before enqueuing the job" do
     fake_active_record = FakeActiveRecord.new
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+    stub_const(Object, :ActiveRecord, fake_active_record) do
       assert_difference -> { fake_active_record.calls }, +1 do
         EnqueueAfterCommitJob.perform_later
       end
@@ -81,7 +81,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   test "#perform_later returns the Job instance even if it's delayed by `after_all_transactions_commit`" do
     fake_active_record = FakeActiveRecord.new(false)
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+    stub_const(Object, :ActiveRecord, fake_active_record) do
       job = EnqueueAfterCommitJob.perform_later
       assert_instance_of EnqueueAfterCommitJob, job
       assert_predicate job, :successfully_enqueued?
@@ -90,7 +90,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   test "#perform_later yields the enqueued Job instance even if it's delayed by `after_all_transactions_commit`" do
     fake_active_record = FakeActiveRecord.new(false)
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+    stub_const(Object, :ActiveRecord, fake_active_record) do
       called = false
       job = EnqueueAfterCommitJob.perform_later do |yielded_job|
         called = true
@@ -104,7 +104,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   test "#perform_later assumes successful enqueue, but update status later" do
     fake_active_record = FakeActiveRecord.new(false)
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+    stub_const(Object, :ActiveRecord, fake_active_record) do
       job = ErrorEnqueueAfterCommitJob.perform_later
       assert_instance_of ErrorEnqueueAfterCommitJob, job
       assert_predicate job, :successfully_enqueued?
@@ -116,7 +116,7 @@ class EnqueueAfterTransactionCommitTest < ActiveSupport::TestCase
 
   test "#perform_later defers enqueue callbacks until after commit" do
     fake_active_record = FakeActiveRecord.new(false)
-    stub_const(Object, :ActiveRecord, fake_active_record, exists: false) do
+    stub_const(Object, :ActiveRecord, fake_active_record) do
       job = EnqueueAfterCommitCallbackJob.perform_later
       assert_not_predicate job, :around_enqueue_called
       fake_active_record.run_after_commit_callbacks
