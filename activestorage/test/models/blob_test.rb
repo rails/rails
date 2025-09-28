@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
@@ -97,6 +96,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "record touched after analyze" do
+    ActiveStorage.analyzers = []
     user = User.create!(
       name: "Nate",
       avatar: {
@@ -216,12 +216,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "URLs force content_type to binary and attachment as content disposition for content types served as binary" do
+    old_content_types = ActiveStorage.content_types_to_serve_as_binary
+    ActiveStorage.content_types_to_serve_as_binary = %w(text/html)
+
     blob = create_blob(content_type: "text/html")
 
     freeze_time do
       assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url
       assert_equal expected_url_for(blob, disposition: :attachment, content_type: "application/octet-stream"), blob.url(disposition: :inline)
     end
+  ensure
+    ActiveStorage.content_types_to_serve_as_binary = old_content_types
   end
 
   test "URLs force attachment as content disposition when the content type is not allowed inline" do
