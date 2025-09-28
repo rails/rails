@@ -51,7 +51,7 @@ module ActionMailbox
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
     rescue ActionController::ParameterMissing => error
-      logger.error <<~MESSAGE
+      ActionMailbox.logger.error <<~MESSAGE
         #{error.message}
 
         When configuring your Postmark inbound webhook, be sure to check the box
