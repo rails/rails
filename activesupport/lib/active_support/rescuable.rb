@@ -31,20 +31,28 @@ module ActiveSupport
       # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if
       # any.
       #
+      # When used on an <tt>ActionController::Base</tt> subclass, handlers
+      # should usually create a fresh response object by calling
+      # <tt>set_response! self.class.make_response! request</tt>. This avoids
+      # inheriting headers that were set during request handling.
+      #
       #   class ApplicationController < ActionController::Base
       #     rescue_from User::NotAuthorized, with: :deny_access
       #     rescue_from ActiveRecord::RecordInvalid, with: :show_record_errors
       #
       #     rescue_from "MyApp::BaseError" do |exception|
+      #       set_response! self.class.make_response! request
       #       redirect_to root_url, alert: exception.message
       #     end
       #
       #     private
       #       def deny_access
+      #         set_response! self.class.make_response! request
       #         head :forbidden
       #       end
       #
       #       def show_record_errors(exception)
+      #         set_response! self.class.make_response! request
       #         redirect_back_or_to root_url, alert: exception.record.errors.full_messages.to_sentence
       #       end
       #   end
