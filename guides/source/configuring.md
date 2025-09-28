@@ -60,7 +60,6 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.1
 
-- [`config.action_controller.action_on_open_redirect`](#config-action-controller-action-on-open-redirect): `:raise`
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
 - [`config.action_view.remove_hidden_field_autocomplete`](#config-action-view-remove-hidden-field-autocomplete): `true`
@@ -110,7 +109,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.0
 
-- [`config.action_controller.raise_on_open_redirects`](#config-action-controller-raise-on-open-redirects): `true`
+- [`config.action_controller.action_on_open_redirect`](#config-action-controller-action-on-open-redirect): `:raise`
 - [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
 - [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
@@ -1964,12 +1963,9 @@ with an external host is passed to [redirect_to][]. If an open redirect should
 be allowed, then `allow_other_host: true` can be added to the call to
 `redirect_to`.
 
-The default value depends on the `config.load_defaults` target version:
-
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `false`              |
-| 7.0                   | `true`               |
 
 [redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
 
@@ -1995,7 +1991,7 @@ The default value depends on the `config.load_defaults` target version:
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
 | (original)            | `:log`               |
-| 8.1                   | `:raise`             |
+| 7.0                   | `:raise`             |
 
 #### `config.action_controller.action_on_path_relative_redirect`
 
