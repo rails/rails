@@ -25,6 +25,7 @@ class Module
   #   m.name         # => "M"
   #   m.anonymous?   # => false
   def anonymous?
-    name.nil?
+    # Use bind_call to bypass any overridden name method and get the actual module name
+    Module.instance_method(:name).bind_call(self).nil?
   end
 end

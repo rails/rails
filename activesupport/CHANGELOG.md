@@ -1,3 +1,9 @@
+*   Fix `Module#anonymous?` to handle overridden `name` methods.
+
+    The `anonymous?` method now uses `bind_call` to bypass any user-defined name method overrides and access the actual module name from Ruby's internal state. This ensures correct behavior when classes or modules override their `name`.
+
+    *Americo Duarte*
+
 *   Fix parallel tests hanging when worker processes die abruptly.
 
     Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
