@@ -18,7 +18,7 @@ module ActiveSupport
             DRb.stop_service
 
             @queue = DRbObject.new_with_uri(@url)
-            @queue.start_worker(@id)
+            @queue.start_worker(@id, Process.pid)
 
             begin
               after_fork
@@ -29,7 +29,7 @@ module ActiveSupport
             set_process_title("(stopping)")
 
             run_cleanup
-            @queue.stop_worker(@id)
+            @queue.stop_worker(@id, Process.pid)
           end
         end
 
