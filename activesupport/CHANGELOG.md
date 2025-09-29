@@ -1,3 +1,10 @@
+*   Fix parallel tests hanging when worker processes die abruptly.
+
+    Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
+    test execution, the test suite would hang forever waiting for the dead worker.
+
+    *Joshua Young*
+
 *   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
 
     Previously, calling `class_attribute` on an instance's singleton class would raise
