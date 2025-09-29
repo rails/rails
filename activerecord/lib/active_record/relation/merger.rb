@@ -51,7 +51,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
-                        :select, :includes, :preload, :joins, :left_outer_joins,
+                        :select, :includes, :preload, :joins, :left_outer_joins, :load_columns,
                         :order, :reverse_order, :lock, :create_with, :reordering
                       ]
 
@@ -76,6 +76,7 @@ module ActiveRecord
         merge_preloads
         merge_joins
         merge_outer_joins
+        merge_load_columns
 
         relation
       end
@@ -181,6 +182,17 @@ module ActiveRecord
 
           having_clause = relation.having_clause.merge(other.having_clause)
           relation.having_clause = having_clause unless having_clause.empty?
+        end
+
+        def merge_load_columns
+          return unless other.load_columns_value
+
+          relation.load_columns_value = {}
+          other.load_columns_value.each do |association, columns|
+            relation.load_columns_value[association] ||= []
+            relation.load_columns_value[association] += Array(columns)
+            relation.load_columns_value[association].uniq!
+          end
         end
 
         def replace_from_clause?
