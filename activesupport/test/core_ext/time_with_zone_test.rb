@@ -22,7 +22,9 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_time
-    assert_equal Time.utc(1999, 12, 31, 19), @twz.time
+    with_env_tz @time_zone do
+      assert_equal Time.local(1999, 12, 31, 19), @twz.time
+    end
   end
 
   def test_time_zone
@@ -188,7 +190,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
       utc: 2000-01-01 00:00:00.000000000 Z
       zone: !ruby/object:ActiveSupport::TimeZone
         name: America/New_York
-      time: 1999-12-31 19:00:00.000000000 Z
+      time: 1999-12-31 19:00:00.000000000 -05:00
     EOF
 
     # TODO: Remove assertion in Rails 7.1
@@ -204,7 +206,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
         utc: 2000-01-01 00:00:00.000000000 Z
         zone: !ruby/object:ActiveSupport::TimeZone
           name: America/New_York
-        time: 1999-12-31 19:00:00.000000000 Z
+        time: 1999-12-31 19:00:00.000000000 -05:00
     EOF
 
     # TODO: Remove assertion in Rails 7.1
@@ -385,13 +387,15 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_integer
-    assert_equal Time.utc(1999, 12, 31, 19, 0, 5), (@twz + 5).time
+    with_env_tz @time_zone do
+      assert_equal Time.local(1999, 12, 31, 19, 0, 5), (@twz + 5).time
+    end
   end
 
   def test_plus_with_integer_when_self_wraps_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-    assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5), (twz + 5).time
+    assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5, '-5'), (twz + 5).time
   end
 
   def test_no_limit_on_times
@@ -657,26 +661,29 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_marshal_dump_and_load
-    marshal_str = Marshal.dump(@twz)
-    mtime = Marshal.load(marshal_str)
-    assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert_predicate mtime.utc, :utc?
-    assert_equal ActiveSupport::TimeZone["Eastern Time (US & Canada)"], mtime.time_zone
-    assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert_predicate mtime.time, :utc?
-    assert_equal @twz.inspect, mtime.inspect
+    with_env_tz @time_zone do
+      marshal_str = Marshal.dump(@twz)
+      mtime = Marshal.load(marshal_str)
+      assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+      assert_predicate mtime.utc, :utc?
+      assert_equal ActiveSupport::TimeZone["Eastern Time (US & Canada)"], mtime.time_zone
+      assert_equal Time.local(1999, 12, 31, 19), mtime.time
+      assert_equal @twz.inspect, mtime.inspect
+    end
   end
 
   def test_marshal_dump_and_load_with_tzinfo_identifier
-    twz = ActiveSupport::TimeWithZone.new(@utc, TZInfo::Timezone.get("America/New_York"))
-    marshal_str = Marshal.dump(twz)
-    mtime = Marshal.load(marshal_str)
-    assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert_predicate mtime.utc, :utc?
-    assert_equal "America/New_York", mtime.time_zone.name
-    assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert_predicate mtime.time, :utc?
-    assert_equal @twz.inspect, mtime.inspect
+    zone = TZInfo::Timezone.get("America/New_York")
+    with_env_tz zone do
+      twz = ActiveSupport::TimeWithZone.new(@utc, zone)
+      marshal_str = Marshal.dump(twz)
+      mtime = Marshal.load(marshal_str)
+      assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
+      assert_predicate mtime.utc, :utc?
+      assert_equal "America/New_York", mtime.time_zone.name
+      assert_equal Time.local(1999, 12, 31, 19), mtime.time
+      assert_equal @twz.inspect, mtime.inspect
+    end
   end
 
   def test_freeze
