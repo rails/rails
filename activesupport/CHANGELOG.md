@@ -1,3 +1,10 @@
+*   Fix parallel tests hanging when worker processes die abruptly.
+
+    Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
+    test execution, the test suite would hang forever waiting for the dead worker.
+
+    *Joshua Young*
+
 *   Add `config.active_support.escape_js_separators_in_json`.
 
     Introduce a new framework default to skip escaping LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) in JSON.
