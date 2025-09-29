@@ -50,7 +50,7 @@ module ActiveRecord
       }
       expected.default = [ Object.new ]
 
-      (Relation::MULTI_VALUE_METHODS - [:select]).each do |method|
+      Relation::MULTI_VALUE_METHODS.each do |method|
         getter, setter = "#{method}_values", "#{method}_values="
         values = expected[method]
         relation = Relation.new(FakeKlass)
@@ -291,15 +291,6 @@ module ActiveRecord
       relation = Post.joins(:comments).merge Comment.joins(:ratings)
 
       assert_equal 3, relation.where(id: post.id).pluck(:id).size
-    end
-
-    def test_merge_preserves_duplicate_columns
-      quoted_posts_id = Regexp.escape(quote_table_name("posts.id"))
-      quoted_posts = Regexp.escape(quote_table_name("posts"))
-      posts = Post.select(:id)
-      assert_queries_match(/SELECT #{quoted_posts_id}, #{quoted_posts_id} FROM #{quoted_posts}/i) do
-        posts.merge(posts).to_a
-      end
     end
 
     def test_merge_raises_with_invalid_argument
