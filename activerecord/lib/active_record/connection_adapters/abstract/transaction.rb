@@ -171,7 +171,7 @@ module ActiveRecord
         @isolation_level = isolation
       end
 
-      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
+      def initialize(connection, isolation: nil, fixtures: false, run_commit_callbacks: false)
         super()
         @connection = connection
         @state = TransactionState.new
@@ -179,11 +179,11 @@ module ActiveRecord
         @records = nil
         @isolation_level = isolation
         @materialized = false
-        @joinable = joinable
+        @fixture_transaction = fixtures
         @run_commit_callbacks = run_commit_callbacks
         @lazy_enrollment_records = nil
         @dirty = false
-        @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
+        @user_transaction = fixtures ? ActiveRecord::Transaction::NULL_TRANSACTION : ActiveRecord::Transaction.new(self)
         @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
       end
 
@@ -346,10 +346,11 @@ module ActiveRecord
       end
 
       def full_rollback?; true; end
-      def joinable?; @joinable; end
 
-      def fixture_transaction?
-        !joinable?
+      def fixture_transaction?; @fixture_transaction; end
+
+      def joinable?
+        !@fixture_transaction
       end
 
       protected
@@ -440,7 +441,11 @@ module ActiveRecord
         @savepoint_name = savepoint_name
       end
 
-      delegate :isolation, :isolation=, to: :@parent_transaction
+      delegate :isolation, to: :@parent_transaction
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
+      end
 
       def materialize!
         connection.create_savepoint(savepoint_name)
@@ -531,7 +536,7 @@ module ActiveRecord
         @lazy_transactions_enabled = true
       end
 
-      def begin_transaction(isolation: nil, joinable: true, _lazy: true)
+      def begin_transaction(isolation: nil, fixtures: false, _lazy: true)
         @connection.lock.synchronize do
           run_commit_callbacks = !current_transaction.joinable?
           transaction =
@@ -539,7 +544,7 @@ module ActiveRecord
               RealTransaction.new(
                 @connection,
                 isolation: isolation,
-                joinable: joinable,
+                fixtures: fixtures,
                 run_commit_callbacks: run_commit_callbacks
               )
             elsif current_transaction.restartable?
@@ -547,7 +552,7 @@ module ActiveRecord
                 @connection,
                 current_transaction,
                 isolation: isolation,
-                joinable: joinable,
+                fixtures: fixtures,
                 run_commit_callbacks: run_commit_callbacks
               )
             else
@@ -556,7 +561,7 @@ module ActiveRecord
                 "active_record_#{@stack.size}",
                 current_transaction,
                 isolation: isolation,
-                joinable: joinable,
+                fixtures: fixtures,
                 run_commit_callbacks: run_commit_callbacks
               )
             end
@@ -647,16 +652,17 @@ module ActiveRecord
         end
       end
 
-      def within_new_transaction(isolation: nil, joinable: true)
+      def within_new_transaction(isolation: nil, fixtures: false)
         old_isolation = current_transaction.isolation
-        if isolation && open_transactions == 1 && current_transaction.fixture_transaction?
+        within_fixture_transaction = current_transaction.fixture_transaction?
+        if isolation && within_fixture_transaction
           current_transaction.isolation = isolation.to_sym
           isolation = nil
         end
 
         isolation ||= @connection.pool.pool_transaction_isolation_level
         @connection.lock.synchronize do
-          transaction = begin_transaction(isolation: isolation, joinable: joinable)
+          transaction = begin_transaction(isolation: isolation, fixtures: fixtures)
           begin
             yield transaction.user_transaction
           rescue Exception => error
@@ -688,9 +694,7 @@ module ActiveRecord
           end
         end
       ensure
-        if open_transactions == 1 && current_transaction.fixture_transaction?
-          current_transaction.isolation = old_isolation
-        end
+        current_transaction.isolation = old_isolation if within_fixture_transaction
       end
 
       def open_transactions

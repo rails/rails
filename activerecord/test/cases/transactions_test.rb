@@ -1651,7 +1651,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 
   def test_fixtures_transaction
-    assert_equal true, Topic.connection.current_transaction.fixture_transaction?
+    assert_equal true, Topic.lease_connection.current_transaction.fixture_transaction?
   end
 
   def test_automatic_savepoint_in_outer_transaction
@@ -1784,6 +1784,12 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
       end
 
       assert_equal original_salary, Developer.find(1).salary
+    end
+
+    def test_fixture_transaction
+      Topic.transaction do
+        assert_equal false, Topic.lease_connection.current_transaction.fixture_transaction?
+      end
     end
   end
 end
