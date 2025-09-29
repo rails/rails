@@ -267,7 +267,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -351,10 +351,6 @@ module Rails
         when "8.1"
           load_defaults "8.0"
 
-          if respond_to?(:action_controller)
-            action_controller.action_on_open_redirect = :raise
-          end
-
           # Development and test environments tend to reload code and
           # redefine methods (e.g. mocking), hence YJIT isn't generally
           # faster in these environments.
@@ -367,6 +363,10 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
           end
 
           if respond_to?(:action_view)
