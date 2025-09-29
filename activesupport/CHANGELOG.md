@@ -1,3 +1,12 @@
+*   Add `config.active_support.escape_js_separators_in_json`.
+
+    Introduce a new framework default to skip escaping LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) in JSON.
+
+    Historically these characters were not valid inside JavaScript literal strings but that changed in ECMAScript 2019.
+    As such it's no longer a concern in modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+
+    *Étienne Barrié*, *Jean Boussier*
+
 *   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
 
     Previously, calling `class_attribute` on an instance's singleton class would raise
