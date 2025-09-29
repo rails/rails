@@ -365,6 +365,10 @@ module Rails
             active_record.raise_on_missing_required_finder_order_columns = true
           end
 
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
+          end
+
           if respond_to?(:action_view)
             action_view.render_tracker = :ruby
           end

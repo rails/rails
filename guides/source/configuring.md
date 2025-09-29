@@ -65,6 +65,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_view.remove_hidden_field_autocomplete`](#config-action-view-remove-hidden-field-autocomplete): `true`
 - [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
+- [`config.active_support.escape_js_separators_in_json`](#config-active-support-escape-js-separators-in-json): `false`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
@@ -3019,6 +3020,20 @@ end
 ```
 
 Defaults to `nil`, which means the default `ActiveSupport::EventContext` store is used.
+
+#### `config.active_support.escape_js_separators_in_json`
+
+Specifies whether LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) are escaped when generating JSON.
+
+Historically these characters were not valid inside JavaScript literal strings but that changed in ECMAScript 2019.
+As such it's no longer a concern in modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.1                   | `false`              |
 
 ### Configuring Active Job
 
