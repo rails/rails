@@ -12,6 +12,10 @@
 
     *Victor Cobos*
 
+*   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
+
+    *Olivier Bellone*
+
 *   Fix parallel tests hanging when worker processes die abruptly.
 
     Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
