@@ -71,7 +71,7 @@ class Date
         # Invalid date for current year (e.g., Feb 29 in non-leap year)
       end
 
-      (today.year + 1..Float::INFINITY).lazy.each do |year|
+      (today.year + 1..today.year + 4).each do |year|
         return ::Date.new(year, month, day)
       rescue Date::Error
         next
