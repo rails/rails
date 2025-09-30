@@ -449,7 +449,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
 
     assert_raises(ArgumentError, "Invalid date: month 100, day 100") do
-      Date.upcoming_date(100, 100)
+      Date.upcoming_date(month: 100, day: 100)
     end
   end
 
