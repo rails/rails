@@ -3201,21 +3201,21 @@ NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 [DateAndTime::Calculations#on_weekend?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-on_weekend-3F
 [DateAndTime::Calculations#past?]: https://api.rubyonrails.org/classes/DateAndTime/Calculations.html#method-i-past-3F
 
-#### `Date.upcoming_date`
+#### `Date.upcoming`
 
-Active Support defines [`Date.upcoming_date`][Date.upcoming_date] to find the next occurrence of a specific month and day. If the date has already passed this year, it returns the date for next year. This method handles edge cases like leap years properly - for example, requesting February 29th in a non-leap year will find the next leap year.
+Active Support defines [`Date.upcoming`][Date.upcoming] to find the next occurrence of a specific month and day. If the date has already passed this year, it returns the date for next year. This method handles edge cases like leap years properly - for example, requesting February 29th in a non-leap year will find the next leap year.
 
 ```ruby
-Date.upcoming_date(month: 12, day: 25)  # => Date for next Christmas (Dec 25)
-Date.upcoming_date(month: 1, day: 1)    # => Date for next New Year's Day (Jan 1)
-Date.upcoming_date(month: 2, day: 29)   # => Date for next Feb 29 (finds next leap year if needed)
+Date.upcoming(month: 12, day: 25)  # => Date for next Christmas (Dec 25)
+Date.upcoming(month: 1, day: 1)    # => Date for next New Year's Day (Jan 1)
+Date.upcoming(month: 2, day: 29)   # => Date for next Feb 29 (finds next leap year if needed)
 ```
 
 The method respects the configured time zone when `Time.zone` is set, similar to other Date class methods.
 
 NOTE: Defined in `active_support/core_ext/date/calculations.rb`.
 
-[Date.upcoming_date]: https://api.rubyonrails.org/classes/Date.html#method-c-upcoming_date
+[Date.upcoming]: https://api.rubyonrails.org/classes/Date.html#method-c-upcoming
 
 #### Named Dates
 

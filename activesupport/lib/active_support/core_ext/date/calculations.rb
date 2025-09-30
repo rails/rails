@@ -53,9 +53,9 @@ class Date
     # If the date has already passed this year, returns the date for next year.
     # Uses the configured time zone when <tt>Time.zone</tt> is set.
     #
-    #   Date.upcoming_date(month: 12, day: 25)  # => Date for next Christmas (Dec 25)
-    #   Date.upcoming_date(month: 1, day: 1)    # => Date for next New Year's Day (Jan 1)
-    def upcoming_date(month:, day:)
+    #   Date.upcoming(month: 12, day: 25)  # => Date for next Christmas (Dec 25)
+    #   Date.upcoming(month: 1, day: 1)    # => Date for next New Year's Day (Jan 1)
+    def upcoming(month:, day:)
       begin
         ::Date.new(2000, month, day)  # Test with a leap year to allow Feb 29
       rescue Date::Error => e
