@@ -116,6 +116,18 @@
     If the same key exist in both String and Symbol form it could
     lead to the same key being emitted twice.
 
+    ActiveSupport 7.1.2
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":1,\"a\":2}"
+    ```
+    
+    ActiveSupport 7.1.3
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":2}"
+    ```
+
     *Manish Sharma*
 
 *   Fix `ActiveSupport::Cache::Store#read_multi` when using a cache namespace
