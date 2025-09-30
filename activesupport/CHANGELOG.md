@@ -5,9 +5,9 @@
     properly (e.g., Feb 29 in non-leap years will find the next leap year).
 
     ```ruby
-    Date.upcoming_date(12, 25)  # => Date for next Christmas (Dec 25)
-    Date.upcoming_date(1, 1)    # => Date for next New Year's Day (Jan 1)
-    Date.upcoming_date(2, 29)   # => Date for next Feb 29 (finds next leap year if needed)
+    Date.upcoming_date(month: 12, day: 25)  # => Date for next Christmas (Dec 25)
+    Date.upcoming_date(month: 1, day: 1)    # => Date for next New Year's Day (Jan 1)
+    Date.upcoming_date(month: 2, day: 29)   # => Date for next Feb 29 (finds next leap year if needed)
     ```
 
     *Victor Cobos*

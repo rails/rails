@@ -366,37 +366,37 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_upcoming_date_returns_current_year_when_date_has_not_passed
     Time.stub(:now, Time.local(2024, 6, 15)) do # June 15, 2024
-      assert_equal Date.new(2024, 12, 25), Date.upcoming_date(12, 25) # Christmas
-      assert_equal Date.new(2024, 7, 4), Date.upcoming_date(7, 4) # July 4th
-      assert_equal Date.new(2024, 6, 15), Date.upcoming_date(6, 15) # Same day
+      assert_equal Date.new(2024, 12, 25), Date.upcoming_date(month: 12, day: 25) # Christmas
+      assert_equal Date.new(2024, 7, 4), Date.upcoming_date(month: 7, day: 4) # July 4th
+      assert_equal Date.new(2024, 6, 15), Date.upcoming_date(month: 6, day: 15) # Same day
     end
   end
 
   def test_upcoming_date_returns_next_year_when_date_has_already_passed
     Time.stub(:now, Time.local(2024, 6, 15)) do # June 15, 2024
-      assert_equal Date.new(2025, 1, 1), Date.upcoming_date(1, 1) # New Year
-      assert_equal Date.new(2025, 3, 15), Date.upcoming_date(3, 15) # March 15
-      assert_equal Date.new(2025, 6, 14), Date.upcoming_date(6, 14) # June 14 (yesterday)
+      assert_equal Date.new(2025, 1, 1), Date.upcoming_date(month: 1, day: 1) # New Year
+      assert_equal Date.new(2025, 3, 15), Date.upcoming_date(month: 3, day: 15) # March 15
+      assert_equal Date.new(2025, 6, 14), Date.upcoming_date(month: 6, day: 14) # June 14 (yesterday)
     end
   end
 
   def test_upcoming_date_with_leap_year
     Time.stub(:now, Time.local(2024, 2, 28)) do # Feb 28, 2024 (leap year)
-      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(2, 29) # Feb 29 in leap year
+      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(month: 2, day: 29) # Feb 29 in leap year
     end
 
     Time.stub(:now, Time.local(2023, 2, 28)) do # Feb 28, 2023 (not leap year)
-      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(2, 29) # Feb 29 in next leap year
+      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(month: 2, day: 29) # Feb 29 in next leap year
     end
 
     # Test jumping multiple years to find next leap year
     Time.stub(:now, Time.local(2021, 3, 1)) do # March 1, 2021 (after Feb 29 has passed, not a leap year)
-      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(2, 29) # Feb 29 in next leap year (3 years later)
+      assert_equal Date.new(2024, 2, 29), Date.upcoming_date(month: 2, day: 29) # Feb 29 in next leap year (3 years later)
     end
 
     # Test from a century year that's not a leap year (like 1900, 2100)
     Time.stub(:now, Time.local(2101, 1, 1)) do # 2100 is not a leap year (century rule)
-      assert_equal Date.new(2104, 2, 29), Date.upcoming_date(2, 29) # Feb 29 in 2104 (next leap year)
+      assert_equal Date.new(2104, 2, 29), Date.upcoming_date(month: 2, day: 29) # Feb 29 in 2104 (next leap year)
     end
   end
 
@@ -404,8 +404,8 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     with_env_tz "UTC" do
       with_tz_default do
         Time.stub(:now, Time.local(2024, 6, 15)) do
-          assert_equal Date.new(2024, 12, 25), Date.upcoming_date(12, 25)
-          assert_equal Date.new(2025, 1, 1), Date.upcoming_date(1, 1)
+          assert_equal Date.new(2024, 12, 25), Date.upcoming_date(month: 12, day: 25)
+          assert_equal Date.new(2025, 1, 1), Date.upcoming_date(month: 1, day: 1)
         end
       end
     end
@@ -416,9 +416,9 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     with_env_tz "UTC" do
       Time.stub(:now, Time.local(2024, 12, 31, 23)) do # 11 PM UTC on Dec 31
         # In Eastern Time, it's still Dec 31 (6 PM), so Christmas next year
-        assert_equal Date.new(2025, 12, 25), Date.upcoming_date(12, 25)
+        assert_equal Date.new(2025, 12, 25), Date.upcoming_date(month: 12, day: 25)
         # But New Year's Day is tomorrow in Eastern Time
-        assert_equal Date.new(2025, 1, 1), Date.upcoming_date(1, 1)
+        assert_equal Date.new(2025, 1, 1), Date.upcoming_date(month: 1, day: 1)
       end
     end
   ensure
@@ -428,24 +428,24 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_upcoming_date_edge_cases
     # Test end of year
     Time.stub(:now, Time.local(2024, 12, 31, 23, 59, 59)) do
-      assert_equal Date.new(2025, 1, 1), Date.upcoming_date(1, 1) # Next day
-      assert_equal Date.new(2025, 12, 25), Date.upcoming_date(12, 25) # Christmas next year
+      assert_equal Date.new(2025, 1, 1), Date.upcoming_date(month: 1, day: 1) # Next day
+      assert_equal Date.new(2025, 12, 25), Date.upcoming_date(month: 12, day: 25) # Christmas next year
     end
 
     # Test beginning of year
     Time.stub(:now, Time.local(2024, 1, 1, 0, 0, 1)) do # 1 second after midnight
-      assert_equal Date.new(2024, 1, 1), Date.upcoming_date(1, 1) # Same day
-      assert_equal Date.new(2024, 12, 25), Date.upcoming_date(12, 25) # Christmas this year
+      assert_equal Date.new(2024, 1, 1), Date.upcoming_date(month: 1, day: 1) # Same day
+      assert_equal Date.new(2024, 12, 25), Date.upcoming_date(month: 12, day: 25) # Christmas this year
     end
   end
 
   def test_upcoming_date_with_invalid_parameters
     assert_raises(ArgumentError, "Invalid date: month 13, day 1") do
-      Date.upcoming_date(13, 1)
+      Date.upcoming_date(month: 13, day: 1)
     end
 
     assert_raises(ArgumentError, "Invalid date: month 1, day 32") do
-      Date.upcoming_date(1, 32)
+      Date.upcoming_date(month: 1, day: 32)
     end
 
     assert_raises(ArgumentError, "Invalid date: month 100, day 100") do
