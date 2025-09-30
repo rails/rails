@@ -84,6 +84,25 @@
 
     *Jean Boussier*
 
+*   Revert "Fix `ActiveSupport::JSON.encode` to prevent duplicate keys." introduced in 7.1.3
+
+    If the same key exist in both String and Symbol form, json encoder
+    again emits the same key twice. [Reaseon](https://github.com/rails/rails/pull/50489#issuecomment-2123881327)
+
+    ActiveSupport 7.1.3
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":2}"
+    ```
+
+    ActiveSupport 7.1.4
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":1,\"a\":2}"
+    ```
+    
+    *Rafael Mendonça França*
+
 
 ## Rails 7.1.3.4 (June 04, 2024) ##
 
@@ -110,6 +129,25 @@
 *   Handle nil `backtrace_locations` in `ActiveSupport::SyntaxErrorProxy`.
 
     *Eugene Kenny*
+
+*   Fix `ActiveSupport::JSON.encode` to prevent duplicate keys.
+
+    If the same key exist in both String and Symbol form it could
+    lead to the same key being emitted twice.
+
+    ActiveSupport 7.1.2
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":1,\"a\":2}"
+    ```
+    
+    ActiveSupport 7.1.3
+    ```ruby
+    {a: 1, "a" => 2}.to_json
+    # gives: "{\"a\":2}"
+    ```
+
+    *Manish Sharma*
 
 *   Fix `ActiveSupport::Cache::Store#read_multi` when using a cache namespace
     and local cache strategy.
