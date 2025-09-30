@@ -1,3 +1,10 @@
+*   Fix `belongs_to` associations not to clear the entire composite primary key.
+
+    When clearing a `belongs_to` association that references a model with composite primary key,
+    only the optional part of the key should be cleared.
+
+    *zzak*
+
 *   Fix invalid records being autosaved when distantly associated records are marked for deletion.
 
     *Ian Terrell*, *axlekb AB*
