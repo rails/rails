@@ -28,7 +28,6 @@
 
     *Étienne Barrié*, *Jean Boussier*
 
-
 *   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
 
     Previously, calling `class_attribute` on an instance's singleton class would raise
