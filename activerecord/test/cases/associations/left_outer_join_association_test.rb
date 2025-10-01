@@ -101,6 +101,12 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert queries.none? { |sql| /WHERE/i.match?(sql) }
   end
 
+  def test_join_where_conditions_added_to_where_clause
+    queries = capture_sql { Author.left_outer_joins(:hello_posts).to_a }
+    assert queries.any? { |sql| /WHERE.+posts\.body = 'hello'/i.match?(sql) }
+    assert queries.none? { |sql| /posts\.body = 'hello'.+WHERE/i.match?(sql) }
+  end
+
   def test_find_with_sti_join
     scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
