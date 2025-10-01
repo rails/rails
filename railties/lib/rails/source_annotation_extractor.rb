@@ -168,6 +168,8 @@ module Rails
     def find_in(dir)
       results = {}
 
+      return results if dir.match?(%r{(^|/)app/assets/builds(/|$)})
+
       Dir.glob("#{dir}/*") do |item|
         next if File.basename(item).start_with?(".")
 
