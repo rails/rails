@@ -61,6 +61,24 @@ module ApplicationTests
     test "remote_ip works with HTTP_X_FORWARDED_FOR" do
       make_basic_app
       assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42")
+      assert_equal "4.2.42.42", remote_ip("REMOTE_ADDR" => "1.1.1.1", "HTTP_X_FORWARDED_FOR" => "4.2.42.42:56778")
+    end
+
+    test "remote_ip strips port from IPv4 addresses" do
+      make_basic_app
+      assert_equal "192.168.1.100", remote_ip("HTTP_X_FORWARDED_FOR" => "192.168.1.100:8080")
+    end
+
+    test "remote_ip strips port from IPv6 addresses in bracket notation" do
+      make_basic_app
+      assert_equal "::1", remote_ip("HTTP_X_FORWARDED_FOR" => "[::1]:8080")
+      assert_equal "2001:db8::1", remote_ip("HTTP_X_FORWARDED_FOR" => "[2001:db8::1]:8080")
+    end
+
+    test "remote_ip handles IPv6 addresses without ports" do
+      make_basic_app
+      assert_equal "::1", remote_ip("HTTP_X_FORWARDED_FOR" => "::1")
+      assert_equal "2001:db8::1", remote_ip("HTTP_X_FORWARDED_FOR" => "2001:db8::1")
     end
 
     test "the user can set trusted proxies with an enumerable of case equality comparable values" do
