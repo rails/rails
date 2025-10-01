@@ -1,3 +1,11 @@
+*   Add `Array#duplicates?` method to easily determine whether arrays contain duplicate elements.
+
+    ```ruby
+    [ 1, 2, 2 ].duplicates? # => true
+    ```
+
+    *Daniel Pepper*
+
 *   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
 
     *Olivier Bellone*
