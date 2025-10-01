@@ -57,7 +57,7 @@
 
     ```ruby
     >> {a: 1, b: 2}.with_indifferent_access.transform_keys!(&:succ)
-    => {"c" => 1, "d" => 2}
+    => {"b" => 1, "c" => 2}
     ```
 
     *Jason T Johnson*, *Jean Boussier*
