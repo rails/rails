@@ -561,6 +561,12 @@ module Rails
       run_callbacks(:load_seed) { load(seed_file) } if seed_file
     end
 
+    initializer :check_environment_config_exist, before: :load_environment_hook, group: :all do
+      warn <<~WARN if paths["config/environments"].existent.empty?
+        Rails environment has been set to #{Rails.env} but config/environments/#{Rails.env}.rb does not exist.
+      WARN
+    end
+
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
       paths["config/environments"].existent.each do |environment|
         require environment

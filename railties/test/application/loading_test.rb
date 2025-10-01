@@ -111,6 +111,14 @@ class LoadingTest < ActiveSupport::TestCase
     assert ::Rails.application.config.loaded
   end
 
+  test "warns when config/environments/ENV.rb file does not exist" do
+    _out, err = capture_io do
+      boot_app "non_existent_environment"
+    end
+
+    assert_match(/Rails environment has been set to non_existent_environment but config\/environments\/non_existent_environment.rb does not exist./, err)
+  end
+
   test "descendants loaded after framework initialization are cleaned on each request if reloading is enabled" do
     add_to_config <<-RUBY
       config.enable_reloading = true
