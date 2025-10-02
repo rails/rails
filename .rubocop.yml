@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
@@ -374,9 +374,6 @@ Performance/RedundantStringChars:
   Enabled: true
 
 Performance/StringInclude:
-  Enabled: true
-
-Minitest/AssertPredicate:
   Enabled: true
 
 Minitest/AssertRaisesWithRegexpArgument:
