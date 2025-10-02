@@ -18,8 +18,11 @@ module ActiveRecord
 
         when :restrict_with_error
           unless empty?
-            record = owner.class.human_attribute_name(reflection.name).downcase
-            owner.errors.add(:base, :'restrict_dependent_destroy.has_many', record: record)
+            record = owner.class.human_attribute_name(reflection.name)
+            default_translation = I18n.t(:'restrict_dependent_destroy.has_many',
+              scope: :"activerecord.errors.messages",
+              record: record.downcase)
+            owner.errors.add(reflection.name, :'restrict_dependent_destroy.has_many', message: default_translation)
             throw(:abort)
           end
 

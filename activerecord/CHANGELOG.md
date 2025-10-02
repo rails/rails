@@ -1,3 +1,12 @@
+*   Store destroy dependent record message on reflection name
+
+    Store the error from a `has_many :companies, dependent: :restrict_with_error` association
+    on the `companies` attribute and not `base` as before.
+
+    Please change your translations accordingly if you have customized the message.
+
+    *Thomas von Deyen*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.
