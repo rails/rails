@@ -636,6 +636,10 @@ module Rails
     end
 
     private
+      def missing_environment_file
+        raise "missing env! #{Rails.env}"
+      end
+
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath

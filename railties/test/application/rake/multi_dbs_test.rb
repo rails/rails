@@ -9,7 +9,7 @@ module ApplicationTests
 
       def setup
         build_app(multi_db: true)
-        FileUtils.rm_rf("#{app_path}/config/environments")
+        reset_environment_configs
         add_to_config("config.active_record.timestamped_migrations = false")
       end
 
