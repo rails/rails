@@ -7,7 +7,9 @@ module ApplicationTests
     class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
-        FileUtils.rm_rf("#{app_path}/config/environments")
+        Dir["#{app_path}/config/environments/*.rb"].each do |path|
+          File.write(path, "")
+        end
         add_to_config("config.active_record.timestamped_migrations = false")
       end
 
