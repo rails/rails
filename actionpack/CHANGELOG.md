@@ -1,3 +1,14 @@
+*   Add `http_token_authenticate_with` to do simple HTTP token authentication with a single class
+    method call, similar to `http_basic_authenticate_with`.
+
+    ```ruby
+    class PostController < ApplicationController
+      http_token_authenticate_with token: "secret_token"
+    end
+    ```
+
+    *Christian Schmidt*
+
 *   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
 
     Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.
