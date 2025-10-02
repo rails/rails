@@ -2031,19 +2031,34 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
+Note: Here we are not specifying a type for `email`, and rails automatically defaults to a `string` when a type is not given. 
+
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email
 ```
+
+Next, open the generated migration (`db/migrate/<timestamp>_create_subscribers.rb`) like we did for Product.
+
+```ruby#4-5
+class CreateSubscribers < ActiveRecord::Migration[8.1]
+  def change
+    create_table :subscribers do |t|
+      t.belongs_to :product, null: false, foreign_key: true
+      t.string :email
+
+      t.timestamps
+    end
+  end
+end
+``` 
+
+This looks quite similar to the migration for `Product`, the main new thing is `belongs_to` which tells Rails that subscribers and products have a one-to-many relationship, meaning a Subscriber "belongs to" a single Product instance. 
 
 Then run the new migration:
 
 ```bash
 $ bin/rails db:migrate
 ```
-
-By including `product:belongs_to` above, we told Rails that subscribers and
-products have a one-to-many relationship, meaning a Subscriber "belongs to" a
-single Product instance.
 
 A Product, however, can have many subscribers, so we then add
 `has_many :subscribers, dependent: :destroy` to our Product model to add the
