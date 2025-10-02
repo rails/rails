@@ -837,6 +837,17 @@ Managing Assets
 
 The `bin/rails assets:*` commands allow you to manage assets in the `app/assets` directory.
 
+You can get a list of all commands in the `assets:` namespace like this:
+
+```bash
+$ bin/rails -T assets
+bin/rails assets:clean[count]  # Removes old files in config.assets.output_path
+bin/rails assets:clobber       # Remove config.assets.output_path
+bin/rails assets:precompile    # Compile all the assets from config.assets.paths
+bin/rails assets:reveal        # Print all the assets available in config.assets.paths
+bin/rails assets:reveal:full   # Print the full path of assets available in config.assets.paths
+```
+
 You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
