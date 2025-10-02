@@ -1,3 +1,10 @@
+*   Add link-local IP ranges to `ActionDispatch::RemoteIp` default proxies.
+
+    Link-local addresses (`169.254.0.0/16` for IPv4 and `fe80::/10` for IPv6)
+    are now included in the default trusted proxy list, similar to private IP ranges.
+
+    *Adam Daniels*
+
 *   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
     are accompanied by port information.
 
