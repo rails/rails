@@ -1070,11 +1070,13 @@ The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding pla
 
 The `tmp:` namespaced commands will help you clear and create the `Rails.root/tmp` directory:
 
-* `bin/rails tmp:cache:clear` clears `tmp/cache`.
-* `bin/rails tmp:sockets:clear` clears `tmp/sockets`.
-* `bin/rails tmp:screenshots:clear` clears `tmp/screenshots`.
-* `bin/rails tmp:clear` clears all cache, sockets, and screenshot files.
-* `bin/rails tmp:create` creates tmp directories for cache, sockets, and pids.
+```bash
+$ bin/rails tmp:cache:clear # clears `tmp/cache`.
+$ bin/rails tmp:sockets:clear # clears `tmp/sockets`.
+$ bin/rails tmp:screenshots:clear` # clears `tmp/screenshots`.
+$ bin/rails tmp:clear # clears all cache, sockets, and screenshot files.
+$ bin/rails tmp:create # creates tmp directories for cache, sockets, and pids.
+```
 
 ### `bin/rails secret`
 
