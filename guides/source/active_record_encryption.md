@@ -87,6 +87,27 @@ bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 Once the keys are generated and stored, you can start using Active Record
 Encryption by declaring attributes to be encrypted.
 
+### Important: Column Size and Storage Considerations
+
+Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+
+There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+
+In practice, this means:
+
+* When encrypting short texts written in Western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
+* When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting long texts, you can ignore column size concerns.
+
+Some examples:
+
+| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
+| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
+| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
+| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
+| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
+| Arbitrary long text                               | text                 | text                              | negligible                    |
+
 ## Basic Usage
 
 ### Declare Encrypted Attributes
@@ -276,6 +297,8 @@ end
 
 Checking for uniqueness is only supported with deterministically encrypted data.
 
+>The extended_queries is meant to let you query deterministically encrypted data when (1) you have encrypted and unencrypted data and (2) when you configure other encryption schemes to support old data. So, in general, uniqueness will work. In the cases where you need (1) or (2), then, for unique validations to work, you need to set this flag.
+
 #### Unique Validations
 
 In order to support unique validations, you'll need to enable extended queries. This makes sure we query for the downcased encrypted attribute (if used) and previous encryption schemes as well. The default value for this configuration is false:
@@ -304,11 +327,6 @@ NOTE: If you want to ignore the case for uniqueness, make sure to use the
 In order to support unique indexes on deterministically encrypted attributes,
 it’s important to ensure that a given plaintext always produces the same
 ciphertext. This consistency is what makes indexing and querying possible.
-
-One thing Rails does to help is that, by default, deterministic attributes will
-use the oldest available encryption scheme when multiple encryption schemes are
-configured. This means it will stick to the same key and settings that were
-originally used, so the ciphertext remains stable.
 
 ```ruby
 class Person
