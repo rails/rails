@@ -75,6 +75,25 @@ module ActiveJob
       end
     end
 
+    def deserialize_argument(argument)
+      case argument
+      when nil, true, false, String, Integer, Float
+        argument
+      when Array
+        argument.map { |arg| deserialize_argument(arg) }
+      when Hash
+        if serialized_global_id?(argument)
+          deserialize_global_id argument
+        elsif custom_serialized?(argument)
+          Serializers.deserialize(argument)
+        else
+          deserialize_hash(argument)
+        end
+      else
+        raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}"
+      end
+    end
+
     # Deserializes a set of arguments. Intrinsic types that can safely be
     # deserialized without mutation are returned as-is. Arrays/Hashes are
     # deserialized element by element. All other types are deserialized using
@@ -107,25 +126,6 @@ module ActiveJob
       ].to_set
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
-
-      def deserialize_argument(argument)
-        case argument
-        when nil, true, false, String, Integer, Float
-          argument
-        when Array
-          argument.map { |arg| deserialize_argument(arg) }
-        when Hash
-          if serialized_global_id?(argument)
-            deserialize_global_id argument
-          elsif custom_serialized?(argument)
-            Serializers.deserialize(argument)
-          else
-            deserialize_hash(argument)
-          end
-        else
-          raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}"
-        end
-      end
 
       def serialized_global_id?(hash)
         hash.size == 1 && hash.include?(GLOBALID_KEY)
