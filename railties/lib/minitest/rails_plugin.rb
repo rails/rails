@@ -134,6 +134,12 @@ module Minitest
 
     options[:color] = true
     options[:output_inline] = true
+
+    opts.on do
+      if ::Rails::TestUnit::Runner.load_test_files
+        ::Rails::TestUnit::Runner.load_tests(options.fetch(:test_files, []))
+      end
+    end
   end
 
   # Owes great inspiration to test runner trailblazers like RSpec,
@@ -141,10 +147,6 @@ module Minitest
   def self.plugin_rails_init(options)
     # Don't mess with Minitest unless RAILS_ENV is set
     return unless ENV["RAILS_ENV"] || ENV["RAILS_MINITEST_PLUGIN"]
-
-    if ::Rails::TestUnit::Runner.load_test_files
-      ::Rails::TestUnit::Runner.load_tests(options.fetch(:test_files, []))
-    end
 
     unless options[:full_backtrace]
       # Plugin can run without Rails loaded, check before filtering.

@@ -27,7 +27,7 @@ module AbstractController
     def method_missing(symbol, ...)
       unless mime_constant = Mime[symbol]
         raise NoMethodError, "To respond to a custom format, register it as a MIME type first: " \
-          "https://guides.rubyonrails.org/action_controller_overview.html#restful-downloads. " \
+          "https://guides.rubyonrails.org/action_controller_advanced_topics.html#restful-downloads. " \
           "If you meant to respond to a variant like :tablet or :phone, not a custom format, " \
           "be sure to nest your variant response within a format response: " \
           "format.html { |html| html.tablet { ... } }"

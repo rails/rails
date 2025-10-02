@@ -29,6 +29,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
         end
 
         def prepare_update_statement(o)

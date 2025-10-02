@@ -156,12 +156,12 @@ Here is a sample HTML template that can be used for the welcome email:
   your username is: <%= @user.login %>.<br>
 </p>
 <p>
-  To login to the site, just follow this link: <%= link_to 'login', login_url %>.
+  To log in to the site, just follow this link: <%= link_to 'login', login_url %>.
 </p>
 <p>Thanks for joining and have a great day!</p>
 ```
 
-NOTE: the above is the content of the `<body>` tag. It will be embedded in the
+NOTE: The above is the content of the `<body>` tag. It will be embedded in the
 default mailer layout, which contains the `<html>` tag. See [Mailer
 layouts](#mailer-views-and-layouts) for more.
 
@@ -178,7 +178,7 @@ Welcome to example.com, <%= @user.name %>
 You have successfully signed up to example.com,
 your username is: <%= @user.login %>.
 
-To login to the site, just follow this link: <%= @url %>.
+To log in to the site, just follow this link: <%= @url %>.
 
 Thanks for joining and have a great day!
 ```
@@ -187,7 +187,7 @@ Notice that in both HTML and text email templates you can use the instance
 variables `@user` and `@url`.
 
 Now, when you call the `mail` method, Action Mailer will detect the two
-templates(text and HTML) and automatically generate a `multipart/alternative`
+templates (text and HTML) and automatically generate a `multipart/alternative`
 email.
 
 ### Call the Mailer
@@ -449,7 +449,7 @@ the mailer method.
 
 Mailer views are rendered within a layout, similar to controller views. Mailer
 layouts are located in `app/views/layouts`. The default layout is
-`mailer.html.erb` and `mailer.text.erb`. This sections covers various features
+`mailer.html.erb` and `mailer.text.erb`. This section covers various features
 around mailer views and layouts.
 
 ### Configuring Custom View Paths
@@ -457,7 +457,7 @@ around mailer views and layouts.
 It is possible to change the default mailer view for your action in various
 ways, as shown below.
 
-There is a `template_path` and `template_name` option to the `mail` method:
+There are `template_path` and `template_name` options to the `mail` method:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -527,7 +527,7 @@ There is also an [`append_view_path`][] method.
 
 ### Generating URLs in Action Mailer Views
 
-In order to add URLs to your mailer, you need set the `host` value to your
+In order to add URLs to your mailer, you need to set the `host` value to your
 application's domain first. This is because, unlike controllers, the mailer
 instance doesn't have any context about the incoming request.
 
@@ -1013,7 +1013,7 @@ Previewing and Testing Mailers
 ------------------------------
 
 You can find detailed instructions on how to test your mailers in the [testing
-guide](testing.html#testing-your-mailers).
+guide](testing.html#testing-mailers).
 
 ### Previewing Emails
 
@@ -1036,7 +1036,7 @@ Now the preview will be available at
 
 If you change something in the mailer view at
 `app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview
-will automatically be updated. A list of previews are also available in
+will automatically be updated. A list of previews is also available in
 <http://localhost:3000/rails/mailers>.
 
 By default, these preview classes live in `test/mailers/previews`. This can be

@@ -1,3 +1,5 @@
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add `except_on:` option for validation callbacks.
 
     *Ben Sheldon*

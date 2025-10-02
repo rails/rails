@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout (GitHub)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -34,7 +34,7 @@ jobs:
         run: bundle exec railties/exe/rails new myapp_sqlite --database="sqlite3" --dev --devcontainer
 
       - name: Test devcontainer sqlite3
-        uses: devcontainers/ci@v0.3
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3.1900000417
         with:
           subFolder: myapp_sqlite
           imageName: ghcr.io/rails/smoke-test-devcontainer
@@ -51,7 +51,7 @@ jobs:
         run: bundle exec railties/exe/rails new myapp_postgresql --database="postgresql" --dev --devcontainer
 
       - name: Test devcontainer postgresql
-        uses: devcontainers/ci@v0.3
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3.1900000417
         with:
           subFolder: myapp_postgresql
           imageName: ghcr.io/rails/smoke-test-devcontainer
@@ -68,7 +68,7 @@ jobs:
         run: bundle exec railties/exe/rails new myapp_mysql --database="mysql" --dev --devcontainer
 
       - name: Test devcontainer mysql
-        uses: devcontainers/ci@v0.3
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3.1900000417
         with:
           subFolder: myapp_mysql
           imageName: ghcr.io/rails/smoke-test-devcontainer
@@ -85,7 +85,7 @@ jobs:
         run: bundle exec railties/exe/rails new myapp_trilogy --database="trilogy" --dev --devcontainer
 
       - name: Test devcontainer trilogy
-        uses: devcontainers/ci@v0.3
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3.1900000417
         with:
           subFolder: myapp_trilogy
           imageName: ghcr.io/rails/smoke-test-devcontainer

@@ -13,9 +13,6 @@ module RailsStrictWarnings # :nodoc:
     # Expected non-verbose warning emitted by Rails.
     /Ignoring .*\.yml because it has expired/,
     /Failed to validate the schema cache because/,
-
-    # TODO: We need to decide what to do with this.
-    /Status code :unprocessable_entity is deprecated/,
   )
 
   SUPPRESSED_WARNINGS = Regexp.union(
@@ -30,7 +27,8 @@ module RailsStrictWarnings # :nodoc:
 
     super
 
-    return unless message.include?(PROJECT_ROOT)
+    testpath = message[/test\/.*\.rb/]&.chomp || message
+    return unless message.include?(PROJECT_ROOT) || Pathname.new(testpath).exist?
     return if ALLOWED_WARNINGS.match?(message)
     return unless ENV["RAILS_STRICT_WARNINGS"] || ENV["BUILDKITE"]
 

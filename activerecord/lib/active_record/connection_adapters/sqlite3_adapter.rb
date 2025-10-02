@@ -24,7 +24,7 @@ module ActiveRecord
     # The \SQLite3 adapter works with the sqlite3[https://sparklemotion.github.io/sqlite3-ruby/]
     # driver.
     #
-    # Options:
+    # ==== Options
     #
     # * +:database+ (String): Filesystem path to the database file.
     # * +:statement_limit+ (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)
@@ -41,7 +41,7 @@ module ActiveRecord
     #
     # There may be other options available specific to the SQLite3 driver. Please read the
     # documentation for
-    # {SQLite::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
+    # {SQLite3::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
     #
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
@@ -149,7 +149,6 @@ module ActiveRecord
           end
         end
 
-        @last_affected_rows = nil
         @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
 
@@ -338,7 +337,7 @@ module ActiveRecord
       # Creates a virtual table
       #
       # Example:
-      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      #   create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
       def create_virtual_table(table_name, module_name, values)
         exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
       end
@@ -564,6 +563,8 @@ module ActiveRecord
           # Binary columns
           when /x'(.*)'/
             [ $1 ].pack("H*")
+          when "TRUE", "FALSE"
+            default
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.
@@ -729,6 +730,8 @@ module ActiveRecord
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          elsif exception.message.match?(/CHECK constraint failed: .*/i)
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
           elsif exception.is_a?(::SQLite3::BusyException)
@@ -847,18 +850,10 @@ module ActiveRecord
         end
 
         def configure_connection
-          if @config[:timeout] && @config[:retries]
-            raise ArgumentError, "Cannot specify both timeout and retries arguments"
-          elsif @config[:timeout]
+          if @config[:timeout]
             timeout = self.class.type_cast_config_to_integer(@config[:timeout])
             raise TypeError, "timeout must be integer, not #{timeout}" unless timeout.is_a?(Integer)
             @raw_connection.busy_handler_timeout = timeout
-          elsif @config[:retries]
-            ActiveRecord.deprecator.warn(<<~MSG)
-              The retries option is deprecated and will be removed in Rails 8.1. Use timeout instead.
-            MSG
-            retries = self.class.type_cast_config_to_integer(@config[:retries])
-            raw_connection.busy_handler { |count| count <= retries }
           end
 
           super

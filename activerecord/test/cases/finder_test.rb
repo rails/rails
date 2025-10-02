@@ -21,11 +21,12 @@ require "models/matey"
 require "models/dog_lover"
 require "models/dog"
 require "models/car"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/non_primary_key"
 require "models/clothing_item"
 require "models/cpk"
+require "models/edge"
 require "support/stubs/strong_parameters"
 require "support/async_helper"
 
@@ -1055,10 +1056,120 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def test_last_with_irreversible_order
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+  def test_first_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::MissingRequiredOrderError) do
+      Edge.all.first
+    end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  # TODO: Remove this test when we remove the deprecated `raise_on_missing_required_finder_order_columns`
+  def test_first_without_order_columns_and_raise_on_missing_required_finder_order_columns_disabled
+    raise_on_missing_required_finder_order_columns_before = ActiveRecord.raise_on_missing_required_finder_order_columns
+    ActiveRecord.raise_on_missing_required_finder_order_columns = false
+
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    assert_nothing_raised do
+      assert_deprecated(/Calling order dependent finder methods/, ActiveRecord.deprecator) do
+        Edge.all.first
+      end
+    end
+  ensure
+    ActiveRecord.raise_on_missing_required_finder_order_columns = raise_on_missing_required_finder_order_columns_before
+  end
+
+  def test_first_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_first_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def first_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.first
+    end
+  end
+
+  def test_last_without_order_columns
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::MissingRequiredOrderError) do
+      Edge.all.last
+    end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  # TODO: Remove this test when we remove `raise_on_missing_required_finder_order_columns`
+  def test_last_without_order_columns_and_raise_on_missing_required_finder_order_columns_disabled
+    raise_on_missing_required_finder_order_columns_before = ActiveRecord.raise_on_missing_required_finder_order_columns
+    ActiveRecord.raise_on_missing_required_finder_order_columns = false
+
+    assert_nil Edge.primary_key
+    assert_nil Edge.implicit_order_column
+    assert_nil Edge.query_constraints_list
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
+      assert_deprecated(/Calling order dependent finder methods/, ActiveRecord.deprecator) do
+        Edge.all.last
+      end
+    end
+    assert_match(/Relation has no order values/, error.message)
+  ensure
+    ActiveRecord.raise_on_missing_required_finder_order_columns = raise_on_missing_required_finder_order_columns_before
+  end
+
+  def test_last_with_at_least_primary_key
+    ordered_edge = Class.new(Edge) do
+      self.primary_key = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_at_least_implict_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def last_with_at_least_query_constraints
+    ordered_edge = Class.new(Edge) do
+      query_constraints "source_id"
+    end
+    assert_nothing_raised do
+      ordered_edge.all.last
+    end
+  end
+
+  def test_last_with_irreversible_order_value
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order(Arel.sql("coalesce(author_name, title)")).last
     end
+    assert_match(/Order .* cannot be reversed automatically/, error.message)
   end
 
   def test_last_on_relation_with_limit_and_offset
@@ -1762,7 +1873,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello World!"
       end
-      assert_equal "Couldn't find MercedesCar with 'name'=Hello World!", e.message
+      assert_equal %{Couldn't find MercedesCar with 'name'="Hello World!"}, e.message
     end
   end
 
@@ -1772,7 +1883,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
+      assert_equal %{Couldn't find all MercedesCars with 'name': ("Hello", "World!") (found 0 results, but was looking for 2).}, e.message
     end
   end
 
@@ -1842,21 +1953,21 @@ class FinderTest < ActiveRecord::TestCase
   test "find on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find(tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find(tyre2.id)
+    assert_equal tire, honda.tires.custom_find(tire.id)
+    assert_equal tire2, zyke.tires.custom_find(tire2.id)
   end
 
   test "find_by on a scope does not perform statement caching" do
     honda = cars(:honda)
     zyke = cars(:zyke)
-    tyre = honda.tyres.create!
-    tyre2 = zyke.tyres.create!
+    tire = honda.tires.create!
+    tire2 = zyke.tires.create!
 
-    assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
-    assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+    assert_equal tire, honda.tires.custom_find_by(id: tire.id)
+    assert_equal tire2, zyke.tires.custom_find_by(id: tire2.id)
   end
 
   test "#skip_query_cache! for #exists?" do

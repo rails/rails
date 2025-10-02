@@ -127,7 +127,14 @@ module ActiveRecord
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
 
-            @raw_connection.cancel
+            # Skip @raw_connection.cancel (PG::Connection#cancel) when using libpq >= 18 with pg < 1.6.0,
+            # because the pg gem cannot obtain the backend_key in that case.
+            # This method is only called from exec_rollback_db_transaction and exec_restart_db_transaction.
+            # Even without cancel, rollback will still run. However, since any running
+            # query must finish first, the rollback may take longer.
+            if !(PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0"))
+              @raw_connection.cancel
+            end
             @raw_connection.block
           rescue PG::Error
           end
@@ -165,25 +172,25 @@ module ActiveRecord
             verified!
 
             notification_payload[:affected_rows] = result.cmd_tuples
-            notification_payload[:row_count] = result.count
+            notification_payload[:row_count] = result.ntuples
             result
           end
 
           def cast_result(result)
-            if result.fields.empty?
-              result.clear
-              return ActiveRecord::Result.empty
+            ar_result = if result.fields.empty?
+              ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
+            else
+              fields = result.fields
+              types = Array.new(fields.size)
+              fields.size.times do |index|
+                ftype = result.ftype(index)
+                fmod  = result.fmod(index)
+                types[index] = get_oid_type(ftype, fmod, fields[index])
+              end
+
+              ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
             end
 
-            fields = result.fields
-            types = Array.new(fields.size)
-            fields.size.times do |index|
-              ftype = result.ftype(index)
-              fmod  = result.fmod(index)
-              types[index] = get_oid_type(ftype, fmod, fields[index])
-            end
-
-            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
             result.clear
             ar_result
           end

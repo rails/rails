@@ -155,6 +155,12 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
+  create_table :book_identifiers, id: :integer, force: true do |t|
+    t.references :book
+    t.string :id_type, null: false
+    t.string :id_value, null: false
+  end
+
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
@@ -196,7 +202,7 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
     t.integer :bulbs_count
-    t.integer :custom_tyres_count
+    t.integer :custom_tires_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -264,6 +270,12 @@ ActiveRecord::Schema.define do
   create_table :cpk_posts, primary_key: [:title, :author], force: true do |t|
     t.string :title
     t.string :author
+  end
+
+  create_table :cpk_posts_tags, force: true do |t|
+    t.string :post_title
+    t.string :post_author
+    t.integer :tag_id
   end
 
   create_table :cpk_comments, force: true do |t|
@@ -1266,7 +1278,7 @@ ActiveRecord::Schema.define do
     t.float :pitch
   end
 
-  create_table :tyres, force: true do |t|
+  create_table :tires, force: true do |t|
     t.integer :car_id
   end
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/post"
 require "models/person"
 require "models/reference"
@@ -44,6 +45,7 @@ require "models/cpk"
 require "models/zine"
 require "models/interest"
 require "models/human"
+require "models/dats"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -1064,7 +1066,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = authors(:david)
     ids = [categories(:general).name, "Unknown"]
     e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
-    msg = "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2). Couldn't find Category with name Unknown."
+    msg = %{Couldn't find all Categories with 'name': ("General", "Unknown") (found 1 results, but was looking for 2). Couldn't find Category with name "Unknown".}
     assert_equal msg, e.message
   end
 
@@ -1721,4 +1723,57 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lesson.has_many :students, through: :lesson_students, anonymous_class: student
       [lesson, lesson_student, student]
     end
+end
+
+class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :author_addresses
+
+  setup do
+    @model = DATS::Author
+    @author = @model.first
+  end
+
+  test "the has_many itself is deprecated" do
+    assert_not_deprecated_association(:comments) do
+      @author.comments
+    end
+
+    assert_deprecated_association(:deprecated_has_many_through, context: context_for_method(:deprecated_has_many_through)) do
+      @author.deprecated_has_many_through
+    end
+  end
+
+  test "the through association is deprecated" do
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_through)) do
+      @author.deprecated_through
+    end
+  end
+
+  test "the source association is deprecated" do
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_source)) do
+      @author.deprecated_source
+    end
+  end
+
+  test "all deprecated" do
+    assert_deprecated_association(:deprecated_all, context: context_for_method(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+  end
+
+  test "deprecated nested association" do
+    assert_deprecated_association(:deprecated_author_favorites, context: context_for_through(:deprecated_nested)) do
+      @author.deprecated_nested.uniq
+    end
+  end
 end

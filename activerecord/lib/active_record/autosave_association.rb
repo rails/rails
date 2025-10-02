@@ -374,7 +374,7 @@ module ActiveRecord
         context = validation_context if custom_validation_context?
         return true if record.valid?(context)
 
-        if record.changed? || record.new_record? || context
+        if context || record.changed_for_autosave?
           associated_errors = record.errors.objects
         else
           # If there are existing invalid records in the DB, we should still be able to reference them.
@@ -527,7 +527,7 @@ module ActiveRecord
         return false unless reflection.inverse_of&.polymorphic?
 
         class_name = record._read_attribute(reflection.inverse_of.foreign_type)
-        reflection.active_record != record.class.polymorphic_class_for(class_name)
+        reflection.active_record.polymorphic_name != class_name
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled.

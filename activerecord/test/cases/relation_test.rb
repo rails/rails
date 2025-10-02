@@ -47,7 +47,6 @@ module ActiveRecord
         unscope:   [ :where ],
         extending: [ Module.new ],
         with:      [ foo: Post.all ],
-        select:    [ :id, :id ],
       }
       expected.default = [ Object.new ]
 
@@ -372,6 +371,22 @@ module ActiveRecord
       all_count = Post.all.to_a.count
       assert_queries_match(%r{/\* foo \*/}) do
         assert_equal all_count, post_with_annotation.count
+      end
+    end
+
+    def test_relation_with_annotation_includes_comment_in_update_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.update_all(title: "Same title")
+      end
+    end
+
+    def test_relation_with_annotation_includes_comment_in_delete_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.delete_all
       end
     end
 

@@ -271,10 +271,10 @@ module ActiveRecord
       end
 
       def encode_with(coder) # :nodoc:
-        coder["columns"]          = @columns.sort.to_h
+        coder["columns"]          = @columns.sort.to_h.transform_values { _1.sort_by(&:name) }
         coder["primary_keys"]     = @primary_keys.sort.to_h
         coder["data_sources"]     = @data_sources.sort.to_h
-        coder["indexes"]          = @indexes.sort.to_h
+        coder["indexes"]          = @indexes.sort.to_h.transform_values { _1.sort_by(&:name) }
         coder["version"]          = @version
       end
 

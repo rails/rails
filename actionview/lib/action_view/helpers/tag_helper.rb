@@ -44,9 +44,6 @@ module ActionView
       PRE_CONTENT_STRINGS["textarea"] = "\n"
 
       class TagBuilder # :nodoc:
-        include CaptureHelper
-        include OutputSafetyHelper
-
         def self.define_element(name, code_generator:, method_name: name)
           return if method_defined?(name)
 
@@ -226,17 +223,7 @@ module ActionView
           tag_options(attributes.to_h).to_s.strip.html_safe
         end
 
-        def tag_string(name, content = nil, options, escape: true, &block)
-          content = @view_context.capture(self, &block) if block
-
-          content_tag_string(name, content, options, escape)
-        end
-
-        def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
-          "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
-        end
-
-        def content_tag_string(name, content, options, escape = true)
+        def content_tag_string(name, content, options, escape = true) # :nodoc:
           tag_options = tag_options(options, escape) if options
 
           if escape && content.present?
@@ -245,7 +232,7 @@ module ActionView
           "<#{name}#{tag_options}>#{PRE_CONTENT_STRINGS[name]}#{content}</#{name}>".html_safe
         end
 
-        def tag_options(options, escape = true)
+        def tag_options(options, escape = true) # :nodoc:
           return if options.blank?
           output = +""
           sep    = " "
@@ -266,7 +253,7 @@ module ActionView
                   tokens = TagHelper.build_tag_values(v)
                   next if tokens.none?
 
-                  v = safe_join(tokens, " ")
+                  v = @view_context.safe_join(tokens, " ")
                 else
                   v = v.to_s
                 end
@@ -287,28 +274,38 @@ module ActionView
           output unless output.empty?
         end
 
-        def boolean_tag_option(key)
-          %(#{key}="#{key}")
-        end
-
-        def tag_option(key, value, escape)
-          key = ERB::Util.xml_name_escape(key) if escape
-
-          case value
-          when Array, Hash
-            value = TagHelper.build_tag_values(value) if key.to_s == "class"
-            value = escape ? safe_join(value, " ") : value.join(" ")
-          when Regexp
-            value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
-          else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
-          end
-          value = value.gsub('"', "&quot;") if value.include?('"')
-
-          %(#{key}="#{value}")
-        end
-
         private
+          def tag_string(name, content = nil, options, escape: true, &block)
+            content = @view_context.capture(self, &block) if block
+
+            content_tag_string(name, content, options, escape)
+          end
+
+          def self_closing_tag_string(name, options, escape = true, tag_suffix = " />")
+            "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
+          end
+
+          def boolean_tag_option(key)
+            %(#{key}="#{key}")
+          end
+
+          def tag_option(key, value, escape)
+            key = ERB::Util.xml_name_escape(key) if escape
+
+            case value
+            when Array, Hash
+              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
+            when Regexp
+              value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            else
+              value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+            end
+            value = value.gsub('"', "&quot;") if value.include?('"')
+
+            %(#{key}="#{value}")
+          end
+
           def prefix_tag_option(prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)

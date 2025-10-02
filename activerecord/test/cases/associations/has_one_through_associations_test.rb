@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/club"
 require "models/member_type"
 require "models/member"
@@ -23,6 +24,7 @@ require "models/carrier"
 require "models/shop_account"
 require "models/customer_carrier"
 require "models/cpk"
+require "models/dats"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -474,5 +476,58 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     book.order = Cpk::Order.new
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
+  end
+end
+
+class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :author_addresses
+
+  setup do
+    @model = DATS::Author
+    @author = @model.new
+  end
+
+  test "the has_one itself is deprecated" do
+    assert_not_deprecated_association(:comment) do
+      @author.comment
+    end
+
+    assert_deprecated_association(:deprecated_has_one_through, context: context_for_method(:deprecated_has_one_through)) do
+      @author.deprecated_has_one_through
+    end
+  end
+
+  test "the through association is deprecated" do
+    assert_deprecated_association(:deprecated_post, context: context_for_through(:deprecated_through1)) do
+      @author.deprecated_through1
+    end
+  end
+
+  test "the source association is deprecated" do
+    assert_deprecated_association(:deprecated_comment, model: DATS::Post, context: context_for_through(:deprecated_source1)) do
+      @author.deprecated_source1
+    end
+  end
+
+  test "all deprecated" do
+    assert_deprecated_association(:deprecated_all1, context: context_for_method(:deprecated_all1)) do
+      @author.deprecated_all1
+    end
+
+    assert_deprecated_association(:deprecated_post, context: context_for_through(:deprecated_all1)) do
+      @author.deprecated_all1
+    end
+
+    assert_deprecated_association(:deprecated_comment, model: DATS::Post, context: context_for_through(:deprecated_all1)) do
+      @author.deprecated_all1
+    end
+  end
+
+  test "deprecated nested association" do
+    assert_deprecated_association(:deprecated_author_favorite, context: context_for_through(:deprecated_nested1)) do
+      @author.deprecated_nested1
+    end
   end
 end

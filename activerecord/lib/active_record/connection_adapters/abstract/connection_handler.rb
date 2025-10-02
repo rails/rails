@@ -158,9 +158,7 @@ module ActiveRecord
         each_connection_pool(role).any?(&:active_connection?)
       end
 
-      # Returns any connections in use by the current thread back to the pool,
-      # and also returns connections to the pool cached by threads that are no
-      # longer alive.
+      # Returns any connections in use by the current thread back to the pool.
       def clear_active_connections!(role = nil)
         each_connection_pool(role).each do |pool|
           pool.release_connection
@@ -168,7 +166,7 @@ module ActiveRecord
         end
       end
 
-      # Clears the cache which maps classes.
+      # Clears reloadable connection caches in all connection pools.
       #
       # See ConnectionPool#clear_reloadable_connections! for details.
       def clear_reloadable_connections!(role = nil)

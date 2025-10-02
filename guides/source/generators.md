@@ -3,18 +3,15 @@
 Creating and Customizing Rails Generators & Templates
 =====================================================
 
-Rails generators are an essential tool for improving your workflow. With this
-guide you will learn how to create generators and customize existing ones.
-
-After reading this guide, you will know:
+Rails generators and application templates are useful tools that can help improve your workflow by automatically creating boilerplate code. In this guide you will learn:
 
 * How to see which generators are available in your application.
 * How to create a generator using templates.
 * How Rails searches for generators before invoking them.
-* How to customize your scaffold by overriding generator templates.
-* How to customize your scaffold by overriding generators.
+* How to customize Rails scaffolding by overriding generators and templates.
 * How to use fallbacks to avoid overwriting a huge set of generators.
-* How to create an application template.
+* How to use templates to create/customize Rails applications.
+* How to use the Rails Template API to write your own reusable application templates.
 
 --------------------------------------------------------------------------------
 
@@ -249,7 +246,7 @@ To see this in action, let's create a `lib/templates/erb/scaffold/index.html.erb
 file with the following contents:
 
 ```erb
-<%% @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
+<%%= @<%= plural_table_name %>.count %> <%= human_name.pluralize %>
 ```
 
 Note that the template is an ERB template that renders _another_ ERB template.
@@ -268,7 +265,7 @@ $ bin/rails generate scaffold Post title:string
 The contents of `app/views/posts/index.html.erb` is:
 
 ```erb
-<% @posts.count %> Posts
+<%= @posts.count %> Posts
 ```
 
 [scaffold controller template]: https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
@@ -452,13 +449,23 @@ $ bin/rails generate scaffold Comment body:text
 Application Templates
 ---------------------
 
-Application templates are a special kind of generator. They can use all of the
-[generator helper methods](#generator-helper-methods), but are written as a Ruby
-script instead of a Ruby class. Here is an example:
+Application templates are a little different from generators. While generators
+add files to an existing Rails application (models, views, etc.), templates are
+used to automate the setup of a new Rails application. Templates are Ruby
+scripts (typically named `template.rb`) that customize new Rails applications
+right after they are generated.
+
+Let's see how to use a template while creating a new Rails application.
+
+### Creating and Using Templates
+
+Let's start with a sample template Ruby script. The below template adds Devise
+to the `Gemfile` after asking the user and also allows the user to name the
+Devise user model. After `bundle install` has been run, the template runs the
+Devise generators and also runs migrations. Finally, the template does `git add` and `git commit`.
 
 ```ruby
 # template.rb
-
 if yes?("Would you like to install Devise?")
   gem "devise"
   devise_model = ask("What would you like the user model to be called?", default: "User")
@@ -475,64 +482,322 @@ after_bundle do
 end
 ```
 
-First, the template asks the user whether they would like to install Devise.
-If the user replies "yes" (or "y"), the template adds Devise to the `Gemfile`,
-and asks the user for the name of the Devise user model (defaulting to `User`).
-Later, after `bundle install` has been run, the template will run the Devise
-generators and `bin/rails db:migrate` if a Devise model was specified. Finally, the
-template will `git add` and `git commit` the entire app directory.
-
-We can run our template when generating a new Rails application by passing the
-`-m` option to the `rails new` command:
+To apply this template while creating a new Rails application, you need to
+provide the location of the template using the `-m` option:
 
 ```bash
-$ rails new my_cool_app -m path/to/template.rb
+$ rails new blog -m ~/template.rb
 ```
 
-Alternatively, we can run our template inside an existing application with
-`bin/rails app:template`:
+The above will create a new Rails application called `blog` that has Devise gem configured.
+
+You can also apply templates to an existing Rails application by using
+`app:template` command. The location of the template needs to be passed in via
+the `LOCATION` environment variable:
 
 ```bash
-$ bin/rails app:template LOCATION=path/to/template.rb
+$ bin/rails app:template LOCATION=~/template.rb
 ```
 
-Templates also don't need to be stored locally — you can specify a URL instead
+Templates don't have to be stored locally, you can also specify a URL instead
 of a path:
 
 ```bash
-$ rails new my_cool_app -m http://example.com/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
+$ rails new blog -m https://example.com/template.rb
+$ bin/rails app:template LOCATION=https://example.com/template.rb
 ```
 
-Generator Helper Methods
-------------------------
+WARNING: Caution should be taken when executing remote scripts from third parties. Since the template is a plain Ruby script, it can easily contain code that compromises your local machine (such as download a virus, delete files or upload your private files to a server).
 
-Thor provides many generator helper methods via [`Thor::Actions`][], such as:
+The above `template.rb` file uses helper methods such as `after_bundle` and
+`rails_command` and also adds user interactivity with methods like `yes?`. All
+of these methods are part of the [Rails Template
+API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html). The
+following sections shows how to use more of these methods with examples.
 
-* [`copy_file`][]
-* [`create_file`][]
-* [`gsub_file`][]
-* [`insert_into_file`][]
-* [`inside`][]
+Rails Generators API
+--------------------
 
-In addition to those, Rails also provides many helper methods via
-[`Rails::Generators::Actions`][], such as:
+Generators and the template Ruby scripts have access to several helper methods
+using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain
+Specific Language). These methods are part of the Rails Generators API and you
+can find more details at [`Thor::Actions`][] and
+[`Rails::Generators::Actions`][] API documentation.
 
-* [`environment`][]
-* [`gem`][]
-* [`generate`][]
-* [`git`][]
-* [`initializer`][]
-* [`lib`][]
-* [`rails_command`][]
-* [`rake`][]
-* [`route`][]
+Here's another example of a typical Rails template that scaffolds a model, runs
+migrations, and commits the changes with git:
+
+```ruby
+# template.rb
+generate(:scaffold, "person name:string")
+route "root to: 'people#index'"
+rails_command("db:migrate")
+
+after_bundle do
+  git :init
+  git add: "."
+  git commit: %Q{ -m 'Initial commit' }
+end
+```
+
+NOTE: All code snippets in the examples below can be used in a template
+file, such as the `template.rb` file above.
+
+### add_source
+
+The [`add_source`][] method adds the given source to the generated application's `Gemfile`.
+
+```ruby
+add_source "https://rubygems.org"
+```
+
+If a block is given, gem entries in the block are wrapped into the source group.
+For example, if you need to source a gem from `"http://gems.github.com"`:
+
+```ruby
+add_source "http://gems.github.com/" do
+  gem "rspec-rails"
+end
+```
+
+### after_bundle
+
+The [`after_bundle`][] method registers a callback to be executed after the gems
+are bundled. For example, it would make sense to run the "install" command for
+`tailwindcss-rails` and `devise` only after those gems are bundled:
+
+```ruby
+# Install gems
+after_bundle do
+  # Install TailwindCSS
+  rails_command "tailwindcss:install"
+
+  # Install Devise
+  generate "devise:install"
+end
+```
+
+The callbacks get executed even if `--skip-bundle` has been passed.
+
+### environment
+
+The [`environment`][] method adds a line inside the `Application` class for
+`config/application.rb`. If `options[:env]` is specified, the line is appended
+to the corresponding file in `config/environments`.
+
+```ruby
+environment 'config.action_mailer.default_url_options = {host: "http://yourwebsite.example.com"}', env: "production"
+```
+
+The above will add the config line to `config/environments/production.rb`.
+
+### gem
+
+The [`gem`][] helper adds an entry for the given gem to the generated application's
+`Gemfile`.
+
+For example, if your application depends on the gems `devise` and
+`tailwindcss-rails`:
+
+```ruby
+gem "devise"
+gem "tailwindcss-rails"
+```
+
+Note that this method only adds the gem to the `Gemfile`, it does not install
+the gem.
+
+You can also specify an exact version:
+
+```ruby
+gem "devise", "~> 4.9.4"
+```
+
+And you can also add comments that will be added to the `Gemfile`:
+
+```ruby
+gem "devise", comment: "Add devise for authentication."
+```
+
+### gem_group
+
+The [`gem_group`][] helper wraps gem entries inside a group. For example, to load `rspec-rails`
+only in the `development` and `test` groups:
+
+```ruby
+gem_group :development, :test do
+  gem "rspec-rails"
+end
+```
+
+### generate
+
+You can even call a generator from inside a `template.rb` with the
+[`generate`][] method. The following runs the `scaffold` rails generator with
+the given arguments:
+
+```ruby
+generate(:scaffold, "person", "name:string", "address:text", "age:number")
+```
+
+### git
+
+Rails templates let you run any git command with the [`git`][] helper:
+
+```ruby
+git :init
+git add: "."
+git commit: "-a -m 'Initial commit'"
+```
+
+### initializer, vendor, lib, file
+
+The [`initializer`][] helper method adds an initializer to the generated
+application's `config/initializers` directory.
+
+After adding the below to the `template.rb` file, you can use `Object#not_nil?`
+and `Object#not_blank?` in your application:
+
+```ruby
+initializer "not_methods.rb", <<-CODE
+  class Object
+    def not_nil?
+      !nil?
+    end
+
+    def not_blank?
+      !blank?
+    end
+  end
+CODE
+```
+
+Similarly, the [`lib`][] method creates a file in the `lib/` directory and
+[`vendor`][] method creates a file in the `vendor/` directory.
+
+There is also a `file` method (which is an alias for [`create_file`][]), which
+accepts a relative path from `Rails.root` and creates all the directories and
+files needed:
+
+```ruby
+file "app/components/foo.rb", <<-CODE
+  class Foo
+  end
+CODE
+```
+
+The above will create the `app/components` directory and put `foo.rb` in there.
+
+### rakefile
+
+The [`rakefile`][] method creates a new Rake file under `lib/tasks` with the
+given tasks:
+
+```ruby
+rakefile("bootstrap.rake") do
+  <<-TASK
+    namespace :boot do
+      task :strap do
+        puts "I like boots!"
+      end
+    end
+  TASK
+end
+```
+
+The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
+
+### run
+
+The [`run`][] method executes an arbitrary command. Let's say you want to remove
+the `README.rdoc` file:
+
+```ruby
+run "rm README.rdoc"
+```
+
+### rails_command
+
+You can run the Rails commands in the generated application with the
+[`rails_command`][] helper. Let's say you want to migrate the database at some
+point in the template ruby script:
+
+```ruby
+rails_command "db:migrate"
+```
+
+Commands can be run with a different Rails environment:
+
+```ruby
+rails_command "db:migrate", env: "production"
+```
+
+You can also run commands that should abort application generation if they fail:
+
+```ruby
+rails_command "db:migrate", abort_on_failure: true
+```
+
+### route
+
+The [`route`][] method adds an entry to the `config/routes.rb` file. To make
+`PeopleController#index` the default page for the application, we can add:
+
+```ruby
+route "root to: 'person#index'"
+```
+
+There are also many helper methods that can manipulate the local file system,
+such as [`copy_file`][], [`create_file`][], [`insert_into_file`][], and
+[`inside`][]. You can see the [Thor API
+documentation](https://www.rubydoc.info/gems/thor/Thor/Actions) for details.
+Here is an example of one such method:
+
+### inside
+
+This [`inside`][] method enables you to run a command from a given directory.
+For example, if you have a copy of edge rails that you wish to symlink from your
+new apps, you can do this:
+
+```ruby
+inside("vendor") do
+  run "ln -s ~/my-forks/rails rails"
+end
+```
+
+There are also methods that allow you to interact with the user from the Ruby template, such as [`ask`][], [`yes`][], and [`no`][]. You can learn about all user interactivity methods in the [Thor Shell documentation](https://www.rubydoc.info/gems/thor/Thor/Shell/Basic). Let's see examples of using `ask`, `yes?` and `no?`:
+
+### ask
+
+The [`ask`][] methods allows you to get feedback from the user and use it in your
+templates. Let's say you want your user to name the new shiny library you're
+adding:
+
+```ruby
+lib_name = ask("What do you want to call the shiny library?")
+lib_name << ".rb" unless lib_name.index(".rb")
+
+lib lib_name, <<-CODE
+  class Shiny
+  end
+CODE
+```
+
+### yes? or no?
+
+These methods let you ask questions from templates and decide the flow based on
+the user's answer. Let's say you want to prompt the user to run migrations:
+
+```ruby
+rails_command("db:migrate") if yes?("Run database migrations?")
+# no? questions acts the opposite of yes?
+```
 
 Testing Generators
 ------------------
 
 Rails provides testing helper methods via
-[`Rails::Generators::Testing::Behaviour`][], such as:
+[`Rails::Generators::Testing::Behavior`][], such as:
 
 * [`run_generator`][]
 
@@ -559,6 +824,18 @@ In addition to those, Rails also provides additional assertions via
 [`rails_command`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
 [`rake`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
 [`route`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
-[`Rails::Generators::Testing::Behaviour`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
+[`Rails::Generators::Testing::Behavior`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
 [`run_generator`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
 [`Rails::Generators::Testing::Assertions`]: https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
+[`add_source`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source
+[`after_bundle`]: https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle
+[`gem_group`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem_group
+[`vendor`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-vendor
+[`rakefile`]: https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rakefile
+[`run`]: https://www.rubydoc.info/gems/thor/Thor/Actions#run-instance_method
+[`copy_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
+[`create_file`]: https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
+[`ask`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#ask-instance_method
+[`yes`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#yes%3F-instance_method
+[`no`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#no%3F-instance_method
+

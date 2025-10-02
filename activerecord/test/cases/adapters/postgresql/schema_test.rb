@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
+require "active_support/core_ext/object/with"
 
 module PGSchemaHelper
   def with_schema_search_path(schema_search_path)
@@ -12,6 +13,10 @@ module PGSchemaHelper
   ensure
     @connection.schema_search_path = "'$user', public"
     @connection.schema_cache.clear!
+  end
+
+  def with_dump_schemas(value, &block)
+    ActiveRecord.with(dump_schemas: value, &block)
   end
 end
 
@@ -199,6 +204,33 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_nothing_raised do
       @connection.drop_schema "idontexist", if_exists: true
     end
+  end
+
+  def test_rename_schema
+    @connection.create_schema("test_schema3")
+    @connection.rename_schema("test_schema3", "test_schema4")
+    assert_not_includes @connection.schema_names, "test_schema3"
+    assert_includes @connection.schema_names, "test_schema4"
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
+  end
+
+  def test_rename_schema_with_nonexisting_schema
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("idontexist", "neitherdoi")
+    end
+  end
+
+  def test_rename_schema_with_existing_target_name
+    @connection.create_schema("test_schema3")
+    @connection.create_schema("test_schema4")
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @connection.rename_schema("test_schema3", "test_schema4")
+    end
+  ensure
+    @connection.drop_schema("test_schema3", if_exists: true)
+    @connection.drop_schema("test_schema4", if_exists: true)
   end
 
   def test_raise_wrapped_exception_on_bad_prepare
@@ -528,11 +560,13 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_dumping_schemas
-    output = dump_all_table_schema(/./)
+    with_dump_schemas("test_schema,test_schema2,public") do
+      output = dump_all_table_schema(/./)
 
-    assert_no_match %r{create_schema "public"}, output
-    assert_match %r{create_schema "test_schema"}, output
-    assert_match %r{create_schema "test_schema2"}, output
+      assert_no_match %r{create_schema "public"}, output
+      assert_match %r{create_schema "test_schema"}, output
+      assert_match %r{create_schema "test_schema2"}, output
+    end
   end
 
   private
@@ -876,13 +910,16 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
   setup do
+    @previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
     @connection = ActiveRecord::Base.connection
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
   end
 
   teardown do
     @connection.drop_table "trains", if_exists: true
     @connection.drop_table "transportation_modes", if_exists: true
     @connection.drop_table "vehicles", if_exists: true
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = @previous_unlogged_tables
   end
 
   def test_list_partition_options_is_dumped
@@ -956,5 +993,77 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_no_match("options:", output)
+  end
+end
+
+class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+  include PGSchemaHelper
+
+  def setup
+    @connection = ActiveRecord::Base.connection
+    @connection.create_schema("test_schema")
+    @connection.create_schema("test_schema2")
+    @connection.create_enum("test_schema.test_enum_in_test_schema", ["foo", "bar"])
+    @connection.create_enum("test_enum_in_public", ["foo", "bar"])
+    @connection.create_table("test_schema.test_table")
+    @connection.create_table("test_schema.test_table2") do |t|
+      t.integer "test_table_id"
+      t.foreign_key "test_schema.test_table"
+    end
+  end
+
+  def teardown
+    @connection.drop_schema("test_schema")
+    @connection.drop_schema("test_schema2")
+    @connection.drop_enum("test_enum_in_public")
+  end
+
+  def test_schema_dump_with_dump_schemas_all
+    with_dump_schemas(:all) do
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_schema "test_schema"'
+      assert_not_includes output, 'create_schema "public"'
+      assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
+      assert_includes output, 'create_enum "public.test_enum_in_public"'
+      assert_includes output, 'create_table "test_schema.test_table"'
+      assert_includes output, 'create_table "public.authors"'
+      assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+      assert_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+    end
+  end
+
+  def test_schema_dump_with_dump_schemas_string
+    with_dump_schemas("test_schema") do
+      output = dump_all_table_schema
+
+      assert_includes output, 'create_schema "test_schema"'
+      assert_not_includes output, 'create_schema "public"'
+      assert_includes output, 'create_enum "test_enum_in_test_schema"'
+      assert_not_includes output, "test_enum_in_public"
+      assert_includes output, 'create_table "test_table"'
+      assert_not_includes output, 'create table "authors"'
+      assert_includes output, 'add_foreign_key "test_table2", "test_table"'
+      assert_not_includes output, 'add_foreign_key "authors", "author_addresses"'
+    end
+  end
+
+  def test_schema_dump_with_dump_schemas_schema_search_path
+    with_dump_schemas(:schema_search_path) do
+      with_schema_search_path("'$user',test_schema2,test_schema") do
+        output = dump_all_table_schema
+
+        assert_includes output, 'create_schema "test_schema"'
+        assert_includes output, 'create_schema "test_schema2"'
+        assert_not_includes output, 'create_schema "public"'
+        assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
+        assert_not_includes output, 'create_enum "public.test_enum_in_public"'
+        assert_includes output, 'create_table "test_schema.test_table"'
+        assert_not_includes output, 'create_table "public.authors"'
+        assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+        assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+      end
+    end
   end
 end

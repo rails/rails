@@ -1182,7 +1182,7 @@ The Request and Response Objects
 Every controller has two methods, [`request`][] and [`response`][], which can be
 used to access the request and response objects associated with the
 current request cycle. The `request` method returns an instance of
-[`ActionDispatch::Request`][]. The [`response`][] method returns an an instance
+[`ActionDispatch::Request`][]. The [`response`][] method returns an instance
 of [`ActionDispatch::Response`][], an object representing what is going to be
 sent back to the client browser (e.g. from `render` or `redirect` in the
 controller action).
@@ -1200,7 +1200,7 @@ the client. This section describes the purpose of some of the properties of the
 
 To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Request.html)
-and [Rack](https://www.rubydoc.info/github/rack/rack/Rack/Request)
+and [Rack](https://rack.github.io/rack/main/Rack/Request.html)
 documentation.
 
 | Property of `request`                     | Purpose                                                                          |
@@ -1271,4 +1271,4 @@ Here are some of the properties of the `response` object:
 To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html)
 and [Rack
-Documentation](https://www.rubydoc.info/github/rack/rack/Rack/Response).
+Documentation](https://rack.github.io/rack/main/Rack/Response.html).

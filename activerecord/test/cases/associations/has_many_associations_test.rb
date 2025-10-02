@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -35,7 +36,7 @@ require "models/ship"
 require "models/ship_part"
 require "models/treasure"
 require "models/parrot"
-require "models/tyre"
+require "models/tire"
 require "models/subscriber"
 require "models/subscription"
 require "models/zine"
@@ -44,6 +45,7 @@ require "models/human"
 require "models/sharded"
 require "models/cpk"
 require "models/comment_overlapping_counter_cache"
+require "models/dats"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -2908,17 +2910,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "associations autosaves when object is already persisted" do
     bulb = Bulb.create!
-    tyre = Tyre.create!
+    tire = Tire.create!
 
     car = Car.create!(name: "honda") do |c|
       c.bulbs << bulb
-      c.tyres << tyre
+      c.tires << tire
     end
 
     assert_equal [nil, "honda"], car.saved_change_to_name
 
     assert_equal 1, car.bulbs.count
-    assert_equal 1, car.tyres.count
+    assert_equal 1, car.tires.count
   end
 
   test "associations replace in memory when records have the same id" do
@@ -3198,8 +3200,8 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(<<~MESSAGE.squish, error.message)
       Unknown key: :trough. Valid keys are:
-      :class_name, :anonymous_class, :primary_key, :foreign_key, :dependent,
-      :validate, :inverse_of, :strict_loading, :query_constraints, :autosave, :before_add,
+      :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
+      :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
       :index_errors, :as, :through
     MESSAGE
@@ -3281,5 +3283,76 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       assert_equal 1, events.size
       assert_equal true, events.first.payload[:async]
     end
+  end
+end
+
+class DeprecatedHasManyAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = DATS::Car
+    @car = @model.first
+  end
+
+  test "<association>" do
+    assert_not_deprecated_association(:tires) do
+      @car.tires
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires)) do
+      assert_equal @car.tires, @car.deprecated_tires
+    end
+  end
+
+  test "<association>=" do
+    tire = DATS::Tire.new
+
+    assert_not_deprecated_association(:tires) do
+      @car.tires = [tire]
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tires=)) do
+      @car.deprecated_tires = [tire]
+    end
+    assert_equal [tire], @car.deprecated_tires
+  end
+
+  test "<singular_association>_ids" do
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids)) do
+      assert_equal @car.tire_ids, @car.deprecated_tire_ids
+    end
+  end
+
+  test "<singular_association>_ids=" do
+    tire = @car.tires.create!
+
+    assert_not_deprecated_association(:tires) do
+      @car.tire_ids = [tire.id]
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_method(:deprecated_tire_ids=)) do
+      @car.deprecated_tire_ids = [tire.id]
+    end
+    assert_equal [tire.id], @car.deprecated_tire_ids
+  end
+
+  test "destroy (not deprecated)" do
+    assert_not_deprecated_association(:tires) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
+  end
+
+  test "destroy (deprecated)" do
+    assert_deprecated_association(:deprecated_tires, context: context_for_dependent) do
+      @car.destroy
+    end
+    assert_predicate @car, :destroyed?
   end
 end

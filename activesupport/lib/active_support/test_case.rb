@@ -6,6 +6,7 @@ require "active_support/testing/setup_and_teardown"
 require "active_support/testing/tests_without_assertions"
 require "active_support/testing/assertions"
 require "active_support/testing/error_reporter_assertions"
+require "active_support/testing/event_reporter_assertions"
 require "active_support/testing/deprecation"
 require "active_support/testing/declarative"
 require "active_support/testing/isolation"
@@ -22,7 +23,22 @@ module ActiveSupport
   class TestCase < ::Minitest::Test
     Assertion = Minitest::Assertion
 
+    # Class variable to store the parallel worker ID
+    @@parallel_worker_id = nil
+
     class << self
+      # Returns the current parallel worker ID if tests are running in parallel,
+      # nil otherwise.
+      #
+      #   ActiveSupport::TestCase.parallel_worker_id # => 2
+      def parallel_worker_id
+        @@parallel_worker_id
+      end
+
+      def parallel_worker_id=(value) # :nodoc:
+        @@parallel_worker_id = value
+      end
+
       # Sets the order in which test cases are run.
       #
       #   ActiveSupport::TestCase.test_order = :random # => :random
@@ -79,7 +95,16 @@ module ActiveSupport
       # Because parallelization presents an overhead, it is only enabled when the
       # number of tests to run is above the +threshold+ param. The default value is
       # 50, and it's configurable via +config.active_support.test_parallelization_threshold+.
-      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold)
+      #
+      # If you want to skip Rails default creation of one database per process in favor of
+      # writing your own implementation, you can set +parallelize_databases+, or configure it
+      # via +config.active_support.parallelize_test_databases+.
+      #
+      #   parallelize(workers: :number_of_processors, parallelize_databases: false)
+      #
+      # Note that your test suite may deadlock if you attempt to use only one database
+      # with multiple processes.
+      def parallelize(workers: :number_of_processors, with: :processes, threshold: ActiveSupport.test_parallelization_threshold, parallelize_databases: ActiveSupport.parallelize_test_databases)
         case
         when ENV["PARALLEL_WORKERS"]
           workers = ENV["PARALLEL_WORKERS"].to_i
@@ -87,10 +112,28 @@ module ActiveSupport
           workers = (Concurrent.available_processor_count || Concurrent.processor_count).floor
         end
 
+        if with == :processes
+          ActiveSupport.parallelize_test_databases = parallelize_databases
+        end
+
         Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(size: workers, with: with, threshold: threshold)
       end
 
-      # Set up hook for parallel testing. This can be used if you have multiple
+      # Before fork hook for parallel testing. This can be used to run anything
+      # before the processes are forked.
+      #
+      # In your +test_helper.rb+ add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_before_fork do
+      #       # run this before fork
+      #     end
+      #   end
+      def parallelize_before_fork(&block)
+        ActiveSupport::Testing::Parallelization.before_fork_hook(&block)
+      end
+
+      # Setup hook for parallel testing. This can be used if you have multiple
       # databases or any behavior that needs to be run after the process is forked
       # but before the tests run.
       #
@@ -146,11 +189,17 @@ module ActiveSupport
 
     alias_method :method_name, :name
 
+    # Returns the current parallel worker ID if tests are running in parallel
+    def parallel_worker_id
+      self.class.parallel_worker_id
+    end
+
     include ActiveSupport::Testing::TaggedLogging
     prepend ActiveSupport::Testing::SetupAndTeardown
     prepend ActiveSupport::Testing::TestsWithoutAssertions
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::ErrorReporterAssertions
+    include ActiveSupport::Testing::EventReporterAssertions
     include ActiveSupport::Testing::NotificationAssertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::ConstantStubbing

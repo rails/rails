@@ -118,7 +118,7 @@ Take caution when using `find_by(id:)` on models where `:id` is not the primary
 key, such as composite primary key models. See the [Active Record Querying][]
 guide to learn more.
 
-[Active Record Querying]: active_record_querying.html#using-id-as-a-condition
+[Active Record Querying]: active_record_querying.html#conditions-with-id
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
@@ -268,7 +268,7 @@ class BooksController < ApplicationController
     id = params.extract_value(:id)
     # Find the book using the composite ID.
     @book = Book.find(id)
-    # use the default rendering behaviour to render the show view.
+    # use the default rendering behavior to render the show view.
   end
 end
 ```

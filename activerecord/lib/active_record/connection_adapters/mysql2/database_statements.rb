@@ -114,12 +114,12 @@ module ActiveRecord
           end
 
           def cast_result(raw_result)
-            return ActiveRecord::Result.empty if raw_result.nil?
+            return ActiveRecord::Result.empty(affected_rows: @affected_rows_before_warnings) if raw_result.nil?
 
             fields = raw_result.fields
 
             result = if fields.empty?
-              ActiveRecord::Result.empty
+              ActiveRecord::Result.empty(affected_rows: @affected_rows_before_warnings)
             else
               ActiveRecord::Result.new(fields, raw_result.to_a)
             end

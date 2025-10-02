@@ -118,6 +118,29 @@ module SharedTrackerTests
     assert_equal [], tracker.dependencies
   end
 
+  def test_finds_no_dependency_when_render_is_not_a_ruby_call
+    template = FakeTemplate.new("<div class='render foo'>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_find_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["single/quote"], tracker.dependencies
+  end
+
+  def test_find_all_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <%=
+      render object: @all_posts,
+             partial: 'posts' %> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["resources/posts", "single/quote"], tracker.dependencies
+  end
+
   def test_finds_dependency_on_multiline_render_calls
     template = FakeTemplate.new("<%=
       render object: @all_posts,

@@ -43,6 +43,8 @@ module ActiveJob
   autoload :EnqueueAfterTransactionCommit
 
   eager_autoload do
+    autoload :Continuable
+    autoload :Continuation
     autoload :Serializers
     autoload :ConfiguredJob
   end

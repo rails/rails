@@ -121,7 +121,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
-        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 1, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -138,9 +138,24 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 1, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
+    }
+    assert_driver_capabilities driver, expected
+  end
+
+  test "assert_driver_capabilities ignores unexpected options" do
+    driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
+      option.binary = "/usr/bin/chromium-browser"
+    end
+    driver.use
+
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["--disable-search-engine-choice-screen"],
+      },
+      "browserName" => "chrome"
     }
     assert_driver_capabilities driver, expected
   end
@@ -203,6 +218,20 @@ class DriverTest < ActiveSupport::TestCase
     def assert_driver_capabilities(driver, expected_capabilities)
       capabilities = driver.__send__(:browser_options)[:options].as_json
 
-      assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
+      expected_capabilities.each do |key, expected_value|
+        actual_value = capabilities[key]
+
+        case expected_value
+        when Array
+          expected_value.each { |item| assert_includes actual_value, item, "Expected #{key} to include #{item}" }
+        when Hash
+          expected_value.each do |sub_key, sub_value|
+            real_value = actual_value&.dig(sub_key)
+            assert_equal sub_value, real_value, "Expected #{key}[#{sub_key}] to be #{sub_value}, got #{real_value}"
+          end
+        else
+          assert_equal expected_value, actual_value, "Expected #{key} to be #{expected_value}, got #{actual_value}"
+        end
+      end
     end
 end

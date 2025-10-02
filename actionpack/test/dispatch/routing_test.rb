@@ -1549,20 +1549,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    assert_deprecated(ActionDispatch.deprecator) do
+    assert_raises(ArgumentError) do
       draw do
         get "get/first", "get/second", "get/third", to: "get#show"
       end
     end
-
-    get "/get/first"
-    assert_equal "get#show", @response.body
-
-    get "/get/second"
-    assert_equal "get#show", @response.body
-
-    get "/get/third"
-    assert_equal "get#show", @response.body
   end
 
   def test_match_shorthand_with_no_scope
@@ -1588,19 +1579,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    assert_deprecated(ActionDispatch.deprecator) do
+    assert_raises(ArgumentError) do
       draw do
         namespace :proposals do
           put "activate", "inactivate"
         end
       end
     end
-
-    put "/proposals/activate"
-    assert_equal "proposals#activate", @response.body
-
-    put "/proposals/inactivate"
-    assert_equal "proposals#inactivate", @response.body
   end
 
   def test_match_shorthand_inside_namespace_with_controller
@@ -4998,49 +4983,6 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   end
 end
 
-class TestErrorsInController < ActionDispatch::IntegrationTest
-  class ::PostsController < ActionController::Base
-    def foo
-      nil.i_do_not_exist
-    end
-
-    def bar
-      NonExistingClass.new
-    end
-  end
-
-  Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do
-    ActionDispatch.deprecator.silence do
-      get "/:controller(/:action)"
-    end
-  end
-
-  APP = build_app Routes
-
-  def app
-    APP
-  end
-
-  def test_legit_no_method_errors_are_not_caught
-    get "/posts/foo"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_name_errors_are_not_caught
-    get "/posts/bar"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_routing_not_found_responses
-    get "/posts/baz"
-    assert_equal 404, response.status
-
-    get "/i_do_not_exist"
-    assert_equal 404, response.status
-  end
-end
-
 class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
@@ -5063,7 +5005,7 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/david-bowie/changes-song"
     assert_equal 200, response.status
     assert_params artist: "david-bowie", song: "changes"
@@ -5204,7 +5146,7 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/test_internal/123"
     assert_equal 200, response.status
 

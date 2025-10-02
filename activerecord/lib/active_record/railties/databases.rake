@@ -163,6 +163,18 @@ db_namespace = namespace :db do
     desc "Resets your database using your migrations for the current environment"
     task reset: ["db:drop", "db:create", "db:schema:dump", "db:migrate"]
 
+    namespace :reset do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+        desc "Drop and recreate the #{name} database using migrations"
+        task name => :load_config do
+          db_namespace["drop:#{name}"].invoke
+          db_namespace["create:#{name}"].invoke
+          db_namespace["schema:dump:#{name}"].invoke
+          db_namespace["migrate:#{name}"].invoke
+        end
+      end
+    end
+
     desc 'Run the "up" for a given migration VERSION.'
     task up: :load_config do
       ActiveRecord::Tasks::DatabaseTasks.raise_for_multi_db(command: "db:migrate:up")
@@ -454,7 +466,7 @@ db_namespace = namespace :db do
 
     desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(nil, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ENV["SCHEMA_FORMAT"], ENV["SCHEMA"])
     end
 
     namespace :dump do
@@ -474,7 +486,7 @@ db_namespace = namespace :db do
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) into the #{name} database"
-        task name => "db:test:purge:#{name}" do
+        task name => [:load_config, :check_protected_environments] do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
             ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)

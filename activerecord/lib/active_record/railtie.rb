@@ -23,8 +23,8 @@ module ActiveRecord
     config.action_dispatch.rescue_responses.merge!(
       "ActiveRecord::RecordNotFound"   => :not_found,
       "ActiveRecord::StaleObjectError" => :conflict,
-      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
-      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
+      "ActiveRecord::RecordInvalid"    => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActiveRecord::RecordNotSaved"   => ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     )
 
     config.active_record.use_schema_cache_dump = true
@@ -40,6 +40,7 @@ module ActiveRecord
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
+    config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -278,6 +279,13 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.job_checkpoints" do
+      require "active_record/railties/job_checkpoints"
+      ActiveSupport.on_load(:active_job_continuable) do
+        prepend ActiveRecord::Railties::JobCheckpoints
+      end
+    end
+
     initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
         ActiveSupport::Reloader.before_class_unload do
@@ -321,6 +329,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
       end
+    end
+
+    initializer "active_record.filter_attributes_as_log_parameters" do |app|
+      ActiveRecord::FilterAttributeHandler.new(app).enable
     end
 
     initializer "active_record.configure_message_verifiers" do |app|

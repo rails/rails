@@ -58,7 +58,7 @@ module SidekiqJobsManager
         config = Sidekiq.default_configuration
         config.queues = ["integration_tests"]
         config.concurrency = 1
-        config.average_scheduled_poll_interval = 0.5
+        config.average_scheduled_poll_interval = 0.1
         config.merge!(
           environment: "test",
           timeout: 1,
@@ -107,6 +107,7 @@ module SidekiqJobsManager
       Process.kill "TERM", @pid
       Process.wait @pid
     end
+    @pid = nil
   end
 
   def can_run?

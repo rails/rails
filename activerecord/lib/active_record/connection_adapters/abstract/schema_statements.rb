@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/access"
+require "active_support/core_ext/string/filters"
 require "openssl"
 
 module ActiveRecord
@@ -186,6 +187,9 @@ module ActiveRecord
       #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
+      #
+      #   A Hash can be used to specify the generated primary key column creation options.
+      #   See {add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column] for available options.
       # [<tt>:primary_key</tt>]
       #   The name of the primary key, if one is to be added automatically.
       #   Defaults to +id+. If <tt>:id</tt> is false, then this option is ignored.
@@ -354,11 +358,13 @@ module ActiveRecord
       #   # Creates a table called 'music_artists_records' with no id.
       #   create_join_table('music_artists', 'music_records')
       #
+      # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference]
+      # for details of the options you can use in +column_options+. +column_options+
+      # will be applied to both columns.
+      #
       # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
-      # [<tt>:column_options</tt>]
-      #   Any extra options you want appended to the columns definition.
       # [<tt>:options</tt>]
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
@@ -374,6 +380,19 @@ module ActiveRecord
       #     t.index :product_id
       #     t.index :category_id
       #   end
+      #
+      # ====== Add foreign keys with delete cascade
+      #
+      #   create_join_table(:assemblies, :parts, column_options: { foreign_key: { on_delete: :cascade } })
+      #
+      # generates:
+      #
+      #   CREATE TABLE assemblies_parts (
+      #     assembly_id bigint NOT NULL,
+      #     part_id bigint NOT NULL,
+      #     CONSTRAINT fk_rails_0d8a572d89 FOREIGN KEY ("assembly_id") REFERENCES "assemblies" ("id") ON DELETE CASCADE,
+      #     CONSTRAINT fk_rails_ec7b48402b FOREIGN KEY ("part_id") REFERENCES "parts" ("id") ON DELETE CASCADE
+      #   )
       #
       # ====== Add a backend specific option to the generated SQL (MySQL)
       #
@@ -548,7 +567,7 @@ module ActiveRecord
       #
       # See {ActiveRecord::ConnectionAdapters::TableDefinition.column}[rdoc-ref:ActiveRecord::ConnectionAdapters::TableDefinition#column].
       #
-      # The +type+ parameter is normally one of the migrations native types,
+      # The +type+ parameter is normally one of the migration's native types,
       # which is one of the following:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
       # <tt>:integer</tt>, <tt>:bigint</tt>, <tt>:float</tt>, <tt>:decimal</tt>, <tt>:numeric</tt>,
@@ -1800,7 +1819,20 @@ module ActiveRecord
 
         def foreign_key_for(from_table, **options)
           return unless use_foreign_keys?
-          foreign_keys(from_table).detect { |fk| fk.defined_for?(**options) }
+
+          keys = foreign_keys(from_table)
+
+          if options[:_skip_column_match]
+            return keys.find { |fk| fk.defined_for?(**options) }
+          end
+
+          if options[:column].nil?
+            default_column = foreign_key_column_for(options[:to_table], "id")
+            matches = keys.select { |fk| fk.column == default_column }
+            keys = matches if matches.any?
+          end
+
+          keys.find { |fk| fk.defined_for?(**options) }
         end
 
         def foreign_key_for!(from_table, to_table: nil, **options)
@@ -1843,13 +1875,19 @@ module ActiveRecord
 
         def validate_index_length!(table_name, new_name, internal = false)
           if new_name.length > index_name_length
-            raise ArgumentError, "Index name '#{new_name}' on table '#{table_name}' is too long; the limit is #{index_name_length} characters"
+            raise ArgumentError, <<~MSG.squish
+              Index name '#{new_name}' on table '#{table_name}' is too long (#{new_name.length} characters); the limit
+              is #{index_name_length} characters
+            MSG
           end
         end
 
         def validate_table_length!(table_name)
           if table_name.length > table_name_length
-            raise ArgumentError, "Table name '#{table_name}' is too long; the limit is #{table_name_length} characters"
+            raise ArgumentError, <<~MSG.squish
+              Table name '#{table_name}' is too long (#{table_name.length} characters); the limit is
+              #{table_name_length} characters
+            MSG
           end
         end
 

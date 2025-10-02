@@ -41,6 +41,8 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
+require "models/human"
+require "models/face"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -1802,7 +1804,42 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_not_predicate ship, :valid?
   end
 
-  def test_recognises_inverse_polymorphic_association_changes_with_same_foreign_key
+  def test_should_not_saved_for_unchanged_sti_type_on_polymorphic_association
+    face = Class.new(Face) do
+      def self.name; "Face"; end
+
+      after_save :count_saves
+
+      def count_saves
+        @count ||= 0
+        @count += 1
+      end
+    end
+
+    super_human = Class.new(SuperHuman) do
+      self.table_name = "humans"
+      def self.name; "SuperHuman"; end
+
+      attribute :name, :string
+
+      # Polymorphic has_one needs to be defined on the child class
+      has_one :polymorphic_face, class_name: "Face", as: :polymorphic_human, inverse_of: :polymorphic_human
+    end
+
+    face_record = face.create!
+
+    super_human_record = super_human.create!(name: "S. Human", polymorphic_face: face_record)
+
+    super_human_record.update!(name: "Super Human")
+
+    assert_equal "Human", face_record.polymorphic_human_type
+    assert_equal super_human_record.id, face_record.polymorphic_human_id
+
+    # Saves on create of face and create of super human, but not update
+    assert_equal 2, face_record.instance_variable_get(:@count)
+  end
+
+  def test_recognizes_inverse_polymorphic_association_changes_with_same_foreign_key
     chef_a = chefs(:gordon_ramsay)
     chef_b = chefs(:marco_pierre_white)
 
@@ -2404,5 +2441,60 @@ class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveReco
     assert_nothing_raised do
       translation.save!
     end
+  end
+end
+
+class TestAutosaveAssociationWithNestedAttributes < ActiveRecord::TestCase
+  class Part < ActiveRecord::Base
+    self.table_name = "ship_parts"
+  end
+
+  class Ship < ActiveRecord::Base
+    self.table_name = "ships"
+    has_many :parts, class_name: Part.name
+    accepts_nested_attributes_for :parts, allow_destroy: true
+
+    validate :has_at_least_two_parts
+    def has_at_least_two_parts
+      current_parts = parts.select { |p| !p.marked_for_destruction? }
+      errors.add(:parts, "must have at least two parts") if current_parts.size < 2
+    end
+  end
+
+  class Pirate < ActiveRecord::Base
+    self.table_name = "pirates"
+    has_many :ships, class_name: Ship.name
+    accepts_nested_attributes_for :ships, allow_destroy: true
+  end
+
+  def test_should_be_invalid_when_nested_attributes_deletion_breaks_validation
+    pirate = Pirate.create!
+    ship = pirate.ships.new
+    2.times do |i|
+      ship.parts.build
+    end
+    part = ship.parts.first
+    ship.save!
+
+    deletion_params = {
+      "ships_attributes" => {
+        "0" => {
+          "id" => ship.id,
+          "parts_attributes" => {
+            "0" => {
+              "id" => part.id,
+              "_destroy" => "1",
+            },
+          }
+        }
+      }
+    }
+
+    assert_not pirate.update(deletion_params)
+    assert_nothing_raised do
+      part.reload
+    end
+    assert_includes pirate.errors[:"ships.parts"], "must have at least two parts"
+    assert_includes ship.errors[:parts], "must have at least two parts"
   end
 end

@@ -87,7 +87,8 @@ module Rails
 
         env = colorized_env
         prompt_prefix = "%N(#{env})"
-        IRB.conf[:IRB_NAME] = @app.name
+        # Respect user's configured irb name.
+        IRB.conf[:IRB_NAME] = @app.name if IRB.conf[:IRB_NAME] == "irb"
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
           PROMPT_I: "#{prompt_prefix}:%03n> ",

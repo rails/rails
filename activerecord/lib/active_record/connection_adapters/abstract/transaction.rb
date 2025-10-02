@@ -112,6 +112,7 @@ module ActiveRecord
       def closed?; true; end
       def open?; false; end
       def joinable?; false; end
+      def isolation; nil; end
       def add_record(record, _ = true); end
       def restartable?; false; end
       def dirty?; false; end
@@ -123,6 +124,7 @@ module ActiveRecord
       def after_commit; yield; end
       def after_rollback; end
       def user_transaction; ActiveRecord::Transaction::NULL_TRANSACTION; end
+      def isolation=(_); end
     end
 
     class Transaction # :nodoc:
@@ -149,6 +151,15 @@ module ActiveRecord
       attr_accessor :written
 
       delegate :invalidate!, :invalidated?, to: :@state
+
+      # Returns the isolation level if it was explicitly set, nil otherwise
+      def isolation
+        @isolation_level
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @isolation_level = isolation
+      end
 
       def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
@@ -386,7 +397,7 @@ module ActiveRecord
         @parent.state.add_child(@state)
       end
 
-      delegate :materialize!, :materialized?, :restart, to: :@parent
+      delegate :materialize!, :materialized?, :restart, :isolation, to: :@parent
 
       def rollback
         @state.rollback!
@@ -405,6 +416,7 @@ module ActiveRecord
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
 
+        @parent_transaction = parent_transaction
         parent_transaction.state.add_child(@state)
 
         if isolation_level
@@ -412,6 +424,15 @@ module ActiveRecord
         end
 
         @savepoint_name = savepoint_name
+      end
+
+      # Delegates to parent transaction's isolation level
+      def isolation
+        @parent_transaction.isolation
+      end
+
+      def isolation=(isolation) # :nodoc:
+        @parent_transaction.isolation = isolation
       end
 
       def materialize!
@@ -620,7 +641,7 @@ module ActiveRecord
       end
 
       def within_new_transaction(isolation: nil, joinable: true)
-        isolation ||= @connection.pool.default_isolation_level
+        isolation ||= @connection.pool.pool_transaction_isolation_level
         @connection.lock.synchronize do
           transaction = begin_transaction(isolation: isolation, joinable: joinable)
           begin

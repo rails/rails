@@ -4,19 +4,10 @@ require "tempfile"
 
 module ActiveRecord
   module Tasks # :nodoc:
-    class PostgreSQLDatabaseTasks # :nodoc:
+    class PostgreSQLDatabaseTasks < AbstractTasks # :nodoc:
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
       SQL_COMMENT_BEGIN = "--"
-
-      def self.using_database_configurations?
-        true
-      end
-
-      def initialize(db_config)
-        @db_config = db_config
-        @configuration_hash = db_config.configuration_hash
-      end
 
       def create(connection_already_established = false)
         establish_connection(public_schema_config) unless connection_already_established
@@ -27,14 +18,6 @@ module ActiveRecord
       def drop
         establish_connection(public_schema_config)
         connection.drop_database(db_config.database)
-      end
-
-      def charset
-        connection.encoding
-      end
-
-      def collation
-        connection.collation
       end
 
       def purge
@@ -72,7 +55,7 @@ module ActiveRecord
         end
 
         args << db_config.database
-        run_cmd("pg_dump", args, "dumping")
+        run_cmd("pg_dump", *args)
         remove_sql_header_comments(filename)
         File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
       end
@@ -82,20 +65,10 @@ module ActiveRecord
         args.concat(Array(extra_flags)) if extra_flags
         args.concat(["--file", filename])
         args << db_config.database
-        run_cmd("psql", args, "loading")
+        run_cmd("psql", *args)
       end
 
       private
-        attr_reader :db_config, :configuration_hash
-
-        def connection
-          ActiveRecord::Base.lease_connection
-        end
-
-        def establish_connection(config = db_config)
-          ActiveRecord::Base.establish_connection(config)
-        end
-
         def encoding
           configuration_hash[:encoding] || DEFAULT_ENCODING
         end
@@ -117,15 +90,8 @@ module ActiveRecord
           end
         end
 
-        def run_cmd(cmd, args, action)
-          fail run_cmd_error(cmd, args, action) unless Kernel.system(psql_env, cmd, *args)
-        end
-
-        def run_cmd_error(cmd, args, action)
-          msg = +"failed to execute:\n"
-          msg << "#{cmd} #{args.join(' ')}\n\n"
-          msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
-          msg
+        def run_cmd(cmd, *args, **opts)
+          fail run_cmd_error(cmd, args) unless Kernel.system(psql_env, cmd, *args, **opts)
         end
 
         def remove_sql_header_comments(filename)
@@ -133,6 +99,13 @@ module ActiveRecord
           tempfile = Tempfile.open("uncommented_structure.sql")
           begin
             File.foreach(filename) do |line|
+              next if line.start_with?("\\restrict ")
+
+              if line.start_with?("\\unrestrict ")
+                removing_comments = true
+                next
+              end
+
               unless removing_comments && (line.start_with?(SQL_COMMENT_BEGIN) || line.blank?)
                 tempfile << line
                 removing_comments = false

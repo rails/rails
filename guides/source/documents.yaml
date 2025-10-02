@@ -271,7 +271,6 @@
   documents:
     -
       name: The Basics of Creating Rails Plugins
-      work_in_progress: true
       url: plugins.html
       description: This guide covers how to build a plugin to extend the functionality of Rails.
     -
@@ -290,14 +289,6 @@
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-      work_in_progress: true
-    -
-      name: Rails Application Templates
-      url: rails_application_templates.html
-      description: >
-        Application templates are simple Ruby files containing DSL for adding
-        gems, initializers, etc. to your freshly created Rails project or an
-        existing Rails project.
       work_in_progress: true
 
     -

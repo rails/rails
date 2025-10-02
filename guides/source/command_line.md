@@ -337,6 +337,8 @@ NOTE: For a list of available field types for the `type` parameter, refer to the
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
+NOTE: Starting with Rails 8.1, scaffolds no longer generate system tests by default. System tests should be reserved for critical user paths due to their slower execution and higher maintenance cost. To include system tests when scaffolding, use the `--system-tests=true` option.
+
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 ```bash
@@ -360,7 +362,6 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_form.html.erb
     invoke    test_unit
     create      test/controllers/high_scores_controller_test.rb
-    create      test/system/high_scores_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
     invoke      test_unit
@@ -488,7 +489,7 @@ Rails.application.executor.wrap do
 end
 ```
 
-You can opt out of this behaviour by using the `--skip-executor` option.
+You can opt out of this behavior by using the `--skip-executor` option.
 
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb

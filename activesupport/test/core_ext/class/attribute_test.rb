@@ -116,7 +116,7 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_equal "plop", @klass.setting
   end
 
-  test "when defined in a class's singleton" do
+  test "when defined in a class's singleton class" do
     @klass = Class.new do
       class << self
         class_attribute :__callbacks, default: 1
@@ -130,6 +130,26 @@ class ClassAttributeTest < ActiveSupport::TestCase
     @klass.__callbacks = 4
     assert_equal 1, @klass.__callbacks
     assert_equal 1, @klass.singleton_class.__callbacks
+
+    @klass.singleton_class.__callbacks = 4
+    assert_equal 4, @klass.__callbacks
+    assert_equal 4, @klass.singleton_class.__callbacks
+  end
+
+  test "when defined on an instance's singleton class" do
+    object = @klass.new
+
+    object.singleton_class.class_attribute :external_attr, default: "default_value"
+    assert_equal "default_value", object.external_attr
+    assert_equal "default_value", object.singleton_class.external_attr
+
+    object.external_attr = "new_value"
+    assert_equal "default_value", object.external_attr
+    assert_equal "default_value", object.singleton_class.external_attr
+
+    object.singleton_class.external_attr = "another_value"
+    assert_equal "another_value", object.external_attr
+    assert_equal "another_value", object.singleton_class.external_attr
   end
 
   test "works well with module singleton classes" do

@@ -328,17 +328,6 @@ module ActiveRecord
         column(name, type, **options, primary_key: true)
       end
 
-      ##
-      # :method: column
-      # :call-seq: column(name, type, **options)
-      #
-      # Appends a column or columns of a specified type.
-      #
-      #  t.string(:goat)
-      #  t.string(:goat, :sheep)
-      #
-      # See TableDefinition#column
-
       define_column_methods :bigint, :binary, :boolean, :date, :datetime, :decimal,
         :float, :integer, :json, :string, :text, :time, :timestamp, :virtual
 

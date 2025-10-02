@@ -40,7 +40,7 @@ then you will see:
 
 ```bash
 $ ls -F test
-application_system_test_case.rb  controllers/                     helpers/                         mailers/                         system/                          fixtures/                        integration/                     models/                          test_helper.rb
+controllers/                     helpers/                         mailers/                         fixtures/                        integration/                     models/                          test_helper.rb
 ```
 
 ### Test Directories
@@ -64,7 +64,7 @@ JavaScript as well. System tests inherit from
 [Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
 tests for your application.
 
-[Fixtures](https://api.rubyonrails.org/v3.1/classes/ActiveRecord/Fixtures.html)
+[Fixtures](https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html)
 are a way of mocking up data to use in your tests, so that you don't have to use
 'real' data. They are stored in the `fixtures` directory, and you can read more
 about them in the [Fixtures](#fixtures) section below.
@@ -440,7 +440,7 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
 | [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
 
-[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference)
+[`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference
 [`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
 [`assert_changes(expressions, message = nil, from:, to:, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_changes
 [`assert_no_changes(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_changes
@@ -874,8 +874,7 @@ Functional Testing for Controllers
 
 When writing functional tests, you are focusing on testing how controller
 actions handle the requests and the expected result or response. Functional
-controller tests are sometimes used in cases where system tests are not
-appropriate, e.g., to confirm an API response.
+controller tests are used to test controllers and other behavior, like API responses.
 
 ### What to Include in Your Functional Tests
 
@@ -1419,6 +1418,47 @@ does this by running tests in either a real or a headless browser (a browser
 which runs in the background without opening a visible window). System tests use
 [Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
 
+### When to Use System Tests
+
+System tests provide the most realistic testing experience as they test your
+application from a user's perspective. However, they come with important
+trade-offs:
+
+* **They are significantly slower** than unit and integration tests
+* **They can be brittle** and prone to failures from timing issues or UI changes
+* **They require more maintenance** as your UI evolves
+
+Given these trade-offs, **system tests should be reserved for critical user
+paths** rather than being created for every feature. Consider writing system
+tests for:
+
+* **Core business workflows** (e.g., user registration, checkout process,
+  payment flows)
+* **Critical user interactions** that integrate multiple components
+* **Complex JavaScript interactions** that can't be tested at lower levels
+
+For most features, integration tests provide a better balance of coverage and
+maintainability. Save system tests for scenarios where you need to verify the
+complete user experience.
+
+### Generating System Tests
+
+Rails no longer generates system tests by default when using scaffolds. This
+change reflects the best practice of using system tests sparingly. You can
+generate system tests in two ways:
+
+1. **When scaffolding**, explicitly enable system tests:
+
+   ```bash
+   $ bin/rails generate scaffold Article title:string body:text --system-tests=true
+   ```
+
+2. **Generate system tests independently** for critical features:
+
+   ```bash
+   $ bin/rails generate system_test articles
+   ```
+
 Rails system tests are stored in the `test/system` directory in your
 application. To generate a system test skeleton, run the following command:
 
@@ -1552,9 +1592,9 @@ settings.
 This section will demonstrate how to add a system test to your application,
 which tests a visit to the index page to create a new blog article.
 
-If you used the scaffold generator, a system test skeleton was automatically
-created for you. If you didn't use the scaffold generator, start by creating a
-system test skeleton.
+NOTE: The scaffold generator no longer creates system tests by default. To
+include system tests when scaffolding, use the `--system-tests=true` option.
+Otherwise, create system tests manually for your critical user paths.
 
 ```bash
 $ bin/rails generate system_test articles
@@ -1677,7 +1717,7 @@ which can be used in system tests.
 #### Screenshot Helper
 
 The
-[`ScreenshotHelper`](https://api.rubyonrails.org/v5.1.7/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
+[`ScreenshotHelper`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTesting/TestHelpers/ScreenshotHelper.html)
 is a helper designed to capture screenshots of your tests. This can be helpful
 for viewing the browser at the point a test failed, or to view screenshots later
 for debugging.
@@ -1861,7 +1901,7 @@ documentation](https://github.com/rails/rails-dom-testing).
 In order to integrate with [rails-dom-testing][], tests that inherit from
 `ActionView::TestCase` declare a `document_root_element` method that returns the
 rendered content as an instance of a
-[Nokogiri::XML::Node](https://www.rubydoc.info/github/sparklemotion/nokogiri/Nokogiri/XML/Node):
+[Nokogiri::XML::Node](https://nokogiri.org/rdoc/Nokogiri/XML/Node.html):
 
 ```ruby
 test "renders a link to itself" do

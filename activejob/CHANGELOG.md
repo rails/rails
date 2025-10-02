@@ -1,3 +1,90 @@
+*   Add structured events for Active Job:
+    - `active_job.enqueued`
+    - `active_job.bulk_enqueued`
+    - `active_job.started`
+    - `active_job.completed`
+    - `active_job.retry_scheduled`
+    - `active_job.retry_stopped`
+    - `active_job.discarded`
+    - `active_job.interrupt`
+    - `active_job.resume`
+    - `active_job.step_skipped`
+    - `active_job.step_started`
+    - `active_job.step`
+
+    *Adrianna Chang*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
+*   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
+
+    *Rafael Mendonça França*
+
+*   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
+
+    *Rafael Mendonça França*
+
+*   `ActiveJob::Serializers::ObjectSerializers#klass` method is now public.
+
+    Custom Active Job serializers must have a public `#klass` method too.
+    The returned class will be index allowing for faster serialization.
+
+    *Jean Boussier*
+
+*   Allow jobs to the interrupted and resumed with Continuations
+
+    A job can use Continuations by including the `ActiveJob::Continuable`
+    concern. Continuations split jobs into steps. When the queuing system
+    is shutting down jobs can be interrupted and their progress saved.
+
+    ```ruby
+    class ProcessImportJob
+      include ActiveJob::Continuable
+
+      def perform(import_id)
+        @import = Import.find(import_id)
+
+        # block format
+        step :initialize do
+          @import.initialize
+        end
+
+        # step with cursor, the cursor is saved when the job is interrupted
+        step :process do |step|
+          @import.records.find_each(start: step.cursor) do |record|
+            record.process
+            step.advance! from: record.id
+          end
+        end
+
+        # method format
+        step :finalize
+
+        private
+          def finalize
+            @import.finalize
+          end
+      end
+    end
+    ```
+
+    *Donal McBreen*
+
+*   Defer invocation of ActiveJob enqueue callbacks until after commit when
+    `enqueue_after_transaction_commit` is enabled.
+
+    *Will Roever*
+
 *   Add `report:` option to `ActiveJob::Base#retry_on` and `#discard_on`
 
     When the `report:` option is passed, errors will be reported to the error reporter

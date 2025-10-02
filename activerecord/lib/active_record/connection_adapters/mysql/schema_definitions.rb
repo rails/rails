@@ -44,14 +44,11 @@ module ActiveRecord
         # :call-seq: unsigned_bigint(*names, **options)
 
         define_column_methods :blob, :tinyblob, :mediumblob, :longblob,
-          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint,
-          :unsigned_float, :unsigned_decimal
-
-        deprecate :unsigned_float, :unsigned_decimal, deprecator: ActiveRecord.deprecator
+          :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint
       end
 
       # = Active Record MySQL Adapter \Index Definition
-      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition
+      class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
         attr_accessor :enabled
 
         def initialize(*args, **kwargs)
