@@ -1,3 +1,18 @@
+*   Add rate limiting functionality for Active Job
+
+    Similar to ActionController's rate limit feature, jobs can now limit
+    their execution frequency using the `rate_limit` method.
+    This helps prevent resource overload and respect third-party API limits.
+
+    ```ruby
+    class ExternalApiCallJob < ApplicationJob
+        rate_limit to: 10, within: 1.second, name: "burst"
+        rate_limit to: 1000, within: 1.hour, name: "sustained"
+    end
+    ```
+
+    *heka1024*
+
 *   Add structured events for Active Job:
     - `active_job.enqueued`
     - `active_job.bulk_enqueued`
