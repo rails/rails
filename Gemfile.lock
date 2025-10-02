@@ -46,6 +46,7 @@ PATH
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
     activejob (8.1.0.beta1)
+      activerecord (= 8.1.0.beta1)
       activesupport (= 8.1.0.beta1)
       globalid (>= 0.3.6)
     activemodel (8.1.0.beta1)
