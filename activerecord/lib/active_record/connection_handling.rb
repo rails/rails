@@ -100,7 +100,8 @@ module ActiveRecord
           db_config = resolve_config_for_connection(database_key)
 
           self.connection_class = true
-          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard.to_sym)
+          shard = shard.to_sym unless shard.is_a? Integer
+          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard)
         end
       end
 

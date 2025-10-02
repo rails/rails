@@ -149,12 +149,6 @@ module ActiveSupport
       log_exception(event.name, e)
     end
 
-    def publish_event(event)
-      super if logger
-    rescue => e
-      log_exception(event.name, e)
-    end
-
     attr_writer :event_levels # :nodoc:
 
   private

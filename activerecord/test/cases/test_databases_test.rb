@@ -101,5 +101,35 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
     end
+
+    def test_create_databases_after_fork_with_replica
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+          "replica" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3", "replica" => true }
+        }
+      }
+
+      idx = 42
+      primary_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      expected_primary_database = "#{primary_db_config.database}_#{idx}"
+      replica_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "replica", include_hidden: true)
+      expected_replica_database = "#{replica_db_config.database}_#{idx}"
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+        assert_equal expected_primary_database, db_config.database
+      }) do
+        ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
+      end
+
+      # Updates the database configuration
+      assert_equal expected_primary_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").database
+      assert_equal expected_replica_database, ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "replica", include_hidden: true).database
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
   end
 end

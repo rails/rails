@@ -401,6 +401,26 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_raise(expected_raise) { GenericEnumerable.new(1..).sole }
   end
 
+  def test_sole_returns_same_value_as_first_for_tuples
+    enum = Enumerator.new(1) { |yielder| yielder.yield(1, "one") }
+    assert_equal [1, "one"], enum.sole
+    assert_equal enum.first, enum.sole
+  end
+
+  class KeywordYielder
+    include Enumerable
+
+    def each
+      yield 1, two: 3
+    end
+  end
+
+  def test_sole_keyword_arguments
+    yielder = KeywordYielder.new
+    assert_equal [1, { two: 3 }], yielder.sole
+    assert_equal yielder.first, yielder.sole
+  end
+
   def test_doesnt_bust_constant_cache
     skip "Only applies to MRI" unless defined?(RubyVM.stat)
 

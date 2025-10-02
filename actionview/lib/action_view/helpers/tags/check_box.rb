@@ -21,10 +21,10 @@ module ActionView
           options["checked"] = "checked" if input_checked?(options)
 
           if options["multiple"]
-            add_default_name_and_id_for_value(@checked_value, options)
+            add_default_name_and_field_for_value(@checked_value, options)
             options.delete("multiple")
           else
-            add_default_name_and_id(options)
+            add_default_name_and_field(options)
           end
 
           include_hidden = options.delete("include_hidden") { true }

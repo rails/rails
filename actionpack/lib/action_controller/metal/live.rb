@@ -236,12 +236,7 @@ module ActionController
 
       private
         def each_chunk(&block)
-          loop do
-            str = nil
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              str = @buf.pop
-            end
-            break unless str
+          while str = @buf.pop
             yield str
           end
         end
@@ -306,9 +301,7 @@ module ActionController
         end
       end
 
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
-      end
+      @_response.await_commit
 
       raise error if error
     end

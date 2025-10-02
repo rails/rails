@@ -81,8 +81,16 @@ module ActiveJob
               klass = s.send(:klass)
               ActiveJob.deprecator.warn(<<~MSG.squish)
                 #{s.class.name}#klass method should be public.
+                This will raise an error in Rails 8.2.
               MSG
               @serializers_index[klass] = s
+            else
+              ActiveJob.deprecator.warn(
+                <<~MSG.squish
+                  #{s.class.name} should implement a public #klass method.
+                  This will raise an error in Rails 8.2.
+                MSG
+              )
             end
           end
         end

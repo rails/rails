@@ -5,6 +5,7 @@ require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/concurrency/thread_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -51,8 +52,6 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
       end
-
-      set_callback :checkin, :after, :enable_lazy_transactions!
 
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
@@ -190,16 +189,16 @@ module ActiveRecord
         @lock =
         case lock_thread
         when Thread
-          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+          ActiveSupport::Concurrency::ThreadMonitor.new
         when Fiber
-          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+          ::Monitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
       end
 
-      def check_if_write_query(sql) # :nodoc:
-        if preventing_writes? && write_query?(sql)
+      def ensure_writes_are_allowed(sql) # :nodoc:
+        if preventing_writes?
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
       end
@@ -329,8 +328,12 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
-          @owner = nil
+          _run_checkin_callbacks do
+            @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
+            @owner = nil
+            enable_lazy_transactions!
+            unset_query_cache!
+          end
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
         end
@@ -827,8 +830,11 @@ module ActiveRecord
       end
 
       def clean! # :nodoc:
-        @raw_connection_dirty = false
-        @verified = nil
+        _run_checkout_callbacks do
+          @raw_connection_dirty = false
+          @verified = nil
+        end
+        self
       end
 
       def verified? # :nodoc:

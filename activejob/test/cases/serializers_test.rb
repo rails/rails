@@ -30,6 +30,8 @@ class SerializersTest < ActiveSupport::TestCase
     end
   end
 
+  class TestSerializerWithoutKlass < ActiveJob::Serializers::ObjectSerializer; end
+
   setup do
     @value_object = DummyValueObject.new 123
     @original_serializers = ActiveJob::Serializers.serializers
@@ -91,6 +93,14 @@ class SerializersTest < ActiveSupport::TestCase
     ActiveJob::Serializers.add_serializers DummySerializer
     assert_no_difference(-> { ActiveJob::Serializers.serializers.size }) do
       ActiveJob::Serializers.add_serializers DummySerializer
+    end
+  end
+
+  test "raises a deprecation warning if the klass method doesn't exist" do
+    expected_message = "TestSerializerWithoutKlass should implement a public #klass method. This will raise an error in Rails 8.2"
+
+    assert_deprecated(expected_message, ActiveJob.deprecator) do
+      ActiveJob::Serializers.add_serializers TestSerializerWithoutKlass
     end
   end
 end

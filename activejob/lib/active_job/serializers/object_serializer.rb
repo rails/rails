@@ -47,11 +47,6 @@ module ActiveJob
       def deserialize(hash)
         raise NotImplementedError, "#{self.class.name} should implement a public #deserialize(hash) method"
       end
-
-      # The class of the object that will be serialized.
-      def klass
-        raise NotImplementedError, "#{self.class.name} should implement a public #klass method"
-      end
     end
   end
 end

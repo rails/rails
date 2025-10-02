@@ -129,9 +129,7 @@ module ActiveRecord
             t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             elapsed = 0
             loop do
-              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                @cond.wait(timeout - elapsed)
-              end
+              @cond.wait(timeout - elapsed)
 
               return remove if any?
 

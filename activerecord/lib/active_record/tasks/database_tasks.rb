@@ -428,9 +428,15 @@ module ActiveRecord
       end
 
       def dump_all
-        with_temporary_pool_for_each do |pool|
-          db_config = pool.db_config
+        seen_schemas = []
+
+        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+          schema_path = schema_dump_path(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+
+          next if seen_schemas.include?(schema_path)
+
           ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+          seen_schemas << schema_path
         end
       end
 
@@ -441,18 +447,22 @@ module ActiveRecord
         filename = schema_dump_path(db_config, format)
         return unless filename
 
-        FileUtils.mkdir_p(db_dir)
-        case format.to_sym
-        when :ruby
-          File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(migration_connection_pool, file)
-          end
-        when :sql
-          structure_dump(db_config, filename)
-          if migration_connection_pool.schema_migration.table_exists?
-            File.open(filename, "a") do |f|
-              f.puts migration_connection.dump_schema_versions
-              f.print "\n"
+        with_temporary_pool(db_config) do |pool|
+          FileUtils.mkdir_p(db_dir)
+          case format.to_sym
+          when :ruby
+            File.open(filename, "w:utf-8") do |file|
+              ActiveRecord::SchemaDumper.dump(pool, file)
+            end
+          when :sql
+            structure_dump(db_config, filename)
+            if pool.schema_migration.table_exists?
+              File.open(filename, "a") do |f|
+                pool.with_connection do |connection|
+                  f.puts connection.dump_schema_versions
+                end
+                f.print "\n"
+              end
             end
           end
         end

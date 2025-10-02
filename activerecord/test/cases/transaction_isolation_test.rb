@@ -302,3 +302,55 @@ class TransactionIsolationTest < ActiveRecord::TestCase
       end
   end
 end
+
+class TransactionIsolationWithTransactionalTestsTest < ActiveRecord::TestCase
+  if ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+    class Tag < ActiveRecord::Base
+      self.table_name = "tags"
+    end
+
+    test "starting a transaction with isolation does not raise an error" do
+      assert_nothing_raised do
+        Tag.transaction(isolation: :read_committed) do
+          Tag.create!
+        end
+      end
+    end
+
+    test "starting a transaction with isolation sets the isolation level" do
+      Tag.transaction(isolation: :read_committed) do
+        assert_equal :read_committed, Tag.lease_connection.current_transaction.isolation
+      end
+    end
+
+    test "starting a transaction with a different isolation level raises an error" do
+      Tag.transaction(isolation: :read_committed) do
+        Tag.create!
+
+        assert_raises(ActiveRecord::TransactionIsolationError) do
+          Tag.transaction(isolation: :repeatable_read) do
+            Tag.create!
+          end
+        end
+      end
+    end
+
+    test "specifying the same isolation level does not raise an error" do
+      assert_nothing_raised do
+        Tag.transaction(isolation: :read_committed) do
+          Tag.create!
+
+          Tag.transaction(isolation: :read_committed) do
+            Tag.create!
+          end
+        end
+      end
+    end
+
+    test "invalid isolation level raises TransactionIsolationError" do
+      assert_raises(ActiveRecord::TransactionIsolationError) do
+        Tag.transaction(isolation: :unknown_level) { Tag.create! }
+      end
+    end
+  end
+end

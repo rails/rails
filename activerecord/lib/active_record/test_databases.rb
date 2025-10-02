@@ -19,10 +19,12 @@ module ActiveRecord
     def self.create_and_load_schema(i, env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
-      ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name, include_hidden: true).each do |db_config|
         db_config._database = "#{db_config.database}_#{i}"
 
-        ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
+        if db_config.database_tasks?
+          ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
+        end
       end
     ensure
       ActiveRecord::Base.establish_connection

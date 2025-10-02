@@ -1,3 +1,59 @@
+*   Add replicas to test database parallelization setup.
+
+    Setup and configuration of databases for parallel testing now includes replicas.
+
+    This fixes an issue when using a replica database, database selector middleware,
+    and non-transactional tests, where integration tests running in parallel would select
+    the base test database, i.e. `db_test`, instead of the numbered parallel worker database,
+    i.e. `db_test_{n}`.
+
+    *Adam Maas*
+
+*   Support virtual (not persisted) generated columns on PostgreSQL 18+
+
+    PostgreSQL 18 introduces virtual (not persisted) generated columns,
+    which are now the default unless the `stored: true` option is explicitly specified on PostgreSQL 18+.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :lower_name,  type: :string,  as: "LOWER(name)", stored: false
+      t.virtual :name_length, type: :integer, as: "LENGTH(name)"
+    end
+    ```
+
+    *Yasuo Honda*
+
+*   Optimize schema dumping to prevent duplicate file generation.
+
+    `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files
+    have already been dumped and skips dumping the same file multiple times.
+    This improves performance when multiple database configurations share the
+    same schema dump path.
+
+    *Mikey Gough*, *Hartley McGuire*
+
+*   Add structured events for Active Record:
+    - `active_record.strict_loading_violation`
+    - `active_record.sql`
+
+    *Gannon McGibbon*
+
+*   Add support for integer shard keys.
+    ```ruby
+    # Now accepts symbols as shard keys.
+    ActiveRecord::Base.connects_to(shards: {
+      1: { writing: :primary_shard_one, reading: :primary_shard_one },
+      2: { writing: :primary_shard_two, reading: :primary_shard_two},
+    })
+
+    ActiveRecord::Base.connected_to(shard: 1) do
+      # ..
+    end
+    ```
+
+    *Nony Dutton*
+
 *   Add `ActiveRecord::Base.only_columns`
 
     Similar in use case to `ignored_columns` but listing columns to consider rather than the ones

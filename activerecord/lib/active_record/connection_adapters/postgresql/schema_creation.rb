@@ -6,6 +6,7 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation # :nodoc:
         private
           delegate :quoted_include_columns_for_index, to: :@conn
+          delegate :database_version, to: :@conn
 
           def visit_AlterTable(o)
             sql = super
@@ -126,16 +127,17 @@ module ActiveRecord
             end
 
             if as = options[:as]
-              sql << " GENERATED ALWAYS AS (#{as})"
+              stored = options[:stored]
 
-              if options[:stored]
-                sql << " STORED"
-              else
+              if stored != true && database_version < 18_00_00
                 raise ArgumentError, <<~MSG
-                  PostgreSQL currently does not support VIRTUAL (not persisted) generated columns.
+                  PostgreSQL versions before 18 do not support VIRTUAL (not persisted) generated columns.
                   Specify 'stored: true' option for '#{options[:column].name}'
                 MSG
               end
+
+              sql << " GENERATED ALWAYS AS (#{as})"
+              sql << (stored ? " STORED" : " VIRTUAL")
             end
             super
           end

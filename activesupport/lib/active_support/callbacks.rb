@@ -4,6 +4,7 @@ require "active_support/concern"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
 
@@ -905,12 +906,13 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            ([self] + self.descendants).each do |target|
-              target.set_callbacks name, CallbackChain.new(name, options)
-            end
-
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _run_#{name}_callbacks(&block)
+              def _run_#{name}_callbacks
+                yield if block_given?
+              end
+              silence_redefinition_of_method(:_run_#{name}_callbacks)
+
+              def _run_#{name}_callbacks!(&block)
                 run_callbacks #{name.inspect}, &block
               end
 
@@ -926,6 +928,10 @@ module ActiveSupport
                 __callbacks[#{name.inspect}]
               end
             RUBY
+
+            ([self] + self.descendants).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
           end
         end
 
@@ -940,6 +946,11 @@ module ActiveSupport
             # we'll lose the optimization, but won't cause an actual behavior bug.
             unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
               self.__callbacks = __callbacks.dup
+            end
+            name = name.to_sym
+            callbacks_was = self.__callbacks[name.to_sym]
+            if (callbacks_was.nil? || callbacks_was.empty?) && !callbacks.empty?
+              alias_method("_run_#{name}_callbacks", "_run_#{name}_callbacks!")
             end
             self.__callbacks[name.to_sym] = callbacks
             self.__callbacks

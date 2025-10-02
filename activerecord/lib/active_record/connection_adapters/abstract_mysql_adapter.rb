@@ -209,8 +209,6 @@ module ActiveRecord
         }
       end
 
-      # HELPER METHODS ===========================================
-
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:

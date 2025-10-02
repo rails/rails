@@ -1580,12 +1580,6 @@ module ApplicationTests
       assert_equal "https://foo.example.com:9001/bar/posts", posts_url
     end
 
-    test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
-      app "development"
-
-      assert_equal true, ActionController::Base.raise_on_open_redirects
-    end
-
     test "ActionController::Base.raise_on_open_redirects is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
@@ -1604,6 +1598,19 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :raise by default for new apps" do
+      app "development"
+
+      assert_equal :raise, ActionController::Base.action_on_open_redirect
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :log when raise_on_open_redirects is false" do
+      add_to_config "config.action_controller.raise_on_open_redirects = false"
+      app "development"
+
+      assert_equal :log, ActionController::Base.action_on_open_redirect
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -3642,6 +3649,19 @@ module ApplicationTests
       assert_equal true, ActionDispatch::Http::Cache::Request.strict_freshness
     end
 
+    test "config.action_dispatch.verbose_redirect_logs is true in development" do
+      build_app
+      app "development"
+
+      assert ActionDispatch.verbose_redirect_logs
+    end
+
+    test "config.action_dispatch.verbose_redirect_logs is false in production" do
+      build_app
+      app "production"
+
+      assert_not ActionDispatch.verbose_redirect_logs
+    end
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'

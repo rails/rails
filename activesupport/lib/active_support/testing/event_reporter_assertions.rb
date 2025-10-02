@@ -212,6 +212,16 @@ module ActiveSupport
 
         assert(true)
       end
+
+      # Allows debug events to be reported to +Rails.event+ for the duration of a given block.
+      #
+      #   with_debug_event_reporting do
+      #     service_that_reports_debug_events.perform
+      #   end
+      #
+      def with_debug_event_reporting(&block)
+        ActiveSupport.event_reporter.with_debug(&block)
+      end
     end
   end
 end

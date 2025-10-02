@@ -251,7 +251,6 @@ module ApplicationTests
             app/views/posts/_form.html.erb
             app/views/posts/_post.html.erb
             test/controllers/posts_controller_test.rb
-            test/system/posts_test.rb
             app/helpers/posts_helper.rb
           )
           assert_equal expected, files

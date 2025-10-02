@@ -179,6 +179,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Deprecations
 
+*   Custom Active Job serializers must have a public `#klass` method.
+
 ### Notable changes
 
 Action Text

@@ -97,7 +97,8 @@ module AbstractController
           methods = public_instance_methods(true) - internal_methods
           # Be sure to include shadowed public instance methods of this class.
           methods.concat(public_instance_methods(false))
-          methods.map!(&:to_s)
+          methods.reject! { |m| m.start_with?("_") }
+          methods.map!(&:name)
           methods.to_set
         end
       end
