@@ -1,3 +1,11 @@
+*   Strip port numbers from X-Forwarded-For IP addresses in RemoteIp middleware.
+
+    Per RFC 7239 section 5.2, forwarded IP addresses may include port information
+    (e.g., "192.168.1.1:8080"). The RemoteIp middleware now removes port numbers
+    before validating IP addresses, preventing these IPs from being rejected as invalid.
+
+    *Adam Daniels*
+
 *   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
 
     Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.

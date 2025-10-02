@@ -177,6 +177,19 @@ module ActionDispatch
         return [] unless header
         # Split the comma-separated list into an array of strings.
         ips = header.strip.split(/[,\s]+/)
+        ips.map! do |ip|
+          # Remove port number if present, per RFC 7239 section 5.2.
+          case ip
+          when /\A\[(.+)\]:(\d+)\z/ # [IPv6]:port
+            $1
+          when /\A\[(.+)\]\z/       # [IPv6] without port
+            $1
+          when /\A([^:]+):(\d+)\z/  # IPv4:port (no other colons)
+            $1
+          else                      # Plain IP without port
+            ip
+          end
+        end
         ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
           range = IPAddr.new(ip).to_range
