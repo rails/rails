@@ -1,3 +1,26 @@
+*   Pass render options and block to calls to `#render_in`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    render(Greeting.new)                                        # => "Hello, World"
+    render(Greeting.new, name: "Local")                         # => "Hello, Local"
+    render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+    render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ```
+
+    *Sean Doyle*
+
 *   Add structured events for Action View:
     - `action_view.render_template`
     - `action_view.render_partial`
