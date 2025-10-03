@@ -57,17 +57,10 @@ active_record_encryption:
 ```
 
 These values can be stored by copying and pasting the generated values into your
-existing [Rails credentials](/security.html#custom-credentials) file using `bin/rails credentials:edit`. Then, you refer to these credentials in a config file:
+existing [Rails credentials](/security.html#custom-credentials) file using `bin/rails credentials:edit`.
 
-```ruby
-# config/application.rb
-config.active_record.encryption.primary_key = credentials.dig(:active_record_encryption, :primary_key)
-config.active_record.encryption.deterministic_key = credentials.dig(:active_record_encryption, :deterministic_key)
-config.active_record.encryption.key_derivation_salt = credentials.dig(:active_record_encryption, :key_derivation_salt)
-```
-
-Alternatively, these values can be configured from other sources, such as
-environment variables:
+Alternatively, the encryption keys can be configured from other sources, such
+as environment variables:
 
 ```ruby
 # config/application.rb
@@ -85,13 +78,17 @@ yourself, the recommended minimum length is 12 bytes for the primary key and 20
 bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 
 Once the keys are generated and stored, you can start using Active Record
-Encryption by declaring attributes to be encrypted.
+Encryption by declaring attributes to be encrypted in the model.
 
-### Important: Column Size and Storage Considerations
+### Important: Storage Considerations
 
-Encryption requires extra space because of Base64 encoding and the metadata stored along with the encrypted payloads. When using the built-in envelope encryption key provider, you can estimate the worst-case overhead at around 255 bytes. This overhead is negligible at larger sizes. Not only because it gets diluted but because the library uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+Encrypted data takes more storage because Active Record Encryption stores additional metadata alongside the encrypted payload, and the payload itself is Base64-encoded so it can fit safely in text-based columns.
 
-There is an important concern about string column sizes: in modern databases the column size determines the *number of characters* it can allocate, not the number of bytes. For example, with UTF-8, each character can take up to four bytes, so, potentially, a column in a database using UTF-8 can store up to four times its size in terms of *number of bytes*. Now, encrypted payloads are binary strings serialized as Base64, so they can be stored in regular `string` columns. Because they are a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+When using the built-in envelope encryption key provider, you can estimate the worst-case overhead to be around 255 bytes. This overhead is negligible for larger sizes. Encryption also uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+
+When using `string` columns, it’s important to know that modern databases define the column size in terms of *number of characters*, not bytes. With encodings like UTF-8, a single character can take up to four bytes. This means that a column defined to hold N characters may actually consume up to 4 × N bytes in storage.
+
+Since an encrypted payload is binary data serialized with Base64, it can be stored in regular a `string` column. Because it's a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
 
 In practice, this means:
 
@@ -99,7 +96,7 @@ In practice, this means:
 * When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
 * When encrypting long texts, you can ignore column size concerns.
 
-Some examples:
+For example:
 
 | Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
 | ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
