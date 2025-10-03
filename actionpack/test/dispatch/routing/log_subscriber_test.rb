@@ -2,14 +2,18 @@
 
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "action_dispatch/structured_event_subscriber"
 require "action_dispatch/log_subscriber"
 
 class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
-  include ActiveSupport::LogSubscriber::TestHelper
+  setup do
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @old_logger = ActionDispatch::LogSubscriber.logger
+    ActionDispatch::LogSubscriber.logger = @logger
+  end
 
-  def setup
-    super
-    ActionDispatch::LogSubscriber.attach_to :action_dispatch
+  teardown do
+    ActionDispatch::LogSubscriber.logger = @old_logger
   end
 
   test "redirect is logged" do
@@ -18,7 +22,6 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     end
 
     get "/redirect"
-    wait
 
     assert_equal 2, logs.size
     assert_equal "Redirected to http://www.example.com/login", logs.first
@@ -37,7 +40,6 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     end
 
     get "/redirect"
-    wait
 
     assert_equal 3, logs.size
     assert_match(/↳ #{__FILE__}:#{line}/, logs[1])
