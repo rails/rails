@@ -1192,17 +1192,21 @@ The `bin/rails test` command helps you run the different types of tests in your
 application. The `bin/rails test --help` output has good examples of the
 different options for this command:
 
-```bash
 You can run a single test by appending a line number to a filename:
 
+```bash
   bin/rails test test/models/user_test.rb:27
+```
 
 You can run multiple tests within a line range by appending the line range to a filename:
 
+```bash
   bin/rails test test/models/user_test.rb:10-20
+```
 
 You can run multiple files and directories at the same time:
 
+```bash
   bin/rails test test/controllers test/integration/login_test.rb
 ```
 
