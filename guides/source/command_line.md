@@ -848,7 +848,9 @@ bin/rails assets:reveal        # Print all the assets available in config.assets
 bin/rails assets:reveal:full   # Print the full path of assets available in config.assets.paths
 ```
 
-You can precompile the assets in `app/assets` using `bin/rails assets:precompile`, and remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
+You can precompile the assets in `app/assets` using `bin/rails assets:precompile`. See the [Asset Pipeline guide](asset_pipeline.html#precompiling-assets) for more on precompiling.
+
+You can remove older compiled assets using `bin/rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
 
@@ -885,8 +887,6 @@ bin/rails db:version             # Retrieve the current schema version number
 bin/rails test:db                # Reset the database and run `bin/rails test`
 ```
 
-TIP: You can also see the `db:` commands, which are rake tasks, in the Rails [source code](https://github.com/rails/rails/blob/main/activerecord/lib/active_record/railties/databases.rake).
-
 ### Database Setup
 
 The `db:create` and `db:drop` commands create or delete the database for the current environment (or all environments with the `db:create:all`, `db:drop:all`)
@@ -896,6 +896,8 @@ The `db:seed` command loads sample data from `db/seeds.rb` and the `db:seed:repl
 The `db:setup` command creates all databases, loads all schemas, and initializes with the seed data (it does not drop databases first, like the `db:reset` command below).
 
 The `db:reset` command drops and recreates all databases from their schema for the current environment and loads the seed data (so it's a combination of the above commands).
+
+NOTE: For more on seed data, see [this section](active_record_migrations.html#migrations-and-seed-data) of the Active Record Migrations guide.
 
 ### Migrations
 
@@ -1137,9 +1139,14 @@ TIP: Check out the detailed description for this command in the output of `bin/r
 Custom Rake Tasks
 -----------------
 
-Custom rake tasks have a `.rake` extension and are placed in the `lib/tasks` folder
-in your Rails application. You can create these custom rake tasks with the
-`bin/rails generate task` command.
+You may want to create custom rake tasks in your application, to delete old records from the database for example. You can do this with the the `bin/rails generate task` command. Custom rake tasks have a `.rake` extension and are placed in the `lib/tasks` folder in your Rails application. For example:
+
+```bash
+$ bin/rails generate task cool
+create  lib/tasks/cool.rake
+```
+
+The `cool.rake` file can contain this:
 
 ```ruby
 desc "I am short description for a cool task"
