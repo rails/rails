@@ -863,6 +863,11 @@ class MigrationTest < ActiveRecord::TestCase
     assert_equal "prefix_table_suffix", migration.proper_table_name(:table, migration.table_name_options)
   end
 
+  def test_proper_table_name_with_nil
+    migration = ActiveRecord::Migration.new
+    assert_nil migration.proper_table_name(nil)
+  end
+
   def test_rename_table_with_prefix_and_suffix
     assert_not_predicate Thing, :table_exists?
     ActiveRecord::Base.table_name_prefix = "p_"
