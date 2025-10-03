@@ -414,9 +414,6 @@ We can instantiate a new Product record with the following code:
 
 ```irb
 store(dev)> product = Product.new(name: "T-Shirt")
-```
-And you should see:
-```irb
 => #<Product:0x000000012e616c30 id: nil, name: "T-Shirt", created_at: nil, updated_at: nil>
 ```
 
@@ -427,9 +424,6 @@ We can call `save` to write the record to the database.
 
 ```irb
 store(dev)> product.save
-```
-And you should see:
-```irb
   TRANSACTION (0.1ms)  BEGIN immediate TRANSACTION /*application='Store'*/
   Product Create (0.9ms)  INSERT INTO "products" ("name", "created_at", "updated_at") VALUES ('T-Shirt', '2024-11-09 16:35:01.117836', '2024-11-09 16:35:01.117836') RETURNING "id" /*application='Store'*/
   TRANSACTION (0.9ms)  COMMIT TRANSACTION /*application='Store'*/
@@ -445,9 +439,6 @@ the `product` variable.
 
 ```irb
 store(dev)> product
-```
-And you should see:
-```irb
 => #<Product:0x00000001221f6260 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">
 ```
 
@@ -456,17 +447,10 @@ object in a single call.
 
 ```irb
 store(dev)> Product.create(name: "Pants")
-```
-And you should see:
-```irb
   TRANSACTION (0.1ms)  BEGIN immediate TRANSACTION /*application='Store'*/
-    Product Create (0.4ms)  INSERT INTO "products" ("name", "created_at", "updated_at") VALUES ('Pants', '2024-11-09 16:36:01.856751', '2024-11-09 16:36:01.856751') RETURNING "id" /*application='Store'*/
+  Product Create (0.4ms)  INSERT INTO "products" ("name", "created_at", "updated_at") VALUES ('Pants', '2024-11-09 16:36:01.856751', '2024-11-09 16:36:01.856751') RETURNING "id" /*application='Store'*/
   TRANSACTION (0.1ms)  COMMIT TRANSACTION /*application='Store'*/
-=> #<Product:0x0000000120485c80 
-    id: 2, 
-    name: "Pants", 
-    created_at: "2024-11-09 16:36:01.856751000 +0000", 
-    updated_at: "2024-11-09 16:36:01.856751000 +0000">
+=> #<Product:0x0000000120485c80 id: 2, name: "Pants", created_at: "2024-11-09 16:36:01.856751000 +0000", updated_at: "2024-11-09 16:36:01.856751000 +0000">
 ```
 
 ### Querying Records
@@ -479,20 +463,9 @@ instance method that we would call on the product instance, like `save` above).
 
 ```irb
 store(dev)> Product.all
-```
-And you should see:
-```irb
   Product Load (0.1ms)  SELECT "products".* FROM "products" /* loading for pp */ LIMIT 11 /*application='Store'*/
-=> [#<Product:0x0000000121845158 
-  id: 1,
-  name: "T-Shirt",
-  created_at: "2024-11-09 16:35:01.117836000 +0000",
-  updated_at: "2024-11-09 16:35:01.117836000 +0000">,
- #<Product:0x0000000121845018
-  id: 2,
-  name: "Pants", 
-  created_at: "2024-11-09 16:36:01.856751000 +0000", 
-  updated_at: "2024-11-09 16:36:01.856751000 +0000">]
+=> [#<Product:0x0000000121845158 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">,
+ #<Product:0x0000000121845018 id: 2, name: "Pants", created_at: "2024-11-09 16:36:01.856751000 +0000", updated_at: "2024-11-09 16:36:01.856751000 +0000">]
 ```
 
 This generates a `SELECT` SQL query to load all records from the `products`
@@ -510,8 +483,6 @@ filter records by a column.
 
 ```irb
 store(dev)> Product.where(name: "Pants")
-```
-```irb
   Product Load (1.5ms)  SELECT "products".* FROM "products" WHERE "products"."name" = 'Pants' /* loading for pp */ LIMIT 11 /*application='Store'*/
 => [#<Product:0x000000012184d858 id: 2, name: "Pants", created_at: "2024-11-09 16:36:01.856751000 +0000", updated_at: "2024-11-09 16:36:01.856751000 +0000">]
 ```
@@ -524,8 +495,6 @@ We can use `order(name: :asc)` to sort records by name in ascending alphabetical
 
 ```irb
 store(dev)> Product.order(name: :asc)
-```
-```irb
   Product Load (0.3ms)  SELECT "products".* FROM "products" /* loading for pp */ ORDER BY "products"."name" ASC LIMIT 11 /*application='Store'*/
 => [#<Product:0x0000000120e02a88 id: 2, name: "Pants", created_at: "2024-11-09 16:36:01.856751000 +0000", updated_at: "2024-11-09 16:36:01.856751000 +0000">,
  #<Product:0x0000000120e02948 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">]
@@ -540,8 +509,6 @@ ID. Call the method and pass in the specific ID by using the following code:
 
 ```irb
 store(dev)> Product.find(1)
-```
-```irb
   Product Load (0.2ms)  SELECT "products".* FROM "products" WHERE "products"."id" = 1 LIMIT 1 /*application='Store'*/
 => #<Product:0x000000012054af08 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">
 ```
@@ -565,8 +532,6 @@ save the changes to the database in one method call.
 ```irb
 store(dev)> product = Product.find(1)
 store(dev)> product.update(name: "Shoes")
-```
-```irb
   TRANSACTION (0.1ms)  BEGIN immediate TRANSACTION /*application='Store'*/
   Product Update (0.3ms)  UPDATE "products" SET "name" = 'Shoes', "updated_at" = '2024-11-09 22:38:19.638912' WHERE "products"."id" = 1 /*application='Store'*/
   TRANSACTION (0.4ms)  COMMIT TRANSACTION /*application='Store'*/
@@ -605,14 +570,8 @@ Let's change the name "Shoes" back to "T-Shirt".
 ```irb
 store(dev)> product = Product.find(1)
 store(dev)> product.name = "T-Shirt"
-```
-```irb
 => "T-Shirt"
-```
-```irb
 store(dev)> product.save
-```
-```irb
   TRANSACTION (0.1ms)  BEGIN immediate TRANSACTION /*application='Store'*/
   Product Update (0.2ms)  UPDATE "products" SET "name" = 'T-Shirt', "updated_at" = '2024-11-09 22:39:09.693548' WHERE "products"."id" = 1 /*application='Store'*/
   TRANSACTION (0.0ms)  COMMIT TRANSACTION /*application='Store'*/
@@ -625,8 +584,6 @@ The `destroy` method can be used to delete a record from the database.
 
 ```irb
 store(dev)> product.destroy
-```
-```irb
   TRANSACTION (0.1ms)  BEGIN immediate TRANSACTION /*application='Store'*/
   Product Destroy (0.4ms)  DELETE FROM "products" WHERE "products"."id" = 1 /*application='Store'*/
   TRANSACTION (0.1ms)  COMMIT TRANSACTION /*application='Store'*/
@@ -638,8 +595,6 @@ This deleted the T-Shirt product from our database. We can confirm this with
 
 ```irb
 store(dev)> Product.all
-```
-```irb
   Product Load (1.9ms)  SELECT "products".* FROM "products" /* loading for pp */ LIMIT 11 /*application='Store'*/
 =>
 [#<Product:0x000000012abde4c8
@@ -669,8 +624,6 @@ need to manually refresh it. So let's do this now by running 'reload!'.
 
 ```irb
 store(dev)> reload!
-```
-```irb
 Reloading...
 ```
 
@@ -679,8 +632,6 @@ Let's try to create a Product without a name in the Rails console.
 ```irb
 store(dev)> product = Product.new
 store(dev)> product.save
-```
-```irb
 => false
 ```
 
@@ -692,8 +643,6 @@ call `errors` on the instance.
 
 ```irb
 store(dev)> product.errors
-```
-```irb
 => #<ActiveModel::Errors [#<ActiveModel::Error attribute=name, type=blank, options={}>]>
 ```
 
@@ -705,8 +654,6 @@ interface.
 
 ```irb
 store(dev)> product.errors.full_messages
-```
-```irb
 => ["Name can't be blank"]
 ```
 
