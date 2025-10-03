@@ -1122,6 +1122,8 @@ module ActiveRecord
     # Uses the Active Record object's own table_name, or pre/suffix from the
     # options passed in.
     def proper_table_name(name, options = {})
+      return if name.nil?
+
       if name.respond_to? :table_name
         name.table_name
       else
