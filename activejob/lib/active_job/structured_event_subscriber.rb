@@ -64,7 +64,9 @@ module ActiveJob
         job_count: jobs.size,
         enqueued_count: enqueued_count,
         failed_enqueue_count: failed_count,
-        enqueued_classes: jobs.filter_map { |job| job.class.name }.tally
+        enqueued_classes: jobs.filter_map do |job|
+          job.class.name if jobs.count == enqueued_count || job.successfully_enqueued?
+        end.tally
       )
     end
 
@@ -85,10 +87,12 @@ module ActiveJob
     def perform(event)
       job = event.payload[:job]
       exception = event.payload[:exception_object]
+      adapter = event.payload[:adapter]
       payload = {
         job_class: job.class.name,
         job_id: job.job_id,
         queue: job.queue_name,
+        adapter: ActiveJob.adapter_name(adapter),
         aborted: event.payload[:aborted],
         duration: event.duration.round(2),
       }
