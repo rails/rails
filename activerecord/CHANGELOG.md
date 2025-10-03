@@ -1,3 +1,19 @@
+*   When a uniqueness validation fails, the `errors.details` hash for the attribute
+    now includes an `:existing_id` key, holding the ID of the record that caused
+    the conflict.
+
+    ```ruby
+    # Before
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe"}]
+
+    # After
+    errors.details[:name]
+    # => [{error: :taken, value: "John Doe", existing_id: 123}]
+    ```
+
+    *Bruno Vicenzo*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.
