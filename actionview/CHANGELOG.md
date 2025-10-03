@@ -1,3 +1,20 @@
+*   Introduce `field_label` form helper
+
+    Generate the text-only label contents for a field:
+
+    ```ruby
+    # Helper method
+    field_label :article, :title    # => "Title"
+
+    # FormBuilder method
+    fields model: @article do |form|
+      form.label :title             # => "<label for=\"article_title\">Title</label>"
+      form.field_label :title       # => "Title"
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add structured events for Action View:
     - `action_view.render_template`
     - `action_view.render_partial`
