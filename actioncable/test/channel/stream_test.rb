@@ -94,6 +94,33 @@ module ActionCable::StreamTests
       end
     end
 
+    test "subscription callbacks are invoked in order" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = OrderedCallbackChannel.new connection, "{id: 9}", id: 9
+
+        fake_pubsub = Class.new do
+          def subscribe(channel_name, handler, success)
+            success.call
+          end
+        end.new
+
+        connection.stub(:pubsub, fake_pubsub) do
+          channel.subscribe_to_channel
+          wait_for_async
+        end
+
+        assert_equal [
+          :before_subscribe_callback,
+          :subscribed_method_start,
+          :subscribed_method_end,
+          :transmit_subscription_confirmation,
+          :after_subscribe_callback,
+        ], channel.order
+      end
+    end
+
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
@@ -358,6 +385,37 @@ module ActionCable::StreamTests
     def subscribed
       stream_from "main_room"
       stream_from "test_all_rooms"
+    end
+  end
+
+  class OrderedCallbackChannel < ActionCable::Channel::Base
+    before_subscribe :before_subscribe_callback
+    after_subscribe :after_subscribe_callback
+    attr_reader :order
+
+    def initialize(*)
+      super
+      @order = []
+    end
+
+    def subscribed
+      @order << :subscribed_method_start
+      stream_from "room_1"
+      stream_from "room_2"
+      @order << :subscribed_method_end
+    end
+
+    def transmit_subscription_confirmation
+      super
+      @order << :transmit_subscription_confirmation
+    end
+
+    def before_subscribe_callback
+      @order << :before_subscribe_callback
+    end
+
+    def after_subscribe_callback
+      @order << :after_subscribe_callback
     end
   end
 

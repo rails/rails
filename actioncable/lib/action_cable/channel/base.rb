@@ -245,9 +245,11 @@ module ActionCable
         end
 
         def ensure_confirmation_sent # :doc:
-          return if subscription_rejected?
           @defer_subscription_confirmation_counter.decrement
-          transmit_subscription_confirmation unless defer_subscription_confirmation?
+          unless defer_subscription_confirmation?
+            transmit_subscription_confirmation unless subscription_rejected?
+            run_callbacks :after_subscribe
+          end
         end
 
         def defer_subscription_confirmation! # :doc:
