@@ -358,8 +358,24 @@ Loading development environment (Rails 8.1.0)
 store(dev)>
 ```
 
-Here we can type code that will be executed when we hit `Enter`. Let's try
-printing out the Rails version:
+Here we can type code that will be executed when we hit `Enter`.
+
+**Understanding console input and output**
+
+In the Rails console, each part of the output means something specific:
+
+- `store(dev)>` → the **prompt** (what you type).
+- SQL logs (like `INSERT INTO` or `TRANSACTION`) → show the **database activity** Rails is performing
+- `=>` → the **Ruby return value** of your command.
+
+```sql
+store(dev)> product.save   <-- Your input
+  Product Create (0.9ms)   <-- SQL log (Rails telling you what query it ran)
+  TRANSACTION (0.9ms)      <-- More SQL log
+=> true                    <-- Ruby’s return value (product was saved successfully)
+```
+
+Let's try printing out the Rails version:
 
 ```irb
 store(dev)> Rails.version
@@ -367,6 +383,8 @@ store(dev)> Rails.version
 ```
 
 It works!
+
+
 
 Active Record Model Basics
 --------------------------
