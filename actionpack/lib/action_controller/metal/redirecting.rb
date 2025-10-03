@@ -11,11 +11,36 @@ module ActionController
 
     class UnsafeRedirectError < StandardError; end
 
+    class OpenRedirectError < UnsafeRedirectError
+      def initialize(location)
+        super("Unsafe redirect to #{location.to_s.truncate(100).inspect}, pass allow_other_host: true to redirect anyway.")
+      end
+    end
+
+    class PathRelativeRedirectError < UnsafeRedirectError
+      def initialize(url)
+        super("Path relative URL redirect detected: #{url.inspect}")
+      end
+    end
+
     ILLEGAL_HEADER_VALUE_REGEX = /[\x00-\x08\x0A-\x1F]/
 
     included do
       mattr_accessor :raise_on_open_redirects, default: false
+      mattr_accessor :action_on_open_redirect, default: :log
       mattr_accessor :action_on_path_relative_redirect, default: :log
+      class_attribute :_allowed_redirect_hosts, :allowed_redirect_hosts_permissions, instance_accessor: false, instance_predicate: false
+      singleton_class.alias_method :allowed_redirect_hosts, :_allowed_redirect_hosts
+    end
+
+    module ClassMethods # :nodoc:
+      def allowed_redirect_hosts=(hosts)
+        hosts = hosts.dup.freeze
+        self._allowed_redirect_hosts = hosts
+        self.allowed_redirect_hosts_permissions = if hosts.present?
+          ActionDispatch::HostAuthorization::Permissions.new(hosts)
+        end
+      end
     end
 
     # Redirects the browser to the target specified in `options`. This parameter can
@@ -92,7 +117,11 @@ module ActionController
     #
     #     redirect_to params[:redirect_url]
     #
-    # Raises UnsafeRedirectError in the case of an unsafe redirect.
+    # The `action_on_open_redirect` configuration option controls the behavior when an unsafe
+    # redirect is detected:
+    # * `:log` - Logs a warning but allows the redirect
+    # * `:notify` - Sends an ActiveSupport notification for monitoring
+    # * `:raise` - Raises an UnsafeRedirectError
     #
     # To allow any external redirects pass `allow_other_host: true`, though using a
     # user-provided param in that case is unsafe.
@@ -125,7 +154,7 @@ module ActionController
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
       raise AbstractController::DoubleRenderError if response_body
 
-      allow_other_host = response_options.delete(:allow_other_host) { _allow_other_host }
+      allow_other_host = response_options.delete(:allow_other_host)
 
       proposed_status = _extract_redirect_to_status(options, response_options)
 
@@ -187,7 +216,7 @@ module ActionController
       when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
         options.to_str
       when String
-        if !options.start_with?("/") && !options.empty?
+        if !options.start_with?("/", "?") && !options.empty?
           _handle_path_relative_redirect(options)
         end
 
@@ -232,34 +261,58 @@ module ActionController
 
     private
       def _allow_other_host
-        !raise_on_open_redirects
+        return false if raise_on_open_redirects
+
+        action_on_open_redirect != :raise
       end
 
       def _extract_redirect_to_status(options, response_options)
         if options.is_a?(Hash) && options.key?(:status)
-          Rack::Utils.status_code(options.delete(:status))
+          ActionDispatch::Response.rack_status_code(options.delete(:status))
         elsif response_options.key?(:status)
-          Rack::Utils.status_code(response_options[:status])
+          ActionDispatch::Response.rack_status_code(response_options[:status])
         else
           302
         end
       end
 
       def _enforce_open_redirect_protection(location, allow_other_host:)
+        # Explictly allowed other host or host is in allow list allow redirect
         if allow_other_host || _url_host_allowed?(location)
           location
+        # Explicitly disallowed other host
+        elsif allow_other_host == false
+          raise OpenRedirectError.new(location)
+        # Configuration disallows other hosts
+        elsif !_allow_other_host
+          raise OpenRedirectError.new(location)
+        # Log but allow redirect
+        elsif action_on_open_redirect == :log
+          logger.warn "Open redirect to #{location.inspect} detected" if logger
+          location
+        # Notify but allow redirect
+        elsif action_on_open_redirect == :notify
+          ActiveSupport::Notifications.instrument("open_redirect.action_controller",
+            location: location,
+            request: request,
+            stack_trace: caller,
+          )
+          location
+        # Fall through, should not happen but raise for safety
         else
-          raise UnsafeRedirectError, "Unsafe redirect to #{location.truncate(100).inspect}, pass allow_other_host: true to redirect anyway."
+          raise OpenRedirectError.new(location)
         end
       end
 
       def _url_host_allowed?(url)
-        host = URI(url.to_s).host
+        url_to_s = url.to_s
+        host = URI(url_to_s).host
 
-        return true if host == request.host
-        return false unless host.nil?
-        return false unless url.to_s.start_with?("/")
-        !url.to_s.start_with?("//")
+        if host.nil?
+          url_to_s.start_with?("/") && !url_to_s.start_with?("//")
+        else
+          host == request.host || self.class.allowed_redirect_hosts_permissions&.allows?(host)
+        end
       rescue ArgumentError, URI::Error
         false
       end
@@ -287,7 +340,7 @@ module ActionController
             stack_trace: caller
           )
         when :raise
-          raise UnsafeRedirectError, message
+          raise PathRelativeRedirectError.new(url)
         end
       end
   end

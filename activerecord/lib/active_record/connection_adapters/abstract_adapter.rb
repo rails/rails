@@ -5,6 +5,7 @@ require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
 require "active_support/concurrency/null_lock"
 require "active_support/concurrency/load_interlock_aware_monitor"
+require "active_support/concurrency/thread_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -42,6 +43,8 @@ module ActiveRecord
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
+      attr_accessor :allow_preconnect
+      attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
 
       def pool=(value)
@@ -49,8 +52,6 @@ module ActiveRecord
         @schema_cache = nil
         @pool = value
       end
-
-      set_callback :checkin, :after, :enable_lazy_transactions!
 
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
@@ -127,6 +128,7 @@ module ActiveRecord
 
         @raw_connection = nil
         @unconfigured_connection = nil
+        @connected_since = nil
 
         if config_or_deprecated_connection.is_a?(Hash)
           @config = config_or_deprecated_connection.symbolize_keys
@@ -139,6 +141,7 @@ module ActiveRecord
           # Soft-deprecated for now; we'll probably warn in future.
 
           @unconfigured_connection = config_or_deprecated_connection
+          @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @logger = deprecated_logger || ActiveRecord::Base.logger
           if deprecated_config
             @config = (deprecated_config || {}).symbolize_keys
@@ -150,8 +153,10 @@ module ActiveRecord
         end
 
         @owner = nil
+        @pinned = false
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        @allow_preconnect = true
         @visitor = arel_visitor
         @statements = build_statement_pool
         self.lock_thread = nil
@@ -169,6 +174,8 @@ module ActiveRecord
         @raw_connection_dirty = false
         @last_activity = nil
         @verified = false
+
+        @pool_jitter = rand * max_jitter
       end
 
       def inspect # :nodoc:
@@ -182,18 +189,23 @@ module ActiveRecord
         @lock =
         case lock_thread
         when Thread
-          ActiveSupport::Concurrency::ThreadLoadInterlockAwareMonitor.new
+          ActiveSupport::Concurrency::ThreadMonitor.new
         when Fiber
-          ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
+          ::Monitor.new
         else
           ActiveSupport::Concurrency::NullLock
         end
       end
 
-      def check_if_write_query(sql) # :nodoc:
-        if preventing_writes? && write_query?(sql)
+      def ensure_writes_are_allowed(sql) # :nodoc:
+        if preventing_writes?
           raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
         end
+      end
+
+      MAX_JITTER = 0.0..1.0 # :nodoc:
+      def max_jitter
+        (@config[:pool_jitter] || 0.2).to_f.clamp(MAX_JITTER)
       end
 
       def replica?
@@ -303,8 +315,12 @@ module ActiveRecord
         @pool.schema_cache || (@schema_cache ||= BoundSchemaReflection.for_lone_connection(@pool.schema_reflection, self))
       end
 
+      def pool_jitter(duration)
+        duration * (1.0 - @pool_jitter)
+      end
+
       # this method must only be called while holding connection pool's mutex
-      def expire
+      def expire(update_idle = true) # :nodoc:
         if in_use?
           if @owner != ActiveSupport::IsolatedExecutionState.context
             raise ActiveRecordError, "Cannot expire connection, " \
@@ -312,8 +328,12 @@ module ActiveRecord
               "Current thread: #{ActiveSupport::IsolatedExecutionState.context}."
           end
 
-          @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          @owner = nil
+          _run_checkin_callbacks do
+            @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC) if update_idle
+            @owner = nil
+            enable_lazy_transactions!
+            unset_query_cache!
+          end
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
         end
@@ -343,6 +363,21 @@ module ActiveRecord
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
         end
+      end
+
+      # Seconds since this connection was established. nil if not
+      # connected; infinity if the connection has been explicitly
+      # retired.
+      def connection_age # :nodoc:
+        if @raw_connection && @connected_since
+          Process.clock_gettime(Process::CLOCK_MONOTONIC) - @connected_since
+        end
+      end
+
+      # Mark the connection as needing to be retired, as if the age has
+      # exceeded the maximum allowed.
+      def force_retirement # :nodoc:
+        @connected_since &&= -Float::INFINITY
       end
 
       def unprepared_statement
@@ -672,12 +707,15 @@ module ActiveRecord
         deadline = retry_deadline && Process.clock_gettime(Process::CLOCK_MONOTONIC) + retry_deadline
 
         @lock.synchronize do
+          @allow_preconnect = false
+
           reconnect
 
           enable_lazy_transactions!
           @raw_connection_dirty = false
-          @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          @last_activity = @connected_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @verified = true
+          @allow_preconnect = true
 
           reset_transaction(restore: restore_transactions) do
             clear_cache!(new_connection: true)
@@ -710,6 +748,7 @@ module ActiveRecord
           clear_cache!(new_connection: true)
           reset_transaction
           @raw_connection_dirty = false
+          @connected_since = nil
         end
       end
 
@@ -773,6 +812,7 @@ module ActiveRecord
               attempt_configure_connection
               @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
               @verified = true
+              @allow_preconnect = true
               return
             end
 
@@ -780,6 +820,7 @@ module ActiveRecord
           end
         end
 
+        @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @verified = true
       end
 
@@ -789,8 +830,15 @@ module ActiveRecord
       end
 
       def clean! # :nodoc:
-        @raw_connection_dirty = false
-        @verified = nil
+        _run_checkout_callbacks do
+          @raw_connection_dirty = false
+          @verified = nil
+        end
+        self
+      end
+
+      def verified? # :nodoc:
+        @verified
       end
 
       # Provides access to the underlying database driver for this adapter. For
@@ -878,7 +926,7 @@ module ActiveRecord
         def register_class_with_precision(mapping, key, klass, **kwargs) # :nodoc:
           mapping.register_type(key) do |*args|
             precision = extract_precision(args.last)
-            klass.new(precision: precision, **kwargs)
+            klass.new(precision: precision, **kwargs).freeze
           end
         end
 
@@ -913,7 +961,7 @@ module ActiveRecord
             m.alias_type %r(number)i,    "decimal"
             m.alias_type %r(double)i,    "float"
 
-            m.register_type %r(^json)i, Type::Json.new
+            m.register_type %r(^json)i, Type::Json.new.freeze
 
             m.register_type(%r(decimal)i) do |sql_type|
               scale = extract_scale(sql_type)
@@ -921,9 +969,9 @@ module ActiveRecord
 
               if scale == 0
                 # FIXME: Remove this class as well
-                Type::DecimalWithoutScale.new(precision: precision)
+                Type::DecimalWithoutScale.new(precision: precision).freeze
               else
-                Type::Decimal.new(precision: precision, scale: scale)
+                Type::Decimal.new(precision: precision, scale: scale).freeze
               end
             end
           end
@@ -931,7 +979,7 @@ module ActiveRecord
           def register_class_with_limit(mapping, key, klass)
             mapping.register_type(key) do |*args|
               limit = extract_limit(args.last)
-              klass.new(limit: limit)
+              klass.new(limit: limit).freeze
             end
           end
 

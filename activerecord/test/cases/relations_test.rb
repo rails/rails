@@ -20,7 +20,7 @@ require "models/contract"
 require "models/bird"
 require "models/car"
 require "models/engine"
-require "models/tyre"
+require "models/tire"
 require "models/minivan"
 require "models/possession"
 require "models/reader"
@@ -49,12 +49,12 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_two_scopes_with_includes_should_not_drop_any_include
     # heat habtm cache
-    car = Car.incl_engines.incl_tyres.first
-    car.tyres.length
+    car = Car.incl_engines.incl_tires.first
+    car.tires.length
     car.engines.length
 
-    car = Car.incl_engines.incl_tyres.first
-    assert_no_queries { car.tyres.length }
+    car = Car.incl_engines.incl_tires.first
+    assert_no_queries { car.tires.length }
     assert_no_queries { car.engines.length }
   end
 
@@ -2567,92 +2567,92 @@ class DeprecatedAssociationsRelationSimpleTest < ActiveRecord::TestCase
   end
 
   test "includes reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.includes(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.includes(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_preload) do
-      @model.includes(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.includes(:deprecated_tires).to_a
     end
   end
 
   test "eager_load reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.eager_load(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.eager_load(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.eager_load(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.eager_load(:deprecated_tires).to_a
     end
   end
 
   test "preload reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.preload(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.preload(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_preload) do
-      @model.preload(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.preload(:deprecated_tires).to_a
     end
   end
 
   test "extract_associated reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.extract_associated(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.extract_associated(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_preload) do
-      @model.extract_associated(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.extract_associated(:deprecated_tires).to_a
     end
   end
 
   test "joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.joins(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.joins(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.joins(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.joins(:deprecated_tires).to_a
     end
   end
 
   test "left_outer_joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.left_outer_joins(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.left_outer_joins(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.left_outer_joins(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_tires).to_a
     end
   end
 
   test "left_joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.left_joins(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.left_joins(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.left_joins(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_joins(:deprecated_tires).to_a
     end
   end
 
   test "associated reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.where.associated(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.where.associated(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.where.associated(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.associated(:deprecated_tires).to_a
     end
   end
 
   test "missing reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
-      @model.where.missing(:tyres).to_a
+    assert_not_deprecated_association(:tires) do
+      @model.where.missing(:tires).to_a
     end
 
-    assert_deprecated_association(:deprecated_tyres, context: context_for_join) do
-      @model.where.missing(:deprecated_tyres).to_a
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.missing(:deprecated_tires).to_a
     end
   end
 end
@@ -2667,7 +2667,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "includes reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.includes(:comments, author: :author_favorites).to_a
     end
 
@@ -2681,7 +2681,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "eager_load reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.eager_load(:comments, author: :author_favorites).to_a
     end
 
@@ -2695,7 +2695,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "preload reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.preload(:comments, author: :author_favorites).to_a
     end
 
@@ -2709,7 +2709,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.joins(:comments, author: :author_favorites).to_a
     end
 
@@ -2723,7 +2723,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "left_outer_joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.left_outer_joins(:comments, author: :author_favorites).to_a
     end
 
@@ -2737,7 +2737,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "left_joins reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.left_joins(:comments, author: :author_favorites).to_a
     end
 
@@ -2751,7 +2751,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "associated reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.where.associated(:comments, :author_favorites).to_a
     end
 
@@ -2767,7 +2767,7 @@ class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
   end
 
   test "missing reports deprecated associations" do
-    assert_not_deprecated_association(:tyres) do
+    assert_not_deprecated_association(:tires) do
       @model.where.missing(:comments, :author_favorites).to_a
     end
 

@@ -779,6 +779,27 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/events", method: :post)
 
     assert_not current_page?("/events")
+    assert current_page?("/events", method: :post)
+  end
+
+  def test_current_page_with_array_of_methods_including_request_method
+    @request = request_for_url("/events", method: :post)
+
+    assert current_page?("/events", method: [:post, :put, :delete])
+    assert_not current_page?("/events", method: [:put, :delete])
+  end
+
+  def test_current_page_with_array_of_methods_including_get_method_includes_head
+    @request = request_for_url("/events", method: :head)
+
+    assert current_page?("/events", method: [:post, :get])
+  end
+
+  def test_current_page_preserves_method_param_in_url
+    @request = request_for_url("/events?method=post", method: :put)
+
+    assert current_page?("/events?method=post", method: :put)
+    assert_not current_page?("/events?method=post", method: :post)
   end
 
   def test_link_unless_current

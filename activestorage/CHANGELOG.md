@@ -1,3 +1,44 @@
+*   Add structured events for Active Storage:
+    - `active_storage.service_upload`
+    - `active_storage.service_download`
+    - `active_storage.service_streaming_download`
+    - `active_storage.preview`
+    - `active_storage.service_delete`
+    - `active_storage.service_delete_prefixed`
+    - `active_storage.service_exist`
+    - `active_storage.service_url`
+    - `active_storage.service_mirror`
+
+    *Gannon McGibbon*
+
+*   Allow analyzers and variant transformer to be fully configurable
+
+    ```ruby
+    # ActiveStorage.analyzers can be set to an empty array:
+    config.active_storage.analyzers = []
+    # => ActiveStorage.analyzers = []
+
+    # or use custom analyzer:
+    config.active_storage.analyzers = [ CustomAnalyzer ]
+    # => ActiveStorage.analyzers = [ CustomAnalyzer ]
+    ```
+
+    If no configuration is provided, it will use the default analyzers.
+
+    You can also disable variant processor to remove warnings on startup about missing gems.
+
+    ```ruby
+    config.active_storage.variant_processor = :disabled
+    ```
+
+    *zzak*, *Alexandre Ruban*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated `:azure` storage service.
+
+    *Rafael Mendonça França*
+
 *   Remove unnecessary calls to the GCP metadata server.
 
     Calling Google::Auth.get_application_default triggers an explicit call to

@@ -106,6 +106,9 @@ module Rails
         class_option :skip_brakeman,       type: :boolean, default: nil,
                                            desc: "Skip brakeman setup"
 
+        class_option :skip_bundler_audit,  type: :boolean, default: nil,
+                                           desc: "Skip bundler-audit setup"
+
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
@@ -400,6 +403,10 @@ module Rails
         options[:skip_brakeman]
       end
 
+      def skip_bundler_audit?
+        options[:skip_bundler_audit]
+      end
+
       def skip_ci?
         options[:skip_ci]
       end
@@ -655,6 +662,11 @@ module Rails
           comment = "Use Redis adapter to run Action Cable in production"
           GemfileEntry.new("redis", ">= 4.0.1", comment, {}, true)
         end
+      end
+
+      def rails_command(command, command_options = {})
+        command_options[:capture] = true if options[:quiet]
+        super
       end
 
       def bundle_install?

@@ -267,7 +267,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -363,6 +363,18 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+          end
+
+          if respond_to?(:action_view)
+            action_view.remove_hidden_field_autocomplete = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

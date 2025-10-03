@@ -426,7 +426,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
-      self.select_values += fields
+      self.select_values |= fields
       self
     end
 
@@ -1213,6 +1213,7 @@ module ActiveRecord
     end
 
     def limit!(value) # :nodoc:
+      value = Integer(value) unless value.nil?
       self.limit_value = value
       self
     end
@@ -1299,13 +1300,13 @@ module ActiveRecord
     #
     #   users = User.readonly
     #   users.first.save
-    #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
+    #   # => ActiveRecord::ReadOnlyRecord: User is marked as readonly
     #
     # To make a readonly relation writable, pass +false+.
     #
     #   users.readonly(false)
     #   users.first.save
-    #   => true
+    #   # => true
     def readonly(value = true)
       spawn.readonly!(value)
     end
@@ -1320,7 +1321,7 @@ module ActiveRecord
     #
     #   user = User.strict_loading.first
     #   user.comments.to_a
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     def strict_loading(value = true)
       spawn.strict_loading!(value)
     end
@@ -1591,12 +1592,8 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
-    def arel(conn = nil, aliases: nil) # :nodoc:
-      @arel ||= if conn
-        build_arel(conn, aliases)
-      else
-        with_connection { |c| build_arel(c, aliases) }
-      end
+    def arel(aliases = nil) # :nodoc:
+      @arel ||= build_arel(aliases)
     end
 
     def construct_join_dependency(associations, join_type) # :nodoc:
@@ -1750,14 +1747,14 @@ module ActiveRecord
         raise UnmodifiableRelation if @loaded || @arel
       end
 
-      def build_arel(connection, aliases = nil)
+      def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
         build_joins(arel.join_sources, aliases)
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
-        arel.take(build_cast_value("LIMIT", connection.sanitize_limit(limit_value))) if limit_value
+        arel.take(build_cast_value("LIMIT", limit_value)) if limit_value
         arel.skip(build_cast_value("OFFSET", offset_value.to_i)) if offset_value
         arel.group(*arel_columns(group_values)) unless group_values.empty?
 

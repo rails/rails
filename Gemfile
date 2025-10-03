@@ -46,9 +46,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  # Rubocop has to be locked in the Gemfile because CI ignores Gemfile.lock
-  # We don't want rubocop to start failing whenever rubocop makes a new release.
-  gem "rubocop", "< 1.73", require: false
+  gem "rubocop", "1.79.2", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -64,8 +62,7 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc", git: "https://github.com/rails/sdoc.git", branch: "main"
-  gem "rdoc", "< 6.10"
+  gem "sdoc", "~> 2.6.4"
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
@@ -100,8 +97,7 @@ gem "useragent", require: false
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
-  gem "sidekiq", "!= 8.0.3", require: false
-  gem "sucker_punch", require: false
+  gem "sidekiq", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -122,7 +118,6 @@ end
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
-  gem "azure-storage-blob", "~> 2.0", require: false
 
   gem "image_processing", "~> 1.2"
 end
@@ -158,7 +153,7 @@ platforms :ruby, :windows do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5"
+    gem "mysql2", "~> 0.5", "< 0.5.7"
     gem "trilogy", ">= 2.7.0"
   end
 end

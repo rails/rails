@@ -1,3 +1,225 @@
+*   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
+
+    Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.
+
+    Example:
+
+    ```
+    Redirected to http://localhost:3000/posts/1
+    ↳ app/controllers/posts_controller.rb:32:in `block (2 levels) in create'
+    ```
+
+    *Dennis Paagman*
+
+*   Add engine route filtering and better formatting in `bin/rails routes`.
+
+    Allow engine routes to be filterable in the routing inspector, and
+    improve formatting of engine routing output.
+
+    Before:
+    ```
+    > bin/rails routes -e engine_only
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+    ```
+
+    After:
+    ```
+    > bin/rails routes -e engine_only
+    Routes for application:
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+
+    Routes for Test::Engine:
+    Prefix Verb URI Pattern       Controller#Action
+    engine GET  /engine_only(.:format) a#b
+    ```
+
+    *Dennis Paagman*, *Gannon McGibbon*
+
+*   Add structured events for Action Pack and Action Dispatch:
+    - `action_dispatch.redirect`
+    - `action_controller.request_started`
+    - `action_controller.request_completed`
+    - `action_controller.callback_halted`
+    - `action_controller.rescue_from_handled`
+    - `action_controller.file_sent`
+    - `action_controller.redirected`
+    - `action_controller.data_sent`
+    - `action_controller.unpermitted_parameters`
+    - `action_controller.fragment_cache`
+
+    *Adrianna Chang*
+
+*   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
+
+    Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
+    mounted at "/".
+
+    *Mike Dalessio*
+
+*   Update `ActionController::Metal::RateLimiting` to support passing method names to `:by` and `:with`
+
+    ```ruby
+    class SignupsController < ApplicationController
+      rate_limit to: 10, within: 1.minute, with: :redirect_with_flash
+
+      private
+        def redirect_with_flash
+          redirect_to root_url, alert: "Too many requests!"
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Optimize `ActionDispatch::Http::URL.build_host_url` when protocol is included in host.
+
+    When using URL helpers with a host that includes the protocol (e.g., `{ host: "https://example.com" }`),
+    skip unnecessary protocol normalization and string duplication since the extracted protocol is already
+    in the correct format. This eliminates 2 string allocations per URL generation and provides a ~10%
+    performance improvement for this case.
+
+    *Joshua Young*, *Hartley McGuire*
+
+*   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
+
+    *Roberto Miranda*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated support to a route to multiple paths.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using semicolons as a query string separator.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar"], ["baz", "quux"]]
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar;baz=quux"]]
+    ```
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to skipping over leading brackets in parameter names in the parameter parser.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "foo" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "foo" => { "bar" => "baz" } }
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "[foo]" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "[foo]" => { "bar" => "baz" } }
+    ```
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
+
+    *Rafael Mendonça França*
+
+*   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
+
+    Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.
+    By default, Action Dispatch rescues the error and responds with a `429 Too Many Requests` status.
+
+    *Sean Doyle*
+
+*   Add .md/.markdown as Markdown extensions and add a default `markdown:` renderer:
+
+    ```ruby
+    class Page
+      def to_markdown
+        body
+      end
+    end
+
+    class PagesController < ActionController::Base
+      def show
+        @page = Page.find(params[:id])
+
+        respond_to do |format|
+          format.html
+          format.md { render markdown: @page }
+        end
+      end
+    end
+    ```
+
+    *DHH*
+
+*   Add headers to engine routes inspection command
+
+    *Petrik de Heus*
+
+*   Add "Copy as text" button to error pages
+
+    *Mikkel Malmberg*
+
+*   Add `scope:` option to `rate_limit` method.
+
+    Previously, it was not possible to share a rate limit count between several controllers, since the count was by
+    default separate for each controller.
+
+    Now, the `scope:` option solves this problem.
+
+    ```ruby
+    class APIController < ActionController::API
+      rate_limit to: 2, within: 2.seconds, scope: "api"
+    end
+
+    class API::PostsController < APIController
+      # ...
+    end
+
+    class API::UsersController < APIController
+      # ...
+    end
+    ```
+
+    *ArthurPV*, *Kamil Hanus*
+
+*   Add support for `rack.response_finished` callbacks in ActionDispatch::Executor.
+
+    The executor middleware now supports deferring completion callbacks to later
+    in the request lifecycle by utilizing Rack's `rack.response_finished` mechanism,
+    when available. This enables applications to define `rack.response_finished` callbacks
+    that may rely on state that would be cleaned up by the executor's completion callbacks.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
+*   Produce a log when `rescue_from` is invoked.
+
+    *Steven Webb*, *Jean Boussier*
+
+*   Allow hosts redirects from `hosts` Rails configuration
+
+    ```ruby
+    config.action_controller.allowed_redirect_hosts << "example.com"
+    ```
+
+    *Kevin Robatel*
+
+*   `rate_limit.action_controller` notification has additional payload
+
+    additional values: count, to, within, by, name, cache_key
+
+    *Jonathan Rochkind*
+
 *   Add JSON support to the built-in health controller.
 
     The health controller now responds to JSON requests with a structured response

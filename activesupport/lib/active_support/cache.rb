@@ -796,6 +796,17 @@ module ActiveSupport
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
+      # Get the current namespace
+      def namespace
+        @options[:namespace]
+      end
+
+      # Set the current namespace. Note, this will be ignored if custom
+      # options are passed to cache wills with a namespace key.
+      def namespace=(namespace)
+        @options[:namespace] = namespace
+      end
+
       private
         def default_serializer
           case Cache.format_version

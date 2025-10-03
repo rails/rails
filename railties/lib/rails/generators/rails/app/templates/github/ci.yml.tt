@@ -6,24 +6,28 @@ on:
     branches: [ <%= user_default_branch %> ]
 
 jobs:
-<%- unless skip_brakeman? -%>
+<%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
 
+      <%- unless skip_brakeman? %>
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
+      <% end %>
 
+      <%- unless skip_bundler_audit? -%>
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
+      <% end %>
 
 <% end -%>
 <%- if using_importmap? -%>
@@ -32,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -50,7 +54,7 @@ jobs:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -117,7 +121,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -142,7 +146,7 @@ jobs:
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test
   <%- unless options[:api] || options[:skip_system_test] -%>
 
   system-test:
@@ -190,7 +194,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -215,7 +219,7 @@ jobs:
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test:system
+        run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

@@ -62,6 +62,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "test/fixtures/users.yml"
     assert_file "test/controllers/sessions_controller_test.rb"
     assert_file "test/controllers/passwords_controller_test.rb"
+    assert_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "test/test_helpers/session_test_helper.rb"
 
     assert_file "test/test_helper.rb" do |content|
       assert_match(/session_test_helper/, content)
@@ -111,6 +114,9 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "test/test_helpers/session_test_helper.rb"
 
     assert_file "test/test_helper.rb" do |content|
       assert_match(/session_test_helper/, content)
@@ -125,6 +131,26 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_match(/rspec \[not found\]/, content)
     assert_no_file "test/models/user_test.rb"
+  end
+
+  def mailer_preview_is_skipped_if_test_framework_is_given
+    generator([destination_root], ["-t", "rspec"])
+
+    run_generator_instance
+
+    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+  end
+
+  def session_test_helper_is_skipped_if_test_framework_is_given
+    generator([destination_root], ["-t", "rspec"])
+
+    run_generator_instance
+
+    assert_no_file "test/test_helpers/session_test_helper.rb"
+    assert_file "test/test_helper.rb" do |test_helper_content|
+      assert_no_match(/session_test_helper/, test_helper_content)
+      assert_no_match(/SessionTestHelper/, test_helper_content)
+    end
   end
 
   def test_connection_class_skipped_without_action_cable

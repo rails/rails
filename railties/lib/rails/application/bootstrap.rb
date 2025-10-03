@@ -59,9 +59,7 @@ module Rails
           end
         else
           Rails.logger.level = ActiveSupport::Logger.const_get(config.log_level.to_s.upcase)
-          broadcast_logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
-          broadcast_logger.formatter = Rails.logger.formatter
-          Rails.logger = broadcast_logger
+          Rails.logger = ActiveSupport::BroadcastLogger.new(Rails.logger)
         end
       end
 
@@ -71,6 +69,11 @@ module Rails
         else
           Rails.error.logger = Rails.logger
         end
+      end
+
+      initializer :initialize_event_reporter, group: :all do
+        Rails.event.raise_on_error = config.consider_all_requests_local
+        Rails.event.debug_mode = Rails.env.development?
       end
 
       # Initialize cache early in the stack so railties can make use of it.

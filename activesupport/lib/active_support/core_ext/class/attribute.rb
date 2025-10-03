@@ -96,14 +96,16 @@ class Class
       namespaced_name = :"__class_attr_#{name}"
       ::ActiveSupport::ClassAttribute.redefine(self, name, namespaced_name, default)
 
-      delegators = [
-        "def #{name}; #{namespaced_name}; end",
-        "def #{name}=(value); self.#{namespaced_name} = value; end",
-      ]
+      class_methods << "def #{name}; #{namespaced_name}; end"
+      class_methods << "def #{name}=(value); self.#{namespaced_name} = value; end"
 
-      class_methods.concat(delegators)
       if singleton_class?
-        methods.concat(delegators)
+        methods << <<~RUBY if instance_reader
+          silence_redefinition_of_method(:#{name})
+          def #{name}
+            self.singleton_class.#{name}
+          end
+        RUBY
       else
         methods << <<~RUBY if instance_reader
           silence_redefinition_of_method def #{name}

@@ -23,7 +23,7 @@ What is Active Storage?
 -----------------------
 
 Active Storage facilitates uploading files to a cloud storage service like
-Amazon S3, Google Cloud Storage, or Microsoft Azure Storage and attaching those
+Amazon S3, or Google Cloud Storage and attaching those
 files to Active Record objects. It comes with a local disk-based service for
 development and testing and supports mirroring files to subordinate services for
 backups and migrations.
@@ -40,12 +40,6 @@ will not install, and must be installed separately:
 * [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
 * [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
-
-Image analysis and transformations also require the `image_processing` gem. Uncomment it in your `Gemfile`, or add it if necessary:
-
-```ruby
-gem "image_processing", ">= 1.2"
-```
 
 TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
@@ -103,7 +97,7 @@ development environment, you would add the following to
 config.active_storage.service = :local
 ```
 
-To use the S3 service in production, you add the following to
+To use the S3 service in production, you would add the following to
 `config/environments/production.rb`:
 
 ```ruby
@@ -111,7 +105,7 @@ To use the S3 service in production, you add the following to
 config.active_storage.service = :amazon
 ```
 
-To use the test service when testing, you add the following to
+To use the test service when testing, you would add the following to
 `config/environments/test.rb`:
 
 ```ruby
@@ -135,11 +129,6 @@ google:
   service: GCS
   # ...
   bucket: your_own_bucket-<%= Rails.env %>
-
-azure:
-  service: AzureStorage
-  # ...
-  container: your_container_name-<%= Rails.env %>
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -214,25 +203,6 @@ digitalocean:
 ```
 
 There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
-
-### Microsoft Azure Storage Service
-
-Declare an Azure Storage service in `config/storage.yml`:
-
-```yaml
-# Use bin/rails credentials:edit to set the Azure Storage secret (as azure_storage:storage_access_key)
-azure:
-  service: AzureStorage
-  storage_account_name: your_account_name
-  storage_access_key: <%= Rails.application.credentials.dig(:azure_storage, :storage_access_key) %>
-  container: your_container_name-<%= Rails.env %>
-```
-
-Add the [`azure-storage-blob`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
-
-```ruby
-gem "azure-storage-blob", "~> 2.0", require: false
-```
 
 ### Google Cloud Storage Service
 
@@ -369,7 +339,7 @@ public_gcs:
   public: true
 ```
 
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html), [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets), and [Microsoft Azure](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-manage-access-to-resources#set-container-public-access-level-in-the-azure-portal) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
 
@@ -1005,49 +975,11 @@ Active Storage can use either [Vips][] or MiniMagick as the variant processor.
 The default depends on your `config.load_defaults` target version, and the
 processor can be changed by setting [`config.active_storage.variant_processor`][].
 
-The parameters available are defined by the [`image_processing`][] gem and depend on the
-variant processor that you are using, but both support the following parameters:
-
-| Parameter      | Example | Description |
-| ------------------- | ---------------- | ----- |
-| `resize_to_limit` | `resize_to_limit: [100, 100]` | Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions. |
-| `resize_to_fit` | `resize_to_fit: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller. |
-| `resize_to_fill` | `resize_to_fill: [100, 100]` | Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension. |
-| `resize_and_pad` | `resize_and_pad: [100, 100]` | Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. If necessary, will pad the remaining area with transparent color if source image has alpha channel, black otherwise. |
-| `crop` | `crop: [20, 50, 300, 300]` | Extracts an area from an image. The first two arguments are the left and top edges of area to extract, while the last two arguments are the width and height of the area to extract. |
-| `rotate` | `rotate: 90` | Rotates the image by the specified angle. |
-
-[`image_processing`][] has all parameters available in its own documentation
-for both the
-[Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md) and
-[MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md)
-processors.
-
-Some parameters, including those listed above, accept additional processor
-specific options which can be passed as `key: value` pairs inside a hash:
-
-```erb
-<!-- Vips supports configuring `crop` for many of its transformations -->
-<%= image_tag user.avatar.variant(resize_to_fill: [100, 100, { crop: :centre }]) %>
-```
-
-If migrating an existing application between MiniMagick and Vips, processor
-specific options will need to be updated:
-
-```erb
-<!-- MiniMagick -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, sampling_factor: "4:2:0", strip: true, interlace: "JPEG", colorspace: "sRGB", quality: 80) %>
-
-<!-- Vips -->
-<%= image_tag user.avatar.variant(resize_to_limit: [100, 100], format: :jpeg, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 }) %>
-```
-
 [`config.active_storage.variable_content_types`]: configuring.html#config-active-storage-variable-content-types
 [`config.active_storage.variant_processor`]: configuring.html#config-active-storage-variant-processor
 [`config.active_storage.web_image_content_types`]: configuring.html#config-active-storage-web-image-content-types
 [`variant`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-variant
 [Vips]: https://www.rubydoc.info/gems/ruby-vips/Vips/Image
-[`image_processing`]: https://github.com/janko/image_processing
 
 ### Previewing Files
 
@@ -1131,7 +1063,6 @@ To make direct uploads to a third-party service work, you’ll need to configure
 
 * [S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html)
 * [Google Cloud Storage](https://cloud.google.com/storage/docs/configuring-cors)
-* [Azure Storage](https://docs.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services)
 
 Take care to allow:
 
@@ -1140,9 +1071,7 @@ Take care to allow:
 * The following headers:
   * `Content-Type`
   * `Content-MD5`
-  * `Content-Disposition` (except for Azure Storage)
-  * `x-ms-blob-content-disposition` (for Azure Storage only)
-  * `x-ms-blob-type` (for Azure Storage only)
+  * `Content-Disposition`
   * `Cache-Control` (for GCS, only if `cache_control` is set)
 
 No CORS configuration is required for the Disk service since it shares your app’s origin.
@@ -1179,19 +1108,6 @@ No CORS configuration is required for the Disk service since it shares your app�
     "maxAgeSeconds": 3600
   }
 ]
-```
-
-#### Example: Azure Storage CORS Configuration
-
-```xml
-<Cors>
-  <CorsRule>
-    <AllowedOrigins>https://www.example.com</AllowedOrigins>
-    <AllowedMethods>PUT</AllowedMethods>
-    <AllowedHeaders>Content-Type, Content-MD5, x-ms-blob-content-disposition, x-ms-blob-type</AllowedHeaders>
-    <MaxAgeInSeconds>3600</MaxAgeInSeconds>
-  </CorsRule>
-</Cors>
 ```
 
 ### Direct Upload JavaScript Events

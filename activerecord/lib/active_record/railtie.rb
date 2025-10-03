@@ -23,8 +23,8 @@ module ActiveRecord
     config.action_dispatch.rescue_responses.merge!(
       "ActiveRecord::RecordNotFound"   => :not_found,
       "ActiveRecord::StaleObjectError" => :conflict,
-      "ActiveRecord::RecordInvalid"    => :unprocessable_entity,
-      "ActiveRecord::RecordNotSaved"   => :unprocessable_entity
+      "ActiveRecord::RecordInvalid"    => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActiveRecord::RecordNotSaved"   => ActionDispatch::Constants::UNPROCESSABLE_CONTENT
     )
 
     config.active_record.use_schema_cache_dump = true
@@ -329,6 +329,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveSupport.on_load(:active_record) do
         self.filter_attributes += Rails.application.config.filter_parameters
       end
+    end
+
+    initializer "active_record.filter_attributes_as_log_parameters" do |app|
+      ActiveRecord::FilterAttributeHandler.new(app).enable
     end
 
     initializer "active_record.configure_message_verifiers" do |app|

@@ -1,3 +1,149 @@
+*   Add replicas to test database parallelization setup.
+
+    Setup and configuration of databases for parallel testing now includes replicas.
+
+    This fixes an issue when using a replica database, database selector middleware,
+    and non-transactional tests, where integration tests running in parallel would select
+    the base test database, i.e. `db_test`, instead of the numbered parallel worker database,
+    i.e. `db_test_{n}`.
+
+    *Adam Maas*
+
+*   Support virtual (not persisted) generated columns on PostgreSQL 18+
+
+    PostgreSQL 18 introduces virtual (not persisted) generated columns,
+    which are now the default unless the `stored: true` option is explicitly specified on PostgreSQL 18+.
+
+    ```ruby
+    create_table :users do |t|
+      t.string :name
+      t.virtual :lower_name,  type: :string,  as: "LOWER(name)", stored: false
+      t.virtual :name_length, type: :integer, as: "LENGTH(name)"
+    end
+    ```
+
+    *Yasuo Honda*
+
+*   Optimize schema dumping to prevent duplicate file generation.
+
+    `ActiveRecord::Tasks::DatabaseTasks.dump_all` now tracks which schema files
+    have already been dumped and skips dumping the same file multiple times.
+    This improves performance when multiple database configurations share the
+    same schema dump path.
+
+    *Mikey Gough*, *Hartley McGuire*
+
+*   Add structured events for Active Record:
+    - `active_record.strict_loading_violation`
+    - `active_record.sql`
+
+    *Gannon McGibbon*
+
+*   Add support for integer shard keys.
+    ```ruby
+    # Now accepts symbols as shard keys.
+    ActiveRecord::Base.connects_to(shards: {
+      1: { writing: :primary_shard_one, reading: :primary_shard_one },
+      2: { writing: :primary_shard_two, reading: :primary_shard_two},
+    })
+
+    ActiveRecord::Base.connected_to(shard: 1) do
+      # ..
+    end
+    ```
+
+    *Nony Dutton*
+
+*   Add `ActiveRecord::Base.only_columns`
+
+    Similar in use case to `ignored_columns` but listing columns to consider rather than the ones
+    to ignore.
+
+    Can be useful when working with a legacy or shared database schema, or to make safe schema change
+    in two deploys rather than three.
+
+    *Anton Kandratski*
+
+*   Use `PG::Connection#close_prepared` (protocol level Close) to deallocate
+    prepared statements when available.
+
+    To enable its use, you must have pg >= 1.6.0, libpq >= 17, and a PostgreSQL
+    database version >= 17.
+
+    *Hartley McGuire*, *Andrew Jackson*
+
+*   Fix query cache for pinned connections in multi threaded transactional tests
+
+    When a pinned connection is used across separate threads, they now use a separate cache store
+    for each thread.
+
+    This improve accuracy of system tests, and any test using multiple threads.
+
+    *Heinrich Lee Yu*, *Jean Boussier*
+
+*   Fix time attribute dirty tracking with timezone conversions.
+
+    Time-only attributes now maintain a fixed date of 2000-01-01 during timezone conversions,
+    preventing them from being incorrectly marked as changed due to date shifts.
+
+    This fixes an issue where time attributes would be marked as changed when setting the same time value
+    due to timezone conversion causing internal date shifts.
+
+    *Prateek Choudhary*
+
+*   Skip calling `PG::Connection#cancel` in `cancel_any_running_query`
+    when using libpq >= 18 with pg < 1.6.0, due to incompatibility.
+    Rollback still runs, but may take longer.
+
+    *Yasuo Honda*, *Lars Kanis*
+
+*   Don't add `id_value` attribute alias when attribute/column with that name already exists.
+
+    *Rob Lewis*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:retries` option for the SQLite3 adapter.
+
+    *Rafael Mendonça França*
+
+*   Introduce new database configuration options `keepalive`, `max_age`, and
+    `min_connections` -- and rename `pool` to `max_connections` to match.
+
+    There are no changes to default behavior, but these allow for more specific
+    control over pool behavior.
+
+    *Matthew Draper*, *Chris AtLee*, *Rachael Wright-Munn*
+
+*   Move `LIMIT` validation from query generation to when `limit()` is called.
+
+    *Hartley McGuire*, *Shuyang*
+
+*   Add `ActiveRecord::CheckViolation` error class for check constraint violations.
+
+    *Ryuta Kamizono*
+
+*   Add `ActiveRecord::ExclusionViolation` error class for exclusion constraint violations.
+
+    When an exclusion constraint is violated in PostgreSQL, the error will now be raised
+    as `ActiveRecord::ExclusionViolation` instead of the generic `ActiveRecord::StatementInvalid`,
+    making it easier to handle these specific constraint violations in application code.
+
+    This follows the same pattern as other constraint violation error classes like
+    `RecordNotUnique` for unique constraint violations and `InvalidForeignKey` for
+    foreign key constraint violations.
+
+    *Ryuta Kamizono*
+
+*   Attributes filtered by `filter_attributes` will now also be filtered by `filter_parameters`
+    so sensitive information is not leaked.
+
+    *Jill Klang*
+
 *   Add `connection.current_transaction.isolation` API to check current transaction's isolation level.
 
     Returns the isolation level if it was explicitly set via the `isolation:` parameter
@@ -27,10 +173,6 @@
     ```
 
     *Kir Shatrov*
-
-*   Emit a warning for pg gem < 1.6.0 when using PostgreSQL 18+
-
-    *Yasuo Honda*
 
 *   Fix `#merge` with `#or` or `#and` and a mixture of attributes and SQL strings resulting in an incorrect query.
 

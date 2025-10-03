@@ -56,7 +56,7 @@ module ActionText
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
-    # Extracts +ActionText::Attachment+s from the HTML fragment:
+    # Extracts ActionText::Attachment objects from the HTML fragment:
     #
     #     attachable = ActiveStorage::Blob.first
     #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
@@ -78,7 +78,7 @@ module ActionText
       @gallery_attachments ||= attachment_galleries.flat_map(&:attachments)
     end
 
-    # Extracts +ActionText::Attachable+s from the HTML fragment:
+    # Extracts ActionText::Attachable objects from the HTML fragment:
     #
     #     attachable = ActiveStorage::Blob.first
     #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)

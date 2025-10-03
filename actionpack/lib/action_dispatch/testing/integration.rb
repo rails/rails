@@ -604,9 +604,8 @@ module ActionDispatch
   #         end
   #     end
   #
-  # See the [request helpers documentation]
-  # (rdoc-ref:ActionDispatch::Integration::RequestHelpers) for help
-  # on how to use `get`, etc.
+  # See the [request helpers documentation](rdoc-ref:ActionDispatch::Integration::RequestHelpers)
+  # for help on how to use `get`, etc.
   #
   # ### Changing the request encoding
   #
@@ -622,7 +621,7 @@ module ActionDispatch
   #         end
   #
   #         assert_response :success
-  #         assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
+  #         assert_equal({ "id" => Article.last.id, "title" => "Ahoy!" }, response.parsed_body)
   #       end
   #     end
   #

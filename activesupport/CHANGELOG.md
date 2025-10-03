@@ -1,3 +1,157 @@
+*   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
+
+    *Olivier Bellone*
+
+*   Fix parallel tests hanging when worker processes die abruptly.
+
+    Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
+    test execution, the test suite would hang forever waiting for the dead worker.
+
+    *Joshua Young*
+
+*   Add `config.active_support.escape_js_separators_in_json`.
+
+    Introduce a new framework default to skip escaping LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) in JSON.
+
+    Historically these characters were not valid inside JavaScript literal strings but that changed in ECMAScript 2019.
+    As such it's no longer a concern in modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+
+    *Étienne Barrié*, *Jean Boussier*
+
+*   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
+
+    Previously, calling `class_attribute` on an instance's singleton class would raise
+    a `NameError` when accessing the attribute through the instance.
+
+    ```ruby
+    object = MyClass.new
+    object.singleton_class.class_attribute :foo, default: "bar"
+    object.foo # previously raised NameError, now returns "bar"
+    ```
+
+    *Joshua Young*
+
+*   Introduce `ActiveSupport::Testing::EventReporterAssertions#with_debug_event_reporting`
+    to enable event reporter debug mode in tests.
+
+    The previous way to enable debug mode is by using `#with_debug` on the
+    event reporter itself, which is too verbose. This new helper will help
+    clear up any confusion on how to test debug events.
+
+    *Gannon McGibbon*
+
+*   Add `ActiveSupport::StructuredEventSubscriber` for consuming notifications and
+    emitting structured event logs. Events may be emitted with the `#emit_event`
+    or `#emit_debug_event` methods.
+
+    ```ruby
+    class MyStructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber
+      def notification(event)
+        emit_event("my.notification", data: 1)
+      end
+    end
+    ```
+
+    *Adrianna Chang*
+
+*   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
+
+    *Jan Grodowski*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Add `ActiveSupport::Cache::Store#namespace=` and `#namespace`.
+
+    Can be used as an alternative to `Store#clear` in some situations such as parallel
+    testing.
+
+    *Nick Schwaderer*
+
+*   Create `parallel_worker_id` helper for running parallel tests. This allows users to
+    know which worker they are currently running in.
+
+    *Nick Schwaderer*
+
+*   Make the cache of `ActiveSupport::Cache::Strategy::LocalCache::Middleware` updatable.
+
+    If the cache client at `Rails.cache` of a booted application changes, the corresponding
+    mounted middleware needs to update in order for request-local caches to be setup properly.
+    Otherwise, redundant cache operations will erroneously hit the datastore.
+
+    *Gannon McGibbon*
+
+*   Add `assert_events_reported` test helper for `ActiveSupport::EventReporter`.
+
+    This new assertion allows testing multiple events in a single block, regardless of order:
+
+    ```ruby
+    assert_events_reported([
+      { name: "user.created", payload: { id: 123 } },
+      { name: "email.sent", payload: { to: "user@example.com" } }
+    ]) do
+      create_user_and_send_welcome_email
+    end
+    ```
+
+    *George Ma*
+
+*   Add `ActiveSupport::TimeZone#standard_name` method.
+
+    ``` ruby
+    zone = ActiveSupport::TimeZone['Hawaii']
+    # Old way
+    ActiveSupport::TimeZone::MAPPING[zone.name]
+    # New way
+    zone.standard_name # => 'Pacific/Honolulu'
+    ```
+
+    *Bogdan Gusiev*
+
+*   Add Structured Event Reporter, accessible via `Rails.event`.
+
+    The Event Reporter provides a unified interface for producing structured events in Rails
+    applications:
+
+    ```ruby
+    Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    ```
+
+    It supports adding tags to events:
+
+    ```ruby
+    Rails.event.tagged("graphql") do
+      # Event includes tags: { graphql: true }
+      Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+    end
+    ```
+
+    As well as context:
+    ```ruby
+    # All events will contain context: {request_id: "abc123", shop_id: 456}
+    Rails.event.set_context(request_id: "abc123", shop_id: 456)
+    ```
+
+    Events are emitted to subscribers. Applications register subscribers to
+    control how events are serialized and emitted. Subscribers must implement
+    an `#emit` method, which receives the event hash:
+
+    ```ruby
+    class LogSubscriber
+      def emit(event)
+        payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
+        source_location = event[:source_location]
+        log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
+        Rails.logger.info(log)
+      end
+    end
+    ```
+
+    *Adrianna Chang*
+
+*   Make `ActiveSupport::Logger` `#freeze`-friendly.
+
+    *Joshua Young*
+
 *   Make `ActiveSupport::Gzip.compress` deterministic based on input.
 
     `ActiveSupport::Gzip.compress` used to include a timestamp in the output,
