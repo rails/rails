@@ -86,8 +86,9 @@ module ActionCable
       # transmitting the updates straight to the subscriber. Pass `coder:
       # ActiveSupport::JSON` to decode messages as JSON before passing to the
       # callback. Defaults to `coder: nil` which does no decoding, passes raw
-      # messages.
-      def stream_from(broadcasting, callback = nil, coder: nil, &block)
+      # messages. You can also pass `success_callback:` which will be invoked after
+      # the stream is subscribed successfully.
+      def stream_from(broadcasting, callback = nil, coder: nil, success_callback: nil, &block)
         return if unsubscribed?
 
         broadcasting = String(broadcasting)
@@ -102,6 +103,7 @@ module ActionCable
 
         connection.server.event_loop.post do
           pubsub.subscribe(broadcasting, handler, lambda do
+            success_callback&.call
             ensure_confirmation_sent
             logger.info "#{self.class.name} is streaming from #{broadcasting}"
           end)
@@ -114,9 +116,10 @@ module ActionCable
       #
       # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to
       # the callback. Defaults to `coder: nil` which does no decoding, passes raw
-      # messages.
-      def stream_for(broadcastables, callback = nil, coder: nil, &block)
-        stream_from(broadcasting_for(broadcastables), callback || block, coder: coder)
+      # messages. You can also pass `success_callback:` which will be invoked after
+      # the subscription is successfully confirmed.
+      def stream_for(broadcastables, callback = nil, coder: nil, success_callback: nil, &block)
+        stream_from(broadcasting_for(broadcastables), callback || block, coder: coder, success_callback: success_callback)
       end
 
       # Unsubscribes streams from the named `broadcasting`.

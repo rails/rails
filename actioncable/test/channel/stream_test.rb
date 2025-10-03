@@ -94,6 +94,33 @@ module ActionCable::StreamTests
       end
     end
 
+    test "success_callback is invoked" do
+      run_in_eventmachine do
+        connection = TestConnection.new
+
+        channel = OrderedCallbackChannel.new connection, "{id: 9}", id: 9
+
+        fake_pubsub = Class.new do
+          def subscribe(channel_name, handler, success)
+            success.call
+          end
+        end.new
+
+        connection.stub(:pubsub, fake_pubsub) do
+          channel.subscribe_to_channel
+          wait_for_async
+        end
+
+        assert_equal [
+          :subscribed_method_end,
+          :after_subscribe_callback,
+          :room_1_success,
+          :room_2_success,
+          :transmit_subscription_confirmation
+        ], channel.order
+      end
+    end
+
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
@@ -358,6 +385,31 @@ module ActionCable::StreamTests
     def subscribed
       stream_from "main_room"
       stream_from "test_all_rooms"
+    end
+  end
+
+  class OrderedCallbackChannel < ActionCable::Channel::Base
+    after_subscribe :after_subscribe_callback
+    attr_reader :order
+
+    def initialize(*)
+      super
+      @order = []
+    end
+
+    def subscribed
+      stream_from "room_1", success_callback: -> { @order << :room_1_success }
+      stream_from "room_2", success_callback: -> { @order << :room_2_success }
+      @order << :subscribed_method_end
+    end
+
+    def transmit_subscription_confirmation
+      super
+      @order << :transmit_subscription_confirmation
+    end
+
+    def after_subscribe_callback
+      @order << :after_subscribe_callback
     end
   end
 
