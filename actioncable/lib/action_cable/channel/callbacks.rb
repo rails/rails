@@ -41,6 +41,7 @@ module ActionCable
 
       included do
         define_callbacks :subscribe
+        define_callbacks :after_subscribe
         define_callbacks :unsubscribe
       end
 
@@ -58,7 +59,7 @@ module ActionCable
         #     after_subscribe :my_method, unless: :subscription_rejected?
         #
         def after_subscribe(*methods, &block)
-          set_callback(:subscribe, :after, *methods, &block)
+          set_callback(:after_subscribe, *methods, &block)
         end
         alias_method :on_subscribe, :after_subscribe
 
