@@ -30,17 +30,4 @@ export default [
       terser(terserOptions)
     ]
   },
-
-  {
-    input: "app/javascript/action_cable/index_with_name_deprecation.js",
-    output: {
-      file: "app/assets/javascripts/action_cable.js",
-      format: "umd",
-      name: "ActionCable"
-    },
-    plugins: [
-      resolve(),
-      terser(terserOptions)
-    ]
-  },
 ]
