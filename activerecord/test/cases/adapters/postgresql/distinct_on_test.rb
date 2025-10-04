@@ -34,18 +34,16 @@ class PostgresqlDistinctOnTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_on_column
-    user1, user2, user3 = %w[foo foo bar].map { |name| User.create!(name: name) }
+    %w[foo foo bar].map { |name| User.create!(name: name) }
     assert_equal(["bar", "foo"], User.distinct_on(:name).map(&:name).sort)
-    [user1, user2, user3].each(&:destroy)
   end
 
   def test_on_columns
     user1 = User.create!(name: "foo", age: 12)
     user2 = User.create!(name: "foo", age: 13)
     user3 = User.create!(name: "bar", age: 13)
-    user4 = User.create!(name: "bar", age: 13)
-    assert_equal User.distinct_on(:name, :age).to_a.sort_by(&:id), [user1, user2, user3]
-    [user1, user2, user3, user4].each(&:destroy)
+    User.create!(name: "bar", age: 13)
+    assert_equal [user1, user2, user3], User.distinct_on(:name, :age).to_a.sort_by(&:id)
   end
 
   def test_with_eager_load
@@ -56,7 +54,6 @@ class PostgresqlDistinctOnTest < ActiveRecord::PostgreSQLTestCase
     user2 = User.create!(name: "bar")
     Bike.create!(user: user1)
 
-    assert_equal User.eager_load(:bikes).distinct_on(:id).sort_by(&:name), [user2, user1]
-    [user1, user2].each(&:destroy)
+    assert_equal [user2, user1], User.eager_load(:bikes).distinct_on(:id).sort_by(&:name)
   end
 end
