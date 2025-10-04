@@ -3,7 +3,7 @@
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -17,7 +17,7 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  max_connections: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 <% if devcontainer? -%>
   <%% if ENV["DB_HOST"] %>
   host: <%%= ENV["DB_HOST"] %>
@@ -81,6 +81,14 @@ test:
 #   production:
 #     url: <%%= ENV["MY_APP_DATABASE_URL"] %>
 #
+<%- unless options.skip_solid? -%>
+# Connection URLs for non-primary databases can also be configured using
+# environment variables. The variable name is formed by concatenating the
+# connection name with `_DATABASE_URL`. For example:
+#
+#   CACHE_DATABASE_URL="postgres://cacheuser:cachepass@localhost/cachedatabase"
+#
+<%- end -%>
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
@@ -105,4 +113,10 @@ production:
     <<: *primary_production
     database: <%= app_name %>_production_queue
     migrations_paths: db/queue_migrate
+  <%- unless options.skip_action_cable? -%>
+  cable:
+    <<: *primary_production
+    database: <%= app_name %>_production_cable
+    migrations_paths: db/cable_migrate
+  <%- end -%>
 <%- end -%>

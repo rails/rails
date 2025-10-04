@@ -26,6 +26,12 @@ module Rails
       class_option :dev, type: :boolean, default: false,
                     desc: "For applications pointing to a local Rails checkout"
 
+      class_option :kamal, type: :boolean, default: true,
+                    desc: "Include configuration for Kamal"
+
+      class_option :skip_solid, type: :boolean, default: nil,
+                    desc: "Skip Solid Cache, Queue, and Cable setup"
+
       source_paths << File.expand_path(File.join(base_name, "app", "templates"), base_root)
 
       def create_devcontainer
@@ -80,6 +86,7 @@ module Rails
           @container_env["CAPYBARA_SERVER_PORT"] = "45678" if options[:system_test]
           @container_env["SELENIUM_HOST"] = "selenium" if options[:system_test]
           @container_env["REDIS_URL"] = "redis://redis:6379/1" if options[:redis]
+          @container_env["KAMAL_REGISTRY_PASSWORD"] = "$KAMAL_REGISTRY_PASSWORD" if options[:kamal]
           @container_env["DB_HOST"] = database.name if database.service
 
           @container_env
@@ -105,6 +112,7 @@ module Rails
 
           @features["ghcr.io/rails/devcontainer/features/activestorage"] = {} if options[:active_storage]
           @features["ghcr.io/devcontainers/features/node:1"] = {} if options[:node]
+          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = {} if options[:kamal]
 
           @features.merge!(database.feature) if database.feature
 
@@ -150,7 +158,7 @@ module Rails
         end
 
         def system_test_configuration
-          optimize_indentation(<<-'RUBY', 2)
+          optimize_indentation(<<-'RUBY', 2).chomp
             if ENV["CAPYBARA_SERVER_PORT"]
               served_by host: "rails-app", port: ENV["CAPYBARA_SERVER_PORT"]
 

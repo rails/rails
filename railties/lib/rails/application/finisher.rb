@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "set"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -230,7 +229,8 @@ module Rails
 
       initializer :enable_yjit do
         if config.yjit && defined?(RubyVM::YJIT.enable)
-          RubyVM::YJIT.enable
+          options = config.yjit.is_a?(Hash) ? config.yjit : {}
+          RubyVM::YJIT.enable(**options)
         end
       end
     end

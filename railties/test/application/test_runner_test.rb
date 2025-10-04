@@ -222,6 +222,69 @@ module ApplicationTests
       end
     end
 
+    def test_run_test_at_root
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          def test_rikka
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("my_test.rb").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_having_a_slash_in_its_name
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("my_test.rb -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_with_flags_unordered
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("--seed 344 my_test.rb --fail-fast -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
+    def test_run_test_after_a_flag_without_argument
+      app_file "my_test.rb", <<-RUBY
+        require "test_helper"
+        class MyTest < ActiveSupport::TestCase
+          test "foo/foo" do
+            puts 'Rikka'
+          end
+        end
+      RUBY
+
+      run_test_command("--fail-fast my_test.rb -n foo\/foo").tap do |output|
+        assert_match "Rikka", output
+      end
+    end
+
     def test_run_matched_test
       app_file "test/unit/chu_2_koi_test.rb", <<-RUBY
         require "test_helper"
@@ -969,8 +1032,13 @@ module ApplicationTests
       create_test_file :models, "account"
       output = run_test_command("test/models/accnt.rb")
 
-      assert_match(%r{Could not load test file.+test/models/accnt\.rb}, output)
-      assert_match(%r{Did you mean?.+test/models/account_test\.rb}, output)
+      expected = <<~MSG
+        bin/rails: Could not load test file: test/models/accnt.rb. (Rails::TestUnit::InvalidTestError)
+
+        Did you mean?  test/models/account_test.rb
+      MSG
+
+      assert_equal(expected, output)
       assert_not_predicate $?, :success?
     end
 

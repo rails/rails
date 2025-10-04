@@ -148,3 +148,8 @@ class SerializedPerson < ActiveRecord::Base
 
   serialize :insures, coder: Insure
 end
+
+class LockVersionValidatedPerson < ActiveRecord::Base
+  self.table_name = "people"
+  validates :lock_version, numericality: { only_integer: true }, allow_nil: false
+end

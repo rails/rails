@@ -18,6 +18,25 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter < AbstractAdapter
+      def initialize(*) # :nodoc:
+        @stopping = false
+
+        Sidekiq.configure_server do |config|
+          config.on(:quiet) { @stopping = true }
+        end
+
+        Sidekiq.configure_client do |config|
+          config.on(:quiet) { @stopping = true }
+        end
+      end
+
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `sidekiq` adapter is deprecated and will be removed in Rails 8.2.
+          Please upgrade `sidekiq` gem to version 7.3.3 or later to use the `sidekiq` gem's adapter.
+        MSG
+      end
+
       def enqueue(job) # :nodoc:
         job.provider_job_id = JobWrapper.set(
           wrapped: job.class,

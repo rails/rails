@@ -238,12 +238,16 @@ module ActiveSupport
       end
       alias_method :unfreeze_time, :travel_back
 
-      # Calls +travel_to+ with +Time.now+. Forwards optional <tt>with_usec</tt> argument.
+      # Calls +travel_to+ with +date_or_time+, which defaults to +Time.now+.
+      # Forwards optional <tt>with_usec</tt> argument.
       #
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   freeze_time
       #   sleep(1)
       #   Time.current # => Sun, 09 Jul 2017 15:34:49 EST -05:00
+      #   freeze_time Time.current + 1.day
+      #   sleep(1)
+      #   Time.current # => Mon, 10 Jul 2017 15:34:49 EST -05:00
       #
       # This method also accepts a block, which will return the current time back to its original
       # state at the end of the block:
@@ -254,8 +258,8 @@ module ActiveSupport
       #     User.create.created_at # => Sun, 09 Jul 2017 15:34:49 EST -05:00
       #   end
       #   Time.current # => Sun, 09 Jul 2017 15:34:50 EST -05:00
-      def freeze_time(with_usec: false, &block)
-        travel_to Time.now, with_usec: with_usec, &block
+      def freeze_time(date_or_time = Time.now, with_usec: false, &block)
+        travel_to date_or_time, with_usec: with_usec, &block
       end
 
       private

@@ -11,7 +11,7 @@ module ActiveRecord
       def execute(relation, ...)
         relation.model.with_connection do |c|
           new(relation, c, ...).execute
-        end
+        end.tap { relation.reset }
       end
     end
 
@@ -225,7 +225,7 @@ module ActiveRecord
       class Builder # :nodoc:
         attr_reader :model
 
-        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, to: :insert_all
+        delegate :skip_duplicates?, :update_duplicates?, :keys, :keys_including_timestamps, :record_timestamps?, :primary_keys, to: :insert_all
 
         def initialize(insert_all)
           @insert_all, @model, @connection = insert_all, insert_all.model, insert_all.connection
@@ -236,11 +236,16 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
+          types = extract_types_for(keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
-            next value if Arel::Nodes::SqlLiteral === value
-            connection.with_yaml_fallback(types[key].serialize(value))
+            if Arel::Nodes::SqlLiteral === value
+              value
+            elsif primary_keys.include?(key) && value.nil?
+              connection.default_insert_value(model.columns_hash[key])
+            else
+              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+            end
           end
 
           connection.visitor.compile(Arel::Nodes::ValuesList.new(values_list))
@@ -303,8 +308,8 @@ module ActiveRecord
             format_columns(insert_all.keys_including_timestamps)
           end
 
-          def extract_types_from_columns_on(table_name, keys:)
-            columns = @model.schema_cache.columns_hash(table_name)
+          def extract_types_for(keys)
+            columns = @model.columns_hash
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column

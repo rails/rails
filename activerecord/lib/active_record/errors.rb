@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/deprecation"
 
 module ActiveRecord
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
@@ -13,7 +12,7 @@ module ActiveRecord
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
-  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema::ClassMethods#inheritance_column]
+  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema.inheritance_column]
   # points to).
   class SubclassNotFound < ActiveRecordError
   end
@@ -293,6 +292,14 @@ module ActiveRecord
   class NotNullViolation < StatementInvalid
   end
 
+  # Raised when a record cannot be inserted or updated because it would violate a check constraint.
+  class CheckViolation < StatementInvalid
+  end
+
+  # Raised when a record cannot be inserted or updated because it would violate an exclusion constraint.
+  class ExclusionViolation < StatementInvalid
+  end
+
   # Raised when a record cannot be inserted or updated because a value too long for a column type.
   class ValueTooLong < StatementInvalid
   end
@@ -339,15 +346,15 @@ module ActiveRecord
     class << self
       def db_error(db_name)
         NoDatabaseError.new(<<~MSG)
-          We could not find your database: #{db_name}. Available database configurations can be found in config/database.yml.
+          Database not found: #{db_name}. Available database configurations can be found in config/database.yml.
 
           To resolve this error:
 
-          - Did you not create the database, or did you delete it? To create the database, run:
+          - Create the database by running:
 
               bin/rails db:create
 
-          - Has the database name changed? Verify that config/database.yml contains the correct database name.
+          - Verify that config/database.yml contains the correct database name.
         MSG
       end
     end
@@ -444,7 +451,7 @@ module ActiveRecord
   UnknownAttributeError = ActiveModel::UnknownAttributeError
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=] method.
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
   # The exception has an +attribute+ property that is the name of the offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
@@ -457,7 +464,7 @@ module ActiveRecord
   end
 
   # Raised when there are multiple errors while doing a mass assignment through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:AttributeAssignment#attributes=]
+  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=]
   # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
@@ -490,6 +497,7 @@ module ActiveRecord
   #   end
   #
   #   relation = Task.all
+  #   relation.load
   #   relation.loaded? # => true
   #
   #   # Methods which try to mutate a loaded relation fail.
@@ -552,6 +560,11 @@ module ActiveRecord
   class Deadlocked < TransactionRollbackError
   end
 
+  # MissingRequiredOrderError is raised when a relation requires ordering but
+  # lacks any +order+ values in scope or any model order columns to use.
+  class MissingRequiredOrderError < ActiveRecordError
+  end
+
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
@@ -608,6 +621,9 @@ module ActiveRecord
   # DatabaseVersionError will be raised when the database version is not supported, or when
   # the database version cannot be determined.
   class DatabaseVersionError < ActiveRecordError
+  end
+
+  class DeprecatedAssociationError < ActiveRecordError
   end
 end
 

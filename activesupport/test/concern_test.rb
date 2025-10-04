@@ -201,9 +201,9 @@ class ConcernTest < ActiveSupport::TestCase
     prepended = Module.new.extend(ActiveSupport::Concern)
 
     @klass.class_eval { @foo = [] }
-    included.class_methods { def foo; @foo << :included; end }
+    included.class_methods { def foo; @foo << :included; end } # rubocop:disable Lint/NestedMethodDefinition
     @klass.class_eval { def self.foo; super; @foo << :class; end }
-    prepended.class_methods { def foo; super; @foo << :prepended; end }
+    prepended.class_methods { def foo; super; @foo << :prepended; end } # rubocop:disable Lint/NestedMethodDefinition
 
     @klass.include included
     @klass.prepend prepended

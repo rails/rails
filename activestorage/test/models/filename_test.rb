@@ -54,6 +54,12 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
     assert_operator ActiveStorage::Filename.new("foo-bar.pdf"), :==, ActiveStorage::Filename.new("foo\tbar.pdf")
   end
 
+  test "String equality" do
+    assert_operator "foo-bar.pdf", :===, ActiveStorage::Filename.new("foo-bar.pdf")
+    assert_equal "foo-bar.pdf", ActiveStorage::Filename.new("foo-bar.pdf")
+    assert_pattern { ActiveStorage::Filename.new("foo-bar.pdf") => "foo-bar.pdf" }
+  end
+
   test "encoding to json" do
     assert_equal '"foo.pdf"', ActiveStorage::Filename.new("foo.pdf").to_json
     assert_equal '{"filename":"foo.pdf"}', { filename: ActiveStorage::Filename.new("foo.pdf") }.to_json

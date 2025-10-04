@@ -59,6 +59,15 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_raises ActiveRecord::StrictLoadingViolationError do
       developer.projects.last.firm
     end
+
+    assert_nothing_raised do
+      developer.projects_extended_by_name.to_a
+    end
+
+    assert developer.projects_extended_by_name.all?(&:strict_loading?)
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      developer.projects_extended_by_name.last.firm
+    end
   end
 
   def test_strict_loading_n_plus_one_only_mode_with_belongs_to
@@ -625,6 +634,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
 
       assert_nothing_raised { developer.projects.first }
     end
+  end
+
+  def test_does_not_raise_when_checking_if_new_record_included_in_eager_loaded_habtm_relation
+    Developer.first.projects << Project.first
+
+    developer = Developer.includes(:projects).strict_loading.first
+
+    assert_nothing_raised { developer.projects.include?(Project.new) }
   end
 
   def test_strict_loading_violation_raises_by_default

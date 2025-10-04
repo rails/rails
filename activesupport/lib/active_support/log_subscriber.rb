@@ -149,12 +149,6 @@ module ActiveSupport
       log_exception(event.name, e)
     end
 
-    def publish_event(event)
-      super if logger
-    rescue => e
-      log_exception(event.name, e)
-    end
-
     attr_writer :event_levels # :nodoc:
 
   private
@@ -184,6 +178,8 @@ module ActiveSupport
     end
 
     def log_exception(name, e)
+      ActiveSupport.error_reporter.report(e, source: name)
+
       if logger
         logger.error "Could not log #{name.inspect} event. #{e.class}: #{e.message} #{e.backtrace}"
       end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action View Form Helpers
 ========================
@@ -56,7 +56,7 @@ Here is how to create a search form with `form_with`:
 ```erb
 <%= form_with url: "/search", method: :get do |form| %>
   <%= form.label :query, "Search for:" %>
-  <%= form.text_field :query %>
+  <%= form.search_field :query %>
   <%= form.submit "Search" %>
 <% end %>
 ```
@@ -66,7 +66,7 @@ This will generate the following HTML:
 ```html
 <form action="/search" accept-charset="UTF-8" method="get">
   <label for="query">Search for:</label>
-  <input type="text" name="query" id="query">
+  <input type="search" name="query" id="query">
   <input type="submit" name="commit" value="Search" data-disable-with="Search">
 </form>
 ```
@@ -249,8 +249,8 @@ The `form_with` helper has a `:model` option that allows you to bind the form bu
 For example, if we have a `@book` model object:
 
 ```ruby
-@book = Book.find(42)
-# => #<Book id: 42, title: "Walden", author: "Henry David Thoreau">
+@book = Book.new
+# => #<Book id: nil, title: nil, author: nil>
 ```
 
 And the following form to create a new book:
@@ -358,7 +358,7 @@ The above will produce the following output:
 
 The object yielded by `fields_for` is a form builder like the one yielded by
 `form_with`. The `fields_for` helper creates a similar binding but without
-rendering a `<form>` tag. You can learn more about `field_for` in the [API
+rendering a `<form>` tag. You can learn more about `fields_for` in the [API
 docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-fields_for).
 
 ### Relying on Record Identification
@@ -389,7 +389,7 @@ If you have a [singular resource](routing.html#singular-resources), you will nee
 
 ```ruby
 resource :article
-resolve('Article') { [:article] }
+resolve("Article") { [:article] }
 ```
 
 TIP: Declaring a resource has a number of side effects. See the [Rails Routing from the Outside In](routing.html#resource-routing-the-rails-default) guide for more information on setting up and using resources.
@@ -839,7 +839,7 @@ Note that, per `form_with` conventions, the field names in the two forms above w
 When using `file_field`, the object in the `params` hash is an instance of [`ActionDispatch::Http::UploadedFile`](https://api.rubyonrails.org/classes/ActionDispatch/Http/UploadedFile.html). Here is an example of how to save data in an uploaded CSV file to records in your application:
 
 ```ruby
-  require 'csv'
+  require "csv"
 
   def upload
     uploaded_file = params[:csv_file]
@@ -966,7 +966,7 @@ Hashes mirror the syntax used for accessing the value in `params`. For example, 
 the `params` hash will contain
 
 ```ruby
-{ 'person' => { 'name' => 'Henry' } }
+{ "person" => { "name" => "Henry" } }
 ```
 
 and `params[:person][:name]` will retrieve the submitted value in the controller.
@@ -980,7 +980,7 @@ Hashes can be nested as many levels as required, for example:
 The above will result in the `params` hash being
 
 ```ruby
-{ 'person' => { 'address' => { 'city' => 'New York' } } }
+{ "person" => { "address" => { "city" => "New York" } } }
 ```
 
 The other structure is an Array. Normally Rails ignores duplicate parameter names, but if the parameter name ends with an empty set of square brackets `[]` then the parameters will be accumulated in an Array.
@@ -996,7 +996,7 @@ For example, if you want users to be able to input multiple phone numbers, you c
 This would result in `params[:person][:phone_number]` being an array containing the submitted phone numbers:
 
 ```ruby
-{ 'person' => { 'phone_number' => ['555-0123', '555-0124', '555-0125'] } }
+{ "person" => { "phone_number" => ["555-0123", "555-0124", "555-0125"] } }
 ```
 
 ### Combining Arrays and Hashes
@@ -1017,15 +1017,15 @@ You also can have an array of hashes. For example, you can create any number of 
 This would result in `params[:person][:addresses]` being an array of hashes. Each hash in the array will have the keys `line1`, `line2`, and `city`, something like this:
 
 ```ruby
-{ 'person' =>
-  { 'addresses' => [
-    { 'line1' => '1000 Fifth Avenue',
-      'line2' => '',
-      'city' => 'New York'
+{ "person" =>
+  { "addresses" => [
+    { "line1" => "1000 Fifth Avenue",
+      "line2" => "",
+      "city" => "New York"
     },
-    { 'line1' => 'Calle de Ruiz de Alarcón',
-      'line2' => '',
-      'city' => 'Madrid'
+    { "line1" => "Calle de Ruiz de Alarcón",
+      "line2" => "",
+      "city" => "Madrid"
     }
     ]
   }
@@ -1039,7 +1039,7 @@ WARNING: Array parameters do not play well with the `checkbox` helper. According
 ### Hashes with an Index
 
 Let's say you want to render a form with a set of fields for each of a person's
-addresses. The [`fields_for`][] helper with its `:index` option can assist:
+addresses. The [`fields_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for) helper with its `:index` option can assist:
 
 ```erb
 <%= form_with model: @person do |person_form| %>
@@ -1089,7 +1089,7 @@ rendered the `name` attribute of each city input as
 way you can tell which `Address` records should be modified when processing the
 `params` hash.
 
-You can find more details about `fields_for` index option in the [API docs](https://api.rubyonrails.org/v7.1.3.4/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for).
+You can find more details about `fields_for` index option in the [API docs](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-fields_for).
 
 Building Complex Forms
 ----------------------
@@ -1181,16 +1181,16 @@ with 2 addresses, the submitted parameters in `params` would look like this:
 
 ```ruby
 {
-  'person' => {
-    'name' => 'John Doe',
-    'addresses_attributes' => {
-      '0' => {
-        'kind' => 'Home',
-        'street' => '221b Baker Street'
+  "person" => {
+    "name" => "John Doe",
+    "addresses_attributes" => {
+      "0" => {
+        "kind" => "Home",
+        "street" => "221b Baker Street"
       },
-      '1' => {
-        'kind' => 'Office',
-        'street' => '31 Spooner Street'
+      "1" => {
+        "kind" => "Office",
+        "street" => "31 Spooner Street"
       }
     }
   }
@@ -1203,18 +1203,18 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 
 ```ruby
 {
-  'person' => {
-    'name' => 'John Doe',
-    'addresses_attributes' => {
-      '0' => {
-        'id' => 1,
-        'kind' => 'Home',
-        'street' => '221b Baker Street'
+  "person" => {
+    "name" => "John Doe",
+    "addresses_attributes" => {
+      "0" => {
+        "id" => 1,
+        "kind" => "Home",
+        "street" => "221b Baker Street"
       },
-      '1' => {
-        'id' => '2',
-        'kind' => 'Office',
-        'street' => '31 Spooner Street'
+      "1" => {
+        "id" => "2",
+        "kind" => "Office",
+        "street" => "31 Spooner Street"
       }
     }
   }
@@ -1293,7 +1293,7 @@ It is often useful to ignore sets of fields that the user has not filled in. You
 ```ruby
 class Person < ApplicationRecord
   has_many :addresses
-  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes['kind'].blank? }
+  accepts_nested_attributes_for :addresses, reject_if: lambda { |attributes| attributes["kind"].blank? }
 end
 ```
 
@@ -1338,4 +1338,4 @@ Generally, these helpers have the same name as their form builder counterparts p
 Using `form_tag` and `form_for`
 -------------------------------
 
-Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/v5.2/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now soft-deprecated in favor of `form_with`.
+Before `form_with` was introduced in Rails 5.1 its functionality was split between [`form_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormTagHelper.html#method-i-form_tag) and [`form_for`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for). Both are now discouraged in favor of `form_with`, but you can still find them being used in some codebases.

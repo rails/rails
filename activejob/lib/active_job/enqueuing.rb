@@ -48,10 +48,9 @@ module ActiveJob
       # automatically defers the enqueue to after the transaction commits.
       #
       # It can be set on a per job basis:
-      #  - `:always` forces the job to be deferred.
-      #  - `:never` forces the job to be queued immediately.
-      #  - `:default` lets the queue adapter define the behavior (recommended).
-      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: :never
+      #  - true forces the job to be deferred.
+      #  - false forces the job to be queued immediately.
+      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: false
     end
 
     # Includes the +perform_later+ method for job initialization.
@@ -89,7 +88,7 @@ module ActiveJob
       end
 
       private
-        def job_or_instantiate(*args, &_) # :doc:
+        def job_or_instantiate(*args, &) # :doc:
           args.first.is_a?(self) ? args.first : new(*args)
         end
         ruby2_keywords(:job_or_instantiate)
@@ -114,9 +113,7 @@ module ActiveJob
       set(options)
       self.successfully_enqueued = false
 
-      run_callbacks :enqueue do
-        raw_enqueue
-      end
+      raw_enqueue
 
       if successfully_enqueued?
         self
@@ -127,6 +124,12 @@ module ActiveJob
 
     private
       def raw_enqueue
+        run_callbacks :enqueue do
+          _raw_enqueue
+        end
+      end
+
+      def _raw_enqueue
         if scheduled_at
           queue_adapter.enqueue_at self, scheduled_at.to_f
         else

@@ -1,4 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json.
+// For format details, see https://containers.dev/implementors/json_reference/.
 {
 	"name": "Rails project development",
 	"dockerComposeFile": "compose.yaml",
@@ -12,6 +12,9 @@
 		},
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "latest"
+		},
+		"ghcr.io/rails/devcontainer/features/postgres-client:1.1.3": {
+			"version": "18"
 		}
 	},
 
@@ -19,7 +22,7 @@
 		"PGHOST": "postgres",
 		"PGUSER": "postgres",
 		"PGPASSWORD": "postgres",
-		"MYSQL_HOST": "mariadb",
+		"MYSQL_HOST": "mysql",
 		"REDIS_URL": "redis://redis/0",
 		"MEMCACHE_SERVERS": "memcached:11211"
 	},
@@ -39,8 +42,8 @@
 				"Shopify.ruby-lsp"
 			]
 		}
-	},
+	}
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// Uncomment to connect as root instead. More info: https://containers.dev/implementors/json_reference/#remoteUser.
 	// "remoteUser": "root"
 }

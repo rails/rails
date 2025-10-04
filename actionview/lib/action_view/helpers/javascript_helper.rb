@@ -4,6 +4,8 @@ module ActionView
   module Helpers # :nodoc:
     # = Action View JavaScript \Helpers
     module JavaScriptHelper
+      mattr_accessor :auto_include_nonce
+
       JS_ESCAPE_MAP = {
         "\\"    => "\\\\",
         "</"    => '<\/',
@@ -81,8 +83,10 @@ module ActionView
             content_or_options_with_block
           end
 
-        if html_options[:nonce] == true
+        if html_options[:nonce] == true || (!html_options.key?(:nonce) && auto_include_nonce)
           html_options[:nonce] = content_security_policy_nonce
+        elsif html_options[:nonce] == false
+          html_options.delete(:nonce)
         end
 
         content_tag("script", javascript_cdata_section(content), html_options)

@@ -25,7 +25,7 @@ module ActiveRecord
     #
     # The PostgreSQL adapter works with the native C (https://github.com/ged/ruby-pg) driver.
     #
-    # Options:
+    # ==== Options
     #
     # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
     #   the default is to connect to localhost.
@@ -288,6 +288,16 @@ module ActiveRecord
         database_version >= 10_00_00 # >= 10.0
       end
 
+      if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
+        def supports_close_prepared? # :nodoc:
+          database_version >= 17_00_00
+        end
+      else
+        def supports_close_prepared? # :nodoc:
+          false
+        end
+      end
+
       def index_algorithms
         { concurrently: "CONCURRENTLY" }
       end
@@ -309,8 +319,12 @@ module ActiveRecord
             # accessed while holding the connection's lock. (And we
             # don't need the complication of with_raw_connection because
             # a reconnect would invalidate the entire statement pool.)
-            if conn = @connection.instance_variable_get(:@raw_connection)
-              conn.query "DEALLOCATE #{key}" if conn.status == PG::CONNECTION_OK
+            if (conn = @connection.instance_variable_get(:@raw_connection)) && conn.status == PG::CONNECTION_OK
+              if @connection.supports_close_prepared?
+                conn.close_prepared key
+              else
+                conn.query "DEALLOCATE #{key}"
+              end
             end
           rescue PG::Error
           end
@@ -349,6 +363,7 @@ module ActiveRecord
         @lock.synchronize do
           return false unless @raw_connection
           @raw_connection.query ";"
+          verified!
         end
         true
       rescue PG::Error
@@ -394,10 +409,6 @@ module ActiveRecord
         super
         @raw_connection&.socket_io&.reopen(IO::NULL) rescue nil
         @raw_connection = nil
-      end
-
-      def native_database_types # :nodoc:
-        self.class.native_database_types
       end
 
       def self.native_database_types # :nodoc:
@@ -520,7 +531,7 @@ module ActiveRecord
             type.typname AS name,
             type.OID AS oid,
             n.nspname AS schema,
-            string_agg(enum.enumlabel, ',' ORDER BY enum.enumsortorder) AS value
+            array_agg(enum.enumlabel ORDER BY enum.enumsortorder) AS value
           FROM pg_enum AS enum
           JOIN pg_type AS type ON (type.oid = enum.enumtypid)
           JOIN pg_namespace n ON type.typnamespace = n.oid
@@ -575,30 +586,34 @@ module ActiveRecord
       end
 
       # Rename an existing enum type to something else.
-      def rename_enum(name, options = {})
-        to = options.fetch(:to) { raise ArgumentError, ":to is required" }
+      def rename_enum(name, new_name = nil, **options)
+        new_name ||= options.fetch(:to) do
+          raise ArgumentError, "rename_enum requires two from/to name positional arguments."
+        end
 
-        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{to}").tap { reload_type_map }
+        exec_query("ALTER TYPE #{quote_table_name(name)} RENAME TO #{quote_table_name(new_name)}").tap { reload_type_map }
       end
 
       # Add enum value to an existing enum type.
-      def add_enum_value(type_name, value, options = {})
+      def add_enum_value(type_name, value, **options)
         before, after = options.values_at(:before, :after)
-        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE '#{value}'"
+        sql = +"ALTER TYPE #{quote_table_name(type_name)} ADD VALUE"
+        sql << " IF NOT EXISTS" if options[:if_not_exists]
+        sql << " #{quote(value)}"
 
         if before && after
           raise ArgumentError, "Cannot have both :before and :after at the same time"
         elsif before
-          sql << " BEFORE '#{before}'"
+          sql << " BEFORE #{quote(before)}"
         elsif after
-          sql << " AFTER '#{after}'"
+          sql << " AFTER #{quote(after)}"
         end
 
         execute(sql).tap { reload_type_map }
       end
 
       # Rename enum value on an existing enum type.
-      def rename_enum_value(type_name, options = {})
+      def rename_enum_value(type_name, **options)
         unless database_version >= 10_00_00 # >= 10.0
           raise ArgumentError, "Renaming enum values is only supported in PostgreSQL 10 or later"
         end
@@ -606,12 +621,12 @@ module ActiveRecord
         from = options.fetch(:from) { raise ArgumentError, ":from is required" }
         to = options.fetch(:to) { raise ArgumentError, ":to is required" }
 
-        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE '#{from}' TO '#{to}'").tap {
+        execute("ALTER TYPE #{quote_table_name(type_name)} RENAME VALUE #{quote(from)} TO #{quote(to)}").tap {
           reload_type_map
         }
       end
 
-      # Returns the configured supported identifier length supported by PostgreSQL
+      # Returns the configured maximum supported identifier length supported by PostgreSQL
       def max_identifier_length
         @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
       end
@@ -629,7 +644,11 @@ module ActiveRecord
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
         with_raw_connection do |conn|
-          conn.server_version
+          version = conn.server_version
+          if version == 0
+            raise ActiveRecord::ConnectionNotEstablished, "Could not determine PostgreSQL version"
+          end
+          version
         end
       end
       alias :postgresql_version :database_version
@@ -669,8 +688,8 @@ module ActiveRecord
           m.register_type "int4", Type::Integer.new(limit: 4)
           m.register_type "int8", Type::Integer.new(limit: 8)
           m.register_type "oid", OID::Oid.new
-          m.register_type "float4", Type::Float.new
-          m.alias_type "float8", "float4"
+          m.register_type "float4", Type::Float.new(limit: 24)
+          m.register_type "float8", Type::Float.new
           m.register_type "text", Type::Text.new
           register_class_with_limit m, "varchar", Type::String
           m.alias_type "char", "varchar"
@@ -783,6 +802,8 @@ module ActiveRecord
         NOT_NULL_VIOLATION    = "23502"
         FOREIGN_KEY_VIOLATION = "23503"
         UNIQUE_VIOLATION      = "23505"
+        CHECK_VIOLATION       = "23514"
+        EXCLUSION_VIOLATION   = "23P01"
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
         DUPLICATE_DATABASE    = "42P04"
@@ -794,7 +815,7 @@ module ActiveRecord
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
           when nil
-            if exception.message.match?(/connection is closed/i)
+            if exception.message.match?(/connection is closed/i) || exception.message.match?(/no connection to the server/i)
               ConnectionNotEstablished.new(exception, connection_pool: @pool)
             elsif exception.is_a?(PG::ConnectionBad)
               # libpq message style always ends with a newline; the pg gem's internal
@@ -814,6 +835,10 @@ module ActiveRecord
             RecordNotUnique.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when FOREIGN_KEY_VIOLATION
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when CHECK_VIOLATION
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when EXCLUSION_VIOLATION
+            ExclusionViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when VALUE_LIMIT_VIOLATION
             ValueTooLong.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when NUMERIC_VALUE_OUT_OF_RANGE

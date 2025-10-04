@@ -165,7 +165,7 @@ module ActiveRecord
           # first dump primary key column
           pk = @connection.primary_key(table)
 
-          tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
+          tbl.print "  create_table #{relation_name(remove_prefix_and_suffix(table)).inspect}"
 
           case pk
           when String
@@ -192,7 +192,7 @@ module ActiveRecord
           tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
-          columns.each do |column|
+          columns.sort_by(&:name).each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
 
@@ -207,11 +207,16 @@ module ActiveRecord
           end
 
           indexes_in_create(table, tbl)
-          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          remaining = check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
           unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
+
+          if remaining
+            tbl.puts
+            tbl.print remaining.string
+          end
 
           stream.print tbl.string
         rescue => e
@@ -228,7 +233,7 @@ module ActiveRecord
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
             table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([table_name] + index_parts(index)).join(', ')}"
+            "  add_index #{([relation_name(table_name)] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -272,35 +277,49 @@ module ActiveRecord
         index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
         index_parts
       end
 
       def check_constraints_in_create(table, stream)
         if (check_constraints = @connection.check_constraints(table)).any?
-          add_check_constraint_statements = check_constraints.map do |check_constraint|
-            parts = [
-              "t.check_constraint #{check_constraint.expression.inspect}"
-            ]
+          check_valid, check_invalid = check_constraints.partition { |chk| chk.validate? }
 
-            if check_constraint.export_name_on_schema_dump?
-              parts << "name: #{check_constraint.name.inspect}"
+          unless check_valid.empty?
+            check_constraint_statements = check_valid.map do |check|
+              "    t.check_constraint #{check_parts(check).join(', ')}"
             end
 
-            parts << "validate: #{check_constraint.validate?.inspect}" unless check_constraint.validate?
-
-            "    #{parts.join(', ')}"
+            stream.puts check_constraint_statements.sort.join("\n")
           end
 
-          stream.puts add_check_constraint_statements.sort.join("\n")
+          unless check_invalid.empty?
+            remaining = StringIO.new
+            table_name = remove_prefix_and_suffix(table).inspect
+
+            add_check_constraint_statements = check_invalid.map do |check|
+              "  add_check_constraint #{([table_name] + check_parts(check)).join(', ')}"
+            end
+
+            remaining.puts add_check_constraint_statements.sort.join("\n")
+            remaining
+          end
         end
+      end
+
+      def check_parts(check)
+        check_parts = [ check.expression.inspect ]
+        check_parts << "name: #{check.name.inspect}" if check.export_name_on_schema_dump?
+        check_parts << "validate: #{check.validate?.inspect}" unless check.validate?
+        check_parts
       end
 
       def foreign_keys(table, stream)
         if (foreign_keys = @connection.foreign_keys(table)).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
-              remove_prefix_and_suffix(foreign_key.to_table).inspect,
+              relation_name(remove_prefix_and_suffix(foreign_key.from_table)).inspect,
+              relation_name(remove_prefix_and_suffix(foreign_key.to_table)).inspect,
             ]
 
             if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table, "id")
@@ -311,16 +330,13 @@ module ActiveRecord
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.export_name_on_schema_dump?
-              parts << "name: #{foreign_key.name.inspect}"
-            end
-
+            parts << "name: #{foreign_key.name.inspect}" if foreign_key.export_name_on_schema_dump?
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
 
-            "  #{parts.join(', ')}"
+            "  add_foreign_key #{parts.join(', ')}"
           end
 
           stream.puts add_foreign_key_statements.sort.join("\n")
@@ -343,6 +359,10 @@ module ActiveRecord
         else
           options.inspect
         end
+      end
+
+      def relation_name(name)
+        name
       end
 
       def remove_prefix_and_suffix(table)

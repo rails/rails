@@ -47,6 +47,12 @@ module RailsGuides
       end
     end
 
+    def canonical_url(path)
+      url = "https://guides.rubyonrails.org/"
+      url += path unless path == "index.html"
+      url
+    end
+
     def code(&block)
       c = capture(&block)
       content_tag(:code, c)

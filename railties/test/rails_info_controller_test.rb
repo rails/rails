@@ -9,6 +9,13 @@ class InfoControllerTest < ActionController::TestCase
   def setup
     ActionController::Base.include ActionController::Testing
 
+    engine = Class.new(::Rails::Engine) do |blorgh|
+      railtie_name "blorgh"
+      blorgh.routes.draw do
+        resources :posts
+      end
+    end
+
     Rails.application.routes.draw do
       namespace :test do
         get :nested_route, to: "test#show"
@@ -18,6 +25,7 @@ class InfoControllerTest < ActionController::TestCase
       get "/rails/info/notes" => "rails/info#notes"
       post "/rails/:test/properties" => "rails/info#properties"
       put "/rails/:test/named_properties" => "rails/info#properties", as: "named_rails_info_properties"
+      mount engine, at: "/blog"
     end
     @routes = Rails.application.routes
 
@@ -47,8 +55,12 @@ class InfoControllerTest < ActionController::TestCase
   end
 
   test "info controller allows requests when all requests are considered local" do
+    @request.env["REMOTE_ADDR"] = "example.org"
+    Rails.application.config.consider_all_requests_local = true
     get :properties
     assert_response :success
+  ensure
+    Rails.application.config.consider_all_requests_local = false
   end
 
   test "info controller allows local requests" do
@@ -82,7 +94,18 @@ class InfoControllerTest < ActionController::TestCase
     assert_select("table tr") do
       assert_select("td", text: "test_nested_route_path")
       assert_select("td", text: "test/test#show")
-      assert_select("td", text: "#{__FILE__}:75")
+      assert_select("td", text: "#{__FILE__}:87")
+    end
+  end
+
+  test "info controller routes shows engine routes" do
+    get :routes
+
+    assert_select("table tr") do
+      assert_select("td", text: "blorgh_path")
+      assert_select("td", text: "/blog")
+      assert_select("td", text: "posts_path")
+      assert_select("td", text: "posts#index")
     end
   end
 
@@ -104,6 +127,10 @@ class InfoControllerTest < ActionController::TestCase
     get :routes, params: { query: "rails_info_properties_url" }
     assert exact_results.size == 1, "should match complete route urls"
     assert exact_results.include? "/rails/info/properties(.:format)"
+
+    get :routes, params: { query: "blog" }
+    assert exact_results.size == 1, "should match complete engine route paths"
+    assert exact_results.include? "/blog"
   end
 
   test "info controller search returns exact matches for route paths" do

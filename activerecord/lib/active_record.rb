@@ -26,6 +26,7 @@
 require "active_support"
 require "active_support/rails"
 require "active_support/ordered_options"
+require "active_support/core_ext/array/conversions"
 require "active_model"
 require "arel"
 require "yaml"
@@ -52,6 +53,7 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
+  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
@@ -62,7 +64,6 @@ module ActiveRecord
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
-  autoload :Normalization
   autoload :Persistence
   autoload :QueryCache
   autoload :QueryLogs
@@ -87,7 +88,6 @@ module ActiveRecord
   autoload :Timestamp
   autoload :TokenFor
   autoload :TouchLater
-  autoload :Transaction
   autoload :Transactions
   autoload :Translation
   autoload :Validations
@@ -109,6 +109,7 @@ module ActiveRecord
     autoload :Result
     autoload :StatementCache
     autoload :TableMetadata
+    autoload :Transaction
     autoload :Type
 
     autoload_under "relation" do
@@ -174,7 +175,8 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
+    autoload :AbstractTasks, "active_record/tasks/abstract_tasks"
+    autoload :MySQLDatabaseTasks, "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks, "active_record/tasks/postgresql_database_tasks"
     autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
   end
@@ -259,6 +261,9 @@ module ActiveRecord
   ##
   # :singleton-method: db_warnings_ignore
   # Specify allowlist of database warnings.
+  # Can be a string, regular expression, or an error code from the database.
+  #
+  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -267,14 +272,6 @@ module ActiveRecord
 
   singleton_class.attr_accessor :reading_role
   self.reading_role = :reading
-
-  def self.legacy_connection_handling=(_)
-    raise ArgumentError, <<~MSG.squish
-      The `legacy_connection_handling` setter was deprecated in 7.0 and removed in 7.1,
-      but is still defined in your configuration. Please remove this call as it no longer
-      has any effect."
-    MSG
-  end
 
   ##
   # :singleton-method: async_query_executor
@@ -294,6 +291,7 @@ module ActiveRecord
   def self.global_thread_pool_async_query_executor # :nodoc:
     concurrency = global_executor_concurrency || 4
     @global_thread_pool_async_query_executor ||= Concurrent::ThreadPoolExecutor.new(
+      name: "ActiveRecord-global-async-query-executor",
       min_threads: 0,
       max_threads: concurrency,
       max_queue: concurrency * 4,
@@ -359,28 +357,8 @@ module ActiveRecord
   singleton_class.attr_accessor :run_after_transaction_callbacks_in_order_defined
   self.run_after_transaction_callbacks_in_order_defined = false
 
-  def self.commit_transaction_on_non_local_return
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.commit_transaction_on_non_local_return=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.commit_transaction_on_non_local_return`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  ##
-  # :singleton-method: warn_on_records_fetched_greater_than
-  # Specify a threshold for the size of query result sets. If the number of
-  # records in the set exceeds the threshold, a warning is logged. This can
-  # be used to identify queries which load thousands of records and
-  # potentially cause memory bloat.
-  singleton_class.attr_accessor :warn_on_records_fetched_greater_than
-  self.warn_on_records_fetched_greater_than = false
+  singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
+  self.run_after_transaction_callbacks_in_order_defined = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
@@ -399,7 +377,8 @@ module ActiveRecord
   # specific) SQL statements. If :ruby, the schema is dumped as an
   # ActiveRecord::Schema file which can be loaded into any database that
   # supports migrations. Use :ruby if you want to have different database
-  # adapters for, e.g., your development and test environments.
+  # adapters for, e.g., your development and test environments. This can be
+  # overridden per-database in the database configuration.
   singleton_class.attr_accessor :schema_format
   self.schema_format = :ruby
 
@@ -432,6 +411,12 @@ module ActiveRecord
   self.migration_strategy = Migration::DefaultStrategy
 
   ##
+  # :singleton-method: schema_versions_formatter
+  # Specify the formatter used by schema dumper to format versions information.
+  singleton_class.attr_accessor :schema_versions_formatter
+  self.schema_versions_formatter = Migration::DefaultSchemaVersionsFormatter
+
+  ##
   # :singleton-method: dump_schema_after_migration
   # Specify whether schema dump should happen at the end of the
   # bin/rails db:migrate command. This is true by default, which is useful for the
@@ -458,20 +443,6 @@ module ActiveRecord
   # Supported by PostgreSQL and SQLite.
   singleton_class.attr_accessor :verify_foreign_keys_for_fixtures
   self.verify_foreign_keys_for_fixtures = false
-
-  def self.allow_deprecated_singular_associations_name
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
-
-  def self.allow_deprecated_singular_associations_name=(value)
-    ActiveRecord.deprecator.warn <<-WARNING.squish
-      `Rails.application.config.active_record.allow_deprecated_singular_associations_name`
-      is deprecated and will be removed in Rails 8.0.
-    WARNING
-  end
 
   singleton_class.attr_accessor :query_transformers
   self.query_transformers = []
@@ -504,6 +475,29 @@ module ActiveRecord
   # declarations. Defaults to <tt>:create</tt>.
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
+
+  def self.deprecated_associations_options=(options)
+    raise ArgumentError, "deprecated_associations_options must be a hash" unless options.is_a?(Hash)
+
+    valid_keys = [:mode, :backtrace]
+
+    invalid_keys = options.keys - valid_keys
+    unless invalid_keys.empty?
+      inflected_key = invalid_keys.size == 1 ? "key" : "keys"
+      raise ArgumentError, "invalid deprecated_associations_options #{inflected_key} #{invalid_keys.map(&:inspect).to_sentence} (valid keys are #{valid_keys.map(&:inspect).to_sentence})"
+    end
+
+    options.each do |key, value|
+      ActiveRecord::Associations::Deprecation.send("#{key}=", value)
+    end
+  end
+
+  def self.deprecated_associations_options
+    {
+      mode: ActiveRecord::Associations::Deprecation.mode,
+      backtrace: ActiveRecord::Associations::Deprecation.backtrace
+    }
+  end
 
   def self.marshalling_format_version
     Marshalling.format_version
@@ -540,6 +534,13 @@ module ActiveRecord
       postgres: "postgresql",
     }
   )
+
+  ##
+  # :singleton-method: message_verifiers
+  #
+  # ActiveSupport::MessageVerifiers instance for Active Record. If you are using
+  # Rails, this will be set to +Rails.application.message_verifiers+.
+  singleton_class.attr_accessor :message_verifiers
 
   def self.eager_load!
     super
@@ -593,12 +594,31 @@ module ActiveRecord
     open_transactions = []
     Base.connection_handler.each_connection_pool do |pool|
       if active_connection = pool.active_connection
-        if active_connection.current_transaction.open? && active_connection.current_transaction.joinable?
-          open_transactions << active_connection.current_transaction
+        current_transaction = active_connection.current_transaction
+
+        if current_transaction.open? && current_transaction.joinable?
+          open_transactions << current_transaction
         end
       end
     end
     open_transactions
+  end
+
+  def self.default_transaction_isolation_level=(isolation_level) # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation] = isolation_level
+  end
+
+  def self.default_transaction_isolation_level # :nodoc:
+    ActiveSupport::IsolatedExecutionState[:active_record_transaction_isolation]
+  end
+
+  # Sets a transaction isolation level for all connection pools within the block.
+  def self.with_transaction_isolation_level(isolation_level, &block)
+    original_level = self.default_transaction_isolation_level
+    self.default_transaction_isolation_level = isolation_level
+    yield
+  ensure
+    self.default_transaction_isolation_level = original_level
   end
 end
 

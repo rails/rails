@@ -77,11 +77,11 @@ module Another
     end
 
     def with_exception
-      raise Exception
+      raise Exception, "Oopsie"
     end
 
     def with_rescued_exception
-      raise SpecialException
+      raise SpecialException, "Oops"
     end
 
     def with_action_not_found
@@ -154,6 +154,13 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Filter chain halted as :redirector rendered or redirected", logs.third
   end
 
+  def test_rescue_from_callback
+    get :with_rescued_exception
+    wait
+    assert_equal 3, logs.size
+    assert_match "rescue_from handled Another::LogSubscribersController::SpecialException", logs.second
+  end
+
   def test_process_action
     get :show
     wait
@@ -173,7 +180,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
   end
 
   def test_multiple_process_with_parameters
@@ -183,8 +190,8 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 6, logs.size
-    assert_equal 'Parameters: {"id"=>"10"}', logs[1]
-    assert_equal 'Parameters: {"id"=>"20"}', logs[4]
+    assert_equal "Parameters: #{{ "id" => "10" }}", logs[1]
+    assert_equal "Parameters: #{{ "id" => "20" }}", logs[4]
   end
 
   def test_process_action_with_wrapped_parameters
@@ -193,7 +200,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     assert_equal 3, logs.size
-    assert_match '"person"=>{"name"=>"jose"}', logs[1]
+    assert_match({ "person" => { "name" => "jose" } }.inspect[1..-2], logs[1])
   end
 
   def test_process_action_with_view_runtime
@@ -242,9 +249,9 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
 
     params = logs[1]
-    assert_match(/"amount"=>"\[FILTERED\]"/, params)
-    assert_match(/"lifo"=>"\[FILTERED\]"/, params)
-    assert_match(/"step"=>"1"/, params)
+    assert_match({ "amount" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "lifo" => "[FILTERED]" }.inspect[1..-2], params)
+    assert_match({ "step" => "1" }.inspect[1..-2], params)
   end
 
   def test_redirect_to
@@ -308,6 +315,22 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 3, logs.size
     assert_equal "Redirected to [FILTERED]", logs[1]
+  end
+
+  def test_verbose_redirect_logs
+    old_cleaner = ActionController::LogSubscriber.backtrace_cleaner
+    ActionController::LogSubscriber.backtrace_cleaner = ActionController::LogSubscriber.backtrace_cleaner.dup
+    ActionController::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
+    ActionDispatch.verbose_redirect_logs = true
+
+    get :redirector
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/↳ #{__FILE__}/, logs[2])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+    ActionController::LogSubscriber.backtrace_cleaner = old_cleaner
   end
 
   def test_send_data
@@ -406,7 +429,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_rescued_exception
     wait
 
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed 406/, logs.last)
   end
 

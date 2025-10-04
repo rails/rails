@@ -113,6 +113,11 @@ module ActiveSupport
       end
     end
 
+    # Returns an `ActiveSupport::Logger` that has already been wrapped with tagged logging concern.
+    def self.logger(*args, **kwargs)
+      new ActiveSupport::Logger.new(*args, **kwargs)
+    end
+
     def self.new(logger)
       logger = logger.clone
 

@@ -70,9 +70,9 @@ module ActiveRecord
         five = columns.detect { |c| c.name == "five" } unless mysql
 
         assert_equal "hello", one.default
-        assert_equal true, connection.lookup_cast_type_from_column(two).deserialize(two.default)
-        assert_equal false, connection.lookup_cast_type_from_column(three).deserialize(three.default)
-        assert_equal "1", four.default
+        assert_equal true, two.fetch_cast_type(connection).deserialize(two.default)
+        assert_equal false, three.fetch_cast_type(connection).deserialize(three.default)
+        assert_equal 1, four.default
         assert_equal "hello", five.default unless mysql
       end
 
@@ -467,8 +467,22 @@ module ActiveRecord
         assert_not connection.table_exists?(:testings)
       end
 
+      def test_drop_tables_if_exists
+        connection.create_table(:testings)
+        connection.create_table(:sobrinho)
+        assert connection.table_exists?(:testings)
+        assert connection.table_exists?(:sobrinho)
+        connection.drop_table(:testings, :sobrinho, if_exists: true)
+        assert_not connection.table_exists?(:testings)
+        assert_not connection.table_exists?(:sobrinho)
+      end
+
       def test_drop_table_if_exists_nothing_raised
         assert_nothing_raised { connection.drop_table(:nonexistent, if_exists: true) }
+      end
+
+      def test_drop_tables_if_exists_nothing_raised
+        assert_nothing_raised { connection.drop_table(:nonexistent, :nonexistent_sobrinho, if_exists: true) }
       end
 
       private

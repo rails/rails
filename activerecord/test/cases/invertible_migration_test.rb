@@ -19,6 +19,7 @@ module ActiveRecord
           t.column :content, :text
           t.column :remind_at, :datetime
           t.column :place_id, :integer
+          t.column :parent_id, :bigint
         end
       end
     end
@@ -153,6 +154,14 @@ module ActiveRecord
       end
     end
 
+    class DropTableMigration < SilentMigration
+      def change
+        drop_table("horses") do |t|
+          t.string :name
+        end
+      end
+    end
+
     class LegacyMigration < ActiveRecord::Migration::Current
       def self.up
         create_table("horses") do |t|
@@ -217,6 +226,24 @@ module ActiveRecord
       def change
         add_column :horses, :oldie, :integer, default: 0
         up_only { execute "update horses set oldie = 1" }
+      end
+    end
+
+    class RevertUniqueConstraintWithInvalidOption < SilentMigration
+      def change
+        add_unique_constraint :horses, :place_id, invalid: :option
+      end
+    end
+
+    class RevertForeignKeyWithInvalidOption < SilentMigration
+      def change
+        add_foreign_key :horses, :horses, column: :parent_id, invalid: :option
+      end
+    end
+
+    class RevertCheckConstraintWithInvalidOption < SilentMigration
+      def change
+        add_check_constraint :horses, "place_id > 0", invalid: :option
       end
     end
 
@@ -414,6 +441,20 @@ module ActiveRecord
       end
     end
 
+    def test_migrate_revert_drop_table
+      connection = ActiveRecord::Base.lease_connection
+      migration1 = InvertibleMigration.new
+      migration1.migrate(:up)
+      assert connection.table_exists?("horses")
+
+      migration2 = DropTableMigration.new
+      migration2.migrate(:up)
+      assert_not connection.table_exists?("horses")
+
+      migration2.migrate(:down)
+      assert connection.table_exists?("horses")
+    end
+
     def test_revert_order
       block = Proc.new { |t| t.string :name }
       recorder = ActiveRecord::Migration::CommandRecorder.new(ActiveRecord::Base.lease_connection)
@@ -525,6 +566,43 @@ module ActiveRecord
       connection = ActiveRecord::Base.lease_connection
       assert_not connection.column_exists?(:horses, :oldie)
       Horse.reset_column_information
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_unique_constraints?
+      def test_migrate_revert_add_unique_constraint_with_invalid_option
+        InvertibleMigration.new.migrate(:up)
+        RevertUniqueConstraintWithInvalidOption.new.migrate(:up)
+
+        connection = ActiveRecord::Base.lease_connection
+        assert_equal 1, connection.unique_constraints(:horses).count
+
+        RevertUniqueConstraintWithInvalidOption.new.migrate(:down)
+        assert_empty connection.unique_constraints(:horses)
+      end
+    end
+
+    def test_migrate_revert_add_foreign_key_with_invalid_option
+      InvertibleMigration.new.migrate(:up)
+      RevertForeignKeyWithInvalidOption.new.migrate(:up)
+
+      connection = ActiveRecord::Base.lease_connection
+      assert_equal 1, connection.foreign_keys(:horses).count
+
+      RevertForeignKeyWithInvalidOption.new.migrate(:down)
+      assert_empty connection.foreign_keys(:horses)
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_check_constraints?
+      def test_migrate_revert_add_check_constraint_with_invalid_option
+        InvertibleMigration.new.migrate(:up)
+        RevertCheckConstraintWithInvalidOption.new.migrate(:up)
+
+        connection = ActiveRecord::Base.lease_connection
+        assert_equal 1, connection.check_constraints(:horses).count
+
+        RevertCheckConstraintWithInvalidOption.new.migrate(:down)
+        assert_empty connection.check_constraints(:horses)
+      end
     end
   end
 end

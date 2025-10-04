@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Using Rails for API-only Applications
 =====================================
@@ -379,6 +379,7 @@ file.
 
 If your front-end server supports accelerated file sending, `Rack::Sendfile`
 will offload the actual file sending work to the front-end server.
+This enables Rails to finish request handling and free resources earlier.
 
 You can configure the name of the header that your front-end server uses for
 this purpose using [`config.action_dispatch.x_sendfile_header`][] in the appropriate
@@ -386,7 +387,7 @@ environment's configuration file.
 
 You can learn more about how to use `Rack::Sendfile` with popular
 front-ends in [the Rack::Sendfile
-documentation](https://www.rubydoc.info/gems/rack/Rack/Sendfile).
+documentation](https://rack.github.io/rack/main/Rack/Sendfile.html).
 
 Here are some values for this header for some popular servers, once these servers are configured to support
 accelerated file sending:
@@ -412,17 +413,14 @@ format and make them available in your controller inside `params`.
 To use this, your client will need to make a request with JSON-encoded parameters
 and specify the `Content-Type` as `application/json`.
 
-Here's an example in jQuery:
+Here's an example:
 
 ```js
-jQuery.ajax({
-  type: 'POST',
-  url: '/people',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify({ person: { firstName: "Yehuda", lastName: "Katz" } }),
-  success: function(json) { }
-});
+fetch('/people', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ person: { firstName: 'Yehuda', lastName: 'Katz' } })
+}).then(response => response.json())
 ```
 
 `ActionDispatch::Request` will see the `Content-Type` and your parameters
@@ -450,7 +448,7 @@ built (like `config/application.rb`) and pass them to your preferred middleware,
 
 ```ruby
 # This also configures session_options for use below
-config.session_store :cookie_store, key: '_your_app_session'
+config.session_store :cookie_store, key: "_your_app_session"
 
 # Required for all session management (regardless of session_store)
 config.middleware.use ActionDispatch::Cookies

@@ -67,14 +67,13 @@ module ActiveSupport # :nodoc:
       original_concat(value)
     end
 
-    def initialize(str = "")
-      @html_safe = true
+    def initialize(_str = "")
       super
     end
 
     def initialize_copy(other)
       super
-      @html_safe = other.html_safe?
+      @html_unsafe = true unless other.html_safe?
     end
 
     def concat(value)
@@ -116,7 +115,9 @@ module ActiveSupport # :nodoc:
     def *(_)
       new_string = super
       new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
-      new_safe_buffer.instance_variable_set(:@html_safe, @html_safe)
+      if @html_unsafe
+        new_safe_buffer.instance_variable_set(:@html_unsafe, true)
+      end
       new_safe_buffer
     end
 
@@ -131,12 +132,16 @@ module ActiveSupport # :nodoc:
       self.class.new(super(escaped_args))
     end
 
-    attr_reader :html_safe
-    alias_method :html_safe?, :html_safe
-    remove_method :html_safe
+    def html_safe?
+      @html_unsafe.nil?
+    end
 
     def to_s
       self
+    end
+
+    def as_json(*)
+      to_str
     end
 
     def to_param
@@ -155,7 +160,7 @@ module ActiveSupport # :nodoc:
           end                                       # end
 
           def #{unsafe_method}!(*args)              # def capitalize!(*args)
-            @html_safe = false                      #   @html_safe = false
+            @html_unsafe = true                     #   @html_unsafe = true
             super                                   #   super
           end                                       # end
         EOT
@@ -176,7 +181,7 @@ module ActiveSupport # :nodoc:
         end                                             # end
 
         def #{unsafe_method}!(*args, &block)            # def gsub!(*args, &block)
-          @html_safe = false                            #   @html_safe = false
+          @html_unsafe = true                           #   @html_unsafe = true
           if block                                      #   if block
             super(*args) { |*params|                    #     super(*args) { |*params|
               set_block_back_references(block, $~)      #       set_block_back_references(block, $~)
@@ -191,14 +196,14 @@ module ActiveSupport # :nodoc:
 
     private
       def explicit_html_escape_interpolated_argument(arg)
-        (!html_safe? || arg.html_safe?) ? arg : CGI.escapeHTML(arg.to_s)
+        (!html_safe? || arg.html_safe?) ? arg : ERB::Util.unwrapped_html_escape(arg)
       end
 
       def implicit_html_escape_interpolated_argument(arg)
         if !html_safe? || arg.html_safe?
           arg
         else
-          CGI.escapeHTML(arg.to_str)
+          ERB::Util.unwrapped_html_escape(arg.to_str)
         end
       end
 
@@ -210,7 +215,9 @@ module ActiveSupport # :nodoc:
 
       def string_into_safe_buffer(new_string, is_html_safe)
         new_safe_buffer = new_string.is_a?(SafeBuffer) ? new_string : SafeBuffer.new(new_string)
-        new_safe_buffer.instance_variable_set :@html_safe, is_html_safe
+        unless is_html_safe
+          new_safe_buffer.instance_variable_set :@html_unsafe, true
+        end
         new_safe_buffer
       end
   end

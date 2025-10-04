@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Multiple Databases with Active Record
 =====================================
@@ -86,6 +86,13 @@ production:
     replica: true
 ```
 
+Connection URLs for databases can also be configured using environment variables. The variable
+name is formed by concatenating the connection name with `_DATABASE_URL`. For example, setting
+`ANIMALS_DATABASE_URL="mysql2://username:password@host/database"` is merged into the `animals`
+configuration in `database.yml` in the `production` environment. See
+[Configuring a Database](configuring.html#configuring-a-database) for details about how the
+merging works.
+
 When using multiple databases, there are a few important settings.
 
 First, the database name for `primary` and `primary_replica` should be the same because they contain
@@ -138,7 +145,7 @@ class Person < PrimaryApplicationRecord
 end
 ```
 
-On the other hand, we need to setup our models persisted in the "animals" database:
+On the other hand, we need to set up our models persisted in the "animals" database:
 
 ```ruby
 class AnimalsRecord < ApplicationRecord
@@ -151,7 +158,7 @@ end
 Those models should inherit from that common abstract class:
 
 ```ruby
-class Car < AnimalsRecord
+class Dog < AnimalsRecord
   # Talks automatically to the animals database.
 end
 ```
@@ -212,7 +219,7 @@ db:setup:primary                   # Create the primary database, loads the sche
 
 Running a command like `bin/rails db:create` will create both the primary and animals databases.
 Note that there is no command for creating the database users, and you'll need to do that manually
-to support the readonly users for your replicas. If you want to create just the animals
+to support the read-only users for your replicas. If you want to create just the animals
 database you can run `bin/rails db:create:animals`.
 
 ## Connecting to Databases without Managing Schema and Migrations
@@ -295,8 +302,8 @@ use a different parent class.
 Finally, in order to use the read-only replica in your application, you'll need to activate
 the middleware for automatic switching.
 
-Automatic switching allows the application to switch from the writer to replica or replica
-to writer based on the HTTP verb and whether there was a recent write by the requesting user.
+Automatic switching allows the application to switch from the writer to the replica or the replica
+to the writer based on the HTTP verb and whether there was a recent write by the requesting user.
 
 If the application receives a POST, PUT, DELETE, or PATCH request, the application will
 automatically write to the writer database. If the request is not one of those methods,
@@ -328,7 +335,7 @@ to the replicas unless they wrote recently.
 
 The automatic connection switching in Rails is relatively primitive and deliberately doesn't
 do a whole lot. The goal is a system that demonstrates how to do automatic connection
-switching that was flexible enough to be customizable by app developers.
+switching that is flexible enough to be customizable by app developers.
 
 The setup in Rails allows you to easily change how the switching is done and what
 parameters it's based on. Let's say you want to use a cookie instead of a session to
@@ -392,7 +399,7 @@ using the connection specification name. This means that if you pass an unknown 
 like `connected_to(role: :nonexistent)` you will get an error that says
 `ActiveRecord::ConnectionNotEstablished (No connection pool for 'ActiveRecord::Base' found for the 'nonexistent' role.)`
 
-If you want Rails to ensure any queries performed are read only, pass `prevent_writes: true`.
+If you want Rails to ensure any queries performed are read-only, pass `prevent_writes: true`.
 This just prevents queries that look like writes from being sent to the database.
 You should also configure your replica database to run in read-only mode.
 
@@ -457,6 +464,9 @@ class ShardRecord < ApplicationRecord
     shard_two: { writing: :primary_shard_two, reading: :primary_shard_two_replica }
   }
 end
+
+class Person < ShardRecord
+end
 ```
 
 If you're using shards, make sure both `migrations_paths` and `schema_dump` remain unchanged for
@@ -472,13 +482,13 @@ Then models can swap shards manually via the `connected_to` API. If
 using sharding, both a `role` and a `shard` must be passed:
 
 ```ruby
-ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-  @id = Person.create! # Creates a record in shard named ":default"
+ShardRecord.connected_to(role: :writing, shard: :shard_one) do
+  @person = Person.create! # Creates a record in shard shard_one
 end
 
-ActiveRecord::Base.connected_to(role: :writing, shard: :shard_one) do
-  Person.find(@id) # Can't find record, doesn't exist because it was created
-                   # in the shard named ":default".
+ShardRecord.connected_to(role: :writing, shard: :shard_two) do
+  Person.find(@person.id) # Can't find record, doesn't exist because it was created
+                   # in the shard named ":shard_one".
 end
 ```
 
@@ -486,36 +496,25 @@ The horizontal sharding API also supports read replicas. You can swap the
 role and the shard with the `connected_to` API.
 
 ```ruby
-ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+ShardRecord.connected_to(role: :reading, shard: :shard_one) do
   Person.first # Lookup record from read replica of shard one.
 end
 ```
 
 ## Activating Automatic Shard Switching
 
-Applications are able to automatically switch shards per request using the provided
-middleware.
+Applications are able to automatically switch shards per request using the `ShardSelector`
+middleware, which allows an application to provide custom logic for determining the appropriate
+shard for each request.
 
-The `ShardSelector` middleware provides a framework for automatically
-swapping shards. Rails provides a basic framework to determine which
-shard to switch to and allows for applications to write custom strategies
-for swapping if needed.
-
-`ShardSelector` takes a set of options (currently only `lock` is supported)
-that can be used by the middleware to alter behavior. `lock` is
-true by default and will prohibit the request from switching shards once
-inside the block. If `lock` is false, then shard swapping will be allowed.
-For tenant based sharding, `lock` should always be true to prevent application
-code from mistakenly switching between tenants.
-
-The same generator as the database selector can be used to generate the file for
-automatic shard swapping:
+The same generator used for the database selector above can be used to generate an initializer file
+for automatic shard swapping:
 
 ```bash
 $ bin/rails g active_record:multi_db
 ```
 
-Then in the generated `config/initializers/multi_db.rb` uncomment the following:
+Then in the generated `config/initializers/multi_db.rb` uncomment and modify the following code:
 
 ```ruby
 Rails.application.configure do
@@ -524,8 +523,8 @@ Rails.application.configure do
 end
 ```
 
-Applications must provide the code for the resolver as it depends on application
-specific models. An example resolver would look like this:
+Applications must provide a resolver to provide application-specific logic. An example resolver that
+uses a subdomain to determine the shard might look like this:
 
 ```ruby
 config.active_record.shard_resolver = ->(request) {
@@ -534,6 +533,25 @@ config.active_record.shard_resolver = ->(request) {
   tenant.shard
 }
 ```
+
+The behavior of `ShardSelector` can be altered through some configuration options.
+
+`lock` is true by default and will prohibit the request from switching shards during the request. If
+`lock` is false, then shard swapping will be allowed. For tenant-based sharding, `lock` should
+always be true to prevent application code from mistakenly switching between tenants.
+
+`class_name` is the name of the abstract connection class to switch. By default, the `ShardSelector`
+will use `ActiveRecord::Base`, but if the application has multiple databases, then this option
+should be set to the name of the sharded database's abstract connection class.
+
+Options may be set in the application configuration. For example, this configuration tells
+`ShardSelector` to switch shards using `AnimalsRecord.connected_to`:
+
+
+``` ruby
+config.active_record.shard_selector = { lock: true, class_name: "AnimalsRecord" }
+```
+
 
 ## Granular Database Connection Switching
 

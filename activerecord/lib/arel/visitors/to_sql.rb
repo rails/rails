@@ -35,6 +35,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -48,6 +49,7 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -75,13 +77,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Exists(o, collector)
           collector << "EXISTS ("
-          collector = visit(o.expressions, collector) << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          visit(o.expressions, collector) << ")"
         end
 
         def visit_Arel_Nodes_Casted(o, collector)
@@ -388,13 +384,7 @@ module Arel # :nodoc: all
           collector << o.name
           collector << "("
           collector << "DISTINCT " if o.distinct
-          collector = inject_join(o.expressions, collector, ", ") << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          inject_join(o.expressions, collector, ", ") << ")"
         end
 
         def visit_Arel_Nodes_Extract(o, collector)
@@ -763,7 +753,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
           collector.preparable = false
-          collector.retryable = o.retryable
+          collector.retryable &&= o.retryable
           collector << o.to_s
         end
 
@@ -998,13 +988,7 @@ module Arel # :nodoc: all
           if o.distinct
             collector << "DISTINCT "
           end
-          collector = inject_join(o.expressions, collector, ", ") << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          inject_join(o.expressions, collector, ", ") << ")"
         end
 
         def is_distinct_from(o, collector)

@@ -6,7 +6,6 @@ require "irb/command"
 module Rails
   class Console
     class RailsHelperBase < IRB::HelperMethod::Base
-      include ConsoleMethods
     end
 
     class ControllerHelper < RailsHelperBase
@@ -32,6 +31,7 @@ module Rails
 
       def execute(*)
         app = Rails.application
+        app.reload_routes_unless_loaded
         session = ActionDispatch::Integration::Session.new(app)
 
         # This makes app.url_for and app.foo_path available in the console
@@ -51,13 +51,10 @@ module Rails
       end
     end
 
-    class Reloader < IRB::Command::Base
-      include ConsoleMethods
-
-      category "Rails console"
+    class ReloadHelper < RailsHelperBase
       description "Reloads the Rails application."
 
-      def execute(*)
+      def execute
         puts "Reloading..."
         Rails.application.reloader.reload!
       end
@@ -67,7 +64,7 @@ module Rails
     IRB::HelperMethod.register(:controller, ControllerInstance)
     IRB::HelperMethod.register(:new_session, NewSession)
     IRB::HelperMethod.register(:app, AppInstance)
-    IRB::Command.register(:reload!, Reloader)
+    IRB::HelperMethod.register(:reload!, ReloadHelper)
 
     class IRBConsole
       def initialize(app)
@@ -90,12 +87,13 @@ module Rails
 
         env = colorized_env
         prompt_prefix = "%N(#{env})"
-        IRB.conf[:IRB_NAME] = @app.name
+        # Respect user's configured irb name.
+        IRB.conf[:IRB_NAME] = @app.name if IRB.conf[:IRB_NAME] == "irb"
 
         IRB.conf[:PROMPT][:RAILS_PROMPT] = {
-          PROMPT_I: "#{prompt_prefix}> ",
-          PROMPT_S: "#{prompt_prefix}%l ",
-          PROMPT_C: "#{prompt_prefix}* ",
+          PROMPT_I: "#{prompt_prefix}:%03n> ",
+          PROMPT_S: "#{prompt_prefix}:%03n%l ",
+          PROMPT_C: "#{prompt_prefix}:%03n* ",
           RETURN: "=> %s\n"
         }
 
@@ -109,10 +107,6 @@ module Rails
             Rails.backtrace_cleaner.filter(backtrace)
           end
         end
-
-        # Because some users/libs use Rails::ConsoleMethods to extend Rails console,
-        # we still include it for backward compatibility.
-        IRB::ExtendCommandBundle.include ConsoleMethods
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT
@@ -128,7 +122,7 @@ module Rails
         when "production"
           IRB::Color.colorize("prod", [:RED])
         else
-          Rails.env
+          IRB::Color.colorize(Rails.env, [:MAGENTA])
         end
       end
     end

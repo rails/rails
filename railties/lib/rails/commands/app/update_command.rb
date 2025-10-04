@@ -12,6 +12,9 @@ module Rails
 
         desc "update", "Update configs and some other initially generated files (or use just update:configs or update:bin)"
         def perform
+          require_application!
+          Rails.application.deprecators.silenced = true
+
           configs
           bin
           public_directory
@@ -70,24 +73,18 @@ module Rails
               skip_action_text:    !defined?(ActionText::Engine),
               skip_action_cable:   !defined?(ActionCable::Engine),
               skip_brakeman:       skip_gem?("brakeman"),
+              skip_bundler_audit:  skip_gem?("bundler-audit"),
               skip_rubocop:        skip_gem?("rubocop"),
+              skip_thruster:       skip_gem?("thruster"),
               skip_test:           !defined?(Rails::TestUnitRailtie),
               skip_system_test:    Rails.application.config.generators.system_tests.nil?,
-              asset_pipeline:      asset_pipeline,
               skip_asset_pipeline: asset_pipeline.nil?,
               skip_bootsnap:       !defined?(Bootsnap),
             }.merge(options)
           end
 
           def asset_pipeline
-            case
-            when defined?(Sprockets::Railtie)
-              "sprockets"
-            when defined?(Propshaft::Railtie)
-              "propshaft"
-            else
-              nil
-            end
+            "propshaft" if defined?(Propshaft::Railtie)
           end
 
           def skip_gem?(gem_name)

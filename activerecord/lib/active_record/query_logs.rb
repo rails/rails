@@ -28,6 +28,10 @@ module ActiveRecord
   # * +database+
   # * +source_location+
   #
+  # WARNING: Calculating the +source_location+ of a query can be slow, so you should consider its impact if using it in a production environment.
+  #
+  # Also see {config.active_record.verbose_query_logs}[https://guides.rubyonrails.org/debugging_rails_applications.html#verbose-query-logs].
+  #
   # Action Controller adds default tags when loaded:
   #
   # * +controller+
@@ -65,7 +69,7 @@ module ActiveRecord
   #
   # Tag comments can be prepended to the query:
   #
-  #    ActiveRecord::QueryLogs.prepend_comment = true
+  #     config.active_record.query_log_tags_prepend_comment = true
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
@@ -152,18 +156,8 @@ module ActiveRecord
         self.cached_comment = nil
       end
 
-      if Thread.respond_to?(:each_caller_location)
-        def query_source_location # :nodoc:
-          Thread.each_caller_location do |location|
-            frame = LogSubscriber.backtrace_cleaner.clean_frame(location.path)
-            return frame if frame
-          end
-          nil
-        end
-      else
-        def query_source_location # :nodoc:
-          LogSubscriber.backtrace_cleaner.clean(caller_locations(1).each).first
-        end
+      def query_source_location # :nodoc:
+        LogSubscriber.backtrace_cleaner.first_clean_frame
       end
 
       ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
@@ -217,7 +211,7 @@ module ActiveRecord
         end
 
         def escape_sql_comment(content)
-          # Sanitize a string to appear within a SQL comment
+          # Sanitize a string to appear within an SQL comment
           # For compatibility, this also surrounding "/*+", "/*", and "*/"
           # characters, possibly with single surrounding space.
           # Then follows that by replacing any internal "*/" or "/ *" with

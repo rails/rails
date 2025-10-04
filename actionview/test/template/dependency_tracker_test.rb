@@ -118,6 +118,29 @@ module SharedTrackerTests
     assert_equal [], tracker.dependencies
   end
 
+  def test_finds_no_dependency_when_render_is_not_a_ruby_call
+    template = FakeTemplate.new("<div class='render foo'>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal [], tracker.dependencies
+  end
+
+  def test_find_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["single/quote"], tracker.dependencies
+  end
+
+  def test_find_all_dependencies_and_respect_erb_tag_boundaries
+    template = FakeTemplate.new("<p>Hello</p> <%=
+      render object: @all_posts,
+             partial: 'posts' %> <% link_to abc %> <%= render 'single/quote' %>", :erb)
+    tracker = make_tracker("resources/_resource", template)
+
+    assert_equal ["resources/posts", "single/quote"], tracker.dependencies
+  end
+
   def test_finds_dependency_on_multiline_render_calls
     template = FakeTemplate.new("<%=
       render object: @all_posts,
@@ -234,6 +257,31 @@ module SharedTrackerTests
     tracker = make_tracker("interpolation/_string", template, view_paths)
 
     assert_equal ["events/_completed", "events/_event", "events/index"], tracker.dependencies
+  end
+
+  def test_dependencies_with_interpolation_non_trailing
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "#{type}/comments" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    assert_equal [ "*/comments" ], tracker.dependencies
+  end
+
+  def test_dependencies_with_interpolation_expr
+    view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
+
+    template = FakeTemplate.new(%q{
+      <%= render "orders/#{variable || "default"}" %>
+    }, :erb)
+
+    tracker = make_tracker("interpolation/_string", template, view_paths)
+
+    # unsupported
+    assert_equal [], tracker.dependencies
   end
 end
 

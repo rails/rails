@@ -55,7 +55,7 @@ module ActionDispatch
         def scan
           next_byte = @scanner.peek_byte
           case
-          when (token = STATIC_TOKENS[next_byte])
+          when (token = STATIC_TOKENS[next_byte]) && (token != :SYMBOL || next_byte_is_not_a_token?)
             @scanner.pos += 1
             @length = @scanner.skip(/\w+/).to_i + 1 if token == :SYMBOL || token == :STAR
             token
@@ -64,6 +64,10 @@ module ActionDispatch
           when @length = @scanner.skip(/./)
             :LITERAL
           end
+        end
+
+        def next_byte_is_not_a_token?
+          !STATIC_TOKENS[@scanner.string.getbyte(@scanner.pos + 1)]
         end
     end
   end

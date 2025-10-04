@@ -63,6 +63,114 @@ module ActionDispatch
             success
           end
         end
+
+        def cache_control_directives
+          @cache_control_directives ||= CacheControlDirectives.new(get_header("HTTP_CACHE_CONTROL"))
+        end
+
+        # Represents the HTTP Cache-Control header for requests,
+        # providing methods to access various cache control directives
+        # Reference: https://www.rfc-editor.org/rfc/rfc9111.html#name-request-directives
+        class CacheControlDirectives
+          def initialize(cache_control_header)
+            @only_if_cached = false
+            @no_cache = false
+            @no_store = false
+            @no_transform = false
+            @max_age = nil
+            @max_stale = nil
+            @min_fresh = nil
+            @stale_if_error = false
+            parse_directives(cache_control_header)
+          end
+
+          # Returns true if the only-if-cached directive is present.
+          # This directive indicates that the client only wishes to obtain a
+          # stored response. If a valid stored response is not available,
+          # the server should respond with a 504 (Gateway Timeout) status.
+          def only_if_cached?
+            @only_if_cached
+          end
+
+          # Returns true if the no-cache directive is present.
+          # This directive indicates that a cache must not use the response
+          # to satisfy subsequent requests without successful validation on the origin server.
+          def no_cache?
+            @no_cache
+          end
+
+          # Returns true if the no-store directive is present.
+          # This directive indicates that a cache must not store any part of the
+          # request or response.
+          def no_store?
+            @no_store
+          end
+
+          # Returns true if the no-transform directive is present.
+          # This directive indicates that a cache or proxy must not transform the payload.
+          def no_transform?
+            @no_transform
+          end
+
+          # Returns the value of the max-age directive.
+          # This directive indicates that the client is willing to accept a response
+          # whose age is no greater than the specified number of seconds.
+          attr_reader :max_age
+
+          # Returns the value of the max-stale directive.
+          # When max-stale is present with a value, returns that integer value.
+          # When max-stale is present without a value, returns true (unlimited staleness).
+          # When max-stale is not present, returns nil.
+          attr_reader :max_stale
+
+          # Returns true if max-stale directive is present (with or without a value)
+          def max_stale?
+            !@max_stale.nil?
+          end
+
+          # Returns true if max-stale directive is present without a value (unlimited staleness)
+          def max_stale_unlimited?
+            @max_stale == true
+          end
+
+          # Returns the value of the min-fresh directive.
+          # This directive indicates that the client is willing to accept a response
+          # whose freshness lifetime is no less than its current age plus the specified time in seconds.
+          attr_reader :min_fresh
+
+          # Returns the value of the stale-if-error directive.
+          # This directive indicates that the client is willing to accept a stale response
+          # if the check for a fresh one fails with an error for the specified number of seconds.
+          attr_reader :stale_if_error
+
+          private
+            def parse_directives(header_value)
+              return unless header_value
+
+              header_value.delete(" ").downcase.split(",").each do |directive|
+                name, value = directive.split("=", 2)
+
+                case name
+                when "max-age"
+                  @max_age = value.to_i
+                when "min-fresh"
+                  @min_fresh = value.to_i
+                when "stale-if-error"
+                  @stale_if_error = value.to_i
+                when "no-cache"
+                  @no_cache = true
+                when "no-store"
+                  @no_store = true
+                when "no-transform"
+                  @no_transform = true
+                when "only-if-cached"
+                  @only_if_cached = true
+                when "max-stale"
+                  @max_stale = value ? value.to_i : true
+                end
+              end
+            end
+        end
       end
 
       module Response
@@ -142,7 +250,7 @@ module ActionDispatch
       private
         DATE          = "Date"
         LAST_MODIFIED = "Last-Modified"
-        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate])
+        SPECIAL_KEYS  = Set.new(%w[extras no-store no-cache max-age public private must-revalidate must-understand])
 
         def generate_weak_etag(validators)
           "W/#{generate_strong_etag(validators)}"
@@ -187,6 +295,7 @@ module ActionDispatch
         PRIVATE               = "private"
         MUST_REVALIDATE       = "must-revalidate"
         IMMUTABLE             = "immutable"
+        MUST_UNDERSTAND       = "must-understand"
 
         def handle_conditional_get!
           # Normally default cache control setting is handled by ETag middleware. But, if
@@ -221,6 +330,7 @@ module ActionDispatch
 
           if control[:no_store]
             options << PRIVATE if control[:private]
+            options << MUST_UNDERSTAND if control[:must_understand]
             options << NO_STORE
           elsif control[:no_cache]
             options << PUBLIC if control[:public]

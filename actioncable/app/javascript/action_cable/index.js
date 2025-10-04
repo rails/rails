@@ -1,12 +1,12 @@
+import adapters from "./adapters"
 import Connection from "./connection"
 import ConnectionMonitor from "./connection_monitor"
 import Consumer, { createWebSocketURL } from "./consumer"
 import INTERNAL from "./internal"
-import Subscription from "./subscription"
-import Subscriptions from "./subscriptions"
-import SubscriptionGuarantor from "./subscription_guarantor"
-import adapters from "./adapters"
 import logger from "./logger"
+import Subscription from "./subscription"
+import SubscriptionGuarantor from "./subscription_guarantor"
+import Subscriptions from "./subscriptions"
 
 export {
   Connection,

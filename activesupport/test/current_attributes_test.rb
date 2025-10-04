@@ -66,9 +66,6 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     attribute :current, :previous
   end
 
-  # Eagerly set-up `instance`s by reference.
-  [ Current.instance, Session.instance ]
-
   # Use library specific minitest hook to catch Time.zone before reset is called via TestHelper
   def before_setup
     @original_time_zone = Time.zone
@@ -247,11 +244,110 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_level
   end
 
+  test "CurrentAttributes doesn't populate #attributes when not using defaults" do
+    assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
+  end
+
+  test "#attributes returns different objects each time" do
+    assert_not_same Current.attributes, Current.attributes
+  end
+
   test "CurrentAttributes restricted attribute names" do
     assert_raises ArgumentError, match: /Restricted attribute names: reset, set/ do
       class InvalidAttributeNames < ActiveSupport::CurrentAttributes
         attribute :reset, :foo, :set
       end
+    end
+  end
+
+  test "method_added hook doesn't reach the instance. Fix for #54646" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def foo; end # Sets the cache because of a `method_added` hook
+
+      attribute :bar, default: {}
+    end
+
+    assert_instance_of(Hash, current.bar)
+  end
+
+  test "instance delegators are eagerly defined" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      def regular
+        :regular
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert current.singleton_class.method_defined?(:attr)
+    assert current.singleton_class.method_defined?(:attr=)
+    assert current.singleton_class.method_defined?(:regular)
+  end
+
+  test "attribute delegators have precise signature" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute :attr, default: :att
+    end
+
+    assert_equal [], current.method(:attr).parameters
+    assert_equal [[:req, :value]], current.method(:attr=).parameters
+  end
+
+
+  test "set and restore attributes when re-entering the executor" do
+    ActiveSupport::ExecutionContext.with(nestable: true) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+
+      executor.to_complete do
+        ActiveSupport::CurrentAttributes.clear_all
+        ActiveSupport::ExecutionContext.pop
+      end
+
+      Current.world = "world/1"
+      Current.account = "account/1"
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
+
+      Current.set(world: "world/2", account: "account/2") do
+        assert_equal "world/2", Current.world
+        assert_equal "account/2", Current.account
+
+        executor.wrap do
+          assert_nil Current.world
+          assert_nil Current.account
+
+          Current.world = "world/3"
+          Current.account = "account/3"
+
+          assert_equal "world/3", Current.world
+          assert_equal "account/3", Current.account
+
+          ActiveSupport::CurrentAttributes.clear_all
+
+          assert_nil Current.world
+          assert_nil Current.account
+        end
+      end
+
+      assert_equal "world/1", Current.world
+      assert_equal "account/1", Current.account
     end
   end
 end

@@ -41,7 +41,7 @@ module ActiveModel
       #
       # Finally, a password reset token that's valid for 15 minutes after issue
       # is automatically configured when +reset_token+ is set to true (which it is by default)
-      # and the object reponds to +generates_token_for+ (which Active Records do).
+      # and the object responds to +generates_token_for+ (which Active Records do).
       #
       # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
       #
@@ -155,7 +155,7 @@ module ActiveModel
             end
           end
 
-          validates_confirmation_of attribute, allow_blank: true
+          validates_confirmation_of attribute, allow_nil: true
         end
 
         # Only generate tokens for records that are capable of doing so (Active Records, not vanilla Active Models)
@@ -228,4 +228,6 @@ module ActiveModel
       end
     end
   end
+
+  ActiveSupport.run_load_hooks(:active_model_secure_password, SecurePassword)
 end

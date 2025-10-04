@@ -56,9 +56,14 @@ module ActionDispatch
 
       # Returns the MIME type for the format used in the request.
       #
-      #     GET /posts/5.xml   | request.format => Mime[:xml]
-      #     GET /posts/5.xhtml | request.format => Mime[:html]
-      #     GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
+      #     # GET /posts/5.xml
+      #     request.format # => Mime[:xml]
+      #
+      #     # GET /posts/5.xhtml
+      #     request.format # => Mime[:html]
+      #
+      #     # GET /posts/5
+      #     request.format # => Mime[:html] or Mime[:js], or request.accepts.first
       #
       def format(_view_path = nil)
         formats.first || Mime::NullType.instance

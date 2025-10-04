@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
+require "rack/test"
 
 module Rails
   class Engine
@@ -9,6 +10,9 @@ module Rails
 
       setup :build_app
       teardown :teardown_app
+
+      class UsersController < ActionController::Base
+      end
 
       test "app lazily loads routes when invoking url helpers" do
         require "#{app_path}/config/environment"
@@ -48,6 +52,26 @@ module Rails
         assert_equal(200, response.first)
       end
 
+      test "app lazily loads routes when polymorphic_url is called" do
+        app_file "test/integration/my_test.rb", <<~RUBY
+          require "test_helper"
+
+          class MyTest < ActionDispatch::IntegrationTest
+            test "polymorphic_url works" do
+              puts polymorphic_url(Comment.new)
+            end
+          end
+        RUBY
+
+        app_file "app/models/comment.rb", <<~RUBY
+          class Comment
+          end
+        RUBY
+
+        output = rails("test", "test/integration/my_test.rb")
+        assert_match("https://example.org", output)
+      end
+
       test "engine lazily loads routes when making a request" do
         require "#{app_path}/config/environment"
 
@@ -63,11 +87,11 @@ module Rails
 
         @app = Rails.application
 
-        assert_not_operator(:users_path, :in?, app_url_helpers.methods)
-        assert_equal "/users", app_url_helpers.url_for(
-          controller: :users, action: :index, only_path: true,
+        assert_not_operator(:products_path, :in?, app_url_helpers.methods)
+        assert_equal "/products", app_url_helpers.url_for(
+          controller: :products, action: :index, only_path: true,
         )
-        assert_operator(:users_path, :in?, app_url_helpers.methods)
+        assert_operator(:products_path, :in?, app_url_helpers.methods)
       end
 
       test "engine lazily loads routes when url_for is used" do
@@ -97,6 +121,27 @@ module Rails
         assert_operator(Rails.application.routes, :is_a?, Engine::LazyRouteSet)
       end
 
+      test "reloads routes when recognize_path is called" do
+        require "#{app_path}/config/environment"
+
+        assert_equal(
+          { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
+          Rails.application.routes.recognize_path("/users")
+        )
+      end
+
+      test "reloads routes when recognize_path_with_request is called" do
+        require "#{app_path}/config/environment"
+
+        path = "/users"
+        req = ActionDispatch::Request.new(::Rack::MockRequest.env_for(path))
+
+        assert_equal(
+          { controller: "rails/engine/lazy_route_set_test/users", action: "index" },
+          Rails.application.routes.recognize_path_with_request(req, path, {})
+        )
+      end
+
       private
         def build_app
           super
@@ -110,7 +155,9 @@ module Rails
             Rails.application.routes.draw do
               root to: proc { [200, {}, []] }
 
-              resources(:users)
+              resources :products
+              resources :users, module: "rails/engine/lazy_route_set_test"
+              resolve("Comment") { "https://example.org" }
 
               mount Plugin::Engine, at: "/plugin"
             end

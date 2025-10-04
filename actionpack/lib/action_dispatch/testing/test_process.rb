@@ -9,8 +9,7 @@ module ActionDispatch
   module TestProcess
     module FixtureFile
       # Shortcut for
-      # `Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.file_f
-      # ixture_path, path), type)`:
+      # `Rack::Test::UploadedFile.new(File.join(ActionDispatch::IntegrationTest.file_fixture_path, path), type)`:
       #
       #     post :change_avatar, params: { avatar: file_fixture_upload('david.png', 'image/png') }
       #

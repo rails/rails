@@ -333,6 +333,34 @@ class RequestDomain < BaseRequestTest
   end
 end
 
+class RequestDomainExtractor < BaseRequestTest
+  module CustomExtractor
+    extend self
+
+    def domain_from(_, _)
+      "world"
+    end
+
+    def subdomains_from(_, _)
+      ["hello"]
+    end
+  end
+
+  setup { ActionDispatch::Http::URL.domain_extractor = CustomExtractor }
+
+  teardown { ActionDispatch::Http::URL.domain_extractor = ActionDispatch::Http::URL::DomainExtractor }
+
+  test "domain" do
+    request = stub_request "HTTP_HOST" => "foobar.foobar.com"
+    assert_equal "world", request.domain
+  end
+
+  test "subdomains" do
+    request = stub_request "HTTP_HOST" => "foobar.foobar.com"
+    assert_equal "hello", request.subdomain
+  end
+end
+
 class RequestPort < BaseRequestTest
   test "standard_port" do
     request = stub_request
@@ -1116,21 +1144,19 @@ class RequestParameters < BaseRequestTest
     end
   end
 
-  if Rack.release < "3"
-    test "parameters not accessible after rack parse error of invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo%81E=1")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
 
-    test "parameters containing an invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters key containing an invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "%81E=bar")
+    assert_raises(ActionController::BadRequest) { request.parameters }
+  end
 
-    test "parameters containing a deeply nested invalid UTF8 character" do
-      request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
-      assert_raises(ActionController::BadRequest) { request.parameters }
-    end
+  test "parameters containing a deeply nested invalid UTF8 character" do
+    request = stub_request("QUERY_STRING" => "foo[bar]=%81E")
+    assert_raises(ActionController::BadRequest) { request.parameters }
   end
 
   test "POST parameters containing invalid UTF8 character" do
@@ -1151,7 +1177,7 @@ class RequestParameters < BaseRequestTest
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1167,7 +1193,7 @@ class RequestParameters < BaseRequestTest
       :input => data
     )
 
-    ActionDispatch::Request::Utils.stub(:set_binary_encoding, { "foo" => "\x81E".b }) do
+    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1451,5 +1477,107 @@ class RequestSession < BaseRequestTest
 
     assert_not_predicate(ActionDispatch::Request::Session.find(@request), :enabled?)
     assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
+  end
+end
+
+class RequestCacheControlDirectives < BaseRequestTest
+  test "lazily initializes cache_control_directives" do
+    request = stub_request
+    assert_not_includes request.instance_variables, :@cache_control_directives
+
+    request.cache_control_directives
+    assert_includes request.instance_variables, :@cache_control_directives
+  end
+
+  test "only_if_cached? is true when only-if-cached is the sole directive" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "only-if-cached")
+    assert_predicate request.cache_control_directives, :only_if_cached?
+  end
+
+  test "only_if_cached? is true when only-if-cached appears among multiple directives" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-age=60, only-if-cached")
+    assert_predicate request.cache_control_directives, :only_if_cached?
+  end
+
+  test "only_if_cached? is false when Cache-Control header is missing" do
+    request = stub_request
+    assert_not_predicate request.cache_control_directives, :only_if_cached?
+  end
+
+  test "no_cache? properly detects the no-cache directive" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "no-cache")
+    assert_predicate request.cache_control_directives, :no_cache?
+  end
+
+  test "no_store? properly detects the no-store directive" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "no-store")
+    assert_predicate request.cache_control_directives, :no_store?
+  end
+
+  test "no_transform? properly detects the no-transform directive" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "no-transform")
+    assert_predicate request.cache_control_directives, :no_transform?
+  end
+
+  test "max_age properly returns the max-age directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-age=60")
+    assert_equal 60, request.cache_control_directives.max_age
+  end
+
+  test "max_stale properly returns the max-stale directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale=300")
+    assert_equal 300, request.cache_control_directives.max_stale
+  end
+
+  test "max_stale returns true when max-stale is present without a value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale")
+    assert_equal true, request.cache_control_directives.max_stale
+  end
+
+  test "max_stale? returns true when max-stale is present with or without a value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale=300")
+    assert_predicate request.cache_control_directives, :max_stale?
+
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale")
+    assert_predicate request.cache_control_directives, :max_stale?
+  end
+
+  test "max_stale? returns false when max-stale is not present" do
+    request = stub_request
+    assert_not_predicate request.cache_control_directives, :max_stale?
+  end
+
+  test "max_stale_unlimited? returns true only when max-stale is present without a value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale")
+    assert_predicate request.cache_control_directives, :max_stale_unlimited?
+
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-stale=300")
+    assert_not_predicate request.cache_control_directives, :max_stale_unlimited?
+
+    request = stub_request
+    assert_not_predicate request.cache_control_directives, :max_stale_unlimited?
+  end
+
+  test "min_fresh properly returns the min-fresh directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "min-fresh=120")
+    assert_equal 120, request.cache_control_directives.min_fresh
+  end
+
+  test "stale_if_error properly returns the stale-if-error directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "stale-if-error=600")
+    assert_equal 600, request.cache_control_directives.stale_if_error
+  end
+
+  test "handles Cache-Control header with whitespace and case insensitivity" do
+    request = stub_request("HTTP_CACHE_CONTROL" => " Max-Age=60 , No-Cache ")
+    assert_equal 60, request.cache_control_directives.max_age
+    assert_predicate request.cache_control_directives, :no_cache?
+  end
+
+  test "ignores unrecognized directives" do
+    request = stub_request("HTTP_CACHE_CONTROL" => "max-age=60, unknown-directive, foo=bar")
+    assert_equal 60, request.cache_control_directives.max_age
+    assert_not_predicate request.cache_control_directives, :no_cache?
+    assert_not_predicate request.cache_control_directives, :no_store?
   end
 end

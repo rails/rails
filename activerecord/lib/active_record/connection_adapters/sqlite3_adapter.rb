@@ -11,19 +11,38 @@ require "active_record/connection_adapters/sqlite3/schema_definitions"
 require "active_record/connection_adapters/sqlite3/schema_dumper"
 require "active_record/connection_adapters/sqlite3/schema_statements"
 
-gem "sqlite3", ">= 2.0"
+gem "sqlite3", ">= 2.1"
 require "sqlite3"
+
+# Suppress the warning that SQLite3 issues when open writable connections are carried across fork()
+SQLite3::ForkSafety.suppress_warnings!
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record SQLite3 Adapter
+    # = Active Record \SQLite3 Adapter
     #
-    # The SQLite3 adapter works with the sqlite3-ruby drivers
-    # (available as gem from https://rubygems.org/gems/sqlite3).
+    # The \SQLite3 adapter works with the sqlite3[https://sparklemotion.github.io/sqlite3-ruby/]
+    # driver.
     #
-    # Options:
+    # ==== Options
     #
-    # * <tt>:database</tt> - Path to the database file.
+    # * +:database+ (String): Filesystem path to the database file.
+    # * +:statement_limit+ (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)
+    # * +:timeout+ (Integer): Timeout in milliseconds to use when waiting for a lock. (default: no wait)
+    # * +:strict+ (Boolean): Enable or disable strict mode. When enabled, this will
+    #   {disallow double-quoted string literals in SQL
+    #   statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted].
+    #   (default: see strict_strings_by_default)
+    # * +:extensions+ (Array): (<b>requires sqlite3 v2.4.0</b>) Each entry specifies a sqlite extension
+    #   to load for this database. The entry may be a filesystem path, or the name of a class that
+    #   responds to +.to_path+ to provide the filesystem path for the extension. See {sqlite3-ruby
+    #   documentation}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#class-SQLite3::Database-label-SQLite+Extensions]
+    #   for more information.
+    #
+    # There may be other options available specific to the SQLite3 driver. Please read the
+    # documentation for
+    # {SQLite3::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
+    #
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
 
@@ -43,9 +62,13 @@ module ActiveRecord
 
           args << "-#{options[:mode]}" if options[:mode]
           args << "-header" if options[:header]
-          args << File.expand_path(config.database, Rails.respond_to?(:root) ? Rails.root : nil)
+          args << File.expand_path(config.database, defined?(Rails.root) ? Rails.root : nil)
 
           find_cmd_and_exec(ActiveRecord.database_cli[:sqlite], *args)
+        end
+
+        def native_database_types # :nodoc:
+          NATIVE_DATABASE_TYPES
         end
       end
 
@@ -55,12 +78,19 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # Configure the SQLite3Adapter to be used in a strict strings mode.
-      # This will disable double-quoted string literals, because otherwise typos can silently go unnoticed.
-      # For example, it is possible to create an index for a non existing column.
+      #
+      # Configure the SQLite3Adapter to be used in a "strict strings" mode. When enabled, this will
+      # {disallow double-quoted string literals in SQL
+      # statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted],
+      # which may prevent some typographical errors like creating an index for a non-existent
+      # column. The default is +false+.
+      #
       # If you wish to enable this mode you can add the following line to your application.rb file:
       #
       #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      #
+      # This can also be configured on individual databases by setting the +strict:+ option.
+      #
       class_attribute :strict_strings_by_default, default: false
 
       NATIVE_DATABASE_TYPES = {
@@ -119,13 +149,18 @@ module ActiveRecord
           end
         end
 
-        @last_affected_rows = nil
         @previous_read_uncommitted = nil
         @config[:strict] = ConnectionAdapters::SQLite3Adapter.strict_strings_by_default unless @config.key?(:strict)
+
+        extensions = @config.fetch(:extensions, []).map do |extension|
+          extension.safe_constantize || extension
+        end
+
         @connection_parameters = @config.merge(
           database: @config[:database].to_s,
           results_as_hash: true,
           default_transaction_mode: :immediate,
+          extensions: extensions
         )
       end
 
@@ -150,7 +185,7 @@ module ActiveRecord
       end
 
       def supports_expression_index?
-        database_version >= "3.9.0"
+        true
       end
 
       def requires_reloading?
@@ -178,7 +213,7 @@ module ActiveRecord
       end
 
       def supports_common_table_expressions?
-        database_version >= "3.8.3"
+        true
       end
 
       def supports_insert_returning?
@@ -204,7 +239,12 @@ module ActiveRecord
         !(@raw_connection.nil? || @raw_connection.closed?)
       end
 
-      alias_method :active?, :connected?
+      def active?
+        if connected?
+          verified!
+          true
+        end
+      end
 
       alias :reset! :reconnect!
 
@@ -219,10 +259,6 @@ module ActiveRecord
 
       def supports_index_sort_order?
         true
-      end
-
-      def native_database_types # :nodoc:
-        NATIVE_DATABASE_TYPES
       end
 
       # Returns the current database encoding format as a string, e.g. 'UTF-8'
@@ -301,7 +337,7 @@ module ActiveRecord
       # Creates a virtual table
       #
       # Example:
-      #   create_virtual_table :emails, :fts5, ['sender', 'title',' body']
+      #   create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
       def create_virtual_table(table_name, module_name, values)
         exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
       end
@@ -404,7 +440,7 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
 
-      FK_REGEX = /.*FOREIGN KEY\s+\("(\w+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
+      FK_REGEX = /.*FOREIGN KEY\s+\("([^"]+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
@@ -470,8 +506,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "3.8.0"
-          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.8."
+        if database_version < "3.23.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0."
         end
       end
 
@@ -527,6 +563,8 @@ module ActiveRecord
           # Binary columns
           when /x'(.*)'/
             [ $1 ].pack("H*")
+          when "TRUE", "FALSE"
+            default
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.
@@ -617,8 +655,8 @@ module ActiveRecord
                 column_options[:stored] = column.virtual_stored?
                 column_options[:type] = column.type
               elsif column.has_default?
-                type = lookup_cast_type_from_column(column)
-                default = type.deserialize(column.default)
+                # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
+                default = column.fetch_cast_type(self).deserialize(column.default)
                 default = -> { column.default_function } if default.nil?
 
                 unless column.auto_increment?
@@ -692,6 +730,8 @@ module ActiveRecord
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          elsif exception.message.match?(/CHECK constraint failed: .*/i)
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
           elsif exception.is_a?(::SQLite3::BusyException)
@@ -722,8 +762,6 @@ module ActiveRecord
             end
 
             basic_structure.map do |column|
-              column = column.to_h
-
               column_name = column["name"]
 
               if collation_hash.has_key? column_name
@@ -783,9 +821,9 @@ module ActiveRecord
 
         def table_info(table_name)
           if supports_virtual_columns?
-            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
           else
-            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
           end
         end
 
@@ -812,18 +850,10 @@ module ActiveRecord
         end
 
         def configure_connection
-          if @config[:timeout] && @config[:retries]
-            raise ArgumentError, "Cannot specify both timeout and retries arguments"
-          elsif @config[:timeout]
+          if @config[:timeout]
             timeout = self.class.type_cast_config_to_integer(@config[:timeout])
             raise TypeError, "timeout must be integer, not #{timeout}" unless timeout.is_a?(Integer)
             @raw_connection.busy_handler_timeout = timeout
-          elsif @config[:retries]
-            ActiveRecord.deprecator.warn(<<~MSG)
-              The retries option is deprecated and will be removed in Rails 8.1. Use timeout instead.
-            MSG
-            retries = self.class.type_cast_config_to_integer(@config[:retries])
-            raw_connection.busy_handler { |count| count <= retries }
           end
 
           super

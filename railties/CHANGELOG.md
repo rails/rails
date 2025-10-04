@@ -1,156 +1,169 @@
-*   Use [Solid Queue](https://github.com/rails/solid_queue) as the default Active Job backend in production, configured as a separate queue database in config/database.yml. In a single-server deployment, it'll run as a Puma plugin. This is configured in `config/deploy.yml` and can easily be changed to use a dedicated jobs machine.
+*   Don't generate system tests by default.
 
-    *DHH*
+    Rails scaffold generator will no longer generate system tests by default. To enable this pass `--system-tests=true` or generate them with `bin/rails generate system_test name_of_test`.
 
-*   Use [Solid Cache](https://github.com/rails/solid_cache) as the default Rails.cache backend in production, configured as a separate cache database in config/database.yml.
+    *Eileen M. Uchitelle*
 
-    *DHH*
+*   Optionally skip bundler-audit.
 
-*   Add Rails::Rack::SilenceRequest middleware and use it via `config.silence_healthcheck_path = path`
-    to silence requests to "/up". This prevents the Kamal-required healthchecks from clogging up
-    the production logs.
+    Skips adding the `bin/bundler-audit` & `config/bundler-audit.yml` if the gem is not installed when `bin/rails app:update` runs.
 
-    *DHH*
+    Passes an option to `--skip-bundler-audit` when new apps are generated & adds that same option to the `--minimal` generator flag.
 
-*   Introduce `mariadb-mysql` and `mariadb-trilogy` database options for `rails new`
+    *Jill Klang*
 
-    When used with the `--devcontainer` flag, these options will use `mariadb` as the database for the
-    Dev Container. The original `mysql` and `trilogy` options will use `mysql`. Users who are not
-    generating a Dev Container do not need to use the new options.
-
-    *Andrew Novoselac*
-
-*   Deprecate `::STATS_DIRECTORIES`.
-
-    The global constant `STATS_DIRECTORIES` has been deprecated in favor of
-    `Rails::CodeStatistics.register_directory`.
-
-    Add extra directories with `Rails::CodeStatistics.register_directory(label, path)`:
-
-    ```ruby
-    require "rails/code_statistics"
-    Rails::CodeStatistics.register_directory('My Directory', 'path/to/dir')
-    ```
+*   Show engine routes in `/rails/info/routes` as well.
 
     *Petrik de Heus*
 
-*   Enable query log tags by default on development env
+*   Exclude `asset_path` configuration from Kamal `deploy.yml` for API applications.
 
-    This can be used to trace troublesome SQL statements back to the application
-    code that generated these statements. It is also useful when using multiple
-    databases because the query logs can identify which database is being used.
+    API applications don't serve assets, so the `asset_path` configuration in `deploy.yml`
+    is not needed and can cause 404 errors on in-flight requests. The asset_path is now
+    only included for regular Rails applications that serve assets.
 
-    *Matheus Richard*
+    *Saiqul Haq*
 
-*   Defer route drawing to the first request, or when url_helpers are called
+*   Reverted the incorrect default `config.public_file_server.headers` config.
 
-    Executes the first routes reload in middleware, or when a route set's
-    url_helpers receives a route call / asked if it responds to a route.
-    Previously, this was executed unconditionally on boot, which can
-    slow down boot time unnecessarily for larger apps with lots of routes.
+    If you created a new application using Rails `8.1.0.beta1`, make sure to regenerate
+    `config/environments/production.rb`, or to manually edit the `config.public_file_server.headers`
+    configuration to just be:
 
-    Environments like production that have `config.eager_load = true` will
-    continue to eagerly load routes on boot.
-
-    *Gannon McGibbon*
-
-*   Generate form helpers to use `textarea*` methods instead of `text_area*` methods
-
-    *Sean Doyle*
-
-*   Add authentication generator to give a basic start to an authentication system using database-tracked sessions and password reset.
-
-    Generate with...
-
-    ```
-    bin/rails generate authentication
+    ```ruby
+    # Cache assets for far-future expiry since they are all digest stamped.
+    config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
     ```
 
-    Generated files:
+    *Jean Boussier*
 
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
+
+    ```bash
+    $ bin/rails credentials:fetch kamal_registry.password
     ```
-    app/models/current.rb
-    app/models/user.rb
-    app/models/session.rb
-    app/controllers/sessions_controller.rb
-    app/controllers/passwords_controller.rb
-    app/mailers/passwords_mailer.rb
-    app/views/sessions/new.html.erb
-    app/views/passwords/new.html.erb
-    app/views/passwords/edit.html.erb
-    app/views/passwords_mailer/reset.html.erb
-    app/views/passwords_mailer/reset.text.erb
-    db/migrate/xxxxxxx_create_users.rb
-    db/migrate/xxxxxxx_create_sessions.rb
-    test/mailers/previews/passwords_mailer_preview.rb
-    ```
+
+    *Matthew Nguyen*, *Jean Boussier*
+
+*   Generate static BCrypt password digests in fixtures instead of dynamic ERB expressions.
+
+    Previously, fixtures with password digest attributes used `<%= BCrypt::Password.create("secret") %>`,
+    which regenerated the hash on each test run. Now generates a static hash with a comment
+    showing how to recreate it.
+
+    *Nate Smith*, *Cassia Scheffer*
+
+*   Broaden the `.gitignore` entry when adding a credentials key to ignore all key files.
+
+    *Greg Molnar*
+
+*   Remove unnecessary `ruby-version` input from `ruby/setup-ruby`
+
+    *TangRufus*
+
+*   Add --reset option to bin/setup which will call db:reset as part of the setup.
 
     *DHH*
 
+*   Add RuboCop cache restoration to RuboCop job in GitHub Actions workflow templates.
 
-*   Add not-null type modifier to migration attributes.
+    *Lovro Bikić*
 
-    Generating with...
+*   Skip generating mailer-related files in authentication generator if the application does
+    not use ActionMailer
 
-    ```
-    bin/rails generate migration CreateUsers email_address:string!:uniq password_digest:string!
-    ```
+    *Rami Massoud*
 
-    Produces:
+*   Introduce `bin/ci` for running your tests, style checks, and security audits locally or in the cloud.
+
+    The specific steps are defined by a new DSL in `config/ci.rb`.
 
     ```ruby
-    class CreateUsers < ActiveRecord::Migration[8.0]
-      def change
-        create_table :users do |t|
-          t.string :email_address, null: false
-          t.string :password_digest, null: false
-
-          t.timestamps
-        end
-        add_index :users, :email_address, unique: true
-      end
+    ActiveSupport::ContinuousIntegration.run do
+      step "Setup", "bin/setup --skip-server"
+      step "Style: Ruby", "bin/rubocop"
+      step "Security: Gem audit", "bin/bundler-audit"
+      step "Tests: Rails", "bin/rails test test:system"
     end
     ```
 
+    Optionally use [gh-signoff](https://github.com/basecamp/gh-signoff) to
+    set a green PR status - ready for merge.
+
+    *Jeremy Daer*, *DHH*
+
+*   Generate session controller tests when running the authentication generator.
+
+    *Jerome Dalbert*
+
+*   Add bin/bundler-audit and config/bundler-audit.yml for discovering and managing known security problems with app gems.
+
     *DHH*
 
-*   Add a `script` folder to applications, and a scripts generator.
+*   Rails no longer generates a `bin/bundle` binstub when creating new applications.
 
-    The new `script` folder is meant to hold one-off or general purpose scripts,
-    such as data migration scripts, cleanup scripts, etc.
+    The `bin/bundle` binstub used to help activate the right version of bundler.
+    This is no longer necessary as this mechanism is now part of Rubygem itself.
 
-    A new script generator allows you to create such scripts:
+    *Edouard Chin*
 
-    ```
-    bin/rails generate script my_script
-    bin/rails generate script data/backfill
-    ```
+*   Add a `SessionTestHelper` module with `sign_in_as(user)` and `sign_out` test helpers when
+    running `rails g authentication`. Simplifies authentication in integration tests.
 
-    You can run the generated script using:
+    *Bijan Rahnema*
 
-    ```
-    bundle exec ruby script/my_script.rb
-    bundle exec ruby script/data/backfill.rb
-    ```
+*   Rate limit password resets in authentication generator
 
-    *Jerome Dalbert*, *Haroon Ahmed*
-
-*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
-
-    *Juan Vásquez*
-
-*   Add internal page `/rails/info/notes`, that displays the same information as `bin/rails notes`.
-
-    *Deepak Mahakale*
-
-*   Add Rubocop and GitHub Actions to plugin generator.
-    This can be skipped using --skip-rubocop and --skip-ci.
+    This helps mitigate abuse from attackers spamming the password reset form.
 
     *Chris Oliver*
 
-*   Use Kamal for deployment by default, which includes generating a Rails-specific config/deploy.yml.
-    This can be skipped using --skip-kamal. See more: https://kamal-deploy.org/
+*   Update `rails new --minimal` option
 
-    *DHH*
+    Extend the `--minimal` flag to exclude recently added features:
+    `skip_brakeman`, `skip_ci`, `skip_docker`, `skip_kamal`, `skip_rubocop`, `skip_solid` and `skip_thruster`.
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/railties/CHANGELOG.md) for previous changes.
+    *eelcoj*
+
+*   Add `application-name` metadata to application layout
+
+    The following metatag will be added to `app/views/layouts/application.html.erb`
+
+    ```html
+    <meta name="application-name" content="Name of Rails Application">
+    ```
+
+    *Steve Polito*
+
+*   Use `secret_key_base` from ENV or credentials when present locally.
+
+    When ENV["SECRET_KEY_BASE"] or
+    `Rails.application.credentials.secret_key_base` is set for test or
+    development, it is used for the `Rails.config.secret_key_base`,
+    instead of generating a `tmp/local_secret.txt` file.
+
+    *Petrik de Heus*
+
+*   Introduce `RAILS_MASTER_KEY` placeholder in generated ci.yml files
+
+    *Steve Polito*
+
+*   Colorize the Rails console prompt even on non standard environments.
+
+    *Lorenzo Zabot*
+
+*   Don't enable YJIT in development and test environments
+
+    Development and test environments tend to reload code and redefine methods (e.g. mocking),
+    hence YJIT isn't generally faster in these environments.
+
+    *Ali Ismayilov*, *Jean Boussier*
+
+*   Only include PermissionsPolicy::Middleware if policy is configured.
+
+    *Petrik de Heus*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/railties/CHANGELOG.md) for previous changes.

@@ -345,10 +345,45 @@ module ActiveRecord
 
     def test_structure_dump_header_comments_removed
       Kernel.stub(:system, true) do
-        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        raw_dump_sql = <<~SQL
+          -- header comment
 
-        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
+          -- more header comment
+          statement
+          -- lower comment
+        SQL
+        expected_dump_sql = <<~SQL
+          statement
+          -- lower comment
+        SQL
+        File.write(@filename, raw_dump_sql)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_equal expected_dump_sql, File.readlines(@filename).first(2).join
+      end
+    end
+
+    def test_structure_dump_header_comments_with_restrict_commands_removed
+      Kernel.stub(:system, true) do
+        raw_dump_sql = <<~SQL
+          \\restrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+
+          -- header comment
+
+          -- more header comment
+          statement
+          -- lower comment
+          \\unrestrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+
+          other_statement
+        SQL
+        expected_dump_sql = <<~SQL
+          statement
+          -- lower comment
+          other_statement
+        SQL
+        File.write(@filename, raw_dump_sql)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_equal expected_dump_sql, File.readlines(@filename).first(3).join
       end
     end
 
@@ -517,7 +552,7 @@ module ActiveRecord
 
     def test_structure_load_with_extra_flags
       filename = "awesome-file.sql"
-      expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
+      expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--noop", "--file", filename, @configuration["database"]]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -529,7 +564,7 @@ module ActiveRecord
     def test_structure_load_with_env
       filename = "awesome-file.sql"
       expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
-      expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
+      expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--noop", "--file", filename, @configuration["database"]]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -544,7 +579,7 @@ module ActiveRecord
     def test_structure_load_with_ssl_env
       filename = "awesome-file.sql"
       expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
-      expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
+      expected_command = [expected_env, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--noop", "--file", filename, @configuration["database"]]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -569,7 +604,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--file", filename, "--noop", @configuration["database"]]
+      expected_command = [{}, "psql", "--set", "ON_ERROR_STOP=1", "--quiet", "--no-psqlrc", "--output", File::NULL, "--noop", "--file", filename, @configuration["database"]]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do

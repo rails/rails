@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Composite Primary Keys
 ======================
@@ -36,7 +36,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.0]
+class CreateProducts < ActiveRecord::Migration[8.1]
   def change
     create_table :products, primary_key: [:store_id, :sku] do |t|
       t.integer :store_id
@@ -118,7 +118,7 @@ Take caution when using `find_by(id:)` on models where `:id` is not the primary
 key, such as composite primary key models. See the [Active Record Querying][]
 guide to learn more.
 
-[Active Record Querying]: active_record_querying.html#using-id-as-a-condition
+[Active Record Querying]: active_record_querying.html#conditions-with-id
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
@@ -268,7 +268,7 @@ class BooksController < ApplicationController
     id = params.extract_value(:id)
     # Find the book using the composite ID.
     @book = Book.find(id)
-    # use the default rendering behaviour to render the show view.
+    # use the default rendering behavior to render the show view.
   end
 end
 ```
@@ -276,7 +276,7 @@ end
 And the following route:
 
 ```ruby
-get '/books/:id', to: 'books#show'
+get "/books/:id", to: "books#show"
 ```
 
 When a user opens the URL `/books/4_2`, the controller will extract the

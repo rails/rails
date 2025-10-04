@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Support Instrumentation
 ==============================
@@ -213,6 +213,19 @@ Additional keys may be added by the caller.
 }
 ```
 
+#### `rate_limit.action_controller`
+
+| Key          | Value                                         |
+| ------------ | --------------------------------------------- |
+| `:request`   | The [`ActionDispatch::Request`][] object      |
+| `:count`     | Number of requests made                       |
+| `:to`        | Maximum number of requests allowed            |
+| `:within`    | Time window for the rate limit                |
+| `:by`        | Identifier for the rate limit (e.g. IP)       |
+| `:name`      | Name of the rate limit                        |
+| `:scope`     | Scope of the rate limit                       |
+| `:cache_key` | The cache key used for storing the rate limit |
+
 ### Action Controller: Caching
 
 #### `write_fragment.action_controller`
@@ -355,18 +368,20 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 
 #### `sql.active_record`
 
-| Key                  | Value                                    |
-| -------------------- | ---------------------------------------- |
-| `:sql`               | SQL statement                            |
-| `:name`              | Name of the operation                    |
-| `:connection`        | Connection object                        |
-| `:transaction`       | Current transaction, if any              |
-| `:binds`             | Bind parameters                          |
-| `:type_casted_binds` | Typecasted bind parameters               |
-| `:statement_name`    | SQL Statement name                       |
-| `:async`             | `true` if query is loaded asynchronously |
-| `:cached`            | `true` is added when cached queries used |
-| `:row_count`         | Number of rows returned by the query     |
+| Key                  | Value                                                  |
+| -------------------- | ------------------------------------------------------ |
+| `:sql`               | SQL statement                                          |
+| `:name`              | Name of the operation                                  |
+| `:binds`             | Bind parameters                                        |
+| `:type_casted_binds` | Typecasted bind parameters                             |
+| `:async`             | `true` if query is loaded asynchronously               |
+| `:allow_retry`       | `true` if the query can be automatically retried       |
+| `:connection`        | Connection object                                      |
+| `:transaction`       | Current transaction, if any                            |
+| `:affected_rows`     | Number of rows affected by the query                   |
+| `:row_count`         | Number of rows returned by the query                   |
+| `:cached`            | `true` is added when result comes from the query cache |
+| `:statement_name`    | SQL Statement name (Postgres only)                     |
 
 Adapters may add their own data as well.
 
@@ -374,12 +389,15 @@ Adapters may add their own data as well.
 {
   sql: "SELECT \"posts\".* FROM \"posts\" ",
   name: "Post Load",
-  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
-  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
   binds: [<ActiveModel::Attribute::WithCastValue:0x00007fe19d15dc00>],
   type_casted_binds: [11],
+  async: false,
+  allow_retry: true,
+  connection: <ActiveRecord::ConnectionAdapters::SQLite3Adapter:0x00007f9f7a838850>,
+  transaction: <ActiveRecord::ConnectionAdapters::RealTransaction:0x0000000121b5d3e0>
+  affected_rows: 0
+  row_count: 5,
   statement_name: nil,
-  row_count: 5
 }
 ```
 
@@ -470,6 +488,23 @@ transaction can be found in the `:outcome` key.
 In practice, you cannot do much with the transaction object, but it may still be
 helpful for tracing database activity. For example, by tracking
 `transaction.uuid`.
+
+#### `deprecated_association.active_record`
+
+This event is emitted when a deprecated association is accessed, and the
+configured deprecated associations mode is `:notify`.
+
+| Key                  | Value                                                |
+| -------------------- | ---------------------------------------------------- |
+| `:reflection`        | The reflection of the association                    |
+| `:message`           | A descriptive message about the access               |
+| `:location`          | The application-level location of the access         |
+| `:backtrace`         | Only present if the option `:backtrace` is true      |
+
+The `:location` is a `Thread::Backtrace::Location` object, and `:backtrace`, if
+present, is an array of `Thread::Backtrace::Location` objects. These are
+computed using the Active Record backtrace cleaner. In Rails applications, this
+is the same as `Rails.backtrace_cleaner.
 
 ### Action Mailer
 

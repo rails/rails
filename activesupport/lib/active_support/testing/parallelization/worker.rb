@@ -18,7 +18,7 @@ module ActiveSupport
             DRb.stop_service
 
             @queue = DRbObject.new_with_uri(@url)
-            @queue.start_worker(@id)
+            @queue.start_worker(@id, Process.pid)
 
             begin
               after_fork
@@ -29,7 +29,7 @@ module ActiveSupport
             set_process_title("(stopping)")
 
             run_cleanup
-            @queue.stop_worker(@id)
+            @queue.stop_worker(@id, Process.pid)
           end
         end
 
@@ -78,6 +78,8 @@ module ActiveSupport
         end
 
         def after_fork
+          ActiveSupport::TestCase.parallel_worker_id = @number
+
           Parallelization.after_fork_hooks.each do |cb|
             cb.call(@number)
           end

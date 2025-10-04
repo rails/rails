@@ -30,6 +30,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
 
     default_files.each { |path| assert_file path }
     skipped_files.each { |path| assert_no_file path }
+
+    absolute = File.expand_path("bin/docker-entrypoint", destination_root)
+    assert File.executable?(absolute)
   end
 
   def test_api_modified_files
@@ -56,6 +59,13 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/action_controller\.perform_caching = true/, content)
+    end
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
+      assert_no_match(/scan_js/, content)
+      assert_no_match(/google-chrome-stable/, content)
     end
   end
 
@@ -100,9 +110,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(%r/gem "tailwindcss-rails"/, content)
     end
 
-    assert_no_file "app/views/layouts/application.html.erb" do |content|
-      assert_no_match(/tailwind/, content)
-    end
+    assert_no_file "app/views/layouts/application.html.erb"
   end
 
   def test_app_update_does_not_generate_unnecessary_config_files
@@ -132,6 +140,16 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "public/406-unsupported-browser.html"
   end
 
+  def test_kamal_deploy_yml_excludes_asset_path_for_api_apps
+    generator [destination_root], ["--api"]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      assert_no_match(/asset_path:/, content)
+      assert_no_match(/public\/assets/, content)
+    end
+  end
+
   private
     def default_files
       %w(.gitignore
@@ -155,6 +173,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         bin/setup
         config/application.rb
         config/boot.rb
+        config/bundler-audit.yml
         config/cable.yml
         config/environment.rb
         config/environments
@@ -176,6 +195,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         lib
         lib/tasks
         log
+        script
         test/fixtures
         test/controllers
         test/integration

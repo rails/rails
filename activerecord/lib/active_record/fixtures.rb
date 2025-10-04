@@ -2,7 +2,6 @@
 
 require "erb"
 require "yaml"
-require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
 require "active_record/test_fixtures"
@@ -243,10 +242,10 @@ module ActiveRecord
   # and one for the humans. Why don't we generate the primary key instead?
   # Hashing each fixture's label yields a consistent ID:
   #
-  #   george: # generated id: 503576764
+  #   george: # generated id: 380982691
   #     name: George the Monkey
   #
-  #   reginald: # generated id: 324201669
+  #   reginald: # generated id: 41001176
   #     name: Reginald the Pirate
   #
   # Active Record looks at the fixture's model class, discovers the correct

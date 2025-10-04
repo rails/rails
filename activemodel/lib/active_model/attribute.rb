@@ -38,7 +38,7 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
-    def value
+    def value(&)
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
@@ -93,6 +93,14 @@ module ActiveModel
         with_value_from_user(value).with_type(type)
       else
         self.class.new(name, value_before_type_cast, type, original_attribute)
+      end
+    end
+
+    def dup_or_share # :nodoc:
+      if @type.mutable?
+        dup
+      else
+        self # If the underlying type is immutable we can get away with not duping
       end
     end
 

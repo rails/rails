@@ -78,11 +78,6 @@ module ViewBehavior
     schema = dump_table_schema "ebooks'"
     assert_no_match %r{create_table "ebooks'"}, schema
   end
-
-  private
-    def quote_table_name(name)
-      @connection.quote_table_name(name)
-    end
 end
 
 if ActiveRecord::Base.lease_connection.supports_views?
@@ -145,7 +140,7 @@ if ActiveRecord::Base.lease_connection.supports_views?
 
     def test_attributes
       assert_equal({ "name" => "Agile Web Development with Rails", "status" => 2 },
-                   Paperback.first.attributes)
+                   Paperback.take.attributes)
     end
 
     def test_does_not_have_a_primary_key

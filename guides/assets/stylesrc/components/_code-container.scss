@@ -2,7 +2,7 @@
 // Containers
 //
 // These are interstitial elements used throughout the guides, providing help,
-// context, more info, or warnings to readers. 
+// context, more info, or warnings to readers.
 // ----------------------------------------------------------------------------
 
 /* Same bottom margin for special boxes than for regular paragraphs, this way
@@ -23,7 +23,7 @@ dl dd .interstitial {
   padding: 0.75em !important;
   position: relative;
 
-  // Padding and spacing for LTR vs RTL langauge defaults
+  // Padding and spacing for LTR vs RTL language defaults
   :where(html[dir="ltr"]) & { background-position: 10px 10px; padding-right: 1em !important; padding-left: 56px !important; }
   :where(html[dir="rtl"]) & { background-position: calc(100% - 10px) 10px; padding-right: 56px !important; padding-left: 1em !important; }
 
@@ -44,8 +44,13 @@ dl dd .interstitial {
     padding-left: 1em !important; // remove if icon is restored
     direction: ltr !important;
     text-align: left !important;
+    width: 100%;
+    white-space: normal;
 
-    pre {margin: 0;}
+    pre {
+      margin: 0;
+      white-space: pre;
+    }
 
     button.clipboard-button {
       color: $gray-100;

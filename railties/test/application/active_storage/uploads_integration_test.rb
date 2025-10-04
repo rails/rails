@@ -10,7 +10,7 @@ module ApplicationTests
     include Rack::Test::Methods
     include Rails::Dom::Testing::Assertions
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
 
     def setup
       build_app
@@ -45,7 +45,7 @@ module ApplicationTests
             if @user.save
               redirect_to user_url(@user), notice: "User was successfully created."
             else
-              render :new, status: :unprocessable_entity
+              render :new, status: #{ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect}
             end
           end
 

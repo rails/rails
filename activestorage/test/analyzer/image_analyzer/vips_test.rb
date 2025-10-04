@@ -48,20 +48,19 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
   test "instrumenting analysis" do
     analyze_with_vips do
-      events = subscribe_events_from("analyze.active_storage")
-
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-      blob.analyze
 
-      assert_equal 1, events.size
-      assert_equal({ analyzer: "vips" }, events.first.payload)
+      assert_notifications_count("analyze.active_storage", 1) do
+        assert_notification("analyze.active_storage", analyzer: "vips") do
+          blob.analyze
+        end
+      end
     end
   end
 
   private
     def analyze_with_vips
       previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :vips
-      require "ruby-vips"
 
       yield
     rescue LoadError

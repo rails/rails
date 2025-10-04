@@ -1,42 +1,33 @@
-*   Dispatch direct-upload events on attachment uploads
+*   Generalize `:rich_text_area` Capybara selector
 
-    When using Action Text's rich textarea,  it's possible to attach files to the
-    editor. Previously, that action didn't dispatch any events, which made it hard
-    to react to the file uploads. For instance, if an upload failed, there was no
-    way to notify the user about it, or remove the attachment from the editor.
-
-    This commits adds new events - `direct-upload:start`, `direct-upload:progress`,
-    and `direct-upload:end` - similar to how Active Storage's direct uploads work.
-
-    *Matheus Richard*, *Brad Rees*
-
-*   Add `store_if_blank` option to `has_rich_text`
-
-    Pass `store_if_blank: false` to not create `ActionText::RichText` records when saving with a blank attribute, such as from an optional form parameter.
-
-    ```ruby
-    class Message
-      has_rich_text :content, store_if_blank: false
-    end
-
-    Message.create(content: "hi") # creates an ActionText::RichText
-    Message.create(content: "") # does not create an ActionText::RichText
-    ```
-
-    *Alex Ghiculescu*
-
-*   Strip `content` attribute if the key is present but the value is empty
-
-    *Jeremy Green*
-
-*   Rename `rich_text_area` methods into `rich_textarea`
-
-    Old names are still available as aliases.
+    Prepare for more Action Text-capable WYSIWYG editors by making
+    `:rich_text_area` rely on the presence of `[role="textbox"]` and
+    `[contenteditable]` HTML attributes rather than a `<trix-editor>` element.
 
     *Sean Doyle*
 
-*   Only sanitize `content` attribute when present in attachments.
+## Rails 8.1.0.beta1 (September 04, 2025) ##
 
-    *Petrik de Heus*
+*   Forward `fill_in_rich_text_area` options to Capybara
 
-Please check [7-2-stable](https://github.com/rails/rails/blob/7-2-stable/actiontext/CHANGELOG.md) for previous changes.
+    ```ruby
+    fill_in_rich_textarea "Rich text editor", id: "trix_editor_1", with: "Hello world!"
+    ```
+
+    *Sean Doyle*
+
+*   Attachment upload progress accounts for server processing time.
+
+    *Jeremy Daer*
+
+*   The Trix dependency is now satisfied by a gem, `action_text-trix`, rather than vendored
+    files. This allows applications to bump Trix versions independently of Rails
+    releases. Effectively this also upgrades Trix to `>= 2.1.15`.
+
+    *Mike Dalessio*
+
+*   Change `ActionText::RichText#embeds` assignment from `before_save` to `before_validation`
+
+    *Sean Doyle*
+
+Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/actiontext/CHANGELOG.md) for previous changes.

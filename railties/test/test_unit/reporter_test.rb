@@ -18,7 +18,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     record(failed_test)
     @reporter.report
 
-    assert_match %r{^bin/rails test .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
+    assert_match %r{^#{test_run_command_regex} .*test/test_unit/reporter_test\.rb:\d+$}, @output.string
     assert_rerun_snippet_count 1
   end
 
@@ -64,7 +64,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     record(failed_test)
     @reporter.report
 
-    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\nbin/rails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AF\n\nFailure:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nboo\n\n#{test_run_command_regex} test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -72,7 +72,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     record(errored_test)
     @reporter.report
 
-    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\nbin/rails test .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\AE\n\nError:\nTestUnitReporterTest::ExampleTest#woot:\nArgumentError: wups\n    some_test.rb:4\n\n#{test_run_command_regex} .*test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -81,7 +81,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     record(skipped_test)
     @reporter.report
 
-    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\nbin/rails test test/test_unit/reporter_test\.rb:\d+\n\n\z}
+    expect = %r{\ATestUnitReporterTest::ExampleTest#woot = 10\.00 s = S\n\n\nSkipped:\nTestUnitReporterTest::ExampleTest#woot \[[^\]]+\]:\nskipchurches, misstemples\n\n#{test_run_command_regex} test/test_unit/reporter_test\.rb:\d+\n\n\z}
     assert_match expect, @output.string
   end
 
@@ -152,7 +152,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       @reporter = Rails::TestUnitReporter.new @output, color: true, output_inline: true
       record(failed_test)
 
-      expected = %r{\e\[31mF\e\[0m\n\n\e\[31mFailure:\nTestUnitReporterTest::ExampleTest#woot \[test/test_unit/reporter_test.rb:\d+\]:\nboo\n\e\[0m\n\nbin/rails test .*test/test_unit/reporter_test.rb:\d+\n\n}
+      expected = %r{\e\[31mF\e\[0m\n\n\e\[31mFailure:\nTestUnitReporterTest::ExampleTest#woot \[test/test_unit/reporter_test.rb:\d+\]:\nboo\n\e\[0m\n\n#{test_run_command_regex} .*test/test_unit/reporter_test.rb:\d+\n\n}
       assert_match expected, @output.string
     end
   end
@@ -174,13 +174,13 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
 
     def assert_rerun_snippet_count(snippet_count)
-      assert_equal snippet_count, @output.string.scan(%r{^bin/rails test }).size
+      assert_equal snippet_count, @output.string.scan(%r{^#{test_run_command_regex} }).size
     end
 
     def failed_test
       ft = Minitest::Result.from(ExampleTest.new(:woot))
       ft.failures << begin
-                       raise Minitest::Assertion, "boo"
+                       flunk("boo")
                      rescue Minitest::Assertion => e
                        e
                      end
@@ -209,5 +209,9 @@ class TestUnitReporterTest < ActiveSupport::TestCase
                      end
       st.time = 10
       st
+    end
+
+    def test_run_command_regex
+      %r{bin/rails test|bin/test}
     end
 end

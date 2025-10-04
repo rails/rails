@@ -42,6 +42,25 @@ module ActiveRecord
       end
     end
 
+    def test_multi_values_deduplication_with_merge
+      expected = {
+        unscope:   [ :where ],
+        extending: [ Module.new ],
+        with:      [ foo: Post.all ],
+      }
+      expected.default = [ Object.new ]
+
+      Relation::MULTI_VALUE_METHODS.each do |method|
+        getter, setter = "#{method}_values", "#{method}_values="
+        values = expected[method]
+        relation = Relation.new(FakeKlass)
+        relation.public_send(setter, values)
+
+        assert_equal values, relation.public_send(getter), method
+        assert_equal values, relation.merge(relation).public_send(getter), method
+      end
+    end
+
     def test_extensions
       relation = Relation.new(FakeKlass)
       assert_equal [], relation.extensions
@@ -248,7 +267,7 @@ module ActiveRecord
       assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
 
       # using `\W` as the column separator
-      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Regexp.escape(Author.quoted_table_name)}\s+(AS\s+)?\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
     end
 
     def test_relation_with_merged_joins_aliased_works
@@ -291,8 +310,7 @@ module ActiveRecord
 
     def test_select_quotes_when_using_from_clause
       skip_if_sqlite3_version_includes_quoting_bug
-      quoted_join = ActiveRecord::Base.lease_connection.quote_table_name("join")
-      selected = Post.select(:join).from(Post.select("id as #{quoted_join}")).map(&:join)
+      selected = Post.select(:join).from(Post.select("id as #{quote_table_name("join")}")).map(&:join)
       assert_equal Post.pluck(:id).sort, selected.sort
     end
 
@@ -356,6 +374,22 @@ module ActiveRecord
       end
     end
 
+    def test_relation_with_annotation_includes_comment_in_update_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.update_all(title: "Same title")
+      end
+    end
+
+    def test_relation_with_annotation_includes_comment_in_delete_all_query
+      post_with_annotation = Post.annotate("foo")
+      all_count = Post.all.to_a.count
+      assert_queries_match(%r{/\* foo \*/}) do
+        assert_equal all_count, post_with_annotation.delete_all
+      end
+    end
+
     def test_relation_without_annotation_does_not_include_an_empty_comment
       log = capture_sql do
         Post.where(id: 1).first
@@ -373,7 +407,7 @@ module ActiveRecord
     end
 
     def test_does_not_duplicate_optimizer_hints_on_merge
-      escaped_table = Post.lease_connection.quote_table_name("posts")
+      escaped_table = quote_table_name("posts")
       expected = "SELECT /*+ OMGHINT */ #{escaped_table}.* FROM #{escaped_table}"
       query = Post.optimizer_hints("OMGHINT").merge(Post.optimizer_hints("OMGHINT")).to_sql
       assert_equal expected, query
@@ -423,6 +457,24 @@ module ActiveRecord
     test "no queries on empty IN" do
       assert_queries_count(0) do
         Post.where(id: []).load
+      end
+    end
+
+    test "no queries when using pick with non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"))
+      end
+    end
+
+    test "no queries when using pick with any non-aggregate expression and empty IN" do
+      assert_queries_count(0) do
+        assert_nil Post.where(id: []).pick(Arel.sql("id"), Arel.sql("LENGTH(title)"))
+      end
+    end
+
+    test "runs queries when using pick with aggregate expression despite empty IN" do
+      assert_queries_count(1) do
+        assert_equal 0, Post.where(id: []).pick(Arel.sql("COUNT(*)"))
       end
     end
 

@@ -39,10 +39,16 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
               name: "test_unique_constraints_position_deferrable_deferred",
               deferrable: :deferred,
               column: ["position_3"]
+            }, {
+              name: "test_unique_constraints_position_nulls_not_distinct",
+              nulls_not_distinct: true,
+              column: ["position_4"]
             }
           ]
 
           assert_equal expected_constraints.size, unique_constraints.size
+
+          expected_nulls_not_distinct = expected_constraints.pop
 
           expected_constraints.each do |expected_constraint|
             constraint = unique_constraints.find { |constraint| constraint.name == expected_constraint[:name] }
@@ -50,6 +56,14 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
             assert_equal expected_constraint[:name], constraint.name
             assert_equal expected_constraint[:column], constraint.column
             assert_equal expected_constraint[:deferrable], constraint.deferrable
+          end
+
+          if supports_nulls_not_distinct?
+            constraint = unique_constraints.find { |constraint| constraint.name == expected_nulls_not_distinct[:name] }
+            assert_equal "test_unique_constraints", constraint.table_name
+            assert_equal expected_nulls_not_distinct[:name], constraint.name
+            assert_equal expected_nulls_not_distinct[:column], constraint.column
+            assert_equal expected_nulls_not_distinct[:nulls_not_distinct], constraint.nulls_not_distinct
           end
         end
 

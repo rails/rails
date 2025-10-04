@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 The Rails Command Line
 ======================
@@ -44,32 +44,6 @@ $ rails new my_app
 
 Rails will set up what seems like a huge amount of stuff for such a tiny command! We've got the entire Rails directory structure now with all the code we need to run our simple application right out of the box.
 
-If you wish to skip some files from being generated or skip some libraries, you can append any of the following arguments to your `rails new` command:
-
-| Argument                | Description                                              |
-|-------------------------|----------------------------------------------------------|
-| `--skip-git`            | Skip git init, .gitignore, and .gitattributes            |
-| `--skip-docker`         | Skip Dockerfile, .dockerignore and bin/docker-entrypoint |
-| `--skip-keeps`          | Skip source control .keep files                          |
-| `--skip-action-mailer`  | Skip Action Mailer files                                 |
-| `--skip-action-mailbox` | Skip Action Mailbox gem                                  |
-| `--skip-action-text`    | Skip Action Text gem                                     |
-| `--skip-active-record`  | Skip Active Record files                                 |
-| `--skip-active-job`     | Skip Active Job                                          |
-| `--skip-active-storage` | Skip Active Storage files                                |
-| `--skip-action-cable`   | Skip Action Cable files                                  |
-| `--skip-asset-pipeline` | Skip Asset Pipeline                                      |
-| `--skip-javascript`     | Skip JavaScript files                                    |
-| `--skip-hotwire`        | Skip Hotwire integration                                 |
-| `--skip-jbuilder`       | Skip jbuilder gem                                        |
-| `--skip-test`           | Skip test files                                          |
-| `--skip-system-test`    | Skip system test files                                   |
-| `--skip-bootsnap`       | Skip bootsnap gem                                        |
-| `--skip-dev-gems`       | Skip adding development gems                             |
-| `--skip-rubocop`        | Skip RuboCop setup                                       |
-
-These are just some of the options that `rails new` accepts. For a full list of options, type `rails new --help`.
-
 ### Preconfigure a Different Database
 
 When creating a new Rails application, you have the option to specify what kind
@@ -94,7 +68,7 @@ Let's see what it put in our `config/database.yml`:
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -118,6 +92,32 @@ development:
 ```
 
 It generated a database configuration corresponding to our choice of PostgreSQL.
+
+### Skipping Defaults
+
+If you wish to skip some files from being generated or skip some libraries
+entirely, you can pass one of the `--skip` arguments to the `rails new` command:
+
+```bash
+$ rails new sas --skip-active-storage
+Based on the specified options, the following options will also be activated:
+
+  --skip-action-mailbox [due to --skip-active-storage]
+  --skip-action-text [due to --skip-active-storage]
+
+      create
+      create  README.md
+      ...
+```
+
+In the above example, Action Mailbox and Action Text are skipped in addition to
+Active Storage because they depend on Active Storage functionality.
+
+For a full list of options (including what can be skipped), use `--help`:
+
+```bash
+$ rails new --help
+```
 
 Command Line Basics
 -------------------
@@ -182,7 +182,7 @@ With no further work, `bin/rails server` will run our new shiny Rails app:
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 8.0.0 application starting in development
+=> Rails 8.1.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
@@ -337,6 +337,8 @@ NOTE: For a list of available field types for the `type` parameter, refer to the
 
 But instead of generating a model directly (which we'll be doing later), let's set up a scaffold. A **scaffold** in Rails is a full set of model, database migration for that model, controller to manipulate it, views to view and manipulate the data, and a test suite for each of the above.
 
+NOTE: Starting with Rails 8.1, scaffolds no longer generate system tests by default. System tests should be reserved for critical user paths due to their slower execution and higher maintenance cost. To include system tests when scaffolding, use the `--system-tests=true` option.
+
 We will set up a simple resource called "HighScore" that will keep track of our highest score on video games we play.
 
 ```bash
@@ -360,7 +362,6 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     create      app/views/high_scores/_form.html.erb
     invoke    test_unit
     create      test/controllers/high_scores_controller_test.rb
-    create      test/system/high_scores_test.rb
     invoke    helper
     create      app/helpers/high_scores_helper.rb
     invoke      test_unit
@@ -414,7 +415,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 8.0.0)
+Loading development environment in sandbox (Rails 8.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -478,6 +479,22 @@ You can even execute ruby code written in a file with runner.
 $ bin/rails runner lib/code_to_be_run.rb
 ```
 
+By default, `bin/rails runner` scripts are automatically wrapped with the Rails Executor, which helps report uncaught exceptions for tasks like cron jobs.
+
+Therefore, executing `bin/rails runner lib/long_running_scripts.rb` is functionally equivalent to the following:
+
+```ruby
+Rails.application.executor.wrap do
+  # executes code inside lib/long_running_scripts.rb
+end
+```
+
+You can opt out of this behavior by using the `--skip-executor` option.
+
+```bash
+$ bin/rails runner --skip-executor lib/long_running_script.rb
+```
+
 ### `bin/rails destroy`
 
 Think of `destroy` as the opposite of `generate`. It'll figure out what generate did, and undo it.
@@ -511,8 +528,8 @@ $ bin/rails destroy model Oops
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             8.0.0
-Ruby version              3.1.0 (x86_64-linux)
+Rails version             8.1.0
+Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8
 JavaScript Runtime        Node.js (V8)
@@ -534,6 +551,30 @@ If you want to clear `public/assets` completely, you can use `bin/rails assets:c
 The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `bin/rails db:version` is useful when troubleshooting, telling you the current version of the database.
 
 More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
+
+#### Switching to a Different Database Later
+
+After creating a new Rails application, you have the option to switch to any
+other supported database. For example, you might work with SQLite for a while and
+then decide to switch to PostgreSQL. In this case, you only need to run:
+
+```bash
+$ rails db:system:change --to=postgresql
+    conflict  config/database.yml
+Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
+       force  config/database.yml
+        gsub  Gemfile
+        gsub  Gemfile
+...
+```
+
+And then install the missing gems:
+
+```bash
+$ bundle install
+...
+
+```
 
 ### `bin/rails notes`
 
@@ -647,7 +688,7 @@ vendor/tools.rb:
 
 INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
 
-Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace helps in running the different tests you will hopefully write.
+Rails comes with a test framework called minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace help in running the different tests you will hopefully write.
 
 ### `bin/rails tmp:`
 

@@ -3,7 +3,6 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
 
@@ -245,7 +244,7 @@ module Rails
   #   polymorphic_url(MyEngine::Article.new)
   #   # => "articles_path" # not "my_engine_articles_path"
   #
-  #   form_for(MyEngine::Article.new) do
+  #   form_with(model: MyEngine::Article.new) do
   #     text_field :title # => <input type="text" name="article[title]" id="article_title" />
   #   end
   #
@@ -294,7 +293,7 @@ module Rails
   # All you need to do is pass the helper as the first element in array with
   # attributes for URL:
   #
-  #   form_for([my_engine, @user])
+  #   form_with(model: [my_engine, @user])
   #
   # This code will use <tt>my_engine.user_path(@user)</tt> to generate the proper route.
   #
@@ -452,7 +451,6 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)
-      require "rails/console/methods"
       run_console_blocks(app)
       self
     end
@@ -648,9 +646,9 @@ module Rails
       end
     end
 
-    initializer :wrap_executor_around_load_seed do |app|
+    initializer :wrap_reloader_around_load_seed do |app|
       self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
-        app.executor.wrap(&seeds_block)
+        app.reloader.wrap(&seeds_block)
       end
     end
 

@@ -21,6 +21,7 @@ module Rails
                     :beginning_of_week, :filter_redirect, :x,
                     :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
+                    :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version, :yjit
@@ -72,6 +73,7 @@ module Rails
         @content_security_policy_report_only     = false
         @content_security_policy_nonce_generator = nil
         @content_security_policy_nonce_directives = nil
+        @content_security_policy_nonce_auto      = false
         @require_master_key                      = false
         @loaded_config_version                   = nil
         @credentials                             = ActiveSupport::InheritableOptions.new(credentials_defaults)
@@ -265,7 +267,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -326,10 +328,6 @@ module Rails
 
           self.yjit = true
 
-          if respond_to?(:active_job)
-            active_job.enqueue_after_transaction_commit = :default
-          end
-
           if respond_to?(:active_storage)
             active_storage.web_image_content_types = %w( image/png image/jpeg image/gif image/webp )
           end
@@ -348,6 +346,36 @@ module Rails
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
+
+          Regexp.timeout ||= 1 if Regexp.respond_to?(:timeout=)
+        when "8.1"
+          load_defaults "8.0"
+
+          # Development and test environments tend to reload code and
+          # redefine methods (e.g. mocking), hence YJIT isn't generally
+          # faster in these environments.
+          self.yjit = !Rails.env.local?
+
+          if respond_to?(:action_controller)
+            action_controller.escape_json_responses = false
+            action_controller.action_on_path_relative_redirect = :raise
+          end
+
+          if respond_to?(:active_record)
+            active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
+          end
+
+          if respond_to?(:action_view)
+            action_view.render_tracker = :ruby
+          end
+
+          if respond_to?(:action_view)
+            action_view.remove_hidden_field_autocomplete = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -365,14 +393,6 @@ module Rails
 
       def enable_reloading=(value)
         self.cache_classes = !value
-      end
-
-      def read_encrypted_secrets
-        Rails.deprecator.warn("'config.read_encrypted_secrets' is deprecated and will be removed in Rails 8.0.")
-      end
-
-      def read_encrypted_secrets=(value)
-        Rails.deprecator.warn("'config.read_encrypted_secrets=' is deprecated and will be removed in Rails 8.0.")
       end
 
       def encoding=(value)
@@ -513,16 +533,18 @@ module Rails
 
       def secret_key_base
         @secret_key_base || begin
-          self.secret_key_base = if generate_local_secret?
+          self.secret_key_base = if ENV["SECRET_KEY_BASE_DUMMY"]
             generate_local_secret
           else
-            ENV["SECRET_KEY_BASE"] || Rails.application.credentials.secret_key_base
+            ENV["SECRET_KEY_BASE"] ||
+              Rails.application.credentials.secret_key_base ||
+              (Rails.env.local? && generate_local_secret)
           end
         end
       end
 
       def secret_key_base=(new_secret_key_base)
-        if new_secret_key_base.nil? && generate_local_secret?
+        if new_secret_key_base.nil? && Rails.env.local?
           @secret_key_base = generate_local_secret
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
@@ -649,10 +671,6 @@ module Rails
           end
 
           File.binread(key_file)
-        end
-
-        def generate_local_secret?
-          Rails.env.local? || ENV["SECRET_KEY_BASE_DUMMY"]
         end
     end
   end

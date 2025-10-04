@@ -4,51 +4,37 @@ require "test_helper"
 require "stubs/test_server"
 
 class BroadcastingTest < ActionCable::TestCase
-  test "fetching a broadcaster converts the broadcasting queue to a string" do
-    broadcasting = :test_queue
-    server = TestServer.new
-    broadcaster = server.broadcaster_for(broadcasting)
+  setup do
+    @server = TestServer.new
+    @broadcasting = "test_queue"
+    @broadcaster = server.broadcaster_for(@broadcasting)
+  end
 
+  attr_reader :server, :broadcasting, :broadcaster
+
+  test "fetching a broadcaster converts the broadcasting queue to a string" do
     assert_equal "test_queue", broadcaster.broadcasting
   end
 
   test "broadcast generates notification" do
-    server = TestServer.new
-
-    events = []
-    ActiveSupport::Notifications.subscribe("broadcast.action_cable") { |event| events << event }
-
-    broadcasting = "test_queue"
     message = { body: "test message" }
-    server.broadcast(broadcasting, message)
+    expected_payload = { broadcasting:, message:, coder: ActiveSupport::JSON }
 
-    assert_equal 1, events.length
-    assert_equal "broadcast.action_cable", events[0].name
-    assert_equal broadcasting, events[0].payload[:broadcasting]
-    assert_equal message, events[0].payload[:message]
-    assert_equal ActiveSupport::JSON, events[0].payload[:coder]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "broadcast.action_cable"
+    assert_notifications_count("broadcast.action_cable", 1) do
+      assert_notification("broadcast.action_cable", expected_payload) do
+        server.broadcast(broadcasting, message)
+      end
+    end
   end
 
   test "broadcaster from broadcaster_for generates notification" do
-    server = TestServer.new
-
-    events = []
-    ActiveSupport::Notifications.subscribe("broadcast.action_cable") { |event| events << event }
-
-    broadcasting = "test_queue"
     message = { body: "test message" }
+    expected_payload = { broadcasting:, message:, coder: ActiveSupport::JSON }
 
-    broadcaster = server.broadcaster_for(broadcasting)
-    broadcaster.broadcast(message)
-
-    assert_equal 1, events.length
-    assert_equal "broadcast.action_cable", events[0].name
-    assert_equal broadcasting, events[0].payload[:broadcasting]
-    assert_equal message, events[0].payload[:message]
-    assert_equal ActiveSupport::JSON, events[0].payload[:coder]
-  ensure
-    ActiveSupport::Notifications.unsubscribe "broadcast.action_cable"
+    assert_notifications_count("broadcast.action_cable", 1) do
+      assert_notification("broadcast.action_cable", expected_payload) do
+        broadcaster.broadcast(message)
+      end
+    end
   end
 end

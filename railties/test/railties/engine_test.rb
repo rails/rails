@@ -12,6 +12,10 @@ module RailtiesTest
     def setup
       build_app({ multi_db: true })
 
+      routes <<~'RUBY'
+        mount Bukkits::Engine, at: "/"
+      RUBY
+
       @plugin = engine "bukkits" do |plugin|
         plugin.write "lib/bukkits.rb", <<-RUBY
           module Bukkits
@@ -44,16 +48,6 @@ module RailtiesTest
       sm = ActiveRecord::SchemaMigration::NullSchemaMigration.new
       im = ActiveRecord::InternalMetadata::NullInternalMetadata.new
       ActiveRecord::MigrationContext.new(migration_root, sm, im).migrations
-    end
-
-    test "serving sprocket's assets" do
-      @plugin.write "app/assets/javascripts/engine.js.erb", "<%= :alert %>();"
-      add_to_env_config "development", "config.assets.digest = false"
-
-      boot_rails
-
-      get "/assets/engine.js"
-      assert_match "alert()", last_response.body
     end
 
     test "rake environment can be called in the engine" do
@@ -336,7 +330,7 @@ module RailtiesTest
     test "can draw routes in app routes from engines" do
       @plugin.write "config/routes/testing.rb", <<~RUBY
         Rails.application.routes.draw do
-          get "/testing", to: "test#action", as: :testing
+          get "/testing", to: "testing#index", as: :testing
         end
       RUBY
 
@@ -818,13 +812,18 @@ en:
         end
       RUBY
 
+      routes <<~'RUBY'
+        mount Bukkits::Engine, at: "/engine"
+        get "/other" => "other#index"
+      RUBY
+
       boot_rails
 
-      env = Rack::MockRequest.env_for("/")
+      env = Rack::MockRequest.env_for("/engine")
       Bukkits::Engine.call(env)
       assert_equal Bukkits::Engine.routes, env["action_dispatch.routes"]
 
-      env = Rack::MockRequest.env_for("/")
+      env = Rack::MockRequest.env_for("/other")
       Rails.application.call(env)
       assert_equal Rails.application.routes, env["action_dispatch.routes"]
     end
@@ -1534,10 +1533,10 @@ en:
       assert_equal "App's bar partial", last_response.body.strip
 
       get("/assets/foo.js")
-      assert_match "// Bukkit's foo js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       get("/assets/bar.js")
-      assert_match "// App's bar js", last_response.body.strip
+      assert_predicate last_response, :not_found?
 
       assert_equal <<~EXPECTED, Rails.application.send(:ordered_railties).flatten.map(&:class).map(&:name).join("\n") << "\n"
         I18n::Railtie
@@ -1550,11 +1549,12 @@ en:
         ActiveJob::Railtie
         ActionMailer::Railtie
         Rails::TestUnitRailtie
-        Sprockets::Railtie
+        Propshaft::Railtie
         ActionView::Railtie
         ActiveStorage::Engine
         ActionCable::Engine
         ActionMailbox::Engine
+        Trix::Engine
         ActionText::Engine
         Bukkits::Engine
         Importmap::Engine

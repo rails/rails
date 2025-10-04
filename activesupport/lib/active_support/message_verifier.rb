@@ -154,6 +154,8 @@ module ActiveSupport
     #   not URL-safe. In other words, they can contain "+" and "/". If you want to
     #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
     #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
+    #   Note that MessageVerifier will always accept both URL-safe and URL-unsafe
+    #   encoded messages, to allow a smooth transition between the two settings.
     #
     # [+:force_legacy_metadata_serializer+]
     #   Whether to use the legacy metadata serializer, which serializes the
@@ -318,6 +320,13 @@ module ActiveSupport
     end
 
     private
+      def decode(encoded, url_safe: @url_safe)
+        catch :invalid_message_format do
+          return super
+        end
+        super(encoded, url_safe: !url_safe)
+      end
+
       def sign_encoded(encoded)
         digest = generate_digest(encoded)
         encoded << SEPARATOR << digest

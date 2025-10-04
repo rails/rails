@@ -71,32 +71,39 @@ module ActionController # :nodoc:
     included do
       # Sets the token parameter name for RequestForgery. Calling
       # `protect_from_forgery` sets it to `:authenticity_token` by default.
-      config_accessor :request_forgery_protection_token
+      singleton_class.delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
+      delegate :request_forgery_protection_token, :request_forgery_protection_token=, to: :config
       self.request_forgery_protection_token ||= :authenticity_token
 
       # Holds the class which implements the request forgery protection.
-      config_accessor :forgery_protection_strategy
+      singleton_class.delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
+      delegate :forgery_protection_strategy, :forgery_protection_strategy=, to: :config
       self.forgery_protection_strategy = nil
 
       # Controls whether request forgery protection is turned on or not. Turned off by
       # default only in test mode.
-      config_accessor :allow_forgery_protection
+      singleton_class.delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
+      delegate :allow_forgery_protection, :allow_forgery_protection=, to: :config
       self.allow_forgery_protection = true if allow_forgery_protection.nil?
 
       # Controls whether a CSRF failure logs a warning. On by default.
-      config_accessor :log_warning_on_csrf_failure
+      singleton_class.delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
+      delegate :log_warning_on_csrf_failure, :log_warning_on_csrf_failure=, to: :config
       self.log_warning_on_csrf_failure = true
 
       # Controls whether the Origin header is checked in addition to the CSRF token.
-      config_accessor :forgery_protection_origin_check
+      singleton_class.delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
+      delegate :forgery_protection_origin_check, :forgery_protection_origin_check=, to: :config
       self.forgery_protection_origin_check = false
 
       # Controls whether form-action/method specific CSRF tokens are used.
-      config_accessor :per_form_csrf_tokens
+      singleton_class.delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
+      delegate :per_form_csrf_tokens, :per_form_csrf_tokens=, to: :config
       self.per_form_csrf_tokens = false
 
       # The strategy to use for storing and retrieving CSRF tokens.
-      config_accessor :csrf_token_storage_strategy
+      singleton_class.delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
+      delegate :csrf_token_storage_strategy, :csrf_token_storage_strategy=, to: :config
       self.csrf_token_storage_strategy = SessionStore.new
 
       helper_method :form_authenticity_token
@@ -142,6 +149,7 @@ module ActionController # :nodoc:
       #
       #
       # Built-in unverified request handling methods are:
+      #
       # *   `:exception` - Raises ActionController::InvalidAuthenticityToken
       #     exception.
       # *   `:reset_session` - Resets the session.
@@ -170,6 +178,7 @@ module ActionController # :nodoc:
       #
       #
       # Built-in session token strategies are:
+      #
       # *   `:session` - Store the CSRF token in the session.  Used as default if
       #     `:store` option is not specified.
       # *   `:cookie` - Store the CSRF token in an encrypted cookie.
@@ -459,7 +468,7 @@ module ActionController # :nodoc:
       # *   Does the `X-CSRF-Token` header match the form_authenticity_token?
       #
       def verified_request? # :doc:
-        !protect_against_forgery? || request.get? || request.head? ||
+        request.get? || request.head? || !protect_against_forgery? ||
           (valid_request_origin? && any_authenticity_token_valid?)
       end
 
@@ -498,7 +507,7 @@ module ActionController # :nodoc:
       # Checks the client's masked token to see if it matches the session token.
       # Essentially the inverse of `masked_authenticity_token`.
       def valid_authenticity_token?(session, encoded_masked_token) # :doc:
-        if encoded_masked_token.nil? || encoded_masked_token.empty? || !encoded_masked_token.is_a?(String)
+        if !encoded_masked_token.is_a?(String) || encoded_masked_token.empty?
           return false
         end
 
@@ -619,6 +628,7 @@ module ActionController # :nodoc:
         If you cannot change the referrer policy, you can disable origin checking with the
         Rails.application.config.action_controller.forgery_protection_origin_check setting.
       MSG
+      private_constant :NULL_ORIGIN_MESSAGE
 
       # Checks if the request originated from the same origin by looking at the Origin
       # header.
@@ -632,7 +642,7 @@ module ActionController # :nodoc:
         end
       end
 
-      def normalize_action_path(action_path) # :doc:
+      def normalize_action_path(action_path)
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))
@@ -642,7 +652,7 @@ module ActionController # :nodoc:
         end
       end
 
-      def normalize_relative_action_path(rel_action_path) # :doc:
+      def normalize_relative_action_path(rel_action_path)
         uri = URI.parse(request.path)
         # add the action path to the request.path
         uri.path += "/#{rel_action_path}"

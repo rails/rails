@@ -50,7 +50,7 @@ module ActiveJob
       info do
         jobs = event.payload[:jobs]
         adapter = event.payload[:adapter]
-        enqueued_count = event.payload[:enqueued_count]
+        enqueued_count = event.payload[:enqueued_count].to_i
 
         if enqueued_count == jobs.size
           enqueued_jobs_message(adapter, jobs)
@@ -87,8 +87,9 @@ module ActiveJob
       job = event.payload[:job]
       ex = event.payload[:exception_object]
       if ex
+        cleaned_backtrace = backtrace_cleaner.clean(ex.backtrace)
         error do
-          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+          "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(cleaned_backtrace).join("\n")
         end
       elsif event.payload[:aborted]
         error do
@@ -125,7 +126,7 @@ module ActiveJob
         "Stopped retrying #{job.class} (Job ID: #{job.job_id}) due to a #{ex.class} (#{ex.message}), which reoccurred on #{job.executions} attempts."
       end
     end
-    subscribe_log_level :enqueue_retry, :error
+    subscribe_log_level :retry_stopped, :error
 
     def discard(event)
       job = event.payload[:job]
@@ -136,6 +137,64 @@ module ActiveJob
       end
     end
     subscribe_log_level :discard, :error
+
+    def interrupt(event)
+      job = event.payload[:job]
+      info do
+        "Interrupted #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]} (#{event.payload[:reason]})"
+      end
+    end
+    subscribe_log_level :interrupt, :info
+
+    def resume(event)
+      job = event.payload[:job]
+      info do
+        "Resuming #{job.class} (Job ID: #{job.job_id}) #{event.payload[:description]}"
+      end
+    end
+    subscribe_log_level :resume, :info
+
+    def step_skipped(event)
+      job = event.payload[:job]
+      info do
+        "Step '#{event.payload[:step].name}' skipped #{job.class}"
+      end
+    end
+    subscribe_log_level :step_skipped, :info
+
+    def step_started(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      info do
+        if step.resumed?
+          "Step '#{step.name}' resumed from cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id})"
+        else
+          "Step '#{step.name}' started for #{job.class} (Job ID: #{job.job_id})"
+        end
+      end
+    end
+    subscribe_log_level :step_started, :info
+
+    def step(event)
+      job = event.payload[:job]
+      step = event.payload[:step]
+      ex = event.payload[:exception_object]
+
+      if event.payload[:interrupted]
+        info do
+          "Step '#{step.name}' interrupted at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      elsif ex
+        error do
+          "Error during step '#{step.name}' at cursor '#{step.cursor}' for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message})"
+        end
+      else
+        info do
+          "Step '#{step.name}' completed for #{job.class} (Job ID: #{job.job_id}) in #{event.duration.round(2)}ms"
+        end
+      end
+    end
+    subscribe_log_level :step, :error
 
     private
       def queue_name(event)
@@ -196,22 +255,8 @@ module ActiveJob
         end
       end
 
-      if Thread.respond_to?(:each_caller_location)
-        def enqueue_source_location
-          Thread.each_caller_location do |location|
-            frame = backtrace_cleaner.clean_frame(location)
-            return frame if frame
-          end
-          nil
-        end
-      else
-        def enqueue_source_location
-          caller_locations(2).each do |location|
-            frame = backtrace_cleaner.clean_frame(location)
-            return frame if frame
-          end
-          nil
-        end
+      def enqueue_source_location
+        backtrace_cleaner.first_clean_frame
       end
 
       def enqueued_jobs_message(adapter, enqueued_jobs)

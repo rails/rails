@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/class/attribute"
 
 module ActiveModel
   # = Active \Model \Error
@@ -83,7 +82,7 @@ module ActiveModel
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
         catch(:exception) do
-          translation = I18n.translate(defaults.first, **options.merge(default: defaults.drop(1), throw: true))
+          translation = I18n.translate(defaults.first, **options, default: defaults.drop(1), throw: true)
           return translation unless translation.nil?
         end unless options[:message]
       else
@@ -205,4 +204,6 @@ module ActiveModel
         [@base, @attribute, @raw_type, @options.except(*CALLBACKS_OPTIONS)]
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_model_error, Error)
 end

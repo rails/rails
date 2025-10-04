@@ -15,15 +15,10 @@ module ActionDispatch
       paths = RESCUES_TEMPLATE_PATHS.dup
       lookup_context = ActionView::LookupContext.new(paths)
       super(lookup_context, assigns, nil)
-      @exception_wrapper = assigns[:exception_wrapper]
     end
 
     def compiled_method_container
       self.class
-    end
-
-    def error_highlight_available?
-      @exception_wrapper.error_highlight_available?
     end
 
     def debug_params(params)
@@ -57,6 +52,17 @@ module ActionDispatch
         logger.silence { super }
       else
         super
+      end
+    end
+
+    def editor_url(location, line: nil)
+      if editor = ActiveSupport::Editor.current
+        line ||= location&.lineno
+        absolute_path = location&.absolute_path
+
+        if absolute_path && line && File.exist?(absolute_path)
+          editor.url_for(absolute_path, line)
+        end
       end
     end
 

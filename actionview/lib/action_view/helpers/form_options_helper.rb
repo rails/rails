@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "cgi"
 require "erb"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
@@ -13,7 +12,7 @@ module ActionView
     #
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     #
-    # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
+    # The #collection_select, #select and #time_zone_select methods take an <tt>options</tt> parameter, a hash:
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
@@ -55,7 +54,7 @@ module ActionView
     #       <option value="3">Rafael</option>
     #     </select>
     #
-    # * <tt>:index</tt> - like the other form helpers, <tt>select</tt> can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, <tt>select</tt> expects this
+    # * <tt>:index</tt> - like the other form helpers, #select can accept an <tt>:index</tt> option to manually set the ID used in the resulting output. Unlike other helpers, #select expects this
     #   option to be in the +html_options+ parameter.
     #
     #     select("album[]", :genre, %w[ rap rock country ], {}, { index: nil })
@@ -80,7 +79,7 @@ module ActionView
     #       <option disabled="disabled" value="restricted">restricted</option>
     #     </select>
     #
-    #   When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
+    #   When used with the #collection_select helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
     #
     #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
@@ -105,7 +104,7 @@ module ActionView
       #
       # Example with <tt>@post.person_id => 2</tt>:
       #
-      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
+      #   select :post, :person_id, Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true }
       #
       # would become:
       #
@@ -126,7 +125,7 @@ module ActionView
       # or <tt>selected: nil</tt> to leave all options unselected. Similarly, you can specify values to be disabled in the option
       # tags by specifying the <tt>:disabled</tt> option. This can either be a single value or an array of values to be disabled.
       #
-      # A block can be passed to +select+ to customize how the options tags will be rendered. This
+      # A block can be passed to #select to customize how the options tags will be rendered. This
       # is useful when the options tag has complex attributes.
       #
       #   select(report, :campaign_ids) do
@@ -265,7 +264,7 @@ module ActionView
       # In addition to the <tt>:include_blank</tt> option documented above,
       # this method also supports a <tt>:model</tt> option, which defaults
       # to ActiveSupport::TimeZone. This may be used by users to specify a
-      # different time zone model object. (See +time_zone_options_for_select+
+      # different time zone model object. (See #time_zone_options_for_select
       # for more information.)
       #
       # You can also supply an array of ActiveSupport::TimeZone objects
@@ -294,7 +293,7 @@ module ActionView
       end
 
       # Returns select and option tags for the given object and method, using
-      # <tt>weekday_options_for_select</tt> to generate the list of option tags.
+      # #weekday_options_for_select to generate the list of option tags.
       def weekday_select(object, method, options = {}, html_options = {}, &block)
         Tags::WeekdaySelect.new(object, method, self, options, html_options, &block).render
       end
@@ -370,7 +369,7 @@ module ActionView
           html_attributes[:disabled] ||= disabled && option_value_selected?(value, disabled)
           html_attributes[:value] = value
 
-          tag_builder.content_tag_string(:option, text, html_attributes)
+          tag_builder.option(text, **html_attributes)
         end.join("\n").html_safe
       end
 
@@ -411,7 +410,7 @@ module ActionView
         options_for_select(options, select_deselect)
       end
 
-      # Returns a string of <tt><option></tt> tags, like <tt>options_from_collection_for_select</tt>, but
+      # Returns a string of <tt><option></tt> tags, like #options_from_collection_for_select, but
       # groups them by <tt><optgroup></tt> tags based on the object relationships of the arguments.
       #
       # Parameters:
@@ -468,7 +467,7 @@ module ActionView
         end.join.html_safe
       end
 
-      # Returns a string of <tt><option></tt> tags, like <tt>options_for_select</tt>, but
+      # Returns a string of <tt><option></tt> tags, like #options_for_select, but
       # wraps them with <tt><optgroup></tt> tags:
       #
       #   grouped_options = [
@@ -496,7 +495,8 @@ module ActionView
       #     <option value="France">France</option>
       #   </optgroup>
       #
-      # Parameters:
+      # ==== Parameters
+      #
       # * +grouped_options+ - Accepts a nested array or hash of strings. The first value serves as the
       #   <tt><optgroup></tt> label while the second value must be an array of options. The second value can be a
       #   nested array of text-value pairs. See <tt>options_for_select</tt> for more info.
@@ -507,7 +507,8 @@ module ActionView
       #   which will have the +selected+ attribute set. Note: It is possible for this value to match multiple options
       #   as you might have the same option in multiple groups. Each will then get <tt>selected="selected"</tt>.
       #
-      # Options:
+      # ==== Options
+      #
       # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this
       #   prepends an option with a generic prompt - "Please select" - or the given prompt string.
       # * <tt>:divider</tt> - the divider for the options groups.
@@ -599,7 +600,8 @@ module ActionView
 
       # Returns a string of option tags for the days of the week.
       #
-      # Options:
+      # ====Options
+      #
       # * <tt>:index_as_value</tt> - Defaults to false, set to true to use the indexes from
       #   <tt>I18n.translate("date.day_names")</tt> as the values. By default, Sunday is always 0.
       # * <tt>:day_format</tt> - The I18n key of the array to use for the weekday options.
@@ -840,7 +842,7 @@ module ActionView
     class FormBuilder
       # Wraps ActionView::Helpers::FormOptionsHelper#select for form builders:
       #
-      #   <%= form_for @post do |f| %>
+      #   <%= form_with model: @post do |f| %>
       #     <%= f.select :person_id, Person.all.collect { |p| [ p.name, p.id ] }, include_blank: true %>
       #     <%= f.submit %>
       #   <% end %>
@@ -852,7 +854,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
       #
-      #   <%= form_for @post do |f| %>
+      #   <%= form_with model: @post do |f| %>
       #     <%= f.collection_select :person_id, Author.all, :id, :name_with_initial, prompt: true %>
       #     <%= f.submit %>
       #   <% end %>
@@ -864,7 +866,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
       #
-      #   <%= form_for @city do |f| %>
+      #   <%= form_with model: @city do |f| %>
       #     <%= f.grouped_collection_select :country_id, @continents, :countries, :name, :id, :name %>
       #     <%= f.submit %>
       #   <% end %>
@@ -876,7 +878,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#time_zone_select for form builders:
       #
-      #   <%= form_for @user do |f| %>
+      #   <%= form_with model: @user do |f| %>
       #     <%= f.time_zone_select :time_zone, nil, include_blank: true %>
       #     <%= f.submit %>
       #   <% end %>
@@ -888,7 +890,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#weekday_select for form builders:
       #
-      #   <%= form_for @user do |f| %>
+      #   <%= form_with model: @user do |f| %>
       #     <%= f.weekday_select :weekday, include_blank: true %>
       #     <%= f.submit %>
       #   <% end %>
@@ -900,7 +902,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_checkboxes for form builders:
       #
-      #   <%= form_for @post do |f| %>
+      #   <%= form_with model: @post do |f| %>
       #     <%= f.collection_checkboxes :author_ids, Author.all, :id, :name_with_initial %>
       #     <%= f.submit %>
       #   <% end %>
@@ -913,7 +915,7 @@ module ActionView
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
       #
-      #   <%= form_for @post do |f| %>
+      #   <%= form_with model: @post do |f| %>
       #     <%= f.collection_radio_buttons :author_id, Author.all, :id, :name_with_initial %>
       #     <%= f.submit %>
       #   <% end %>

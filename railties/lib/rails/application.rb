@@ -2,10 +2,8 @@
 
 require "yaml"
 require "active_support/core_ext/hash/keys"
-require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifiers"
-require "active_support/deprecation"
 require "active_support/encrypted_configuration"
 require "active_support/hash_with_indifferent_access"
 require "active_support/configuration_file"
@@ -158,7 +156,11 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      routes_reloader.reload!
+      if routes_reloader.execute_unless_loaded
+        routes_reloader.loaded = false
+      else
+        routes_reloader.reload!
+      end
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -459,18 +461,21 @@ module Rails
     # is used to create all ActiveSupport::MessageVerifier and ActiveSupport::MessageEncryptor instances,
     # including the ones that sign and encrypt cookies.
     #
-    # In development and test, this is randomly generated and stored in a
-    # temporary file in <tt>tmp/local_secret.txt</tt>.
+    # We look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>, then in
+    # +credentials.secret_key_base+. For most applications, the correct place
+    # to store it is in the encrypted credentials file.
     #
-    # You can also set <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt> to trigger the use of a randomly generated
-    # secret_key_base that's stored in a temporary file. This is useful when precompiling assets for
-    # production as part of a build step that otherwise does not need access to the production secrets.
+    # In development and test, if the secret_key_base is still empty, it is
+    # randomly generated and stored in a temporary file in
+    # <tt>tmp/local_secret.txt</tt>.
+    #
+    # Generating a random secret_key_base and storing it in
+    # <tt>tmp/local_secret.txt</tt> can also be triggered by setting
+    # <tt>ENV["SECRET_KEY_BASE_DUMMY"]</tt>. This is useful when precompiling
+    # assets for production as part of a build step that otherwise does not
+    # need access to the production secrets.
     #
     # Dockerfile example: <tt>RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile</tt>.
-    #
-    # In all other environments, we look for it first in <tt>ENV["SECRET_KEY_BASE"]</tt>,
-    # then +credentials.secret_key_base+. For most applications, the correct place to store it is in the
-    # encrypted credentials file.
     def secret_key_base
       config.secret_key_base
     end
@@ -609,7 +614,7 @@ module Rails
     end
 
     def railties_initializers(current) # :nodoc:
-      initializers = []
+      initializers = Initializable::Collection.new
       ordered_railties.reverse.flatten.each do |r|
         if r == self
           initializers += current

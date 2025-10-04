@@ -7,7 +7,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
 
     volumes:
-    - ../..:/workspaces:cached
+    - ../../<%= options[:app_name] %>:/workspaces/<%= options[:app_name] %>:cached
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
@@ -32,7 +32,7 @@ services:
 
 <%- if options[:redis] -%>
   redis:
-    image: redis:7.2
+    image: valkey/valkey:8
     restart: unless-stopped
     volumes:
     - redis-data:/data

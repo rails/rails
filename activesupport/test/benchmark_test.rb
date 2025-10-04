@@ -4,12 +4,12 @@ require_relative "abstract_unit"
 
 class BenchmarkTest < ActiveSupport::TestCase
   def test_realtime
-    time = ActiveSupport::Benchmark.realtime { sleep 0.1 }
-    assert_in_delta 0.1, time, 0.0005
+    time = ActiveSupport::Benchmark.realtime { sleep 0.01 }
+    assert_includes (0.01..0.02), time
   end
 
   def test_realtime_millisecond
-    ms = ActiveSupport::Benchmark.realtime(:float_millisecond) { sleep 0.1 }
-    assert_in_delta 100, ms, 0.5
+    ms = ActiveSupport::Benchmark.realtime(:float_millisecond) { sleep 0.01 }
+    assert_includes (10..20), ms
   end
 end

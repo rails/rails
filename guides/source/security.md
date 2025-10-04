@@ -1,12 +1,13 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Securing Rails Applications
 ===========================
 
-This manual describes common security problems in web applications and how to avoid them with Rails.
+This guide describes common security problems in web applications and how to avoid them with Rails.
 
 After reading this guide, you will know:
 
+* How to use the built-in authentication generator.
 * All countermeasures _that are highlighted_.
 * The concept of sessions in Rails, what to put in there and popular attack methods.
 * How just visiting a site can be a security problem (with CSRF).
@@ -28,6 +29,210 @@ The Gartner Group, however, estimates that 75% of attacks are at the web applica
 The threats against web applications include user account hijacking, bypass of access control, reading or modifying sensitive data, or presenting fraudulent content. Or an attacker might be able to install a Trojan horse program or unsolicited e-mail sending software, aim at financial enrichment, or cause brand name damage by modifying company resources. In order to prevent attacks, minimize their impact and remove points of attack, first of all, you have to fully understand the attack methods in order to find the correct countermeasures. That is what this guide aims at.
 
 In order to develop secure web applications you have to keep up to date on all layers and know your enemies. To keep up to date subscribe to security mailing lists, read security blogs, and make updating and security checks a habit (check the [Additional Resources](#additional-resources) chapter). It is done manually because that's how you find the nasty logical security problems.
+
+Authentication
+--------------
+
+Authentication is often one of the first features implemented in a web
+application. It serves as the foundation for securing user data and is part of
+most modern web applications.
+
+Starting with version 8.0, Rails comes with a default authentication generator,
+which provides a solid starting point for securing your application by only
+allowing access to verified users.
+
+The authentication generator adds all of the relevant models, controllers,
+views, routes, and migrations needed for basic authentication and password reset
+functionality.
+
+To use this feature in your application, you can run `bin/rails generate
+authentication`. Here are all of the files the generator modifies and new files
+it adds:
+
+```bash
+$ bin/rails generate authentication
+      invoke  erb
+      create    app/views/passwords/new.html.erb
+      create    app/views/passwords/edit.html.erb
+      create    app/views/sessions/new.html.erb
+      create  app/models/session.rb
+      create  app/models/user.rb
+      create  app/models/current.rb
+      create  app/controllers/sessions_controller.rb
+      create  app/controllers/concerns/authentication.rb
+      create  app/controllers/passwords_controller.rb
+      create  app/mailers/passwords_mailer.rb
+      create  app/views/passwords_mailer/reset.html.erb
+      create  app/views/passwords_mailer/reset.text.erb
+      create  test/mailers/previews/passwords_mailer_preview.rb
+        gsub  app/controllers/application_controller.rb
+       route  resources :passwords, param: :token
+       route  resource :session
+        gsub  Gemfile
+      bundle  install --quiet
+    generate  migration CreateUsers email_address:string!:uniq password_digest:string! --force
+       rails  generate migration CreateUsers email_address:string!:uniq password_digest:string! --force
+      invoke  active_record
+      create    db/migrate/20241010215312_create_users.rb
+    generate  migration CreateSessions user:references ip_address:string user_agent:string --force
+       rails  generate migration CreateSessions user:references ip_address:string user_agent:string --force
+      invoke  active_record
+      create    db/migrate/20241010215314_create_sessions.rb
+```
+
+As shown above, the authentication generator modifies the `Gemfile` to add the
+[bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) gem. The generator uses
+the `bcrypt` gem to create a hash of the password, which is then stored in the
+database (instead of the plain-text password). As this process is not
+reversible, there's no way to go from the hash back to the password. The hashing
+algorithm is deterministic though, so the stored password is able to be compared
+with the hash of the user-inputted password during authentication.
+
+The generator adds two migration files for creating `user` and `session` tables.
+Next step is to run the migrations:
+
+```bash
+$ bin/rails db:migrate
+```
+
+Then, if you visit `/session/new` in your browser (you will see this route has
+been added in `routes.rb`), you'll see a form that accepts an email and a
+password with "sign in" button. This form routes to the `SessionsController`
+which was added by the generator. If you provide an email/password for a user
+that exists in the database, you will be able to successfully authenticate with
+those credentials and log in to the application.
+
+NOTE: After running the Authentication generator, you do need to implement your
+own *sign up flow* and add the necessary views, routes, and controller actions.
+There is no code generated that creates new `user` records and allows users to
+"sign up" in the first place. This is something you'll need to wire up based on
+the requirements of your application.
+
+Here is a list of modified files:
+
+```bash
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+  modified:   Gemfile
+  modified:   Gemfile.lock
+  modified:   app/controllers/application_controller.rb
+  modified:   config/routes.rb
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+  app/controllers/concerns/authentication.rb
+  app/controllers/passwords_controller.rb
+  app/controllers/sessions_controller.rb
+  app/mailers/passwords_mailer.rb
+  app/models/current.rb
+  app/models/session.rb
+  app/models/user.rb
+  app/views/passwords/
+  app/views/passwords_mailer/
+  app/views/sessions/
+  db/migrate/
+  db/schema.rb
+  test/mailers/previews/
+```
+
+### Reset Password
+
+The authentication generator also adds reset password functionality. You can see
+a "forgot password?" link on the "sign in" page. Clicking that link navigates to
+the `/passwords/new` path and routes to the passwords controller. The `new`
+method of the `PasswordsController` class runs through the flow for sending a
+password reset email.
+
+The mailers for *reset password* are also set up by the generator at
+`app/mailers/password_mailer.rb` and render the following email to send to the
+user:
+
+```html+erb
+# app/views/passwords_mailer/reset.html.erb
+<p>
+  You can reset your password within the next 15 minutes on
+  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
+</p>
+```
+
+### Implementation Details
+
+This section covers some of the implementation details around the authentication
+flow added by the authentication generator: The `has_secure_password` method,
+the `authenticate_by` method, and the `Authentication` concern.
+
+#### `has_secure_password`
+
+The
+[`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password)
+method is added to the `user` model and takes care of storing a hashed password
+using the `bcrypt` algorithm:
+
+```ruby
+class User < ApplicationRecord
+  has_secure_password
+  has_many :sessions, dependent: :destroy
+
+  normalizes :email_address, with: -> e { e.strip.downcase }
+end
+```
+
+#### `authenticate_by`
+
+The
+[`authenticate_by`](https://api.rubyonrails.org/classes/ActiveRecord/SecurePassword/ClassMethods.html)
+method is used in the `SessionsController` while creating a new session to
+validate that the credentials provided by the user match the credentials stored
+in the database (e.g. password) for that user:
+
+```ruby
+class SessionsController < ApplicationController
+  def create
+    if user = User.authenticate_by(params.permit(:email_address, :password))
+      start_new_session_for user
+      redirect_to after_authentication_url
+    else
+      redirect_to new_session_url, alert: "Try another email address or password."
+    end
+  end
+
+  # ...
+end
+```
+
+If the credentials are valid, a new `Session` is created for that user.
+
+#### Session Management
+
+The core functionality around session management is implemented in the
+`Authentication` controller concern, which is included by the
+`ApplicationController` in your application. You can explore details of the
+[authentication
+concern](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/authentication/templates/app/controllers/concerns/authentication.rb.tt)
+in the source code.
+
+One method to note in the `Authentication` concern is `authenticated?`, a helper
+method available in view templates. You can use this method to conditionally
+display links/buttons depending on whether a user is currently authenticated.
+For example:
+
+```html+erb
+<% if authenticated? %>
+  <%= button_to "Sign Out", session_path, method: :delete  %>
+<% else %>
+  <%= link_to "Sign In", new_session_path %>
+<% end %>
+```
+
+TIP: You can find all of the details for the Authentication generator in the
+Rails source code. You are encouraged to explore the implementation details and
+not treat authentication as a black box.
+
+With the authentication generator configured as above, your application is ready
+for a more secure user authentication and password recovery process in just a
+few steps.
 
 Sessions
 --------
@@ -184,7 +389,7 @@ NOTE: _Apart from stealing a user's session ID, the attacker may fix a session I
 
 This attack focuses on fixing a user's session ID known to the attacker, and forcing the user's browser into using this ID. It is therefore not necessary for the attacker to steal the session ID afterwards. Here is how this attack works:
 
-* The attacker creates a valid session ID: They load the login page of the web application where they want to fix the session, and take the session ID in the cookie from the response (see number 1 and 2 in the image).
+* The attacker creates a valid session ID: They load the login page of the web application where they want to fix the session, and take the session ID in the cookie from the response (see numbers 1 and 2 in the image).
 * They maintain the session by accessing the web application periodically in order to keep an expiring session alive.
 * The attacker forces the user's browser into using this session ID (see number 3 in the image). As you may not change a cookie of another domain (because of the same origin policy), the attacker has to run a JavaScript from the domain of the target web application. Injecting the JavaScript code into the application by XSS accomplishes this attack. Here is an example: `<script>document.cookie="_session_id=16d5b78abb28e3d6206b60f22a03c8d9";</script>`. Read more about XSS and injection later on.
 * The attacker lures the victim to the infected page with the JavaScript code. By viewing the page, the victim's browser will change the session ID to the trap session ID.
@@ -362,11 +567,11 @@ Whenever the user is allowed to pass (parts of) the URL for redirection, it is p
 
 ```ruby
 def legacy
-  redirect_to(params.update(action: 'main'))
+  redirect_to(params.update(action: "main"))
 end
 ```
 
-This will redirect the user to the main action if they tried to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can be exploited by attacker if they included a host key in the URL:
+This will redirect the user to the main action if they try to access a legacy action. The intention was to preserve the URL parameters to the legacy action and pass them to the main action. However, it can be exploited by an attacker if they include a host key in the URL:
 
 ```
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
@@ -395,10 +600,10 @@ def sanitize_filename(filename)
   filename.strip.tap do |name|
     # NOTE: File.basename doesn't work right with Windows paths on Unix
     # get only the filename, not the whole path
-    name.sub!(/\A.*(\\|\/)/, '')
-    # Finally, replace all non alphanumeric, underscore
+    name.sub!(/\A.*(\\|\/)/, "")
+    # Finally, replace all non-alphanumeric, underscore
     # or periods with underscore
-    name.gsub!(/[^\w.-]/, '_')
+    name.gsub!(/[^\w.-]/, "_")
   end
 end
 ```
@@ -422,30 +627,26 @@ NOTE: _Make sure users cannot download arbitrary files._
 Just as you have to filter file names for uploads, you have to do so for downloads. The `send_file()` method sends files from the server to the client. If you use a file name, that the user entered, without filtering, any file can be downloaded:
 
 ```ruby
-send_file('/var/www/uploads/' + params[:filename])
+send_file("/var/www/uploads/" + params[:filename])
 ```
 
 Simply pass a file name like "../../../etc/passwd" to download the server's login information. A simple solution against this, is to _check that the requested file is in the expected directory_:
 
 ```ruby
-basename = File.expand_path('../../files', __dir__)
+basename = File.expand_path("../../files", __dir__)
 filename = File.expand_path(File.join(basename, @file.public_filename))
 raise if basename != File.expand_path(File.dirname(filename))
-send_file filename, disposition: 'inline'
+send_file filename, disposition: "inline"
 ```
 
-Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file to be executed. The `attachment_fu` plugin does this in a similar way.
+Another (additional) approach is to store the file names in the database and name the files on the disk after the ids in the database. This is also a good approach to avoid possible code in an uploaded file from being executed. The `attachment_fu` plugin does this in a similar way.
 
 User Management
 ---------------
 
-NOTE: _Almost every web application has to deal with authorization and authentication. Instead of rolling your own, it is advisable to use common plug-ins. But keep them up-to-date, too. A few additional precautions can make your application even more secure._
-
-There are a number of authentication plug-ins for Rails available. Good ones, such as the popular [devise](https://github.com/heartcombo/devise) and [authlogic](https://github.com/binarylogic/authlogic), store only cryptographically hashed passwords, not plain-text passwords. Since Rails 3.1 you can also use the built-in [`has_secure_password`](https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password) method which supports secure password hashing, confirmation, and recovery mechanisms.
-
 ### Brute-Forcing Accounts
 
-NOTE: _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with more generic error messages and possibly require to enter a CAPTCHA._
+NOTE: _Brute-force attacks on accounts are trial and error attacks on the login credentials. Fend them off with rate-limiting, more generic error messages and possibly require to enter a CAPTCHA._
 
 A list of usernames for your web application may be misused to brute-force the corresponding passwords, because most people don't use sophisticated passwords. Most passwords are a combination of dictionary words and possibly numbers. So armed with a list of usernames and a dictionary, an automatic program may find the correct password in a matter of minutes.
 
@@ -453,11 +654,25 @@ Because of this, most web applications will display a generic error message "use
 
 However, what most web application designers neglect, are the forgot-password pages. These pages often admit that the entered username or e-mail address has (not) been found. This allows an attacker to compile a list of usernames and brute-force the accounts.
 
-In order to mitigate such attacks, _display a generic error message on forgot-password pages, too_. Moreover, you can _require to enter a CAPTCHA after a number of failed logins from a certain IP address_. Note, however, that this is not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
+In order to mitigate such attacks, you can use rate limiting. Rails comes with a
+built-in [rate-limiter](https://edgeapi.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html#method-i-rate_limit). You can enable it in your sessions controller with a single line:
+
+```
+class SessionsController < ApplicationController
+  rate_limit to: 10, within: 3.minutes, only: :create
+end
+```
+
+Refer to the [API documentation](https://edgeapi.rubyonrails.org/classes/ActionController/RateLimiting/ClassMethods.html#method-i-rate_limit) for details about the various parameters.
+
+Additionally, you can _display a generic error message on forgot-password pages, too_. Moreover, you can _require to enter a CAPTCHA after a number of failed logins from a certain IP address_.
+
+NOTE: All of these mitigation techniques are not a bullet-proof solution against automatic programs, because these programs may change their IP address exactly as often. However, it raises the barrier of an attack.
+
 
 ### Account Hijacking
 
-Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?.
+Many web applications make it easy to hijack user accounts. Why not be different and make it more difficult?
 
 #### Passwords
 
@@ -473,7 +688,7 @@ Depending on your web application, there may be more ways to hijack the user's a
 
 ### CAPTCHAs
 
-INFO: _A CAPTCHA is a challenge-response test to determine that the response is not generated by a computer. It is often used to protect registration forms from attackers and comment forms from automatic spam bots by asking the user to type the letters of a distorted image. This is the positive CAPTCHA, but there is also the negative CAPTCHA. The idea of a negative CAPTCHA is not for a user to prove that they are human, but reveal that a robot is a robot._
+INFO: _A CAPTCHA is a challenge-response test to determine that the response is not generated by a computer. It is often used to protect registration forms from attackers and comment forms from automatic spam bots by asking the user to type the letters of a distorted image. This is the positive CAPTCHA, but there is also the negative CAPTCHA. The idea of a negative CAPTCHA is not for a user to prove that they are human, but to reveal that a robot is a robot._
 
 A popular positive CAPTCHA API is [reCAPTCHA](https://developers.google.com/recaptcha/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](https://github.com/ambethia/recaptcha/) is also a Rails plug-in with the same name as the API.
 
@@ -484,13 +699,13 @@ Most bots are really naive. They crawl the web and put their spam into every for
 
 Note that negative CAPTCHAs are only effective against naive bots and won't suffice to protect critical applications from targeted bots. Still, the negative and positive CAPTCHAs can be combined to increase the performance, e.g., if the "honeypot" field is not empty (bot detected), you won't need to verify the positive CAPTCHA, which would require an HTTPS request to Google ReCaptcha before computing the response.
 
-Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
+Here are some ideas on how to hide honeypot fields by JavaScript and/or CSS:
 
-* position the fields off of the visible area of the page
+* position the fields off the visible area of the page
 * make the elements very small or color them the same as the background of the page
 * leave the fields displayed, but tell humans to leave them blank
 
-The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on.
+The simplest negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not save the post to the database. This way, the bot will be satisfied and move on.
 
 You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post](https://nedbatchelder.com/text/stopbots.html):
 
@@ -504,7 +719,7 @@ Note that this protects you only from automatic bots, targeted tailor-made bots 
 
 WARNING: _Tell Rails not to put passwords in the log files._
 
-By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker got (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to [`config.filter_parameters`][] in the application configuration. These parameters will be marked [FILTERED] in the log.
+By default, Rails logs all requests being made to the web application. But log files can be a huge security issue, as they may contain login credentials, credit card numbers et cetera. When designing a web application security concept, you should also think about what will happen if an attacker gets (full) access to the web server. Encrypting secrets and passwords in the database will be quite useless, if the log files list them in clear text. You can _filter certain request parameters from your log files_ by appending them to [`config.filter_parameters`][] in the application configuration. These parameters will be marked [FILTERED] in the log.
 
 ```ruby
 config.filter_parameters << :password
@@ -606,7 +821,7 @@ INFO: _Thanks to clever methods, this is hardly a problem in most Rails applicat
 
 #### Introduction
 
-SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or reading arbitrary data. Here is an example of how not to use user input data in a query:
+SQL injection attacks aim at influencing database queries by manipulating web application parameters. A popular goal of SQL injection attacks is to bypass authorization. Another goal is to carry out data manipulation or read arbitrary data. Here is an example of how not to use user input data in a query:
 
 ```ruby
 Project.where("name = '#{params[:name]}'")
@@ -634,7 +849,7 @@ If an attacker enters `' OR '1'='1` as the name, and `' OR '2'>'1` as the passwo
 SELECT * FROM users WHERE login = '' OR '1'='1' AND password = '' OR '2'>'1' LIMIT 1
 ```
 
-This will simply find the first record in the database, and grants access to this user.
+This will simply find the first record in the database and grant access to this user.
 
 #### Unauthorized Reading
 
@@ -688,7 +903,7 @@ Additionally, you can split and chain conditionals valid for your use case:
 Model.where(zip_code: entered_zip_code).where("quantity >= ?", entered_quantity).first
 ```
 
-Note the previous mentioned countermeasures are only available in model instances. You can
+Note that the previously mentioned countermeasures are only available in model instances. You can
 try [`sanitize_sql`][] elsewhere. _Make it a habit to think about the security consequences
 when using an external string in SQL_.
 
@@ -706,7 +921,7 @@ The most common entry points are message posts, user comments, and guest books, 
 
 XSS attacks work like this: An attacker injects some code, the web application saves it and displays it on a page, later presented to a victim. Most XSS examples simply display an alert box, but it is more powerful than that. XSS can steal the cookie, hijack the session, redirect the victim to a fake website, display advertisements for the benefit of the attacker, change elements on the website to get confidential information or install malicious software through security holes in the web browser.
 
-During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL-Injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high profile targets.
+During the second half of 2007, there were 88 vulnerabilities reported in Mozilla browsers, 22 in Safari, 18 in IE, and 12 in Opera. The Symantec Global Internet Security threat report also documented 239 browser plug-in vulnerabilities in the last six months of 2007. [Mpack](https://www.pandasecurity.com/en/mediacenter/malware/mpack-uncovered/) is a very active and up-to-date attack framework which exploits these vulnerabilities. For criminal hackers, it is very attractive to exploit an SQL injection vulnerability in a web application framework and insert malicious code in every textual table column. In April 2008 more than 510,000 sites were hacked like this, among them the British government, United Nations, and many more high-profile targets.
 
 #### HTML/JavaScript Injection
 
@@ -749,7 +964,7 @@ You can mitigate these attacks (in the obvious way) by adding the **httpOnly** f
 
 ##### Defacement
 
-With web page defacement an attacker can do a lot of things, for example, present false information or lure the victim on the attacker's website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
+With web page defacement, an attacker can do a lot of things, for example, present false information or lure the victim to the attacker's website to steal the cookie, login credentials, or other sensitive data. The most popular way is to include code from external sources by iframes:
 
 ```html
 <iframe name="StatPage" src="http://58.xx.xxx.xxx" width=5 height=5 style="display:none"></iframe>
@@ -757,9 +972,9 @@ With web page defacement an attacker can do a lot of things, for example, presen
 
 This loads arbitrary HTML and/or JavaScript from an external source and embeds it as part of the site. This `iframe` is taken from an actual attack on legitimate Italian sites using the [Mpack attack framework](https://isc.sans.edu/diary/MPack+Analysis/3015). Mpack tries to install malicious software through security holes in the web browser - very successfully, 50% of the attacks succeed.
 
-A more specialized attack could overlap the entire website or display a login form, which looks the same as the site's original, but transmits the username and password to the attacker's site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one at its place which redirects to a fake website.
+A more specialized attack could overlap the entire website or display a login form, which looks the same as the site's original, but transmits the username and password to the attacker's site. Or it could use CSS and/or JavaScript to hide a legitimate link in the web application, and display another one in its place, which redirects to a fake website.
 
-Reflected injection attacks are those where the payload is not stored to present it to the victim later on, but included in the URL. Especially search forms fail to escape the search string. The following link presented a page which stated that "George Bush appointed a 9 year old boy to be the chairperson...":
+Reflected injection attacks are those where the payload is not stored to present it to the victim later on, but is included in the URL. Especially search forms fail to escape the search string. The following link presented a page which stated that "George Bush appointed a 9 year old boy to be the chairperson...":
 
 ```
 http://www.cbsnews.com/stories/2002/02/15/weather_local/main501644.shtml?zipcode=1-->
@@ -772,7 +987,7 @@ _It is very important to filter malicious input, but it is also important to esc
 
 Especially for XSS, it is important to do _permitted input filtering instead of restricted_. Permitted list filtering states the values allowed as opposed to the values not allowed. Restricted lists are never complete.
 
-Imagine a restricted list deletes `"script"` from the user input. Now the attacker injects `"<scrscriptipt>"`, and after the filter, `"<script>"` remains. Earlier versions of Rails used a restricted list approach for the `strip_tags()`, `strip_links()` and `sanitize()` method. So this kind of injection was possible:
+Imagine a restricted list deletes `"script"` from the user input. Now the attacker injects `"<scrscriptipt>"`, and after the filter, `"<script>"` remains. Earlier versions of Rails used a restricted list approach for the `strip_tags()`, `strip_links()`, and `sanitize()` methods. So this kind of injection was possible:
 
 ```ruby
 strip_tags("some<<b>script>alert('hello')<</b>/script>")
@@ -800,7 +1015,7 @@ Network traffic is mostly based on the limited Western alphabet, so new characte
   &#108;&#101;&#114;&#116;&#40;&#39;&#88;&#83;&#83;&#39;&#41;>
 ```
 
-This example pops up a message box. It will be recognized by the above `sanitize()` filter, though. A great tool to obfuscate and encode strings, and thus "get to know your enemy", is the [Hackvertor](https://hackvertor.co.uk/public). Rails' `sanitize()` method does a good job to fend off encoding attacks.
+This example pops up a message box. It will be recognized by the above `sanitize()` filter, though. A great tool to obfuscate and encode strings, and thus "get to know your enemy", is the [Hackvertor](https://hackvertor.co.uk/). Rails' `sanitize()` method does a good job to fend off encoding attacks.
 
 #### Examples from the Underground
 
@@ -818,7 +1033,7 @@ The worms exploit a hole in Yahoo's HTML/JavaScript filter, which usually filter
 
 Another proof-of-concept webmail worm is Nduja, a cross-domain worm for four Italian webmail services. Find more details on [Rosario Valotta's paper](http://www.xssed.com/news/37/Nduja_Connection_A_cross_webmail_worm_XWW/). Both webmail worms have the goal to harvest email addresses, something a criminal hacker could make money with.
 
-In December 2006, 34,000 actual usernames and passwords were stolen in a [MySpace phishing attack](https://news.netcraft.com/archives/2006/10/27/myspace_accounts_compromised_by_phishers.html). The idea of the attack was to create a profile page named "login_home_index_html", so the URL looked very convincing. Specially-crafted HTML and CSS was used to hide the genuine MySpace content from the page and instead display its own login form.
+In December 2006, 34,000 actual usernames and passwords were stolen in a [MySpace phishing attack](https://www.schneier.com/essays/archives/2006/12/myspace_passwords_ar.html). The idea of the attack was to create a profile page named "login_home_index_html", so the URL looked very convincing. Specially-crafted HTML and CSS were used to hide the genuine MySpace content from the page and instead display its own login form.
 
 ### CSS Injection
 
@@ -868,14 +1083,14 @@ For example, RedCloth translates `_test_` to `<em>test<em>`, which makes the
 text italic. However, RedCloth doesn’t filter unsafe html tags by default:
 
 ```ruby
-RedCloth.new('<script>alert(1)</script>').to_html
+RedCloth.new("<script>alert(1)</script>").to_html
 # => "<script>alert(1)</script>"
 ```
 
 Use the `:filter_html` option to remove HTML which was not created by the Textile processor.
 
 ```ruby
-RedCloth.new('<script>alert(1)</script>', [:filter_html]).to_html
+RedCloth.new("<script>alert(1)</script>", [:filter_html]).to_html
 # => "alert(1)"
 ```
 
@@ -920,21 +1135,21 @@ system("/bin/echo", "hello; rm *")
 `Kernel#open` executes OS command if the argument starts with a vertical bar (`|`).
 
 ```ruby
-open('| ls') { |file| file.read }
+open("| ls") { |file| file.read }
 # returns file list as a String via `ls` command
 ```
 
 Countermeasures are to use `File.open`, `IO.open` or `URI#open` instead. They don't execute an OS command.
 
 ```ruby
-File.open('| ls') { |file| file.read }
+File.open("| ls") { |file| file.read }
 # doesn't execute `ls` command, just opens `| ls` file if it exists
 
 IO.open(0) { |file| file.read }
 # opens stdin. doesn't accept a String as the argument
 
-require 'open-uri'
-URI('https://example.com').open { |file| file.read }
+require "open-uri"
+URI("https://example.com").open { |file| file.read }
 # opens the URI. `URI()` doesn't accept `| ls`
 ```
 
@@ -975,7 +1190,7 @@ So _attack vectors for Header Injection are based on the injection of CRLF chara
 
 #### DNS Rebinding and Host Header Attacks
 
-DNS rebinding is a method of manipulating resolution of domain names that is commonly used as a form of computer attack. DNS rebinding circumvents the same-origin policy by abusing the Domain Name System (DNS) instead. It rebinds a domain to a different IP address and than compromises the system by executing random code against your Rails app from the changed IP address.
+DNS rebinding is a method of manipulating resolution of domain names that is commonly used as a form of computer attack. DNS rebinding circumvents the same-origin policy by abusing the Domain Name System (DNS) instead. It rebinds a domain to a different IP address and then compromises the system by executing random code against your Rails app from the changed IP address.
 
 It is recommended to use the `ActionDispatch::HostAuthorization` middleware to guard against DNS rebinding and other Host header attacks. It is enabled by default in the development environment, you have to activate it in production and other environments by setting the list of allowed hosts. You can also configure exceptions and set your own response app.
 
@@ -1116,19 +1331,19 @@ These headers are configured by default as follows:
 
 ```ruby
 config.action_dispatch.default_headers = {
-  'X-Frame-Options' => 'SAMEORIGIN',
-  'X-XSS-Protection' => '0',
-  'X-Content-Type-Options' => 'nosniff',
-  'X-Permitted-Cross-Domain-Policies' => 'none',
-  'Referrer-Policy' => 'strict-origin-when-cross-origin'
+  "X-Frame-Options" => "SAMEORIGIN",
+  "X-XSS-Protection" => "0",
+  "X-Content-Type-Options" => "nosniff",
+  "X-Permitted-Cross-Domain-Policies" => "none",
+  "Referrer-Policy" => "strict-origin-when-cross-origin"
 }
 ```
 
 You can override these or add extra headers in `config/application.rb`:
 
 ```ruby
-config.action_dispatch.default_headers['X-Frame-Options'] = 'DENY'
-config.action_dispatch.default_headers['Header-Name']     = 'Value'
+config.action_dispatch.default_headers["X-Frame-Options"] = "DENY"
+config.action_dispatch.default_headers["Header-Name"]     = "Value"
 ```
 
 Or you can remove them:
@@ -1288,6 +1503,21 @@ The same works with `javascript_include_tag` and the `stylesheet_link_tag`:
 <%= stylesheet_link_tag "style.css", nonce: true %>
 ```
 
+To automatically attach a nonce to `javascript_tag`, `javascript_include_tag`, and
+`stylesheet_link_tag` if the corresponding directives are specified in `config.content_security_policy_nonce_directives`,
+you can set `config.content_security_policy_nonce_auto` to `true`:
+
+```ruby
+Rails.application.config.content_security_policy_nonce_auto = true
+```
+
+This is especially useful for 3rd-party views when using nonce-based source expressions
+in your Content Security Policy.
+
+NOTE: Be mindful of caching. Since the nonce is typically generated per request,
+enabling this may lead to cache fragmentation or stale content if your caching strategy
+doesn't account for dynamic nonces.
+
 Use [`csp_meta_tag`](https://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
@@ -1363,9 +1593,9 @@ Next, add an initializer to configure the middleware:
 # config/initializers/cors.rb
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'example.com'
+    origins "example.com"
 
-    resource '*',
+    resource "*",
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head]
   end
@@ -1391,7 +1621,7 @@ Refer to the Injection section for countermeasures against XSS.
 
 Cross-Site Request Forgery (CSRF), also known as Cross-Site Reference Forgery (XSRF), is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 
-A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/news/item/Symantec-reports-first-active-attack-on-a-DSL-router-735883.html). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
+A real-world example is a router reconfiguration by CSRF. The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
 
 Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim.
 
@@ -1459,4 +1689,4 @@ The security landscape shifts and it is important to keep up to date, because mi
 
 * Subscribe to the Rails security [mailing list](https://discuss.rubyonrails.org/c/security-announcements/9).
 * [Mozilla's Web Security Guidelines](https://infosec.mozilla.org/guidelines/web_security.html) - Recommendations on topics covering Content Security Policy, HTTP headers, Cookies, TLS configuration, etc.
-* A [good security blog](https://owasp.org/) including the [Cross-Site scripting Cheat Sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.md).
+* A [good set of security resources](https://owasp.org/), notably the [Cheat Sheet Series](https://cheatsheetseries.owasp.org/index.html), with for example the [Cross-Site Scripting Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html).

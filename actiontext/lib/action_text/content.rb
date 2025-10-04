@@ -56,7 +56,7 @@ module ActionText
       @links ||= fragment.find_all("a[href]").map { |a| a["href"] }.uniq
     end
 
-    # Extracts +ActionText::Attachment+s from the HTML fragment:
+    # Extracts ActionText::Attachment objects from the HTML fragment:
     #
     #     attachable = ActiveStorage::Blob.first
     #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
@@ -78,7 +78,7 @@ module ActionText
       @gallery_attachments ||= attachment_galleries.flat_map(&:attachments)
     end
 
-    # Extracts +ActionText::Attachable+s from the HTML fragment:
+    # Extracts ActionText::Attachable objects from the HTML fragment:
     #
     #     attachable = ActiveStorage::Blob.first
     #     html = %Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" caption="Captioned"></action-text-attachment>)
@@ -123,10 +123,11 @@ module ActionText
     #     content.to_plain_text # => "safeunsafe"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
-    # browsers.
+    # browsers without additional sanitization.
     #
     #     content = ActionText::Content.new("&lt;script&gt;alert()&lt;/script&gt;")
     #     content.to_plain_text # => "<script>alert()</script>"
+    #     ActionText::ContentHelper.sanitizer.sanitize(content.to_plain_text) # => ""
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
     end

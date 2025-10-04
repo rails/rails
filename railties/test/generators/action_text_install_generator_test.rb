@@ -58,32 +58,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "app/assets/stylesheets/actiontext.css"
   end
 
-  test "appends @import 'actiontext.css' to base scss file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.bootstrap.scss")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.bootstrap.scss" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-
-  test "appends @import 'actiontext.css'; to base css file" do
-    FileUtils.touch("#{destination_root}/app/assets/stylesheets/application.postcss.css")
-
-    run_generator_instance
-
-    assert_file "app/assets/stylesheets/application.postcss.css" do |content|
-      assert_match "@import 'actiontext.css';", content
-    end
-  end
-
-  test "throws a warning for missing base (s)css file" do
-    assert_match "To use the Trix editor, you must require 'app/assets/stylesheets/actiontext.css' in your base stylesheet.",
-      run_generator_instance
-  end
-
   test "creates Active Storage view partial" do
     run_generator_instance
     assert_file "app/views/active_storage/blobs/_blob.html.erb"
@@ -98,18 +72,6 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     run_generator_instance
     assert_migration "db/migrate/create_active_storage_tables.active_storage.rb"
     assert_migration "db/migrate/create_action_text_tables.action_text.rb"
-  end
-
-  test "uncomments image_processing gem" do
-    gemfile = Pathname("Gemfile").expand_path(destination_root)
-    gemfile.dirname.mkpath
-    gemfile.write(%(# gem "image_processing"))
-
-    run_generator_instance
-
-    assert_file gemfile do |content|
-      assert_equal %(gem "image_processing"), content
-    end
   end
 
   private

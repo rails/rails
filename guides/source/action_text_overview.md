@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Text Overview
 ====================
@@ -71,8 +71,7 @@ It will do the following:
 - Adds migrations to create the following tables that store rich text content
   and attachments: `action_text_rich_texts`, `active_storage_blobs`,
   `active_storage_attachments`, `active_storage_variant_records`.
-- Creates `actiontext.css` and imports it into `application.css`. The Trix
-  stylesheet is also included in the `application.css` file.
+- Creates `actiontext.css` which includes all Trix styles and overrides.
 - Adds the default view partials `_content.html` and `_blob.html` to render
   Action Text content and Active Storage attachment (aka blob) respectively.
 
@@ -182,8 +181,8 @@ content as follows:
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On
 the other hand `ActionText::RichText#to_plain_text` returns a string that is not
-HTML safe and should not be rendered in browsers. You can learn more about
-Action Text's sanitization process in the [`ActionText::RichText`
+HTML safe and should not be rendered in browsers without additional sanitization.
+You can learn more about Action Text's sanitization process in the [`ActionText::RichText`
 documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html).
 
 NOTE: If there's an attached resource within `content` field, it might not show
@@ -203,16 +202,8 @@ By default, Action Text will render rich text content inside an element with the
 class are then styled by the trix stylesheet.
 
 If you’d like to update any of the trix styles, you can add your custom styles
-in `app/assets/stylesheets/actiontext.css`.
-
-However, if you’d prefer to provide your own styles or utilize a third-party
-library instead of the default trix stylesheet, you can remove trix from the
-pre-processor directives in the `app/assets/stylesheets/actiontext.css` file by
-deleting the following:
-
-```css
-= require trix
-```
+in `app/assets/stylesheets/actiontext.css`, which includes both the full set of
+styles for Trix and the overrides needed for Action Text.
 
 ### Customizing the Editor Container
 

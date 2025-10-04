@@ -39,6 +39,8 @@ module ActiveRecord
       autoload :AssociationScope
       autoload :DisableJoinsAssociationScope
       autoload :AliasTracker
+
+      autoload :Deprecation
     end
 
     def self.eager_load!
@@ -79,12 +81,20 @@ module ActiveRecord
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
       def association_instance_get(name)
-        @association_cache[name]
+        (@association_cache ||= {})[name]
       end
 
       # Set the specified association instance.
       def association_instance_set(name, association)
         @association_cache[name] = association
+      end
+
+      def deprecated_associations_api_guard(association, method_name)
+        Deprecation.guard(association.reflection) { "the method #{method_name} was invoked" }
+      end
+
+      def report_deprecated_association(reflection, context:)
+        Deprecation.report(reflection, context: context)
       end
 
       # = Active Record \Associations
@@ -379,21 +389,43 @@ module ActiveRecord
       #              after_add: :congratulate_client,
       #              after_remove: :log_after_remove
       #
-      #     def congratulate_client(record)
+      #     def congratulate_client(client)
       #       # ...
       #     end
       #
-      #     def log_after_remove(record)
+      #     def log_after_remove(client)
       #       # ...
       #     end
       #   end
       #
+      # Callbacks can be defined in three ways:
+      #
+      # 1. A symbol that references a method defined on the class with the
+      #    associated collection. For example, <tt>after_add: :congratulate_client</tt>
+      #    invokes <tt>Firm#congratulate_client(client)</tt>.
+      # 2. A callable with a signature that accepts both the record with the
+      #    associated collection and the record being added or removed. For
+      #    example, <tt>after_add: ->(firm, client) { ... }</tt>.
+      # 3. An object that responds to the callback name. For example, passing
+      #    <tt>after_add: CallbackObject.new</tt> invokes <tt>CallbackObject#after_add(firm,
+      #    client)</tt>.
+      #
       # It's possible to stack callbacks by passing them as an array. Example:
+      #
+      #   class CallbackObject
+      #     def after_add(firm, client)
+      #       firm.log << "after_adding #{client.id}"
+      #     end
+      #   end
       #
       #   class Firm < ActiveRecord::Base
       #     has_many :clients,
       #              dependent: :destroy,
-      #              after_add: [:congratulate_client, -> (firm, record) { firm.log << "after_adding#{record.id}" }],
+      #              after_add: [
+      #                :congratulate_client,
+      #                -> (firm, client) { firm.log << "after_adding #{client.id}" },
+      #                CallbackObject.new
+      #              ],
       #              after_remove: :log_after_remove
       #   end
       #
@@ -537,7 +569,7 @@ module ActiveRecord
       #   @group.avatars << Avatar.new   # this would work if User belonged_to Avatar rather than the other way around
       #   @group.avatars.delete(@group.avatars.last)  # so would this
       #
-      # == Setting Inverses
+      # === Setting Inverses
       #
       # If you are using a #belongs_to on the join model, it is a good idea to set the
       # <tt>:inverse_of</tt> option on the #belongs_to, which will mean that the following example
@@ -998,6 +1030,116 @@ module ActiveRecord
       # associated records themselves, you can always do something along the lines of
       # <tt>person.tasks.each(&:destroy)</tt>.
       #
+      # == Deprecated Associations
+      #
+      # Associations can be marked as deprecated by passing <tt>deprecated: true</tt>:
+      #
+      #     has_many :posts, deprecated: true
+      #
+      # When a deprecated association is used, a warning is issued using the
+      # Active Record logger, though more options are available via
+      # configuration.
+      #
+      # The message includes some context that helps understand the deprecated
+      # usage:
+      #
+      #     The association Author#posts is deprecated, the method post_ids was invoked (...)
+      #     The association Author#posts is deprecated, referenced in query to preload records (...)
+      #
+      # The dots in the examples above would have the application-level spot
+      # where usage occurred, to help locate what triggered the warning. That
+      # location is computed using the Active Record backtrace cleaner.
+      #
+      # === What is considered to be usage?
+      #
+      # * Invocation of any association methods like +posts+, <tt>posts=</tt>,
+      #   etc.
+      #
+      # * If the association accepts nested attributes, assignment to those
+      #   attributes.
+      #
+      # * If the association is a through association and some of its nested
+      #   associations are deprecated, you'll get warnings for them whenever the
+      #   top-level through is used. This is so regardless of whether the
+      #   through itself is deprecated.
+      #
+      # * Execution of queries that refer to the association. Think execution of
+      #   <tt>eager_load(:posts)</tt>, <tt>joins(author: :posts)</tt>, etc.
+      #
+      # * If the association has a +:dependent+ option, destroying the
+      #   associated record issues warnings (because that has a side-effect that
+      #   would not happen if the association was removed).
+      #
+      # * If the association has a +:touch+ option, saving or destroying the
+      #   record issues a warning (because that has a side-effect that would not
+      #   happen if the association was removed).
+      #
+      # === Things that do NOT issue warnings
+      #
+      # The rationale behind most of the following edge cases is that Active
+      # Record accesses associations lazily, when used. Before that, the
+      # reference to the association is basically just a Ruby symbol.
+      #
+      # * If +posts+ is deprecated, <tt>has_many :comments, through: :posts</tt>
+      #   does not warn. Usage of the +comments+ association reports usage of
+      #   +posts+, as we explained above, but the definition of the +has_many+
+      #   itself does not.
+      #
+      # * Similarly, <tt>accepts_nested_attributes_for :posts</tt> does not
+      #   warn. Assignment to the posts attributes warns, as explained above,
+      #   but the +accepts_nested_attributes_for+ call itself does not.
+      #
+      # * Same if an association declares to be inverse of a deprecated one, the
+      #   macro itself does not warn.
+      #
+      # * In the same line, the declaration <tt>validates_associated :posts</tt>
+      #   does not warn by itself, though access is reported when the validation
+      #   runs.
+      #
+      # * Relation query methods like <tt>Author.includes(:posts)</tt> do not
+      #   warn by themselves. At that point, that is a relation that internally
+      #   stores a symbol for later use. As explained in the previous section,
+      #   you get a warning when/if the query is executed.
+      #
+      # * Access to the reflection object of the association as in
+      #   <tt>Author.reflect_on_association(:posts)</tt> or
+      #   <tt>Author.reflect_on_all_associations</tt> does not warn.
+      #
+      # === Configuration
+      #
+      # Reporting deprecated usage can be configured:
+      #
+      #     config.active_record.deprecated_associations_options = { ... }
+      #
+      # If present, this has to be a hash with keys +:mode+ and/or +:backtrace+.
+      #
+      # ==== Mode
+      #
+      # * In +:warn+ mode, usage issues a warning that includes the
+      #   application-level place where the access happened, if any. This is the
+      #   default mode.
+      #
+      # * In +:raise+ mode, usage raises an
+      #   ActiveRecord::DeprecatedAssociationError with a similar message and a
+      #   clean backtrace in the exception object.
+      #
+      # * In +:notify+ mode, a <tt>deprecated_association.active_record</tt>
+      #   Active Support notification is published. The event payload has the
+      #   association reflection (+:reflection+), the application-level location
+      #   (+:location+) where the access happened (a Thread::Backtrace::Location
+      #   object, or +nil+), and a deprecation message (+:message+).
+      #
+      # ==== Backtrace
+      #
+      # If +:backtrace+ is true, warnings include a clean backtrace in the message
+      # and notifications have a +:backtrace+ key in the payload with an array
+      # of clean Thread::Backtrace::Location objects. Exceptions always get a
+      # clean stack trace set.
+      #
+      # Clean backtraces are computed using the Active Record backtrace cleaner.
+      # In Rails applications, that is by the default the same as
+      # <tt>Rails.backtrace_cleaner</tt>.
+      #
       # == Type safety with ActiveRecord::AssociationTypeMismatch
       #
       # If you attempt to assign an object to an association that doesn't match the inferred
@@ -1186,8 +1328,10 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies an association through which to perform the query. This can be any other type
-        #   of association, including other <tt>:through</tt> associations. Options for <tt>:class_name</tt>,
+        #   Specifies an association through which to perform the query.
+        #
+        #   This can be any other type of association, including other <tt>:through</tt> associations,
+        #   but it cannot be a polymorphic association. Options for <tt>:class_name</tt>,
         #   <tt>:primary_key</tt> and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection.
         #
@@ -1199,8 +1343,11 @@ module ActiveRecord
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
-        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   and 'Setting Inverses' sections above.)
+        #   the appropriate join model records when they are saved. See
+        #   {Association Join Models}[rdoc-ref:Associations::ClassMethods@Association+Join+Models]
+        #   and {Setting Inverses}[rdoc-ref:Associations::ClassMethods@Setting+Inverses] for
+        #   more detail.
+        #
         # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1229,7 +1376,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:extend+]
         #   Specifies a module or array of modules that will be extended into the association object returned.
         #   Useful for defining methods on associations, especially when they should be shared between multiple
@@ -1251,6 +1399,17 @@ module ActiveRecord
         #   persisted new records placed at the end.
         #   When set to +:nested_attributes_order+, the index is based on the record order received by
         #   nested attributes setter, when accepts_nested_attributes_for is used.
+        # [:before_add]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>before an object is added</b> to the association collection.
+        # [:after_add]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>after an object is added</b> to the association collection.
+        # [:before_remove]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>before an object is removed</b> from the association collection.
+        # [:after_remove]
+        #   Defines an {association callback}[rdoc-ref:Associations::ClassMethods@Association+callbacks] that gets triggered <b>after an object is removed</b> from the association collection.
+        # [+:deprecated+]
+        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
+        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_many :comments, -> { order("posted_on") }
@@ -1267,13 +1426,15 @@ module ActiveRecord
         #   has_many :comments, index_errors: :nested_attributes_order
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
-        # Specifies a one-to-one association with another class. This method should only be used
-        # if the other class contains the foreign key. If the current class contains the foreign key,
-        # then you should use #belongs_to instead. See also ActiveRecord::Associations::ClassMethods's overview
-        # on when to use #has_one and when to use #belongs_to.
+        # Specifies a one-to-one association with another class. This method
+        # should only be used if the other class contains the foreign key. If
+        # the current class contains the foreign key, then you should use
+        # #belongs_to instead. See {Is it a belongs_to or has_one
+        # association?}[rdoc-ref:Associations::ClassMethods@Is+it+a+-23belongs_to+or+-23has_one+association-3F]
+        # for more detail on when to use #has_one and when to use #belongs_to.
         #
         # The following methods for retrieval and query of a single associated object will be added:
         #
@@ -1375,10 +1536,12 @@ module ActiveRecord
         # [+:as+]
         #   Specifies a polymorphic interface (See #belongs_to).
         # [+:through+]
-        #   Specifies a Join Model through which to perform the query. Options for <tt>:class_name</tt>,
-        #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
-        #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
-        #   or #belongs_to association on the join model.
+        #   Specifies an association through which to perform the query.
+        #
+        #   The through association must be a +has_one+, <tt>has_one :through</tt>, or non-polymorphic +belongs_to+.
+        #   That is, a non-polymorphic singular association. Options for <tt>:class_name</tt>, <tt>:primary_key</tt>,
+        #   and <tt>:foreign_key</tt> are ignored, as the association uses the source reflection. You can only
+        #   use a <tt>:through</tt> query through a #has_one or #belongs_to association on the join model.
         #
         #   If the association on the join model is a #belongs_to, the collection can be modified
         #   and the records on the <tt>:through</tt> model will be automatically created and removed
@@ -1388,8 +1551,10 @@ module ActiveRecord
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
         #   join model. This allows associated records to be built which will automatically create
-        #   the appropriate join model records when they are saved. (See the 'Association Join Models'
-        #   and 'Setting Inverses' sections above.)
+        #   the appropriate join model records when they are saved. See
+        #   {Association Join Models}[rdoc-ref:Associations::ClassMethods@Association+Join+Models]
+        #   and {Setting Inverses}[rdoc-ref:Associations::ClassMethods@Setting+Inverses] for
+        #   more detail.
         # [+:disable_joins+]
         #   Specifies whether joins should be skipped for an association. If set to true, two or more queries
         #   will be generated. Note that in some cases, if order or limit is applied, it will be done in-memory
@@ -1427,7 +1592,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_one association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:required+]
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
@@ -1441,12 +1607,15 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        # [+:deprecated+]
+        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
+        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
         #   has_one :credit_card, dependent: :nullify  # updates the associated records foreign
         #                                                 # key value to NULL rather than destroying it
-        #   has_one :last_comment, -> { order('posted_on') }, class_name: "Comment"
+        #   has_one :last_comment, -> { order('posted_on desc') }, class_name: "Comment"
         #   has_one :project_manager, -> { where(role: 'project_manager') }, class_name: "Person"
         #   has_one :attachment, as: :attachable
         #   has_one :boss, -> { readonly }
@@ -1458,13 +1627,15 @@ module ActiveRecord
         #   has_one :employment_record_book, query_constraints: [:organization_id, :employee_id]
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
-        # Specifies a one-to-one association with another class. This method should only be used
-        # if this class contains the foreign key. If the other class contains the foreign key,
-        # then you should use #has_one instead. See also ActiveRecord::Associations::ClassMethods's overview
-        # on when to use #has_one and when to use #belongs_to.
+        # Specifies a one-to-one association with another class. This method
+        # should only be used if this class contains the foreign key. If the
+        # other class contains the foreign key, then you should use #has_one
+        # instead. See {Is it a belongs_to or has_one
+        # association?}[rdoc-ref:Associations::ClassMethods@Is+it+a+-23belongs_to+or+-23has_one+association-3F]
+        # for more detail on when to use #has_one and when to use #belongs_to.
         #
         # Methods will be added for retrieval and query for a single associated object, for which
         # this object holds an id:
@@ -1535,7 +1706,9 @@ module ActiveRecord
         # [+:class_name+]
         #   Specify the class name of the association. Use it only if that name can't be inferred
         #   from the association name. So <tt>belongs_to :author</tt> will by default be linked to the Author class, but
-        #   if the real class name is Person, you'll have to specify it with this option.
+        #   if the real class name is Person, you'll have to specify it with this option. +:class_name+
+        #   is not supported in polymorphic associations, since in that case the class name of the
+        #   associated record is stored in the type column.
         # [+:foreign_key+]
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of the association with an "_id" suffix. So a class that defines a <tt>belongs_to :person</tt>
@@ -1606,7 +1779,8 @@ module ActiveRecord
         # [+:inverse_of+]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
-        #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
+        #   See {Bi-directional associations}[rdoc-ref:Associations::ClassMethods@Bi-directional+associations]
+        #   for more detail.
         # [+:optional+]
         #   When set to +true+, the association will not have its presence validated.
         # [+:required+]
@@ -1628,6 +1802,9 @@ module ActiveRecord
         #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
         #   This is an optional option. By default Rails will attempt to derive the value automatically.
         #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        # [+:deprecated+]
+        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
+        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   belongs_to :firm, foreign_key: "client_of"
@@ -1646,7 +1823,7 @@ module ActiveRecord
         #   belongs_to :note, query_constraints: [:organization_id, :note_id]
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
-          Reflection.add_reflection self, name, reflection
+          Reflection.add_reflection(self, name, reflection)
         end
 
         # Specifies a many-to-many relationship with another class. This associates two classes via an
@@ -1666,7 +1843,7 @@ module ActiveRecord
         # The join table should not have a primary key or a model associated with it. You must manually generate the
         # join table with a migration such as this:
         #
-        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[8.0]
+        #   class CreateDevelopersProjectsJoinTable < ActiveRecord::Migration[8.1]
         #     def change
         #       create_join_table :developers, :projects
         #     end
@@ -1817,6 +1994,9 @@ module ActiveRecord
         #   <tt>:autosave</tt> to <tt>true</tt>.
         # [+:strict_loading+]
         #   Enforces strict loading every time an associated record is loaded through this association.
+        # [+:deprecated+]
+        #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
+        #   Please, check the class documentation above for details.
         #
         # Option examples:
         #   has_and_belongs_to_many :projects
@@ -1828,17 +2008,17 @@ module ActiveRecord
         def has_and_belongs_to_many(name, scope = nil, **options, &extension)
           habtm_reflection = ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(name, scope, options, self)
 
-          builder = Builder::HasAndBelongsToMany.new name, self, options
+          builder = Builder::HasAndBelongsToMany.new(name, self, options)
 
           join_model = builder.through_model
 
-          const_set join_model.name, join_model
-          private_constant join_model.name
+          const_set(join_model.name, join_model)
+          private_constant(join_model.name)
 
-          middle_reflection = builder.middle_reflection join_model
+          middle_reflection = builder.middle_reflection(join_model)
 
-          Builder::HasMany.define_callbacks self, middle_reflection
-          Reflection.add_reflection self, middle_reflection.name, middle_reflection
+          Builder::HasMany.define_callbacks(self, middle_reflection)
+          Reflection.add_reflection(self, middle_reflection.name, middle_reflection)
           middle_reflection.parent_reflection = habtm_reflection
 
           include Module.new {
@@ -1855,8 +2035,8 @@ module ActiveRecord
           hm_options[:through] = middle_reflection.name
           hm_options[:source] = join_model.right_reflection.name
 
-          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading].each do |k|
-            hm_options[k] = options[k] if options.key? k
+          [:before_add, :after_add, :before_remove, :after_remove, :autosave, :validate, :join_table, :class_name, :extend, :strict_loading, :deprecated].each do |k|
+            hm_options[k] = options[k] if options.key?(k)
           end
 
           has_many name, scope, **hm_options, &extension

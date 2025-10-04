@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/post"
 require "models/person"
 require "models/reference"
@@ -29,6 +30,9 @@ require "models/categorization"
 require "models/member"
 require "models/membership"
 require "models/club"
+require "models/program"
+require "models/program_offering"
+require "models/enrollment"
 require "models/organization"
 require "models/user"
 require "models/family"
@@ -38,6 +42,10 @@ require "models/seminar"
 require "models/session"
 require "models/sharded"
 require "models/cpk"
+require "models/zine"
+require "models/interest"
+require "models/human"
+require "models/dats"
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -1058,7 +1066,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = authors(:david)
     ids = [categories(:general).name, "Unknown"]
     e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
-    msg = "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2). Couldn't find Category with name Unknown."
+    msg = %{Couldn't find all Categories with 'name': ("General", "Unknown") (found 1 results, but was looking for 2). Couldn't find Category with name "Unknown".}
     assert_equal msg, e.message
   end
 
@@ -1237,7 +1245,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
-    assert_predicate post[:author_count], :nil?
+    assert_nil post[:author_count]
   end
 
   def test_primary_key_option_on_source
@@ -1318,6 +1326,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_many_through_with_polymorphic_source
     post = tags(:general).tagged_posts.create! title: "foo", body: "bar"
     assert_equal [tags(:general)], post.reload.tags
+  end
+
+  def test_has_many_through_with_polymorhic_join_model
+    zine = Zine.create!
+
+    assert_nothing_raised { zine.polymorphic_humans.build.save! }
+
+    assert_equal 1, zine.polymorphic_humans.count
+    assert_equal 1, zine.interests.count
   end
 
   def test_has_many_through_obeys_order_on_through_association
@@ -1536,6 +1553,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [], author.nonspecial_categories_with_condition_ids
   end
 
+  def test_has_many_through_from_same_parent_to_same_child_creates_join_models
+    club = Club.new(name: "Awesome Rails Club")
+    member = club.simple_members.build(name: "Jane Doe")
+
+    program = Program.new(name: "Learn Ruby on Rails")
+    program.members << member
+
+    club.programs << program
+
+    club.save!
+
+    assert_equal(1, program.enrollments.size)
+    assert_equal(1, club.simple_memberships.size)
+  end
+
   def test_single_has_many_through_association_with_unpersisted_parent_instance
     post_with_single_has_many_through = Class.new(Post) do
       def self.name; "PostWithSingleHasManyThrough"; end
@@ -1620,9 +1652,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       tag_ids = blog_post.tags.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.lease_connection
-    quoted_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_tags.blog_id"))
-    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    quoted_tags_blog_id = Regexp.escape(quote_table_name("sharded_tags.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_tags_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
     assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
 
@@ -1638,9 +1669,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       blog_post_ids = tag.blog_posts.to_a.map(&:id)
     end.first
 
-    c = Sharded::Blog.lease_connection
-    quoted_blog_posts_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts.blog_id"))
-    quoted_posts_tags_blog_id = Regexp.escape(c.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    quoted_blog_posts_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts.blog_id"))
+    quoted_posts_tags_blog_id = Regexp.escape(quote_table_name("sharded_blog_posts_tags.blog_id"))
     assert_match(/.* ON.* #{quoted_blog_posts_blog_id} = #{quoted_posts_tags_blog_id} .* WHERE/, sql)
     assert_match(/.* WHERE #{quoted_posts_tags_blog_id} = .*/, sql)
 
@@ -1693,4 +1723,57 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lesson.has_many :students, through: :lesson_students, anonymous_class: student
       [lesson, lesson_student, student]
     end
+end
+
+class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :author_addresses
+
+  setup do
+    @model = DATS::Author
+    @author = @model.first
+  end
+
+  test "the has_many itself is deprecated" do
+    assert_not_deprecated_association(:comments) do
+      @author.comments
+    end
+
+    assert_deprecated_association(:deprecated_has_many_through, context: context_for_method(:deprecated_has_many_through)) do
+      @author.deprecated_has_many_through
+    end
+  end
+
+  test "the through association is deprecated" do
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_through)) do
+      @author.deprecated_through
+    end
+  end
+
+  test "the source association is deprecated" do
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_source)) do
+      @author.deprecated_source
+    end
+  end
+
+  test "all deprecated" do
+    assert_deprecated_association(:deprecated_all, context: context_for_method(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+  end
+
+  test "deprecated nested association" do
+    assert_deprecated_association(:deprecated_author_favorites, context: context_for_through(:deprecated_nested)) do
+      @author.deprecated_nested.uniq
+    end
+  end
 end

@@ -38,7 +38,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_equal data, blob.download
     assert_equal data.length, blob.byte_size
-    assert_equal OpenSSL::Digest::MD5.base64digest(data), blob.checksum
+    assert_equal ActiveStorage.checksum_implementation.base64digest(data), blob.checksum
   end
 
   test "create_and_upload extracts content type from data" do
@@ -188,7 +188,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "open without integrity" do
     create_blob(data: "Hello, world!").tap do |blob|
-      blob.update! checksum: OpenSSL::Digest::MD5.base64digest("Goodbye, world!")
+      blob.update! checksum: ActiveStorage.checksum_implementation.base64digest("Goodbye, world!")
 
       assert_raises ActiveStorage::IntegrityError do
         blob.open { |file| flunk "Expected integrity check to fail" }

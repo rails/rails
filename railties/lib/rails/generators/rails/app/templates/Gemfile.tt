@@ -10,14 +10,19 @@ source "https://rubygems.org"
 <% end -%>
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ <%= bundler_windows_platforms %> jruby ]
+gem "tzinfo-data", platforms: %i[ windows jruby ]
 <% unless options.skip_solid? -%>
 
-# Use the database-backed Solid Cache adapter for Rails.cache [https://github.com/rails/solid_cache]
+<% if options.skip_action_cable? -%>
+# Use the database-backed adapters for Rails.cache and Active Job
+<% else -%>
+# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
+<% end -%>
 gem "solid_cache"
-
-# Use the database-backed Solid Queue adapter for Active Job [https://github.com/rails/solid_queue]
 gem "solid_queue"
+<% unless options.skip_action_cable? -%>
+gem "solid_cable"
+<% end -%>
 <% end -%>
 <% if depend_on_bootsnap? -%>
 
@@ -37,7 +42,7 @@ gem "thruster", require: false
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 1.2"
 <% end -%>
 <%- if options.api? -%>
 
@@ -48,7 +53,12 @@ gem "thruster", require: false
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri <%= bundler_windows_platforms %> ], require: "debug/prelude"
+  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+<%- unless options.skip_bundler_audit? -%>
+
+  # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
+  gem "bundler-audit", require: false
+<%- end -%>
 <%- unless options.skip_brakeman? -%>
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
@@ -61,15 +71,15 @@ group :development, :test do
 <%- end -%>
 end
 <% end -%>
-
 <%- unless options.api? || options.skip_dev_gems? -%>
+
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
 end
 <%- end -%>
-
 <%- if depends_on_system_test? -%>
+
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"

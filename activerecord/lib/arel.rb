@@ -50,7 +50,9 @@ module Arel
   # Use this option only if the SQL is idempotent, as it could be executed
   # more than once.
   def self.sql(sql_string, *positional_binds, retryable: false, **named_binds)
-    if positional_binds.empty? && named_binds.empty?
+    if Arel::Nodes::SqlLiteral === sql_string
+      sql_string
+    elsif positional_binds.empty? && named_binds.empty?
       Arel::Nodes::SqlLiteral.new(sql_string, retryable: retryable)
     else
       Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds

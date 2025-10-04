@@ -18,11 +18,12 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      "ActionController::InvalidAuthenticityToken"         => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActionController::InvalidCrossOriginRequest"        => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
+      "ActionController::TooManyRequests"                  => :too_many_requests,
       "Rack::QueryParser::ParameterTypeError"              => :bad_request,
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
     )
@@ -148,15 +149,20 @@ module ActionDispatch
       application_trace_with_ids = []
       framework_trace_with_ids = []
       full_trace_with_ids = []
+      application_traces = application_trace.map(&:to_s)
 
+      full_trace = backtrace_cleaner&.clean_locations(backtrace, :all).presence || backtrace
       full_trace.each_with_index do |trace, idx|
+        filtered_trace = backtrace_cleaner&.clean_frame(trace, :all) || trace
+
         trace_with_id = {
           exception_object_id: @exception.object_id,
           id: idx,
-          trace: trace
+          trace: trace,
+          filtered_trace: filtered_trace,
         }
 
-        if application_trace.include?(trace)
+        if application_traces.include?(filtered_trace.to_s)
           application_trace_with_ids << trace_with_id
         else
           framework_trace_with_ids << trace_with_id
@@ -173,7 +179,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      Rack::Utils.status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
     end
 
     def show?(request)
@@ -197,14 +203,8 @@ module ActionDispatch
 
     def source_extracts
       backtrace.map do |trace|
-        extract_source(trace)
+        extract_source(trace).merge(trace: trace)
       end
-    end
-
-    def error_highlight_available?
-      # ErrorHighlight.spot with backtrace_location keyword is available since
-      # error_highlight 0.4.0
-      defined?(ErrorHighlight) && Gem::Version.new(ErrorHighlight::VERSION) >= Gem::Version.new("0.4.0")
     end
 
     def trace_to_show
@@ -267,13 +267,13 @@ module ActionDispatch
         end
 
         (@exception.backtrace_locations || []).map do |loc|
-          if built_methods.key?(loc.label.to_s)
+          if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
             else
               loc
             end
-            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.label.to_s])
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.base_label])
           else
             loc
           end

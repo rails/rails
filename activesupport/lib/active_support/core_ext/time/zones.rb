@@ -20,7 +20,7 @@ class Time
     # This method accepts any of the following:
     #
     # * A \Rails TimeZone object.
-    # * An identifier for a \Rails TimeZone object (e.g., "Eastern Time (US & Canada)", <tt>-5.hours</tt>).
+    # * An identifier for a \Rails TimeZone object (e.g., "Eastern \Time (US & Canada)", <tt>-5.hours</tt>).
     # * A +TZInfo::Timezone+ object.
     # * An identifier for a +TZInfo::Timezone+ object (e.g., "America/New_York").
     #

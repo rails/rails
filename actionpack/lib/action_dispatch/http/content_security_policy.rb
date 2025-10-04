@@ -8,8 +8,7 @@ require "active_support/core_ext/array/wrap"
 module ActionDispatch # :nodoc:
   # # Action Dispatch Content Security Policy
   #
-  # Configures the HTTP [Content-Security-Policy]
-  # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+  # Configures the HTTP [Content-Security-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
   # response header to help protect against XSS and
   # injection attacks.
   #
@@ -27,6 +26,9 @@ module ActionDispatch # :nodoc:
   #       policy.report_uri "/csp-violation-report-endpoint"
   #     end
   class ContentSecurityPolicy
+    class InvalidDirectiveError < StandardError
+    end
+
     class Middleware
       def initialize(app)
         @app = app
@@ -169,6 +171,8 @@ module ActionDispatch # :nodoc:
       worker_src:                 "worker-src"
     }.freeze
 
+    HASH_SOURCE_ALGORITHM_PREFIXES = ["sha256-", "sha384-", "sha512-"].freeze
+
     DEFAULT_NONCE_DIRECTIVES = %w[script-src style-src].freeze
 
     private_constant :MAPPINGS, :DIRECTIVES, :DEFAULT_NONCE_DIRECTIVES
@@ -227,8 +231,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Enable the [report-uri]
-    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
+    # Enable the [report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri)
     # directive. Violation reports will be sent to the
     # specified URI:
     #
@@ -238,8 +241,7 @@ module ActionDispatch # :nodoc:
       @directives["report-uri"] = [uri]
     end
 
-    # Specify asset types for which [Subresource Integrity]
-    # (https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) is required:
+    # Specify asset types for which [Subresource Integrity](https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity) is required:
     #
     #     policy.require_sri_for :script, :style
     #
@@ -255,8 +257,7 @@ module ActionDispatch # :nodoc:
       end
     end
 
-    # Specify whether a [sandbox]
-    # (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox)
+    # Specify whether a [sandbox](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/sandbox)
     # should be enabled for the requested resource:
     #
     #     policy.sandbox
@@ -306,7 +307,13 @@ module ActionDispatch # :nodoc:
           case source
           when Symbol
             apply_mapping(source)
-          when String, Proc
+          when String
+            if hash_source?(source)
+              "'#{source}'"
+            else
+              source
+            end
+          when Proc
             source
           else
             raise ArgumentError, "Invalid content security policy source: #{source.inspect}"
@@ -324,9 +331,9 @@ module ActionDispatch # :nodoc:
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
             if nonce && nonce_directive?(directive, nonce_directives)
-              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+              "#{directive} #{build_directive(directive, sources, context).join(' ')} 'nonce-#{nonce}'"
             else
-              "#{directive} #{build_directive(sources, context).join(' ')}"
+              "#{directive} #{build_directive(directive, sources, context).join(' ')}"
             end
           elsif sources
             directive
@@ -336,8 +343,22 @@ module ActionDispatch # :nodoc:
         end
       end
 
-      def build_directive(sources, context)
-        sources.map { |source| resolve_source(source, context) }
+      def validate(directive, sources)
+        sources.flatten.each do |source|
+          if source.include?(";") || source != source.gsub(/[[:space:]]/, "")
+            raise InvalidDirectiveError, <<~MSG.squish
+              Invalid Content Security Policy #{directive}: "#{source}".
+              Directive values must not contain whitespace or semicolons.
+              Please use multiple arguments or other directive methods instead.
+            MSG
+          end
+        end
+      end
+
+      def build_directive(directive, sources, context)
+        resolved_sources = sources.map { |source| resolve_source(source, context) }
+
+        validate(directive, resolved_sources)
       end
 
       def resolve_source(source, context)
@@ -360,6 +381,10 @@ module ActionDispatch # :nodoc:
 
       def nonce_directive?(directive, nonce_directives)
         nonce_directives.include?(directive)
+      end
+
+      def hash_source?(source)
+        source.start_with?(*HASH_SOURCE_ALGORITHM_PREFIXES)
       end
   end
 end

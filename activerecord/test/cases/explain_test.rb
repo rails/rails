@@ -95,7 +95,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       }.first
       message = Car.all.explain.first
       assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(expected_query.sub(/LIMIT.*/, ""), message)
     end
 
     def test_relation_explain_with_last
@@ -104,7 +104,7 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       }.first
       message = Car.all.explain.last
       assert_match(/^EXPLAIN/, message)
-      assert_match(expected_query, message)
+      assert_match(expected_query.sub(/LIMIT.*/, ""), message)
     end
 
     def test_relation_explain_with_pluck

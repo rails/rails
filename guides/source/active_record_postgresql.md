@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record and PostgreSQL
 ============================
@@ -39,7 +39,7 @@ that are supported by the PostgreSQL adapter.
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
 create_table :documents do |t|
-  t.binary 'payload'
+  t.binary "payload"
 end
 ```
 
@@ -63,12 +63,12 @@ Document.create payload: data
 ```ruby
 # db/migrate/20140207133952_create_books.rb
 create_table :books do |t|
-  t.string 'title'
-  t.string 'tags', array: true
-  t.integer 'ratings', array: true
+  t.string "title"
+  t.string "tags", array: true
+  t.integer "ratings", array: true
 end
-add_index :books, :tags, using: 'gin'
-add_index :books, :ratings, using: 'gin'
+add_index :books, :tags, using: "gin"
+add_index :books, :ratings, using: "gin"
 ```
 
 ```ruby
@@ -102,10 +102,10 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-class CreateProfiles < ActiveRecord::Migration[7.0]
-  enable_extension 'hstore' unless extension_enabled?('hstore')
+class CreateProfiles < ActiveRecord::Migration[8.1]
+  enable_extension "hstore" unless extension_enabled?("hstore")
   create_table :profiles do |t|
-    t.hstore 'settings'
+    t.hstore "settings"
   end
 end
 ```
@@ -139,11 +139,11 @@ irb> Profile.where("settings->'color' = ?", "yellow")
 # db/migrate/20131220144913_create_events.rb
 # ... for json datatype:
 create_table :events do |t|
-  t.json 'payload'
+  t.json "payload"
 end
 # ... or for jsonb datatype:
 create_table :events do |t|
-  t.jsonb 'payload'
+  t.jsonb "payload"
 end
 ```
 
@@ -175,7 +175,7 @@ This type is mapped to Ruby [`Range`](https://docs.ruby-lang.org/en/master/Range
 ```ruby
 # db/migrate/20130923065404_create_events.rb
 create_table :events do |t|
-  t.daterange 'duration'
+  t.daterange "duration"
 end
 ```
 
@@ -320,7 +320,7 @@ usage:
 ```ruby
 # db/migrate/20150718144917_rename_article_status.rb
 def change
-  rename_enum :article_status, to: :article_state
+  rename_enum :article_status, :article_state
 end
 ```
 
@@ -332,6 +332,7 @@ def up
   add_enum_value :article_state, "archived" # will be at the end after published
   add_enum_value :article_state, "in review", before: "published"
   add_enum_value :article_state, "approved", after: "in review"
+  add_enum_value :article_state, "rejected", if_not_exists: true # won't raise an error if the value already exists
 end
 ```
 
@@ -390,7 +391,7 @@ You can use `uuid` type to define references in migrations:
 
 ```ruby
 # db/migrate/20150418012400_create_blog.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :posts, id: :uuid
 
 create_table :comments, id: :uuid do |t|
@@ -455,9 +456,9 @@ objects. The `macaddr` type is mapped to normal text.
 ```ruby
 # db/migrate/20140508144913_create_devices.rb
 create_table(:devices, force: true) do |t|
-  t.inet 'ip'
-  t.cidr 'network'
-  t.macaddr 'address'
+  t.inet "ip"
+  t.cidr "network"
+  t.macaddr "address"
 end
 ```
 
@@ -497,7 +498,7 @@ This type is mapped to [`ActiveSupport::Duration`](https://api.rubyonrails.org/c
 ```ruby
 # db/migrate/20200120000000_create_events.rb
 create_table :events do |t|
-  t.interval 'duration'
+  t.interval "duration"
 end
 ```
 
@@ -515,6 +516,34 @@ irb> event.duration
 => 2 days
 ```
 
+### Timestamps
+
+* [Date/Time Types](https://www.postgresql.org/docs/current/datatype-datetime.html)
+
+Rails migrations with timestamps store the time a model was created or updated. By default and for legacy reasons, the columns use the `timestamp without time zone` data type.
+
+```ruby
+# db/migrate/20241220144913_create_devices.rb
+create_table :post, id: :uuid do |t|
+  t.datetime :published_at
+  # By default, Active Record will set the data type of this column to `timestamp without time zone`.
+end
+```
+
+While this works ok, [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+This must be configured before it can be used for new migrations.
+
+To configure `timestamp with time zone` as your new timestamp default data type, place the following configuration in the `config/application.rb` file.
+
+```ruby
+# config/application.rb
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+With that configuration in place, generate and apply new migrations, then verify their timestamps use the `timestamp with time zone` data type.
+
 UUID Primary Keys
 -----------------
 
@@ -523,7 +552,7 @@ extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
-enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
+enable_extension "pgcrypto" unless extension_enabled?("pgcrypto")
 create_table :devices, id: :uuid do |t|
   t.string :kind
 end
@@ -550,14 +579,14 @@ To use the Rails model generator for a table using UUID as the primary key, pass
 For example:
 
 ```bash
-$ rails generate model Device --primary-key-type=uuid kind:string
+$ bin/rails generate model Device --primary-key-type=uuid kind:string
 ```
 
 When building a model with a foreign key that will reference this UUID, treat
 `uuid` as the native field type, for example:
 
 ```bash
-$ rails generate model Case device_id:uuid
+$ bin/rails generate model Case device_id:uuid
 ```
 
 Indexing
@@ -598,7 +627,7 @@ NOTE: Generated columns are supported since version 12.0 of PostgreSQL.
 # db/migrate/20131220144913_create_users.rb
 create_table :users do |t|
   t.string :name
-  t.virtual :name_upcased, type: :string, as: 'upper(name)', stored: true
+  t.virtual :name_upcased, type: :string, as: "upper(name)", stored: true
 end
 
 # app/models/user.rb
@@ -606,7 +635,7 @@ class User < ApplicationRecord
 end
 
 # Usage
-user = User.create(name: 'John')
+user = User.create(name: "John")
 User.last.name_upcased # => "JOHN"
 ```
 
@@ -627,7 +656,7 @@ add_reference :alias, :person, foreign_key: { deferrable: :deferred }
 If the reference was created with the `foreign_key: true` option, the following transaction would fail when executing the first `INSERT` statement. It does not fail when the `deferrable: :deferred` option is set though.
 
 ```ruby
-ActiveRecord::Base.connection.transaction do
+ActiveRecord::Base.lease_connection.transaction do
   person = Person.create(id: SecureRandom.uuid, alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end
@@ -636,8 +665,8 @@ end
 When the `:deferrable` option is set to `:immediate`, let the foreign keys keep the default behavior of checking the constraint immediately, but allow manually deferring the checks using `set_constraints` within a transaction. This will cause the foreign keys to be checked when the transaction is committed:
 
 ```ruby
-ActiveRecord::Base.connection.transaction do
-  ActiveRecord::Base.connection.set_constraints(:deferred)
+ActiveRecord::Base.lease_connection.transaction do
+  ActiveRecord::Base.lease_connection.set_constraints(:deferred)
   person = Person.create(alias_id: SecureRandom.uuid, name: "John Doe")
   Alias.create(id: person.alias_id, person_id: person.id, name: "jaydee")
 end
@@ -693,7 +722,7 @@ create_table :documents do |t|
   t.string :body
 end
 
-add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: 'documents_idx'
+add_index :documents, "to_tsvector('english', title || ' ' || body)", using: :gin, name: "documents_idx"
 ```
 
 ```ruby
@@ -723,7 +752,7 @@ create_table :documents do |t|
             type: :tsvector, as: "to_tsvector('english', title || ' ' || body)", stored: true
 end
 
-add_index :documents, :textsearchable_index_col, using: :gin, name: 'documents_idx'
+add_index :documents, :textsearchable_index_col, using: :gin, name: "documents_idx"
 
 # Usage
 Document.create(title: "Cats and Dogs", body: "are nice!")
@@ -807,3 +836,21 @@ For example, to exclude comments from your structure dump, add this to an initia
 ```ruby
 ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 ```
+
+Explain
+-------
+
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
+
+```ruby
+Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
+#=> EXPLAIN (ANALYZE, BUFFERS) SELECT "companies".* FROM "companies"
+# ...
+# Seq Scan on companies  (cost=0.00..2.21 rows=3 width=64)
+# ...
+```
+
+See their documentation for more details.
+
+[explain-options]: active_record_querying.html#explain-options
+[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html

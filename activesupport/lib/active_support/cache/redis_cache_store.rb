@@ -35,9 +35,6 @@ module ActiveSupport
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
-      # Keys are truncated with the Active Support digest if they exceed 1kB
-      MAX_KEY_BYTESIZE = 1024
-
       DEFAULT_REDIS_OPTIONS = {
         connect_timeout:    1,
         read_timeout:       1,
@@ -106,20 +103,29 @@ module ActiveSupport
           end
       end
 
-      attr_reader :max_key_bytesize
       attr_reader :redis
 
       # Creates a new Redis cache store.
       #
-      # There are four ways to provide the Redis client used by the cache: the
-      # +:redis+ param can be a Redis instance or a block that returns a Redis
-      # instance, or the +:url+ param can be a string or an array of strings
-      # which will be used to create a Redis instance or a +Redis::Distributed+
-      # instance.
+      # There are a few ways to provide the Redis client used by the cache:
+      #
+      # 1. The +:redis+ param can be:
+      #    - A Redis instance.
+      #    - A +ConnectionPool+ instance wrapping a Redis instance.
+      #    - A block that returns a Redis instance.
+      #
+      # 2. The +:url+ param can be:
+      #    - A string used to create a Redis instance.
+      #    - An array of strings used to create a +Redis::Distributed+ instance.
+      #
+      # If the final Redis instance is not already a +ConnectionPool+, it will
+      # be wrapped in one using +ActiveSupport::Cache::Store::DEFAULT_POOL_OPTIONS+.
+      # These options can be overridden with the +:pool+ param, or the pool can be
+      # disabled with +:pool: false+.
       #
       #   Option  Class       Result
-      #   :redis  Proc    ->  options[:redis].call
       #   :redis  Object  ->  options[:redis]
+      #   :redis  Proc    ->  options[:redis].call
       #   :url    String  ->  Redis.new(url: …)
       #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
@@ -148,14 +154,17 @@ module ActiveSupport
       #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+        redis = redis_options[:redis]
 
-        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
+        already_pool = redis.instance_of?(::ConnectionPool) ||
+                       (redis.respond_to?(:wrapped_pool) && redis.wrapped_pool.instance_of?(::ConnectionPool))
+
+        if !already_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
           @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
         else
           @redis = self.class.build_redis(**redis_options)
         end
 
-        @max_key_bytesize = MAX_KEY_BYTESIZE
         @error_handler = error_handler
 
         super(universal_options)
@@ -213,7 +222,7 @@ module ActiveSupport
             nodes.each do |node|
               begin
                 cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
-                node.del(*keys) unless keys.empty?
+                node.unlink(*keys) unless keys.empty?
               end until cursor == "0"
             end
           end
@@ -235,6 +244,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -262,6 +276,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
@@ -384,14 +403,16 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del(key) == 1 }
+            redis.then { |c| c.unlink(key) == 1 }
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
+          return 0 if entries.empty?
+
           failsafe :delete_multi_entries, returning: 0 do
-            redis.then { |c| c.del(entries) }
+            redis.then { |c| c.unlink(*entries) }
           end
         end
 
@@ -407,21 +428,6 @@ module ActiveSupport
                 write_entry key, entry, **options
               end
             end
-          end
-        end
-
-        # Truncate keys that exceed 1kB.
-        def normalize_key(key, options)
-          truncate_key super&.b
-        end
-
-        def truncate_key(key)
-          if key && key.bytesize > max_key_bytesize
-            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
-            truncate_at = max_key_bytesize - suffix.bytesize
-            "#{key.byteslice(0, truncate_at)}#{suffix}"
-          else
-            key
           end
         end
 
@@ -483,7 +489,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseError => error
+        rescue ::Redis::BaseError, ConnectionPool::Error, ConnectionPool::TimeoutError => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end

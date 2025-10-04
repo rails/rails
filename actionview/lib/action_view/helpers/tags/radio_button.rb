@@ -23,7 +23,7 @@ module ActionView
           options["type"]     = "radio"
           options["value"]    = @tag_value
           options["checked"] = "checked" if input_checked?(options)
-          add_default_name_and_id_for_value(@tag_value, options)
+          add_default_name_and_field_for_value(@tag_value, options)
           options
         end
 

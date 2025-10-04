@@ -37,7 +37,7 @@ class JustMeController < ActionController::Base
   clear_helpers
 
   def flash
-    render inline: "<h1><%= notice %></h1>"
+    render inline: "<h1><%= request.flash[:notice] %></h1>"
   end
 
   def lib
@@ -88,11 +88,7 @@ class HelpersTypoControllerTest < ActiveSupport::TestCase
   def test_helper_typo_error_message
     e = assert_raise(NameError) { HelpersTypoController.helper "admin/users" }
     assert_includes e.message, "uninitialized constant Admin::UsersHelper"
-    if e.respond_to?(:detailed_message)
-      assert_includes e.detailed_message, "Did you mean?  Admin::UsersHelpeR"
-    else
-      assert_includes e.message, "Did you mean?  Admin::UsersHelpeR"
-    end
+    assert_includes e.detailed_message, "Did you mean?  Admin::UsersHelpeR"
   end
 end
 

@@ -87,22 +87,7 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    db_configs = ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env)
-
-    if db_configs.size == 1 && db_configs.first.primary?
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-    else
-      mapped_versions = ActiveRecord::Tasks::DatabaseTasks.db_configs_with_versions
-
-      mapped_versions.sort.each do |version, db_configs|
-        db_configs.each do |db_config|
-          ActiveRecord::Tasks::DatabaseTasks.with_temporary_connection(db_config) do
-            ActiveRecord::Tasks::DatabaseTasks.migrate(version)
-          end
-        end
-      end
-    end
-
+    ActiveRecord::Tasks::DatabaseTasks.migrate_all
     db_namespace["_dump"].invoke
   end
 
@@ -175,8 +160,20 @@ db_namespace = namespace :db do
       end
     end
 
-    # desc 'Resets your database using your migrations for the current environment'
-    task reset: ["db:drop", "db:create", "db:migrate"]
+    desc "Resets your database using your migrations for the current environment"
+    task reset: ["db:drop", "db:create", "db:schema:dump", "db:migrate"]
+
+    namespace :reset do
+      ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+        desc "Drop and recreate the #{name} database using migrations"
+        task name => :load_config do
+          db_namespace["drop:#{name}"].invoke
+          db_namespace["create:#{name}"].invoke
+          db_namespace["schema:dump:#{name}"].invoke
+          db_namespace["migrate:#{name}"].invoke
+        end
+      end
+    end
 
     desc 'Run the "up" for a given migration VERSION.'
     task up: :load_config do
@@ -348,7 +345,7 @@ db_namespace = namespace :db do
       pending_migrations << pool.migration_context.open.pending_migrations
     end
 
-    pending_migrations = pending_migrations.flatten!
+    pending_migrations.flatten!
 
     if pending_migrations.any?
       puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
@@ -462,28 +459,23 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
     task dump: :load_config do
-      ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each do |pool|
-        db_config = pool.db_config
-        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-        ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
-      end
+      ActiveRecord::Tasks::DatabaseTasks.dump_all
 
       db_namespace["schema:dump"].reenable
     end
 
     desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the database"
     task load: [:load_config, :check_protected_environments] do
-      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ActiveRecord.schema_format, ENV["SCHEMA"])
+      ActiveRecord::Tasks::DatabaseTasks.load_schema_current(ENV["SCHEMA_FORMAT"], ENV["SCHEMA"])
     end
 
     namespace :dump do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) for #{name} database"
+        desc "Create a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) for #{name} database"
         task name => :load_config do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
 
           db_namespace["schema:dump:#{name}"].reenable
@@ -493,12 +485,11 @@ db_namespace = namespace :db do
 
     namespace :load do
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`) into the #{name} database"
-        task name => "db:test:purge:#{name}" do
+        desc "Load a database schema file (either db/schema.rb or db/structure.sql, depending on configuration) into the #{name} database"
+        task name => [:load_config, :check_protected_environments] do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
             db_config = pool.db_config
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
         end
       end
@@ -542,13 +533,12 @@ db_namespace = namespace :db do
   end
 
   namespace :test do
-    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on `ENV['SCHEMA_FORMAT']` or `config.active_record.schema_format`)"
+    # desc "Recreate the test database from an existent schema file (schema.rb or structure.sql, depending on configuration)"
     task load_schema: %w(db:test:purge) do
       ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test") do |pool|
         db_config = pool.db_config
         ActiveRecord::Schema.verbose = false
-        schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
       end
     end
 
@@ -573,8 +563,7 @@ db_namespace = namespace :db do
           ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: "test", name: name) do |pool|
             db_config = pool.db_config
             ActiveRecord::Schema.verbose = false
-            schema_format = ENV.fetch("SCHEMA_FORMAT", ActiveRecord.schema_format).to_sym
-            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, schema_format)
+            ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
           end
         end
       end

@@ -56,6 +56,12 @@ module ActiveModel
   autoload :Validations
   autoload :Validator
 
+  module Attributes
+    extend ActiveSupport::Autoload
+
+    autoload :Normalization
+  end
+
   eager_autoload do
     autoload :Errors
     autoload :Error

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rich text framework."
   s.description = "Edit and display rich text in Rails applications."
 
-  s.required_ruby_version = ">= 3.1.0"
+  s.required_ruby_version = ">= 3.2.0"
 
   s.license  = "MIT"
 
@@ -39,4 +39,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency "nokogiri", ">= 1.8.5"
   s.add_dependency "globalid", ">= 0.6.0"
+  s.add_dependency "action_text-trix", "~> 2.1.15"
 end

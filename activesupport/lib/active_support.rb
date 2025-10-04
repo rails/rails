@@ -40,16 +40,20 @@ module ActiveSupport
   autoload :CodeGenerator
   autoload :ActionableError
   autoload :ConfigurationFile
+  autoload :ContinuousIntegration
   autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :Editor
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
+  autoload :EventReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
@@ -57,7 +61,6 @@ module ActiveSupport
 
   eager_autoload do
     autoload :BacktraceCleaner
-    autoload :ProxyObject
     autoload :Benchmark
     autoload :Benchmarkable
     autoload :Cache
@@ -92,6 +95,10 @@ module ActiveSupport
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
 
+  include Deprecation::DeprecatedConstantAccessor
+
+  deprecate_constant :Configurable, "class_attribute :config, default: {}", deprecator: ActiveSupport.deprecator
+
   def self.eager_load!
     super
 
@@ -100,9 +107,15 @@ module ActiveSupport
 
   cattr_accessor :test_order # :nodoc:
   cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
+  cattr_accessor :parallelize_test_databases, default: true # :nodoc:
 
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
+
+  @event_reporter = ActiveSupport::EventReporter.new
+  singleton_class.attr_accessor :event_reporter # :nodoc:
+
+  cattr_accessor :filter_parameters, default: [] # :nodoc:
 
   def self.cache_format_version
     Cache.format_version
@@ -119,12 +132,12 @@ module ActiveSupport
   def self.to_time_preserves_timezone=(value)
     if !value
       ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.0. " \
+        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
         "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     elsif value != :zone
       ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.0. " \
+        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
         "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
       )
     end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Tuning Performance for Deployment
 =================================
@@ -111,7 +111,7 @@ The Puma configuration resides in the `config/puma.rb` file.
 The two most important Puma configurations are the number of threads per process, and the number of processes,
 which Puma calls `workers`.
 
-The number of threads per process is configured via the `thread` directive.
+The number of threads per process is configured via the `threads` directive.
 In the default generated configuration, it is set to `3`.
 You can modify it either by setting the `RAILS_MAX_THREADS` environment variable or simply editing the configuration
 file.
@@ -122,7 +122,7 @@ or if the server is running multiple applications, to how many cores you want th
 If you only use one thread per worker, then you can increase it to above one per process to account for when workers are
 idle waiting for I/O operations.
 
-You can configure number of Puma workers by setting the `WEB_CONCURRENCY` environment variable.
+You can configure the number of Puma workers by setting the `WEB_CONCURRENCY` environment variable. Setting `WEB_CONCURRENCY=auto` will automatically adjust the Puma worker count to match the number of available CPUs. However, this setting might be inaccurate on cloud hosts with shared CPUs or platforms that report CPU counts incorrectly.
 
 ### YJIT
 

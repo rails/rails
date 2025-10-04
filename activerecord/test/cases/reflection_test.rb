@@ -33,6 +33,7 @@ require "models/sharded/comment"
 require "models/admin"
 require "models/admin/user"
 require "models/user"
+require "models/dats"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -619,13 +620,13 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_reflect_on_missing_source_assocation
+  def test_reflect_on_missing_source_association
     assert_nothing_raised do
       assert_nil Hotel.reflect_on_association(:lost_items).source_reflection
     end
   end
 
-  def test_reflect_on_missing_source_assocation_raise_exception
+  def test_reflect_on_missing_source_association_raise_exception
     assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
       Hotel.reflect_on_association(:lost_items).check_validity!
     end
@@ -681,29 +682,29 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_using_query_constraints_warns_about_changing_behavior
     has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_many :clients` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(has_many_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
       ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
 
     has_one_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_one :account` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(has_one_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
       ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
 
     belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.belongs_to :client` is deprecated.
-      To maintain current behavior, use the `foreign_key` option instead.
+      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
+      To get the same behavior, use the `foreign_key` option instead.
     MSG
 
-    assert_deprecated(belongs_to_expected_message, ActiveRecord.deprecator) do
+    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
       ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
   end
@@ -714,5 +715,54 @@ class ReflectionTest < ActiveRecord::TestCase
       options.each do |method, value|
         assert_equal(value, reflection.public_send(method))
       end
+    end
+end
+
+class DeprecatedReflectionsTest < ActiveRecord::TestCase
+  test "has_many" do
+    assert_non_deprecated_reflection DATS::Author, :posts
+    assert_deprecated_reflection DATS::Author, :deprecated_posts
+  end
+
+  test "has_one" do
+    assert_non_deprecated_reflection DATS::Author, :post
+    assert_deprecated_reflection DATS::Author, :deprecated_post
+  end
+
+  test "has_many :through" do
+    assert_non_deprecated_reflection DATS::Author, :comments
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_many_through
+    assert_deprecated_reflection DATS::Author, :deprecated_all
+  end
+
+  test "has_one :through" do
+    assert_non_deprecated_reflection DATS::Author, :comment
+    assert_non_deprecated_reflection DATS::Author, :deprecated_through1
+    assert_non_deprecated_reflection DATS::Author, :deprecated_source1
+
+    assert_deprecated_reflection DATS::Author, :deprecated_has_one_through # it is through
+    assert_deprecated_reflection DATS::Author, :deprecated_all1 # it is through
+  end
+
+  test "belongs_to" do
+    assert_non_deprecated_reflection DATS::Bulb, :car
+    assert_deprecated_reflection DATS::Bulb, :deprecated_car
+  end
+
+  test "has_and_belongs_to_many" do
+    assert_non_deprecated_reflection DATS::Category, :posts
+    assert_deprecated_reflection DATS::Category, :deprecated_posts
+  end
+
+  private
+    def assert_non_deprecated_reflection(model, name)
+      assert_not_predicate model.reflect_on_association(name), :deprecated?
+    end
+
+    def assert_deprecated_reflection(model, name)
+      assert_predicate model.reflect_on_association(name), :deprecated?
     end
 end

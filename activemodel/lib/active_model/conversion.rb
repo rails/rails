@@ -3,7 +3,7 @@
 module ActiveModel
   # = Active \Model \Conversion
   #
-  # Handles default conversions: to_model, to_key, to_param, and to_partial_path.
+  # Handles default conversions: #to_model, #to_key, #to_param, and #to_partial_path.
   #
   # Let's take for example this non-persisted object.
   #

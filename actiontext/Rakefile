@@ -4,20 +4,20 @@ require "bundler/setup"
 require "bundler/gem_tasks"
 require "rake/testtask"
 
-task :package
-
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*")
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
 end
 
 Rake::TestTask.new "test:system" do |t|
   t.libs << "test"
   t.test_files = FileList["test/system/**/*_test.rb"]
   t.verbose = true
+  t.options = "--profile" if ENV["CI"]
 end
 
 namespace :test do
@@ -25,29 +25,6 @@ namespace :test do
     FileList["test/**/*_test.rb"].exclude("test/system/**/*", "test/dummy/**/*").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib", "-Itest", file)
     end || raise("Failures")
-  end
-end
-
-task :vendor_trix do
-  require "importmap-rails"
-  require "importmap/packager"
-
-  packager = Importmap::Packager.new(vendor_path: "app/assets/javascripts")
-  imports = packager.import("trix", from: "unpkg")
-  imports.each do |package, url|
-    url.gsub!("esm.min.js", "umd.js")
-    puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.js via download from #{url})
-    packager.download(package, url)
-
-    css_url = url.gsub("umd.js", "css")
-    puts %(Vendoring "#{package}" to #{packager.vendor_path}/#{package}.css via download from #{css_url})
-
-    response = Net::HTTP.get_response(URI(css_url))
-    if response.code == "200"
-      File.open(Pathname.new("app/assets/stylesheets/trix.css"), "w+") do |file|
-        file.write response.body
-      end
-    end
   end
 end
 

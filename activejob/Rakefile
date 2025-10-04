@@ -2,13 +2,11 @@
 
 require "rake/testtask"
 
-ACTIVEJOB_ADAPTERS = %w(async inline delayed_job queue_classic resque sidekiq sneakers sucker_punch backburner test)
+ACTIVEJOB_ADAPTERS = %w(async inline queue_classic resque sidekiq sneakers backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
 task default: :test
 task test: "test:default"
-
-task :package
 
 ENV["RAILS_MINITEST_PLUGIN"] = "true"
 
@@ -43,6 +41,7 @@ namespace :test do
           (x.include?("async") && adapter != "async")
       }
       t.verbose = true
+      t.options = "--profile" if ENV["CI"]
       t.warning = true
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
@@ -64,6 +63,7 @@ namespace :test do
         t.libs << "test"
         t.test_files = FileList["test/integration/**/*_test.rb"]
         t.verbose = true
+        t.options = "--profile" if ENV["CI"]
         t.warning = true
         t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
       end

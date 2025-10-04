@@ -11,8 +11,105 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
+      # DomainExtractor provides utility methods for extracting domain and subdomain
+      # information from host strings. This module is used internally by Action Dispatch
+      # to parse host names and separate the domain from subdomains based on the
+      # top-level domain (TLD) length.
+      #
+      # The module assumes a standard domain structure where domains consist of:
+      # - Subdomains (optional, can be multiple levels)
+      # - Domain name
+      # - Top-level domain (TLD, can be multiple levels like .co.uk)
+      #
+      # For example, in "api.staging.example.co.uk":
+      # - Subdomains: ["api", "staging"]
+      # - Domain: "example.co.uk" (with tld_length=2)
+      # - TLD: "co.uk"
+      module DomainExtractor
+        extend self
+
+        # Extracts the domain part from a host string, including the specified
+        # number of top-level domain components.
+        #
+        # The domain includes the main domain name plus the TLD components.
+        # The +tld_length+ parameter specifies how many components from the right
+        # should be considered part of the TLD.
+        #
+        # ==== Parameters
+        #
+        # [+host+]
+        #   The host string to extract the domain from.
+        #
+        # [+tld_length+]
+        #   The number of domain components that make up the TLD. For example,
+        #   use 1 for ".com" or 2 for ".co.uk".
+        #
+        # ==== Examples
+        #
+        #   # Standard TLD (tld_length = 1)
+        #   DomainExtractor.domain_from("www.example.com", 1)
+        #   # => "example.com"
+        #
+        #   # Country-code TLD (tld_length = 2)
+        #   DomainExtractor.domain_from("www.example.co.uk", 2)
+        #   # => "example.co.uk"
+        #
+        #   # Multiple subdomains
+        #   DomainExtractor.domain_from("api.staging.myapp.herokuapp.com", 1)
+        #   # => "herokuapp.com"
+        #
+        #   # Single component (returns the host itself)
+        #   DomainExtractor.domain_from("localhost", 1)
+        #   # => "localhost"
+        def domain_from(host, tld_length)
+          host.split(".").last(1 + tld_length).join(".")
+        end
+
+        # Extracts the subdomain components from a host string as an Array.
+        #
+        # Returns all the components that come before the domain and TLD parts.
+        # The +tld_length+ parameter is used to determine where the domain begins
+        # so that everything before it is considered a subdomain.
+        #
+        # ==== Parameters
+        #
+        # [+host+]
+        #   The host string to extract subdomains from.
+        #
+        # [+tld_length+]
+        #   The number of domain components that make up the TLD. This affects
+        #   where the domain boundary is calculated.
+        #
+        # ==== Examples
+        #
+        #   # Standard TLD (tld_length = 1)
+        #   DomainExtractor.subdomains_from("www.example.com", 1)
+        #   # => ["www"]
+        #
+        #   # Country-code TLD (tld_length = 2)
+        #   DomainExtractor.subdomains_from("api.staging.example.co.uk", 2)
+        #   # => ["api", "staging"]
+        #
+        #   # No subdomains
+        #   DomainExtractor.subdomains_from("example.com", 1)
+        #   # => []
+        #
+        #   # Single subdomain with complex TLD
+        #   DomainExtractor.subdomains_from("www.mysite.co.uk", 2)
+        #   # => ["www"]
+        #
+        #   # Multiple levels of subdomains
+        #   DomainExtractor.subdomains_from("dev.api.staging.example.com", 1)
+        #   # => ["dev", "api", "staging"]
+        def subdomains_from(host, tld_length)
+          parts = host.split(".")
+          parts[0..-(tld_length + 2)]
+        end
+      end
+
       mattr_accessor :secure_protocol, default: false
       mattr_accessor :tld_length, default: 1
+      mattr_accessor :domain_extractor, default: DomainExtractor
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -96,34 +193,33 @@ module ActionDispatch
           end
 
           def extract_domain_from(host, tld_length)
-            host.split(".").last(1 + tld_length).join(".")
+            domain_extractor.domain_from(host, tld_length)
           end
 
           def extract_subdomains_from(host, tld_length)
-            parts = host.split(".")
-            parts[0..-(tld_length + 2)]
+            domain_extractor.subdomains_from(host, tld_length)
           end
 
           def build_host_url(host, port, protocol, options, path)
             if match = host.match(HOST_REGEXP)
-              protocol ||= match[1] unless protocol == false
-              host       = match[2]
-              port       = match[3] unless options.key? :port
+              protocol_from_host = match[1] if protocol.nil?
+              host               = match[2]
+              port               = match[3] unless options.key? :port
             end
 
-            protocol = normalize_protocol protocol
+            protocol = protocol_from_host || normalize_protocol(protocol).dup
             host     = normalize_host(host, options)
+            port     = normalize_port(port, protocol)
 
-            result = protocol.dup
+            result = protocol
 
             if options[:user] && options[:password]
               result << "#{Rack::Utils.escape(options[:user])}:#{Rack::Utils.escape(options[:password])}@"
             end
 
             result << host
-            normalize_port(port, protocol) { |normalized_port|
-              result << ":#{normalized_port}"
-            }
+
+            result << ":" << port.to_s if port
 
             result.concat path
           end
@@ -169,11 +265,11 @@ module ActionDispatch
             return unless port
 
             case protocol
-            when "//" then yield port
+            when "//" then port
             when "https://"
-              yield port unless port.to_i == 443
+              port unless port.to_i == 443
             else
-              yield port unless port.to_i == 80
+              port unless port.to_i == 80
             end
           end
       end
@@ -272,7 +368,7 @@ module ActionDispatch
         end
       end
 
-      # Returns whether this request is using the standard port
+      # Returns whether this request is using the standard port.
       #
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:80'
       #     req.standard_port? # => true
@@ -307,7 +403,7 @@ module ActionDispatch
         standard_port? ? "" : ":#{port}"
       end
 
-      # Returns the requested port, such as 8080, based on SERVER_PORT
+      # Returns the requested port, such as 8080, based on SERVER_PORT.
       #
       #     req = ActionDispatch::Request.new 'SERVER_PORT' => '80'
       #     req.server_port # => 80

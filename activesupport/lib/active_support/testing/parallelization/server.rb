@@ -6,12 +6,15 @@ require "drb/unix" unless Gem.win_platform?
 module ActiveSupport
   module Testing
     class Parallelization # :nodoc:
+      PrerecordResultClass = Struct.new(:name)
+
       class Server
         include DRb::DRbUndumped
 
         def initialize
           @queue = Queue.new
           @active_workers = Concurrent::Map.new
+          @worker_pids = Concurrent::Map.new
           @in_flight = Concurrent::Map.new
         end
 
@@ -21,6 +24,7 @@ module ActiveSupport
           @in_flight.delete([result.klass, result.name])
 
           reporter.synchronize do
+            reporter.prerecord(PrerecordResultClass.new(result.klass), result.name)
             reporter.record(result)
           end
         end
@@ -37,12 +41,24 @@ module ActiveSupport
           end
         end
 
-        def start_worker(worker_id)
+        def start_worker(worker_id, worker_pid)
           @active_workers[worker_id] = true
+          @worker_pids[worker_id] = worker_pid
         end
 
-        def stop_worker(worker_id)
+        def stop_worker(worker_id, worker_pid)
           @active_workers.delete(worker_id)
+          @worker_pids.delete(worker_id)
+        end
+
+        def remove_dead_workers(dead_pids)
+          dead_pids.each do |dead_pid|
+            worker_id = @worker_pids.key(dead_pid)
+            if worker_id
+              @active_workers.delete(worker_id)
+              @worker_pids.delete(worker_id)
+            end
+          end
         end
 
         def active_workers?

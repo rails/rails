@@ -64,7 +64,11 @@ module ActionView
           end
 
           def hidden_field_for_checkbox(options)
-            @unchecked_value ? tag("input", prepare_hidden_options(options)) : "".html_safe
+            if @unchecked_value
+              tag("input", prepare_hidden_options(options))
+            else
+              "".html_safe
+            end
           end
 
           def options_with_hidden_attribute
@@ -74,17 +78,19 @@ module ActionView
             options["checked"] = "checked" if input_checked?(options)
 
             if options["multiple"]
-              add_default_name_and_id_for_value(@checked_value, options)
+              add_default_name_and_field_for_value(@checked_value, options)
               options.delete("multiple")
             else
-              add_default_name_and_id(options)
+              add_default_name_and_field(options)
             end
 
             options
           end
 
           def prepare_hidden_options(options)
-            options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value, "autocomplete" => "off")
+            tag_options = options.slice("name", "disabled", "form").merge!("type" => "hidden", "value" => @unchecked_value)
+            tag_options["autocomplete"] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+            tag_options
           end
       end
     end

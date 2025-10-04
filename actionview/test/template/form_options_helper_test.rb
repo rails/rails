@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/core_ext/enumerable"
+require "active_support/core_ext/object/with"
 
 class Map < Hash
   def category
@@ -537,6 +538,13 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_class
+    assert_dom_equal(
+      "<select name=\"post[class]\" id=\"post_class\"><option value=\"Struct::Post\">Struct::Post</option></select>",
+      select(:post, :class, [Post])
+    )
+  end
+
   def test_select_without_multiple
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"></select>",
@@ -745,6 +753,24 @@ class FormOptionsHelperTest < ActionView::TestCase
       "<input disabled=\"disabled\"type=\"hidden\" name=\"post[category][]\" value=\"\" autocomplete=\"off\"/><select multiple=\"multiple\" disabled=\"disabled\" id=\"post_category\" name=\"post[category][]\"></select>",
       output_buffer
     )
+  end
+
+  def test_select_with_multiple_and_include_hidden
+    output_buffer = select(:post, :category, "", { include_hidden: true }, { multiple: true })
+    assert_dom_equal(
+      "<input name=\"post[category][]\" type=\"hidden\" value=\"\" autocomplete=\"off\" /><select multiple=\"multiple\" name=\"post[category][]\" id=\"post_category\"></select>",
+      output_buffer
+    )
+  end
+
+  def test_select_with_multiple_and_include_hidden_omits_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      output_buffer = select(:post, :category, "", { include_hidden: true }, { multiple: true })
+      assert_dom_equal(
+        "<input name=\"post[category][]\" type=\"hidden\" value=\"\" /><select multiple=\"multiple\" name=\"post[category][]\" id=\"post_category\"></select>",
+        output_buffer
+      )
+    end
   end
 
   def test_select_with_blank

@@ -15,6 +15,24 @@ module AssetTagHelperTestHelpers
   ensure
     ActionView::Helpers::AssetTagHelper.preload_links_header = original_preload_links_header
   end
+
+  def with_auto_include_nonce_for_scripts(new_auto_include_nonce_for_scripts = true)
+    original_auto_include_nonce_for_scripts = ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = new_auto_include_nonce_for_scripts
+
+    yield
+  ensure
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = original_auto_include_nonce_for_scripts
+  end
+
+  def with_auto_include_nonce_for_styles(new_auto_include_nonce_for_styles = true)
+    original_auto_include_nonce_for_styles = ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = new_auto_include_nonce_for_styles
+
+    yield
+  ensure
+    ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = original_auto_include_nonce_for_styles
+  end
 end
 
 class AssetTagHelperTest < ActionView::TestCase
@@ -25,7 +43,7 @@ class AssetTagHelperTest < ActionView::TestCase
   attr_reader :request, :response
 
   class FakeRequest
-    attr_accessor :script_name
+    attr_accessor :script_name, :content_security_policy_nonce_directives
     def protocol() "http://" end
     def ssl?() false end
     def host_with_port() "localhost" end
@@ -319,6 +337,7 @@ class AssetTagHelperTest < ActionView::TestCase
 
   PreloadLinkToTag = {
     %(preload_link_tag '/application.js', type: 'module') => %(<link rel="modulepreload" href="/application.js" as="script" type="module" >),
+    %(preload_link_tag '/application.js', type: :module) => %(<link rel="modulepreload" href="/application.js" as="script" type="module" >),
     %(preload_link_tag '/styles/custom_theme.css') => %(<link rel="preload" href="/styles/custom_theme.css" as="style" type="text/css" />),
     %(preload_link_tag '/videos/video.webm') => %(<link rel="preload" href="/videos/video.webm" as="video" type="video/webm" />),
     %(preload_link_tag '/posts.json', as: 'fetch') => %(<link rel="preload" href="/posts.json" as="fetch" type="application/json" />),
@@ -329,7 +348,10 @@ class AssetTagHelperTest < ActionView::TestCase
     %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />),
     %(preload_link_tag '/style.css', integrity: 'sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs') => %(<link rel="preload" href="/style.css" as="style" type="text/css" integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs">),
     %(preload_link_tag '/sprite.svg') => %(<link rel="preload" href="/sprite.svg" as="image" type="image/svg+xml">),
-    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">)
+    %(preload_link_tag '/mb-icon.png') => %(<link rel="preload" href="/mb-icon.png" as="image" type="image/png">),
+    %(preload_link_tag '/hero-image.jpg', fetchpriority: 'high') => %(<link rel="preload" href="/hero-image.jpg" as="image" type="image/jpeg" fetchpriority="high">),
+    %(preload_link_tag '/critical.css', fetchpriority: 'high') => %(<link rel="preload" href="/critical.css" as="style" type="text/css" fetchpriority="high">),
+    %(preload_link_tag '/background.png', fetchpriority: 'low') => %(<link rel="preload" href="/background.png" as="image" type="image/png" fetchpriority="low">)
   }
 
   VideoPathToTag = {
@@ -540,6 +562,16 @@ class AssetTagHelperTest < ActionView::TestCase
     assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank", nonce: true)
   end
 
+  def test_javascript_include_tag_nonce_with_auto_nonce
+    with_auto_include_nonce_for_scripts do
+      assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank")
+    end
+  end
+
+  def test_javascript_include_tag_nonce_false
+    assert_dom_equal %(<script src="/javascripts/bank.js"></script>), javascript_include_tag("bank", nonce: false)
+  end
+
   def test_stylesheet_path
     StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
@@ -562,6 +594,16 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_stylesheet_link_tag_nonce
     assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css", nonce: true)
+  end
+
+  def test_stylesheet_link_tag_nonce_with_auto_nonce
+    with_auto_include_nonce_for_styles do
+      assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css" nonce="iyhD0Yc0W+c="></link>), stylesheet_link_tag("foo.css")
+    end
+  end
+
+  def test_stylesheet_link_tag_nonce_false
+    assert_dom_equal %(<link rel="stylesheet" href="/stylesheets/foo.css"></link>), stylesheet_link_tag("foo.css", nonce: false)
   end
 
   def test_stylesheet_link_tag_with_missing_source
@@ -724,11 +766,52 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_set_preload_links_with_nonce
+    @request.content_security_policy_nonce_directives = %w(script-src)
+    with_preload_links_header do
+      preload_link_tag("http://example.com/preload.js")
+      stylesheet_link_tag("http://example.com/style.css", nonce: true)
+      javascript_include_tag("http://example.com/all.js", nonce: true)
+      expected = "<http://example.com/preload.js>; rel=preload; as=script; type=text/javascript; nonce=iyhD0Yc0W+c=,<http://example.com/style.css>; rel=preload; as=style; nonce=iyhD0Yc0W+c=; nopush,<http://example.com/all.js>; rel=preload; as=script; nonce=iyhD0Yc0W+c=; nopush"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_link_tag_nonce_if_listed_in_csp_directives
+    @request.content_security_policy_nonce_directives = %w(script-src)
+    assert_equal %(<link rel="preload" href="/application.js" as="script" type="text/javascript" nonce="iyhD0Yc0W+c=">), preload_link_tag("/application.js")
+    assert_equal %(<link rel="preload" href="/style.css" as="style" type="text/css">), preload_link_tag("/style.css")
+
+    @request.content_security_policy_nonce_directives = %w(style-src)
+    assert_equal %(<link rel="preload" href="/application.js" as="script" type="text/javascript">), preload_link_tag("/application.js")
+    assert_equal %(<link rel="preload" href="/style.css" as="style" type="text/css" nonce="iyhD0Yc0W+c=">), preload_link_tag("/style.css")
+  end
+
   def test_should_not_preload_links_when_disabled
     with_preload_links_header(false) do
       stylesheet_link_tag("http://example.com/style.css")
       javascript_include_tag("http://example.com/all.js")
       assert_nil @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_links_with_fetchpriority
+    with_preload_links_header do
+      preload_link_tag("http://example.com/hero.jpg", fetchpriority: "high")
+      preload_link_tag("http://example.com/background.png", fetchpriority: "low")
+      expected = "<http://example.com/hero.jpg>; rel=preload; as=image; type=image/jpeg; fetchpriority=high,<http://example.com/background.png>; rel=preload; as=image; type=image/png; fetchpriority=low"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_preload_link_tag_fetchpriority_html_and_header_consistency
+    with_preload_links_header do
+      html_tag = preload_link_tag("http://example.com/critical.css", fetchpriority: "high")
+      # Verify HTML tag includes fetchpriority
+      assert_match(/fetchpriority="high"/, html_tag)
+
+      expected_header = "<http://example.com/critical.css>; rel=preload; as=style; type=text/css; fetchpriority=high"
+      assert_equal expected_header, @response.headers["link"]
     end
   end
 
