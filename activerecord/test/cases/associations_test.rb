@@ -907,6 +907,37 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_grouped_queries_of_through_records_batched
+    author = authors(:david)
+
+    # now comments from 5 posts are loaded in 3 queries
+    assert_queries_count(5) do
+      ActiveRecord::Associations::Preloader.new(records: [author], associations: [:hello_post_comments, :comments], batch_size: 2).call
+    end
+  end
+
+  def test_preload_belongs_to_and_has_many_batched
+    first_post = posts(:welcome)
+    first_post.categories << Category.take(6)
+    first_post.save!
+
+    # all posts
+    # categories_posts
+    # categories
+    # essays
+    assert_queries_count(4) do
+      ActiveRecord::Associations::Preloader.new(records: Post.all, associations: { categories: :essays }).call
+    end
+
+    # all posts
+    # categories_posts in 3 batches
+    # 6 categories in 2 batches
+    # essays per category in 2 batches
+    assert_queries_count(8) do
+      ActiveRecord::Associations::Preloader.new(records: Post.all, associations: { categories: :essays }, batch_size: 5).call
+    end
+  end
+
   def test_preload_through_records_with_already_loaded_middle_record
     member = members(:groucho)
     expected_member_detail_ids = member.organization_member_details_2.pluck(:id)
@@ -1186,6 +1217,41 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_queries_count(8) do
         preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations)
+        preloader.call
+      end
+    end
+  end
+
+  def test_preload_can_group_multi_level_ping_pong_through_batched
+    mary = authors(:mary)
+    bob = authors(:bob)
+
+    AuthorFavorite.create!(author: mary, favorite_author: bob)
+
+    associations = { similar_posts: :comments, favorite_authors: { similar_posts: :comments } }
+
+    assert_queries_count(10) do
+      preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations, batch_size: 4)
+      preloader.call
+    end
+
+    assert_no_queries do
+      mary.similar_posts.map(&:comments).each(&:to_a)
+      mary.favorite_authors.flat_map(&:similar_posts).map(&:comments).each(&:to_a)
+    end
+
+    # Preloading with automatic scope inversing reduces the number of queries
+    tag_reflection = Tagging.reflect_on_association(:tag)
+    taggings_reflection = Tag.reflect_on_association(:taggings)
+
+    assert tag_reflection.scope
+    assert_not taggings_reflection.scope
+
+    with_automatic_scope_inversing(tag_reflection, taggings_reflection) do
+      mary.reload
+
+      assert_queries_count(9) do
+        preloader = ActiveRecord::Associations::Preloader.new(records: [mary], associations: associations, batch_size: 4)
         preloader.call
       end
     end

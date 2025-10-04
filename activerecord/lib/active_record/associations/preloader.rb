@@ -96,12 +96,17 @@ module ActiveRecord
       # associations before querying the database. This can save database
       # queries by reusing in-memory objects. The optimization is only applied
       # to single associations (i.e. :belongs_to, :has_one) with no scopes.
-      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true)
+      #
+      # +batch_size+ is the maximum number of keys to load using a single query
+      # when preloading a large relation preloading it in multiple smaller queries
+      # can ensure each query returns quicker and produces less database load.
+      def initialize(records:, associations:, scope: nil, available_records: [], associate_by_default: true, batch_size: nil)
         @records = records
         @associations = associations
         @scope = scope
         @available_records = available_records || []
         @associate_by_default = associate_by_default
+        @batch_size = batch_size
 
         @tree = Branch.new(
           parent: nil,
@@ -118,7 +123,7 @@ module ActiveRecord
       end
 
       def call
-        Batch.new([self], available_records: @available_records).call
+        Batch.new([self], available_records: @available_records, batch_size: @batch_size).call
 
         loaders
       end
