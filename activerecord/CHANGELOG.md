@@ -667,7 +667,8 @@
 *   The table columns inside `schema.rb` are now sorted alphabetically.
 
     Previously they'd be sorted by creation order, which can cause merge conflicts when two
-    branches modify the same table concurrently.
+    branches modify the same table concurrently. Set `ActiveRecord::SchemaDumper.sort_table_columns`
+    to false to restore previous behavior.
 
     *John Duff*
 
