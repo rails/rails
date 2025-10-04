@@ -1172,6 +1172,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").ids
   end
 
+  def test_ids_with_includes_joins_limit_and_empty_table
+    Post.delete_all
+    Comment.delete_all
+
+    assert_equal [], Post.includes(:comments).joins(:comments).limit(1).ids
+  end
+
   def test_ids_with_includes_offset
     assert_equal [5], Topic.includes(:replies).order(:id).offset(4).ids
     assert_equal [], Topic.includes(:replies).order(:id).offset(5).ids
@@ -1180,6 +1187,20 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_limit_and_empty_result
     assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
+  end
+
+  def test_pluck_with_includes_joins_limit_and_empty_table
+    Post.delete_all
+    Comment.delete_all
+
+    assert_equal [], Post.includes(:comments).joins(:comments).limit(1).pluck(:id)
+  end
+
+  def test_pluck_aggregation_with_includes_joins_limit_and_empty_table
+    Post.delete_all
+    Comment.delete_all
+
+    assert_equal [[nil, 0]], Post.includes(:comments).joins(:comments).limit(1).pluck(Arel.sql("MAX(posts.id), COUNT(*)"))
   end
 
   def test_pluck_with_includes_offset
@@ -1197,6 +1218,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, topic: [:id])
     assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, topic: :id)
     assert_equal [[2, 1], [4, 3]], Reply.includes(:topic).order(:id).pluck(:id, :"topic.id")
+  end
+
+  def test_calculate_with_includes_joins_limit_and_empty_table
+    Post.delete_all
+    Comment.delete_all
+
+    assert_equal 0, Post.includes(:comments).joins(:comments).limit(1).count
+    assert_nil Post.includes(:comments).joins(:comments).limit(1).maximum(:id)
   end
 
   def test_group_by_with_order_by_virtual_count_attribute
@@ -1440,6 +1469,13 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_no_queries do
       assert_equal "37signals", companies.pick(:new_name)
     end
+  end
+
+  def test_pick_aggregation_with_includes_joins_limit_and_empty_table
+    Post.delete_all
+    Comment.delete_all
+
+    assert_equal [nil, 0], Post.includes(:comments).joins(:comments).pick(Arel.sql("MAX(posts.id), COUNT(*)"))
   end
 
   def test_grouped_calculation_with_polymorphic_relation

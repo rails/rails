@@ -1,3 +1,30 @@
+*   Fix `pluck`, `pick`, `calculate`, and `ids` with eager loading and `limit` on empty tables.
+
+    When these methods are called on a relation with eager loading and `limit`/`offset`,
+    they now skip the two-query eager loading strategy. This fixes aggregation queries
+    returning `[]` instead of a row with null/zero values on empty tables, and makes
+    `limit` apply to the result set rather than to select parent record IDs first.
+
+    Before:
+
+    ```ruby
+    Schedule.includes(:user).joins(:user).limit(1).pluck("MAX(updated_at), COUNT(*)")
+    # => [] (empty array on empty tables)
+    ```
+
+    After:
+
+    ```ruby
+    Schedule.includes(:user).joins(:user).limit(1).pluck("MAX(updated_at), COUNT(*)")
+    # => [[nil, 0]] (correct aggregation result)
+    ```
+
+    The two-query strategy exists to ensure the correct number of parent records are
+    loaded when eager loading associations, but `pluck`, `calculate`, and `ids` extract
+    values rather than load records, making the optimization unnecessary for these methods.
+
+    *Joshua Young*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.
