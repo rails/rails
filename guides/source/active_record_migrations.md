@@ -112,6 +112,9 @@ another application or generating a file yourself, be aware of its position in
 the order. You can read more about how the timestamps are used in the [Rails
 Migration Version Control section](#rails-migration-version-control).
 
+NOTE: You can override the directory that migrations are stored in by setting the
+`migrations_paths` option in your `config/database.yml`.
+
 When generating a migration, Active Record automatically prepends the current
 timestamp to the file name of the migration. For example, running the command
 below will create an empty migration file whereby the filename is made up of a
