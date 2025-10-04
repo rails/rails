@@ -1,3 +1,12 @@
+*   Add retryable option to `Arel.sql` with bind parameter support.
+
+    ```ruby
+    User.where(Arel.sql('name LIKE ?', search_term, retryable: true))
+    Post.where(Arel.sql('id = :id', retryable: true), { id: 1 })
+    ```
+
+    *euglena1215*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.

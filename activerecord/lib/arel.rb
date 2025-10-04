@@ -55,7 +55,7 @@ module Arel
     elsif positional_binds.empty? && named_binds.empty?
       Arel::Nodes::SqlLiteral.new(sql_string, retryable: retryable)
     else
-      Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds
+      Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds, retryable: retryable
     end
   end
 
