@@ -1961,9 +1961,13 @@ To use delegated types, we need to model our data as follows:
 This eliminates the need to define attributes in a single table that are
 unintentionally shared among all subclasses.
 
+NOTE: The delegated types examples below are independent of the STI “Vehicle” example in the previous section.
+These examples start from scratch with an `Entry` model(the delegator) and two concrete types: `Message` and `Comment`.
+
 ### Generating Models
 
-In order to apply this to our example above, we need to regenerate our models.
+To follow the delegated types example in this section, we’ll use an `Entry` model that delegates to
+`Message` and `Comment`. Generate these models as follows:
 
 First, let's generate the base `Entry` model which will act as our superclass:
 
