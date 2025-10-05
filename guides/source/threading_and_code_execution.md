@@ -12,16 +12,14 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Built-in Concurrency in Rails
------------------------------
+Automatic Concurrency in Rails
+------------------------------
 
 Rails automatically allows various operations to be performed at the same time
 (concurrently) in order for an application to run more efficiently. In this
 section, we will explore some of the ways this happens behind the scenes.
 
-When using a threaded web server (such as Rails' default server, Puma) requests
-will be served simultaneously as each request is given its own controller
-instance.
+When using a threaded web server, such as the default Puma, multiple HTTP requests will be served simultaneously, with a separate controller instance for each request.
 
 Threaded Active Job adapters, including the built-in Async adapter, will
 likewise execute several jobs at the same time. Action Cable channels are
@@ -30,14 +28,9 @@ managed this way too.
 Asynchronous Active Record queries are also performed in the background,
 allowing other processes to run on the main thread.
 
-The above mechanisms all involve multiple threads, each managing work for a
-unique instance of an object (controller, job, channel), while sharing the
-global process space (such as classes and their configurations, and global
-variables). As long as the code on each thread doesn't modify anything shared,
-multiple threads can safely run concurrently.
+These mechanisms all involve multiple threads, each managing work for a unique instance of some object (controller, job, channel), while sharing the global process space (such as classes and their configurations, and global variables). As long as your code doesn't modify any of those shared resources, it can mostly ignore that other threads exist.
 
-Rails' built-in concurrency will cover the day-to-day needs of most application
-developers, and ensure applications remain generally performant.
+The rest of this guide describes the mechanisms Rails uses to make other threads "mostly ignorable", and how extensions and applications with special requirements can use these mechanisms.
 
 NOTE: You can read more about how to configure Rails' concurrency in the
 [Framework Behavior](#framework-behavior) section.
