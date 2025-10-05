@@ -41,6 +41,7 @@ module ActionDispatch
       end
 
       def build(app)
+        block = self.block
         klass.new(app, *args, &block)
       end
 
