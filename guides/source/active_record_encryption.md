@@ -200,8 +200,8 @@ irb> Author.find_by_email("tolkien@email.com")
 
 In the above example, the initialization vector, `iv`, has the value `"NgqthINGlvoN+fhP"` for the same string. Even if you use the same email string in a different model instance (or different attribute with deterministic encryption), it will map to the same `p` and `iv` values:
 
-```ruby
-> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
+```irb
+irb> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
   TRANSACTION (0.1ms)  begin transaction
   Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "Different Author"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:20:11.291969"], ["updated_at", "2025-09-19 18:20:11.291969"]]
   TRANSACTION (0.1ms)  commit transaction
