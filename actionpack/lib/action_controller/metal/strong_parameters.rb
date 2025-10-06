@@ -316,6 +316,10 @@ module ActionController
       [self.class, @parameters, @permitted].hash
     end
 
+    def deconstruct_keys(keys)
+      slice(*keys).each.with_object({}) { |(key, value), hash| hash.merge!(key.to_sym => value) }
+    end
+
     # Returns a safe ActiveSupport::HashWithIndifferentAccess representation of the
     # parameters with all unpermitted keys removed.
     #

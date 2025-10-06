@@ -1,3 +1,24 @@
+*   Define `ActionController::Parameters#deconstruct_keys` to support pattern matching
+
+    ```ruby
+    if params in { search:, page: }
+      Article.search(search).limit(page)
+    else
+      …
+    end
+
+    case (value = params[:string_or_hash_with_nested_key])
+    in String
+      # do something with a String `value`…
+    in { nested_key: }
+      # do something with `nested_key` or `value`
+    else
+      # …
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
 
     Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.
