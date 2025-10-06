@@ -294,19 +294,10 @@ end
 
 Checking for uniqueness is only supported with deterministically encrypted data.
 
->The extended_queries is meant to let you query deterministically encrypted data when (1) you have encrypted and unencrypted data and (2) when you configure other encryption schemes to support old data. So, in general, uniqueness will work. In the cases where you need (1) or (2), then, for unique validations to work, you need to set this flag.
-
 #### Unique Validations
 
-In order to support unique validations, you'll need to enable extended queries. This makes sure we query for the downcased encrypted attribute (if used) and previous encryption schemes as well. The default value for this configuration is false:
-
-```ruby
-# config/application.rb
-config.active_record.encryption.extend_queries = true
-```
-
-Once extended queries are enabled, the uniqueness constraint can be specified
-normally, along with encryption:
+If an attribute is deterministically encrypted, a uniqueness validation can be
+specified normally, along with encryption:
 
 ```ruby
 class Person
@@ -318,6 +309,13 @@ end
 NOTE: If you want to ignore the case for uniqueness, make sure to use the
 `:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the
 `:case_sensitive` option in the validation won't work.
+
+If you have a mix of unencrypted and encrypted data or if you have data that is encrypted using two different sets of keys/schemes, you'll need to enable extended queries in order to support unique validations.
+
+```ruby
+# config/application.rb
+config.active_record.encryption.extend_queries = true
+```
 
 #### Unique Indexes
 
