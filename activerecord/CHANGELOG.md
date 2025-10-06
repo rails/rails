@@ -1,3 +1,8 @@
+*   Make `belongs_to` association with `optional: true` necessary when using
+    inverse associations with `dependent: :nullify`.
+
+    *francktrouillez*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.
