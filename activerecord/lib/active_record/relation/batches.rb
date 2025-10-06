@@ -437,7 +437,7 @@ module ActiveRecord
             values = records.pluck(*cursor)
             values_size = values.size
             values_last = values.last
-            yielded_relation = where(cursor => values)
+            yielded_relation = rewhere(cursor => values)
             yielded_relation.load_records(records)
           elsif (empty_scope && use_ranges != false) || use_ranges
             # Efficiently peak at the last value for the next batch using offset and limit.
@@ -462,7 +462,7 @@ module ActiveRecord
             values = batch_relation.pluck(*cursor)
             values_size = values.size
             values_last = values.last
-            yielded_relation = where(cursor => values)
+            yielded_relation = rewhere(cursor => values)
           end
 
           break if values_size == 0
