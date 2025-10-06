@@ -49,7 +49,7 @@ module ActionView
     #
     # This may improve the asset loading performance of your application.
     # It is also possible the combination of additional connection overhead
-    # (DNS, SSL) and the overall browser connection limits may result in this
+    # (DNS, TLS/SSL) and the overall browser connection limits may result in this
     # solution being slower. You should be sure to measure your actual
     # performance across targeted browsers both before and after this change.
     #
@@ -93,10 +93,10 @@ module ActionView
     #   # => <link href="http://stylesheets.example.com/assets/application.css" rel="stylesheet" />
     #
     # Alternatively you may ask for a second parameter +request+. That one is
-    # particularly useful for serving assets from an SSL-protected page. The
+    # particularly useful for serving assets from a TLS/SSL-protected page. The
     # example proc below disables asset hosting for HTTPS connections, while
     # still sending assets for plain HTTP requests from asset hosts. If you don't
-    # have SSL certificates for each of the asset hosts this technique allows you
+    # have TLS/SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     # Note that the +request+ parameter might not be supplied, e.g. when the assets
     # are precompiled with the command <tt>bin/rails assets:precompile</tt>. Make sure to use a
