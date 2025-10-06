@@ -9,6 +9,8 @@ module ActionDispatch
     class RoutesProxy # :nodoc:
       include ActionDispatch::Routing::UrlFor
 
+      INTERNAL = Object.new
+
       attr_accessor :scope, :routes
       alias :_routes :routes
 
@@ -32,6 +34,7 @@ module ActionDispatch
       def method_missing(method, *args)
         if @helpers.respond_to?(method)
           options = args.extract_options!
+          options[INTERNAL] = true unless options.keys.intersect?(Mapper::URL_OPTIONS)
           options = url_options.merge((options || {}).symbolize_keys)
 
           if @script_namer
