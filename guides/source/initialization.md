@@ -5,7 +5,7 @@ The Rails Initialization Process
 ================================
 
 This guide explains the Rails initialization process. It is an in-depth guide
-that walks through some internal method calls. It is recommended for developers
+that walks through internal method calls. It is recommended for developers
 interested in exploring Rails source code.
 
 After reading this guide, you will know:
@@ -43,7 +43,7 @@ The booting part happens with majority of the `bin/rails` commands but only
 boots the application but does *not* start the server. Rake tasks, such as
 `bin/rails db:migrate` also boot the application.
 
-The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you usually don't open or modify, the last familiar file is where your application is defined and configured.
+The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you usually don't open or modify but the last file should be familiar. This is where your application is defined and configured.
 
 Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb` file. This file is the public interface for booting a Rails application. For example, if you have this line in a Ruby script, it will boot the Rails application (which is what the `config.ru` file has, as we'll see in a [later section](#loading-configenvironmentrb-from-configru):
 
@@ -147,7 +147,7 @@ The main line of interest in the above `perform` method is `require APP_PATH`. R
 
 NOTE: Zooming out, so far we have been following what happens in the `bin/rails` ruby script. The main line is when `config/boot.rb` is required, which sets up the Gems. Then, the `rails/commands` part figures out which command (e.g. `console`, `server`, `runner`) and takes appropriate action. All of this happens before Rails itself is even loaded.
 
-Now, let's jump out of `bin/rails` and follow the path where `config/application.rb` is required. This is the next important file in the Rails initialization process.
+Now, let's follow the path where `config/application.rb` is required. This is the next important file in the Rails initialization process.
 
 Requiring `config/application`
 -----------------------------
@@ -157,6 +157,7 @@ file is included with new Rails applications and it's available for you to
 update based on your application needs. The default `config/application.rb` looks like this:
 
 ```ruby
+# config/application.rb
 require_relative "boot"
 
 require "rails/all"
@@ -226,11 +227,11 @@ require "rails"
 end
 ```
 
-Common Rails functionality is being configured and defined here. Specifically, the `require rails/all` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
+Common Rails functionality is being configured and defined here. Specifically, the `require "rails/all"` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
 
 We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components.
 
-At this point, we're done with loading `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-applicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
+At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-applicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
 Loading `config/environment.rb` from `config.ru`
 -----------------------------------------------
@@ -251,6 +252,7 @@ Rails.application.load_server
 The `config/environment.rb` file, generated in all new Rails applications, contains this:
 
 ```ruby
+# config/environment.rb
 # Load the Rails application.
 require_relative "application"
 
@@ -338,18 +340,20 @@ module ActiveJob
 end
 ```
 
+This initializer registers serializers for Active Job.
+
 There are dozens of initializers registered for each sub-component. These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` is called. During the `initialize!` call, the initializers are executed in the order in which they are registered. That call also includes running custom initializers that are defined in the `config/initializers` directory of your application.
 
 ### Engines
 
 A Rails Engine is a subclass of `Rails::Railtie`. Engines can also hook into a
-Rails applications (as they are Railties) but they are also a mini Rails
+Rails applications (as they are Railties) but they are also mini Rails
 applications. Engines can have models, views, controllers as well as
 `config/initializers` and `config/routes.rb` A Rails application ships with a
 bunch of Engines, such as `ActiveStorage::Engine`, `SolidCache::Engine`,
 `Turbo::Engine`.
 
-Your Rails application is a subclass of Rails Engine.
+Your Rails application is a subclass of `Rails::Engine`.
 
 ```ruby
 # config/application.rb
@@ -399,9 +403,9 @@ The `run_initializers` method runs all of the initializers registered by the Eng
 # railties/lib/rails/application.rb
 
 def initializers
-	Bootstrap.initializers_for(self) +
-	railties_initializers(super) +
-	Finisher.initializers_for(self)
+  Bootstrap.initializers_for(self) +
+  railties_initializers(super) +
+  Finisher.initializers_for(self)
 end
 ```
 
@@ -417,7 +421,7 @@ At the end of the `Rails.application.initialize!` call, the Rails framework and 
 
 Now all that is left to do is to start the server. Before that, let's see how you can add custom code to the initialization process.
 
-Hooking Into the Initialization Process
+Hooking into the Initialization Process
 ---------------------------------------
 
 ### Lazy Load Hooks
@@ -431,7 +435,7 @@ ActiveSupport.on_load(:active_record) do
 end
 ```
 
-The Rails framework is responsible for loading the components and when a specific component (e.g. Active Record above) is done loading, you can choose to be notified with the `ActiveSupport.on_load` helper.
+The Rails framework is responsible for loading the components and when a specific component (e.g. Active Record above) is done loading, you can choose to execute code with the `ActiveSupport.on_load` helper.
 
 Registering a hook that has already run results in that hook executing immediately. This allows hooks to be nested for code that relies on multiple lazily loaded components:
 
