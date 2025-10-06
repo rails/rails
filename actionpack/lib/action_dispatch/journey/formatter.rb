@@ -71,6 +71,12 @@ module ActionDispatch
         missing_keys = nil
 
         match_route(name, constraints) do |route|
+          # Normalize blank values to nil for route parts so they're treated consistently
+          # and do this before extract_parameterized_parts so they don't become query params
+          route.parts.each do |part|
+            options[part] = nil if options[part].blank?
+          end
+
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters)
 
           # Skip this route unless a name has been provided or it is a standard Rails
