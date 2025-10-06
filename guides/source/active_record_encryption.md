@@ -48,7 +48,7 @@ You can generate a random key set by running `bin/rails db:encryption:init`:
 
 ```bash
 $ bin/rails db:encryption:init
-Add this entry to the credentials of the target environment: 
+Add this entry to the credentials of the target environment:
 
 active_record_encryption:
   primary_key: YehXdfzxVKpoLvKseJMJIEGs2JxerkB8
@@ -182,13 +182,13 @@ input value. This makes querying encrypted attributes possible by string
 equality comparison. For example, notice that the `p` and `iv` key in the JSON
 document have the same value when we create and when we query an Author's email:
 
-```ruby
-> author = Author.create(name: "J.R.R. Tolkien", email: "tolkien@email.com")
+```irb
+irb> author = Author.create(name: "J.R.R. Tolkien", email: "tolkien@email.com")
   TRANSACTION (0.1ms)  begin transaction
   Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "J.R.R. Tolkien"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:08:40.104634"], ["updated_at", "2025-09-19 18:08:40.104634"]]
   TRANSACTION (0.1ms)  commit transaction
 
-> Author.find_by_email("tolkien@email.com")
+irb> Author.find_by_email("tolkien@email.com")
   Author Load (0.1ms)  SELECT "authors".* FROM "authors" WHERE "authors"."email" = ? LIMIT ?  [["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["LIMIT", 1]]
 => #<Author:0x00007f8a396289d0
     id: 3,
@@ -376,7 +376,7 @@ options configured.
 
 ### Fixtures
 
-To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `test.rb` file: 
+To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `test.rb` file:
 
 ```ruby
 config.active_record.encryption.encrypt_fixtures = true
