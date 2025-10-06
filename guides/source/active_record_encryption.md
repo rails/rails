@@ -413,8 +413,10 @@ config.active_record.encryption.forced_encoding_for_deterministic_encryption = n
 
 ### Compression
 
-Active Record Encryption compresses encrypted payloads by default. This can save
-up to 30% of the storage space for larger payloads.
+Active Record Encryption enables compression of encrypted payloads by default.
+This can save up to 30% of the storage space for larger payloads.
+
+NOTE: Compression is enabled by default but *not* applied to all payloads. It is based on a size threshold (such as 140 bytes), which is used as a heuristic to determine if compression is "worth it".
 
 You can disable compression by setting the `compress` option to `false` when encrypting attributes:
 
