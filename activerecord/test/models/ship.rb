@@ -5,7 +5,7 @@ class Ship < ActiveRecord::Base
 
   belongs_to :pirate
   belongs_to :update_only_pirate, class_name: "Pirate"
-  belongs_to :developer, dependent: :destroy
+  belongs_to :developer, dependent: :destroy, optional: true
   has_many :parts, class_name: "ShipPart"
   has_many :treasures
 
@@ -20,6 +20,11 @@ class Ship < ActiveRecord::Base
   def cancel_save_callback_method
     throw(:abort)
   end
+end
+
+class ShipWithRequiredDeveloper < ActiveRecord::Base
+  self.table_name = "ships"
+  belongs_to :developer, optional: false
 end
 
 class ShipWithoutNestedAttributes < ActiveRecord::Base

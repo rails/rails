@@ -632,6 +632,17 @@ module ActiveRecord
           end
         end
 
+        if !polymorphic? && belongs_to? && (options.exclude?(:optional) && active_record.belongs_to_required_by_default ||
+            !options[:optional] || options[:required])
+          nullifiable_associations = klass.reflect_on_all_associations.select do |reflection|
+            next unless reflection.is_a?(HasAndBelongsToManyReflection) || reflection.is_a?(HasManyReflection) || reflection.is_a?(HasOneReflection)
+
+            reflection.class_name == active_record.name &&
+              reflection.options[:dependent] == :nullify
+          end
+          raise BelongsToCantBeRequiredWithHasOneOrHasManyDependentNullifyError.new(self, nullifiable_associations) if nullifiable_associations.any?
+        end
+
         @validated = true
       end
 
