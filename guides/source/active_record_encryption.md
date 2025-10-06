@@ -59,8 +59,8 @@ active_record_encryption:
 These values can be stored by copying and pasting the generated values into your
 existing [Rails credentials](/security.html#custom-credentials) file using `bin/rails credentials:edit`.
 
-Alternatively, the encryption keys can be configured from other sources, such
-as environment variables:
+Alternatively, the encryption keys can also be configured from other sources,
+such as environment variables:
 
 ```ruby
 # config/application.rb
@@ -79,33 +79,6 @@ bytes for the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).
 
 Once the keys are generated and stored, you can start using Active Record
 Encryption by declaring attributes to be encrypted in the model.
-
-### Important: Storage Considerations
-
-Encrypted data takes more storage because Active Record Encryption stores additional metadata alongside the encrypted payload, and the payload itself is Base64-encoded so it can fit safely in text-based columns.
-
-When using the built-in envelope encryption key provider, you can estimate the worst-case overhead to be around 255 bytes. This overhead is negligible for larger sizes. Encryption also uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
-
-When using `string` columns, it’s important to know that modern databases define the column size in terms of *number of characters*, not bytes. With encodings like UTF-8, a single character can take up to four bytes. This means that a column defined to hold N characters may actually consume up to 4 × N bytes in storage.
-
-Since an encrypted payload is binary data serialized with Base64, it can be stored in regular a `string` column. Because it's a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
-
-In practice, this means:
-
-* When encrypting short texts written in Western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
-* When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
-* When encrypting long texts, you can ignore column size concerns.
-
-For example:
-
-| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
-| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
-| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
-| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
-| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
-| Arbitrary long text                               | text                 | text                              | negligible                    |
-
-## Basic Usage
 
 ### Declare Encrypted Attributes
 
@@ -151,8 +124,35 @@ irb> Article.first
 
 NOTE: Encryption requires extra storage space because the encrypted value will
 be larger than the original value. This overhead is negligible at larger sizes.
-Active Record Encryption also uses compression by default, which can offer up to
-30% storage savings over the unencrypted version for larger payloads.
+Active Record Encryption has compression enabled by default, which can offer up
+to 30% storage savings over the unencrypted version for larger payloads.
+
+### Important: Storage Considerations
+
+Encrypted data takes more storage because Active Record Encryption stores additional metadata alongside the encrypted payload, and the payload itself is Base64-encoded so it can fit safely in text-based columns.
+
+When using the built-in envelope encryption key provider, you can estimate the worst-case overhead to be around 255 bytes. This overhead is negligible for larger sizes. Encryption also uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+
+When using `string` columns, it’s important to know that modern databases define the column size in terms of *number of characters*, not bytes. With encodings like UTF-8, a single character can take up to four bytes. This means that a column defined to hold N characters may actually consume up to 4 × N bytes in storage.
+
+Since an encrypted payload is binary data serialized with Base64, it can be stored in regular a `string` column. Because it's a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+
+In practice, this means:
+
+* When encrypting short texts written in Western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
+* When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting long texts, you can ignore column size concerns.
+
+For example:
+
+| Content to encrypt                                | Original column size | Recommended encrypted column size | Storage overhead (worst case) |
+| ------------------------------------------------- | -------------------- | --------------------------------- | ----------------------------- |
+| Email addresses                                   | string(255)          | string(510)                       | 255 bytes                     |
+| Short sequence of emojis                          | string(255)          | string(1020)                      | 255 bytes                     |
+| Summary of texts written in non-western alphabets | string(500)          | string(2000)                      | 255 bytes                     |
+| Arbitrary long text                               | text                 | text                              | negligible                    |
+
+## Basic Usage
 
 ### Querying Encrypted Data: Deterministic vs. Non-deterministic Encryption
 
@@ -306,16 +306,11 @@ class Person
 end
 ```
 
-NOTE: If you want to ignore the case for uniqueness, make sure to use the
+If you want to ignore the case for uniqueness, make sure to use the
 `:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the
 `:case_sensitive` option in the validation won't work.
 
-If you have a mix of unencrypted and encrypted data or if you have data that is encrypted using two different sets of keys/schemes, you'll need to enable extended queries in order to support unique validations.
-
-```ruby
-# config/application.rb
-config.active_record.encryption.extend_queries = true
-```
+NOTE: If you have a mix of unencrypted and encrypted data or if you have data that is encrypted using two different sets of keys/schemes, you'll need to enable [extended queries](configuring.html#config-active-record-encryption-extend-queries) with `config.active_record.encryption.extend_queries = true` in order to support unique validations.
 
 #### Unique Indexes
 
