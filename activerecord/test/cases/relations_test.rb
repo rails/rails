@@ -417,7 +417,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_raising_exception_on_invalid_hash_params
     e = assert_raise(ArgumentError) { Topic.order(:name, "id DESC", id: :asfsdf) }
-    assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :ASC, :DESC, "asc", "desc", "ASC", "DESC"]', e.message
+    assert_equal 'Direction "asfsdf" is invalid. Valid directions are: [:asc, :desc, :asc_nulls_first, :desc_nulls_last, :ASC, :DESC, :ASC_NULLS_FIRST, :DESC_NULLS_LAST, "asc", "desc", "asc_nulls_first", "desc_nulls_last", "ASC", "DESC", "ASC_NULLS_FIRST", "DESC_NULLS_LAST"]', e.message
   end
 
   def test_finding_last_with_arel_order

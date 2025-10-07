@@ -45,6 +45,36 @@ class OrderTest < ActiveRecord::TestCase
     assert_equal(reverse_alphabetical, Book.order(books: { name: :desc }))
   end
 
+  def test_order_asc_nulls_first
+    z = Book.create!(name: "Zulu", author: authors(:david))
+    y = Book.create!(name: "Yankee", author: authors(:mary))
+    x = Book.create!(name: "X-Ray", author: authors(:david))
+    n = Book.create!(name: nil, author: authors(:bob))
+
+    alphabetical = [n, x, y, z]
+
+    assert_equal(alphabetical, Book.order(name: :asc_nulls_first))
+    assert_equal(alphabetical, Book.order(name: :ASC_NULLS_FIRST))
+    assert_equal(alphabetical, Book.order(name: "asc_nulls_first"))
+    assert_equal(alphabetical, Book.order(Book.arel_table["name"].asc_nulls_first))
+    assert_equal(alphabetical, Book.order(books: { name: :asc_nulls_first }))
+  end
+
+  def test_order_desc_nulls_last
+    z = Book.create!(name: "Zulu", author: authors(:david))
+    y = Book.create!(name: "Yankee", author: authors(:mary))
+    x = Book.create!(name: "X-Ray", author: authors(:david))
+    n = Book.create!(name: nil, author: authors(:bob))
+
+    reverse_alphabetical = [z, y, x, n]
+
+    assert_equal(reverse_alphabetical, Book.order(name: :desc_nulls_last))
+    assert_equal(reverse_alphabetical, Book.order(name: :DESC_NULLS_LAST))
+    assert_equal(reverse_alphabetical, Book.order(name: "desc_nulls_last"))
+    assert_equal(reverse_alphabetical, Book.order(Book.arel_table["name"].desc_nulls_last))
+    assert_equal(reverse_alphabetical, Book.order(books: { name: :desc_nulls_last }))
+  end
+
   def test_order_with_association
     z = Book.create!(name: "Zulu", author: authors(:david))
     y = Book.create!(name: "Yankee", author: authors(:mary))
