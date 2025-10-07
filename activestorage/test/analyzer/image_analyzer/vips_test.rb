@@ -60,12 +60,12 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
   private
     def analyze_with_vips
-      previous_analyzers, ActiveStorage.analyzers = ActiveStorage.analyzers, [ActiveStorage::Analyzer::ImageAnalyzer::Vips]
+      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :vips
 
       yield
     rescue LoadError
       ENV["BUILDKITE"] ? raise : skip("Variant processor vips is not installed")
     ensure
-      ActiveStorage.analyzers = previous_analyzers
+      ActiveStorage.variant_processor = previous_processor
     end
 end

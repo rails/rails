@@ -38,6 +38,7 @@ module ActiveRecord
       def initialize(env_name, name, configuration_hash)
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
+        validate_configuration!
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -69,16 +70,35 @@ module ActiveRecord
         @configuration_hash = configuration_hash.merge(database: database).freeze
       end
 
-      def pool
-        (configuration_hash[:pool] || 5).to_i
+      def max_connections
+        max_connections = configuration_hash.fetch(:max_connections) {
+          configuration_hash.fetch(:pool, 5)
+        }&.to_i
+        max_connections if max_connections && max_connections >= 0
       end
+
+      def min_connections
+        (configuration_hash[:min_connections] || 0).to_i
+      end
+
+      alias :pool :max_connections
+      deprecate pool: :max_connections, deprecator: ActiveRecord.deprecator
 
       def min_threads
         (configuration_hash[:min_threads] || 0).to_i
       end
 
       def max_threads
-        (configuration_hash[:max_threads] || pool).to_i
+        (configuration_hash[:max_threads] || (max_connections || 5).clamp(0, 5)).to_i
+      end
+
+      def max_age
+        v = configuration_hash[:max_age]&.to_i
+        if v && v > 0
+          v
+        else
+          Float::INFINITY
+        end
       end
 
       def query_cache
@@ -93,15 +113,18 @@ module ActiveRecord
         (configuration_hash[:checkout_timeout] || 5).to_f
       end
 
-      # `reaping_frequency` is configurable mostly for historical reasons, but it
-      # could also be useful if someone wants a very low `idle_timeout`.
-      def reaping_frequency
-        configuration_hash.fetch(:reaping_frequency, 60)&.to_f
+      def reaping_frequency # :nodoc:
+        configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)&.to_f
       end
 
       def idle_timeout
         timeout = configuration_hash.fetch(:idle_timeout, 300).to_f
         timeout if timeout > 0
+      end
+
+      def keepalive
+        keepalive = (configuration_hash[:keepalive] || 600).to_f
+        keepalive if keepalive > 0
       end
 
       def adapter
@@ -179,6 +202,27 @@ module ActiveRecord
             "schema.rb"
           when :sql
             "structure.sql"
+          end
+        end
+
+        def default_reaping_frequency
+          # Reap every 20 seconds by default, but run more often as necessary to
+          # meet other configured timeouts.
+          [20, idle_timeout, max_age, keepalive].compact.min
+        end
+
+        def validate_configuration!
+          if configuration_hash[:pool] && configuration_hash[:max_connections]
+            pool_val = configuration_hash[:pool].to_i
+            max_conn_val = configuration_hash[:max_connections].to_i
+
+            if pool_val != max_conn_val
+              raise "Ambiguous configuration: 'pool' (#{pool_val}) and 'max_connections' (#{max_conn_val}) are set to different values. Prefer just 'max_connections'."
+            end
+          end
+
+          if configuration_hash[:pool] && configuration_hash[:min_connections]
+            raise "Ambiguous configuration: when setting 'min_connections', use 'max_connections' instead of 'pool'."
           end
         end
     end

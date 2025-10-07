@@ -1,3 +1,142 @@
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*, *Masafumi Koba*, *Adam Daniels*
+
+*   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
+
+    Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.
+
+    Example:
+
+    ```
+    Redirected to http://localhost:3000/posts/1
+    ↳ app/controllers/posts_controller.rb:32:in `block (2 levels) in create'
+    ```
+
+    *Dennis Paagman*
+
+*   Add engine route filtering and better formatting in `bin/rails routes`.
+
+    Allow engine routes to be filterable in the routing inspector, and
+    improve formatting of engine routing output.
+
+    Before:
+    ```
+    > bin/rails routes -e engine_only
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+    ```
+
+    After:
+    ```
+    > bin/rails routes -e engine_only
+    Routes for application:
+    No routes were found for this grep pattern.
+    For more information about routes, see the Rails guide: https://guides.rubyonrails.org/routing.html.
+
+    Routes for Test::Engine:
+    Prefix Verb URI Pattern       Controller#Action
+    engine GET  /engine_only(.:format) a#b
+    ```
+
+    *Dennis Paagman*, *Gannon McGibbon*
+
+*   Add structured events for Action Pack and Action Dispatch:
+    - `action_dispatch.redirect`
+    - `action_controller.request_started`
+    - `action_controller.request_completed`
+    - `action_controller.callback_halted`
+    - `action_controller.rescue_from_handled`
+    - `action_controller.file_sent`
+    - `action_controller.redirected`
+    - `action_controller.data_sent`
+    - `action_controller.unpermitted_parameters`
+    - `action_controller.fragment_cache`
+
+    *Adrianna Chang*
+
+*   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
+
+    Fixed an issue where `SCRIPT_NAME` is not applied to paths generated for routes in an engine
+    mounted at "/".
+
+    *Mike Dalessio*
+
+*   Update `ActionController::Metal::RateLimiting` to support passing method names to `:by` and `:with`
+
+    ```ruby
+    class SignupsController < ApplicationController
+      rate_limit to: 10, within: 1.minute, with: :redirect_with_flash
+
+      private
+        def redirect_with_flash
+          redirect_to root_url, alert: "Too many requests!"
+        end
+    end
+    ```
+
+    *Sean Doyle*
+
+*   Optimize `ActionDispatch::Http::URL.build_host_url` when protocol is included in host.
+
+    When using URL helpers with a host that includes the protocol (e.g., `{ host: "https://example.com" }`),
+    skip unnecessary protocol normalization and string duplication since the extracted protocol is already
+    in the correct format. This eliminates 2 string allocations per URL generation and provides a ~10%
+    performance improvement for this case.
+
+    *Joshua Young*, *Hartley McGuire*
+
+*   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
+
+    *Roberto Miranda*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Remove deprecated support to a route to multiple paths.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for using semicolons as a query string separator.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar"], ["baz", "quux"]]
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::QueryParser.each_pair("foo=bar;baz=quux").to_a
+    # => [["foo", "bar;baz=quux"]]
+    ```
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to skipping over leading brackets in parameter names in the parameter parser.
+
+    Before:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "foo" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "foo" => { "bar" => "baz" } }
+    ```
+
+    After:
+
+    ```ruby
+    ActionDispatch::ParamBuilder.from_query_string("[foo]=bar") # => { "[foo]" => "bar" }
+    ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz") # => { "[foo]" => { "bar" => "baz" } }
+    ```
+
+    *Rafael Mendonça França*
+
+*   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
+
+    *Rafael Mendonça França*
+
 *   Raise `ActionController::TooManyRequests` error from `ActionController::RateLimiting`
 
     Requests that exceed the rate limit raise an `ActionController::TooManyRequests` error.

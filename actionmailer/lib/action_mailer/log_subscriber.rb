@@ -3,11 +3,7 @@
 require "active_support/log_subscriber"
 
 module ActionMailer
-  # = Action Mailer \LogSubscriber
-  #
-  # Implements the ActiveSupport::LogSubscriber for logging notifications when
-  # email is delivered or received.
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     # An email was delivered.
     def deliver(event)
       info do

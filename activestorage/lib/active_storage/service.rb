@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_storage/log_subscriber"
+require "active_storage/structured_event_subscriber"
 require "active_storage/downloader"
 require "action_dispatch"
 require "action_dispatch/http/content_disposition"
@@ -15,7 +16,6 @@ module ActiveStorage
   # * +Disk+, to manage attachments saved directly on the hard drive.
   # * +GCS+, to manage attachments through Google Cloud Storage.
   # * +S3+, to manage attachments through Amazon S3.
-  # * +AzureStorage+, to manage attachments through Microsoft Azure Storage.
   # * +Mirror+, to be able to use several services to manage attachments.
   #
   # Inside a \Rails application, you can set-up your services through the

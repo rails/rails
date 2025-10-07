@@ -29,6 +29,26 @@ module ActiveRecord
         def discarded?
           @discarded
         end
+
+        def prepopulate
+        end
+
+        def preconnect
+        end
+
+        def keep_alive
+        end
+
+        def retire_old_connections
+        end
+
+        def maintainable?
+          !discarded? && !flushed && !reaped
+        end
+
+        def reaper_lock
+          yield
+        end
       end
 
       # A reaper with nil time should never reap connections

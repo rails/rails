@@ -53,6 +53,7 @@ module ActiveSupport
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
@@ -113,6 +114,8 @@ module ActiveSupport
 
   @event_reporter = ActiveSupport::EventReporter.new
   singleton_class.attr_accessor :event_reporter # :nodoc:
+
+  cattr_accessor :filter_parameters, default: [] # :nodoc:
 
   def self.cache_format_version
     Cache.format_version

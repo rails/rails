@@ -15,6 +15,7 @@ require "models/contact"
 require "models/keyboard"
 require "models/numeric_data"
 require "models/cpk"
+require "models/book_identifier"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -31,7 +32,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   ActiveRecord::Type.register(:epoch_timestamp, EpochTimestamp)
 
-  fixtures :topics, :developers, :companies, :computers
+  fixtures :topics, :developers, :companies, :computers, :book_identifiers
 
   def setup
     @old_matchers = ActiveRecord::Base.send(:attribute_method_patterns).dup
@@ -54,6 +55,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_includes new_topic_model.attribute_aliases, "id_value"
   end
 
+  test "#id_value alias is not defined if id_value column exist" do
+    new_book_identifier_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "book_identifiers"
+    end
+
+    new_book_identifier_model.define_attribute_methods
+    assert_includes new_book_identifier_model.attribute_names, "id"
+    assert_includes new_book_identifier_model.attribute_names, "id_value"
+    assert_empty new_book_identifier_model.attribute_aliases
+  end
+
   test "aliasing `id` attribute allows reading the column value" do
     topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
 
@@ -73,6 +85,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic = Topic.find(1)
     assert_equal 1, topic.id_value
+  end
+
+  test "#id_value returns the value in the id_value column, when id_value column exists" do
+    book_identifier = BookIdentifier.new
+    assert_nil book_identifier.id_value
+
+    book_identifier = BookIdentifier.find(1)
+    assert_equal book_identifiers(:awdr_isbn13).id_value, book_identifier.id_value
   end
 
   test "#id_value alias is not defined if id column doesn't exist" do
@@ -1157,8 +1177,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       assert_no_queries(include_schema: true) do
         @target.define_attribute_methods
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -1630,12 +1648,5 @@ class AttributeMethodsTest < ActiveRecord::TestCase
           "I'm private"
         end
       private_method
-    end
-
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
     end
 end

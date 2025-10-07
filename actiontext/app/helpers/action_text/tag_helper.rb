@@ -55,7 +55,7 @@ module ActionView::Helpers
 
     def render
       options = @options.stringify_keys
-      add_default_name_and_id(options)
+      add_default_name_and_field(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_")) if object
       html_tag = @template_object.rich_textarea_tag(options.delete("name"), options.fetch("value") { value }, options.except("value"))
       error_wrapping(html_tag)

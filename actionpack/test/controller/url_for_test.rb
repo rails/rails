@@ -172,6 +172,28 @@ module AbstractController
         )
       end
 
+      def test_port_normalization
+        assert_equal(
+          "https://example.com/c",
+          W.new.url_for(host: "https://example.com:443", controller: "c")
+        )
+
+        assert_equal(
+          "https://example.com:444/c",
+          W.new.url_for(host: "https://example.com:444", controller: "c")
+        )
+
+        assert_equal(
+          "http://example.com/c",
+          W.new.url_for(host: "http://example.com:80", controller: "c")
+        )
+
+        assert_equal(
+          "http://example.com:81/c",
+          W.new.url_for(host: "http://example.com:81", controller: "c")
+        )
+      end
+
       def test_default_port
         add_host!
         add_port!

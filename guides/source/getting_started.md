@@ -1178,6 +1178,8 @@ Let's create `app/views/products/new.html.erb` to render the form for this new
     <%= form.submit %>
   </div>
 <% end %>
+
+<%= link_to "Cancel", products_path %>
 ```
 
 In this view, we are using the Rails `form_with` helper to generate an HTML form
@@ -2073,14 +2075,13 @@ class SubscribersController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def subscriber_params
-    params.expect(subscriber: [ :email ])
-  end
+    def subscriber_params
+      params.expect(subscriber: [ :email ])
+    end
 end
 ```
 
@@ -2401,10 +2402,9 @@ class UnsubscribesController < ApplicationController
   end
 
   private
-
-  def set_subscriber
-    @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
-  end
+    def set_subscriber
+      @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
+    end
 end
 ```
 

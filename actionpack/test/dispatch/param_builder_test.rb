@@ -21,51 +21,11 @@ class ParamBuilderTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, result[:foo]
   end
 
-  if ::Rack::RELEASE.start_with?("2.")
-    test "(rack 2) defaults to ignoring leading bracket" do
-      assert_deprecated(ActionDispatch.deprecator) do
-        result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-        assert_equal({ "foo" => "bar" }, result)
-      end
-
-      assert_deprecated(ActionDispatch.deprecator) do
-        result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-        assert_equal({ "foo" => { "bar" => "baz" } }, result)
-      end
-    end
-  else
-    test "(rack 3) defaults to retaining leading bracket" do
-      result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-      assert_equal({ "[foo]" => "bar" }, result)
-
-      result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-      assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
-    end
-  end
-
-  test "configured for strict brackets" do
-    previous_brackets = ActionDispatch::ParamBuilder.ignore_leading_brackets
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = false
-
+  test "retaining leading bracket" do
     result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
     assert_equal({ "[foo]" => "bar" }, result)
 
     result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
     assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
-  ensure
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = previous_brackets
-  end
-
-  test "configured for ignoring leading brackets" do
-    previous_brackets = ActionDispatch::ParamBuilder.ignore_leading_brackets
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = true
-
-    result = ActionDispatch::ParamBuilder.from_query_string("[foo]=bar")
-    assert_equal({ "foo" => "bar" }, result)
-
-    result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
-    assert_equal({ "foo" => { "bar" => "baz" } }, result)
-  ensure
-    ActionDispatch::ParamBuilder.ignore_leading_brackets = previous_brackets
   end
 end

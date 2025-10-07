@@ -647,7 +647,7 @@ end
 class CallbackOrderTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
-  module Behaviour
+  module Behavior
     extend ActiveSupport::Concern
 
     included do
@@ -679,14 +679,14 @@ class CallbackOrderTest < ActiveRecord::TestCase
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = true
   class TopicWithCallbacksWithSpecificOrderWithSettingTrue < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = false
   class TopicWithCallbacksWithSpecificOrderWithSettingFalse < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 

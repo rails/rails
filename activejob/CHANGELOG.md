@@ -1,3 +1,39 @@
+*   Add structured events for Active Job:
+    - `active_job.enqueued`
+    - `active_job.bulk_enqueued`
+    - `active_job.started`
+    - `active_job.completed`
+    - `active_job.retry_scheduled`
+    - `active_job.retry_stopped`
+    - `active_job.discarded`
+    - `active_job.interrupt`
+    - `active_job.resume`
+    - `active_job.step_skipped`
+    - `active_job.step_started`
+    - `active_job.step`
+
+    *Adrianna Chang*
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
+*   Deprecate built-in `sidekiq` adapter.
+
+    If you're using this adapter, upgrade to `sidekiq` 7.3.3 or later to use the `sidekiq` gem's adapter.
+
+    *fatkodima*
+
+*   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
+
+    *Rafael Mendonça França*
+
+*   Remove support to set `ActiveJob::Base.enqueue_after_transaction_commit` to `:never`, `:always` and `:default`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Rails.application.config.active_job.enqueue_after_transaction_commit`.
+
+    *Rafael Mendonça França*
+
 *   `ActiveJob::Serializers::ObjectSerializers#klass` method is now public.
 
     Custom Active Job serializers must have a public `#klass` method too.

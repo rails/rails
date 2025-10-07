@@ -1,16 +1,28 @@
 # frozen_string_literal: true
 
 begin
+  require "nokogiri"
+rescue LoadError
+  # Ensure nokogiri is loaded before vips, which also depends on libxml2.
+  # See Nokogiri RFC: Stop exporting symbols:
+  #   https://github.com/sparklemotion/nokogiri/discussions/2746
+end
+
+begin
   gem "ruby-vips"
   require "ruby-vips"
 rescue LoadError => error
-  raise error unless error.message.include?("ruby-vips")
+  raise error unless error.message.match?(/libvips|ruby-vips/)
 end
 
 module ActiveStorage
   # This analyzer relies on the third-party {ruby-vips}[https://github.com/libvips/ruby-vips] gem. Ruby-vips requires
   # the {libvips}[https://libvips.github.io/libvips/] system library.
   class Analyzer::ImageAnalyzer::Vips < Analyzer::ImageAnalyzer
+    def self.accept?(blob)
+      super && ActiveStorage.variant_processor == :vips
+    end
+
     private
       def read_image
         download_blob_to_tempfile do |file|

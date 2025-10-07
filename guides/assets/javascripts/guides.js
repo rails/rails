@@ -36,10 +36,10 @@
   var scrollBehavior = 'auto'
 
   document.addEventListener(event, function () {
-    // This smooth scrolling behaviour does not work in tandem with the
+    // This smooth scrolling behavior does not work in tandem with the
     // scrollIntoView function for some browser-os combinations. Therefore, if
     // JavaScript is enabled, and scrollIntoView may be called, this style is
-    // forced to not use smooth scrolling and the behaviour is added to the
+    // forced to not use smooth scrolling and the behavior is added to the
     // back-to-top element etc, unless reduced motion is preferred.
     document.body.parentElement.style.scrollBehavior = 'auto';
 
@@ -216,7 +216,7 @@
     })
 
     // Automatically browse when the version selector is changed. It is
-    // important that this behaviour is communicated to the user, for example
+    // important that this behavior is communicated to the user, for example
     // via an accessible label.
     var guidesVersion = document.querySelector("select.guides-version");
     guidesVersion.addEventListener("change", function (e) {

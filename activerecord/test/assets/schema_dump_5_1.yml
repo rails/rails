@@ -307,7 +307,7 @@ data_sources:
   traffic_lights: true
   treasures: true
   tuning_pegs: true
-  tyres: true
+  tires: true
   variants: true
   vertices: true
   warehouse-things: true

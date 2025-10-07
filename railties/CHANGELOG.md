@@ -1,3 +1,45 @@
+*   Don't generate system tests by default.
+
+    Rails scaffold generator will no longer generate system tests by default. To enable this pass `--system-tests=true` or generate them with `bin/rails generate system_test name_of_test`.
+
+    *Eileen M. Uchitelle*
+
+*   Optionally skip bundler-audit.
+
+    Skips adding the `bin/bundler-audit` & `config/bundler-audit.yml` if the gem is not installed when `bin/rails app:update` runs.
+
+    Passes an option to `--skip-bundler-audit` when new apps are generated & adds that same option to the `--minimal` generator flag.
+
+    *Jill Klang*
+
+*   Show engine routes in `/rails/info/routes` as well.
+
+    *Petrik de Heus*
+
+*   Exclude `asset_path` configuration from Kamal `deploy.yml` for API applications.
+
+    API applications don't serve assets, so the `asset_path` configuration in `deploy.yml`
+    is not needed and can cause 404 errors on in-flight requests. The asset_path is now
+    only included for regular Rails applications that serve assets.
+
+    *Saiqul Haq*
+
+*   Reverted the incorrect default `config.public_file_server.headers` config.
+
+    If you created a new application using Rails `8.1.0.beta1`, make sure to regenerate
+    `config/environments/production.rb`, or to manually edit the `config.public_file_server.headers`
+    configuration to just be:
+
+    ```ruby
+    # Cache assets for far-future expiry since they are all digest stamped.
+    config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+    ```
+
+    *Jean Boussier*
+
+
+## Rails 8.1.0.beta1 (September 04, 2025) ##
+
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 
     ```bash

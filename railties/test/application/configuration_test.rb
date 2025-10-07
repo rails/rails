@@ -1580,12 +1580,6 @@ module ApplicationTests
       assert_equal "https://foo.example.com:9001/bar/posts", posts_url
     end
 
-    test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
-      app "development"
-
-      assert_equal true, ActionController::Base.raise_on_open_redirects
-    end
-
     test "ActionController::Base.raise_on_open_redirects is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
@@ -1604,6 +1598,19 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :raise by default for new apps" do
+      app "development"
+
+      assert_equal :raise, ActionController::Base.action_on_open_redirect
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :log when raise_on_open_redirects is false" do
+      add_to_config "config.action_controller.raise_on_open_redirects = false"
+      app "development"
+
+      assert_equal :log, ActionController::Base.action_on_open_redirect
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -3247,7 +3254,7 @@ module ApplicationTests
 
     test "config.active_job.enqueue_after_transaction_commit is deprecated" do
       app_file "config/initializers/enqueue_after_transaction_commit.rb", <<-RUBY
-      Rails.application.config.active_job.enqueue_after_transaction_commit = :always
+      Rails.application.config.active_job.enqueue_after_transaction_commit = true
       RUBY
 
       app "production"
@@ -3256,7 +3263,7 @@ module ApplicationTests
         ActiveRecord::Base
       end
 
-      assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
+      assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
     test "active record job queue is set" do
@@ -3616,6 +3623,19 @@ module ApplicationTests
       assert_equal true, ActionDispatch::Http::Cache::Request.strict_freshness
     end
 
+    test "config.action_dispatch.verbose_redirect_logs is true in development" do
+      build_app
+      app "development"
+
+      assert ActionDispatch.verbose_redirect_logs
+    end
+
+    test "config.action_dispatch.verbose_redirect_logs is false in production" do
+      build_app
+      app "production"
+
+      assert_not ActionDispatch.verbose_redirect_logs
+    end
 
     test "Rails.application.config.action_mailer.smtp_settings have open_timeout and read_timeout defined as 5 in 7.0 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
@@ -4084,6 +4104,37 @@ module ApplicationTests
       MESSAGE
     end
 
+    test "ActiveStorage.analyzers default value" do
+      app "development"
+
+      assert_equal [
+        ActiveStorage::Analyzer::ImageAnalyzer::Vips,
+        ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
+        ActiveStorage::Analyzer::VideoAnalyzer,
+        ActiveStorage::Analyzer::AudioAnalyzer
+      ], ActiveStorage.analyzers
+    end
+
+    test "ActiveStorage.analyzers can be configured to be an empty array" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = []
+      RUBY
+
+      app "development"
+
+      assert_empty ActiveStorage.analyzers
+    end
+
+    test "ActiveStorage.analyzers can be configured to custom analyzers" do
+      add_to_config <<-RUBY
+        config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ]
+      RUBY
+
+      app "development"
+
+      assert_equal [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ], ActiveStorage.analyzers
+    end
+
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -4121,7 +4172,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_nil ActiveStorage.variant_processor
+      assert_equal :mini_magick, ActiveStorage.variant_processor
     end
 
     test "ActiveStorage.variant_processor uses vips by default" do
@@ -5031,6 +5082,50 @@ module ApplicationTests
       add_to_config "Regexp.timeout = 5"
       app "development"
       assert_equal 5, Regexp.timeout
+    end
+
+    test "action_controller.logger defaults to Rails.logger" do
+      restore_default_config
+      add_to_config "config.logger = Logger.new(STDOUT, level: Logger::INFO)"
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_equal Rails.logger, Rails.application.config.action_controller.logger
+      assert output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning nil" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = nil
+      RUBY
+      app "development"
+
+      output = capture(:stdout) do
+        get "/"
+      end
+
+      assert_nil Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
+    end
+
+    test "action_controller.logger can be disabled by assigning false" do
+      add_to_config <<-RUBY
+        config.logger = Logger.new(STDOUT, level: Logger::INFO)
+        config.action_controller.logger = false
+      RUBY
+
+      app "development"
+      output = capture(:stdout) do
+        get "/"
+      end
+
+
+      assert_equal false, Rails.application.config.action_controller.logger
+      assert_not output.include?("Processing by Rails::WelcomeController#index as HTML")
     end
 
     private

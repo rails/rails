@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
 
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new

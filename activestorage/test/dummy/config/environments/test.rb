@@ -43,12 +43,6 @@ Rails.application.configure do
     puts "Missing service configuration file in #{config_file}"
     {}
   end
-  # Azure service tests are currently failing on the main branch.
-  # We temporarily disable them while we get things working again.
-  if ENV["BUILDKITE"]
-    SERVICE_CONFIGURATIONS.delete(:azure)
-    SERVICE_CONFIGURATIONS.delete(:azure_public)
-  end
 
   config.active_storage.service_configurations = SERVICE_CONFIGURATIONS.merge(
     "local" => { "service" => "Disk", "root" => Dir.mktmpdir("active_storage_tests") },
