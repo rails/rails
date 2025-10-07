@@ -1975,6 +1975,17 @@ stock. We can generate this migration using the following command:
 $ bin/rails generate migration AddInventoryCountToProducts inventory_count:integer
 ```
 
+This will generate a migration file. Open it and add a default value of `0` to
+ensure `inventory_count` is never `nil`:
+
+```ruby
+class AddInventoryCountToProducts < ActiveRecord::Migration[8.1]
+  def change
+    add_column :products, :inventory_count, :integer, default: 0
+  end
+end
+```
+
 Then let's run the migration.
 
 ```bash
@@ -2119,7 +2130,7 @@ Create a new partial at `app/views/products/_inventory.html.erb` and add the
 following:
 
 ```erb
-<% if product.inventory_count? %>
+<% if product.inventory_count.positive? %>
   <p><%= product.inventory_count %> in stock</p>
 <% else %>
   <p>Out of stock</p>
@@ -2272,7 +2283,7 @@ class Product < ApplicationRecord
   after_update_commit :notify_subscribers, if: :back_in_stock?
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
@@ -2316,7 +2327,7 @@ module Product::Notifications
   end
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
