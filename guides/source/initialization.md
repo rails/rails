@@ -119,7 +119,7 @@ In the case of `bin/rails server`, it'll be passed over to the `perform` method 
 module Rails
   module Command
     class ServerCommand < Base
-     def perform
+      def perform
         set_application_directory!
         prepare_restart
 
@@ -358,7 +358,7 @@ Your Rails application is a subclass of `Rails::Engine`.
 ```ruby
 # config/application.rb
 class Rails::Application < Rails::Engine
-
+  # ...
 end
 ```
 
@@ -745,7 +745,7 @@ With the `server` command, Rails will further run the following code:
 module Rails
   module Command
     class ServerCommand < Base # :nodoc:
-     def perform
+      def perform
         set_application_directory!
         prepare_restart
 
