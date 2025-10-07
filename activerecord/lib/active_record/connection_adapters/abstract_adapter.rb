@@ -43,7 +43,7 @@ module ActiveRecord
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
-      attr_accessor :allow_preconnect
+      attr_reader :allow_preconnect # :nodoc:
       attr_accessor :pinned # :nodoc:
       alias :in_use? :owner
 
@@ -51,6 +51,12 @@ module ActiveRecord
         return if value.eql?(@pool)
         @schema_cache = nil
         @pool = value
+      end
+
+      def allow_preconnect=(value) # :nodoc:
+        @lock.synchronize do
+          @allow_preconnect = value
+        end
       end
 
       def self.type_cast_config_to_integer(config)
@@ -156,7 +162,7 @@ module ActiveRecord
         @pinned = false
         @pool = ActiveRecord::ConnectionAdapters::NullPool.new
         @idle_since = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        @allow_preconnect = true
+        @allow_preconnect = false
         @visitor = arel_visitor
         @statements = build_statement_pool
         self.lock_thread = nil
