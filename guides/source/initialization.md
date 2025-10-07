@@ -45,7 +45,7 @@ boots the application but does *not* start the server. Rake tasks, such as
 
 The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you usually don't open or modify but the last file should be familiar. This is where your application is defined and configured.
 
-Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb` file. This file is the public interface for booting a Rails application. For example, if you have this line in a Ruby script, it will boot the Rails application (which is what the `config.ru` file has, as we'll see in a [later section](#loading-configenvironmentrb-from-configru):
+Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb` file. This file is the public interface for booting a Rails application. For example, if you have the following line in a Ruby script, it will boot the Rails application (The `config.ru` file has this line, as we'll see in a [later section](#loading-configenvironmentrb-from-configru):
 
 ```ruby
 require "config/environment"
@@ -154,7 +154,7 @@ Requiring `config/application`
 
 When `require APP_PATH` is executed, `config/application.rb` is loaded. This
 file is included with new Rails applications and it's available for you to
-update based on your application needs. The default `config/application.rb` looks like this:
+update based on your application's needs. The default `config/application.rb` looks like this:
 
 ```ruby
 # config/application.rb
@@ -229,7 +229,7 @@ end
 
 Common Rails functionality is being configured and defined here. Specifically, the `require "rails/all"` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
 
-We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components.
+We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components, in those respective sections.
 
 At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-applicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
@@ -249,7 +249,7 @@ run Rails.application
 Rails.application.load_server
 ```
 
-The `config/environment.rb` file, generated in all new Rails applications, contains this:
+The default `config/environment.rb` file, generated in all new Rails applications, contains this:
 
 ```ruby
 # config/environment.rb
@@ -267,7 +267,7 @@ Finally, with the second line, we get to the most important method of the initia
 `Rails.application.initialize!`
 ------------------------------
 
-The main idea behind initialization is to allow components to register code to be executed during the Rails booting process. This is done with Railties and Engines, which allow components to register initializers. In order to understand the `initialize!` call, we need to take brief detour and cover Railties and Engines, then we'll come back to the `initialize!` method.
+The main idea behind initialization is to allow components to register code to be executed during the Rails booting process. This is done with Railties and Engines, which allow components to register initializers. In order to understand the `initialize!` call, we need to take a brief detour and cover Railties and Engines, then we'll come back to the `initialize!` method.
 
 Here is a sketch of everything that happens during the `initialize!` call:
 
@@ -323,7 +323,7 @@ module ActiveRecord
 end
 ```
 
-This initializer configures and establishes a connection with the database during the boot process.
+The above initializer configures and establishes a connection with the database during the boot process.
 
 Here's another example of an initializer from `ActiveJob::Railtie`:
 
@@ -340,9 +340,9 @@ module ActiveJob
 end
 ```
 
-This initializer registers serializers for Active Job.
+This initializer registers custom serializers for Active Job.
 
-There are dozens of initializers registered for each sub-component. These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` is called. During the `initialize!` call, the initializers are executed in the order in which they are registered. That call also includes running custom initializers that are defined in the `config/initializers` directory of your application.
+There are dozens of initializers registered for each sub-component. These initializers are stored in the `@initializers` array and will be executed when `Rails.application.initialize!` method is called. During the `initialize!` call, the initializers are executed in the order in which they are registered. That call also includes running custom initializers that are defined in the `config/initializers` directory of your application.
 
 ### Engines
 
@@ -368,7 +368,7 @@ TIP: You can see a list of all initializer registered for an application with `b
 
 So now we know what role Railties and Engines play in the Rails initialization process. Back to the the `initialize!` method that is called from `config/environment.rb`.
 
-### The `initialize!` call
+### The `initialize!` Method Call
 
 The `initialize!` method looks like this:
 
@@ -409,11 +409,11 @@ def initializers
 end
 ```
 
-The `bootstrap` initializers prepare the application (like initializing the
-logger) while the `finisher` initializers (like building the middleware stack)
-are run last. The `railtie` initializers are the initializers which have been
-defined on the `Rails::Application` itself and are run between the `bootstrap`
-and `finisher`.
+The `Bootstrap` initializers run first and they prepare the application (like
+initializing the logger) while the `Finisher` initializers (like building the
+middleware stack) are run last. The `railtie` initializers are the initializers
+which have been defined on the `Rails::Application` itself and are run between
+the `Bootstrap` and `Finisher`.
 
 The [custom initializers](configuring.html#using-initializer-files) in your application under `config/initializers` are also run as part of the `initialize!` call. They are registered via [`load_config_initializer`](https://github.com/rails/rails/blob/36bd50c82b46046c9f352e06fa552221586028d8/railties/lib/rails/engine.rb#L643) in `Rails::Engine` Railtie. They are run in alphabetical order by file names in that directory.
 
