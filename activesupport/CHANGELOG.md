@@ -1,3 +1,11 @@
+*   Standardize event name formatting in `assert_event_reported` error messages.
+
+    The event name in failure messages now uses `.inspect` (e.g., `name: "user.created"`)
+    to match `assert_events_reported` and provide type clarity between strings and symbols.
+    This only affects tests that assert on the failure message format itself.
+
+    *George Ma*
+
 *   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
 
     *Olivier Bellone*
