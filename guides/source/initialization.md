@@ -33,7 +33,7 @@ otherwise specified.
 Overview
 --------
 
-At a high level, the Rails initialization process has two parts: 
+At a high level, the Rails initialization process has two parts:
 
 * Booting the framework.
 * Starting the server.
@@ -45,7 +45,7 @@ boots the application but does *not* start the server. Rake tasks, such as
 
 The main files involved in Rails initialization are: `config/boot.rb`, `config/environment.rb`, and `config/application.rb`. All three files are generated in a new Rails application. The first two files you usually don't open or modify but the last file should be familiar. This is where your application is defined and configured.
 
-Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb` file. This file is the public interface for booting a Rails application. For example, if you have the following line in a Ruby script, it will boot the Rails application (The `config.ru` file has this line, as we'll see in a [later section](#loading-configenvironmentrb-from-configru):
+Before we get to the `bin/rails server` command, let's talk about the `config/environment.rb` file. This file is the public interface for booting a Rails application. For example, if you have the following line in a Ruby script, it will boot the Rails application (The `config.ru` file has this line, as we'll see in a [later section](#loading-config-environment-rb-from-config-ru):
 
 ```ruby
 require "config/environment"
@@ -61,7 +61,7 @@ The sections below cover specific lines in the main files involved when running 
 
 * `bin/rails` script
 * `require_relative "boot"` in `bin/rails` script
-*  Requiring `application.rb` in `ServerCommand#perform`
+* Requiring `application.rb` in `ServerCommand#perform`
 * `require "rails/all"` in `config/application.rb`
 * `Rails.application.initialize!` back in `config/environment.rb`
 
@@ -227,11 +227,11 @@ require "rails"
 end
 ```
 
-Common Rails functionality is being configured and defined here. Specifically, the `require "rails/all"` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#railsapplicationinitialize) section below.
+Common Rails functionality is being configured and defined here. Specifically, the `require "rails/all"` call is loading all the Railties and Engines from various Rails framework components (such as `active_record/railtie` and `action_mailbox/engine`). As a side effect of all those requires, many initializers from those classes are registered. The initializers are not run yet, but loaded and ready. We come back to this in the [`Rails.application.initialize!`](#rails-application-initialize-bang) section below.
 
 We also go into what [Railties](#railties) and [Engines](#engines) are and how they facilitate initializing and configuring framework components, in those respective sections.
 
-At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-applicationrb-in-servercommandperform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
+At this point, we're done with loading the `config/application.rb` file (that we started from [ServerCommand#perform](#requiring-application-rb-in-servercommand-perform) above). Our Rails application is defined and configured but *not initialized* yet. The initialization happens from `config/environment.rb`. Let's see how we get to that key file next.
 
 Loading `config/environment.rb` from `config.ru`
 -----------------------------------------------
@@ -476,7 +476,7 @@ Starting the Server
 
 Once the application is booted, the `bin/rails server` command is also responsible for starting the web server.
 
-This process starts when the `ServerCommand#perform` method (which [loaded `application.rb`](#requiring-applicationrb-in-servercommandperform)) calls `server.start()`.
+This process starts when the `ServerCommand#perform` method (which [loaded `application.rb`](#requiring-application-rb-in-servercommand-perform)) calls `server.start()`.
 
 This is a call to `Rails::Server#start`, which calls `Rackup::Server#start` (via `super()` as `Rails::Server` extends `Rackup::Server`).
 
