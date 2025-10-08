@@ -167,6 +167,13 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     assert_empty run_notes_command
   end
 
+  test "does not display results from excluded directories" do
+    add_to_config 'config.annotations.register_excluded_directories "app/assets/builds"'
+    app_file "app/assets/builds/application.js", "// TODO: generated file should be ignored"
+
+    assert_empty run_notes_command
+  end
+
   private
     def run_notes_command(args = [])
       rails "notes", args
