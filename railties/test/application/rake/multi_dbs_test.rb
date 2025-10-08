@@ -106,7 +106,7 @@ module ApplicationTests
             assert_match(/CREATE TABLE (?:IF NOT EXISTS )?"dogs"/, schema_dump_animals)
           end
 
-          rails "db:schema:load"
+          rails "db:drop", "db:create", "db:schema:load"
 
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
@@ -146,7 +146,7 @@ module ApplicationTests
             end
           end
 
-          rails "db:schema:load:#{database}"
+          rails "db:drop:#{database}", "db:create:#{database}", "db:schema:load:#{database}"
 
           ar_tables = lambda { rails("runner", "p ActiveRecord::Base.lease_connection.tables.sort").strip }
           animals_tables = lambda { rails("runner", "p AnimalsBase.lease_connection.tables.sort").strip }
