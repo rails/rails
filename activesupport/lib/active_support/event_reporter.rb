@@ -531,6 +531,11 @@ module ActiveSupport
       context_store.context
     end
 
+    def reload_payload_filter # :nodoc:
+      @payload_filter = nil
+      payload_filter
+    end
+
     private
       def raise_on_error?
         @raise_on_error
