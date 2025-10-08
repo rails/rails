@@ -20,6 +20,7 @@ module ActiveRecord
         file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
         FileUtils.rm(file)
         FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
+        FileUtils.touch("tmp/restart.txt") if Rails.env.development?
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
       end
