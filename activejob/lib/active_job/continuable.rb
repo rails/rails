@@ -91,7 +91,9 @@ module ActiveJob
       def resume_job(exception) # :nodoc:
         executions_for(exception)
         if max_resumptions.nil? || resumptions < max_resumptions
-          retry_job(**self.resume_options)
+          opts = self.resume_options
+          opts[:restart] = false if exception.is_a?(Continuation::Interrupt)
+          retry_job(**opts)
         else
           raise Continuation::ResumeLimitError, "Job was resumed a maximum of #{max_resumptions} times"
         end

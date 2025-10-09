@@ -1,3 +1,13 @@
+*   Add `:restart` option to `retry_job` and `retry_on` for jobs including `ActiveJob::Continuable`.
+
+    This option controls whether a retried job should resume from its last
+    saved checkpoint (`restart: false`, default) or restart from
+    the beginning (`restart: true`). It allows finer control over retry
+    behavior when certain exceptions require a full restart instead of resuming
+    partial progress.
+
+    *Georgiy Melnikov*
+
 *   Add structured events for Active Job:
     - `active_job.enqueued`
     - `active_job.bulk_enqueued`
