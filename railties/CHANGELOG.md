@@ -1,3 +1,7 @@
+*   Remove deprecated `STATS_DIRECTORIES`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `bin/rake stats` command.
 
     *Rafael Mendonça França*

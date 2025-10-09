@@ -32,6 +32,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `bin/rake stats` command.
 
+*   Remove deprecated `STATS_DIRECTORIES`.
+
 ### Deprecations
 
 ### Notable changes
