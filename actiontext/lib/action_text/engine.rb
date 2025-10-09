@@ -16,6 +16,9 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.editors = ActiveSupport::InheritableOptions.new(
+      trix: {}
+    )
     config.action_text.editor = :trix
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
@@ -72,13 +75,12 @@ module ActionText
     end
 
     initializer "action_text.editors" do |app|
-      require "action_text/trix_editor"
+      ActiveSupport.on_load :action_text_rich_text do
+        self.editors = Editor::Registry.new(app.config.action_text.editors)
 
-      ActionText.editors = ActiveSupport::InheritableOptions.new(app.config.action_text.editors)
-      ActionText.editors.trix = ActionText::TrixEditor.new
-
-      if (name = app.config.action_text.editor)
-        ActionText.editor = ActionText.editors.fetch(name)
+        if (editor_name = app.config.action_text.editor)
+          self.editor = editors.fetch(editor_name)
+        end
       end
     end
 

@@ -25,17 +25,18 @@ module ActionText
 
       def append_editor
         destination = Pathname(destination_root)
+        editor = options[:editor]
 
         if (application_javascript_path = destination.join("app/javascript/application.js")).exist?
-          insert_into_file application_javascript_path.to_s, %(\nimport "#{trix}"\n)
+          insert_into_file application_javascript_path.to_s, %(\nimport "#{editor}"\n)
         else
           say <<~INSTRUCTIONS, :green
-            You must import the #{trix} JavaScript module in your application entrypoint.
+            You must import the #{editor} JavaScript module in your application entrypoint.
           INSTRUCTIONS
         end
 
         if (importmap_path = destination.join("config/importmap.rb")).exist?
-          append_to_file importmap_path.to_s, %(pin "#{trix}"\n)
+          append_to_file importmap_path.to_s, %(pin "#{editor}"\n)
         end
       end
 

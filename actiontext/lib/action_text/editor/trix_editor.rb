@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 module ActionText
-  class TrixEditor # :nodoc:
+  class Editor::TrixEditor < Editor # :nodoc:
     def to_action_text_html(editor_html)
-      Fragment.wrap(editor_html).replace(TrixAttachment::SELECTOR) do |node|
+      Fragment.wrap(super).replace(TrixAttachment::SELECTOR) do |node|
         trix_attachment = TrixAttachment.new(node)
         Attachment.from_attributes(trix_attachment.attributes)
       end
     end
 
     def to_editor_html(action_text_html)
-      Fragment.wrap(action_text_html).replace(Attachment.tag_name) do |node|
+      Fragment.wrap(super).replace(Attachment.tag_name) do |node|
         attachment_attributes = node.attributes
         TrixAttachment.from_attributes(attachment_attributes)
       end
@@ -37,8 +37,8 @@ module ActionText
         form = options.delete(:form)
 
         options[:input] ||= options[:id] ?
-            "#{options[:id]}_trix_input_#{name.to_s.gsub(/\[.*\]/, "")}" :
-            "trix_input_#{TrixEditor::Tag.id += 1}"
+          "#{options[:id]}_trix_input_#{name.to_s.gsub(/\[.*\]/, "")}" :
+          "trix_input_#{TrixEditor::Tag.id += 1}"
         options[:class] ||= "trix-content"
 
         editor_tag = view_context.content_tag("trix-editor", "", options)
