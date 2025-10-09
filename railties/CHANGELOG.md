@@ -1,3 +1,7 @@
+*   Remove deprecated `rails/console/methods.rb` file.
+
+    *Rafael Mendonça França*
+
 *   Don't generate system tests by default.
 
     Rails scaffold generator will no longer generate system tests by default. To enable this pass `--system-tests=true` or generate them with `bin/rails generate system_test name_of_test`.
