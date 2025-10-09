@@ -1,3 +1,7 @@
+*   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
 
     *Rafael Mendonça França*
