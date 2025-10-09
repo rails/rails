@@ -34,7 +34,7 @@ module ActionText
       options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
 
-      render ActionText.editor.editor_tag(options)
+      render RichText.editor.editor_tag(options)
     end
     alias_method :rich_text_area_tag, :rich_textarea_tag
   end

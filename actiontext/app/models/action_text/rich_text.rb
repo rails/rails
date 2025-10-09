@@ -36,6 +36,9 @@ module ActionText
     #     message = Message.create!(content: "<div onclick='action()'>safe<script>unsafe</script></div>")
     #     message.content.to_s # => "<div>safeunsafe</div>"
 
+    cattr_accessor :editors, instance_accessor: false, default: {}.freeze
+    cattr_accessor :editor, instance_accessor: false
+
     serialize :body, coder: ActionText::Content
     delegate :to_s, :nil?, to: :body
 

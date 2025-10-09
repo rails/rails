@@ -11,7 +11,7 @@ module ActionText
 
       class_methods do
         def fragment_by_converting_editor_attachments(content)
-          ActionText.editor.to_action_text_html(content)
+          RichText.editor.to_action_text_html(content)
         end
       end
 
@@ -21,7 +21,7 @@ module ActionText
 
       def to_editor_html!(content = editor_attachment_content) # :nodoc:
         node["content"] = content if content
-        ActionText.editor.to_editor_html(to_html)
+        RichText.editor.to_editor_html(to_html)
       end
 
       private
