@@ -815,5 +815,15 @@ module ApplicationTests
       get "/"
       assert_equal 200, last_response.status
     end
+
+    test "routes reloader uses configured file_watcher" do
+      add_to_config <<-RUBY
+        config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+      RUBY
+
+      app "development"
+
+      assert_instance_of ActiveSupport::EventedFileUpdateChecker, Rails.application.routes_reloader.send(:updater)
+    end
   end
 end
