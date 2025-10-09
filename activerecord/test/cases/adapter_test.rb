@@ -724,6 +724,8 @@ module ActiveRecord
           assert (a = Author.first)
           assert Post.where(id: [1, 2]).first
           assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
+          assert Post.where(Arel.sql("id > ?", 0, retryable: true)).first
+          assert Post.where(Arel.sql("id = :id", retryable: true), { id: 1 }).first
           assert Post.find(1)
           assert Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
@@ -732,7 +734,7 @@ module ActiveRecord
           Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -746,6 +748,8 @@ module ActiveRecord
           assert_not_nil (a = Author.first)
           assert_not_nil Post.where(id: [1, 2]).first
           assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
+          assert Post.where(Arel.sql("id > ?", 0, retryable: true)).first
+          assert Post.where(Arel.sql("id = :id", retryable: true), { id: 1 }).first
           assert_not_nil Post.find(1)
           assert_not_nil Post.find_by(title: "Welcome to the weblog")
           assert_predicate Post, :exists?
@@ -754,7 +758,7 @@ module ActiveRecord
           Author.group(:name).count
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
