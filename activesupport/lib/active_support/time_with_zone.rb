@@ -311,16 +311,8 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        begin
-          result = utc + other
-        rescue TypeError
-          result = utc.to_datetime.since(other)
-          ActiveSupport.deprecator.warn(
-            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
-            "a `TypeError` in Rails 8.1."
-          )
-          result.in_time_zone(time_zone)
-        end
+        result = utc + other
+
         result.in_time_zone(time_zone)
       end
     end

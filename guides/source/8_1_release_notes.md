@@ -160,6 +160,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
 *   Remove deprecated support for `to_time` to preserve the system local time. It will now always preserve the receiver
     timezone.
 
