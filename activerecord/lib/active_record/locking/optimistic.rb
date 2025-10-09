@@ -49,6 +49,11 @@ module ActiveRecord
     #     self.locking_column = :lock_person
     #   end
     #
+    # Note: When using +has_rich_text+ together with optimistic locking, background
+    # analysis of attachments (e.g. +ActiveStorage::AnalyzeJob+) increments +lock_version+.
+    # This can trigger a +StaleObjectError+ even without conflicting
+    # user edits. Applications that auto-save frequently are more likely to observe this.
+    #
     module Optimistic
       extend ActiveSupport::Concern
 
