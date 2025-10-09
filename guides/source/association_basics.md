@@ -1978,6 +1978,8 @@ $ bin/rails generate model message subject:string body:string
 $ bin/rails generate model comment content:string
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `subject` instead of `subject:string`), Rails will default to type `string`.
+
 After running the generators, our models should look like this:
 
 ```ruby
