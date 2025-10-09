@@ -1,3 +1,7 @@
+*   Remove deprecated passing a Time object to `Time#since`.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
 
     *Rafael Mendonça França*

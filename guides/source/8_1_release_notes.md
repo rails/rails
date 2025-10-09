@@ -160,6 +160,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated passing a Time object to `Time#since`.
+
 *   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
 
 *   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
