@@ -1,3 +1,7 @@
+*   Remove deprecated `bin/rake stats` command.
+
+    *Rafael Mendonça França*
+
 *   Remove deprecated `rails/console/methods.rb` file.
 
     *Rafael Mendonça França*

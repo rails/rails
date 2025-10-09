@@ -30,6 +30,8 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 *   Remove deprecated `rails/console/methods.rb` file.
 
+*   Remove deprecated `bin/rake stats` command.
+
 ### Deprecations
 
 ### Notable changes
