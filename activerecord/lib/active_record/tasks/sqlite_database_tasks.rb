@@ -3,9 +3,10 @@
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks < AbstractTasks # :nodoc:
-      def initialize(db_config, root = ActiveRecord::Tasks::DatabaseTasks.root)
+      def initialize(db_config, root = ActiveRecord::Tasks::DatabaseTasks.root, env = ActiveRecord::Tasks::DatabaseTasks.env)
         @db_config = db_config
         @root = root
+        @env = env
       end
 
       def create
@@ -20,7 +21,7 @@ module ActiveRecord
         file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
         FileUtils.rm(file)
         FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
-        FileUtils.touch("tmp/restart.txt") if Rails.env.development?
+        FileUtils.touch("tmp/restart.txt") if @env&.development?
       rescue Errno::ENOENT => error
         raise NoDatabaseError.new(error.message)
       end
