@@ -33,7 +33,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ["traffic_lights", [
         { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
       ]]
-    ] * 1000
+    ] * 2000
 
     assert_raises(Timeout::Error) do
       Timeout.timeout(0.1) do
