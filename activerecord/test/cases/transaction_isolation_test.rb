@@ -317,6 +317,13 @@ class TransactionIsolationWithTransactionalTestsTest < ActiveRecord::TestCase
       end
     end
 
+    test "starting a transaction with isolation resets the isolation level back to nil" do
+      Tag.transaction(isolation: :read_committed) do
+        Tag.create!
+      end
+      assert_nil Tag.lease_connection.current_transaction.isolation
+    end
+
     test "starting a transaction with isolation sets the isolation level" do
       Tag.transaction(isolation: :read_committed) do
         assert_equal :read_committed, Tag.lease_connection.current_transaction.isolation
