@@ -2067,8 +2067,10 @@ module ActiveRecord
         arel.order(*orders) unless orders.empty?
       end
 
-      VALID_DIRECTIONS = [:asc, :desc, :ASC, :DESC,
-                          "asc", "desc", "ASC", "DESC"].to_set # :nodoc:
+      VALID_DIRECTIONS = [
+        :asc, :desc, :asc_nulls_first, :desc_nulls_last, :ASC, :DESC, :ASC_NULLS_FIRST, :DESC_NULLS_LAST,
+        "asc", "desc", "asc_nulls_first", "desc_nulls_last", "ASC", "DESC", "ASC_NULLS_FIRST", "DESC_NULLS_LAST"
+      ].to_set # :nodoc:
 
       def validate_order_args(args)
         args.each do |arg|

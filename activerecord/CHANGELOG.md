@@ -1,3 +1,15 @@
+*   Add `:asc_nulls_first`, and `:desc_nulls_last` to Active Record's `order` method.
+
+    Postgresql and Mysql have different behaviors regarding the sorting order of NULL.
+    These methods allow a better control over sorting queries.
+
+    ```ruby
+    # Usage:
+    Post.order(title: :asc_nulls_first)
+    ```
+
+    *Matthew Nguyen*
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.
