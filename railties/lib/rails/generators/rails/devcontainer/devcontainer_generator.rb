@@ -112,7 +112,7 @@ module Rails
 
           @features["ghcr.io/rails/devcontainer/features/activestorage"] = {} if options[:active_storage]
           @features["ghcr.io/devcontainers/features/node:1"] = {} if options[:node]
-          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = {} if options[:kamal]
+          @features["ghcr.io/devcontainers/features/docker-outside-of-docker:1"] = { moby: false } if options[:kamal]
 
           @features.merge!(database.feature) if database.feature
 
