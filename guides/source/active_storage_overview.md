@@ -679,11 +679,8 @@ user.avatar.purge_later
 Serving Files
 -------------
 
-Active Storage supports two ways to serve files: redirecting and proxying.
-
-WARNING: All Active Storage controllers are publicly accessible by default. The
-generated URLs are hard to guess, but permanent by design. If your files
-require a higher level of protection consider implementing
+WARNING: All Active Storage controllers are publicly accessible by default. If your files require
+access control consider implementing
 [Authenticated Controllers](#authenticated-controllers).
 
 ### Redirect Mode
