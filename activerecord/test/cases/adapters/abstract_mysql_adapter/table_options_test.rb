@@ -81,6 +81,12 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
     @logger_was  = ActiveRecord::Base.logger
     @log         = StringIO.new
@@ -90,7 +96,7 @@ class DefaultEngineOptionTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def teardown
-    ActiveRecord::Base.logger       = @logger_was
+    ActiveRecord::Base.logger = @logger_was
     ActiveRecord::Migration.verbose = @verbose_was
     ActiveRecord::Base.lease_connection.drop_table "mysql_table_options", if_exists: true
     ActiveRecord::Base.connection_pool.schema_migration.delete_all_versions rescue nil

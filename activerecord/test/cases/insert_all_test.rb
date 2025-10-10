@@ -18,6 +18,12 @@ end
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
     @original_db_warnings_action = :ignore
@@ -1034,12 +1040,12 @@ class InsertAllTest < ActiveRecord::TestCase
   private
     def capture_log_output
       output = StringIO.new
-      old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
+      old_logger, ActiveRecord::LogSubscriber.logger = ActiveRecord::LogSubscriber.logger, ActiveSupport::Logger.new(output)
 
       begin
         yield output
       ensure
-        ActiveRecord::Base.logger = old_logger
+        ActiveRecord::LogSubscriber.logger = old_logger
       end
     end
 
