@@ -4,12 +4,22 @@ require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 require "action_view/log_subscriber"
 require "controller/fake_models"
+require "active_support/testing/event_reporter_assertions"
 
 class AVLogSubscriberTest < ActiveSupport::TestCase
-  include ActiveSupport::LogSubscriber::TestHelper
+  include ActiveSupport::Testing::EventReporterAssertions
+
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
 
   def setup
     super
+    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+    @old_logger = ActionView::LogSubscriber.logger
+    ActionView::LogSubscriber.logger = @logger
 
     ActionView::LookupContext::DetailsKey.clear
 
@@ -17,8 +27,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
     lookup_context = ActionView::LookupContext.new(view_paths, {}, ["test"])
     @view          = ActionView::Base.with_empty_template_cache.with_context(lookup_context)
-
-    ActionView::LogSubscriber.attach_to :action_view
 
     unless Rails.respond_to?(:root)
       @defined_root = true
@@ -28,16 +36,11 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
   def teardown
     super
+    ActionView::LogSubscriber.logger = @old_logger
     ActionController::Base.view_paths.map(&:clear_cache)
-
-    ActiveSupport::LogSubscriber.log_subscribers.clear
 
     # We need to undef `root`, RenderTestCases don't want this to be defined
     Rails.instance_eval { undef :root } if defined?(@defined_root)
-  end
-
-  def set_logger(logger)
-    ActionView::Base.logger = logger
   end
 
   def set_cache_controller
@@ -55,7 +58,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_template_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(template: "test/hello_world")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_equal 1, @logger.logged(:info).size
@@ -67,7 +69,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_template_with_layout
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(template: "test/hello_world", layout: "layouts/yield")
-      wait
 
       assert_equal 2, @logger.logged(:debug).size
       assert_equal 2, @logger.logged(:info).size
@@ -82,7 +83,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_file_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(file: "#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_equal 1, @logger.logged(:info).size
@@ -94,7 +94,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_text_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(plain: "TEXT")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_equal 1, @logger.logged(:info).size
@@ -106,7 +105,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_inline_template
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(inline: "<%= 'TEXT' %>")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_equal 1, @logger.logged(:info).size
@@ -118,7 +116,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
   def test_render_partial_with_implicit_path
     Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
       @view.render(Customer.new("david"), greeting: "hi")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered customers\/_customer\.html\.erb/, @logger.logged(:debug).last)
@@ -131,7 +128,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
@@ -146,7 +142,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       # Second render should hit cache.
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
-      wait
 
       assert_equal 2, @logger.logged(:debug).size
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
@@ -183,14 +178,12 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
-      wait
       *, cached_inner, uncached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, cached_inner)
       assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| GC: .*?\)$/, uncached_outer)
 
       # Second render hits the cache for the _cached_customer partial. Outer template's log shouldn't be affected.
       @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
-      wait
       *, cached_inner, uncached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, cached_inner)
       assert_match(/Rendered test\/_nested_cached_customer\.erb \(Duration: .*?ms \| GC: .*?\)$/, uncached_outer)
@@ -203,7 +196,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
-      wait
       *, cached_inner, cached_outer = @logger.logged(:debug)
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, cached_inner)
       assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache miss\]/, cached_outer)
@@ -211,7 +203,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       # One render: inner partial skipped, because the outer has been cached.
       assert_difference -> { @logger.logged(:debug).size }, +1 do
         @view.render(partial: "test/cached_nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
-        wait
       end
       assert_match(/Rendered test\/_cached_nested_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
     end
@@ -223,15 +214,12 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
-      wait
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
-      wait
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache hit\]/, @logger.logged(:debug).last)
 
       @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("Stan") })
-      wait
       assert_match(/Rendered test\/_cached_customer\.erb (.*) \[cache miss\]/, @logger.logged(:debug).last)
     end
   end
@@ -241,7 +229,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered collection of test\/_customer.erb \[2 times\]/, @logger.logged(:debug).last)
@@ -253,7 +240,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render(partial: "test/customer", layout: "layouts/yield_only", collection: [ Customer.new("david"), Customer.new("mary") ])
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered collection of test\/_customer.erb within layouts\/_yield_only \[2 times\]/, @logger.logged(:debug).last)
@@ -265,7 +251,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered collection of customers\/_customer\.html\.erb \[2 times\]/, @logger.logged(:debug).last)
@@ -277,7 +262,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
       set_cache_controller
 
       @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered collection of templates/, @logger.logged(:debug).last)
@@ -291,7 +275,6 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
 
       @view.render(partial: "customers/customer", collection: [ Customer.new("david"), Customer.new("mary") ], cached: true,
         locals: { greeting: "hi" })
-      wait
 
       assert_equal 1, @logger.logged(:debug).size
       assert_match(/Rendered collection of customers\/_customer\.html\.erb \[0 \/ 2 cache hits\]/, @logger.logged(:debug).last)

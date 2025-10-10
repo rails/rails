@@ -17,8 +17,8 @@ class LogOnUnpermittedParamsTest < ActiveSupport::TestCase
 
   def run(*)
     with_debug_event_reporting do
-     super
-   end
+      super
+    end
   end
 
   test "logs on unexpected param" do
