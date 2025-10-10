@@ -16,35 +16,24 @@ module ActionText
       end
     end
 
-    def editor_tag(options = {})
-      Tag.new(options)
+    def editor_tag(...)
+      Tag.new(editor_name, ...)
     end
 
-    class Tag
-      cattr_accessor(:id, instance_accessor: false) { 0 }
-
-      attr_reader :options
-      attr_reader :name
+    class Tag < Editor::Tag
+      attr_reader :form
       attr_reader :value
 
-      def initialize(options = {})
-        @options = options
-        @name = options.delete(:name)
-        @value = options.delete(:value)
-      end
-
-      def render_in(view_context)
+      def render_in(view_context, ...)
         form = options.delete(:form)
+        value = options.delete(:value)
 
         options[:input] ||= options[:id] ?
-          "#{options[:id]}_trix_input_#{name.to_s.gsub(/\[.*\]/, "")}" :
-          "trix_input_#{TrixEditor::Tag.id += 1}"
-        options[:class] ||= "trix-content"
-
-        editor_tag = view_context.content_tag("trix-editor", "", options)
+          "#{options[:id]}_#{editor_name}_input_#{name.to_s.gsub(/\[.*\]/, "")}" :
+          "#{editor_name}_input_#{self.class.id += 1}"
         input_tag = view_context.hidden_field_tag(name, value.try(:to_editor_html) || value, id: options[:input], form: form)
 
-        input_tag + editor_tag
+        input_tag + super
       end
     end
   end

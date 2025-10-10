@@ -21,8 +21,36 @@ module ActionText
       action_text_html
     end
 
-    def editor_tag(options = {})
-      raise NotImplementedError.new("#editor_tag not implemented")
+    def editor_name
+      self.class.name.demodulize.delete_suffix("Editor").underscore
+    end
+
+    def editor_tag(...)
+      Tag.new(editor_name, ...)
+    end
+  end
+
+  class Editor::Tag # :nodoc:
+    cattr_accessor(:id, instance_accessor: false) { 0 }
+
+    attr_reader :editor_name
+    attr_reader :options
+    attr_reader :name
+
+    def initialize(editor_name, options = {})
+      @editor_name = editor_name
+      @options = options
+      @name = options.delete(:name)
+    end
+
+    def element_name
+      "#{editor_name}-editor"
+    end
+
+    def render_in(view_context)
+      options[:class] ||= "#{editor_name}-content"
+
+      view_context.content_tag(element_name, nil, options)
     end
   end
 end
