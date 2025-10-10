@@ -23,14 +23,14 @@ module ActiveRecord
     def test_db_checks_database_exists
       ActiveRecord::Base.stub(:establish_connection, nil) do
         assert_called_with(File, :exist?, [@database], returns: false) do
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test"
         end
       end
     end
 
     def test_when_db_created_successfully_outputs_info_to_stdout
       ActiveRecord::Base.stub(:establish_connection, nil) do
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test"
 
         assert_equal "Created database '#{@database}'\n", $stdout.string
       end
@@ -38,7 +38,7 @@ module ActiveRecord
 
     def test_db_create_when_file_exists
       File.stub(:exist?, true) do
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test"
 
         assert_equal "Database '#{@database}' already exists\n", $stderr.string
       end
@@ -47,7 +47,7 @@ module ActiveRecord
     def test_db_create_with_file_does_nothing
       File.stub(:exist?, true) do
         assert_not_called(ActiveRecord::Base, :establish_connection) do
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test"
         end
       end
     end
@@ -55,7 +55,7 @@ module ActiveRecord
     def test_db_create_establishes_a_connection
       calls = []
       ActiveRecord::Base.stub(:establish_connection, proc { |*args| calls << args }) do
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+        ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test"
       end
 
       assert_equal [@configuration.symbolize_keys], calls.map { |c| c.first.configuration_hash }
@@ -63,7 +63,7 @@ module ActiveRecord
 
     def test_db_create_with_error_prints_message
       ActiveRecord::Base.stub(:establish_connection, proc { raise Exception }) do
-        assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root" }
+        assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root", "test" }
         assert_match "Couldn't create '#{@configuration['database']}' database. Please check your configuration.", $stderr.string
       end
     end
@@ -93,35 +93,35 @@ module ActiveRecord
 
     def test_checks_db_dir_is_absolute
       assert_called_with(File, :absolute_path?, [@database], returns: false) do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root, "test"
       end
     end
 
     def test_removes_file_with_absolute_path
       assert_called_with(FileUtils, :rm, [@database_root]) do
         assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration_root, @root, "test"
         end
       end
     end
 
     def test_generates_absolute_path_with_given_root
       assert_called_with(File, :join, [@root, @database], returns: "#{@root}/#{@database}") do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root, "test"
       end
     end
 
     def test_removes_file_with_relative_path
       assert_called_with(FileUtils, :rm, [@database_root]) do
         assert_called_with(FileUtils, :rm_f, [["#{@database_root}-shm", "#{@database_root}-wal"]]) do
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root, "test"
         end
       end
     end
 
     def test_when_db_dropped_successfully_outputs_info_to_stdout
       FileUtils.stub(:rm, nil) do
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root
+        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, @root, "test"
 
         assert_equal "Dropped database '#{@database}'\n", $stdout.string
       end
@@ -141,7 +141,7 @@ module ActiveRecord
     def test_db_retrieves_charset
       ActiveRecord::Base.stub(:lease_connection, @connection) do
         assert_called(@connection, :encoding) do
-          ActiveRecord::Tasks::DatabaseTasks.charset @configuration, "/rails/root"
+          ActiveRecord::Tasks::DatabaseTasks.charset @configuration, "/rails/root", "test"
         end
       end
     end
@@ -158,7 +158,7 @@ module ActiveRecord
 
     def test_db_retrieves_collation
       assert_raise NoMethodError do
-        ActiveRecord::Tasks::DatabaseTasks.collation @configuration, "/rails/root"
+        ActiveRecord::Tasks::DatabaseTasks.collation @configuration, "/rails/root", "test"
       end
     end
   end
@@ -179,7 +179,7 @@ module ActiveRecord
       dbfile   = @database
       filename = "awesome-file.sql"
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root", "test"
       assert File.exist?(dbfile)
       assert File.exist?(filename)
       assert_match(/CREATE TABLE foo/, File.read(filename))
@@ -194,7 +194,7 @@ module ActiveRecord
       filename = "awesome-file.sql"
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root", "test")
         end
       end
       assert File.exist?(dbfile)
@@ -219,7 +219,7 @@ module ActiveRecord
       ) do
         e = assert_raise(RuntimeError) do
           with_structure_dump_flags(["--noop"]) do
-            quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
+            quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root", "test") }
           end
         end
         assert_match("failed to execute:", e.message)
@@ -253,7 +253,7 @@ module ActiveRecord
       filename = "awesome-file.sql"
 
       open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
-      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root"
+      ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root", "test"
       assert File.exist?(dbfile)
     ensure
       FileUtils.rm_f(filename)
