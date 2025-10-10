@@ -1,3 +1,15 @@
+*   Add `config.active_storage.default_url_options` configuration option.
+
+    Allows setting default URL options for Active Storage disk service at the application level.
+    This provides a fallback when `ActiveStorage::Current.url_options` is not set.
+
+    ```ruby
+    # config/application.rb
+    config.active_storage.default_url_options = { host: "example.com", protocol: "https" }
+    ```
+
+    *Agustin Gomez Campero*
+
 *   Add structured events for Active Storage:
     - `active_storage.service_upload`
     - `active_storage.service_download`
