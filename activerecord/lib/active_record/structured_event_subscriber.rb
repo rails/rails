@@ -12,7 +12,7 @@ module ActiveRecord
 
       emit_debug_event("active_record.strict_loading_violation",
         owner: owner.name,
-        class: reflection.klass.name,
+        class: reflection.polymorphic? ? nil : reflection.klass.name,
         name: reflection.name,
       )
     end
