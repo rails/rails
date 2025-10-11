@@ -1,3 +1,7 @@
+*   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
+
+    *Akimichi Tanei*
+
 *   Remove deprecated `STATS_DIRECTORIES`.
 
     *Rafael Mendonça França*
