@@ -895,7 +895,7 @@ class CallbacksOnActionAndConditionTest < ActiveRecord::TestCase
 end
 
 class CallbacksOnMultipleInstancesInATransactionTest < ActiveRecord::TestCase
-  class TopicWithTitleHistory < ActiveRecord::Base
+  class TopicWithHistory < ActiveRecord::Base
     self.table_name = :topics
 
     def self.clear_history
@@ -905,132 +905,107 @@ class CallbacksOnMultipleInstancesInATransactionTest < ActiveRecord::TestCase
     def self.history
       @@history ||= []
     end
+  end
 
+  class TopicWithTitleHistory < TopicWithHistory
     after_create_commit { |record| record.class.history << "Created (title = #{record.title.inspect})" }
     after_update_commit { |record| record.class.history << "Updated (title = #{record.title.inspect})" }
     after_destroy_commit { |record| record.class.history << "Destroyed (title = #{record.title.inspect})" }
   end
 
-  def test_created_callback_called_on_last_to_save_of_separate_instances_in_a_transaction
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(false) do
-      TopicWithTitleHistory.clear_history
+  class TopicWithTitleAuthorNameHistory < TopicWithHistory
+    after_create_commit do |record|
+      record.class.history << title
+      record.class.history << author_name
+    end
 
-      TopicWithTitleHistory.transaction do
-        topic = TopicWithTitleHistory.create!(title: "A")
-        TopicWithTitleHistory.find(topic.id).update!(title: "B")
-      end
-
-      assert_equal ['Created (title = "B")'], TopicWithTitleHistory.history
+    after_update_commit do |record|
+      record.class.history << title if saved_change_to_title?
+      record.class.history << author_name if saved_change_to_author_name?
     end
   end
 
-  def test_created_callback_called_on_first_to_save_in_transaction_with_old_configuration
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(true) do
-      TopicWithTitleHistory.clear_history
+  def test_created_callback_called_on_record_to_save_of_separate_instances_in_a_transaction
+    TopicWithTitleHistory.clear_history
 
-      TopicWithTitleHistory.transaction do
-        topic = TopicWithTitleHistory.create!(title: "A")
-        TopicWithTitleHistory.find(topic.id).update!(title: "B")
-      end
-
-      assert_equal ['Created (title = "A")'], TopicWithTitleHistory.history
+    TopicWithTitleHistory.transaction do
+      topic = TopicWithTitleHistory.create!(title: "A")
+      TopicWithTitleHistory.find(topic.id).update!(title: "B")
     end
+
+    assert_equal ['Created (title = "B")'], TopicWithTitleHistory.history
   end
 
-  def test_updated_callback_called_on_last_to_save_of_separate_instances_in_a_transaction
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(false) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
+  def test_updated_callback_called_on_record_to_save_of_separate_instances_in_a_transaction
+    topic = TopicWithTitleHistory.create!(title: "one")
+    TopicWithTitleHistory.clear_history
 
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).update!(title: "two")
-        TopicWithTitleHistory.find(topic.id).update!(title: "three")
-      end
-
-      assert_equal ['Updated (title = "three")'], TopicWithTitleHistory.history
+    TopicWithTitleHistory.transaction do
+      TopicWithTitleHistory.find(topic.id).update!(title: "two")
+      TopicWithTitleHistory.find(topic.id).update!(title: "three")
     end
-  end
 
-  def test_updated_callback_called_on_first_to_save_in_transaction_with_old_configuration
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(true) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
-
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).update!(title: "two")
-        TopicWithTitleHistory.find(topic.id).update!(title: "three")
-      end
-
-      assert_equal ['Updated (title = "two")'], TopicWithTitleHistory.history
-    end
+    assert_equal ['Updated (title = "three")'], TopicWithTitleHistory.history
   end
 
   def test_destroyed_callback_called_on_destroyed_instance_when_preceded_in_transaction_by_save_from_separate_instance
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(false) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
+    topic = TopicWithTitleHistory.create!(title: "one")
+    TopicWithTitleHistory.clear_history
 
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).update!(title: "two")
-        TopicWithTitleHistory.find(topic.id).destroy!
-      end
-
-      assert_equal ['Destroyed (title = "two")'], TopicWithTitleHistory.history
+    TopicWithTitleHistory.transaction do
+      TopicWithTitleHistory.find(topic.id).update!(title: "two")
+      TopicWithTitleHistory.find(topic.id).destroy!
     end
-  end
 
-  def test_updated_callback_called_on_first_to_save_when_followed_in_transaction_by_destroy_from_separate_instance_with_old_configuration
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(true) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
-
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).update!(title: "two")
-        TopicWithTitleHistory.find(topic.id).destroy!
-      end
-
-      assert_equal ['Updated (title = "two")'], TopicWithTitleHistory.history
-    end
+    assert_equal ['Destroyed (title = "two")'], TopicWithTitleHistory.history
   end
 
   def test_destroyed_callbacks_called_on_destroyed_instance_even_when_followed_by_update_from_separate_instances_in_a_transaction
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(false) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
+    topic = TopicWithTitleHistory.create!(title: "one")
+    TopicWithTitleHistory.clear_history
 
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).destroy!
-        topic.update!(title: "two")
-      end
-
-      assert_equal ['Destroyed (title = "one")'], TopicWithTitleHistory.history
+    TopicWithTitleHistory.transaction do
+      TopicWithTitleHistory.find(topic.id).destroy!
+      topic.update!(title: "two")
     end
+
+    assert_equal ['Destroyed (title = "one")'], TopicWithTitleHistory.history
   end
 
-  def test_destroyed_callbacks_called_on_first_saved_instance_in_transaction_with_old_configuration
-    with_run_commit_callbacks_on_first_saved_instances_in_transaction(true) do
-      topic = TopicWithTitleHistory.create!(title: "one")
-      TopicWithTitleHistory.clear_history
+  def test_created_callback_called_on_record_with_updates_to_different_fields_in_separate_instances_in_a_transaction
+    TopicWithTitleAuthorNameHistory.clear_history
 
-      TopicWithTitleHistory.transaction do
-        TopicWithTitleHistory.find(topic.id).destroy!
-        topic.update!(title: "two")
-      end
-
-      assert_equal ['Destroyed (title = "one")'], TopicWithTitleHistory.history
+    TopicWithTitleAuthorNameHistory.transaction do
+      post = TopicWithTitleAuthorNameHistory.create!(title: "Created Title", author_name: "Created Author Name")
+      TopicWithTitleAuthorNameHistory.find(post.id).update!(title: "Updated Title")
+      TopicWithTitleAuthorNameHistory.find(post.id).update!(author_name: "Updated Author Name")
     end
+
+    assert_equal ["Updated Title", "Updated Author Name"], TopicWithTitleAuthorNameHistory.history
   end
 
-  def with_run_commit_callbacks_on_first_saved_instances_in_transaction(value, model: ActiveRecord::Base)
-    old = model.run_commit_callbacks_on_first_saved_instances_in_transaction
-    model.run_commit_callbacks_on_first_saved_instances_in_transaction = value
-    yield
-  ensure
-    model.run_commit_callbacks_on_first_saved_instances_in_transaction = old
-    if model != ActiveRecord::Base && !old
-      # reset the class_attribute
-      model.singleton_class.remove_method(:run_commit_callbacks_on_first_saved_instances_in_transaction)
+  def test_updated_callback_called_on_separate_instances_with_changes_to_different_fields_in_a_transaction
+    TopicWithTitleAuthorNameHistory.clear_history
+    topic = TopicWithTitleAuthorNameHistory.create!(title: "Created Title", author_name: "Created Author Name")
+
+    TopicWithTitleAuthorNameHistory.transaction do
+      TopicWithTitleAuthorNameHistory.find(topic.id).update!(title: "Updated Title")
+      TopicWithTitleAuthorNameHistory.find(topic.id).update!(author_name: "Updated Author Name")
     end
+
+    assert_equal ["Created Title", "Created Author Name", "Updated Title", "Updated Author Name"], TopicWithTitleAuthorNameHistory.history
+  end
+
+  def test_updated_callback_called_on_record_when_updating_two_different_fields_in_a_transaction
+    TopicWithTitleAuthorNameHistory.clear_history
+    topic = TopicWithTitleAuthorNameHistory.create!(title: "Created Title", author_name: "Created Author Name")
+
+    TopicWithTitleAuthorNameHistory.transaction do
+      topic.update!(title: "Updated Title")
+      topic.update!(author_name: "Updated Author Name")
+    end
+
+    assert_equal ["Created Title", "Created Author Name", "Updated Title", "Updated Author Name"], TopicWithTitleAuthorNameHistory.history
   end
 end
 
@@ -1039,7 +1014,6 @@ class SetCallbackTest < ActiveRecord::TestCase
 
   class TopicWithHistory < ActiveRecord::Base
     self.table_name = :topics
-    self.run_commit_callbacks_on_first_saved_instances_in_transaction = true
 
     def self.clear_history
       @@history = []
