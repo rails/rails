@@ -46,7 +46,20 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
       @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
     end
 
-    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options.", error.message)
+    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options or config.active_storage.default_url_options.", error.message)
+  end
+
+  test "URL generation without ActiveStorage::Current.url_options set, but with ActiveStorage.default_url_options set" do
+    ActiveStorage::Current.url_options = nil
+    original_default_url_options = ActiveStorage.default_url_options
+    ActiveStorage.default_url_options = { protocol: "https", host: "default.example.com" }
+
+    begin
+      assert_match(/^https:\/\/default.example.com\/rails\/active_storage\/disk\/.*\/avatar\.png$/,
+        @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+    ensure
+      ActiveStorage.default_url_options = original_default_url_options
+    end
   end
 
   test "URL generation keeps working with ActiveStorage::Current.host set" do

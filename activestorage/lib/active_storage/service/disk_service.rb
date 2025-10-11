@@ -135,7 +135,7 @@ module ActiveStorage
         )
 
         if url_options.blank?
-          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options."
+          raise ArgumentError, "Cannot generate URL for #{filename} using Disk service, please set ActiveStorage::Current.url_options or config.active_storage.default_url_options."
         end
 
         url_helpers.rails_disk_service_url(verified_key_with_expiration, filename: filename, **url_options)
@@ -172,7 +172,7 @@ module ActiveStorage
       end
 
       def url_options
-        ActiveStorage::Current.url_options
+        ActiveStorage::Current.url_options.presence || ActiveStorage.default_url_options
       end
   end
 end
