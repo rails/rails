@@ -357,6 +357,28 @@ class ExceptionsTest < ActiveSupport::TestCase
       end
     end
 
+    test "retrying a job from the beginning when restart: true" do
+      RetryJobWithContinuation.perform_later "RestartError", 3
+
+      assert_equal [
+        "Step 1 completed for the 1st time",
+        "Raised RestartError for the 1st time",
+        "Step 1 completed for the 2nd time",
+        "Raised RestartError for the 2nd time",
+        "Step 1 completed for the 3rd time",
+        "Step 2 completed" ], JobBuffer.values
+    end
+
+    test "retrying a job from the checkpoint when restart: false" do
+      RetryJobWithContinuation.perform_later "ContinuationError", 3
+
+      assert_equal [
+                     "Step 1 completed for the 1st time",
+                     "Raised ContinuationError for the 1st time",
+                     "Raised ContinuationError for the 2nd time",
+                     "Step 2 completed" ], JobBuffer.values
+    end
+
     test "discarding a job reports error when report: true" do
       assert_error_reported(AfterDiscardRetryJob::ReportedError) do
         AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::ReportedError", 2)

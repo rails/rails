@@ -651,6 +651,82 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
   end
 
+  test "resume when restart option is true and error is raised" do
+    ArrayCursorJob.with(max_resumptions: 2, resume_options: { restart: true }) do
+      ArrayCursorJob.items = []
+
+      objects = [ 1, 2, 3 ]
+
+      ArrayCursorJob.perform_later(objects)
+
+      queue_adapter.with(stopping: ->() { raise StandardError if during_step?(ArrayCursorJob, :iterate_objects, cursor: 1) }) do
+        assert_enqueued_jobs 1 do
+          perform_enqueued_jobs
+        end
+
+        assert_equal [1], ArrayCursorJob.items
+      end
+
+      queue_adapter.with(stopping: ->() { raise StandardError if during_step?(ArrayCursorJob, :iterate_objects, cursor: 2) }) do
+        assert_enqueued_jobs 1 do
+          perform_enqueued_jobs
+        end
+
+        assert_equal [1, 1, 2], ArrayCursorJob.items
+      end
+
+      queue_adapter.with(stopping: ->() { raise StandardError if during_step?(ArrayCursorJob, :iterate_objects, cursor: 3) }) do
+        assert_enqueued_jobs 0, only: ArrayCursorJob do
+          exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
+            perform_enqueued_jobs
+          end
+
+          assert_equal "Job was resumed a maximum of 2 times", exception.message
+        end
+
+        assert_equal [1, 1, 2, 1, 2, 3], ArrayCursorJob.items
+      end
+    end
+  end
+
+  test "resume when restart option is true and step is interrupted" do
+    ArrayCursorJob.with(max_resumptions: 2, resume_options: { restart: true }) do
+      ArrayCursorJob.items = []
+
+      objects = [ 1, 2, 3 ]
+
+      ArrayCursorJob.perform_later(objects)
+
+      assert_enqueued_jobs 1, only: ArrayCursorJob do
+        interrupt_job_during_step ArrayCursorJob, :iterate_objects, cursor: 1 do
+          perform_enqueued_jobs
+        end
+      end
+
+      assert_equal [1], ArrayCursorJob.items
+
+      assert_enqueued_jobs 1, only: ArrayCursorJob do
+        interrupt_job_during_step ArrayCursorJob, :iterate_objects, cursor: 2 do
+          perform_enqueued_jobs
+        end
+      end
+
+      assert_equal [1, 2], ArrayCursorJob.items
+
+      assert_enqueued_jobs 0, only: ArrayCursorJob do
+        interrupt_job_during_step ArrayCursorJob, :iterate_objects, cursor: 3 do
+          exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
+            perform_enqueued_jobs
+          end
+
+          assert_equal "Job was resumed a maximum of 2 times", exception.message
+        end
+      end
+
+      assert_equal [1, 2, 3], ArrayCursorJob.items
+    end
+  end
+
   class IsolatedStepsJob < ContinuableJob
     cattr_accessor :items, default: []
 

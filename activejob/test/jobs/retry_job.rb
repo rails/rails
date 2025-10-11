@@ -20,6 +20,8 @@ class CustomDiscardableError < StandardError; end
 class UnlimitedRetryError < StandardError; end
 class ReportedError < StandardError; end
 class HeavyError < StandardError; end
+class RestartError < StandardError; end
+class ContinuationError < StandardError; end
 
 class RetryJob < ActiveJob::Base
   retry_on DefaultsError
@@ -53,6 +55,29 @@ class RetryJob < ActiveJob::Base
       raise raising.constantize
     else
       JobBuffer.add("Successfully completed job")
+    end
+  end
+end
+
+class RetryJobWithContinuation < RetryJob
+  include ActiveJob::Continuable
+
+  self.resume_errors_after_advancing = false
+  retry_on RestartError, restart: true
+  retry_on ContinuationError
+
+  def perform(raising, attempts, *)
+    step :step do
+      JobBuffer.add("Step 1 completed for the #{executions.ordinalize} time")
+    end
+
+    step :step2 do
+      if raising && executions < attempts
+        JobBuffer.add("Raised #{raising} for the #{executions.ordinalize} time")
+        raise raising.constantize
+      else
+        JobBuffer.add("Step 2 completed")
+      end
     end
   end
 end
