@@ -517,8 +517,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     end.new
 
     form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
-      assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property" autocomplete="off">', f.hidden_field(:private_property)
-      assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property" autocomplete="off">', f.hidden_field(:protected_property)
+      assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property" autocomplete="off">', f.hidden_field(:private_property).to_s
+      assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property" autocomplete="off">', f.hidden_field(:protected_property).to_s
     end
   end
 
@@ -1436,7 +1436,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       concat f.fields(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -1455,7 +1455,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post) do |f|
       concat f.text_field(:title)
       concat f.fields(:author, skip_id: true) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -1473,7 +1473,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
       concat f.fields(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -1491,7 +1491,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, skip_id: true) do |f|
       concat f.text_field(:title)
       concat f.fields(:author, skip_id: false) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -1634,7 +1634,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       concat f.text_field(:title)
       @post.comments.each do |comment|
         concat f.fields(:comments, model: comment) { |cf|
-          cf.text_field(:name)
+          cf.text_field(:name).to_s
         }
       end
     end
@@ -2212,7 +2212,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
         def #{selector}(field, *args, &proc)
-          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
+          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super.to_s + "<br/>").html_safe
         end
       RUBY_EVAL
     end

@@ -144,7 +144,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio accepts a block to render the label as radio button wrapper" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label { b.radio_button }
+      b.label { b.radio_button.to_s }
     end
 
     assert_select "label[for=user_active_true] > input#user_active_true[type=radio]"
@@ -153,7 +153,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio accepts a block to change the order of label and radio button" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label + b.radio_button
+      b.label + b.radio_button.to_s
     end
 
     assert_select "label[for=user_active_true] + input#user_active_true[type=radio]"
@@ -162,7 +162,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio with block helpers accept extra HTML options" do
     with_collection_radio_buttons :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: "radio_button") + b.radio_button(class: "radio_button")
+      b.label(class: "radio_button") + b.radio_button(class: "radio_button").to_s
     end
 
     assert_select "label.radio_button[for=user_active_true] + input#user_active_true.radio_button[type=radio]"
@@ -497,7 +497,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts a block to render the label as check box wrapper" do
     with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label { b.checkbox }
+      b.label { b.checkbox.to_s }
     end
 
     assert_select "label[for=user_active_true] > input#user_active_true[type=checkbox]"
@@ -506,7 +506,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts a block to change the order of label and check box" do
     with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label + b.checkbox
+      b.label + b.checkbox.to_s
     end
 
     assert_select "label[for=user_active_true] + input#user_active_true[type=checkbox]"
@@ -515,7 +515,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes with block helpers accept extra HTML options" do
     with_collection_checkboxes :user, :active, [true, false], :to_s, :to_s do |b|
-      b.label(class: "checkbox") + b.checkbox(class: "checkbox")
+      b.label(class: "checkbox") + b.checkbox(class: "checkbox").to_s
     end
 
     assert_select "label.checkbox[for=user_active_true] + input#user_active_true.checkbox[type=checkbox]"

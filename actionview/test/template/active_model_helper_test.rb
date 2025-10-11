@@ -36,14 +36,14 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_textarea_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea></div>),
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
   def test_text_field_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /></div>),
-      text_field("post", "author_name")
+      text_field("post", "author_name").to_s
     )
   end
 
@@ -110,7 +110,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_checkbox_with_errors
     assert_dom_equal(
       %(<input name="post[published]" type="hidden" value="0" autocomplete="off" /><div class="field_with_errors"><input type="checkbox" value="1" name="post[published]" id="post_published" /></div>),
-      checkbox("post", "published")
+      checkbox("post", "published").to_s
     )
   end
 
@@ -124,7 +124,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_radio_button_with_errors
     assert_dom_equal(
       %(<div class="field_with_errors"><input type="radio" value="rails" checked="checked" name="post[category]" id="post_category_rails" /></div>),
-      radio_button("post", "category", "rails")
+      radio_button("post", "category", "rails").to_s
     )
   end
 
@@ -152,7 +152,7 @@ class ActiveModelHelperTest < ActionView::TestCase
   def test_hidden_field_does_not_render_errors
     assert_dom_equal(
       %(<input id="post_author_name" name="post[author_name]" type="hidden" value="" autocomplete="off" />),
-      hidden_field("post", "author_name")
+      hidden_field("post", "author_name").to_s
     )
   end
 
@@ -164,7 +164,7 @@ class ActiveModelHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %(<div class="field_with_errors"><input id="post_author_name" name="post[author_name]" type="text" value="" /> <span class="error">can't be empty</span></div>),
-      text_field("post", "author_name")
+      text_field("post", "author_name").to_s
     )
   ensure
     ActionView::Base.field_error_proc = old_proc if old_proc

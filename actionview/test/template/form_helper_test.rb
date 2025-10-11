@@ -398,13 +398,13 @@ class FormHelperTest < ActionView::TestCase
 
   def test_text_field_placeholder_without_locales
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true))
+      assert_dom_equal('<input id="post_body" name="post[body]" placeholder="Body" type="text" value="Back to the hill and over it again!" />', text_field(:post, :body, placeholder: true).to_s)
     end
   end
 
   def test_text_field_placeholder_with_locales
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true))
+      assert_dom_equal('<input id="post_title" name="post[title]" placeholder="What is this about?" type="text" value="Hello World" />', text_field(:post, :title, placeholder: true).to_s)
     end
   end
 
@@ -412,39 +412,39 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate model_name title" type="text" value="Hello World" />',
-        text_field(:post_delegator, :title, placeholder: true)
+        text_field(:post_delegator, :title, placeholder: true).to_s
       )
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Total cost" type="text" />', text_field(:post, :cost, placeholder: true).to_s)
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name_and_to_model
     assert_dom_equal(
       '<input id="post_delegator_title" name="post_delegator[title]" placeholder="Delegate Title" type="text" value="Hello World" />',
-      text_field(:post_delegator, :title, placeholder: true)
+      text_field(:post_delegator, :title, placeholder: true).to_s
     )
   end
 
   def test_text_field_placeholder_with_string_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?"))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="HOW MUCH?" type="text" />', text_field(:post, :cost, placeholder: "HOW MUCH?").to_s)
     end
   end
 
   def test_text_field_placeholder_with_human_attribute_name_and_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk))
+      assert_dom_equal('<input id="post_cost" name="post[cost]" placeholder="Pounds" type="text" />', text_field(:post, :cost, placeholder: :uk).to_s)
     end
   end
 
   def test_text_field_placeholder_with_locales_and_value
     I18n.with_locale :placeholder do
-      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish))
+      assert_dom_equal('<input id="post_written_on" name="post[written_on]" placeholder="Escrito en" type="text" value="2004-06-15" />', text_field(:post, :written_on, placeholder: :spanish).to_s)
     end
   end
 
@@ -468,7 +468,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
-          concat cf.text_field(:value, placeholder: true)
+          concat cf.text_field(:value, placeholder: true).to_s
         end
       end
 
@@ -483,19 +483,7 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title")
-    )
-    assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="password" />',
-      password_field("post", "title")
-    )
-    assert_dom_equal(
-      '<input id="post_title" name="post[title]" type="password" value="Hello World" />',
-      password_field("post", "title", value: @post.title)
-    )
-    assert_dom_equal(
-      '<input id="person_name" name="person[name]" type="password" />',
-      password_field("person", "name")
+      text_field("post", "title").to_s
     )
   end
 
@@ -503,7 +491,7 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "<b>Hello World</b>"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="&lt;b&gt;Hello World&lt;/b&gt;" />',
-      text_field("post", "title")
+      text_field("post", "title").to_s
     )
   end
 
@@ -511,52 +499,83 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "The HTML Entity for & is &amp;"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="The HTML Entity for &amp; is &amp;amp;" />',
-      text_field("post", "title")
+      text_field("post", "title").to_s
     )
   end
 
   def test_text_field_with_options
     expected = '<input id="post_title" name="post[title]" size="35" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "size" => 35)
-    assert_dom_equal expected, text_field("post", "title", size: 35)
+    assert_dom_equal expected, text_field("post", "title", "size" => 35).to_s
+    assert_dom_equal expected, text_field("post", "title", size: 35).to_s
   end
 
   def test_text_field_assuming_size
     expected = '<input id="post_title" maxlength="35" name="post[title]" size="35" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35)
-    assert_dom_equal expected, text_field("post", "title", maxlength: 35)
+    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35).to_s
+    assert_dom_equal expected, text_field("post", "title", maxlength: 35).to_s
   end
 
   def test_text_field_removing_size
     expected = '<input id="post_title" maxlength="35" name="post[title]" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35, "size" => nil)
-    assert_dom_equal expected, text_field("post", "title", maxlength: 35, size: nil)
+    assert_dom_equal expected, text_field("post", "title", "maxlength" => 35, "size" => nil).to_s
+    assert_dom_equal expected, text_field("post", "title", maxlength: 35, size: nil).to_s
   end
 
   def test_text_field_with_nil_value
     expected = '<input id="post_title" name="post[title]" type="text" />'
-    assert_dom_equal expected, text_field("post", "title", value: nil)
+    assert_dom_equal expected, text_field("post", "title", value: nil).to_s
   end
 
   def test_text_field_with_nil_name
     expected = '<input id="post_title" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field("post", "title", name: nil)
+    assert_dom_equal expected, text_field("post", "title", name: nil).to_s
   end
 
   def test_text_field_doesnt_change_param_values
     object_name = "post[]"
     expected = '<input id="post_123_title" name="post[123][title]" type="text" value="Hello World" />'
-    assert_dom_equal expected, text_field(object_name, "title")
+    assert_dom_equal expected, text_field(object_name, "title").to_s
+  end
+
+  def test_text_field_attributes
+    expected = { "id" => "post_title", "name" => "post[title]", "size" => 35, "type" => "text", "value" => "Hello World" }
+    assert_equal expected, text_field("post", "title", "size" => 35).attributes
+  end
+
+  def test_password_field
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" type="password" />',
+      password_field("post", "title").to_s
+    )
+  end
+
+  def test_password_field_with_value
+    assert_dom_equal(
+      '<input id="post_title" name="post[title]" type="password" value="Hello World" />',
+      password_field("post", "title", value: @post.title).to_s
+    )
+  end
+
+  def test_password_field_with_name
+    assert_dom_equal(
+      '<input id="person_name" name="person[name]" type="password" />',
+      password_field("person", "name").to_s
+    )
+  end
+
+  def test_password_field_attributes
+    expected = { "id" => "person_name", "name" => "person[name]", "type" => "password", "value" => nil, "size" => nil }
+    assert_equal expected, password_field("person", "name").attributes
   end
 
   def test_file_field_has_no_size
     expected = '<input id="user_avatar" name="user[avatar]" type="file" />'
-    assert_dom_equal expected, file_field("user", "avatar")
+    assert_dom_equal expected, file_field("user", "avatar").to_s
   end
 
   def test_file_field_with_multiple_behavior
     expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true).to_s
   end
 
   def test_file_field_with_multiple_behavior_configured_include_hidden
@@ -565,19 +584,19 @@ class FormHelperTest < ActionView::TestCase
 
     expected = '<input type="hidden" name="import[file][]" autocomplete="off" value="">' \
                '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true)
+    assert_dom_equal expected, file_field("import", "file", multiple: true).to_s
   ensure
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
   def test_file_field_with_multiple_behavior_include_hidden_false
     expected = '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: false)
+    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: false).to_s
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name
     expected = '<input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom").to_s
   end
 
   def test_file_field_with_multiple_behavior_and_explicit_name_configured_include_hidden
@@ -586,7 +605,7 @@ class FormHelperTest < ActionView::TestCase
 
     expected = '<input type="hidden" name="custom" autocomplete="off" value="">' \
                '<input id="import_file" multiple="multiple" name="custom" type="file" />'
-    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
+    assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom").to_s
   ensure
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
@@ -595,7 +614,7 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Base.with(remove_hidden_field_autocomplete: false) do
       expected = '<input type="hidden" name="import[file][]" value="" autocomplete="off">' \
                  '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true).to_s
     end
   end
 
@@ -603,39 +622,44 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Base.with(remove_hidden_field_autocomplete: true) do
       expected = '<input type="hidden" name="import[file][]" value="">' \
                  '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
-      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true).to_s
     end
   end
 
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true).to_s
   end
 
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_defined
     @controller = WithActiveStorageRoutesControllers.new
 
     expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true).to_s
   end
 
   def test_file_field_with_direct_upload_dont_mutate_arguments
     original_options = { class: "pix", direct_upload: true }
 
     expected = '<input class="pix" type="file" name="import[file]" id="import_file" />'
-    assert_dom_equal expected, file_field("import", "file", original_options)
+    assert_dom_equal expected, file_field("import", "file", original_options).to_s
 
     assert_equal({ class: "pix", direct_upload: true }, original_options)
+  end
+
+  def test_file_field_attributes
+    expected = { "id" => "import_file", "multiple" => true, "name" => "import[file][]", "type" => "file", "size" => nil }
+    assert_equal expected, file_field("import", "file", multiple: true).attributes
   end
 
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" autocomplete="off" />',
-      hidden_field("post", "title")
+      hidden_field("post", "title").to_s
     )
     assert_dom_equal(
       '<input id="post_secret" name="post[secret]" type="hidden" value="1" autocomplete="off" />',
-      hidden_field("post", "secret?")
+      hidden_field("post", "secret?").to_s
     )
   end
 
@@ -643,51 +667,51 @@ class FormHelperTest < ActionView::TestCase
     @post.title = "<b>Hello World</b>"
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="&lt;b&gt;Hello World&lt;/b&gt;" autocomplete="off" />',
-      hidden_field("post", "title")
+      hidden_field("post", "title").to_s
     )
   end
 
   def test_hidden_field_with_nil_value
     expected = '<input id="post_title" name="post[title]" type="hidden" autocomplete="off" />'
-    assert_dom_equal expected, hidden_field("post", "title", value: nil)
+    assert_dom_equal expected, hidden_field("post", "title", value: nil).to_s
   end
 
   def test_hidden_field_with_options
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" autocomplete="off" />',
-      hidden_field("post", "title", value: "Something Else")
+      hidden_field("post", "title", value: "Something Else").to_s
     )
   end
 
   def test_hidden_field_with_autocomplete
     assert_dom_equal(
       '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
-      hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+      hidden_field("session", "username", value: "me@example.com", autocomplete: "username").to_s
     )
   end
 
   def test_hidden_field_with_autocomplete_false
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
-      hidden_field("post", "title", value: "Something Else", autocomplete: nil)
+      hidden_field("post", "title", value: "Something Else", autocomplete: nil).to_s
     )
   end
 
   def test_text_field_with_custom_type
     assert_dom_equal(
       '<input id="user_email" name="user[email]" type="email" />',
-      text_field("user", "email", type: "email")
+      text_field("user", "email", type: "email").to_s
     )
   end
 
   def test_checkbox_is_html_safe
-    assert_predicate checkbox("post", "secret"), :html_safe?
+    assert_predicate checkbox("post", "secret").to_s, :html_safe?
   end
 
   def test_checkbox_checked_if_object_value_is_same_that_check_value
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
@@ -695,14 +719,14 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
   def test_checkbox_checked_if_option_checked_is_present
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "checked" => "checked")
+      checkbox("post", "secret", "checked" => "checked").to_s
     )
   end
 
@@ -710,12 +734,12 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret?")
+      checkbox("post", "secret?").to_s
     )
   end
 
@@ -723,19 +747,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = ["0"]
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     @post.secret = ["1"]
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
 
     @post.secret = Set.new(["1"])
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret")
+      checkbox("post", "secret").to_s
     )
   end
 
@@ -743,7 +767,7 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = false
     assert_dom_equal(
       '<input id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", include_hidden: false)
+      checkbox("post", "secret", include_hidden: false).to_s
     )
   end
 
@@ -751,13 +775,13 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = "on"
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", "off")
+      checkbox("post", "secret", {}, "on", "off").to_s
     )
 
     @post.secret = "off"
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="off" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", "off")
+      checkbox("post", "secret", {}, "on", "off").to_s
     )
   end
 
@@ -765,13 +789,13 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = false
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="false" />',
-      checkbox("post", "secret", {}, false, true)
+      checkbox("post", "secret", {}, false, true).to_s
     )
 
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="false" />',
-      checkbox("post", "secret", {}, false, true)
+      checkbox("post", "secret", {}, false, true).to_s
     )
   end
 
@@ -779,19 +803,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 1
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 2
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -799,19 +823,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = 0.0
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 1.1
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = 2.2
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -819,19 +843,19 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = BigDecimal(0)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = BigDecimal(1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
 
     @post.secret = BigDecimal(2.2, 1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
-      checkbox("post", "secret", {}, 0, 1)
+      checkbox("post", "secret", {}, 0, 1).to_s
     )
   end
 
@@ -839,7 +863,7 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = true
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
-      checkbox("post", "secret", {}, true, true)
+      checkbox("post", "secret", {}, true, true).to_s
     )
   end
 
@@ -848,7 +872,7 @@ class FormHelperTest < ActionView::TestCase
       @post.secret = true
       assert_dom_equal(
         '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
-        checkbox("post", "secret", {}, true, true)
+        checkbox("post", "secret", {}, true, true).to_s
       )
     end
   end
@@ -857,23 +881,23 @@ class FormHelperTest < ActionView::TestCase
     @post.secret = "on"
     assert_dom_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" />',
-      checkbox("post", "secret", {}, "on", nil)
+      checkbox("post", "secret", {}, "on", nil).to_s
     )
   end
 
   def test_checkbox_with_nil_unchecked_value_is_html_safe
-    assert_predicate checkbox("post", "secret", {}, "on", nil), :html_safe?
+    assert_predicate checkbox("post", "secret", {}, "on", nil).to_s, :html_safe?
   end
 
   def test_checkbox_with_multiple_behavior
     @post.comment_ids = [2, 3]
     assert_dom_equal(
       '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_comment_ids_1" name="post[comment_ids][]" type="checkbox" value="1" />',
-      checkbox("post", "comment_ids", { multiple: true }, 1)
+      checkbox("post", "comment_ids", { multiple: true }, 1).to_s
     )
     assert_dom_equal(
       '<input name="post[comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_comment_ids_3" name="post[comment_ids][]" type="checkbox" value="3" />',
-      checkbox("post", "comment_ids", { multiple: true }, 3)
+      checkbox("post", "comment_ids", { multiple: true }, 3).to_s
     )
   end
 
@@ -881,72 +905,91 @@ class FormHelperTest < ActionView::TestCase
     @post.comment_ids = [2, 3]
     assert_dom_equal(
       '<input name="post[foo][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input id="post_foo_comment_ids_1" name="post[foo][comment_ids][]" type="checkbox" value="1" />',
-      checkbox("post", "comment_ids", { multiple: true, index: "foo" }, 1)
+      checkbox("post", "comment_ids", { multiple: true, index: "foo" }, 1).to_s
     )
     assert_dom_equal(
       '<input name="post[bar][comment_ids][]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_bar_comment_ids_3" name="post[bar][comment_ids][]" type="checkbox" value="3" />',
-      checkbox("post", "comment_ids", { multiple: true, index: "bar" }, 3)
+      checkbox("post", "comment_ids", { multiple: true, index: "bar" }, 3).to_s
     )
   end
 
   def test_checkbox_disabled_disables_hidden_field
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" disabled="disabled" autocomplete="off"/><input checked="checked" disabled="disabled" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", disabled: true)
+      checkbox("post", "secret", disabled: true).to_s
     )
   end
 
   def test_checkbox_form_html5_attribute
     assert_dom_equal(
       '<input form="new_form" name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" form="new_form" id="post_secret" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", form: "new_form")
+      checkbox("post", "secret", form: "new_form").to_s
     )
+  end
+
+  def test_checkbox_attributes
+    expected = { "type" => "checkbox", "value" => "1", "checked" => "checked", "name" => "post[secret]", "id" => "post_secret" }
+    assert_equal expected, checkbox("post", "secret", "checked" => "checked").attributes
+  end
+
+  def test_checkbox_hidden_field_attributes
+    expected = { "name" => "post[secret]", "type" => "hidden", "value" => "0", "autocomplete" => "off" }
+    assert_equal expected, checkbox("post", "secret", "checked" => "checked").hidden_field_attributes
+  end
+
+  def test_checkbox_hidden_field_attributes_with_include_hidden_false
+    assert_equal({}, checkbox("post", "secret", "checked" => "checked", include_hidden: false).hidden_field_attributes)
   end
 
   def test_radio_button
     assert_dom_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
-      radio_button("post", "title", "Hello World")
+      radio_button("post", "title", "Hello World").to_s
     )
     assert_dom_equal('<input id="post_title_goodbye_world" name="post[title]" type="radio" value="Goodbye World" />',
-      radio_button("post", "title", "Goodbye World")
+      radio_button("post", "title", "Goodbye World").to_s
     )
     assert_dom_equal('<input id="item_subobject_title_inside_world" name="item[subobject][title]" type="radio" value="inside world"/>',
-      radio_button("item[subobject]", "title", "inside world")
+      radio_button("item[subobject]", "title", "inside world").to_s
     )
   end
 
   def test_radio_button_is_checked_with_integers
     assert_dom_equal('<input checked="checked" id="post_secret_1" name="post[secret]" type="radio" value="1" />',
-      radio_button("post", "secret", "1")
+      radio_button("post", "secret", "1").to_s
     )
   end
 
   def test_radio_button_with_negative_integer_value
     assert_dom_equal('<input id="post_secret_-1" name="post[secret]" type="radio" value="-1" />',
-      radio_button("post", "secret", "-1"))
+      radio_button("post", "secret", "-1").to_s)
   end
 
   def test_radio_button_respects_passed_in_id
     assert_dom_equal('<input checked="checked" id="foo" name="post[secret]" type="radio" value="1" />',
-      radio_button("post", "secret", "1", id: "foo")
+      radio_button("post", "secret", "1", id: "foo").to_s
     )
   end
 
   def test_radio_button_with_booleans
     assert_dom_equal('<input id="post_secret_true" name="post[secret]" type="radio" value="true" />',
-      radio_button("post", "secret", true)
+      radio_button("post", "secret", true).to_s
     )
 
     assert_dom_equal('<input id="post_secret_false" name="post[secret]" type="radio" value="false" />',
-      radio_button("post", "secret", false)
+      radio_button("post", "secret", false).to_s
     )
+  end
+
+  def test_radio_button_attributes
+    expected = { "checked" => "checked",  "id" => "post_secret_1",  "type" => "radio", "name" => "post[secret]", "value" => "1" }
+    assert_equal expected, radio_button("post", "secret", "1").attributes
   end
 
   def test_textarea_placeholder_without_locales
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_body" name="post[body]" placeholder="Body">\nBack to the hill and over it again!</textarea>},
-        textarea(:post, :body, placeholder: true)
+        textarea(:post, :body, placeholder: true).to_s
       )
     end
   end
@@ -955,7 +998,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_title" name="post[title]" placeholder="What is this about?">\nHello World</textarea>},
-        textarea(:post, :title, placeholder: true)
+        textarea(:post, :title, placeholder: true).to_s
       )
     end
   end
@@ -964,7 +1007,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Total cost">\n</textarea>},
-        textarea(:post, :cost, placeholder: true)
+        textarea(:post, :cost, placeholder: true).to_s
       )
     end
   end
@@ -973,7 +1016,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="HOW MUCH?">\n</textarea>},
-        textarea(:post, :cost, placeholder: "HOW MUCH?")
+        textarea(:post, :cost, placeholder: "HOW MUCH?").to_s
       )
     end
   end
@@ -982,7 +1025,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_cost" name="post[cost]" placeholder="Pounds">\n</textarea>},
-        textarea(:post, :cost, placeholder: :uk)
+        textarea(:post, :cost, placeholder: :uk).to_s
       )
     end
   end
@@ -991,7 +1034,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       assert_dom_equal(
         %{<textarea id="post_written_on" name="post[written_on]" placeholder="Escrito en">\n2004-06-15</textarea>},
-        textarea(:post, :written_on, placeholder: :spanish)
+        textarea(:post, :written_on, placeholder: :spanish).to_s
       )
     end
   end
@@ -1000,7 +1043,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:comments) do |cf|
-          concat cf.textarea(:body, placeholder: true)
+          concat cf.textarea(:body, placeholder: true).to_s
         end
       end
 
@@ -1016,7 +1059,7 @@ class FormHelperTest < ActionView::TestCase
     I18n.with_locale :placeholder do
       form_for(@post, html: { id: "create-post" }) do |f|
         f.fields_for(:tags) do |cf|
-          concat cf.textarea(:value, placeholder: true)
+          concat cf.textarea(:value, placeholder: true).to_s
         end
       end
 
@@ -1031,7 +1074,7 @@ class FormHelperTest < ActionView::TestCase
   def test_textarea
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
@@ -1039,28 +1082,28 @@ class FormHelperTest < ActionView::TestCase
     @post.body = "Back to <i>the</i> hill and over it again!"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nBack to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
   def test_textarea_with_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nTesting alternate values.</textarea>},
-      textarea("post", "body", value: "Testing alternate values.")
+      textarea("post", "body", value: "Testing alternate values.").to_s
     )
   end
 
   def test_textarea_with_nil_alternate_value
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\n</textarea>},
-      textarea("post", "body", value: nil)
+      textarea("post", "body", value: nil).to_s
     )
   end
 
   def test_inputs_use_before_type_cast_to_retain_information_from_validations_like_numericality
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1072,7 +1115,7 @@ class FormHelperTest < ActionView::TestCase
 
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\n0</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1080,7 +1123,7 @@ class FormHelperTest < ActionView::TestCase
     class << @post; undef id_came_from_user?; end
     assert_dom_equal(
       %{<textarea id="post_id" name="post[id]">\nomg</textarea>},
-      textarea("post", "id")
+      textarea("post", "id").to_s
     )
   end
 
@@ -1088,57 +1131,77 @@ class FormHelperTest < ActionView::TestCase
     @post.body = "The HTML Entity for & is &amp;"
     assert_dom_equal(
       %{<textarea id="post_body" name="post[body]">\nThe HTML Entity for &amp; is &amp;amp;</textarea>},
-      textarea("post", "body")
+      textarea("post", "body").to_s
     )
   end
 
   def test_textarea_with_size_option
     assert_dom_equal(
       %{<textarea cols="183" id="post_body" name="post[body]" rows="820">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", size: "183x820")
+      textarea("post", "body", size: "183x820").to_s
     )
+  end
+
+  def test_textarea_attributes
+    expected = { "id" => "post_body", "name" => "post[body]" }
+    assert_equal expected, textarea("post", "body").attributes
   end
 
   def test_color_field_with_valid_hex_color_string
     expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
-    assert_dom_equal(expected, color_field("car", "color"))
+    assert_dom_equal(expected, color_field("car", "color").to_s)
   end
 
   def test_color_field_with_invalid_hex_color_string
     expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
     @car.color = "#1234TR"
-    assert_dom_equal(expected, color_field("car", "color"))
+    assert_dom_equal(expected, color_field("car", "color").to_s)
   end
 
   def test_color_field_with_value_attr
     expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
-    assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+    assert_dom_equal(expected, color_field("car", "color", value: "#00FF00").to_s)
+  end
+
+  def test_color_field_attributes
+    expected = { "id" => "car_color", "name" => "car[color]", "type" => "color", "value" => "#000fff", "size" => nil }
+    assert_equal expected, color_field("car", "color").attributes
   end
 
   def test_search_field
     expected = %{<input id="contact_notes_query" name="contact[notes_query]" type="search" />}
-    assert_dom_equal(expected, search_field("contact", "notes_query"))
+    assert_dom_equal(expected, search_field("contact", "notes_query").to_s)
   end
 
   def test_search_field_with_onsearch_value
     expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
-    assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+    assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true).to_s)
+  end
+
+  def test_search_field_attributes
+    expected = { "id" => "contact_notes_query", "name" => "contact[notes_query]", "type" => "search", "value" => nil, "size" => nil, }
+    assert_equal expected, search_field("contact", "notes_query").attributes
   end
 
   def test_telephone_field
     expected = %{<input id="user_cell" name="user[cell]" type="tel" />}
-    assert_dom_equal(expected, telephone_field("user", "cell"))
+    assert_dom_equal(expected, telephone_field("user", "cell").to_s)
+  end
+
+  def test_telephone_field_attributes
+    expected = { "id" => "user_cell", "name" => "user[cell]", "type" => "tel", "value" => nil, "size" => nil }
+    assert_equal expected, telephone_field("user", "cell").attributes
   end
 
   def test_date_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_extra_attrs
@@ -1147,31 +1210,31 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15)
     max_value = DateTime.new(2010, 8, 15)
     step = 2
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_date_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = Date.new(2013, 6, 29)
-    assert_dom_equal(expected, date_field("post", "written_on", value: value))
+    assert_dom_equal(expected, date_field("post", "written_on", value: value).to_s)
   end
 
   def test_date_field_with_nil_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date"/>}
-    assert_dom_equal(expected, date_field("post", "written_on", value: nil))
+    assert_dom_equal(expected, date_field("post", "written_on", value: nil).to_s)
   end
 
   def test_date_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = DateTime.new(2013, 6, 29)
-    assert_dom_equal(expected, date_field("post", "written_on", value: value))
+    assert_dom_equal(expected, date_field("post", "written_on", value: value).to_s)
   end
 
   def test_date_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2004-06-15" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1179,7 +1242,7 @@ class FormHelperTest < ActionView::TestCase
   def test_date_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" />}
     @post.written_on = nil
-    assert_dom_equal(expected, date_field("post", "written_on"))
+    assert_dom_equal(expected, date_field("post", "written_on").to_s)
   end
 
   def test_date_field_with_string_values_for_min_and_max
@@ -1187,7 +1250,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15)
     min_value = "2000-06-15"
     max_value = "2010-08-15"
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_date_field_with_invalid_string_values_for_min_and_max
@@ -1195,18 +1258,23 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, date_field("post", "written_on", min: min_value, max: max_value).to_s)
+  end
+
+  def test_date_field_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "date", "value" => "2004-06-15", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, date_field("post", "written_on").attributes
   end
 
   def test_time_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="00:00:00.000" />}
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_extra_attrs
@@ -1215,25 +1283,25 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_time_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, time_field("post", "written_on", value: value))
+    assert_dom_equal(expected, time_field("post", "written_on", value: value).to_s)
   end
 
   def test_time_field_with_value_attr_that_excludes_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:45" />}
-    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45"))
+    assert_dom_equal(expected, time_field("post", "written_on", value: "01:45").to_s)
   end
 
   def test_time_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" value="01:02:03.000" />}
     @post.written_on = Time.zone.parse("2004-06-15 01:02:03")
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1241,7 +1309,7 @@ class FormHelperTest < ActionView::TestCase
   def test_time_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="time" />}
     @post.written_on = nil
-    assert_dom_equal(expected, time_field("post", "written_on"))
+    assert_dom_equal(expected, time_field("post", "written_on").to_s)
   end
 
   def test_time_field_with_string_values_for_min_and_max
@@ -1249,7 +1317,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "20:45:30.000"
     max_value = "10:25:00.000"
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_time_field_with_invalid_string_values_for_min_and_max
@@ -1257,7 +1325,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_time_field_without_seconds
@@ -1265,18 +1333,23 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
-    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value))
+    assert_dom_equal(expected, time_field("post", "written_on", include_seconds: false, min: min_value, max: max_value).to_s)
+  end
+
+  def test_time_field_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "time", "value" => "00:00:00.000", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, time_field("post", "written_on").attributes
   end
 
   def test_datetime_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T01:02:03" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_extra_attrs
@@ -1285,20 +1358,20 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 6, 15, 20, 45, 30)
     max_value = DateTime.new(2010, 8, 15, 10, 25, 00)
     step = 60
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_datetime_field_with_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2013-06-29T13:37:00" />}
     value = DateTime.new(2013, 6, 29, 13, 37)
-    assert_dom_equal(expected, datetime_field("post", "written_on", value: value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", value: value).to_s)
   end
 
   def test_datetime_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T15:30:45" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1306,7 +1379,7 @@ class FormHelperTest < ActionView::TestCase
   def test_datetime_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" />}
     @post.written_on = nil
-    assert_dom_equal(expected, datetime_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_field("post", "written_on").to_s)
   end
 
   def test_datetime_field_with_string_values_for_min_and_max
@@ -1314,7 +1387,7 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "2000-06-15T20:45:30"
     max_value = "2010-08-15T10:25:00"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value).to_s)
   end
 
   def test_datetime_field_with_invalid_string_values_for_min_and_max
@@ -1322,39 +1395,50 @@ class FormHelperTest < ActionView::TestCase
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
     min_value = "foo"
     max_value = "bar"
-    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value))
+    assert_dom_equal(expected, datetime_field("post", "written_on", min: min_value, max: max_value).to_s)
+  end
+
+  def test_datetime_field_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "datetime-local", "value" => "2004-06-15T00:00:00", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, datetime_field("post", "written_on").attributes
   end
 
   def test_datetime_local_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on"))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on").to_s)
   end
 
   def test_datetime_local_field_without_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", include_seconds: false).to_s)
   end
 
   def test_datetime_local_field_with_value_attr_that_excludes_seconds
     expected = %{<input id="post_written_on" name="post[written_on]" type="datetime-local" value="2004-06-15T00:00" />}
-    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00"))
+    assert_dom_equal(expected, datetime_local_field("post", "written_on", value: "2004-06-15T00:00").to_s)
   end
+
+  def test_datetime_local_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "datetime-local", "value" => "2004-06-15T00:00:00", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, datetime_local_field("post", "written_on").attributes
+  end
+
 
   def test_month_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" />}
     @post.written_on = nil
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   end
 
   def test_month_field_with_extra_attrs
@@ -1363,39 +1447,44 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 2, 13)
     max_value = DateTime.new(2010, 12, 23)
     step = 2
-    assert_dom_equal(expected, month_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, month_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_month_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, month_field("post", "written_on", value: value))
+    assert_dom_equal(expected, month_field("post", "written_on", value: value).to_s)
   end
 
   def test_month_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="month" value="2004-06" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, month_field("post", "written_on"))
+    assert_dom_equal(expected, month_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
 
+  def test_month_field_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "month", "value" => "2004-06", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, month_field("post", "written_on").attributes
+  end
+
   def test_week_field
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_nil_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" />}
     @post.written_on = nil
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_datetime_value
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   end
 
   def test_week_field_with_extra_attrs
@@ -1404,20 +1493,20 @@ class FormHelperTest < ActionView::TestCase
     min_value = DateTime.new(2000, 2, 13)
     max_value = DateTime.new(2010, 12, 23)
     step = 2
-    assert_dom_equal(expected, week_field("post", "written_on", min: min_value, max: max_value, step: step))
+    assert_dom_equal(expected, week_field("post", "written_on", min: min_value, max: max_value, step: step).to_s)
   end
 
   def test_week_field_with_datetime_value_attr
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     value = DateTime.new(2004, 6, 15, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on", value: value))
+    assert_dom_equal(expected, week_field("post", "written_on", value: value).to_s)
   end
 
   def test_week_field_with_timewithzone_value
     previous_time_zone, Time.zone = Time.zone, "UTC"
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2004-W25" />}
     @post.written_on = Time.zone.parse("2004-06-15 15:30:45")
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
   ensure
     Time.zone = previous_time_zone
   end
@@ -1425,177 +1514,203 @@ class FormHelperTest < ActionView::TestCase
   def test_week_field_week_number_base
     expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W01" />}
     @post.written_on = DateTime.new(2015, 1, 1, 1, 2, 3)
-    assert_dom_equal(expected, week_field("post", "written_on"))
+    assert_dom_equal(expected, week_field("post", "written_on").to_s)
+  end
+
+  def test_week_field_attributes
+    expected = { "id" => "post_written_on", "name" => "post[written_on]", "type" => "week", "value" => "2004-W25", "min" => nil, "max" => nil, "size" => nil }
+    assert_equal expected, week_field("post", "written_on").attributes
   end
 
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
-    assert_dom_equal(expected, url_field("user", "homepage"))
+    assert_dom_equal(expected, url_field("user", "homepage").to_s)
+  end
+
+  def test_url_field_attributes
+    expected = { "id" => "user_homepage", "name" => "user[homepage]", "type" => "url", "value" => nil, "size" => nil }
+    assert_equal expected, url_field("user", "homepage").attributes
   end
 
   def test_email_field
     expected = %{<input id="user_address" name="user[address]" type="email" />}
-    assert_dom_equal(expected, email_field("user", "address"))
+    assert_dom_equal(expected, email_field("user", "address").to_s)
+  end
+
+  def test_email_field_attributes
+    expected = { "id" => "user_address", "name" => "user[address]", "type" => "email", "value" => nil, "size" => nil }
+    assert_equal expected, email_field("user", "address").attributes
   end
 
   def test_number_field
     expected = %{<input name="order[quantity]" max="9" id="order_quantity" type="number" min="1" />}
-    assert_dom_equal(expected, number_field("order", "quantity", in: 1...10))
+    assert_dom_equal(expected, number_field("order", "quantity", in: 1...10).to_s)
     expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
-    assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
+    assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10).to_s)
+  end
+
+  def test_number_field_attributes
+    expected = { "id" => "order_quantity", "name" => "order[quantity]", "type" => "number", "value" => nil, "min" => 1, "max" => 9, "size" => nil }
+    assert_equal expected, number_field("order", "quantity", in: 1...10).attributes
   end
 
   def test_range_input
     expected = %{<input name="hifi[volume]" step="0.1" max="11" id="hifi_volume" type="range" min="0" />}
-    assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1))
+    assert_dom_equal(expected, range_field("hifi", "volume", in: 0..11, step: 0.1).to_s)
     expected = %{<input name="hifi[volume]" step="0.1" size="30" max="11" id="hifi_volume" type="range" min="0" />}
-    assert_dom_equal(expected, range_field("hifi", "volume", size: 30, in: 0..11, step: 0.1))
+    assert_dom_equal(expected, range_field("hifi", "volume", size: 30, in: 0..11, step: 0.1).to_s)
   end
+
+  def test_range_input_attributes
+    expected = { "id" => "hifi_volume", "name" => "hifi[volume]", "type" => "range", "value" => nil, "min" => 0, "max" => 11, "step" => 0.1, "size" => nil }
+    assert_equal expected, range_field("hifi", "volume", in: 0..11, step: 0.1).attributes
+  end
+
 
   def test_explicit_name
     assert_dom_equal(
       '<input id="post_title" name="dont guess" type="text" value="Hello World" />',
-      text_field("post", "title", "name" => "dont guess")
+      text_field("post", "title", "name" => "dont guess").to_s
     )
     assert_dom_equal(
       %{<textarea id="post_body" name="really!">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "name" => "really!")
+      textarea("post", "body", "name" => "really!").to_s
     )
     assert_dom_equal(
       '<input name="i mean it" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_secret" name="i mean it" type="checkbox" value="1" />',
-      checkbox("post", "secret", "name" => "i mean it")
+      checkbox("post", "secret", "name" => "i mean it").to_s
     )
     assert_dom_equal(
-      text_field("post", "title", "name" => "dont guess"),
-      text_field("post", "title", name: "dont guess")
+      text_field("post", "title", "name" => "dont guess").to_s,
+      text_field("post", "title", name: "dont guess").to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "name" => "really!"),
-      textarea("post", "body", name: "really!")
+      textarea("post", "body", "name" => "really!").to_s,
+      textarea("post", "body", name: "really!").to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "name" => "i mean it"),
-      checkbox("post", "secret", name: "i mean it")
+      checkbox("post", "secret", "name" => "i mean it").to_s,
+      checkbox("post", "secret", name: "i mean it").to_s
     )
   end
 
   def test_explicit_id
     assert_dom_equal(
       '<input id="dont guess" name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title", "id" => "dont guess")
+      text_field("post", "title", "id" => "dont guess").to_s
     )
     assert_dom_equal(
       %{<textarea id="really!" name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "id" => "really!")
+      textarea("post", "body", "id" => "really!").to_s
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="i mean it" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "id" => "i mean it")
+      checkbox("post", "secret", "id" => "i mean it").to_s
     )
     assert_dom_equal(
-      text_field("post", "title", "id" => "dont guess"),
-      text_field("post", "title", id: "dont guess")
+      text_field("post", "title", "id" => "dont guess").to_s,
+      text_field("post", "title", id: "dont guess").to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "id" => "really!"),
-      textarea("post", "body", id: "really!")
+      textarea("post", "body", "id" => "really!").to_s,
+      textarea("post", "body", id: "really!").to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "id" => "i mean it"),
-      checkbox("post", "secret", id: "i mean it")
+      checkbox("post", "secret", "id" => "i mean it").to_s,
+      checkbox("post", "secret", id: "i mean it").to_s
     )
   end
 
   def test_nil_id
     assert_dom_equal(
       '<input name="post[title]" type="text" value="Hello World" />',
-      text_field("post", "title", "id" => nil)
+      text_field("post", "title", "id" => nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "id" => nil)
+      textarea("post", "body", "id" => nil).to_s
     )
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "id" => nil)
+      checkbox("post", "secret", "id" => nil).to_s
     )
     assert_dom_equal(
       '<input type="radio" name="post[secret]" value="0" />',
-      radio_button("post", "secret", "0", "id" => nil)
+      radio_button("post", "secret", "0", "id" => nil).to_s
     )
     assert_dom_equal(
       '<select name="post[secret]"></select>',
       select("post", "secret", [], {}, { "id" => nil })
     )
     assert_dom_equal(
-      text_field("post", "title", "id" => nil),
-      text_field("post", "title", id: nil)
+      text_field("post", "title", "id" => nil).to_s,
+      text_field("post", "title", id: nil).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "id" => nil),
-      textarea("post", "body", id: nil)
+      textarea("post", "body", "id" => nil).to_s,
+      textarea("post", "body", id: nil).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "id" => nil),
-      checkbox("post", "secret", id: nil)
+      checkbox("post", "secret", "id" => nil).to_s,
+      checkbox("post", "secret", id: nil).to_s
     )
     assert_dom_equal(
-      radio_button("post", "secret", "0", "id" => nil),
-      radio_button("post", "secret", "0", id: nil)
+      radio_button("post", "secret", "0", "id" => nil).to_s,
+      radio_button("post", "secret", "0", id: nil).to_s
     )
   end
 
   def test_index
     assert_dom_equal(
       '<input name="post[5][title]" id="post_5_title" type="text" value="Hello World" />',
-      text_field("post", "title", "index" => 5)
+      text_field("post", "title", "index" => 5).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]" id="post_5_body">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5).to_s
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" id="post_5_secret" />',
-      checkbox("post", "secret", "index" => 5)
+      checkbox("post", "secret", "index" => 5).to_s
     )
     assert_dom_equal(
-      text_field("post", "title", "index" => 5),
-      text_field("post", "title", "index" => 5)
+      text_field("post", "title", "index" => 5).to_s,
+      text_field("post", "title", "index" => 5).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "index" => 5),
-      textarea("post", "body", "index" => 5)
+      textarea("post", "body", "index" => 5).to_s,
+      textarea("post", "body", "index" => 5).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "index" => 5),
-      checkbox("post", "secret", "index" => 5)
+      checkbox("post", "secret", "index" => 5).to_s,
+      checkbox("post", "secret", "index" => 5).to_s
     )
   end
 
   def test_index_with_nil_id
     assert_dom_equal(
       '<input name="post[5][title]" type="text" value="Hello World" />',
-      text_field("post", "title", "index" => 5, "id" => nil)
+      text_field("post", "title", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[5][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post", "body", "index" => 5, "id" => nil)
+      textarea("post", "body", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
       '<input name="post[5][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[5][secret]" type="checkbox" value="1" />',
-      checkbox("post", "secret", "index" => 5, "id" => nil)
+      checkbox("post", "secret", "index" => 5, "id" => nil).to_s
     )
     assert_dom_equal(
-      text_field("post", "title", "index" => 5, "id" => nil),
-      text_field("post", "title", index: 5, id: nil)
+      text_field("post", "title", "index" => 5, "id" => nil).to_s,
+      text_field("post", "title", index: 5, id: nil).to_s
     )
     assert_dom_equal(
-      textarea("post", "body", "index" => 5, "id" => nil),
-      textarea("post", "body", index: 5, id: nil)
+      textarea("post", "body", "index" => 5, "id" => nil).to_s,
+      textarea("post", "body", index: 5, id: nil).to_s
     )
     assert_dom_equal(
-      checkbox("post", "secret", "index" => 5, "id" => nil),
-      checkbox("post", "secret", index: 5, id: nil)
+      checkbox("post", "secret", "index" => 5, "id" => nil).to_s,
+      checkbox("post", "secret", index: 5, id: nil).to_s
     )
   end
 
@@ -1607,23 +1722,23 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       %{<input id="post_#{pid}_title" name="post[#{pid}][title]" type="text" value="Hello World" />},
-      text_field("post[]", "title")
+      text_field("post[]", "title").to_s
     )
     assert_dom_equal(
       %{<textarea id="post_#{pid}_body" name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post[]", "body")
+      textarea("post[]", "body").to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" id="post_#{pid}_secret" name="post[#{pid}][secret]" type="checkbox" value="1" />},
-      checkbox("post[]", "secret")
+      checkbox("post[]", "secret").to_s
     )
     assert_dom_equal(
       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-      radio_button("post[]", "title", "Hello World")
+      radio_button("post[]", "title", "Hello World").to_s
     )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
-      radio_button("post[]", "title", "Goodbye World")
+      radio_button("post[]", "title", "Goodbye World").to_s
     )
   end
 
@@ -1631,23 +1746,23 @@ class FormHelperTest < ActionView::TestCase
     pid = 123
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="text" value="Hello World" />},
-      text_field("post[]", "title", id: nil)
+      text_field("post[]", "title", id: nil).to_s
     )
     assert_dom_equal(
       %{<textarea name="post[#{pid}][body]">\nBack to the hill and over it again!</textarea>},
-      textarea("post[]", "body", id: nil)
+      textarea("post[]", "body", id: nil).to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][secret]" type="hidden" value="0" autocomplete="off" /><input checked="checked" name="post[#{pid}][secret]" type="checkbox" value="1" />},
-      checkbox("post[]", "secret", id: nil)
+      checkbox("post[]", "secret", id: nil).to_s
     )
     assert_dom_equal(
       %{<input checked="checked" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-       radio_button("post[]", "title", "Hello World", id: nil)
+       radio_button("post[]", "title", "Hello World", id: nil).to_s
     )
     assert_dom_equal(
       %{<input name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
-      radio_button("post[]", "title", "Goodbye World", id: nil)
+      radio_button("post[]", "title", "Goodbye World", id: nil).to_s
     )
   end
 
@@ -2069,7 +2184,7 @@ class FormHelperTest < ActionView::TestCase
         b.label { b.radio_button + b.text }
       end
       concat rendered_radio_buttons
-      concat f.hidden_field :id
+      concat f.hidden_field(:id)
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2183,7 +2298,7 @@ class FormHelperTest < ActionView::TestCase
         b.label { b.checkbox + b.text }
       end
       concat rendered_checkboxes
-      concat f.hidden_field :id
+      concat f.hidden_field(:id)
     end
 
     expected = whole_form("/posts", "new_post_1", "new_post") do
@@ -2261,7 +2376,7 @@ class FormHelperTest < ActionView::TestCase
 
   def test_form_for_with_file_field_generate_multipart
     form_for(@post, html: { id: "create-post" }) do |f|
-      concat f.file_field(:file)
+      concat f.file_field(:file).to_s
     end
 
     expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch", multipart: true) do
@@ -2355,7 +2470,7 @@ class FormHelperTest < ActionView::TestCase
     end.new
 
     form_for(obj, as: "other_name", url: "/", html: { id: "edit-other-name" }) do |f|
-      assert_raise(NoMethodError) { f.hidden_field(:private_property) }
+      assert_raise(NoMethodError) { f.hidden_field(:private_property).to_s }
     end
   end
 
@@ -2682,7 +2797,7 @@ class FormHelperTest < ActionView::TestCase
   def test_two_form_for_with_namespace
     form_for(@post, namespace: "namespace_1") do |f|
       concat f.label(:title)
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
     end
 
     expected_1 = whole_form("/posts/123", "namespace_1_edit_post_123", "edit_post", method: "patch") do
@@ -3138,7 +3253,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post) do |f|
       concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3155,9 +3270,9 @@ class FormHelperTest < ActionView::TestCase
     @post.author = Author.new(321)
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       concat f.fields_for(:author, include_id: false) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3175,7 +3290,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, include_id: false) do |f|
       concat f.text_field(:title)
       concat f.fields_for(:author) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3193,7 +3308,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, include_id: false) do |f|
       concat f.text_field(:title)
       concat f.fields_for(:author, include_id: true) { |af|
-        af.text_field(:name)
+        af.text_field(:name).to_s
       }
     end
 
@@ -3333,10 +3448,10 @@ class FormHelperTest < ActionView::TestCase
     @post.comments = Array.new(2) { |id| Comment.new(id + 1) }
 
     form_for(@post) do |f|
-      concat f.text_field(:title)
+      concat f.text_field(:title).to_s
       @post.comments.each do |comment|
         concat f.fields_for(:comments, comment) { |cf|
-          cf.text_field(:name)
+          cf.text_field(:name).to_s
         }
       end
     end
@@ -3936,7 +4051,7 @@ class FormHelperTest < ActionView::TestCase
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
         def #{selector}(field, *args, &proc)
-          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
+          ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super.to_s + "<br/>").html_safe
         end
       RUBY_EVAL
     end
