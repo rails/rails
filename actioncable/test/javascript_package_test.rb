@@ -7,7 +7,6 @@ class JavascriptPackageTest < ActiveSupport::TestCase
     compiled_files = %w[
       app/assets/javascripts/actioncable.js
       app/assets/javascripts/actioncable.esm.js
-      app/assets/javascripts/action_cable.js
     ].map do |file|
       Pathname(file).expand_path("#{__dir__}/..")
     end
