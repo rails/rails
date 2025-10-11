@@ -1,3 +1,14 @@
+*   Deprecate Trix-specific classes, modules, and methods
+
+    * `ActionText::Attachable#to_trix_content_attachment_partial_path`. Override
+      `#to_editor_content_attachment_partial_path` instead.
+    * `ActionText::Attachments::TrixConversion`
+    * `ActionText::Content#to_trix_html`.
+    * `ActionText::RichText#to_trix_html`.
+    * `ActionText::TrixAttachment`
+
+    *Sean Doyle*
+
 *   Generalize `:rich_text_area` Capybara selector
 
     Prepare for more Action Text-capable WYSIWYG editors by making
