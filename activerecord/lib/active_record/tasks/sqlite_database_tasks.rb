@@ -51,8 +51,13 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        flags = extra_flags.join(" ") if extra_flags
-        `sqlite3 #{flags} #{db_config.database} < "#{filename}"`
+        args = []
+        args.concat(extra_flags) if extra_flags
+        args << db_config.database
+
+        unless Kernel.system("sqlite3", *args, in: filename)
+          raise "Failed to load database structure from #{filename}"
+        end
       end
 
       def check_current_protected_environment!(db_config, migration_class)
