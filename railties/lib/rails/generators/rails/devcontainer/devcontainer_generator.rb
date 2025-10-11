@@ -53,9 +53,9 @@ module Rails
 
       def update_database_yml
         # Only postgresql has devcontainer specific configuration, so only update database.yml if we are using postgres
-        return unless options[:database] == "postgresql"
+        return unless database.adapter == "postgresql"
 
-        template("config/databases/#{options[:database]}.yml", "config/database.yml")
+        template("config/databases/#{database.adapter}.yml", "config/database.yml")
       end
 
       private
