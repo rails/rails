@@ -404,8 +404,6 @@ specify to make your test failure messages clearer.
 | `assert_not_operator(obj1, operator, [obj2], [msg])`           | Ensures that `obj1.operator(obj2)` is false.|
 | `assert_predicate(obj, predicate, [msg])`                      | Ensures that `obj.predicate` is true, e.g. `assert_predicate str, :empty?`|
 | `assert_not_predicate(obj, predicate, [msg])`                  | Ensures that `obj.predicate` is false, e.g. `assert_not_predicate str, :empty?`|
-| `assert_error_reported(class) { block }`                       | Ensures that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
-| `assert_no_error_reported { block }`                           | Ensures that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 | `flunk([msg])`                                                 | Ensures failure. This is useful to explicitly mark a test that isn't finished yet.|
 
 The above are a subset of assertions that minitest supports. For an exhaustive
@@ -439,6 +437,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 | [`assert_no_queries(include_schema: false, &block)`][] | Asserts that `&block` generates no SQL queries.|
 | [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`][] | Asserts that `&block` generates SQL queries that match the pattern.|
 | [`assert_no_queries_match(pattern, &block)`][] | Asserts that `&block` generates no SQL queries that match the pattern.|
+| [`assert_error_reported(class) { block }`][] | Asserts that the error class has been reported, e.g. `assert_error_reported IOError { Rails.error.report(IOError.new("Oops")) }`|
+| [`assert_no_error_reported { block }`][] | Asserts that no errors have been reported, e.g. `assert_no_error_reported { perform_service }`|
 
 [`assert_difference(expressions, difference = 1, message = nil) {...}`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_difference
 [`assert_no_difference(expressions, message = nil, &block)`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/Assertions.html#method-i-assert_no_difference
@@ -454,6 +454,8 @@ Rails adds some custom assertions of its own to the `minitest` framework:
 [`assert_no_queries(include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries
 [`assert_queries_match(pattern, count: nil, include_schema: false, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_queries_match
 [`assert_no_queries_match(pattern, &block)`]: https://api.rubyonrails.org/classes/ActiveRecord/Assertions/QueryAssertions.html#method-i-assert_no_queries_match
+[`assert_error_reported(class) { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_error_reported
+[`assert_no_error_reported { block }`]: https://api.rubyonrails.org/classes/ActiveSupport/Testing/ErrorReporterAssertions.html#method-i-assert_no_error_reported
 
 You'll see the usage of some of these assertions in the next chapter.
 

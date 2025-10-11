@@ -1,3 +1,15 @@
+*   Add link-local IP ranges to `ActionDispatch::RemoteIp` default proxies.
+
+    Link-local addresses (`169.254.0.0/16` for IPv4 and `fe80::/10` for IPv6)
+    are now included in the default trusted proxy list, similar to private IP ranges.
+
+    *Adam Daniels*
+
+*   `remote_ip` will no longer ignore IPs in X-Forwarded-For headers if they
+    are accompanied by port information.
+
+    *Duncan Brown*, *Prevenios Marinos*, *Masafumi Koba*, *Adam Daniels*
+
 *   Add `action_dispatch.verbose_redirect_logs` setting that logs where redirects were called from.
 
     Similar to `active_record.verbose_query_logs` and `active_job.verbose_enqueue_logs`, this adds a line in your logs that shows where a redirect was called from.

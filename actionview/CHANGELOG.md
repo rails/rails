@@ -1,3 +1,17 @@
+*   The BEGIN template annotation/comment was previously printed on the same line as the following element. We now insert a newline inside the comment so it spans two lines without adding visible whitespace to the HTML output to enhance readability.
+
+    Before:
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb --><p>This is grand!</p>
+    ```
+
+    After:
+    ```
+    <!-- BEGIN /Users/siaw23/Desktop/rails/actionview/test/fixtures/actionpack/test/greeting.html.erb
+    --><p>This is grand!</p>
+    ```
+    *Emmanuel Hayford*
+
 *   Add structured events for Action View:
     - `action_view.render_template`
     - `action_view.render_partial`

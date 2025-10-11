@@ -12,6 +12,35 @@
 
     *Victor Cobos*
 
+*   Remove deprecated passing a Time object to `Time#since`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for `to_time` to preserve the system local time. It will now always preserve the receiver
+    timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
+*   Standardize event name formatting in `assert_event_reported` error messages.
+
+    The event name in failure messages now uses `.inspect` (e.g., `name: "user.created"`)
+    to match `assert_events_reported` and provide type clarity between strings and symbols.
+    This only affects tests that assert on the failure message format itself.
+
+    *George Ma*
+
 *   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
 
     *Olivier Bellone*
