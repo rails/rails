@@ -1,3 +1,10 @@
+*   De-couple `@rails/actiontext/attachment_upload.js` from `Trix.Attachment`
+
+    Implement `@rails/actiontext/index.js` with a `direct-upload:progress` event
+    listeners and `Promise` resolution.
+
+    *Sean Doyle*
+
 *   Generalize `:rich_text_area` Capybara selector
 
     Prepare for more Action Text-capable WYSIWYG editors by making
