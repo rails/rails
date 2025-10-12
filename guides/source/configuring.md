@@ -3153,7 +3153,7 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 `config.active_storage` provides the following configuration options:
 
-#### `config.active_storage.checksum_implementation`
+#### `config.active_storage.md5_checksum_implementation`
 
 Specify which digest implementation to use for internal checksums.
 The value must respond to Ruby's `Digest` interface.
