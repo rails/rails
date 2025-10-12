@@ -104,10 +104,10 @@ ActiveSupport::Notifications.subscribe "my.custom.event" do |event|
 end
 ```
 
-Instrumenting custom events
+Instrumenting Custom Events
 ---------------------------
 
-You can also instrument your own events, using an instrumenter. To instrument an event, call [`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument) with the `name` of your custom event, a `payload`, and a block.
+You can instrument your own events, by calling [`ActiveSupport::Notifications.instrument`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument) with the `name` of your custom event, a `payload` which is a hash containing information about the event, and an optional block.
 
 ```ruby
 ActiveSupport::Notifications.instrument "my.custom.event", this: "payload" do
@@ -115,18 +115,27 @@ ActiveSupport::Notifications.instrument "my.custom.event", this: "payload" do
 end
 ```
 
-When called with a block, Active Support measures the block’s execution (start time, end time, and duration), then emits the event with that data plus your payload. The event is emitted after the block finishes.
+TIP: You should follow Rails conventions when defining your own events. The format is: `event.library`. For a blogging application, pick an emitter name like posts (or blog if that’s your domain), then instrument names like `publish.posts`.
 
-You can also publish an event without a block:
+Example:
+
+```ruby
+ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", author: "John Doe" } do
+  # Publish the post here
+end
+```
+
+When given a block, Active Support measures the block's execution (start time, end time, and duration), then emits the event with that data plus your payload. The event is emitted after the block completes.
+
+You can also instrument an event without a block:
 
 ```ruby
 ActiveSupport::Notifications.instrument "my.custom.event", this: "data"
 ```
 
-In this case, no code is measured. The event is emitted immediately with the payload you provide. This is useful when you just need to notify subscribers that something happened, without executing or measuring a block of code.
+In this case, no code is measured. The event is emitted immediately with the payload you provide to notify subscribers that something happened, without executing or measuring a block of code.
 
-You can subscribe to this event as described at the end of [the Subscribing to an Event section above](#subscribing-to-an-event).
-
+Once you've emitted an event, you can subscribe to it as described at the end of the [Subscribing to an Event section](#subscribing-to-an-event).
 
 Rails Framework Hooks
 ----------------------
@@ -1638,52 +1647,3 @@ information about it.
 | ------------------- | -------------------------------------------------------------- |
 | `:exception`        | An array of two elements. Exception class name and the message |
 | `:exception_object` | The exception object                                           |
-
-Creating Custom Events
-----------------------
-
-Adding your own events is easy as well. Active Support will take care of
-all the heavy lifting for you. Simply call [`ActiveSupport::Notifications.instrument`][] with a `name`, `payload`, and a block.
-The notification will be sent after the block returns. Active Support will generate the start and end times,
-and add the instrumenter's unique ID. All data passed into the `instrument` call will make
-it into the payload.
-
-Here's an example:
-
-```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", this: :data do
-  # do your custom stuff here
-end
-```
-
-Now you can listen to this event with:
-
-```ruby
-ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # {:this=>:data}
-end
-```
-
-You may also call `instrument` without passing a block. This lets you leverage the
-instrumentation infrastructure for other messaging uses.
-
-```ruby
-ActiveSupport::Notifications.instrument "my.custom.event", this: :data
-
-ActiveSupport::Notifications.subscribe "my.custom.event" do |name, started, finished, unique_id, data|
-  puts data.inspect # {:this=>:data}
-end
-```
-
-You should follow Rails conventions when defining your own events. The format is: `event.library`.
-If your application is sending Tweets, you should create an event named `tweet.twitter`.
-
-[`ActiveSupport::Notifications.instrument`]: https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-instrument
-
-
-
-Describe when each event is triggered (not just list payload keys).
-
-Make it obvious those tables describe the payload (rename the “Key” column and add a lead-in sentence).
-
-Longer-term, aim to have Instrumentation Events in the API docs (next to the code that calls instrument), then link to them from the Guide.
