@@ -1,3 +1,16 @@
+*   Add structured events for Active Storage:
+    - `active_storage.service_upload`
+    - `active_storage.service_download`
+    - `active_storage.service_streaming_download`
+    - `active_storage.preview`
+    - `active_storage.service_delete`
+    - `active_storage.service_delete_prefixed`
+    - `active_storage.service_exist`
+    - `active_storage.service_url`
+    - `active_storage.service_mirror`
+
+    *Gannon McGibbon*
+
 *   Allow analyzers and variant transformer to be fully configurable
 
     ```ruby

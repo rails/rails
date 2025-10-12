@@ -62,13 +62,10 @@ group :mdl do
 end
 
 group :doc do
-  gem "sdoc"
-  gem "rdoc", "< 6.10"
+  gem "sdoc", "~> 2.6.4"
   gem "redcarpet", "~> 3.6.1", platforms: :ruby
   gem "w3c_validators", "~> 1.3.6"
   gem "rouge"
-  # Workaround until https://github.com/rouge-ruby/rouge/pull/2131 is merged and released
-  gem "cgi", require: false
   gem "rubyzip", "~> 2.0"
 end
 
@@ -145,7 +142,8 @@ group :test do
 
   # Needed for Railties tests because it is included in generated apps.
   gem "brakeman"
-  gem "bundler-audit"
+  # Skip bundler-audit until https://github.com/rubysec/bundler-audit/issues/405 is resolved for Ruby 3.5.0dev
+  gem "bundler-audit" if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.5.0")
 end
 
 platforms :ruby, :windows do
@@ -156,7 +154,7 @@ platforms :ruby, :windows do
 
   group :db do
     gem "pg", "~> 1.3"
-    gem "mysql2", "~> 0.5"
+    gem "mysql2", "~> 0.5", "< 0.5.7"
     gem "trilogy", ">= 2.7.0"
   end
 end

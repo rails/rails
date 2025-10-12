@@ -33,7 +33,7 @@ module ActiveRecord
 
       class V8_0 < V8_1
         module RemoveForeignKeyColumnMatch
-          def remove_foreign_key(from_table, to_table = nil, **options)
+          def remove_foreign_key(*args, **options)
             options[:_skip_column_match] = true
             super
           end

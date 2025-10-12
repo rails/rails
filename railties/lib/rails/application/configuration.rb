@@ -117,10 +117,6 @@ module Rails
             action_controller.forgery_protection_origin_check = true
           end
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :offset
-          end
-
           if respond_to?(:active_record)
             active_record.belongs_to_required_by_default = true
           end
@@ -267,7 +263,7 @@ module Rails
           end
 
           if respond_to?(:action_controller)
-            action_controller.raise_on_open_redirects = true
+            action_controller.action_on_open_redirect = :raise
             action_controller.wrap_parameters_by_default = true
           end
         when "7.1"
@@ -339,10 +335,6 @@ module Rails
         when "8.0"
           load_defaults "7.2"
 
-          if respond_to?(:active_support)
-            active_support.to_time_preserves_timezone = :zone
-          end
-
           if respond_to?(:action_dispatch)
             action_dispatch.strict_freshness = true
           end
@@ -363,6 +355,10 @@ module Rails
 
           if respond_to?(:active_record)
             active_record.raise_on_missing_required_finder_order_columns = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.escape_js_separators_in_json = false
           end
 
           if respond_to?(:action_view)

@@ -10,19 +10,24 @@ module ActiveSupport # :nodoc:
       end
 
       def loading(&block)
-        @lock.exclusive(purpose: :load, compatible: [:load], after_compatible: [:load], &block)
+        ActiveSupport.deprecator.warn(
+          "ActiveSupport::Dependencies::Interlock#loading is deprecated and " \
+          "will be removed in Rails 9.0. The loading interlock is no longer " \
+          "used since Rails switched to Zeitwerk for autoloading."
+        )
+        yield if block
       end
 
       def unloading(&block)
-        @lock.exclusive(purpose: :unload, compatible: [:load, :unload], after_compatible: [:load, :unload], &block)
+        @lock.exclusive(purpose: :unload, compatible: [:unload], after_compatible: [:unload], &block)
       end
 
       def start_unloading
-        @lock.start_exclusive(purpose: :unload, compatible: [:load, :unload])
+        @lock.start_exclusive(purpose: :unload, compatible: [:unload])
       end
 
       def done_unloading
-        @lock.stop_exclusive(compatible: [:load, :unload])
+        @lock.stop_exclusive(compatible: [:unload])
       end
 
       def start_running
@@ -38,7 +43,8 @@ module ActiveSupport # :nodoc:
       end
 
       def permit_concurrent_loads(&block)
-        @lock.yield_shares(compatible: [:load], &block)
+        # Soft deprecated: no deprecation warning for now, but this is a no-op.
+        yield if block
       end
 
       def raw_state(&block) # :nodoc:

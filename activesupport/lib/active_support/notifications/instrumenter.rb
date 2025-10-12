@@ -164,7 +164,7 @@ module ActiveSupport
         @cpu_time_finish - @cpu_time_start
       end
 
-      # Returns the idle time time (in milliseconds) passed between the call to
+      # Returns the idle time (in milliseconds) passed between the call to
       # #start! and the call to #finish!.
       def idle_time
         diff = duration - cpu_time

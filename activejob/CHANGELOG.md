@@ -1,3 +1,19 @@
+*   Add structured events for Active Job:
+    - `active_job.enqueued`
+    - `active_job.bulk_enqueued`
+    - `active_job.started`
+    - `active_job.completed`
+    - `active_job.retry_scheduled`
+    - `active_job.retry_stopped`
+    - `active_job.discarded`
+    - `active_job.interrupt`
+    - `active_job.resume`
+    - `active_job.step_skipped`
+    - `active_job.step_started`
+    - `active_job.step`
+
+    *Adrianna Chang*
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Deprecate built-in `sidekiq` adapter.

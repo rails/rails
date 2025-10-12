@@ -1,3 +1,29 @@
+*   Remove deprecated `STATS_DIRECTORIES`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `bin/rake stats` command.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `rails/console/methods.rb` file.
+
+    *Rafael Mendonça França*
+
+*   Don't generate system tests by default.
+
+    Rails scaffold generator will no longer generate system tests by default. To enable this pass `--system-tests=true` or generate them with `bin/rails generate system_test name_of_test`.
+
+    *Eileen M. Uchitelle*
+
+*   Optionally skip bundler-audit.
+
+    Skips adding the `bin/bundler-audit` & `config/bundler-audit.yml` if the gem is not installed when `bin/rails app:update` runs.
+
+    Passes an option to `--skip-bundler-audit` when new apps are generated & adds that same option to the `--minimal` generator flag.
+
+    *Jill Klang*
+
 *   Show engine routes in `/rails/info/routes` as well.
 
     *Petrik de Heus*

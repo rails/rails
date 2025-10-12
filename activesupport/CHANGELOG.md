@@ -1,3 +1,88 @@
+*   Remove deprecated passing a Time object to `Time#since`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support for `to_time` to preserve the system local time. It will now always preserve the receiver
+    timezone.
+
+    *Rafael Mendonça França*
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
+
+    *Rafael Mendonça França*
+
+*   Standardize event name formatting in `assert_event_reported` error messages.
+
+    The event name in failure messages now uses `.inspect` (e.g., `name: "user.created"`)
+    to match `assert_events_reported` and provide type clarity between strings and symbols.
+    This only affects tests that assert on the failure message format itself.
+
+    *George Ma*
+
+*   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
+
+    *Olivier Bellone*
+
+*   Fix parallel tests hanging when worker processes die abruptly.
+
+    Previously, if a worker process was killed (e.g., OOM killed, `kill -9`) during parallel
+    test execution, the test suite would hang forever waiting for the dead worker.
+
+    *Joshua Young*
+
+*   Add `config.active_support.escape_js_separators_in_json`.
+
+    Introduce a new framework default to skip escaping LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) in JSON.
+
+    Historically these characters were not valid inside JavaScript literal strings but that changed in ECMAScript 2019.
+    As such it's no longer a concern in modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+
+    *Étienne Barrié*, *Jean Boussier*
+
+*   Fix `NameError` when `class_attribute` is defined on instance singleton classes.
+
+    Previously, calling `class_attribute` on an instance's singleton class would raise
+    a `NameError` when accessing the attribute through the instance.
+
+    ```ruby
+    object = MyClass.new
+    object.singleton_class.class_attribute :foo, default: "bar"
+    object.foo # previously raised NameError, now returns "bar"
+    ```
+
+    *Joshua Young*
+
+*   Introduce `ActiveSupport::Testing::EventReporterAssertions#with_debug_event_reporting`
+    to enable event reporter debug mode in tests.
+
+    The previous way to enable debug mode is by using `#with_debug` on the
+    event reporter itself, which is too verbose. This new helper will help
+    clear up any confusion on how to test debug events.
+
+    *Gannon McGibbon*
+
+*   Add `ActiveSupport::StructuredEventSubscriber` for consuming notifications and
+    emitting structured event logs. Events may be emitted with the `#emit_event`
+    or `#emit_debug_event` methods.
+
+    ```ruby
+    class MyStructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber
+      def notification(event)
+        emit_event("my.notification", data: 1)
+      end
+    end
+    ```
+
+    *Adrianna Chang*
+
 *   `ActiveSupport::FileUpdateChecker` does not depend on `Time.now` to prevent unecessary reloads with time travel test helpers
 
     *Jan Grodowski*

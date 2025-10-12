@@ -11,7 +11,9 @@ end
 begin
   gem "ruby-vips"
   require "ruby-vips"
+  ActiveStorage::VIPS_AVAILABLE = true # :nodoc:
 rescue LoadError => error
+  ActiveStorage::VIPS_AVAILABLE = false # :nodoc:
   raise error unless error.message.match?(/libvips|ruby-vips/)
 end
 
@@ -19,8 +21,17 @@ module ActiveStorage
   # This analyzer relies on the third-party {ruby-vips}[https://github.com/libvips/ruby-vips] gem. Ruby-vips requires
   # the {libvips}[https://libvips.github.io/libvips/] system library.
   class Analyzer::ImageAnalyzer::Vips < Analyzer::ImageAnalyzer
+    def self.accept?(blob)
+      super && ActiveStorage.variant_processor == :vips
+    end
+
     private
       def read_image
+        unless VIPS_AVAILABLE
+          logger.error "Skipping image analysis because the ruby-vips gem isn't installed"
+          return {}
+        end
+
         download_blob_to_tempfile do |file|
           image = instrument("vips") do
             # ruby-vips will raise Vips::Error if it can't find an appropriate loader for the file

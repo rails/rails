@@ -62,12 +62,12 @@ PATH
       marcel (~> 1.0)
     activesupport (8.1.0.beta1)
       base64
-      benchmark (>= 0.3)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.3.1)
       connection_pool (>= 2.2.5)
       drb
       i18n (>= 1.6, < 2)
+      json
       logger (>= 1.4.2)
       minitest (>= 5.1)
       securerandom (>= 0.3)
@@ -144,7 +144,6 @@ GEM
     bcrypt (3.1.20)
     bcrypt_pbkdf (1.1.1)
     beaneater (1.1.3)
-    benchmark (0.4.1)
     bigdecimal (3.2.3)
     bindex (0.8.1)
     bootsnap (1.18.4)
@@ -167,7 +166,6 @@ GEM
       rack-test (>= 0.6.3)
       regexp_parser (>= 1.5, < 3.0)
       xpath (~> 3.2)
-    cgi (0.5.0)
     chef-utils (18.6.2)
       concurrent-ruby
     childprocess (5.1.0)
@@ -195,6 +193,7 @@ GEM
     dotenv (3.1.7)
     drb (2.2.3)
     ed25519 (1.3.0)
+    erb (5.0.2)
     erubi (1.13.1)
     et-orbi (1.2.11)
       tzinfo
@@ -293,8 +292,8 @@ GEM
       mutex_m
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    image_processing (1.13.0)
-      mini_magick (>= 4.9.5, < 5)
+    image_processing (1.14.0)
+      mini_magick (>= 4.9.5, < 6)
       ruby-vips (>= 2.0.17, < 3)
     importmap-rails (2.1.0)
       actionpack (>= 6.0.0)
@@ -311,7 +310,7 @@ GEM
     jmespath (1.6.2)
     jsbundling-rails (1.3.1)
       railties (>= 6.0.0)
-    json (2.14.0)
+    json (2.15.0)
     jwt (2.10.1)
       base64
     kamal (2.4.0)
@@ -355,7 +354,8 @@ GEM
       mixlib-cli (~> 2.1, >= 2.1.1)
       mixlib-config (>= 2.2.1, < 4)
       mixlib-shellout
-    mini_magick (4.13.2)
+    mini_magick (5.3.1)
+      logger
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.25.5)
@@ -399,24 +399,24 @@ GEM
       net-protocol
     net-ssh (7.3.0)
     nio4r (2.7.4)
-    nokogiri (1.18.9)
+    nokogiri (1.18.10)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
-    nokogiri (1.18.9-aarch64-linux-gnu)
+    nokogiri (1.18.10-aarch64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-aarch64-linux-musl)
+    nokogiri (1.18.10-aarch64-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm-linux-gnu)
+    nokogiri (1.18.10-arm-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm-linux-musl)
+    nokogiri (1.18.10-arm-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.9-arm64-darwin)
+    nokogiri (1.18.10-arm64-darwin)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-darwin)
+    nokogiri (1.18.10-x86_64-darwin)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-linux-gnu)
+    nokogiri (1.18.10-x86_64-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.9-x86_64-linux-musl)
+    nokogiri (1.18.10-x86_64-linux-musl)
       racc (~> 1.4)
     os (1.1.4)
     ostruct (0.6.1)
@@ -436,7 +436,7 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.4.0)
-    propshaft (1.2.0)
+    propshaft (1.3.1)
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
@@ -487,7 +487,8 @@ GEM
     rb-inotify (0.11.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.9.1)
+    rdoc (6.14.2)
+      erb
       psych (>= 4.0.0)
     redcarpet (3.6.1)
     redis (5.4.1)
@@ -515,7 +516,7 @@ GEM
       rufus-scheduler (~> 3.2, != 3.3)
     retriable (3.1.2)
     rexml (3.4.0)
-    rouge (4.6.0)
+    rouge (4.6.1)
     rubocop (1.79.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -582,7 +583,7 @@ GEM
       google-protobuf (~> 4.29)
     sass-embedded (1.83.4-x86_64-linux-musl)
       google-protobuf (~> 4.29)
-    sdoc (2.6.2)
+    sdoc (2.6.4)
       rdoc (>= 5.0)
     securerandom (0.4.1)
     selenium-webdriver (4.32.0)
@@ -756,7 +757,6 @@ DEPENDENCIES
   brakeman
   bundler-audit
   capybara (>= 3.39)
-  cgi
   connection_pool
   cssbundling-rails
   dalli (>= 3.0.1)
@@ -778,7 +778,7 @@ DEPENDENCIES
   minitest-ci
   minitest-retry
   msgpack (>= 1.7.0)
-  mysql2 (~> 0.5)
+  mysql2 (~> 0.5, < 0.5.7)
   nokogiri (>= 1.8.1, != 1.11.0)
   pg (~> 1.3)
   prism
@@ -789,7 +789,6 @@ DEPENDENCIES
   rack-cache (~> 1.2)
   rails!
   rake (>= 13)
-  rdoc (< 6.10)
   redcarpet (~> 3.6.1)
   redis (>= 4.0.1)
   redis-namespace
@@ -806,7 +805,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rails-omakase
   rubyzip (~> 2.0)
-  sdoc
+  sdoc (~> 2.6.4)
   selenium-webdriver (>= 4.20.0)
   sidekiq
   sneakers

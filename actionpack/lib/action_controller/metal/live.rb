@@ -133,15 +133,16 @@ module ActionController
       private
         def perform_write(json, options)
           current_options = @options.merge(options).stringify_keys
-
+          event = +""
           PERMITTED_OPTIONS.each do |option_name|
             if (option_value = current_options[option_name])
-              @stream.write "#{option_name}: #{option_value}\n"
+              event << "#{option_name}: #{option_value}\n"
             end
           end
 
           message = json.gsub("\n", "\ndata: ")
-          @stream.write "data: #{message}\n\n"
+          event << "data: #{message}\n\n"
+          @stream.write event
         end
     end
 
@@ -236,12 +237,7 @@ module ActionController
 
       private
         def each_chunk(&block)
-          loop do
-            str = nil
-            ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              str = @buf.pop
-            end
-            break unless str
+          while str = @buf.pop
             yield str
           end
         end
@@ -306,9 +302,7 @@ module ActionController
         end
       end
 
-      ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-        @_response.await_commit
-      end
+      @_response.await_commit
 
       raise error if error
     end

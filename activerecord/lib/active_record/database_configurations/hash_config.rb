@@ -71,7 +71,10 @@ module ActiveRecord
       end
 
       def max_connections
-        (configuration_hash[:max_connections] || configuration_hash[:pool] || 5).to_i
+        max_connections = configuration_hash.fetch(:max_connections) {
+          configuration_hash.fetch(:pool, 5)
+        }&.to_i
+        max_connections if max_connections && max_connections >= 0
       end
 
       def min_connections
@@ -86,7 +89,7 @@ module ActiveRecord
       end
 
       def max_threads
-        (configuration_hash[:max_threads] || max_connections).to_i
+        (configuration_hash[:max_threads] || (max_connections || 5).clamp(0, 5)).to_i
       end
 
       def max_age
