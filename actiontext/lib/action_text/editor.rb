@@ -17,8 +17,8 @@ module ActionText
       editor_html
     end
 
-    def to_editor_html(action_text_html)
-      action_text_html
+    def to_editor_html(content)
+      content.to_editor_html
     end
 
     def editor_name

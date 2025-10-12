@@ -138,7 +138,7 @@ module ActionText
     deprecate :to_trix_html, deprecator: ActionText.deprecator
 
     def to_editor_html # :nodoc:
-      render_attachments(&:to_editor_html).to_html
+      RichText.editor.to_editor_html(self)
     end
 
     def to_html

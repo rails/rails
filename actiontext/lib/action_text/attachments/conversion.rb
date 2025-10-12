@@ -15,13 +15,15 @@ module ActionText
         end
       end
 
-      def to_editor_html(...)
-        dup.to_editor_html!(...)
+      def to_editor_attachment
+        dup.to_editor_attachment!
       end
 
-      def to_editor_html!(content = editor_attachment_content) # :nodoc:
-        node["content"] = content if content
-        RichText.editor.to_editor_html(to_html)
+      def to_editor_attachment! # :nodoc:
+        if (content = editor_attachment_content)
+          node["content"] = content
+        end
+        self
       end
 
       private

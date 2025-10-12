@@ -29,7 +29,7 @@ module ActionText
       options = options.symbolize_keys
 
       options[:name] ||= name
-      options[:value] ||= value
+      options[:value] ||= value.try(:to_editor_html) || value
       options[:data] ||= {}
       options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
