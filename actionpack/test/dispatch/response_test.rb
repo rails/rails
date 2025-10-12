@@ -665,4 +665,22 @@ class ResponseIntegrationTest < ActionDispatch::IntegrationTest
     # The body should be the same enumerator object, i.e. it should be passed through unchanged:
     assert_equal body, response.body
   end
+
+  test "application/json content type omits charset" do
+    response = ActionDispatch::Response.new
+    # Set content type to pure JSON
+    response.content_type = "application/json"
+    # Should not append charset parameter
+    assert_equal "application/json", response.headers["Content-Type"]
+  end
+
+  test "non-json content type includes default charset" do
+    response = ActionDispatch::Response.new
+    # Set content type to HTML
+    response.content_type = "text/html"
+
+    # Should append default charset when none provided
+    expected = "text/html; charset=#{ActionDispatch::Response.default_charset}"
+    assert_equal expected, response.headers["Content-Type"]
+  end
 end
