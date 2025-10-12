@@ -129,7 +129,7 @@ You can subscribe to this event as described at the end of [the Subscribing to a
 
 
 Rails Framework Hooks
----------------------
+----------------------
 
 Within the Ruby on Rails framework, there are a number of hooks provided for common events.
 
@@ -164,6 +164,103 @@ end
 NOTE: `event.payload` is a hash with the payload of the event. Below we describe the keys, and examples values that you can expect to see in the payload.
 
 Read more about subscribing to the event in [Subscribing to an Event](#subscribing-to-an-event).
+
+### Action Cable
+
+#### `perform_action.action_cable`
+
+The event is emitted when a channel action is invoked.
+
+For example:
+
+```ruby
+# Client sends: { "action":"speak", "message":"Hi" }
+class ChatChannel < ApplicationCable::Channel
+  def speak(data) = Message.create!(text: data["message"])
+end
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key      | Description               | Example               |
+| ---------------- | ------------------------- | --------------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"`       |
+| `:action`        | The action                | `"speak"`             |
+| `:data`          | A hash of data            | `{ "message"=>"Hi" }` |
+
+#### `transmit.action_cable`
+
+The event is emitted when a message is transmitted from a channel.
+
+For example:
+
+```ruby
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    transmit(ok: true)
+  end
+end
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key      | Description               | Example          |
+| ---------------- | ------------------------- | ---------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"`  |
+| `:data`          | A hash of data            | `{ "ok"=>true }` |
+| `:via`           | Via                       | `"websocket"`    |
+
+#### `transmit_subscription_confirmation.action_cable`
+
+The event is emitted when a subscription confirmation is sent to a client.
+
+For example:
+
+```ruby
+# Successful subscription auto-confirms -> event fires
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key      | Description               | Example         |
+| ---------------- | ------------------------- | --------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"` |
+
+#### `transmit_subscription_rejection.action_cable`
+
+The event is emitted when a subscription rejection is sent to a client.
+
+For example:
+
+```ruby
+def subscribed
+  reject
+end
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key      | Description               | Example         |
+| ---------------- | ------------------------- | --------------- |
+| `:channel_class` | Name of the channel class | `"ChatChannel"` |
+
+#### `broadcast.action_cable`
+
+The event is emitted when a broadcast is published to a stream.
+
+For example:
+
+```ruby
+ActionCable.server.broadcast("chat_room_1", text: "Hello")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key     | Description        | Example                 |
+| --------------- | ------------------ | ----------------------- |
+| `:broadcasting` | Named broadcasting | `"chat_room_1"`         |
+| `:message`      | A hash of message  | `{ "text"=>"Hello" }`   |
+| `:coder`        | The coder          | `"ActiveSupport::JSON"` |
 
 ### Action Controller
 
@@ -261,7 +358,6 @@ send_data "Hello, world!",
 ```
 
 `ActionController` does not add any specific information to the payload. All options that you pass into `send_data` are passed through to the payload. Hence, in the example above, the payload will contain the keys `:filename`, `:type`, and `:disposition`.
-
 
 #### `redirect_to.action_controller`
 
@@ -449,7 +545,6 @@ The event payload (`event.payload`) includes the following keys (with typical ex
 | ----------- | ---------------- | -------------------------- |
 | `:key`      | The complete key | `"posts/1-dashboard-view"` |
 
-
 ### Action Dispatch
 
 #### `process_middleware.action_dispatch`
@@ -518,6 +613,78 @@ The event payload (`event.payload`) includes the following keys (with typical ex
 | Payload Key | Description                       | Example                          |
 | ----------- | --------------------------------- | -------------------------------- |
 | `:request`  | The [`ActionDispatch::Request`][] | `#<ActionDispatch::Request ...>` |
+
+### Action Mailbox
+
+#### `process.action_mailbox`
+
+The event is emitted when an inbound email is dispatched to a mailbox for processing.
+
+For example:
+
+```ruby
+# app/mailboxes/replies_mailbox.rb
+class RepliesMailbox < ApplicationMailbox
+  def process
+    # handle inbound email...
+  end
+end
+# An inbound email routed to RepliesMailbox -> triggers process.action_mailbox
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key      | Description                                                     | Example                                              |
+| ---------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| `:mailbox`       | Instance of a Mailbox inheriting from [`ActionMailbox::Base`][] | `#<RepliesMailbox ...>`                              |
+| `:inbound_email` | Hash describing the inbound email being processed               | `{ id: 1, message_id: "...", status: "processing" }` |
+
+[`ActionMailbox::Base`]: https://api.rubyonrails.org/classes/ActionMailbox/Base.html
+
+### Action Mailer
+
+#### `deliver.action_mailer`
+
+The event is emitted when a mail is delivered (after the message is generated and delivery is attempted).
+
+For example:
+
+```ruby
+UserMailer.welcome(current_user).deliver_now
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key           | Description                   | Example                |
+| --------------------- | ----------------------------- | ---------------------- |
+| `:mailer`             | Name of the mailer class      | `"Notification"`       |
+| `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`         |
+| `:subject`            | Subject of the mail           | `"Rails Guides"`       |
+| `:to`                 | To address(es)                | `["users@rails.com"]`  |
+| `:from`               | From address                  | `["me@rails.com"]`     |
+| `:bcc`                | BCC addresses                 | `[]`                   |
+| `:cc`                 | CC addresses                  | `[]`                   |
+| `:date`               | Date of the mail              | `Sat, 10 Mar 2012 ...` |
+| `:mail`               | Encoded form of the mail      | `"(omitted)"`          |
+| `:perform_deliveries` | Whether delivery is performed | `true`                 |
+
+#### `process.action_mailer`
+
+The event is emitted when a mailer action is invoked to build a message.
+
+For example:
+
+```ruby
+UserMailer.welcome(current_user) # building the message triggers process.action_mailer
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description              | Example           |
+| ----------- | ------------------------ | ----------------- |
+| `:mailer`   | Name of the mailer class | `"Notification"`  |
+| `:action`   | The action               | `"welcome_email"` |
+| `:args`     | The arguments            | `[]`              |
 
 ### Action View
 
@@ -594,6 +761,165 @@ The event payload (`event.payload`) includes the following keys (with typical ex
 
 [`ActionDispatch::Request`]: https://api.rubyonrails.org/classes/ActionDispatch/Request.html
 [`ActionDispatch::Response`]: https://api.rubyonrails.org/classes/ActionDispatch/Response.html
+
+### Active Job
+
+```ruby
+class MyJob < ApplicationJob
+  queue_as :default
+  retry_on Timeout::Error, wait: 30.seconds, attempts: 2
+
+  def perform(arg)
+    # work...
+  end
+end
+```
+
+#### `enqueue_at.active_job`
+
+The event is emitted when a job is scheduled to run at a future time.
+
+For example:
+
+```ruby
+MyJob.set(wait_until: 1.hour.from_now).perform_later("hello")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example                            |
+| ----------- | ------------------------------- | ---------------------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<ActiveJob::QueueAdapters::...>` |
+| `:job`      | Job object                      | `#<MyJob ...>`                     |
+
+#### `enqueue.active_job`
+
+The event is emitted when a job is enqueued to run as soon as possible.
+
+For example:
+
+```ruby
+MyJob.perform_later("now")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example        |
+| ----------- | ------------------------------- | -------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
+| `:job`      | Job object                      | `#<MyJob ...>` |
+
+#### `enqueue_retry.active_job`
+
+The event is emitted when a job is scheduled for retry due to an error.
+
+For example:
+
+```ruby
+MyJob.perform_later("fail to retry")
+# inside perform, raise Timeout::Error => Active Job schedules retry
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example                 |
+| ----------- | ------------------------------- | ----------------------- |
+| `:job`      | Job object                      | `#<MyJob ...>`          |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
+| `:wait`     | The delay of the retry          | `30.seconds`            |
+
+#### `enqueue_all.active_job`
+
+The event is emitted when multiple jobs are enqueued together.
+
+For example:
+
+```ruby
+jobs = [ MyJob.new, MyJob.new ]
+ActiveJob::Base.enqueue_all(jobs) # when supported by the adapter
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example                 |
+| ----------- | ------------------------------- | ----------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:jobs`     | An array of Job objects         | `[ #<MyJob ...>, ... ]` |
+
+#### `perform_start.active_job`
+
+The event is emitted when job execution starts (on the worker).
+
+For example:
+
+```ruby
+# Fired on the worker right before perform begins
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example        |
+| ----------- | ------------------------------- | -------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
+| `:job`      | Job object                      | `#<MyJob ...>` |
+
+#### `perform.active_job`
+
+The event is emitted when job execution finishes (on the worker).
+
+For example:
+
+```ruby
+# Fired after perform finishes (success or handled failure)
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key   | Description                             | Example        |
+| ------------- | --------------------------------------- | -------------- |
+| `:adapter`    | QueueAdapter processing the job         | `#<...>`       |
+| `:job`        | Job object                              | `#<MyJob ...>` |
+| `:db_runtime` | Amount spent executing DB queries in ms | `12.34`        |
+
+#### `retry_stopped.active_job`
+
+The event is emitted when the retry mechanism stops retrying a job.
+
+For example:
+
+```ruby
+# After exhausting retries (per retry_on), the job stops retrying
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example                 |
+| ----------- | ------------------------------- | ----------------------- |
+| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
+| `:job`      | Job object                      | `#<MyJob ...>`          |
+| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
+
+#### `discard.active_job`
+
+The event is emitted when a job is discarded (will no longer be retried).
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  discard_on StandardError
+end
+MyJob.perform_later("oops") # error -> discarded
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                       | Example                |
+| ----------- | --------------------------------- | ---------------------- |
+| `:adapter`  | QueueAdapter processing the job   | `#<...>`               |
+| `:job`      | Job object                        | `#<MyJob ...>`         |
+| `:error`    | The error that caused the discard | `#<StandardError ...>` |
 
 ### Active Record
 
@@ -731,6 +1057,7 @@ The event payload (`event.payload`) includes the following keys (with typical ex
 | `:transaction` | Transaction object                                   | `#<ActiveRecord::...>` |
 | `:outcome`     | `:commit`, `:rollback`, `:restart`, or `:incomplete` | `:commit`              |
 | `:connection`  | Connection object                                    | `#<ActiveRecord::...>` |
+
 In practice, you cannot do much with the transaction object, but it may still be
 helpful for tracing database activity. For example, by tracking
 `transaction.uuid`.
@@ -766,50 +1093,216 @@ The event payload (`event.payload`) includes the following keys (with typical ex
 `:location` and `:backtrace` are computed using the Active Record backtrace
 cleaner. In Rails applications, this is the same as `Rails.backtrace_cleaner.
 
-### Action Mailer
+### Active Storage
 
-#### `deliver.action_mailer`
+#### `preview.active_storage`
 
-The event is emitted when a mail is delivered (after the message is generated and delivery is attempted).
-
-For example:
-
-```ruby
-UserMailer.welcome(current_user).deliver_now
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key           | Description                   | Example                |
-| --------------------- | ----------------------------- | ---------------------- |
-| `:mailer`             | Name of the mailer class      | `"Notification"`       |
-| `:message_id`         | ID of the message (Mail gem)  | `"<abc@host>"`         |
-| `:subject`            | Subject of the mail           | `"Rails Guides"`       |
-| `:to`                 | To address(es)                | `["users@rails.com"]`  |
-| `:from`               | From address                  | `["me@rails.com"]`     |
-| `:bcc`                | BCC addresses                 | `[]`                   |
-| `:cc`                 | CC addresses                  | `[]`                   |
-| `:date`               | Date of the mail              | `Sat, 10 Mar 2012 ...` |
-| `:mail`               | Encoded form of the mail      | `"(omitted)"`          |
-| `:perform_deliveries` | Whether delivery is performed | `true`                 |
-
-#### `process.action_mailer`
-
-The event is emitted when a mailer action is invoked to build a message.
+The event is emitted when a preview is generated for a blob.
 
 For example:
 
 ```ruby
-UserMailer.welcome(current_user) # building the message triggers process.action_mailer
+blob = ActiveStorage::Blob.find(params[:id])
+blob.preview(resize_to_limit: [200, 200]).processed
 ```
 
 The event payload (`event.payload`) includes the following keys (with typical example values).
 
-| Payload Key | Description              | Example           |
-| ----------- | ------------------------ | ----------------- |
-| `:mailer`   | Name of the mailer class | `"Notification"`  |
-| `:action`   | The action               | `"welcome_email"` |
-| `:args`     | The arguments            | `[]`              |
+| Payload Key | Description  | Example    |
+| ----------- | ------------ | ---------- |
+| `:key`      | Secure token | `"abc123"` |
+
+#### `transform.active_storage`
+
+The event is emitted when a variant/representation transformation is performed.
+
+For example:
+
+```ruby
+image = current_user.avatar.variant(resize_to_limit: [300, 300]).processed
+```
+
+The event payload (`event.payload`) has no additional standard keys documented.
+
+#### `analyze.active_storage`
+
+The event is emitted when a blob is analyzed to extract metadata.
+
+For example:
+
+```ruby
+blob = ActiveStorage::Blob.find(params[:id])
+blob.analyze
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description                     | Example     |
+| ----------- | ------------------------------- | ----------- |
+| `:analyzer` | Name of analyzer (e.g. ffprobe) | `"ffprobe"` |
+
+### Active Storage: Storage Service
+
+#### `service_upload.active_storage`
+
+The event is emitted when a blob is uploaded to a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description            | Example     |
+| ----------- | ---------------------- | ----------- |
+| `:key`      | Secure token           | `"abc123"`  |
+| `:service`  | Name of the service    | `"S3"`      |
+| `:checksum` | Checksum for integrity | `"md5:..."` |
+
+#### `service_streaming_download.active_storage`
+
+The event is emitted when a blob is streamed from a storage service.
+
+For example:
+
+```ruby
+send_data current_user.avatar.download, disposition: :inline
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description         | Example    |
+| ----------- | ------------------- | ---------- |
+| `:key`      | Secure token        | `"abc123"` |
+| `:service`  | Name of the service | `"S3"`     |
+
+#### `service_download_chunk.active_storage`
+
+The event is emitted when a chunked download reads a byte range from a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.service.download_chunk(current_user.avatar.key, 0..1_048_575)
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description          | Example       |
+| ----------- | -------------------- | ------------- |
+| `:key`      | Secure token         | `"abc123"`    |
+| `:service`  | Name of the service  | `"S3"`        |
+| `:range`    | Byte range attempted | `"0-1048575"` |
+
+#### `service_download.active_storage`
+
+The event is emitted when a blob is downloaded from a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.download
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description         | Example    |
+| ----------- | ------------------- | ---------- |
+| `:key`      | Secure token        | `"abc123"` |
+| `:service`  | Name of the service | `"S3"`     |
+
+#### `service_delete.active_storage`
+
+The event is emitted when a blob is deleted from a storage service.
+
+For example:
+
+```ruby
+current_user.avatar.purge
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description         | Example    |
+| ----------- | ------------------- | ---------- |
+| `:key`      | Secure token        | `"abc123"` |
+| `:service`  | Name of the service | `"S3"`     |
+
+#### `service_delete_prefixed.active_storage`
+
+The event is emitted when all blobs with a given key prefix are deleted.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.delete_prefixed("tmp/")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description     | Example  |
+| ----------- | --------------- | -------- |
+| `:prefix`   | Key prefix      | `"tmp/"` |
+| `:service`  | Name of service | `"S3"`   |
+
+#### `service_exist.active_storage`
+
+The event is emitted when existence of a blob is checked in a storage service.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.exist?(blob.key)
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description             | Example    |
+| ----------- | ----------------------- | ---------- |
+| `:key`      | Secure token            | `"abc123"` |
+| `:service`  | Name of the service     | `"S3"`     |
+| `:exist`    | File/blob exists or not | `true`     |
+
+#### `service_url.active_storage`
+
+The event is emitted when a URL is generated for a blob/object.
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.url(blob.key)
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key | Description         | Example                  |
+| ----------- | ------------------- | ------------------------ |
+| `:key`      | Secure token        | `"abc123"`               |
+| `:service`  | Name of the service | `"S3"`                   |
+| `:url`      | Generated URL       | `"https://s3.../abc123"` |
+
+#### `service_update_metadata.active_storage`
+
+The event is emitted when object metadata is updated in the storage service (Google Cloud Storage only).
+
+For example:
+
+```ruby
+ActiveStorage::Blob.service.update_metadata(
+  blob.key, content_type: "image/png", disposition: "inline"
+)
+```
+
+The event payload (`event.payload`) includes the following keys (with typical example values).
+
+| Payload Key     | Description                | Example       |
+| --------------- | -------------------------- | ------------- |
+| `:key`          | Secure token               | `"abc123"`    |
+| `:service`      | Name of the service        | `"GCS"`       |
+| `:content_type` | HTTP `Content-Type`        | `"image/png"` |
+| `:disposition`  | HTTP `Content-Disposition` | `"inline"`    |
 
 ### Active Support: Caching
 
@@ -844,11 +1337,11 @@ Rails.cache.read_multi("u:1", "u:2")
 
 The event payload (`event.payload`) includes the following keys (with typical example values).
 
-| Payload Key        | Description                         | Example                       |
-| ------------------ | ----------------------------------- | ----------------------------- |
-| `:key`             | Keys used in the store              | `["u:1","u:2"]`               |
-| `:store`           | Name of the store class             | `"ActiveSupport::Cache::..."` |
-| `:hits`            | Keys of cache hits                  | `["u:1"]`                     |
+| Payload Key        | Description                                                                    | Example                       |
+| ------------------ | ------------------------------------------------------------------------------ | ----------------------------- |
+| `:key`             | Keys used in the store                                                         | `["u:1","u:2"]`               |
+| `:store`           | Name of the store class                                                        | `"ActiveSupport::Cache::..."` |
+| `:hits`            | Keys of cache hits                                                             | `["u:1"]`                     |
 | `:super_operation` | `:fetch_multi` if via [`fetch_multi`][ActiveSupport::Cache::Store#fetch_multi] | `:fetch_multi`                |
 
 #### `cache_generate.active_support`
@@ -1087,506 +1580,12 @@ enc.encrypt_and_sign(Object.new) # not JSON-serializable -> falls back
 
 The event payload (`event.payload`) includes the following keys (with typical example values).
 
-| Payload Key     | Description        | Example                |
-| --------------- | ------------------ | ---------------------- |
-| `:serializer`   | Primary (intended) | `:json_allow_marshal`  |
-| `:fallback`     | Fallback (actual)  | `:marshal`             |
-| `:serialized`   | Serialized string  | `\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T`          |
-| `:deserialized` | Deserialized value | `{ "Hello"=>"World" }` |
-
-### Active Job
-
-```ruby
-class MyJob < ApplicationJob
-  queue_as :default
-  retry_on Timeout::Error, wait: 30.seconds, attempts: 2
-
-  def perform(arg)
-    # work...
-  end
-end
-```
-
-#### `enqueue_at.active_job`
-
-The event is emitted when a job is scheduled to run at a future time.
-
-For example:
-
-```ruby
-MyJob.set(wait_until: 1.hour.from_now).perform_later("hello")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example                            |
-| ----------- | ------------------------------- | ---------------------------------- |
-| `:adapter`  | QueueAdapter processing the job | `#<ActiveJob::QueueAdapters::...>` |
-| `:job`      | Job object                      | `#<MyJob ...>`                     |
-
-#### `enqueue.active_job`
-
-The event is emitted when a job is enqueued to run as soon as possible.
-
-For example:
-
-```ruby
-MyJob.perform_later("now")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example        |
-| ----------- | ------------------------------- | -------------- |
-| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
-| `:job`      | Job object                      | `#<MyJob ...>` |
-
-#### `enqueue_retry.active_job`
-
-The event is emitted when a job is scheduled for retry due to an error.
-
-For example:
-
-```ruby
-MyJob.perform_later("fail to retry")
-# inside perform, raise Timeout::Error => Active Job schedules retry
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example                 |
-| ----------- | ------------------------------- | ----------------------- |
-| `:job`      | Job object                      | `#<MyJob ...>`          |
-| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
-| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
-| `:wait`     | The delay of the retry          | `30.seconds`            |
-
-#### `enqueue_all.active_job`
-
-The event is emitted when multiple jobs are enqueued together.
-
-For example:
-
-```ruby
-jobs = [ MyJob.new, MyJob.new ]
-ActiveJob::Base.enqueue_all(jobs) # when supported by the adapter
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example                 |
-| ----------- | ------------------------------- | ----------------------- |
-| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
-| `:jobs`     | An array of Job objects         | `[ #<MyJob ...>, ... ]` |
-
-#### `perform_start.active_job`
-
-The event is emitted when job execution starts (on the worker).
-
-For example:
-
-```ruby
-# Fired on the worker right before perform begins
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example        |
-| ----------- | ------------------------------- | -------------- |
-| `:adapter`  | QueueAdapter processing the job | `#<...>`       |
-| `:job`      | Job object                      | `#<MyJob ...>` |
-
-#### `perform.active_job`
-
-The event is emitted when job execution finishes (on the worker).
-
-For example:
-
-```ruby
-# Fired after perform finishes (success or handled failure)
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key   | Description                             | Example        |
-| ------------- | --------------------------------------- | -------------- |
-| `:adapter`    | QueueAdapter processing the job         | `#<...>`       |
-| `:job`        | Job object                              | `#<MyJob ...>` |
-| `:db_runtime` | Amount spent executing DB queries in ms | `12.34`        |
-
-#### `retry_stopped.active_job`
-
-The event is emitted when the retry mechanism stops retrying a job.
-
-For example:
-
-```ruby
-# After exhausting retries (per retry_on), the job stops retrying
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example                 |
-| ----------- | ------------------------------- | ----------------------- |
-| `:adapter`  | QueueAdapter processing the job | `#<...>`                |
-| `:job`      | Job object                      | `#<MyJob ...>`          |
-| `:error`    | The error that caused the retry | `#<Timeout::Error ...>` |
-
-#### `discard.active_job`
-
-The event is emitted when a job is discarded (will no longer be retried).
-
-For example:
-
-```ruby
-class MyJob < ApplicationJob
-  discard_on StandardError
-end
-MyJob.perform_later("oops") # error -> discarded
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                       | Example                |
-| ----------- | --------------------------------- | ---------------------- |
-| `:adapter`  | QueueAdapter processing the job   | `#<...>`               |
-| `:job`      | Job object                        | `#<MyJob ...>`         |
-| `:error`    | The error that caused the discard | `#<StandardError ...>` |
-
-### Action Cable
-
-#### `perform_action.action_cable`
-
-The event is emitted when a channel action is invoked.
-
-For example:
-
-```ruby
-# Client sends: { "action":"speak", "message":"Hi" }
-class ChatChannel < ApplicationCable::Channel
-  def speak(data) = Message.create!(text: data["message"])
-end
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key      | Description               | Example               |
-| ---------------- | ------------------------- | --------------------- |
-| `:channel_class` | Name of the channel class | `"ChatChannel"`       |
-| `:action`        | The action                | `"speak"`             |
-| `:data`          | A hash of data            | `{ "message"=>"Hi" }` |
-
-#### `transmit.action_cable`
-
-The event is emitted when a message is transmitted from a channel.
-
-For example:
-
-```ruby
-class ChatChannel < ApplicationCable::Channel
-  def subscribed
-    transmit(ok: true)
-  end
-end
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key      | Description               | Example          |
-| ---------------- | ------------------------- | ---------------- |
-| `:channel_class` | Name of the channel class | `"ChatChannel"`  |
-| `:data`          | A hash of data            | `{ "ok"=>true }` |
-| `:via`           | Via                       | `"websocket"`    |
-
-#### `transmit_subscription_confirmation.action_cable`
-
-The event is emitted when a subscription confirmation is sent to a client.
-
-For example:
-
-```ruby
-# Successful subscription auto-confirms -> event fires
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key      | Description               | Example         |
-| ---------------- | ------------------------- | --------------- |
-| `:channel_class` | Name of the channel class | `"ChatChannel"` |
-
-#### `transmit_subscription_rejection.action_cable`
-
-The event is emitted when a subscription rejection is sent to a client.
-
-For example:
-
-```ruby
-def subscribed
-  reject
-end
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key      | Description               | Example         |
-| ---------------- | ------------------------- | --------------- |
-| `:channel_class` | Name of the channel class | `"ChatChannel"` |
-
-#### `broadcast.action_cable`
-
-The event is emitted when a broadcast is published to a stream.
-
-For example:
-
-```ruby
-ActionCable.server.broadcast("chat_room_1", text: "Hello")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key     | Description        | Example                 |
-| --------------- | ------------------ | ----------------------- |
-| `:broadcasting` | Named broadcasting | `"chat_room_1"`         |
-| `:message`      | A hash of message  | `{ "text"=>"Hello" }`   |
-| `:coder`        | The coder          | `"ActiveSupport::JSON"` |
-
-### Active Storage
-
-#### `preview.active_storage`
-
-The event is emitted when a preview is generated for a blob.
-
-For example:
-
-```ruby
-blob = ActiveStorage::Blob.find(params[:id])
-blob.preview(resize_to_limit: [200, 200]).processed
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description  | Example    |
-| ----------- | ------------ | ---------- |
-| `:key`      | Secure token | `"abc123"` |
-
-#### `transform.active_storage`
-
-The event is emitted when a variant/representation transformation is performed.
-
-For example:
-
-```ruby
-image = current_user.avatar.variant(resize_to_limit: [300, 300]).processed
-```
-
-The event payload (`event.payload`) has no additional standard keys documented.
-
-#### `analyze.active_storage`
-
-The event is emitted when a blob is analyzed to extract metadata.
-
-For example:
-
-```ruby
-blob = ActiveStorage::Blob.find(params[:id])
-blob.analyze
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description                     | Example     |
-| ----------- | ------------------------------- | ----------- |
-| `:analyzer` | Name of analyzer (e.g. ffprobe) | `"ffprobe"` |
-
-### Active Storage: Storage Service
-
-#### `service_upload.active_storage`
-
-The event is emitted when a blob is uploaded to a storage service.
-
-For example:
-
-```ruby
-current_user.avatar.attach(io: File.open("/path/pic.jpg"), filename: "pic.jpg")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description            | Example     |
-| ----------- | ---------------------- | ----------- |
-| `:key`      | Secure token           | `"abc123"`  |
-| `:service`  | Name of the service    | `"S3"`      |
-| `:checksum` | Checksum for integrity | `"md5:..."` |
-
-#### `service_streaming_download.active_storage`
-
-The event is emitted when a blob is streamed from a storage service.
-
-For example:
-
-```ruby
-send_data current_user.avatar.download, disposition: :inline
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
-
-#### `service_download_chunk.active_storage`
-
-The event is emitted when a chunked download reads a byte range from a storage service.
-
-For example:
-
-```ruby
-current_user.avatar.service.download_chunk(current_user.avatar.key, 0..1_048_575)
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description          | Example       |
-| ----------- | -------------------- | ------------- |
-| `:key`      | Secure token         | `"abc123"`    |
-| `:service`  | Name of the service  | `"S3"`        |
-| `:range`    | Byte range attempted | `"0-1048575"` |
-
-#### `service_download.active_storage`
-
-The event is emitted when a blob is downloaded from a storage service.
-
-For example:
-
-```ruby
-current_user.avatar.download
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
-
-#### `service_delete.active_storage`
-
-The event is emitted when a blob is deleted from a storage service.
-
-For example:
-
-```ruby
-current_user.avatar.purge
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description         | Example    |
-| ----------- | ------------------- | ---------- |
-| `:key`      | Secure token        | `"abc123"` |
-| `:service`  | Name of the service | `"S3"`     |
-
-#### `service_delete_prefixed.active_storage`
-
-The event is emitted when all blobs with a given key prefix are deleted.
-
-For example:
-
-```ruby
-ActiveStorage::Blob.service.delete_prefixed("tmp/")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description     | Example  |
-| ----------- | --------------- | -------- |
-| `:prefix`   | Key prefix      | `"tmp/"` |
-| `:service`  | Name of service | `"S3"`   |
-
-#### `service_exist.active_storage`
-
-The event is emitted when existence of a blob is checked in a storage service.
-
-For example:
-
-```ruby
-ActiveStorage::Blob.service.exist?(blob.key)
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description             | Example    |
-| ----------- | ----------------------- | ---------- |
-| `:key`      | Secure token            | `"abc123"` |
-| `:service`  | Name of the service     | `"S3"`     |
-| `:exist`    | File/blob exists or not | `true`     |
-
-#### `service_url.active_storage`
-
-The event is emitted when a URL is generated for a blob/object.
-
-For example:
-
-```ruby
-ActiveStorage::Blob.service.url(blob.key)
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key | Description         | Example                  |
-| ----------- | ------------------- | ------------------------ |
-| `:key`      | Secure token        | `"abc123"`               |
-| `:service`  | Name of the service | `"S3"`                   |
-| `:url`      | Generated URL       | `"https://s3.../abc123"` |
-
-#### `service_update_metadata.active_storage`
-
-The event is emitted when object metadata is updated in the storage service (Google Cloud Storage only).
-
-For example:
-
-```ruby
-ActiveStorage::Blob.service.update_metadata(
-  blob.key, content_type: "image/png", disposition: "inline"
-)
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key     | Description                | Example       |
-| --------------- | -------------------------- | ------------- |
-| `:key`          | Secure token               | `"abc123"`    |
-| `:service`      | Name of the service        | `"GCS"`       |
-| `:content_type` | HTTP `Content-Type`        | `"image/png"` |
-| `:disposition`  | HTTP `Content-Disposition` | `"inline"`    |
-
-### Action Mailbox
-
-#### `process.action_mailbox`
-
-The event is emitted when an inbound email is dispatched to a mailbox for processing.
-
-For example:
-
-```ruby
-# app/mailboxes/replies_mailbox.rb
-class RepliesMailbox < ApplicationMailbox
-  def process
-    # handle inbound email...
-  end
-end
-# An inbound email routed to RepliesMailbox -> triggers process.action_mailbox
-```
-
-The event payload (`event.payload`) includes the following keys (with typical example values).
-
-| Payload Key      | Description                                                     | Example                                              |
-| ---------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
-| `:mailbox`       | Instance of a Mailbox inheriting from [`ActionMailbox::Base`][] | `#<RepliesMailbox ...>`                              |
-| `:inbound_email` | Hash describing the inbound email being processed               | `{ id: 1, message_id: "...", status: "processing" }` |
-
-[`ActionMailbox::Base`]: https://api.rubyonrails.org/classes/ActionMailbox/Base.html
+| Payload Key     | Description        | Example                                                |
+| --------------- | ------------------ | ------------------------------------------------------ |
+| `:serializer`   | Primary (intended) | `:json_allow_marshal`                                  |
+| `:fallback`     | Fallback (actual)  | `:marshal`                                             |
+| `:serialized`   | Serialized string  | `\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T` |
+| `:deserialized` | Deserialized value | `{ "Hello"=>"World" }`                                 |
 
 ### Railties
 
