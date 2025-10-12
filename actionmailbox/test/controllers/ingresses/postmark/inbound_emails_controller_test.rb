@@ -48,12 +48,18 @@ class ActionMailbox::Ingresses::Postmark::InboundEmailsControllerTest < ActionDi
   end
 
   test "rejecting when RawEmail param is missing" do
+    old_logger = ActionMailbox.logger
+    output = StringIO.new
+    ActionMailbox.logger = ActiveSupport::Logger.new(output)
     assert_no_difference -> { ActionMailbox::InboundEmail.count } do
       post rails_postmark_inbound_emails_url,
         headers: { authorization: credentials }, params: { From: "someone@example.com" }
     end
+    assert_match "param is missing or the value is empty or invalid: RawEmail", output.string
 
     assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  ensure
+    ActionMailbox.logger = old_logger
   end
 
   test "rejecting an unauthorized inbound email from Postmark" do

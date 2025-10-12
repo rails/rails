@@ -30,7 +30,7 @@ module ActionMailbox::InboundEmail::MessageId
 
       def generate_missing_message_id(message_checksum)
         Mail::MessageIdField.new("<#{message_checksum}@#{::Socket.gethostname}.mail>").message_id.tap do |message_id|
-          logger.warn "Message-ID couldn't be parsed or is missing. Generated a new Message-ID: #{message_id}"
+          ActionMailbox.logger.warn "Message-ID couldn't be parsed or is missing. Generated a new Message-ID: #{message_id}"
         end
       end
 
