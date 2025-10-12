@@ -136,6 +136,8 @@ module ActiveStorage
           OpenSSL::Digest::MD5
         when :sha256
           OpenSSL::Digest::SHA256
+        else
+          raise ActiveStorage::IntegrityError, "Digest type #{check_digest_type} is not supported"
         end
       end
 
