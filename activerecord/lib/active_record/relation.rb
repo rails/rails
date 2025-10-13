@@ -57,10 +57,10 @@ module ActiveRecord
                             :with]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache, :load_columns]
 
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive, :load_columns]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -1340,8 +1340,9 @@ module ActiveRecord
       preload = preload_values
       preload += includes_values unless eager_loading?
       scope = strict_loading_value ? StrictLoadingScope : nil
+      load_columns = load_columns_value || {}
       preload.each do |associations|
-        ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
+        ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope, load_columns: load_columns).call
       end
     end
 
@@ -1431,7 +1432,6 @@ module ActiveRecord
           else
             exec_main_query
           end
-
           records = instantiate_records(rows, &block)
           preload_associations(records) unless skip_preloading_value
 
