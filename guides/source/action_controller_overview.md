@@ -1241,7 +1241,7 @@ information in a request. For example, controllers responding to requests from a
 mobile platform might need to render different content than requests from a
 desktop browser. One strategy to accomplish this is by customizing a request's
 variant. Variant names are arbitrary, and can communicate anything from the
-request's platform (`:anrdoid`, `:ios`, `:linux`, `:macos`, `:windows`) to its
+request's platform (`:android`, `:ios`, `:linux`, `:macos`, `:windows`) to its
 browser (`:chrome`, `:edge`, `:firefox`, `:safari`), to the type of user
 (`:admin`, `:guest`, `:user`).
 
