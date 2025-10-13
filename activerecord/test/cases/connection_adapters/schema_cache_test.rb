@@ -24,13 +24,13 @@ module ActiveRecord
         end
       end
 
-      def new_bound_reflection(pool = @pool)
-        BoundSchemaReflection.new(SchemaReflection.new(nil), pool)
+      def new_bound_reflection(filename = nil)
+        BoundSchemaReflection.new(SchemaReflection.new(filename), @pool)
       end
 
-      def load_bound_reflection(filename, pool = @pool)
+      def load_bound_reflection(filename)
         reset_deduplicable!
-        BoundSchemaReflection.new(SchemaReflection.new(filename), pool).tap do |cache|
+        new_bound_reflection(filename).tap do |cache|
           cache.load!
         end
       end
@@ -439,14 +439,14 @@ module ActiveRecord
       end
 
       private
-        def new_bound_reflection
-          BoundSchemaReflection.new(SchemaReflection.new(nil), @pool)
+        def new_bound_reflection(filename = nil)
+          BoundSchemaReflection.new(SchemaReflection.new(filename), @pool)
         end
 
         def load_bound_reflection(filename)
           reset_deduplicable!
 
-          BoundSchemaReflection.new(SchemaReflection.new(filename), @pool).tap do |cache|
+          new_bound_reflection(filename).tap do |cache|
             cache.load!
           end
         end
