@@ -3,7 +3,7 @@
 Wishlists
 =========
 
-This guide covers adding Wishlists to the store e-commerce application in the
+This guide covers adding Wishlists to the e-commerce application you created in the
 [Getting Started Guide](getting_started.html)). We will use the code from the
 [Sign up and Settings Guide](sign_up_and_settings.html) as a starting place.
 
@@ -28,7 +28,7 @@ Let's get started!
 Wishlist Models
 ---------------
 
-Our e-commerce store has products and users that we built in the previous
+Our e-commerce store has products and users that we already built in the previous
 tutorials. These are the foundations we need to build Wishlists. Each wishlist
 belongs to a user and contains a list of products.
 
@@ -40,10 +40,10 @@ $ bin/rails generate model Wishlist user:belongs_to name products_count:integer
 
 This model has 3 attributes:
 
-- `user:belongs_to` which associates the `Wishlist` with the `User` record who
+- `user:belongs_to` which associates the `Wishlist` with the `User` who
   owns it
 - `name` which we'll also use for friendly URLs
-- `products_count` for the [counter cache](https://guides.rubyonrails.org/association_basics.html#counter-cache) we'll add to count how many products
+- `products_count` for the [counter cache](https://guides.rubyonrails.org/association_basics.html#counter-cache) to count how many products
   are on the Wishlist
 
 To associate a `Wishlist` with multiple `Products`, we need to add a table to
@@ -81,7 +81,7 @@ $ bin/rails generate migration AddWishlistsCountToProducts wishlists_count:integ
 ### Default Counter Cache Values
 
 Before we run these new migrations, let's set a default value for the counter
-cache columns.
+cache columns so that all existing records start with a count of zero instead of NULL.
 
 Open the `db/migrate/<timestamp>_create_wishlists.rb` migration and add the
 default option:
@@ -152,14 +152,14 @@ class Product < ApplicationRecord
 We added two associations to `Product`. First, we associate the `Product` model
 with the `WishlistProduct` join table. Using this join table, our second
 association tells Rails that a `Product` is a part of many `Wishlists` through
-the `WishlistProduct` join table. From a `Product` record, we can directly
+the same `WishlistProduct` join table. From a `Product` record, we can directly
 access the `Wishlists` and Rails will know to automatically `JOIN` the tables in
 SQL queries.
 
 We also set `wishlist_products` as `dependent: :destroy`. When a `Product` is
 destroyed, it will be automatically removed from any Wishlists.
 
-In `app/models/wishlist.rb`, let's update both associations to enable counter
+A counter cache stores the number of associated records to avoid running a separate query each time the count is needed. So in `app/models/wishlist.rb`, let's update both associations to enable counter
 caching:
 
 ```ruby#2-5
@@ -309,7 +309,7 @@ by building that first.
 
 ### Add To Wishlist Form
 
-Start by adding the route for this form to submit to:
+Start in `config/routes.rb` by adding the route for this form to submit to:
 
 ```ruby#2
   resources :products do
@@ -395,7 +395,7 @@ The `create` action is also simpler than normal. If a product is already on the
 wishlist, the `wishlist_product` record will fail to create but we don't need to
 notify the user of this error so we can redirect to the wishlist in either case.
 
-Log in as the user we created a wishlist for earlier and add a product to the
+Now, log in as the user we created a wishlist for earlier and try adding a product to the 
 wishlist.
 
 ### Default Wishlist
@@ -643,17 +643,15 @@ Lastly, let's add a link to the navbar in
     </nav>
 ```
 
-Refresh the page and click the "Wishlists" link in the navbar to manage your
+Refresh the page and click the "Wishlists" link in the navbar to view and manage your
 wishlists.
 
 ### Copy To Clipboard
 
-We can make sharing wishlists easier for our users by adding a Copy To Clipboard
-button with a little JavaScript.
+To make sharing wishlists easier, we can add a “Copy to Clipboard” button that uses a small amount of JavaScript. 
 
-Since Rails ships with Hotwire on the frontend, we can use its
-[Stimulus framework](https://stimulus.hotwired.dev/) to add some JavaScript
-functionality to our UI.
+Rails includes Hotwire by default, so we can use its [Stimulus framework](https://stimulus.hotwired.dev/)
+ to add some lightweight JavaScript to our UI.
 
 First, let's add a button to `app/views/wishlists/show.html.erb`:
 
@@ -680,8 +678,8 @@ HTML:
 What do these data attributes do? Let's break down each one:
 
 - `data-controller` tells Stimulus to connect to `clipboard_controller.js`
-- `data-action` tells Stimulus when the button is clicked to call the
-  `clipboard` controller's `copy()` method
+- `data-action` tells Stimulus to call the
+  `clipboard` controller's `copy()` method when the button is clicked
 - `data-clipboard-text-value` tells the Stimulus controller it has some data
   called `text` that it can use
 
@@ -707,7 +705,7 @@ This Stimulus controller is short. It does two things:
 - The `copy` function writes the `text` from the HTML to the clipboard when
   called.
 
-You'll notice we didn't have to add any event listeners or setup & teardown this
+If you're familiar with JavaScript, you'll notice we didn't have to add any event listeners or setup & teardown this
 controller. That's handled automatically by Stimulus reading the data attributes
 in our HTML.
 
@@ -719,7 +717,7 @@ To learn more about Stimulus, check out the
 A user may purchase or lose interest in a product and want to remove it from
 their wishlist. Let's add that feature next.
 
-Let's update the wishlists route to contain a nested resource.
+First we'll update the wishlists route to contain a nested resource.
 
 ```ruby#9-11
 Rails.application.routes.draw do
@@ -758,7 +756,7 @@ button:
 <% end %>
 ```
 
-Create `app/controllers/wishlists/wishlist_products_controller.rb` with the
+Create `app/controllers/wishlists/wishlist_products_controller.rb` and add the
 following:
 
 ```ruby
@@ -993,7 +991,7 @@ class Store::WishlistsController < Store::BaseController
 end
 ```
 
-Active Record queries are lazy evaluated which means SQL queries aren't executed
+Active Record queries are _lazy evaluated_ which means SQL queries aren't executed
 until you ask for the results. This allows our controller to build up the query
 step-by-step and include filters if needed.
 
@@ -1040,11 +1038,13 @@ calling
 [`all`](https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-all)
 which returns an `ActiveRecord::Relation` for all the records including any
 conditions we may have already applied. Then we apply the filters and return the
-results
+results. 
+
+Refactoring like this means the controller becomes cleaner, while the filtering logic now lives in the model where it belongs, alongside other database-related logic. This follows the **Fat Model, Skinny Controller** principle, a best practice in Rails.
 
 ## Adding Subscribers To Admin
 
-While we're here, we should also add the ability to view subscribers in the
+While we're here, we should also add the ability to view and filter subscribers in the
 admin too. This is helpful to know how many people are waiting for a product to
 go back in stock.
 
