@@ -1959,7 +1959,7 @@ viewing the Spanish locale.
 
 Learn more about the [Rails Internationalization (I18n) API](i18n.html).
 
-Adding In Stock Notifications
+Action Mailer and Email Notifications
 -----------------------------
 
 A common feature of e-commerce stores is an email subscription to get notified
