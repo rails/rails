@@ -396,7 +396,7 @@ you'd prefer not to utilize it, you can skip Solid Cache:
 rails new app_name --skip-solid
 ```
 
-NOTE: Using the --skip-solid flag skips all parts of the Solid
+NOTE: Using the `--skip-solid` flag skips all parts of the Solid
 Trifecta (Solid Cache, Solid Queue, and Solid Cable).If you still
 want to use some of them, you can install them separately. For
 example, if you want to use Solid Queue and Solid Cable but not
