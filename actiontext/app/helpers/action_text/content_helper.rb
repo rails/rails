@@ -11,9 +11,9 @@ module ActionText
     mattr_accessor(:allowed_attributes)
     mattr_accessor(:scrubber)
 
-    def render_action_text_content(content)
+    def render_action_text_content(content, locals: {})
       self.prefix_partial_path_with_controller_namespace = false
-      sanitize_action_text_content(render_action_text_attachments(content))
+      sanitize_action_text_content(render_action_text_attachments(content, locals: locals))
     end
 
     def sanitize_content_attachment(content_attachment)
@@ -34,17 +34,17 @@ module ActionText
       ).html_safe
     end
 
-    def render_action_text_attachments(content)
+    def render_action_text_attachments(content, locals: {})
       content.render_attachments do |attachment|
         unless attachment.in?(content.gallery_attachments)
           attachment.node.tap do |node|
-            node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: false }
+            node.inner_html = render_action_text_attachment attachment, locals: locals.merge(in_gallery: false)
           end
         end
       end.render_attachment_galleries do |attachment_gallery|
         render(layout: attachment_gallery, object: attachment_gallery) do
           attachment_gallery.attachments.map do |attachment|
-            attachment.node.inner_html = render_action_text_attachment attachment, locals: { in_gallery: true }
+            attachment.node.inner_html = render_action_text_attachment attachment, locals: locals.merge(in_gallery: true)
             attachment.to_html
           end.join.html_safe
         end.chomp

@@ -140,8 +140,8 @@ module ActionText
       fragment.to_html
     end
 
-    def to_rendered_html_with_layout
-      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    def to_rendered_html_with_layout(locals: {})
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self, **locals }
     end
 
     def to_partial_path
@@ -155,8 +155,8 @@ module ActionText
     #
     #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
     #     content.to_s # => "<div>safeunsafe</div>"
-    def to_s
-      to_rendered_html_with_layout
+    def to_s(locals: {})
+      to_rendered_html_with_layout(locals: locals)
     end
 
     def as_json(*)
