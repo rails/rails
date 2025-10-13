@@ -321,6 +321,89 @@ module ActiveSupport
       assert_equal true, @logger.error("Hello")
     end
 
+    test "with_level invokes its block one time, even when broadcasting to many loggers" do
+      logs = Array.new(3) { ::Logger.new(nil) }
+
+      logger = BroadcastLogger.new(*logs)
+
+      invocations = 0
+      logger.with_level(:info) do
+        invocations += 1
+      end
+
+      assert_equal 1, invocations
+    end
+
+    test "with_level invokes its block one time, even when broadcasting to zero loggers" do
+      logger = BroadcastLogger.new()
+
+      invocations = 0
+      logger.with_level(:info) do
+        invocations += 1
+      end
+
+      assert_equal 1, invocations
+    end
+
+    test "with_level returns the value produced by the block" do
+      logger = BroadcastLogger.new(
+        ::Logger.new(StringIO.new),
+        ::Logger.new(StringIO.new)
+      )
+
+      assert_equal :foo, logger.with_level(:debug) { :foo }
+    end
+
+    test "with_level changes the logging level, and restores it afterwards" do
+      info_buf = StringIO.new
+      warn_buf = StringIO.new
+
+      info_logger = ::Logger.new(info_buf, level: Logger::INFO)
+      warn_logger = ::Logger.new(warn_buf, level: Logger::WARN)
+
+      logger = BroadcastLogger.new(info_logger, warn_logger)
+      logger.formatter = proc do |severity, time, progname, message|
+        "#{severity}:#{message}\n"
+      end
+
+      # Logs to info_logger, but not warning_logger
+      logger.info("AAA")
+      logger.debug("BBB") # skipped
+
+      logger.with_level(:debug) do
+        # Inside, debug logging should be captured
+        logger.debug("CCC") # captured
+        logger.info("DDD") # captured
+
+        logger.with_level(:error) do
+          logger.info("EEE") # skipped
+          logger.warn("FFF") # skipped
+          logger.error("GGG") # captured
+        end
+        logger.error("HHH") # captured
+      end
+
+      logger.debug("III")
+
+      want_info = <<~END
+        INFO:AAA
+        DEBUG:CCC
+        INFO:DDD
+        ERROR:GGG
+        ERROR:HHH
+      END
+
+      want_warn = <<~END
+        DEBUG:CCC
+        INFO:DDD
+        ERROR:GGG
+        ERROR:HHH
+      END
+
+      assert_equal(want_info, info_buf.string)
+      assert_equal(want_warn, warn_buf.string)
+    end
+
     Logger::Severity.constants.each do |level_name|
       method = level_name.downcase
       level = Logger::Severity.const_get(level_name)
