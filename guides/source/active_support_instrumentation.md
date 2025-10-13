@@ -7,10 +7,10 @@ Active Support Instrumentation
 
 One of its key features is the Instrumentation API, which is described in further detail in this guide. You will learn:
 
-* What instrumentation provides.
-* How to add a subscriber to a hook.
+* About Instrumentation
+* How to instrument your own events.
+* How to subscribe to events.
 * The instrumentation hooks available inside Rails.
-* How to build your own custom instrumentation.
 
 --------------------------------------------------------------------------------
 
@@ -21,88 +21,25 @@ The Instrumentation API provides a way to instrument code and subscribe to event
 
 ### Hooks
 
-Hooks help us observe behavior **within the Rails framework**; these hooks are predefined points in the framework where an event is emitted. By subscribing to an event from a hook, you can run your own code whenever that event occurs.
+Hooks help us observe behavior within the Rails framework; these hooks are predefined points in the framework where an event is emitted. By subscribing to an event from a hook, you can run your own code whenever that event occurs.
 
 For example, there is [a hook](#sql-active-record) that is called every time Active Record executes a SQL query on a database. This hook can be subscribed to, and used to track the number of queries during a certain action. There's [another hook](#process-action-action-controller) which is called when processing an action of a controller. This hook can be subscribed to, and used to track how long a specific action has taken. You can read more about hooks in the [Rails framework hooks section](#rails-framework-hooks) later in this guide.
 
 ### Events
 
-An event is generated when a hook is triggered - it is a record of something that has happened. You can use events to track changes in your application.
+An event is generated when a hook is triggered or when you've [instrumented your own event](#instrumenting-custom-events). It is a record of something that has happened. You can use events to track changes in your application.
 
-For example, when the [process-action-action-controller hook](#process-action-action-controller) is triggered, then an event is generated. This event has a name and optional data. The name is `process_action.action_controller` and the data includes the controller name, action name, and other information about the request.
+For example, when the [`process_action.action_controller`](#process-action-action-controller) hook is triggered, then an event is generated. This event has a name and optional data. The name is `process_action.action_controller` and the data includes the controller name, action name, and other information about the request.
 
-You are also able to [instrument your own events](#creating-custom-events) inside your application which you can later subscribe to.
+You can read more about creating your own events and subscribing to events in the  [Instrumenting Custom Events section](#instrumenting-custom-events) and [Subscribing to an Event section](#subscribing-to-an-event) respectively.
 
 ### Subscribers
 
-A subscriber is the object that is used to subscribe to events. It is used to listen to events and perform some action when an event is triggered.
+A subscriber is the object that is used to subscribe to events. It is used to listen to events and perform some action when an event is emitted.
 
-For example, if you want to subscribe to the `process_action.action_controller` event and benchmark it, then you can create a subscriber that listens to that event. The subscriber will then be able to perform other actions when the event is triggered, such as logging the duration of the action.
+For example, if you want to subscribe to the `process_action.action_controller` event and benchmark it, then you can create a subscriber that listens to that event. The subscriber will then be able to perform other actions when the event is emitted, such as logging the duration of the action.
 
-A single event can have multiple subscribers.
-
-Subscribing to an Event
------------------------
-
-As mentioned [above](#introduction-to-instrumentation), an event is generated when a hook is triggered within the Rails framework. You can subscribe to these events by using the [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe) method. Depending on the amount of arguments the block takes, you will receive different data.
-
-You can use a block with a _single_ argument, where that argument is an instance of [`ActiveSupport::Notifications::Event`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html), and what we've referred to earlier as the `event` object triggered by the hook.
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
-  Rails.logger.info "#{event.name}" # process_action.action_controller Received!
-  Rails.logger.info "#{event.duration}" # 10 (in milliseconds)
-  Rails.logger.info "#{event.allocations}" # 1826
-  Rails.logger.info "#{event.payload}" # {:extra=>information}
-end
-```
-
-If you don't need all the data recorded by an Event object, you can also specify a
-block that takes the following arguments:
-
-* Name of the event
-* Time when it started
-* Time when it finished
-* A unique ID for the instrumenter that fired the event
-* The payload for the event
-
-```ruby
-ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
-  Rails.logger.info "#{name} Received! (started: #{started}, finished: #{finished})" # process_action.action_controller Received! (started: 2019-05-05 13:43:57 -0800, finished: 2019-05-05 13:43:58 -0800)
-end
-```
-
-If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time, then use [`ActiveSupport::Notifications.monotonic_subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe). The given block will receive the same arguments as above, but the `started` and `finished` values will have an accurate monotonic time instead of wall-clock time.
-
-```ruby
-ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
-  duration = finished - started # 1560979.429234 - 1560978.425334
-  Rails.logger.info "#{name} Received! (duration: #{duration})" # process_action.action_controller Received! (duration: 1.0039)
-end
-```
-
-You may also subscribe to events matching a regular expression. This enables you to subscribe to
-multiple events at once. Here's how to subscribe to everything from `ActionController`:
-
-```ruby
-ActiveSupport::Notifications.subscribe(/action_controller/) do |**args|
-  Rails.logger.info "#{args}"
-end
-```
-
-In your Rails log, you'll see one line for each ActionController event. Example:
-
-```bash
-INFO -- : {:name=>"start_processing.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :params=>{"controller"=>"posts", "action"=>"index"}, :format=>:html, :method=>"GET", :path=>"/posts"}}
-INFO -- : {:name=>"process_action.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :status=>200, :view_runtime=>12.34, :db_runtime=>3.21}}
-```
-
-In the case of subscribing to a custom event, you can use the methods as described above, but with the `name` of your custom event. Example:
-```ruby
-ActiveSupport::Notifications.subscribe "my.custom.event" do |event|
-  Rails.logger.info "#{event.name}" # my.custom.event
-end
-```
+A single event can have multiple subscribers. You can read more about subscribers in the [Subscribing to an Event section](#subscribing-to-an-event).
 
 Instrumenting Custom Events
 ---------------------------
@@ -125,7 +62,7 @@ ActiveSupport::Notifications.instrument "publish.posts", {title: "My Post", auth
 end
 ```
 
-When given a block, Active Support measures the block's execution (start time, end time, and duration), then emits the event with that data plus your payload. The event is emitted after the block completes.
+When given a block (like the example above), Active Support measures the block's execution, i.e. the start time, end time, and duration, and then emits the event with that data plus your payload. The event is emitted after the block completes.
 
 You can also instrument an event without a block:
 
@@ -136,6 +73,81 @@ ActiveSupport::Notifications.instrument "my.custom.event", this: "data"
 In this case, no code is measured. The event is emitted immediately with the payload you provide to notify subscribers that something happened, without executing or measuring a block of code.
 
 Once you've emitted an event, you can subscribe to it as described at the end of the [Subscribing to an Event section](#subscribing-to-an-event).
+
+Subscribing to an Event
+-----------------------
+
+As mentioned [in the introduction](#introduction-to-instrumentation), an event is generated when a hook is triggered [within the Rails framework](#rails-framework-hooks) or when [you've instrumented your own event](#instrumenting-custom-events). You can subscribe to these events by using the [`ActiveSupport::Notifications.subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-subscribe) method.
+
+To do this, call the `ActiveSupport::Notifications.subscribe` method with the name of the event you want to subscribe to, and a block. This block will be called when the event is emitted.
+
+In the example below, the block takes a _single_ argument `event`, where `event` is an instance of [`ActiveSupport::Notifications::Event`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications/Event.html).
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |event|
+  Rails.logger.info "#{event.name}" # process_action.action_controller
+  Rails.logger.info "#{event.duration}" # 10 (in milliseconds)
+  Rails.logger.info "#{event.allocations}" # 1826
+  Rails.logger.info "#{event.payload}" # {:extra=>information}
+end
+```
+
+If you don't need all the data recorded by an `Event` object, you can specify a
+block with the following arguments instead:
+
+```ruby
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
+  Rails.logger.info "name: #{name}" # process_action.action_controller
+  Rails.logger.info "started: #{started}" #   2025-10-13 10:00:40 -0700
+  Rails.logger.info "finished: #{finished}"   # 2025-10-13 10:00:50 -0700
+  Rails.logger.info "unique_id: #{unique_id}" # a3f2e9...
+  Rails.logger.info "payload: #{payload}" # {:extra=>information}
+end
+```
+
+If you are concerned about the accuracy of `started` and `finished` to compute a precise elapsed time, then use [`ActiveSupport::Notifications.monotonic_subscribe`](https://api.rubyonrails.org/classes/ActiveSupport/Notifications.html#method-c-monotonic_subscribe). The given block will receive the same arguments as above, but the `started` and `finished` values will have an accurate monotonic time instead of wall-clock time.
+
+```ruby
+ActiveSupport::Notifications.monotonic_subscribe "process_action.action_controller" do |name, started, finished, unique_id, payload|
+  duration = finished - started # 1560979.429234 - 1560978.425334
+  Rails.logger.info "#{name} Received! (duration: #{duration})" # process_action.action_controller Received! (duration: 1.0039)
+end
+```
+
+### Subscribing to a Custom Event
+
+In the case of subscribing to a custom event, you can use the methods as described above, but with the `name` of your custom event instead. For example:
+
+```ruby
+ActiveSupport::Notifications.subscribe "my.custom.event" do |event|
+  Rails.logger.info "#{event.name}" # my.custom.event
+end
+```
+
+### Subscribing to Multiple Events
+
+You may also subscribe to events matching a regular expression. This enables you to subscribe to
+multiple events at once. Here's how to subscribe to everything from `ActionController`:
+
+```ruby
+ActiveSupport::Notifications.subscribe(/action_controller/) do |**args|
+  Rails.logger.info "#{args}"
+end
+```
+
+In your Rails log, you'll see one line for each ActionController event. Example:
+
+```bash
+INFO -- : {:name=>"start_processing.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :params=>{"controller"=>"posts", "action"=>"index"}, :format=>:html, :method=>"GET", :path=>"/posts"}}
+INFO -- : {:name=>"process_action.action_controller", :id=>"a3f2e9...", :payload=>{:controller=>"PostsController", :action=>"index", :status=>200, :view_runtime=>12.34, :db_runtime=>3.21}}
+```
+
+### Subscribing to a Single Event using Multiple Subscribers
+
+You can subscribe to a single event using multiple subscribers. This is useful if you want to subscribe to an event from multiple sources.
+
+For example, you may want to subscribe to a `publish.posts` event from multiple sources to kick off a background job to send an email to the post author, and to also log the event.
+
 
 Rails Framework Hooks
 ----------------------
