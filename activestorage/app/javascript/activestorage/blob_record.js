@@ -1,7 +1,7 @@
 import { getMetaValue } from "./helpers"
 
 export class BlobRecord {
-  constructor(file, checksum, url, customHeaders = {}) {
+  constructor(file, checksum, url, customHeaders = {}, key = null) {
     this.file = file
 
     this.attributes = {
@@ -10,7 +10,9 @@ export class BlobRecord {
       byte_size: file.size,
       checksum: checksum
     }
-
+    if (key) {
+      this.attributes.key = key
+    }
     this.xhr = new XMLHttpRequest
     this.xhr.open("POST", url, true)
     this.xhr.responseType = "json"

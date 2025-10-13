@@ -94,4 +94,19 @@
 
     *Edouard-chin*
 
+*   Allow passing a custom key prefix during direct upload.
+
+    You can now pass a `data-key` with a prefix like `uploads/<uuid>/<uuid>/` in a file input, and Active Storage will automatically append a secure token to generate the final key.
+
+    Example:
+
+    ```erb
+    <%= form.file_field :file, direct_upload: true, data: { key: "uploads/#{current_user.id}/#{SecureRandom.uuid}/" } %>
+    ```
+
+    This enables more structured and predictable object paths when uploading files.
+
+    *Himanshu Kale*
+
+
 Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activestorage/CHANGELOG.md) for previous changes.
