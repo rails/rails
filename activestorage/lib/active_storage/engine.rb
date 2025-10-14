@@ -149,6 +149,7 @@ module ActiveStorage
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.default_url_options = app.config.active_storage.default_url_options || {}
         if app.config.active_storage.checksum_implementation
           ActiveStorage.checksum_implementation = app.config.active_storage.checksum_implementation
         end

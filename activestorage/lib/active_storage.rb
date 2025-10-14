@@ -362,6 +362,8 @@ module ActiveStorage
 
   mattr_accessor :track_variants, default: false
 
+  mattr_accessor :default_url_options, default: {}
+
   singleton_class.attr_accessor :checksum_implementation
   @checksum_implementation = OpenSSL::Digest::MD5
   begin
