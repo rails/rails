@@ -1,3 +1,19 @@
+*   Allow passing method name or proc to `allow_nil` and `allow_blank`
+
+    ```ruby
+    class EnrollmentForm
+      include ActiveModel::Validations
+
+      attr_accessor :course
+
+      validates :course,
+                inclusion: { in: :open_courses },
+                allow_nil: :saving_progress?
+    end
+    ```
+
+    *Richard Lynch*
+
 *   Add `reset_token: { expires_in: ... }` option to `has_secure_password`.
 
     Allows configuring the expiry duration of password reset tokens (default remains 15 minutes for backwards compatibility).
