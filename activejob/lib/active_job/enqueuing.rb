@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record"
+
 module ActiveJob
   # Provides behavior for enqueuing jobs.
 
@@ -50,7 +52,7 @@ module ActiveJob
       # It can be set on a per job basis:
       #  - true forces the job to be deferred.
       #  - false forces the job to be queued immediately.
-      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: false
+      class_attribute :enqueue_after_transaction_commit, instance_accessor: false, instance_predicate: false, default: true
     end
 
     # Includes the +perform_later+ method for job initialization.
