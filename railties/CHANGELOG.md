@@ -1,3 +1,7 @@
+*   Suggest `bin/rails action_text:install` from Action Dispatch error page
+
+    *Sean Doyle*
+
 *   Remove deprecated `STATS_DIRECTORIES`.
 
     *Rafael Mendonça França*
