@@ -35,6 +35,11 @@ module ActiveJob
       # * <tt>:priority</tt> - Re-enqueues the job with a different priority
       # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
       # * <tt>:report</tt> - Errors will be reported to the Rails.error reporter before being retried
+      # * <tt>:restart</tt> - Determines whether a job that includes +ActiveJob::Continuable+ should resume
+      #   from its last saved checkpoint or restart from the beginning when retried.
+      #   Defaults to +false+, meaning the job will continue from where it left off.
+      #   Set to +true+ to discard any saved progress and start the job from the first step again.
+      #   This option is useful when certain errors require a full restart instead of resuming a partial execution.
       #
       # ==== Examples
       #
@@ -61,12 +66,12 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false, restart: false)
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
             ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
-            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error
+            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, jitter: jitter), queue: queue, priority: priority, error: error, restart: restart
           else
             if block_given?
               instrument :retry_stopped, error: error do
@@ -143,6 +148,8 @@ module ActiveJob
     # * <tt>:wait_until</tt> - Enqueues the job at the time specified
     # * <tt>:queue</tt> - Enqueues the job on the specified queue
     # * <tt>:priority</tt> - Enqueues the job with the specified priority
+    # * <tt>:restart</tt> - Determines whether a job that includes +ActiveJob::Continuable+ should resume
+    #   from its last saved checkpoint or restart from the beginning.
     #
     # ==== Examples
     #
@@ -158,6 +165,10 @@ module ActiveJob
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
         scheduled_at, queue_name, priority = self.scheduled_at, self.queue_name, self.priority
+        if is_a?(ActiveJob::Continuable) && options.fetch(:restart, false)
+          self.resumptions += 1
+          self.continuation = Continuation.new(self, {})
+        end
         enqueue options
       ensure
         self.scheduled_at, self.queue_name, self.priority = scheduled_at, queue_name, priority
