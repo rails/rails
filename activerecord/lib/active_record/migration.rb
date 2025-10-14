@@ -688,24 +688,6 @@ module ActiveRecord
         delegate || superclass.nearest_delegate
       end
 
-      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
-      # for all database configurations in an environment.
-      def check_all_pending!
-        pending_migrations = []
-
-        ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(env: env) do |pool|
-          if pending = pool.migration_context.open.pending_migrations
-            pending_migrations << pending
-          end
-        end
-
-        migrations = pending_migrations.flatten
-
-        if migrations.any?
-          raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
-        end
-      end
-
       def load_schema_if_pending!
         if any_schema_needs_update?
           load_schema!
@@ -736,13 +718,16 @@ module ActiveRecord
         @disable_ddl_transaction = true
       end
 
-      def check_pending_migrations # :nodoc:
+      # Raises ActiveRecord::PendingMigrationError error if any migrations are pending
+      # for all database configurations in an environment.
+      def check_pending_migrations
         migrations = pending_migrations
 
         if migrations.any?
           raise ActiveRecord::PendingMigrationError.new(pending_migrations: migrations)
         end
       end
+      alias :check_all_pending! :check_pending_migrations
 
       private
         def any_schema_needs_update?
