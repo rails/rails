@@ -134,8 +134,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_app_update_does_not_generate_public_files
-    skip "bundler-audit does not support Ruby 3.5.0dev yet" unless Gem.loaded_specs.key?("bundler-audit")
-
     run_generator
     run_app_update
 

@@ -97,10 +97,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
 
-  setup do
-    skip "bundler-audit does not support Ruby 3.5.0dev yet" unless Gem.loaded_specs.key?("bundler-audit")
-  end
-
   def default_files
     ::DEFAULT_APP_FILES
   end
