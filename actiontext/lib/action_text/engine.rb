@@ -16,6 +16,10 @@ module ActionText
     config.eager_load_namespaces << ActionText
 
     config.action_text = ActiveSupport::OrderedOptions.new
+    config.action_text.editors = ActiveSupport::InheritableOptions.new(
+      trix: {}
+    )
+    config.action_text.editor = :trix
     config.action_text.attachment_tag_name = "action-text-attachment"
     config.autoload_once_paths = %W(
       #{root}/app/helpers
@@ -52,6 +56,11 @@ module ActionText
         end
 
         def to_trix_content_attachment_partial_path
+          to_editor_content_attachment_partial_path
+        end
+        deprecate :to_trix_content_attachment_partial_path, deprecator: ActionText.deprecator
+
+        def to_editor_content_attachment_partial_path
           nil
         end
       end
@@ -61,6 +70,16 @@ module ActionText
       %i[action_controller_base action_mailer].each do |base|
         ActiveSupport.on_load(base) do
           helper ActionText::Engine.helpers
+        end
+      end
+    end
+
+    initializer "action_text.editors" do |app|
+      ActiveSupport.on_load :action_text_rich_text do
+        self.editors = Editor::Registry.new(app.config.action_text.editors)
+
+        if (editor_name = app.config.action_text.editor)
+          self.editor = editors.fetch(editor_name)
         end
       end
     end
