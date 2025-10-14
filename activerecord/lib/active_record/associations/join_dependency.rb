@@ -190,7 +190,7 @@ module ActiveRecord
         def make_constraints(parent, child, join_type)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflection_chain|
+          join_data = child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker) do |reflection, remaining_reflection_chain|
             table, terminated = @joined_tables[remaining_reflection_chain]
             root = reflection == child.reflection
 
@@ -208,7 +208,15 @@ module ActiveRecord
 
             @joined_tables[remaining_reflection_chain] ||= [table, root] if join_type == Arel::Nodes::OuterJoin
             table
-          end.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
+          end
+
+          child.children.flat_map do |c|
+            child_join_data = make_constraints(child, c, join_type)
+            join_data[:joins].concat(child_join_data[:joins])
+            join_data[:where_conditions].concat(child_join_data[:where_conditions])
+          end
+
+          join_data
         end
 
         def walk(left, right, join_type)
