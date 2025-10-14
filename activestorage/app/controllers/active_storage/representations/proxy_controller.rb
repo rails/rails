@@ -2,8 +2,8 @@
 
 # Proxy files through application. This avoids having a redirect and makes files easier to cache.
 #
-# WARNING: All Active Storage controllers are publicly accessible by default. If your files require
-# access control consider implementing
+# WARNING: All Active Storage controllers are publicly accessible by default. The generated URLs are permanent by
+# design. If your files require access control consider implementing
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Representations::ProxyController < ActiveStorage::Representations::BaseController
   include ActiveStorage::Streaming
