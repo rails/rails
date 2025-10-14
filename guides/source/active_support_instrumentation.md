@@ -287,10 +287,11 @@ Additional keys may be added by the caller.
 #### `redirect.action_dispatch`
 
 | Key         | Value                                    |
-| ----------- | ---------------------------------------- |
-| `:status`   | HTTP response code                       |
-| `:location` | URL to redirect to                       |
-| `:request`  | The [`ActionDispatch::Request`][] object |
+| ------------------ | ---------------------------------------- |
+| `:status`          | HTTP response code                       |
+| `:location`        | URL to redirect to                       |
+| `:request`         | The [`ActionDispatch::Request`][] object |
+| `:source_location` | Source location of redirect in routes    |
 
 #### `request.action_dispatch`
 

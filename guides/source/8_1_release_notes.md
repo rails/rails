@@ -96,6 +96,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Notable changes
 
+*   Redirects are now verbose in development for new Rails apps. To enable it in an existing app, add `config.action_dispatch.verbose_redirect_logs = true` to your `config/development.rb` file.
+
 Action View
 -----------
 
