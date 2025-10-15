@@ -9,15 +9,15 @@ module ActiveRecord
       end
 
       def create
-        raise DatabaseAlreadyExists if File.exist?(db_config.database)
+        file = ConnectionAdapters::SQLite3Adapter.resolve_path(db_config.database)
+        raise DatabaseAlreadyExists if File.exist?(file)
 
         establish_connection
         connection
       end
 
       def drop
-        db_path = db_config.database
-        file = File.absolute_path?(db_path) ? db_path : File.join(root, db_path)
+        file = ConnectionAdapters::SQLite3Adapter.resolve_path(db_config.database, root: root)
         FileUtils.rm(file)
         FileUtils.rm_f(["#{file}-shm", "#{file}-wal"])
       rescue Errno::ENOENT => error
