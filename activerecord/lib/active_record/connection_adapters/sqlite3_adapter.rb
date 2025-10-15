@@ -639,8 +639,8 @@ module ActiveRecord
             yield definition if block_given?
           end
 
-          transaction do
-            disable_referential_integrity do
+          disable_referential_integrity do
+            transaction do
               move_table(table_name, altered_table_name, options.merge(temporary: true))
               move_table(altered_table_name, table_name, &caller)
             end
