@@ -968,11 +968,13 @@ Update `app/views/store/wishlists/index.html.erb` by adding the following form:
 <%= render @wishlists %>
 ```
 
-We've updated the header to display a count of wishlists which will be helpful
-when we apply a filter. The form also reads from the URL's query params to
-pre-select an option in the select boxes if a filter is applied. This form
-submits to the `index` action so it can be used for displaying all records or a
-filtered set of records.
+We've updated the header to show the total number of wishlists, which makes it
+easier to see how many results match when a filter is applied. When you submit
+the form, Rails adds your selected filters to the URL as query params. The form
+then reads those values when loading the page to automatically re-select the
+same options in the dropdowns, so your choices stay visible after submitting.
+Since the form submits to the index action, so it can display either all
+wishlists or just the filtered results.
 
 To make this work, we need to apply these filters in our SQL query with
 Active Record. Update the controller to include these filters:
@@ -995,7 +997,8 @@ Active Record queries are _lazy evaluated_ which means SQL queries aren't execut
 until you ask for the results. This allows our controller to build up the query
 step-by-step and include filters if needed.
 
-Try filtering wishlists to a specific user or product or both.
+Once you have more wishlists in the system, you can use the filters to view
+wishlists by a specific user, product, or a combination of both.
 
 ### Refactoring Filters
 
