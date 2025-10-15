@@ -667,7 +667,11 @@ module ActiveRecord
           if insert.raw_update_sql?
             sql << insert.raw_update_sql
           else
-            sql << insert.touch_model_timestamps_unless { |column| "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}" }
+            sql << insert.touch_model_timestamps_unless do |column, type|
+              column = cast_column_for_comparison(column, type)
+              "#{insert.model.quoted_table_name}.#{column} IS NOT DISTINCT FROM excluded.#{column}"
+            end
+
             sql << insert.updatable_columns.map { |column| "#{column}=excluded.#{column}" }.join(",")
           end
         end
@@ -1096,6 +1100,10 @@ module ActiveRecord
               result.getvalue(0, 0)
             end
           end
+        end
+
+        def cast_column_for_comparison(column, type)
+          type == :json ? "#{column}::jsonb" : column
         end
 
         def add_pg_encoders
