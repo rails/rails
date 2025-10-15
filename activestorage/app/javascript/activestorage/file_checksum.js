@@ -1,9 +1,11 @@
 import { md5Algorithm } from "./algorithms/md5_algorithm"
+import { sha256Algorithm } from "./algorithms/sha256_algorithm"
 
 const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
 
 const CHECKSUM_ALGORITHMS = {
-  md5: md5Algorithm
+  md5: md5Algorithm,
+  sha256: sha256Algorithm,
 }
 
 export class FileChecksum {
