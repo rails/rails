@@ -1,3 +1,7 @@
+*   Show help hint when starting `bin/rails console`
+
+    *Petrik de Heus*
+
 *   Persist `/rails/info/routes` search query and results between page reloads.
 
     *Ryan Kulp*
