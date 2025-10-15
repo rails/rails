@@ -368,6 +368,8 @@ module Rails
           if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
           end
+        when "8.2"
+          load_defaults "8.1"
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

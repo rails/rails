@@ -317,8 +317,14 @@ class Releaser < Rake::TaskLib
     def gem_otp(gem_path)
       " --otp " + ykman("rubygems.org")
     rescue
+      attestation(gem_path)
+    end
+
+    def attestation(gem_path)
       sh "sigstore-cli sign #{gem_path} --bundle #{gem_path}.sigstore.json"
       " --attestation #{gem_path}.sigstore.json"
+    rescue
+      ""
     end
 
     def ykman(service)
