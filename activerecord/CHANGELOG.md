@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Add replicas to test database parallelization setup.
 
     Setup and configuration of databases for parallel testing now includes replicas.

@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Add link-local IP ranges to `ActionDispatch::RemoteIp` default proxies.
 
     Link-local addresses (`169.254.0.0/16` for IPv4 and `fe80::/10` for IPv6)

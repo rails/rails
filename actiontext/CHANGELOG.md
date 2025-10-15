@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   De-couple `@rails/actiontext/attachment_upload.js` from `Trix.Attachment`
 
     Implement `@rails/actiontext/index.js` with a `direct-upload:progress` event

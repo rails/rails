@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   The BEGIN template annotation/comment was previously printed on the same line as the following element. We now insert a newline inside the comment so it spans two lines without adding visible whitespace to the HTML output to enhance readability.
 
     Before:

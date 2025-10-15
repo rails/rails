@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Add `reset_token: { expires_in: ... }` option to `has_secure_password`.
 
     Allows configuring the expiry duration of password reset tokens (default remains 15 minutes for backwards compatibility).

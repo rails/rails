@@ -1,3 +1,8 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   In the Active Job bug report template set the queue adapter to the

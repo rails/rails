@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Add structured events for Active Job:
     - `active_job.enqueued`
     - `active_job.bulk_enqueued`

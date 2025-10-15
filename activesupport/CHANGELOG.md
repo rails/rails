@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Remove deprecated passing a Time object to `Time#since`.
 
     *Rafael Mendonça França*

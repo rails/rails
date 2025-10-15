@@ -1,3 +1,5 @@
+## Rails 8.1.0.rc1 (October 15, 2025) ##
+
 *   Add structured events for Action Mailer:
     - `action_mailer.delivered`
     - `action_mailer.processed`
