@@ -1115,6 +1115,48 @@ Let's refactor this to use these helpers:
 </div>
 ```
 
+### Displaying Flash Messages
+
+The
+[Flash](https://edgeapi.rubyonrails.org/classes/ActionDispatch/Flash.html)
+provides a way to pass temporary messages between actions. You'll commonly use
+it to display success messages or errors to users after they perform an action
+like creating or updating a record.
+
+Flash messages are stored temporarily and cleared automatically after being
+displayed. The flash is a hash, so you can use any key you want. Common keys
+are `:notice` for success messages and `:alert` for errors.
+
+Let's add flash messages to the application layout. The layout file wraps around
+all your views, making it the perfect place for elements that appear on every
+page.
+
+Update `app/views/layouts/application.html.erb`:
+
+```erb#11-12
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Store</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  </head>
+
+  <body>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
+
+    <%= yield %>
+  </body>
+</html>
+```
+
+Now we can set flash messages in our controllers to display feedback to users.
+
 ### Creating Products
 
 So far we've had to create products in the Rails console, but let's make this
@@ -1235,6 +1277,7 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be created."
       render :new, status: :unprocessable_entity
     end
   end
@@ -1282,6 +1325,11 @@ should render `app/views/products/new.html.erb`. Since we've set the `@product`
 variable in `create`, we can render that template and the form will be populated
 with our `Product` data even though it wasn't able to be saved in the database.
 
+We use `flash.now[:alert]` to display an error message. The `.now` is important
+here because we're rendering (not redirecting). Regular `flash` messages persist
+to the next request, but `flash.now` makes the message available in the current
+request only. Without `.now`, the error message would show up on the wrong page.
+
 We also set the HTTP status to 422 Unprocessable Entity to tell the browser this
 POST request failed and to handle it accordingly.
 
@@ -1311,6 +1359,7 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be created."
       render :new, status: :unprocessable_entity
     end
   end
@@ -1324,6 +1373,7 @@ class ProductsController < ApplicationController
     if @product.update(product_params)
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be updated."
       render :edit, status: :unprocessable_entity
     end
   end
@@ -1377,6 +1427,7 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be created."
       render :new, status: :unprocessable_entity
     end
   end
@@ -1388,6 +1439,7 @@ class ProductsController < ApplicationController
     if @product.update(product_params)
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be updated."
       render :edit, status: :unprocessable_entity
     end
   end
@@ -1485,6 +1537,7 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be created."
       render :new, status: :unprocessable_entity
     end
   end
@@ -1496,6 +1549,7 @@ class ProductsController < ApplicationController
     if @product.update(product_params)
       redirect_to @product
     else
+      flash.now[:alert] = "Product could not be updated."
       render :edit, status: :unprocessable_entity
     end
   end
@@ -1595,11 +1649,14 @@ you want to include in every page like a header or footer.
 Add a small `<nav>` section inside the `<body>` with a link to Home and a Log
 out button and wrap `yield` with a `<main>` tag.
 
-```erb#5-8,10,12
+```erb#8-11,13,15
 <!DOCTYPE html>
 <html>
   <!-- ... -->
   <body>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
+
     <nav>
       <%= link_to "Home", root_path %>
       <%= button_to "Log out", session_path, method: :delete if authenticated? %>
@@ -2085,21 +2142,8 @@ class SubscribersController < ApplicationController
 end
 ```
 
-Our redirect sets a notice in the Rails flash. The flash is used for storing
-messages to display on the next page.
-
-To display the flash message, let's add the notice to
-`app/views/layouts/application.html.erb` inside the body:
-
-```erb#4
-<html>
-  <!-- ... -->
-  <body>
-    <div class="notice"><%= notice %></div>
-    <!-- ... -->
-  </body>
-</html>
-```
+The `notice:` option in `redirect_to` is a convenient shorthand for setting
+`flash[:notice]`.
 
 To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
@@ -2482,6 +2526,10 @@ main {
 
 .notice {
   color: green;
+}
+
+.alert {
+  color: red;
 }
 
 section.product {
