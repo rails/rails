@@ -443,11 +443,12 @@ module ActiveModel
       context_for_validation.context
     end
 
-  private
+    # Sets the context for running validations.
     def validation_context=(context)
       context_for_validation.context = context
     end
 
+  private
     def context_for_validation
       @context_for_validation ||= ValidationContext.new
     end
