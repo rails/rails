@@ -1,3 +1,7 @@
+*   Add structured event for Rails deprecations, when `config.active_support.deprecation` is set to `:notify`.
+
+    *zzak*
+
 *   Report unhandled exceptions to the Error Reporter when running rake tasks via Rails command.
 
     *Akimichi Tanei*
