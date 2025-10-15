@@ -1,3 +1,7 @@
+*   Persist `/rails/info/routes` search query and results between page reloads.
+
+    *Ryan Kulp*
+
 *   Remove deprecated `STATS_DIRECTORIES`.
 
     *Rafael Mendonça França*
