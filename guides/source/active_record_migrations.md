@@ -162,6 +162,8 @@ class CreateProducts < ActiveRecord::Migration[8.2]
 end
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `name` instead of `name:string`), Rails will default to type `string`.
+
 The generated file with its contents is just a starting point, and you can add
 or remove from it as you see fit by editing the
 `db/migrate/YYYYMMDDHHMMSS_create_products.rb` file.

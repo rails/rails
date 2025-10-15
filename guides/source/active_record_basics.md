@@ -205,6 +205,8 @@ SQL. A migration for the `books` table above can be generated like this:
 $ bin/rails generate migration CreateBooks title:string author:string
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `title` instead of `title:string`), Rails will default to type `string`.
+
 and results in this:
 
 ```ruby
