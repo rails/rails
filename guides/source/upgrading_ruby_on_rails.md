@@ -82,6 +82,28 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### The negative scopes for enums now include records with `nil` values.
+
+Active Record negative scopes for enums now include records with `nil` values.
+
+```ruby
+class Book < ApplicationRecord
+  enum :status, [:proposed, :written, :published]
+end
+
+book1 = Book.create!(status: :published)
+book2 = Book.create!(status: :written)
+book3 = Book.create!(status: nil)
+
+# Before
+
+Book.not_published # => [book2]
+
+# After
+
+Book.not_published # => [book2, book3]
+```
+
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 

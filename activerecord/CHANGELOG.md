@@ -1,3 +1,7 @@
+*   Fix negative scopes for enums to include records with `nil` values.
+
+    *fatkodima*
+
 *   Improve support for SQLite database URIs.
 
     The `db:create` and `db:drop` tasks now correctly handle SQLite database URIs, and the
