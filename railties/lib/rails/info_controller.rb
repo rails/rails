@@ -19,16 +19,20 @@ class Rails::InfoController < Rails::ApplicationController # :nodoc:
   end
 
   def routes
-    if query = params[:query]
-      query = URI::RFC2396_PARSER.escape query
+    respond_to do |format|
+      format.html do
+        @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
+        @page_title = "Routes"
+      end
 
-      render json: {
-        exact: matching_routes(query: query, exact_match: true),
-        fuzzy: matching_routes(query: query, exact_match: false)
-      }
-    else
-      @routes_inspector = ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
-      @page_title = "Routes"
+      format.json do
+        query = URI::RFC2396_PARSER.escape params[:query]
+
+        render json: {
+          exact: matching_routes(query: query, exact_match: true),
+          fuzzy: matching_routes(query: query, exact_match: false)
+        }
+      end
     end
   end
 

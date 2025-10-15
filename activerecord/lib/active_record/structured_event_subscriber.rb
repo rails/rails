@@ -51,6 +51,7 @@ module ActiveRecord
         cached: payload[:cached],
         lock_wait: payload[:lock_wait],
         binds: binds,
+        duration_ms: event.duration.round(2),
       )
     end
     debug_only :sql

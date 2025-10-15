@@ -10,7 +10,8 @@ module ActionDispatch
         location: payload[:location],
         status: status,
         status_name: Rack::Utils::HTTP_STATUS_CODES[status],
-        duration_ms: event.duration.round(2)
+        duration_ms: event.duration.round(2),
+        source_location: payload[:source_location]
       })
     end
   end

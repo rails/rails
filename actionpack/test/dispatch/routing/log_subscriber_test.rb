@@ -26,6 +26,7 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
   end
 
   test "verbose redirect logs" do
+    line = __LINE__ + 7
     old_cleaner = ActionDispatch::LogSubscriber.backtrace_cleaner
     ActionDispatch::LogSubscriber.backtrace_cleaner = ActionDispatch::LogSubscriber.backtrace_cleaner.dup
     ActionDispatch::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
@@ -39,7 +40,7 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     wait
 
     assert_equal 3, logs.size
-    assert_match(/↳ #{__FILE__}/, logs[1])
+    assert_match(/↳ #{__FILE__}:#{line}/, logs[1])
   ensure
     ActionDispatch.verbose_redirect_logs = false
     ActionDispatch::LogSubscriber.backtrace_cleaner = old_cleaner

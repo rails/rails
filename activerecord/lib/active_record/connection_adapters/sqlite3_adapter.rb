@@ -70,6 +70,33 @@ module ActiveRecord
         def native_database_types # :nodoc:
           NATIVE_DATABASE_TYPES
         end
+
+        # Returns a filesystem path to the database.
+        #
+        # The configuration's :database value may be a (slightly nonstandard) SQLite URI, so this
+        # method will resolve those URIs to a string path.
+        #
+        # If Rails.root is available, this is guaranteed to be an absolute path.
+        #
+        # See https://www.sqlite.org/uri.html
+        def resolve_path(database, root: nil)
+          database = database.to_s
+          root ||= defined?(Rails.root) ? Rails.root : nil
+
+          path = if database.start_with?("file:/")
+            URI.parse(database).path
+          elsif database.start_with?("file:")
+            URI.parse(database.split("?").first).opaque
+          else
+            database
+          end
+
+          if root.present?
+            File.expand_path(path, root)
+          else
+            path
+          end
+        end
       end
 
       include SQLite3::Quoting
@@ -135,11 +162,10 @@ module ActiveRecord
           raise ArgumentError, "No database file specified. Missing argument: database"
         when ":memory:"
           @memory_database = true
-        when /\Afile:/
         else
-          # Otherwise we have a path relative to Rails.root
-          @config[:database] = File.expand_path(@config[:database], Rails.root) if defined?(Rails.root)
-          dirname = File.dirname(@config[:database])
+          database_path = SQLite3Adapter.resolve_path(@config[:database])
+          @config[:database] = database_path unless @config[:database].to_s.start_with?("file:")
+          dirname = File.dirname(database_path)
           unless File.directory?(dirname)
             begin
               FileUtils.mkdir_p(dirname)
