@@ -299,7 +299,7 @@ store(dev)> Wishlist.last.to_param
 
 You can see that the name was truncated to the closest word to 20 characters.
 
-Alright, close the Rails console and start implementing wishlists in the UI.
+Alright, close the Rails console and let's start implementing wishlists in the UI.
 
 ## Adding Products To Wishlists
 
