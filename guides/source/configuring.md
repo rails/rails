@@ -3153,15 +3153,6 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 `config.active_storage` provides the following configuration options:
 
-#### `config.active_storage.checksum_implementation`
-
-Specify which digest implementation to use for internal checksums.
-The value must respond to Ruby's `Digest` interface.
-
-| Starting with version | The default value is                    |
-| --------------------- | --------------------------------------- |
-| (original)            | `OpenSSL::Digest::MD5` or `Digest::MD5` |
-
 #### `config.active_storage.variant_processor`
 
 Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.

@@ -882,19 +882,21 @@ function autostart() {
 setTimeout(autostart, 1);
 
 class AttachmentUpload {
-  constructor(attachment, element) {
+  constructor(attachment, element, file = attachment.file) {
     this.attachment = attachment;
     this.element = element;
-    this.directUpload = new DirectUpload(attachment.file, this.directUploadUrl, this);
+    this.directUpload = new DirectUpload(file, this.directUploadUrl, this);
+    this.file = file;
   }
   start() {
-    this.directUpload.create(this.directUploadDidComplete.bind(this));
-    this.dispatch("start");
+    return new Promise(((resolve, reject) => {
+      this.directUpload.create(((error, attributes) => this.directUploadDidComplete(error, attributes, resolve, reject)));
+      this.dispatch("start");
+    }));
   }
   directUploadWillStoreFileWithXHR(xhr) {
     xhr.upload.addEventListener("progress", (event => {
       const progress = event.loaded / event.total * 90;
-      this.attachment.setUploadProgress(progress);
       if (progress) {
         this.dispatch("progress", {
           progress: progress
@@ -913,7 +915,6 @@ class AttachmentUpload {
       const estimatedResponseTime = this.estimateResponseTime();
       const responseProgress = Math.min(elapsed / estimatedResponseTime, 1);
       progress = 90 + responseProgress * 9;
-      this.attachment.setUploadProgress(progress);
       this.dispatch("progress", {
         progress: progress
       });
@@ -922,7 +923,6 @@ class AttachmentUpload {
       }
     };
     xhr.addEventListener("loadend", (() => {
-      this.attachment.setUploadProgress(100);
       this.dispatch("progress", {
         progress: 100
       });
@@ -930,7 +930,7 @@ class AttachmentUpload {
     requestAnimationFrame(updateProgress);
   }
   estimateResponseTime() {
-    const fileSize = this.attachment.file.size;
+    const fileSize = this.file.size;
     const MB = 1024 * 1024;
     if (fileSize < MB) {
       return 1e3;
@@ -940,11 +940,11 @@ class AttachmentUpload {
       return 3e3 + fileSize / MB * 50;
     }
   }
-  directUploadDidComplete(error, attributes) {
+  directUploadDidComplete(error, attributes, resolve, reject) {
     if (error) {
-      this.dispatchError(error);
+      this.dispatchError(error, reject);
     } else {
-      this.attachment.setAttributes({
+      resolve({
         sgid: attributes.attachable_sgid,
         url: this.createBlobUrl(attributes.signed_id, attributes.filename)
       });
@@ -960,12 +960,12 @@ class AttachmentUpload {
       detail: detail
     });
   }
-  dispatchError(error) {
+  dispatchError(error, reject) {
     const event = this.dispatch("error", {
       error: error
     });
     if (!event.defaultPrevented) {
-      alert(error);
+      reject(error);
     }
   }
   get directUploadUrl() {
@@ -979,7 +979,11 @@ class AttachmentUpload {
 addEventListener("trix-attachment-add", (event => {
   const {attachment: attachment, target: target} = event;
   if (attachment.file) {
-    const upload = new AttachmentUpload(attachment, target);
-    upload.start();
+    const upload = new AttachmentUpload(attachment, target, attachment.file);
+    const onProgress = event => attachment.setUploadProgress(event.detail.progress);
+    target.addEventListener("direct-upload:progress", onProgress);
+    upload.start().then((attributes => attachment.setAttributes(attributes))).catch((error => alert(error))).finally((() => target.removeEventListener("direct-upload:progress", onProgress)));
   }
 }));
+
+export { AttachmentUpload };
