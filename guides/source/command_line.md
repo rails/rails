@@ -57,10 +57,10 @@ action_mailbox:ingress:postfix     Relay an inbound email from Postfix ...
 action_mailbox:ingress:qmail       Relay an inbound email from Qmail to ...
 action_mailbox:install             Install Action Mailbox and its ...
 ...
-db:fixtures:load                    Load fixtures into the ...
-db:migrate                          Migrate the database ...
-db:migrate:status                   Display status of migrations
-db:rollback                         Roll the schema back to ...
+db:fixtures:load                   Load fixtures into the ...
+db:migrate                         Migrate the database ...
+db:migrate:status                  Display status of migrations
+db:rollback                        Roll the schema back to ...
 ...
 turbo:install                      Install Turbo into the app
 turbo:install:bun                  Install Turbo into the app with bun
@@ -95,7 +95,7 @@ output can be very informative. For example `bin/rails generate model --help`
 prints two pages of description, in addition to usage and options:
 
 ```bash
-$ rails generate model --help
+$ bin/rails generate model --help
 Usage:
   bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 Options:
@@ -111,7 +111,6 @@ Description:
     As a special case, specifying 'password:digest' will generate a
     password_digest field of string type, and configure your generated model and
     tests for use with Active Model has_secure_password (assuming the default ORM and test framework are being used).
-    ...
     ...
 ```
 
@@ -530,14 +529,14 @@ each file that was created by the generator. Rails provides a `destroy` command
 for that reason. You can think of `destroy` as the opposite of `generate`. It'll
 figure out what generate did, and undo it.
 
-INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails
+INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
 d`.
 
 For example, if you meant to generate an `article` model but instead typed
 `artcle`:
 
 ```bash
-$ rails generate model Artcle title:string body:text
+$ bin/rails generate model Artcle title:string body:text
       invoke  active_record
       create    db/migrate/20250808142940_create_artcles.rb
       create    app/models/artcle.rb
@@ -549,7 +548,7 @@ $ rails generate model Artcle title:string body:text
 You can undo the `generate` command with `destroy` like this:
 
 ```bash
-$ rails destroy model Artcle title:string body:text
+$ bin/rails destroy model Artcle title:string body:text
       invoke  active_record
       remove    db/migrate/20250808142940_create_artcles.rb
       remove    app/models/artcle.rb
@@ -731,8 +730,7 @@ psql -h localhost -U myuser myapp_development
 ```
 
 NOTE: The `dbconsole` command supports MySQL (including MariaDB), PostgreSQL,
-and SQLite3. You can also use the alias "db" to invoke the dbconsole: `bin/rails
-db`.
+and SQLite3. You can also use the alias "db" to invoke the dbconsole: `bin/rails db`.
 
 If you are using multiple databases, `bin/rails dbconsole` will connect to the
 primary database by default. You can specify which database to connect to using
@@ -832,13 +830,13 @@ can also narrow down the output of the `routes` command with options like
 
 ```bash
 # Only show routes where the controller name contains "users"
-bin/rails routes --controller users
+$ bin/rails routes --controller users
 
 # Show routes handled by namespace Admin::UsersController
-bin/rails routes -c admin/users
+$ bin/rails routes -c admin/users
 
 # Search by name, path, or controller/action with -g (or --grep)
-bin/rails routes -g users
+$ bin/rails routes -g users
 ```
 
 There is also an option, `bin/rails routes --expanded`, that displays even more
@@ -1016,7 +1014,7 @@ You can remove older compiled assets using `bin/rails assets:clean`. The
 `assets:clean` command allows for rolling deploys that may still be linking to
 an old asset while the new assets are being built.
 
-If you want to clear `public/assets` completely, you can use `bin/rails
+If you want to clear `public/assets` completely, you can use `bin/rails assets:clobber`.
 assets:clobber`.
 
 Managing the Database
@@ -1117,7 +1115,7 @@ explanation of concepts related to database migrations.
 There are two main commands that help with managing the database schema in your
 Rails application: `db:schema:dump` and `db:schema:load`.
 
-**The `db:schema:dump` command** reads your database’s current schema and writes
+The `db:schema:dump` command reads your database’s current schema and writes
 it out to the `db/schema.rb` file (or `db/structure.sql` if you’ve configured
 the schema format to `sql`). After running migrations, Rails automatically calls
 `schema:dump` so your schema file is always up to date (and doesn't need to be
@@ -1127,7 +1125,7 @@ The schema file is a blueprint of your database and it is useful for setting up
 new environments for tests or development. It’s version-controlled, so you can
 see changes to the schema over time.
 
-**The `db:schema:load` command** drops and recreates the database schema from
+The `db:schema:load` command drops and recreates the database schema from
 `db/schema.rb` (or `db/structure.sql`). It does this directly, *without*
 replaying each migration one at a time.
 
@@ -1171,7 +1169,7 @@ database. The `db:system:change` command helps with that by changing the
 `config/database.yml` file and your database gem to the target database.
 
 ```bash
-$ rails db:system:change --to=postgresql
+$ bin/rails db:system:change --to=postgresql
     conflict  config/database.yml
 Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
        force  config/database.yml
