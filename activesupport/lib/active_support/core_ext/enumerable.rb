@@ -212,12 +212,12 @@ module Enumerable
     result = nil
     found = false
 
-    each do |element|
+    each do |*element|
       if found
         raise SoleItemExpectedError, "multiple items found"
       end
 
-      result = element
+      result = element.size == 1 ? element[0] : element
       found = true
     end
 

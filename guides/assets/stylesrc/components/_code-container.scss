@@ -2,7 +2,7 @@
 // Containers
 //
 // These are interstitial elements used throughout the guides, providing help,
-// context, more info, or warnings to readers. 
+// context, more info, or warnings to readers.
 // ----------------------------------------------------------------------------
 
 /* Same bottom margin for special boxes than for regular paragraphs, this way
@@ -44,10 +44,12 @@ dl dd .interstitial {
     padding-left: 1em !important; // remove if icon is restored
     direction: ltr !important;
     text-align: left !important;
+    width: 100%;
+    white-space: normal;
 
     pre {
       margin: 0;
-      overflow: visible; // allows for the blue highlight to be seen
+      white-space: pre;
     }
 
     button.clipboard-button {

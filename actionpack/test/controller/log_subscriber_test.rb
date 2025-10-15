@@ -77,11 +77,11 @@ module Another
     end
 
     def with_exception
-      raise Exception
+      raise Exception, "Oopsie"
     end
 
     def with_rescued_exception
-      raise SpecialException
+      raise SpecialException, "Oops"
     end
 
     def with_action_not_found
@@ -152,6 +152,13 @@ class ACLogSubscriberTest < ActionController::TestCase
     wait
     assert_equal 4, logs.size
     assert_equal "Filter chain halted as :redirector rendered or redirected", logs.third
+  end
+
+  def test_rescue_from_callback
+    get :with_rescued_exception
+    wait
+    assert_equal 3, logs.size
+    assert_match "rescue_from handled Another::LogSubscribersController::SpecialException", logs.second
   end
 
   def test_process_action
@@ -310,6 +317,23 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Redirected to [FILTERED]", logs[1]
   end
 
+  def test_verbose_redirect_logs
+    line = Another::LogSubscribersController.instance_method(:redirector).source_location.last + 1
+    old_cleaner = ActionController::LogSubscriber.backtrace_cleaner
+    ActionController::LogSubscriber.backtrace_cleaner = ActionController::LogSubscriber.backtrace_cleaner.dup
+    ActionController::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
+    ActionDispatch.verbose_redirect_logs = true
+
+    get :redirector
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/↳ #{__FILE__}:#{line}/, logs[2])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+    ActionController::LogSubscriber.backtrace_cleaner = old_cleaner
+  end
+
   def test_send_data
     get :data_sender
     wait
@@ -406,7 +430,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_rescued_exception
     wait
 
-    assert_equal 2, logs.size
+    assert_equal 3, logs.size
     assert_match(/Completed 406/, logs.last)
   end
 

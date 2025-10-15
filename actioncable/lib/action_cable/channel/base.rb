@@ -132,7 +132,10 @@ module ActionCable
               # Except for public instance methods of Base and its ancestors
               ActionCable::Channel::Base.public_instance_methods(true) +
               # Be sure to include shadowed public instance methods of this class
-              public_instance_methods(false)).uniq.map(&:to_s)
+              public_instance_methods(false)).uniq
+
+            methods.reject! { |m| m.start_with?("_") }
+            methods.map!(&:name)
             methods.to_set
           end
         end

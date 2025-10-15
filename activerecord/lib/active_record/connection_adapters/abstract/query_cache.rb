@@ -13,8 +13,6 @@ module ActiveRecord
           dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
             :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
             :exec_insert_all
-
-          base.set_callback :checkin, :after, :unset_query_cache!
         end
 
         def dirties_query_cache(base, *method_names)
@@ -209,15 +207,26 @@ module ActiveRecord
         end
       end
 
-      attr_accessor :query_cache
-
       def initialize(*)
         super
         @query_cache = nil
       end
 
+      attr_writer :query_cache
+
+      def query_cache
+        if @pinned && @owner != ActiveSupport::IsolatedExecutionState.context
+          # With transactional tests, if the connection is pinned, any thread
+          # other than the one that pinned the connection need to go through the
+          # query cache pool, so each thread get a different cache.
+          pool.query_cache
+        else
+          @query_cache
+        end
+      end
+
       def query_cache_enabled
-        @query_cache&.enabled?
+        query_cache&.enabled?
       end
 
       # Enable the query cache within the block.
@@ -256,7 +265,7 @@ module ActiveRecord
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch.
         # Such queries should not be cached.
-        if @query_cache&.enabled? && !(arel.respond_to?(:locked) && arel.locked)
+        if query_cache_enabled && !(arel.respond_to?(:locked) && arel.locked)
           sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
           if async
@@ -280,7 +289,7 @@ module ActiveRecord
 
           result = nil
           @lock.synchronize do
-            result = @query_cache[key]
+            result = query_cache[key]
           end
 
           if result
@@ -299,7 +308,7 @@ module ActiveRecord
           hit = true
 
           @lock.synchronize do
-            result = @query_cache.compute_if_absent(key) do
+            result = query_cache.compute_if_absent(key) do
               hit = false
               yield
             end

@@ -124,6 +124,7 @@ module Rails
       opts[:force] = force
       opts[:skip_thruster] = true
       opts[:skip_brakeman] = true
+      opts[:skip_bundler_audit] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
       opts[:skip_kamal] = true

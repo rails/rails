@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
+
     def redirect(event)
       payload = event.payload
 
       info { "Redirected to #{payload[:location]}" }
+
+      if ActionDispatch.verbose_redirect_logs
+        info { "↳ #{payload[:source_location]}" }
+      end
 
       info do
         status = payload[:status]

@@ -15,7 +15,7 @@ module ActiveSupport
 
     initializer "active_support.isolation_level" do |app|
       config.after_initialize do
-        if level = app.config.active_support.delete(:isolation_level)
+        if level = app.config.active_support.isolation_level
           ActiveSupport::IsolatedExecutionState.isolation_level = level
         end
       end
@@ -38,10 +38,19 @@ module ActiveSupport
       end
     end
 
+    initializer "active_support.set_event_reporter_context_store" do |app|
+      config.after_initialize do
+        if klass = app.config.active_support.event_reporter_context_store
+          ActiveSupport::EventReporter.context_store = klass
+        end
+      end
+    end
+
     initializer "active_support.reset_execution_context" do |app|
       app.reloader.before_class_unload do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.clear
+        ActiveSupport.event_reporter.clear_context
       end
 
       app.executor.to_run do
@@ -51,6 +60,7 @@ module ActiveSupport
       app.executor.to_complete do
         ActiveSupport::CurrentAttributes.clear_all
         ActiveSupport::ExecutionContext.pop
+        ActiveSupport.event_reporter.clear_context
       end
 
       ActiveSupport.on_load(:active_support_test_case) do
@@ -66,6 +76,13 @@ module ActiveSupport
           require "active_support/execution_context/test_helper"
           include ActiveSupport::ExecutionContext::TestHelper
         end
+      end
+    end
+
+    initializer "active_support.set_filter_parameters" do |app|
+      config.after_initialize do
+        ActiveSupport.filter_parameters += Rails.application.config.filter_parameters
+        ActiveSupport.event_reporter.reload_payload_filter
       end
     end
 
@@ -100,10 +117,6 @@ module ActiveSupport
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
       config.eager_load_namespaces << TZInfo
-    end
-
-    initializer "active_support.to_time_preserves_timezone" do |app|
-      ActiveSupport.to_time_preserves_timezone = app.config.active_support.to_time_preserves_timezone
     end
 
     # Sets the default week start

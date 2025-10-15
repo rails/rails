@@ -209,8 +209,6 @@ module ActiveRecord
         }
       end
 
-      # HELPER METHODS ===========================================
-
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
       def error_number(exception) # :nodoc:
@@ -838,6 +836,8 @@ module ActiveRecord
         CR_SERVER_LOST          = 2013
         ER_QUERY_TIMEOUT        = 3024
         ER_FK_INCOMPATIBLE_COLUMNS = 3780
+        ER_CHECK_CONSTRAINT_VIOLATED = 3819
+        ER_CONSTRAINT_FAILED = 4025
         ER_CLIENT_INTERACTION_TIMEOUT = 4031
 
         def translate_exception(exception, message:, sql:, binds:)
@@ -870,6 +870,8 @@ module ActiveRecord
             RangeError.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_NOT_NULL_VIOLATION, ER_DO_NOT_HAVE_DEFAULT
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when ER_CHECK_CONSTRAINT_VIOLATED, ER_CONSTRAINT_FAILED
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT

@@ -48,10 +48,12 @@ module ActiveSupport
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
+  autoload :EventReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
   autoload :Reloader
@@ -110,6 +112,11 @@ module ActiveSupport
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
 
+  @event_reporter = ActiveSupport::EventReporter.new
+  singleton_class.attr_accessor :event_reporter # :nodoc:
+
+  cattr_accessor :filter_parameters, default: [] # :nodoc:
+
   def self.cache_format_version
     Cache.format_version
   end
@@ -119,23 +126,18 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone
-    DateAndTime::Compatibility.preserve_timezone
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
+    @to_time_preserves_timezone
   end
 
   def self.to_time_preserves_timezone=(value)
-    if !value
-      ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
-        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
-      )
-    elsif value != :zone
-      ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
-        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
-      )
-    end
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
 
-    DateAndTime::Compatibility.preserve_timezone = value
+    @to_time_preserves_timezone = value
   end
 
   def self.utc_to_local_returns_utc_offset_times

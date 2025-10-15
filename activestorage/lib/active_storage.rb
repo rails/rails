@@ -74,7 +74,6 @@ module ActiveStorage
     "annotate",
     "antialias",
     "append",
-    "apply",
     "attenuate",
     "authenticate",
     "auto_gamma",
@@ -215,7 +214,6 @@ module ActiveStorage
     "linewidth",
     "liquid_rescale",
     "list",
-    "loader",
     "log",
     "loop",
     "lowlight_color",
@@ -278,7 +276,6 @@ module ActiveStorage
     "rotate",
     "sample",
     "sampling_factor",
-    "saver",
     "scale",
     "scene",
     "screen",
@@ -365,21 +362,13 @@ module ActiveStorage
 
   mattr_accessor :track_variants, default: false
 
-  singleton_class.attr_accessor :checksum_implementation
-  @checksum_implementation = OpenSSL::Digest::MD5
-  begin
-    @checksum_implementation.hexdigest("test")
-  rescue # OpenSSL may have MD5 disabled
-    require "digest/md5"
-    @checksum_implementation = Digest::MD5
-  end
-
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
   module Transformers
     extend ActiveSupport::Autoload
 
     autoload :Transformer
+    autoload :NullTransformer
     autoload :ImageProcessingTransformer
     autoload :Vips
     autoload :ImageMagick

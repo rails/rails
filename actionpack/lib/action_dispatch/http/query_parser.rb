@@ -6,12 +6,21 @@ require "rack"
 module ActionDispatch
   class QueryParser
     DEFAULT_SEP = /& */n
-    COMPAT_SEP = /[&;] */n
     COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n, "&;" => /[&;] */n }
 
-    cattr_accessor :strict_query_string_separator
+    def self.strict_query_string_separator
+      ActionDispatch.deprecator.warn <<~MSG
+        The `strict_query_string_separator` configuration is deprecated have no effect and will be removed in Rails 8.2.
+      MSG
+      @strict_query_string_separator
+    end
 
-    SEMICOLON_COMPAT = defined?(::Rack::QueryParser::DEFAULT_SEP) && ::Rack::QueryParser::DEFAULT_SEP.to_s.include?(";")
+    def self.strict_query_string_separator=(value)
+      ActionDispatch.deprecator.warn <<~MSG
+        The `strict_query_string_separator` configuration is deprecated have no effect and will be removed in Rails 8.2.
+      MSG
+      @strict_query_string_separator = value
+    end
 
     #--
     # Note this departs from WHATWG's specified parsing algorithm by
@@ -25,13 +34,6 @@ module ActionDispatch
       splitter =
         if separator
           COMMON_SEP[separator] || /[#{separator}] */n
-        elsif strict_query_string_separator
-          DEFAULT_SEP
-        elsif SEMICOLON_COMPAT && s.include?(";")
-          if strict_query_string_separator.nil?
-            ActionDispatch.deprecator.warn("Using semicolon as a query string separator is deprecated and will not be supported in Rails 8.1 or Rack 3.0. Use `&` instead.")
-          end
-          COMPAT_SEP
         else
           DEFAULT_SEP
         end

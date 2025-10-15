@@ -14,6 +14,7 @@ module ActionText
     # *   its `aria-label`
     # *   the `name` of its input
     #
+    # Additional options are forwarded to Capybara as filters
     #
     # Examples:
     #
@@ -33,8 +34,14 @@ module ActionText
     #     # <input id="trix_input_1" name="message[content]" type="hidden">
     #     # <trix-editor input="trix_input_1"></trix-editor>
     #     fill_in_rich_textarea "message[content]", with: "Hello <em>world!</em>"
-    def fill_in_rich_textarea(locator = nil, with:)
-      find(:rich_textarea, locator).execute_script("this.editor.loadHTML(arguments[0])", with.to_s)
+    def fill_in_rich_textarea(locator = nil, with:, **)
+      find(:rich_textarea, locator, **).execute_script(<<~JS, with.to_s)
+        if ("value" in this) {
+          this.value = arguments[0]
+        } else {
+          this.editor.loadHTML(arguments[0])
+        }
+      JS
     end
     alias_method :fill_in_rich_text_area, :fill_in_rich_textarea
   end
@@ -44,13 +51,18 @@ end
   Capybara.add_selector rich_textarea do
     label "rich-text area"
     xpath do |locator|
+      xpath = XPath.descendant[[
+        XPath.attribute(:role) == "textbox",
+        (XPath.attribute(:contenteditable) == "") | (XPath.attribute(:contenteditable) == "true")
+      ].reduce(:&)]
+
       if locator.nil?
-        XPath.descendant(:"trix-editor")
+        xpath
       else
         input_located_by_name = XPath.anywhere(:input).where(XPath.attr(:name) == locator).attr(:id)
         input_located_by_label = XPath.anywhere(:label).where(XPath.string.n.is(locator)).attr(:for)
 
-        XPath.descendant(:"trix-editor").where \
+        xpath.where \
           XPath.attr(:id).equals(locator) |
           XPath.attr(:placeholder).equals(locator) |
           XPath.attr(:"aria-label").equals(locator) |

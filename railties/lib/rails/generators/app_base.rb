@@ -106,6 +106,9 @@ module Rails
         class_option :skip_brakeman,       type: :boolean, default: nil,
                                            desc: "Skip brakeman setup"
 
+        class_option :skip_bundler_audit,  type: :boolean, default: nil,
+                                           desc: "Skip bundler-audit setup"
+
         class_option :skip_ci,             type: :boolean, default: nil,
                                            desc: "Skip GitHub CI files"
 
@@ -400,6 +403,10 @@ module Rails
         options[:skip_brakeman]
       end
 
+      def skip_bundler_audit?
+        options[:skip_bundler_audit]
+      end
+
       def skip_ci?
         options[:skip_ci]
       end
@@ -529,8 +536,13 @@ module Rails
         using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
-      def capture_command(command, pattern)
-        `#{command}`[pattern]
+      def capture_command(command, pattern = nil)
+        output = `#{command}`
+        if pattern
+          output[pattern]
+        else
+          output
+        end
       rescue SystemCallError
         nil
       end
@@ -652,6 +664,11 @@ module Rails
         end
       end
 
+      def rails_command(command, command_options = {})
+        command_options[:capture] = true if options[:quiet]
+        super
+      end
+
       def bundle_install?
         !(options[:skip_bundle] || options[:pretend])
       end
@@ -760,11 +777,13 @@ module Rails
       end
 
       def user_default_branch
-        @user_default_branch ||= `git config init.defaultbranch`
+        @user_default_branch ||= capture_command("git config init.defaultbranch").strip.presence || "main"
       end
 
       def git_init_command
-        return "git init" if user_default_branch.strip.present?
+        if capture_command("git config init.defaultbranch").present?
+          return "git init"
+        end
 
         git_version = `git --version`[/\d+\.\d+\.\d+/]
 

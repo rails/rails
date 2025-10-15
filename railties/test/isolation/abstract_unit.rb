@@ -155,7 +155,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
         development:
           <<: *default
@@ -173,7 +173,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000
@@ -263,7 +263,6 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
@@ -501,7 +500,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             primary:
               <<: *default
@@ -517,7 +516,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             <<: *default
             database: #{database_name}_development
@@ -537,7 +536,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_CODESPACES'] %>
             password: 'root'
@@ -563,7 +562,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
           <% if ENV['MYSQL_CODESPACES'] %>
             password: 'root'

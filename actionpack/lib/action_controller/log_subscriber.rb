@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
-  class LogSubscriber < ActiveSupport::LogSubscriber
+  class LogSubscriber < ActiveSupport::LogSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path)
+
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def start_processing(event)
       return unless logger.info?
@@ -49,6 +49,13 @@ module ActionController
     end
     subscribe_log_level :halted_callback, :info
 
+    # Manually subscribed below
+    def rescue_from_callback(event)
+      exception = event.payload[:exception]
+      info { "rescue_from handled #{exception.class} (#{exception.message}) - #{exception.backtrace.first.delete_prefix("#{Rails.root}/")}" }
+    end
+    subscribe_log_level :rescue_from_callback, :info
+
     def send_file(event)
       info { "Sent file #{event.payload[:path]} (#{event.duration.round(1)}ms)" }
     end
@@ -56,6 +63,10 @@ module ActionController
 
     def redirect_to(event)
       info { "Redirected to #{event.payload[:location]}" }
+
+      if ActionDispatch.verbose_redirect_logs && (source = redirect_source_location)
+        info { "↳ #{source}" }
+      end
     end
     subscribe_log_level :redirect_to, :info
 
@@ -89,6 +100,10 @@ module ActionController
 
     def logger
       ActionController::Base.logger
+    end
+
+    def redirect_source_location
+      backtrace_cleaner.first_clean_frame
     end
   end
 end
