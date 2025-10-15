@@ -176,7 +176,7 @@ We've specified a column name to update on the associated models. For the
 want to use `products_count`. These counter caches update anytime a
 `WishlistProduct` is created or destroyed.
 
-The uniqueness validation also tells Rails to check if a product is already on
+The `uniqueness` validation also tells Rails to check if a product is already on
 the wishlist. This is paired with the unique index on the wishlist_product table
 so that it's also validated at the database level.
 
@@ -395,7 +395,7 @@ The `create` action is also simpler than normal. If a product is already on the
 wishlist, the `wishlist_product` record will fail to create but we don't need to
 notify the user of this error so we can redirect to the wishlist in either case.
 
-Now, log in as the user we created a wishlist for earlier and try adding a product to the 
+Now, log in as the user we created a wishlist for earlier and try adding a product to the
 wishlist.
 
 ### Default Wishlist
@@ -648,7 +648,7 @@ wishlists.
 
 ### Copy To Clipboard
 
-To make sharing wishlists easier, we can add a “Copy to Clipboard” button that uses a small amount of JavaScript. 
+To make sharing wishlists easier, we can add a “Copy to Clipboard” button that uses a small amount of JavaScript.
 
 Rails includes Hotwire by default, so we can use its [Stimulus framework](https://stimulus.hotwired.dev/)
  to add some lightweight JavaScript to our UI.
@@ -1041,7 +1041,7 @@ calling
 [`all`](https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-all)
 which returns an `ActiveRecord::Relation` for all the records including any
 conditions we may have already applied. Then we apply the filters and return the
-results. 
+results.
 
 Refactoring like this means the controller becomes cleaner, while the filtering logic now lives in the model where it belongs, alongside other database-related logic. This follows the **Fat Model, Skinny Controller** principle, a best practice in Rails.
 
