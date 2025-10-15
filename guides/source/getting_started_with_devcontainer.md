@@ -114,7 +114,7 @@ You can open the terminal within VS Code to verify that Rails is installed:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.2.0
 ```
 
 You can now continue with the [Getting Started guide](getting_started.html) and

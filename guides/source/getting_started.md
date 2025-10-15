@@ -73,7 +73,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 For this project, you will need:
 
 * Ruby 3.2 or newer
-* Rails 8.1.0 or newer
+* Rails 8.2.0 or newer
 * A code editor
 
 Follow the [Install Ruby on Rails Guide](install_ruby_on_rails.html) if you need
@@ -85,10 +85,10 @@ printed out:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.2.0
 ```
 
-The version shown should be Rails 8.1.0 or higher.
+The version shown should be Rails 8.2.0 or higher.
 
 ### Creating Your First Rails App
 
@@ -190,7 +190,7 @@ your Rails application:
 
 ```bash
 => Booting Puma
-=> Rails 8.1.0 application starting in development
+=> Rails 8.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.3 (ruby 3.3.5-p100) ("The Eagle of Durango")
@@ -288,7 +288,7 @@ the migration does. This is located in
 `db/migrate/<timestamp>_create_products.rb`:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -354,7 +354,7 @@ $ bin/rails console
 You will be presented with a prompt like the following:
 
 ```irb
-Loading development environment (Rails 8.1.0)
+Loading development environment (Rails 8.2.0)
 store(dev)>
 ```
 
@@ -363,7 +363,7 @@ printing out the Rails version:
 
 ```irb
 store(dev)> Rails.version
-=> "8.1.0"
+=> "8.2.0"
 ```
 
 It works!
@@ -1979,7 +1979,7 @@ This will generate a migration file. Open it and add a default value of `0` to
 ensure `inventory_count` is never `nil`:
 
 ```ruby
-class AddInventoryCountToProducts < ActiveRecord::Migration[8.1]
+class AddInventoryCountToProducts < ActiveRecord::Migration[8.2]
   def change
     add_column :products, :inventory_count, :integer, default: 0
   end
