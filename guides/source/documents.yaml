@@ -334,7 +334,6 @@
       name: Version 8.1 - ?
       url: 8_1_release_notes.html
       description: Release notes for Rails 8.1.
-      work_in_progress: true
     -
       name: Version 8.0 - November 2024
       url: 8_0_release_notes.html
