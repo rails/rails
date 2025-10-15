@@ -198,6 +198,15 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
           service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
       end
+
+      test "url for requester pays bucket" do
+        config_with_user_project = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ user_project: "a_user_project" }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_user_project)
+
+        key = SecureRandom.base58(24)
+        assert_match(/storage\.googleapis\.com\/.*userProject=a_user_project/,
+          service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
+      end
     end
   end
 else
