@@ -318,7 +318,7 @@ class ACLogSubscriberTest < ActionController::TestCase
   end
 
   def test_verbose_redirect_logs
-    line = Another::LogSubscribersController.instance_method(:redirector).source_location.last + 1
+    line = Another::LogSubscribersController.instance_method(:redirector).source_location[1] + 1
     old_cleaner = ActionController::LogSubscriber.backtrace_cleaner
     ActionController::LogSubscriber.backtrace_cleaner = ActionController::LogSubscriber.backtrace_cleaner.dup
     ActionController::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
