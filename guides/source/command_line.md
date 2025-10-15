@@ -1108,7 +1108,7 @@ database: db/development.sqlite3
 ```
 
 NOTE: Please see the [Migration Guide](active_record_migrations.html) for an
-explanation of concepts related to database migrations.
+explanation of concepts related to database migrations and other migration commands.
 
 ### Schema Management
 
