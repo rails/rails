@@ -42,6 +42,36 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-amz-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
       end
     end
+
+    test "creating new direct upload using SHA256" do
+      checksum = OpenSSL::Digest::SHA256.base64digest("Hello")
+      digest_type_and_checksum = "sha256:#{checksum}"
+      metadata = {
+        "foo" => "bar",
+        "my_key_1" => "my_value_1",
+        "my_key_2" => "my_value_2",
+        "platform" => "my_platform",
+        "library_ID" => "12345",
+        "custom" => {
+          "my_key_3" => "my_value_3"
+        }
+      }
+
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: digest_type_and_checksum, content_type: "text/plain", metadata: metadata } }
+
+      response.parsed_body.tap do |details|
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])
+        assert_equal "hello.txt", details["filename"]
+        assert_equal 6, details["byte_size"]
+        assert_equal digest_type_and_checksum, details["checksum"]
+        assert_equal metadata, details["metadata"]
+        assert_equal "text/plain", details["content_type"]
+        assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], details["direct_upload"]["url"]
+        assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws\.com/, details["direct_upload"]["url"])
+        assert_equal({ "Content-Type" => "text/plain", "x-amz-checksum-sha256" => checksum, "Content-Disposition" => "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", "x-amz-meta-my_key_3" => "my_value_3" }, details["direct_upload"]["headers"])
+      end
+    end
   end
 else
   puts "Skipping S3 Direct Upload tests because no S3 configuration was supplied"
