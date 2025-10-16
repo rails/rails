@@ -248,7 +248,7 @@ a web browser.
 $ cd my_app
 $ bin/rails server
 => Booting Puma
-=> Rails 8.1.0 application starting in development
+=> Rails 8.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
@@ -433,6 +433,7 @@ generators that add code for both at once as well as other files needed for a
 standard CRUD resource. There are two generator commands that do this:
 `resource` and `scaffold`. The `resource` command is more lightweight than
 `scaffold` and generates less code.
+NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column. If you don't specify a type for a field, Rails will default to type `string`.
 
 ### Generating Resources
 
@@ -583,7 +584,7 @@ in a transaction that rolls back when you exit:
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 8.1.0)
+Loading development environment in sandbox (Rails 8.2.0)
 Any modifications you make will be rolled back on exit
 my-app(dev):001:0>
 ```
@@ -878,7 +879,7 @@ might affect you.
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             8.1.0
+Rails version             8.2.0
 Ruby version              3.2.0 (x86_64-linux)
 RubyGems version          3.3.7
 Rack version              3.0.8

@@ -1098,6 +1098,12 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
       render plain: "ok"
     end
 
+    def foos_html
+      render inline: <<~ERB
+        <code><%= params.permit(:foo) %></code>
+      ERB
+    end
+
     def foos_json
       render json: params.permit(:foo)
     end
@@ -1124,6 +1130,17 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       assert_equal({ "foo" => "fighters" }, response.parsed_body)
+    end
+  end
+
+  def test_encoding_as_html
+    post_to_foos as: :html do
+      assert_response :success
+      assert_equal "application/x-www-form-urlencoded", request.media_type
+      assert_equal "text/html", request.accepts.first.to_s
+      assert_equal :html, request.format.ref
+      assert_equal({ "foo" => "fighters" }, request.request_parameters)
+      assert_equal({ "foo" => "fighters" }.to_s, response.parsed_body.at("code").text)
     end
   end
 

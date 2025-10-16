@@ -318,7 +318,8 @@ module ActiveRecord
 
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              arel_column = klass.arel_table[name]
+              klass.scope "not_#{value_method_name}", -> { where(arel_column.not_eq(value).or(arel_column.eq(nil))) }
             end
           end
       end

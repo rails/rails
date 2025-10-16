@@ -565,6 +565,27 @@ module ActiveSupport
         end
       end
     end
+
+    test "payload filter reloading" do
+      @reporter.notify(:some_event, test: true)
+      ActiveSupport.filter_parameters << :param_to_be_filtered
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "some_event", payload: { param_to_be_filtered: "test" })
+      ]) do
+        @reporter.notify(:some_event, param_to_be_filtered: "test")
+      end
+
+      @reporter.reload_payload_filter
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "some_event", payload: { param_to_be_filtered: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:some_event, param_to_be_filtered: "test")
+      end
+    ensure
+      ActiveSupport.filter_parameters.pop
+    end
   end
 
   class EncodersTest < ActiveSupport::TestCase

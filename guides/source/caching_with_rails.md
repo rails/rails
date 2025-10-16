@@ -123,6 +123,14 @@ do not overwrite each other:
            cached: ->(product) { [I18n.locale, product] } %>
 ```
 
+Additionally, you can configure `cached` with an options hash that takes `expires_in` and `key` so you can explicitly set the expiration.
+
+```html+erb
+<%= render partial: 'products/product',
+           collection: @products,
+           cached: { expires_in: 1.hour, key: ->(product) { [I18n.locale, product] } } %>
+```
+
 ### Russian Doll Caching
 
 You may want to nest cached fragments inside other cached fragments. This is
@@ -396,13 +404,13 @@ you'd prefer not to utilize it, you can skip Solid Cache:
 rails new app_name --skip-solid
 ```
 
-WARNING: All parts of the Solid Trifecta (Solid Cache, Solid Queue and Solid
-Cable) are bundled behind the `--skip-solid` flag. If you still want to use
-Solid Queue and Solid Cable but not Solid Cache, you can install them
-separately by following [Solid Queue
-Installation](https://github.com/rails/solid_queue#installation) and
-[Solid Cable Installation](https://github.com/rails/solid_cable#installation)
-respectively.
+NOTE: Using the `--skip-solid` flag skips all parts of the Solid
+Trifecta (Solid Cache, Solid Queue, and Solid Cable).If you still
+want to use some of them, you can install them separately. For
+example, if you want to use Solid Queue and Solid Cable but not
+Solid Cache, you can follow the installation guides for [Solid
+Queue](https://github.com/rails/solid_queue#installation) and
+[Solid Cable](https://github.com/rails/solid_cable#installation).
 
 ### Configuring the Database
 

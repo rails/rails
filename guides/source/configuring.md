@@ -58,6 +58,8 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.2
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -72,7 +74,6 @@ Below are the default values associated with each target version. In cases of co
 
 - [`Regexp.timeout`](#regexp-timeout): `1`
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
-- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 
 #### Default Values for Target Version 7.2
 
@@ -172,7 +173,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
-- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:offset`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -2937,18 +2937,6 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
-#### `config.active_support.to_time_preserves_timezone`
-
-Specifies whether `to_time` methods preserve the UTC offset of their receivers or preserves the timezone. If set to `:zone`, `to_time` methods will use the timezone of their receivers. If set to `:offset`, `to_time` methods will use the UTC offset. If `false`, `to_time` methods will convert to the local system UTC offset instead.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 5.0                   | `:offset`            |
-| 8.0                   | `:zone`              |
-
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -3166,15 +3154,6 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 ### Configuring Active Storage
 
 `config.active_storage` provides the following configuration options:
-
-#### `config.active_storage.checksum_implementation`
-
-Specify which digest implementation to use for internal checksums.
-The value must respond to Ruby's `Digest` interface.
-
-| Starting with version | The default value is                    |
-| --------------------- | --------------------------------------- |
-| (original)            | `OpenSSL::Digest::MD5` or `Digest::MD5` |
 
 #### `config.active_storage.variant_processor`
 

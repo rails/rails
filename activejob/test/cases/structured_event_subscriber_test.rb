@@ -72,7 +72,8 @@ module ActiveJob
     def test_enqueue_job
       event = assert_event_reported("active_job.enqueued", payload: {
         job_class: TestJob.name,
-        queue: "default"
+        queue: "default",
+        adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter)
       }) do
         TestJob.perform_later
       end
@@ -110,8 +111,9 @@ module ActiveJob
       def test_enqueue_at_job
         scheduled_time = 1.hour.from_now
 
-        event = assert_event_reported("active_job.enqueued", payload: {
+        event = assert_event_reported("active_job.enqueued_at", payload: {
           job_class: TestJob.name,
+          adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter),
           queue: "default"
         }) do
           TestJob.set(wait_until: scheduled_time).perform_later
@@ -245,10 +247,10 @@ module ActiveJob
 
       assert_event_reported("active_job.bulk_enqueued", payload: {
         adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter),
-        total_jobs: 3,
+        job_count: 3,
         enqueued_count: 3,
-        failed_count: 0,
-        job_classes: { TestJob.name => 3 }
+        failed_enqueue_count: 0,
+        enqueued_classes: { TestJob.name => 3 },
       }) do
         ActiveJob.perform_all_later(jobs)
       end
