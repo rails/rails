@@ -7,7 +7,18 @@ require "models/author"
 class DistinctOnTest < ActiveRecord::TestCase
   fixtures :posts, :authors
 
+  def supports_window_functions_for_distinct_on?
+    connection = Post.lease_connection
+    case connection.adapter_name
+    when "Mysql2", "Trilogy"
+      connection.database_version >= "8.0"
+    else
+      true
+    end
+  end
+
   def test_on_single_column
+    skip "DISTINCT ON requires native support or window functions" unless supports_window_functions_for_distinct_on?
     # Create posts with duplicate author_ids
     author = authors(:david)
     Post.create!(author: author, title: "First", body: "First post")
@@ -20,6 +31,7 @@ class DistinctOnTest < ActiveRecord::TestCase
   end
 
   def test_on_multiple_columns
+    skip "DISTINCT ON requires native support or window functions" unless supports_window_functions_for_distinct_on?
     author1 = authors(:david)
     author2 = authors(:mary)
 
@@ -38,6 +50,7 @@ class DistinctOnTest < ActiveRecord::TestCase
   end
 
   def test_with_order_by
+    skip "DISTINCT ON requires native support or window functions" unless supports_window_functions_for_distinct_on?
     author = authors(:david)
     Post.where(author: author).delete_all
 
@@ -57,6 +70,7 @@ class DistinctOnTest < ActiveRecord::TestCase
   end
 
   def test_with_eager_loading
+    skip "DISTINCT ON requires native support or window functions" unless supports_window_functions_for_distinct_on?
     author = authors(:david)
     Post.where(author: author).delete_all
 
@@ -72,6 +86,7 @@ class DistinctOnTest < ActiveRecord::TestCase
   end
 
   def test_sql_generation_uses_appropriate_syntax
+    skip "DISTINCT ON requires native support or window functions" unless supports_window_functions_for_distinct_on?
     connection = Post.lease_connection
     sql = Post.distinct_on(:author_id).order(:author_id).to_sql
 
