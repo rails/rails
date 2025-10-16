@@ -412,7 +412,18 @@ var sparkMd5 = {
 
 var SparkMD5 = sparkMd5.exports;
 
+const md5Algorithm = {
+  createBuffer: () => new SparkMD5.ArrayBuffer,
+  append: (buffer, data) => buffer.append(data),
+  finalize: buffer => btoa(buffer.end(true)),
+  formatChecksum: checksum => checksum
+};
+
 const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
+
+const CHECKSUM_ALGORITHMS = {
+  md5: md5Algorithm
+};
 
 class FileChecksum {
   static create(file, callback, options = {}) {
@@ -424,29 +435,38 @@ class FileChecksum {
     this.chunkSize = options.chunkSize || 2097152;
     this.chunkCount = Math.ceil(this.file.size / this.chunkSize);
     this.chunkIndex = 0;
-    this.algorithm = (options.algorithm || "md5").toLowerCase();
+    this.checksum_algorithm = (options.algorithm || "md5").toLowerCase();
   }
   create(callback) {
     this.callback = callback;
-    this.md5Buffer = new SparkMD5.ArrayBuffer;
-    this.fileReader = new FileReader;
-    this.fileReader.addEventListener("load", (event => this.fileReaderDidLoad(event)));
-    this.fileReader.addEventListener("error", (event => this.fileReaderDidError(event)));
-    this.readNextChunk();
+    const algorithmConfig = CHECKSUM_ALGORITHMS[this.checksum_algorithm];
+    if (algorithmConfig) {
+      this.checksumBuffer = algorithmConfig.createBuffer();
+      this.algorithmConfig = algorithmConfig;
+      this.fileReader = new FileReader;
+      this.fileReader.addEventListener("load", (event => this._fileReaderDidLoad(event)));
+      this.fileReader.addEventListener("error", (event => this.fileReaderDidError(event)));
+      this.readNextChunk();
+    } else {
+      this.callback(`Unsupported algorithm: ${this.checksum_algorithm}`);
+    }
+  }
+  _fileReaderDidLoad(event) {
+    this.algorithmConfig.append(this.checksumBuffer, event.target.result);
+    if (!this.readNextChunk()) {
+      const digest = this.algorithmConfig.finalize(this.checksumBuffer);
+      const formattedChecksum = this.algorithmConfig.formatChecksum(digest);
+      this.callback(null, formattedChecksum);
+    }
   }
   fileReaderDidLoad(event) {
-    this.md5Buffer.append(event.target.result);
-    if (!this.readNextChunk()) {
-      const binaryDigest = this.md5Buffer.end(true);
-      const base64digest = btoa(binaryDigest);
-      this.callback(null, base64digest);
-    }
+    this._fileReaderDidLoad(event);
   }
   fileReaderDidError(event) {
     this.callback(`Error reading ${this.file.name}`);
   }
   readNextChunk() {
-    if (this.chunkIndex < this.chunkCount || this.chunkIndex == 0 && this.chunkCount == 0) {
+    if (this.chunkIndex < this.chunkCount || this.chunkIndex === 0 && this.chunkCount === 0) {
       const start = this.chunkIndex * this.chunkSize;
       const end = Math.min(start + this.chunkSize, this.file.size);
       const bytes = fileSlice.call(this.file, start, end);
