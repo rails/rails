@@ -1418,7 +1418,7 @@ module ActiveRecord
       self
     end
 
-    # Specifies whether the records should be unique per columns (only supported on PostgreSQL). For example:
+    # Specifies whether the records should be unique per columns. For example:
     #
     #   User.eager_load(:bikes)
     #   # Might return duplicate user records
