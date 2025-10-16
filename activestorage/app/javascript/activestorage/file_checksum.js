@@ -3,16 +3,17 @@ import SparkMD5 from "spark-md5"
 const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
 
 export class FileChecksum {
-  static create(file, callback) {
-    const instance = new FileChecksum(file)
+  static create(file, callback, options = {}) {
+    const instance = new FileChecksum(file, options)
     instance.create(callback)
   }
 
-  constructor(file) {
+  constructor(file, options = {}) {
     this.file = file
-    this.chunkSize = 2097152 // 2MB
+    this.chunkSize = options.chunkSize || 2097152 // 2MB
     this.chunkCount = Math.ceil(this.file.size / this.chunkSize)
     this.chunkIndex = 0
+    this.algorithm = (options.algorithm || "md5").toLowerCase()
   }
 
   create(callback) {
