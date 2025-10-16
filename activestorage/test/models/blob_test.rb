@@ -174,7 +174,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
-  test "open with integrity" do
+  test "open yielding with integrity" do
     create_file_blob(filename: "racecar.jpg").tap do |blob|
       blob.open do |file|
         assert_predicate file, :binmode?
@@ -183,6 +183,21 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
         assert file.path.end_with?(".jpg")
         assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
       end
+    end
+  end
+
+  test "open returning with integrity" do
+    file = nil
+    create_file_blob(filename: "racecar.jpg").tap do |blob|
+      file = blob.open
+
+      assert_predicate file, :binmode?
+      assert_equal 0, file.pos
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert file.path.end_with?(".jpg")
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    ensure
+      file&.close!
     end
   end
 
