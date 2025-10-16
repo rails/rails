@@ -1,3 +1,7 @@
+*   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
+
+    *Sean Doyle*
+
 *   Address `rack 3.2` deprecations warnings.
 
     ```
