@@ -415,15 +415,16 @@ var SparkMD5 = sparkMd5.exports;
 const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;
 
 class FileChecksum {
-  static create(file, callback) {
-    const instance = new FileChecksum(file);
+  static create(file, callback, options = {}) {
+    const instance = new FileChecksum(file, options);
     instance.create(callback);
   }
-  constructor(file) {
+  constructor(file, options = {}) {
     this.file = file;
-    this.chunkSize = 2097152;
+    this.chunkSize = options.chunkSize || 2097152;
     this.chunkCount = Math.ceil(this.file.size / this.chunkSize);
     this.chunkIndex = 0;
+    this.algorithm = (options.algorithm || "md5").toLowerCase();
   }
   create(callback) {
     this.callback = callback;
@@ -607,14 +608,18 @@ class BlobUpload {
 let id = 0;
 
 class DirectUpload {
-  constructor(file, url, delegate, customHeaders = {}) {
+  constructor(file, url, delegate, customHeaders = {}, checksum_algorithm = "md5") {
     this.id = ++id;
     this.file = file;
     this.url = url;
     this.delegate = delegate;
     this.customHeaders = customHeaders;
+    this.checksum_algorithm = checksum_algorithm.toLowerCase();
   }
   create(callback) {
+    const options = {
+      algorithm: this.checksum_algorithm
+    };
     FileChecksum.create(this.file, ((error, checksum) => {
       if (error) {
         callback(error);
@@ -637,7 +642,7 @@ class DirectUpload {
           }));
         }
       }));
-    }));
+    }), options);
   }
 }
 
@@ -651,7 +656,8 @@ class DirectUploadController {
   constructor(input, file) {
     this.input = input;
     this.file = file;
-    this.directUpload = new DirectUpload(this.file, this.url, this);
+    const checksum_algorithm = this.input.getAttribute("data-checksum-algorithm") || "md5";
+    this.directUpload = new DirectUpload(this.file, this.url, this, {}, checksum_algorithm);
     this.dispatch("initialize");
   }
   start(callback) {
