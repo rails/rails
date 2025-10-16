@@ -1928,7 +1928,8 @@ module ActiveRecord
 
       def build_with_expression_from_value(value, nested = false)
         case value
-        when Arel::Nodes::SqlLiteral then Arel::Nodes::Grouping.new(value)
+        when Arel::Nodes::SqlLiteral, Arel::Nodes::BoundSqlLiteral
+          Arel::Nodes::Grouping.new(value)
         when ActiveRecord::Relation
           if nested
             value.arel.ast
