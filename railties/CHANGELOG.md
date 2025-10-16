@@ -1,3 +1,9 @@
+*   Add environment config file existence check
+
+    `Rails::Application` will raise an error if unable to load any environment file.
+
+    *Daniel Niknam*
+
 *   `Rails::Application::RoutesReloader` uses the configured `Rails.application.config.file_watcher`
 
     *Jan Grodowski*
