@@ -149,8 +149,6 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_renamed_enum_value
-    skip("Renaming enum values is only supported in PostgreSQL 10 or later") if @connection.database_version < 10_00_00
-
     @connection.rename_enum_value :mood, from: :ok, to: :okay
 
     output = dump_table_schema("postgresql_enums")

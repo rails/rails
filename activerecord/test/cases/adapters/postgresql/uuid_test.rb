@@ -13,11 +13,7 @@ module PostgresqlUUIDHelper
   end
 
   def uuid_function
-    connection.supports_pgcrypto_uuid? ? "gen_random_uuid()" : "uuid_generate_v4()"
-  end
-
-  def uuid_default
-    connection.supports_pgcrypto_uuid? ? {} : { default: uuid_function }
+    "gen_random_uuid()"
   end
 end
 
@@ -31,7 +27,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
 
   setup do
     enable_extension!("uuid-ossp", connection)
-    enable_extension!("pgcrypto",  connection) if connection.supports_pgcrypto_uuid?
+    enable_extension!("pgcrypto",  connection)
 
     connection.create_table "uuid_data_type" do |t|
       t.uuid "guid"
@@ -43,14 +39,11 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     drop_table "uuid_data_type"
   end
 
-  if ActiveRecord::Base.lease_connection.respond_to?(:supports_pgcrypto_uuid?) &&
-      ActiveRecord::Base.lease_connection.supports_pgcrypto_uuid?
-    def test_uuid_column_default
-      connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
-      UUIDType.reset_column_information
-      column = UUIDType.columns_hash["thingy"]
-      assert_equal "gen_random_uuid()", column.default_function
-    end
+  def test_uuid_column_default
+    connection.add_column :uuid_data_type, :thingy, :uuid, null: false, default: "gen_random_uuid()"
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+    assert_equal "gen_random_uuid()", column.default_function
   end
 
   def test_change_column_default
@@ -238,7 +231,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
       t.uuid "other_uuid_2", default: "my_uuid_generator()"
     end
 
-    connection.create_table("pg_uuids_3", id: :uuid, **uuid_default) do |t|
+    connection.create_table("pg_uuids_3", id: :uuid) do |t|
       t.string "name"
     end
   end
@@ -286,11 +279,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
   def test_schema_dumper_for_uuid_primary_key_default
     schema = dump_table_schema "pg_uuids_3"
-    if connection.supports_pgcrypto_uuid?
-      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
-    else
-      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
-    end
+    assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
   end
 
   def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
@@ -384,10 +373,10 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
 
   setup do
     connection.transaction do
-      connection.create_table("pg_uuid_posts", id: :uuid, **uuid_default) do |t|
+      connection.create_table("pg_uuid_posts", id: :uuid) do |t|
         t.string "title"
       end
-      connection.create_table("pg_uuid_comments", id: :uuid, **uuid_default) do |t|
+      connection.create_table("pg_uuid_comments", id: :uuid) do |t|
         t.references :uuid_post, type: :uuid
         t.string "content"
       end
@@ -443,14 +432,14 @@ class PostgresqlUUIDHasManyThroughDisableJoinsTest < ActiveRecord::PostgreSQLTes
 
   setup do
     connection.transaction do
-      connection.create_table("pg_uuid_forums", id: :uuid, **uuid_default) do |t|
+      connection.create_table("pg_uuid_forums", id: :uuid) do |t|
         t.string "name"
       end
-      connection.create_table("pg_uuid_posts", id: :uuid, **uuid_default) do |t|
+      connection.create_table("pg_uuid_posts", id: :uuid) do |t|
         t.references :uuid_forum, type: :uuid
         t.string "title"
       end
-      connection.create_table("pg_uuid_comments", id: :uuid, **uuid_default) do |t|
+      connection.create_table("pg_uuid_comments", id: :uuid) do |t|
         t.references :uuid_post, type: :uuid
         t.string "content"
       end
