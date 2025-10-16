@@ -1,3 +1,8 @@
+*   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
+
+    *Sean Doyle*
+
+
 ## Rails 8.0.3 (September 22, 2025) ##
 
 *   URL helpers for engines mounted at the application root handle `SCRIPT_NAME` correctly.
