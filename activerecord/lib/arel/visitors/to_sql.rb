@@ -114,6 +114,14 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_SelectStatement(o, collector)
+          # Check if this uses DISTINCT ON and transform to window function approach
+          # (unless the database supports native DISTINCT ON)
+          distinct_on_node = o.cores.first&.set_quantifier
+
+          if distinct_on_node.is_a?(Nodes::DistinctOn) && use_window_function_for_distinct_on?
+            return visit_distinct_on_with_window_function(o, distinct_on_node, collector)
+          end
+
           if o.with
             collector = visit o.with, collector
             collector << " "
@@ -170,6 +178,80 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Comment(o, collector)
           collector << o.values.map { |v| "/* #{sanitize_as_sql_comment(v)} */" }.join(" ")
+        end
+
+        # Override this method in database-specific visitors to indicate whether
+        # DISTINCT ON should be implemented using window functions (true) or
+        # native syntax (false). Defaults to true for databases that don't
+        # support native DISTINCT ON.
+        def use_window_function_for_distinct_on?
+          true
+        end
+
+        # Transforms DISTINCT ON queries into window function equivalent for databases
+        # that don't support native DISTINCT ON syntax.
+        #
+        # Transforms:
+        #   SELECT DISTINCT ON (user_id) * FROM messages ORDER BY user_id, created_at DESC
+        # Into:
+        #   SELECT * FROM (
+        #     SELECT *, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at DESC) AS __ar_row_num__
+        #     FROM messages
+        #   ) __ar_distinct_on__ WHERE __ar_row_num__ = 1
+        def visit_distinct_on_with_window_function(o, distinct_on_node, collector)
+          # Clone the statement to avoid modifying the original
+          inner_stmt = o.dup
+          inner_stmt.instance_variable_set(:@cores, o.cores.map(&:dup))
+          inner_stmt.instance_variable_set(:@orders, o.orders.dup)
+
+          inner_core = inner_stmt.cores.first
+
+          # Remove DISTINCT ON from inner query
+          inner_core.set_quantifier = nil
+
+          # Build ROW_NUMBER() window function
+          # PARTITION BY: the columns from DISTINCT ON
+          # ORDER BY: the existing ORDER BY clauses from the statement
+          partition_cols = distinct_on_node.expr
+          order_cols = inner_stmt.orders
+
+          # Create ROW_NUMBER() OVER (PARTITION BY ... ORDER BY ...)
+          row_number_func = Nodes::NamedFunction.new("ROW_NUMBER", [])
+          window = Nodes::Window.new
+          window.instance_variable_set(:@partitions, partition_cols.is_a?(Array) ? partition_cols : [partition_cols])
+          window.instance_variable_set(:@orders, order_cols)
+          window.instance_variable_set(:@framing, nil)
+
+          row_number_over = Nodes::Over.new(row_number_func, window)
+          row_num_alias = Nodes::SqlLiteral.new("__ar_row_num__", retryable: true)
+          row_number_as = Nodes::As.new(row_number_over, row_num_alias)
+
+          # Add ROW_NUMBER() to projections
+          inner_core.projections << row_number_as
+
+          # Clear orders from inner statement (they're now in the window function)
+          inner_stmt.instance_variable_set(:@orders, [])
+          # Clear limit/offset from inner statement (they should be applied to outer query)
+          inner_stmt.instance_variable_set(:@limit, nil)
+          inner_stmt.instance_variable_set(:@offset, nil)
+
+          # Build outer query: SELECT * FROM (...) WHERE __ar_row_num__ = 1
+          if o.with
+            collector = visit o.with, collector
+            collector << " "
+          end
+
+          collector << "SELECT * FROM ("
+
+          # Visit the modified inner statement (without orders, limit, offset)
+          collector = inner_stmt.cores.inject(collector) { |c, x|
+            visit_Arel_Nodes_SelectCore(x, c)
+          }
+
+          collector << ") __ar_distinct_on__ WHERE __ar_row_num__ = 1"
+
+          # Add limit/offset from original statement to outer query
+          visit_Arel_Nodes_SelectOptions(o, collector)
         end
 
         def collect_nodes_for(nodes, collector, spacer, connector = ", ")
