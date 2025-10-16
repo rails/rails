@@ -3,8 +3,7 @@
 # = Active Storage \Variant With Record
 #
 # Like an ActiveStorage::Variant, but keeps detail about the variant in the database as an
-# ActiveStorage::VariantRecord. This is used if +ActiveStorage.track_variants+ is enabled,
-# which has been the default since Rails 6.1.
+# ActiveStorage::VariantRecord. This is used if +ActiveStorage.track_variants+ is enabled.
 class ActiveStorage::VariantWithRecord
   include ActiveStorage::Blob::Servable
 
