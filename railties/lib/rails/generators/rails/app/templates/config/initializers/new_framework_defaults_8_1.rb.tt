@@ -79,6 +79,7 @@
 #
 #++
 # Rails.configuration.action_controller.action_on_open_redirect = :raise
+
 ###
 # Use a Ruby parser to track dependencies between Action View templates
 #++
