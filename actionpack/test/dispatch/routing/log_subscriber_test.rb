@@ -25,6 +25,27 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
     assert_match(/Completed 301/, logs.last)
   end
 
+  test "verbose redirect logs" do
+    line = __LINE__ + 7
+    old_cleaner = ActionDispatch::LogSubscriber.backtrace_cleaner
+    ActionDispatch::LogSubscriber.backtrace_cleaner = ActionDispatch::LogSubscriber.backtrace_cleaner.dup
+    ActionDispatch::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
+    ActionDispatch.verbose_redirect_logs = true
+
+    draw do
+      get "redirect", to: redirect("/login")
+    end
+
+    get "/redirect"
+    wait
+
+    assert_equal 3, logs.size
+    assert_match(/↳ #{__FILE__}:#{line}/, logs[1])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+    ActionDispatch::LogSubscriber.backtrace_cleaner = old_cleaner
+  end
+
   private
     def draw(&block)
       self.class.stub_controllers do |routes|
@@ -32,6 +53,10 @@ class RoutingLogSubscriberTest < ActionDispatch::IntegrationTest
         routes.draw(&block)
         @app = RoutedRackApp.new routes
       end
+    end
+
+    def get(path, **options)
+      super(path, **options.merge(headers: { "action_dispatch.routes" => @app.routes }))
     end
 
     def logs

@@ -55,6 +55,7 @@ module Rails
       else
         puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
       end
+      puts "Type 'help' for help."
 
       console.start
     end

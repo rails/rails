@@ -149,7 +149,7 @@ module ActiveSupport
           event.event_data
         else
           message = "Expected an event to be reported matching:\n  " \
-            "name: #{name}\n  " \
+            "name: #{name.inspect}\n  " \
             "payload: #{payload.inspect}\n  " \
             "tags: #{tags.inspect}\n" \
             "but none of the #{events.size} reported events matched:\n  " \
@@ -211,6 +211,16 @@ module ActiveSupport
         end
 
         assert(true)
+      end
+
+      # Allows debug events to be reported to +Rails.event+ for the duration of a given block.
+      #
+      #   with_debug_event_reporting do
+      #     service_that_reports_debug_events.perform
+      #   end
+      #
+      def with_debug_event_reporting(&block)
+        ActiveSupport.event_reporter.with_debug(&block)
       end
     end
   end

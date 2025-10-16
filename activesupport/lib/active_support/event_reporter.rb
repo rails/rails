@@ -275,6 +275,8 @@ module ActiveSupport
 
     attr_writer :debug_mode # :nodoc:
 
+    attr_reader :subscribers # :nodoc
+
     class << self
       attr_accessor :context_store # :nodoc:
     end
@@ -527,6 +529,11 @@ module ActiveSupport
     # Returns the current context data.
     def context
       context_store.context
+    end
+
+    def reload_payload_filter # :nodoc:
+      @payload_filter = nil
+      payload_filter
     end
 
     private

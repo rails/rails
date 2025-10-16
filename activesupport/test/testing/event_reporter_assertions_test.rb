@@ -103,7 +103,7 @@ module ActiveSupport
         end
 
         assert_match(/Expected an event to be reported matching:/, e.message)
-        assert_match(/name: user\.created/, e.message)
+        assert_match(/name: "user\.created"/, e.message)
         assert_match(/but none of the 1 reported events matched:/, e.message)
         assert_match(/another\.event/, e.message)
       end

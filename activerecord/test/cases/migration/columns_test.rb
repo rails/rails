@@ -242,6 +242,15 @@ module ActiveRecord
         assert_not_predicate TestModel.new, :administrator?
       end
 
+      def test_change_column_preserves_old_attributes
+        add_column "test_models", "user_id", :integer, default: 0, null: false
+        change_column "test_models", "user_id", :bigint
+
+        new_column = connection.columns("test_models").find { |c| c.name == "user_id" }
+        assert_equal 0, new_column.default
+        assert_equal false, new_column.null
+      end
+
       def test_change_column_with_custom_index_name
         add_column "test_models", "category", :string
         add_index :test_models, :category, name: "test_models_categories_idx"

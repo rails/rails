@@ -42,8 +42,11 @@ module Rails
 
     HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 
+    PATTERN = /^(?!\.).*?\.(rb|js|ts|css|scss|coffee|rake|erb)$/
+
     class_attribute :directories, default: DIRECTORIES
     class_attribute :test_types, default: TEST_TYPES
+    class_attribute :pattern, default: PATTERN
 
     # Add directories to the output of the <tt>bin/rails stats</tt> command.
     #
@@ -81,7 +84,7 @@ module Rails
         Hash[@pairs.map { |pair| [pair.first, calculate_directory_statistics(pair.last)] }]
       end
 
-      def calculate_directory_statistics(directory, pattern = /^(?!\.).*?\.(rb|js|ts|css|scss|coffee|rake|erb)$/)
+      def calculate_directory_statistics(directory, pattern = self.class.pattern)
         stats = Rails::CodeStatisticsCalculator.new
 
         Dir.foreach(directory) do |file_name|

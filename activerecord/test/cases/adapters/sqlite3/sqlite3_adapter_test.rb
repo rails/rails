@@ -1119,7 +1119,82 @@ module ActiveRecord
         assert_equal(["/string/literal/path", SQLiteExtensionSpec], conn.class.new_client_arg[:extensions])
       end
 
+      test "path resolution of a relative file path" do
+        database = "storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute file path" do
+        database = "/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI" do
+        database = "file:/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI with query params" do
+        database = "file:/var/storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI" do
+        database = "file:storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI with query params" do
+        database = "file:storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
       private
+        def with_rails_root(&block)
+          mod = Module.new do
+            def self.root
+              Pathname.new("/app")
+            end
+          end
+          stub_const(Object, :Rails, mod, &block)
+        end
+
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)

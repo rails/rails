@@ -109,7 +109,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/bundler-audit/ if skip_bundler_audit?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -127,8 +127,8 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
-        template "bundler-audit.yml"
-        template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "bundler-audit.yml" unless skip_bundler_audit?
+        template "cable.yml" unless options[:update] || skip_action_cable?
         template "ci.rb"
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
@@ -153,7 +153,7 @@ module Rails
 
       config
 
-      if !options[:skip_action_cable] && !action_cable_config_exist
+      if !skip_action_cable? && !action_cable_config_exist
         template "config/cable.yml"
       end
 
@@ -177,7 +177,7 @@ module Rails
         remove_file "config/initializers/cors.rb"
       end
 
-      if !bundle_audit_config_exist
+      if !skip_bundler_audit? && !bundle_audit_config_exist
         template "config/bundler-audit.yml"
       end
 
@@ -317,6 +317,7 @@ module Rails
             :skip_active_storage,
             :skip_bootsnap,
             :skip_brakeman,
+            :skip_bundler_audit,
             :skip_ci,
             :skip_dev_gems,
             :skip_docker,

@@ -77,6 +77,33 @@ The new Rails version might have different configuration defaults than the previ
 
 To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
 
+Upgrading from Rails 8.1 to Rails 8.2
+-------------------------------------
+
+For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
+
+### The negative scopes for enums now include records with `nil` values.
+
+Active Record negative scopes for enums now include records with `nil` values.
+
+```ruby
+class Book < ApplicationRecord
+  enum :status, [:proposed, :written, :published]
+end
+
+book1 = Book.create!(status: :published)
+book2 = Book.create!(status: :written)
+book3 = Book.create!(status: nil)
+
+# Before
+
+Book.not_published # => [book2]
+
+# After
+
+Book.not_published # => [book2, book3]
+```
+
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 
@@ -84,7 +111,7 @@ For more information on changes made to Rails 8.1 please see the [release notes]
 
 ### The table columns inside `schema.rb` are now sorted alphabetically.
 
-ActiveRecord now alphabetically sorts table columns in schema.rb by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. structure.sql can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
+Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------

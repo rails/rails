@@ -317,6 +317,23 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Redirected to [FILTERED]", logs[1]
   end
 
+  def test_verbose_redirect_logs
+    line = Another::LogSubscribersController.instance_method(:redirector).source_location[1] + 1
+    old_cleaner = ActionController::LogSubscriber.backtrace_cleaner
+    ActionController::LogSubscriber.backtrace_cleaner = ActionController::LogSubscriber.backtrace_cleaner.dup
+    ActionController::LogSubscriber.backtrace_cleaner.add_silencer { |location| !location.include?(__FILE__) }
+    ActionDispatch.verbose_redirect_logs = true
+
+    get :redirector
+    wait
+
+    assert_equal 4, logs.size
+    assert_match(/↳ #{__FILE__}:#{line}/, logs[2])
+  ensure
+    ActionDispatch.verbose_redirect_logs = false
+    ActionController::LogSubscriber.backtrace_cleaner = old_cleaner
+  end
+
   def test_send_data
     get :data_sender
     wait

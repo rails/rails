@@ -28,6 +28,12 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated `rails/console/methods.rb` file.
+
+*   Remove deprecated `bin/rake stats` command.
+
+*   Remove deprecated `STATS_DIRECTORIES`.
+
 ### Deprecations
 
 ### Notable changes
@@ -89,6 +95,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Deprecate `Rails.application.config.action_dispatch.ignore_leading_brackets`.
 
 ### Notable changes
+
+*   Redirects are now verbose in development for new Rails apps. To enable it in an existing app, add `config.action_dispatch.verbose_redirect_logs = true` to your `config/development.rb` file.
 
 Action View
 -----------
@@ -160,7 +168,18 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Removals
 
+*   Remove deprecated passing a Time object to `Time#since`.
+
+*   Remove deprecated `Benchmark.ms` method. It is now defined in the `benchmark` gem.
+
+*   Remove deprecated addition for `Time` instances with `ActiveSupport::TimeWithZone`.
+
+*   Remove deprecated support for `to_time` to preserve the system local time. It will now always preserve the receiver
+    timezone.
+
 ### Deprecations
+
+*   Deprecate `config.active_support.to_time_preserves_timezone`.
 
 ### Notable changes
 
@@ -178,6 +197,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated internal `SuckerPunch` adapter in favor of the adapter included with the `sucker_punch` gem.
 
 ### Deprecations
+
+*   Custom Active Job serializers must have a public `#klass` method.
 
 ### Notable changes
 

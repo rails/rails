@@ -138,6 +138,14 @@ module ActionDispatch
 
   autoload :SystemTestCase, "action_dispatch/system_test_case"
 
+  ##
+  # :singleton-method:
+  #
+  # Specifies if the methods calling redirects in controllers and routes should
+  #  be logged below their relevant log lines. Defaults to false.
+  singleton_class.attr_accessor :verbose_redirect_logs
+  self.verbose_redirect_logs = false
+
   def eager_load!
     super
     Routing.eager_load!
