@@ -118,7 +118,7 @@ module Arel # :nodoc: all
           # (unless the database supports native DISTINCT ON)
           distinct_on_node = o.cores.first&.set_quantifier
 
-          if distinct_on_node.is_a?(Nodes::DistinctOn) && use_window_function_for_distinct_on?
+          if distinct_on_node.is_a?(Nodes::DistinctOn) && !@connection.supports_native_distinct_on?
             return visit_distinct_on_with_window_function(o, distinct_on_node, collector)
           end
 
@@ -178,14 +178,6 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Comment(o, collector)
           collector << o.values.map { |v| "/* #{sanitize_as_sql_comment(v)} */" }.join(" ")
-        end
-
-        # Override this method in database-specific visitors to indicate whether
-        # DISTINCT ON should be implemented using window functions (true) or
-        # native syntax (false). Defaults to true for databases that don't
-        # support native DISTINCT ON.
-        def use_window_function_for_distinct_on?
-          true
         end
 
         # Transforms DISTINCT ON queries into window function equivalent for databases

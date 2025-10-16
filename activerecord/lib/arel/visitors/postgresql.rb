@@ -85,11 +85,6 @@ module Arel # :nodoc: all
           infix_value o, collector, op
         end
 
-        # PostgreSQL supports native DISTINCT ON syntax, so don't use window functions
-        def use_window_function_for_distinct_on?
-          false
-        end
-
         def visit_Arel_Nodes_DistinctOn(o, collector)
           collector << "DISTINCT ON ( "
           visit(o.expr, collector) << " )"
