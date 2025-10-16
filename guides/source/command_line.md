@@ -427,13 +427,14 @@ run with `bin/rails db:migrate`.
 NOTE: For a list of available field types for the `type` parameter, refer to the
 [API
 documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column).
+The `index` parameter generates a corresponding index for the column. If you
+don't specify a type for a field, Rails will default to type `string`.
 
 In addition to generating controllers and models separately, Rails also provides
 generators that add code for both at once as well as other files needed for a
 standard CRUD resource. There are two generator commands that do this:
 `resource` and `scaffold`. The `resource` command is more lightweight than
 `scaffold` and generates less code.
-NOTE: For a list of available field types for the `type` parameter, refer to the [API documentation](https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_column) for the add_column method for the `SchemaStatements` module. The `index` parameter generates a corresponding index for the column. If you don't specify a type for a field, Rails will default to type `string`.
 
 ### Generating Resources
 
