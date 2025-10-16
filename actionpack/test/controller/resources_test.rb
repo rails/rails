@@ -18,6 +18,10 @@ module Backoffice
   end
 end
 
+module Products
+  class ImagesController < ResourcesController; end
+end
+
 class ResourcesTest < ActionController::TestCase
   def test_default_restful_routes
     with_restful_routing :messages do
@@ -506,6 +510,23 @@ class ResourcesTest < ActionController::TestCase
         namespace: "backoffice/admin/",
         name_prefix: "backoffice_admin_product_",
         path_prefix: "backoffice/admin/products/1/",
+        shallow: true,
+        options: { product_id: "1" }
+    end
+  end
+
+  def test_shallow_with_module
+    with_routing do |set|
+      set.draw do
+        resources :products do
+          resources :images, module: :products, shallow: true
+        end
+      end
+
+      assert_simply_restful_for :images,
+        controller: "products/images",
+        name_prefix: "product_",
+        path_prefix: "products/1/",
         shallow: true,
         options: { product_id: "1" }
     end
