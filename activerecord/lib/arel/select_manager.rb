@@ -166,7 +166,7 @@ module Arel # :nodoc: all
     end
 
     def distinct_on(*columns)
-      @ctx.set_quantifier = if columns == [false] # For backwards compatibility
+      @ctx.set_quantifier = if columns.compact_blank.empty? # For backwards compatibility
         nil
       else
         Arel::Nodes::DistinctOn.new columns
