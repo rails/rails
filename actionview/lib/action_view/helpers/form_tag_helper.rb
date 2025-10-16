@@ -1089,6 +1089,9 @@ module ActionView
             options["data-direct-upload-url"] = main_app.rails_direct_uploads_url
           end
 
+          # Set checksum algorithm if explicitly provided
+          options["data-checksum-algorithm"] = options.delete(:data_checksum_algorithm)
+
           options
         end
     end
