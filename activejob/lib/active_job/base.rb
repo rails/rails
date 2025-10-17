@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_job/core"
+require "active_job/attributes"
 require "active_job/queue_adapter"
 require "active_job/queue_name"
 require "active_job/queue_priority"
@@ -62,6 +63,7 @@ module ActiveJob # :nodoc:
   # * SerializationError - Error class for serialization errors.
   class Base
     include Core
+    include Attributes
     include QueueAdapter
     include QueueName
     include QueuePriority
