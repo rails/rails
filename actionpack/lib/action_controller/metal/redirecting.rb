@@ -108,10 +108,7 @@ module ActionController
     # ### Open Redirect protection
     #
     # By default, Rails protects against redirecting to external hosts for your
-    # app's safety, so called open redirects. Note: this was a new default in Rails
-    # 7.0, after upgrading opt-in by uncommenting the line with
-    # `raise_on_open_redirects` in
-    # `config/initializers/new_framework_defaults_7_0.rb`
+    # app's safety, so called open redirects.
     #
     # Here #redirect_to automatically validates the potentially-unsafe URL:
     #

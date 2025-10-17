@@ -61,26 +61,6 @@
 # Rails.configuration.action_controller.action_on_path_relative_redirect = :raise
 
 ###
-# Controls how Rails handles open redirect vulnerabilities.
-# When set to `:raise`, Rails will raise an `ActionController::Redirecting::UnsafeRedirectError`
-# for redirects to external hosts, which helps prevent open redirect attacks.
-#
-# This configuration replaces the deprecated `raise_on_open_redirects` setting, providing
-# the ability for large codebases to safely turn on the protection (after monitoring it with :log/:notifications)
-#
-# Example:
-#   redirect_to params[:redirect_url]  # May raise UnsafeRedirectError if URL is external
-#   redirect_to "http://evil.com"      # Raises UnsafeRedirectError
-#   redirect_to "/safe/path"           # Works correctly (internal URL)
-#   redirect_to "http://evil.com", allow_other_host: true  # Works (explicitly allowed)
-#
-# Applications that want to allow these redirects can set the config to `:log` (previous default)
-# to only log warnings, or `:notify` to send ActiveSupport notifications for monitoring.
-#
-#++
-# Rails.configuration.action_controller.action_on_open_redirect = :raise
-
-###
 # Use a Ruby parser to track dependencies between Action View templates
 #++
 # Rails.configuration.action_view.render_tracker = :ruby
