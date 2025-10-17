@@ -259,6 +259,32 @@ module ActiveSupport
       end
     end
 
+    test "default filter_parameters is used by default" do
+      old_filter_parameters = ActiveSupport.filter_parameters
+      ActiveSupport.filter_parameters = [:secret]
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value", secret: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:test_event, { key: "value", secret: "hello" })
+      end
+    ensure
+      ActiveSupport.filter_parameters = old_filter_parameters
+    end
+
+    test ".filter_parameters is used when present" do
+      old_filter_parameters = EventReporter.filter_parameters
+      EventReporter.filter_parameters = [:foo]
+
+      assert_called_with(@subscriber, :emit, [
+        event_matcher(name: "test_event", payload: { key: "value", foo: "[FILTERED]" })
+      ]) do
+        @reporter.notify(:test_event, { key: "value", foo: "hello" })
+      end
+    ensure
+      EventReporter.filter_parameters = old_filter_parameters
+    end
+
     test "#with_debug" do
       @reporter.with_debug do
         assert_predicate @reporter, :debug_mode?
