@@ -159,6 +159,7 @@ module ActiveJob
         end
       end
 
+      assert event[:payload][:exception_backtrace].is_a?(Array)
       assert event[:payload][:job_id].present?
       assert event[:payload][:duration].is_a?(Numeric)
     end
@@ -173,6 +174,7 @@ module ActiveJob
       assert_event_reported("active_job.enqueued", payload: {
         job_class: failing_enqueue_job_class.name,
         queue: "default",
+        adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter),
         exception_class: "StandardError",
         exception_message: "Enqueue failed"
       }) do
@@ -192,6 +194,7 @@ module ActiveJob
       assert_event_reported("active_job.enqueued", payload: {
         job_class: aborting_enqueue_job_class.name,
         queue: "default",
+        adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter),
         aborted: true,
       }) do
         aborting_enqueue_job_class.perform_later

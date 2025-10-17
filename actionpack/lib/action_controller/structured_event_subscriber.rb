@@ -34,6 +34,7 @@ module ActionController
         controller: payload[:controller],
         action: payload[:action],
         status: status,
+        **additions_for(payload),
         duration_ms: event.duration.round(2),
         gc_time_ms: event.gc_time.round(1),
       }.compact)
@@ -100,6 +101,10 @@ module ActionController
           key: key,
           duration_ms: event.duration.round(1)
         )
+      end
+
+      def additions_for(payload)
+        payload.slice(:view_runtime, :db_runtime, :queries_count, :cached_queries_count)
       end
   end
 end
