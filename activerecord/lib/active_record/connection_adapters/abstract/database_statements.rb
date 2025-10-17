@@ -555,6 +555,10 @@ module ActiveRecord
         cast_result(internal_execute(...))
       end
 
+      def internal_batch_exec_query(...) # :nodoc:
+        cast_result(execute_batch(...))
+      end
+
       def default_insert_value(column) # :nodoc:
         DEFAULT_INSERT_VALUE
       end
