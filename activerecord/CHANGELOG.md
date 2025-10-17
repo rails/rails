@@ -1,3 +1,7 @@
+*   Active Record now supports PostgreSQL version 14 and up.
+
+    *Ali Ismayilov*
+
 *   Fix negative scopes for enums to include records with `nil` values.
 
     *fatkodima*
