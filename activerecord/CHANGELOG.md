@@ -1,3 +1,16 @@
+*   Database-specific shard swap prohibition
+
+    In #43485 (v7.0.0), shard swapping prohibition was introduced as a global
+    switch that applied to all databases.
+
+    For the use case of a multi-database application, the global prohibition is
+    overly broad, and so with this change the method `prohibit_shard_swapping`
+    will scope the prohibition to the same connection class (i.e.,
+    `connection_specification_name`). This allows an application to prohibit
+    shard swapping on a specific database while allowing it on all others.
+
+    *Mike Dalessio*
+
 *   Fix upsert_all when using repeated timestamp attributes.
 
     *Gannon McGibbon*
