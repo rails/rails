@@ -378,6 +378,17 @@ module ActiveRecord
           end
         end
 
+        # Batch resets column sequences. Passed in the shape of [[table, column, sequence, max_column_value, min_column_value]].
+        # Reduces query round trips for sequence resets when there are a large amount of tables.
+        def reset_column_sequences!(args) # :nodoc:
+          sql_statements = args.map do |table, column, sequence, max_column_value, min_column_value|
+            quoted_sequence = quote_table_name(sequence)
+            "SELECT setval(#{quote(quoted_sequence)}, #{max_column_value || min_column_value}, #{max_column_value ? true : false})"
+          end
+
+          execute_batch(sql_statements, "SCHEMA")
+        end
+
         # Returns a table's primary key and belonging sequence.
         def pk_and_sequence_for(table) # :nodoc:
           # First try looking for a sequence with a dependency on the
