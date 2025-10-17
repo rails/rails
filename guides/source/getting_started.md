@@ -2978,4 +2978,4 @@ We also recommend learning more by reading other Ruby on Rails Guides:
 * [Securing Rails Applications](security.html)
 
 
-Happy building!
+Very happy building!
