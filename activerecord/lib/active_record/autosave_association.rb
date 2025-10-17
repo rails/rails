@@ -216,18 +216,23 @@ module ActiveRecord
 
         def define_autosave_validation_callbacks(reflection)
           validation_method = :"validate_associated_records_for_#{reflection.name}"
-          if reflection.validate? && !method_defined?(validation_method)
+          if reflection.validate?
             if reflection.collection?
+              # TODO - I'll have to redefine this method, it depends on autosave
               method = :validate_collection_association
             elsif reflection.has_one?
+              # This one depends on inverse_of and stuff
               method = :validate_has_one_association
             else
               method = :validate_belongs_to_association
             end
+            # TODO - is calling `validate` only once here enough?
+            if !method_defined?(validation_method)
+              validate validation_method
+              after_validation :_ensure_no_duplicate_errors
+            end
 
             define_non_cyclic_method(validation_method) { send(method, reflection) }
-            validate validation_method
-            after_validation :_ensure_no_duplicate_errors
           end
         end
     end
