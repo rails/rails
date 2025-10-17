@@ -157,9 +157,7 @@ module ActiveRecord
     module ClassMethods # :nodoc:
       private
         def define_non_cyclic_method(name, &block)
-          return if method_defined?(name, false)
-
-          define_method(name) do |*args|
+          redefine_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations
             unless @_already_called[name]
