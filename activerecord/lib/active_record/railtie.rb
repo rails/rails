@@ -337,14 +337,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
-    initializer "active_record.set_filter_attributes" do
+    initializer "active_record.set_filter_attributes", after: "active_support.set_filter_parameters" do
       ActiveSupport.on_load(:active_record) do
-        self.filter_attributes += Rails.application.config.filter_parameters
+        self.filter_attributes += ActiveSupport.filter_parameters
       end
-    end
-
-    initializer "active_record.filter_attributes_as_log_parameters" do |app|
-      ActiveRecord::FilterAttributeHandler.new(app).enable
     end
 
     initializer "active_record.configure_message_verifiers" do |app|
@@ -378,9 +374,6 @@ To keep using the current cache store, you can turn off cache versioning entirel
           key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
           **app.config.active_record.encryption
         )
-
-        auto_filtered_parameters = ActiveRecord::Encryption::AutoFilteredParameters.new(app)
-        auto_filtered_parameters.enable if ActiveRecord::Encryption.config.add_to_filter_parameters
       end
 
       ActiveSupport.on_load(:active_record) do

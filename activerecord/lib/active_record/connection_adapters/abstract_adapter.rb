@@ -1211,7 +1211,7 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(intent_or_sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block)
+        def log(intent_or_sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, filter: nil, &block)
           if intent_or_sql.is_a?(QueryIntent)
             intent = intent_or_sql
 
@@ -1223,6 +1223,7 @@ module ActiveRecord
               type_casted_binds: intent.type_casted_binds,
               async:             intent.ran_async,
               allow_retry:       intent.allow_retry,
+              filter:            intent.filter,
               connection:        self,
               transaction:       current_transaction.user_transaction.presence,
               affected_rows:     0,
@@ -1245,6 +1246,7 @@ module ActiveRecord
               type_casted_binds: type_casted_binds,
               async:             async,
               allow_retry:       allow_retry,
+              filter:            filter,
               connection:        self,
               transaction:       current_transaction.user_transaction.presence,
               affected_rows:     0,

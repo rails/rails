@@ -53,25 +53,6 @@ module ActiveRecord
     end
 
     private
-      def type_casted_binds(casted_binds)
-        casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
-      end
-
-      def render_bind(attr, value)
-        case attr
-        when ActiveModel::Attribute
-          if attr.type.binary? && attr.value
-            value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
-          end
-        when Array
-          attr = attr.first
-        else
-          attr = nil
-        end
-
-        [attr&.name, value]
-      end
-
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
           color(name, MAGENTA, bold: true)
@@ -121,8 +102,8 @@ module ActiveRecord
         backtrace_cleaner.first_clean_frame
       end
 
-      def filter(name, value)
-        ActiveRecord::Base.inspection_filter.filter_param(name, value)
+      def filter(payload, name, value)
+        (payload[:filter] || ActiveRecord::Base.inspection_filter).filter_param(name, value)
       end
   end
 end

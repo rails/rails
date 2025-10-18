@@ -251,6 +251,17 @@ class LogSubscriberTest < ActiveRecord::TestCase
   end
 
   if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_inspection_filter
+      filtered_developer = Class.new(Developer) do
+        self.filter_attributes = [:first_name]
+      end
+
+      filtered_developer.where(first_name: "David").to_a
+      assert_match(/first_name", "\[FILTERED\]/, @logger.logged(:debug).join)
+    ensure
+      ActiveSupport.filter_parameters.pop
+    end
+
     def test_where_in_binds_logging_include_attribute_names
       Developer.where(id: [1, 2, 3, 4, 5]).load
       assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)

@@ -18,6 +18,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
 
   teardown do
     ActiveRecord::Base.filter_attributes = @previous_filter_attributes
+    ActiveSupport.filter_parameters.clear
   end
 
   test "filter_attributes" do
