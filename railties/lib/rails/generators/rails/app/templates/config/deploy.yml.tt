@@ -1,8 +1,8 @@
 # Name of your application. Used to uniquely configure containers.
 service: <%= app_name %>
 
-# Name of the container image.
-image: your-user/<%= app_name %>
+# Name of the container image (use your-user/app-name on external registries).
+image: <%= app_name %>
 
 # Deploy to these servers.
 servers:
@@ -24,9 +24,11 @@ proxy:
 # Registry is where your images are kept.
 registry:
   server: localhost:5555
+
   # Specify the registry server, if you're not using local host
   # server: registry.digitalocean.com / ghcr.io / ...
   # username: your-user
+
   # Always use an access token rather than real password when possible.
   # password:
   #   - KAMAL_REGISTRY_PASSWORD
