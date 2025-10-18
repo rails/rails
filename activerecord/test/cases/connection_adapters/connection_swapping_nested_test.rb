@@ -232,19 +232,17 @@ module ActiveRecord
               assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
 
               PrimaryBase.prohibit_shard_swapping do
-                e = assert_raises(ArgumentError) do
+                assert_raises(ShardSwapProhibitedError) do
                   PrimaryBase.connected_to(shard: :shard_two) { }
                 end
-                assert_match(/cannot swap/, e.message)
               end
 
               assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
 
               PrimaryBase.prohibit_shard_swapping do
-                e = assert_raises(ArgumentError) do
+                assert_raises(ShardSwapProhibitedError) do
                   ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) { }
                 end
-                assert_match(/cannot swap/, e.message)
               end
 
               assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
@@ -255,6 +253,7 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection(:arunit)
           ENV["RAILS_ENV"] = previous_env
         end
+
         def test_roles_and_shards_can_be_swapped_granularly
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 
