@@ -704,7 +704,7 @@ class HasManyThroughFixture < ActiveRecord::TestCase
   end
 end
 
-if Account.lease_connection.respond_to?(:reset_pk_sequence!)
+if Account.lease_connection.respond_to?(:reset_column_sequence!)
   class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
     fixtures :companies
@@ -719,7 +719,7 @@ if Account.lease_connection.respond_to?(:reset_pk_sequence!)
       @instances.each do |instance|
         model = instance.class
         model.delete_all
-        model.lease_connection.reset_pk_sequence!(model.table_name, model.primary_key, model.sequence_name)
+        model.lease_connection.reset_column_sequence!(model.table_name, model.primary_key, model.sequence_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
@@ -730,7 +730,7 @@ if Account.lease_connection.respond_to?(:reset_pk_sequence!)
       @instances.each do |instance|
         model = instance.class
         model.delete_all
-        model.lease_connection.reset_pk_sequence!(model.table_name)
+        model.lease_connection.reset_column_sequence!(model.table_name)
 
         instance.save!
         assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."

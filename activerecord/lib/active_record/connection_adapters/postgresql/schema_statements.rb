@@ -335,47 +335,58 @@ module ActiveRecord
           query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})", "SCHEMA")
         end
 
-        # Sets the sequence of a table's primary key to the specified value.
-        def set_pk_sequence!(table, value) # :nodoc:
-          pk, sequence = pk_and_sequence_for(table)
+        # Sets the sequence of a table's column (by default, the primary key) to the specified value.
+        def set_column_sequence!(table, value) # :nodoc:
+          col, sequence = pk_and_sequence_for(table)
 
-          if pk
+          if col
             if sequence
               quoted_sequence = quote_table_name(sequence)
 
               internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{value})", "SCHEMA")
             else
-              @logger.warn "#{table} has primary key #{pk} with no default sequence." if @logger
+              @logger.warn "#{table} has column #{col} with no default sequence." if @logger
             end
           end
         end
 
-        # Resets the sequence of a table's primary key to the maximum value.
-        def reset_pk_sequence!(table, pk = nil, sequence = nil) # :nodoc:
-          unless pk && sequence
-            default_pk, default_sequence = pk_and_sequence_for(table)
+        # Resets the sequence of a table's sequence column (by default, the primary key) to the maximum value.
+        def reset_column_sequence!(table, column = nil, sequence = nil) # :nodoc:
+          unless column && sequence
+            default_column, default_sequence = pk_and_sequence_for(table)
 
-            pk ||= default_pk
+            column ||= default_column
             sequence ||= default_sequence
           end
 
-          if @logger && pk && !sequence
-            @logger.warn "#{table} has primary key #{pk} with no default sequence."
+          if @logger && column && !sequence
+            @logger.warn "#{table} has column #{column} with no default sequence."
           end
 
-          if pk && sequence
+          if column && sequence
             quoted_sequence = quote_table_name(sequence)
-            max_pk = query_value("SELECT MAX(#{quote_column_name pk}) FROM #{quote_table_name(table)}", "SCHEMA")
-            if max_pk.nil?
+            max_column_value = query_value("SELECT MAX(#{quote_column_name(column)}) FROM #{quote_table_name(table)}", "SCHEMA")
+            if max_column_value.nil?
               if database_version >= 10_00_00
-                minvalue = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
+                min_column_value = query_value("SELECT seqmin FROM pg_sequence WHERE seqrelid = #{quote(quoted_sequence)}::regclass", "SCHEMA")
               else
-                minvalue = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
+                min_column_value = query_value("SELECT min_value FROM #{quoted_sequence}", "SCHEMA")
               end
             end
 
-            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_pk || minvalue}, #{max_pk ? true : false})", "SCHEMA")
+            internal_execute("SELECT setval(#{quote(quoted_sequence)}, #{max_column_value || min_column_value}, #{max_column_value ? true : false})", "SCHEMA")
           end
+        end
+
+        # Batch resets column sequences. Passed in the shape of [[table, column, sequence, max_column_value, min_column_value]].
+        # Reduces query round trips for sequence resets when there are a large amount of tables.
+        def reset_column_sequences!(args) # :nodoc:
+          sql_statements = args.map do |table, column, sequence, max_column_value, min_column_value|
+            quoted_sequence = quote_table_name(sequence)
+            "SELECT setval(#{quote(quoted_sequence)}, #{max_column_value || min_column_value}, #{max_column_value ? true : false})"
+          end
+
+          execute_batch(sql_statements, "SCHEMA")
         end
 
         # Returns a table's primary key and belonging sequence.

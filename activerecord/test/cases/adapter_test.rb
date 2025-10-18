@@ -518,19 +518,19 @@ module ActiveRecord
     end
 
     # test resetting sequences in odd tables in PostgreSQL
-    if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
+    if ActiveRecord::Base.lease_connection.respond_to?(:reset_column_sequence!)
       require "models/movie"
       require "models/subscriber"
 
       def test_reset_empty_table_with_custom_pk
         Movie.delete_all
-        Movie.lease_connection.reset_pk_sequence! "movies"
+        Movie.lease_connection.reset_column_sequence! "movies"
         assert_equal 1, Movie.create(name: "fight club").id
       end
 
       def test_reset_table_with_non_integer_pk
         Subscriber.delete_all
-        Subscriber.lease_connection.reset_pk_sequence! "subscribers"
+        Subscriber.lease_connection.reset_column_sequence! "subscribers"
         sub = Subscriber.new(name: "robert drake")
         sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
