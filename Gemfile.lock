@@ -210,6 +210,7 @@ GEM
     digest-crc (0.6.4)
       rake (>= 12.0.0, < 14.0.0)
     drb (2.2.3)
+    erb (5.1.1)
     erubi (1.13.1)
     et-orbi (1.2.7)
       tzinfo
@@ -428,8 +429,10 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.5.0)
+    rdoc (6.15.0)
+      erb
       psych (>= 4.0.0)
+      tsort
     redcarpet (3.2.3)
     redis (5.4.1)
       redis-client (>= 0.22.0)
@@ -489,7 +492,7 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.8.2)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.6.1)
+    sdoc (2.6.5)
       rdoc (>= 5.0)
     securerandom (0.4.0)
     selenium-webdriver (4.32.0)
@@ -682,4 +685,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.6.2
+   2.7.2
