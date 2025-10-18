@@ -427,7 +427,7 @@ module ActiveRecord
         if active_record.name.demodulize == class_name
           begin
             compute_class("::#{class_name}")
-          rescue NameError
+          rescue NameError, ArgumentError
             compute_class(class_name)
           end
         else
