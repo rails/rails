@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
 
     When altering a table in SQLite3 that is referenced by child tables with
