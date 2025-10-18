@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class HiddenField < TextField # :nodoc:
-        def render
+        def attributes
           @options.reverse_merge!(autocomplete: "off")
           super
         end

@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class DatetimeField < TextField # :nodoc:
-        def render
+        def attributes
           options = @options.stringify_keys
           options["value"] = datetime_value(options.fetch("value", value))
           options["min"] = format_datetime(parse_datetime(options["min"]))
