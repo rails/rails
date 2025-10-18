@@ -8,12 +8,6 @@ module Rails
   class StructuredEventSubscriberTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::EventReporterAssertions
 
-    def run(*)
-      ActiveSupport.event_reporter.with_debug do
-        super
-      end
-    end
-
     def test_deprecation_is_notified_when_behavior_is_notify
       Rails.deprecator.with(behavior: :notify) do
         event = assert_event_reported("rails.deprecation", payload: { gem_name: "Rails" }) do
