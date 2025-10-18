@@ -100,7 +100,7 @@
     {a: 1, "a" => 2}.to_json
     # gives: "{\"a\":1,\"a\":2}"
     ```
-    
+
     *Rafael Mendonça França*
 
 
@@ -140,7 +140,7 @@
     {a: 1, "a" => 2}.to_json
     # gives: "{\"a\":1,\"a\":2}"
     ```
-    
+
     ActiveSupport 7.1.3
     ```ruby
     {a: 1, "a" => 2}.to_json
