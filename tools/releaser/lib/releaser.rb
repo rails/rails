@@ -187,7 +187,7 @@ class Releaser < Rake::TaskLib
   end
 
   def npm_tag
-    pre_release? ? "pre" : "latest"
+    pre_release? ? "pre" : "8-0-stable"
   end
 
   # This "npm-ifies" the current version number
