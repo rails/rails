@@ -27,6 +27,9 @@ class UserWithNotification < User
   after_create -> { Notification.create! message: "A new user has been created." }
 end
 
+module Child
+end
+
 module Nested
   class User < ActiveRecord::Base
     self.table_name = "users"
@@ -34,5 +37,8 @@ module Nested
 
   class NestedUser < ActiveRecord::Base
     has_many :nested_users
+  end
+
+  class Child < ActiveRecord::Base
   end
 end
