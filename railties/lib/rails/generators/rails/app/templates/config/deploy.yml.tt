@@ -21,15 +21,15 @@ proxy:
   ssl: true
   host: app.example.com
 
-# Credentials for your image host.
+# Registry is where your images are kept.
 registry:
-  # Specify the registry server, if you're not using Docker Hub
+  server: localhost:5555
+  # Specify the registry server, if you're not using local host
   # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
-
+  # username: your-user
   # Always use an access token rather than real password when possible.
-  password:
-    - KAMAL_REGISTRY_PASSWORD
+  # password:
+  #   - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
