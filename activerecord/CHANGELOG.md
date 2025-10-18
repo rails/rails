@@ -20,8 +20,6 @@
 
     *Ruy Rocha*
 
-*   Fix negative scopes for enums to include records with `nil` values.
-
 
 ## Rails 8.1.0.rc1 (October 15, 2025) ##
 
