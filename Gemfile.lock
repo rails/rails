@@ -224,6 +224,7 @@ GEM
       http_parser.rb (>= 0.6.0)
     em-socksify (0.3.2)
       eventmachine (>= 1.0.0.beta.4)
+    erb (5.1.1)
     erubi (1.12.0)
     et-orbi (1.2.7)
       tzinfo
@@ -405,7 +406,8 @@ GEM
     protobug_well_known_protos (0.1.0)
       protobug (= 0.1.0)
       railties (>= 7.0.0)
-    psych (5.1.0)
+    psych (5.2.6)
+      date
       stringio
     public_suffix (6.0.1)
     puma (6.0.2)
@@ -435,8 +437,10 @@ GEM
     rb-inotify (0.10.1)
       ffi (~> 1.0)
     rbtree (0.4.6)
-    rdoc (6.5.0)
+    rdoc (6.15.0)
+      erb
       psych (>= 4.0.0)
+      tsort
     readline-ext (0.1.5)
     redcarpet (3.2.3)
     redis (4.8.0)
@@ -494,7 +498,7 @@ GEM
     rubyzip (2.3.2)
     rufus-scheduler (3.8.2)
       fugit (~> 1.1, >= 1.1.6)
-    sdoc (2.6.1)
+    sdoc (2.6.5)
       rdoc (>= 5.0)
     securerandom (0.3.1)
     selenium-webdriver (4.25.0)
@@ -552,18 +556,12 @@ GEM
     stackprof (0.2.23)
     stimulus-rails (1.2.1)
       railties (>= 6.0.0)
-    stringio (3.0.8)
+    stringio (3.1.7)
     sucker_punch (3.1.0)
       concurrent-ruby (~> 1.0)
     tailwindcss-rails (2.7.9)
       railties (>= 7.0.0)
     tailwindcss-rails (2.7.9-aarch64-linux)
-      railties (>= 7.0.0)
-    tailwindcss-rails (2.7.9-arm64-darwin)
-      railties (>= 7.0.0)
-    tailwindcss-rails (2.7.9-x86_64-darwin)
-      railties (>= 7.0.0)
-    tailwindcss-rails (2.7.9-x86_64-linux)
       railties (>= 7.0.0)
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
@@ -575,6 +573,7 @@ GEM
     tilt (2.0.11)
     timeout (0.4.3)
     trailblazer-option (0.1.2)
+    tsort (0.2.0)
     turbo-rails (1.3.2)
       actionpack (>= 6.0.0)
       activejob (>= 6.0.0)
@@ -606,11 +605,7 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  arm64-darwin-23
   ruby
-  x86_64-darwin-19
-  x86_64-darwin-20
-  x86_64-linux
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
@@ -694,4 +689,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   2.4.19
+   2.7.2
