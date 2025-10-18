@@ -66,6 +66,7 @@ module ActiveSupport
     autoload :Cache
     autoload :Callbacks
     autoload :Configurable
+    autoload :ColorizeLogging
     autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
@@ -116,6 +117,9 @@ module ActiveSupport
   singleton_class.attr_accessor :event_reporter # :nodoc:
 
   cattr_accessor :filter_parameters, default: [] # :nodoc:
+
+  @colorize_logging = true
+  singleton_class.attr_accessor :colorize_logging
 
   def self.cache_format_version
     Cache.format_version
