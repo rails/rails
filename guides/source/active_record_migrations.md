@@ -1283,7 +1283,7 @@ only perform the necessary tasks once.
   load the schema, run any pending migrations, dump the updated schema, and
   finally load the seed data. See the [Seeding Data
   documentation](#migrations-and-seed-data) for more details.
-* If the database and tables exist, the command run pending database migrations.
+* If the database and tables already exist, the command will run any pending database migrations.
 
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
