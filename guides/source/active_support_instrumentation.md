@@ -705,11 +705,12 @@ end
 The event payload (`event.payload`) includes the following keys (with typical
 example values).
 
-| Payload Key | Description                       | Example                          |
-| ----------- | --------------------------------- | -------------------------------- |
-| `:status`   | HTTP response code                | `302`                            |
-| `:location` | URL to redirect to                | `"https://example.com/sign_in"`  |
-| `:request`  | The [`ActionDispatch::Request`][] | `#<ActionDispatch::Request ...>` |
+| Payload Key        | Description                              | Example                          |
+| ------------------ | ---------------------------------------- | ---------------------------------|
+| `:status`          | HTTP response code                       | `302`                            |
+| `:location`        | URL to redirect to                       | `"https://example.com/sign_in"`  |
+| `:request`         | The [`ActionDispatch::Request`][] object | `#<ActionDispatch::Request ...>` |
+| `:source_location` | Source location of redirect in routes    | `"config/routes.rb:10"`          |
 
 #### `request.action_dispatch`
 
@@ -1779,6 +1780,28 @@ example values).
 | `:serialized`   | Serialized string  | `\x04\b{\x06I\"\nHello\x06:\x06ETI\"\nWorld\x06;\x00T` |
 | `:deserialized` | Deserialized value | `{ "Hello"=>"World" }`                                 |
 
+### Rails
+
+#### `deprecation.rails`
+
+The event is emitted when Rails emits a deprecation warning.
+
+For example:
+
+```ruby
+ActiveSupport::Deprecation.warn("X is deprecated")
+```
+
+The event payload (`event.payload`) includes the following keys (with typical
+example values).
+
+| Payload Key            | Description                                      | Example                     |
+| ---------------------- | ------------------------------------------------ | --------------------------- |
+| `:message`             | The deprecation warning                          | `"X is deprecated..."`      |
+| `:callstack`           | Where the deprecation came from                  | `[ ".../file.rb:42", ... ]` |
+| `:gem_name`            | Name of the gem reporting the deprecation        | `"rails"`                   |
+| `:deprecation_horizon` | Version where the deprecated behavior is removed | `"8.0"`                     |
+
 ### Railties
 
 #### `load_config_initializer.railties`
@@ -1801,27 +1824,6 @@ example values).
 | -------------- | ------------------------------ | ----------------------------------- |
 | `:initializer` | Path of the loaded initializer | `"config/initializers/timezone.rb"` |
 
-### Rails
-
-#### `deprecation.rails`
-
-The event is emitted when Rails emits a deprecation warning.
-
-For example:
-
-```ruby
-ActiveSupport::Deprecation.warn("X is deprecated")
-```
-
-The event payload (`event.payload`) includes the following keys (with typical
-example values).
-
-| Payload Key            | Description                                      | Example                     |
-| ---------------------- | ------------------------------------------------ | --------------------------- |
-| `:message`             | The deprecation warning                          | `"X is deprecated..."`      |
-| `:callstack`           | Where the deprecation came from                  | `[ ".../file.rb:42", ... ]` |
-| `:gem_name`            | Name of the gem reporting the deprecation        | `"rails"`                   |
-| `:deprecation_horizon` | Version where the deprecated behavior is removed | `"8.0"`                     |
 
 Exceptions
 ----------

@@ -1119,7 +1119,208 @@ module ActiveRecord
         assert_equal(["/string/literal/path", SQLiteExtensionSpec], conn.class.new_client_arg[:extensions])
       end
 
+      test "path resolution of a relative file path" do
+        database = "storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute file path" do
+        database = "/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI" do
+        database = "file:/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI with query params" do
+        database = "file:/var/storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI" do
+        database = "file:storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI with query params" do
+        database = "file:storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      def test_alter_table_with_fk_preserves_rows_when_referenced_table_altered
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (42, 'The Hitchhiker''s Guide', 1);")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (43, 'Restaurant at the End', 1);")
+
+        initial_book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        assert_equal 2, initial_book_count
+
+        conn.add_column :authors, :email, :string
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        author_count = conn.select_value("SELECT COUNT(*) FROM authors")
+
+        assert_equal 2, book_count, "Books were CASCADE deleted when authors table was altered!"
+        assert_equal 1, author_count, "Authors were lost during table alteration!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_with_fk_preserves_rows_when_adding_fk_to_referenced_table
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :groups do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :users do |t|
+          t.string :username, null: false
+        end
+
+        conn.create_table :reports do |t|
+          t.string  :title, null: false
+          t.integer :group_id, null: false
+        end
+        conn.add_foreign_key :reports, :groups, on_delete: :cascade
+
+        conn.execute("INSERT INTO groups (id, name) VALUES (1, 'Admin Group');")
+        conn.execute("INSERT INTO users (id, username) VALUES (1, 'alice');")
+        conn.execute("INSERT INTO reports (id, title, group_id) VALUES (1, 'Report A', 1);")
+        conn.execute("INSERT INTO reports (id, title, group_id) VALUES (2, 'Report B', 1);")
+
+        initial_report_count = conn.select_value("SELECT COUNT(*) FROM reports")
+        assert_equal 2, initial_report_count
+
+        conn.add_column :groups, :owner_id, :integer
+        conn.add_foreign_key :groups, :users, column: :owner_id
+
+        report_count = conn.select_value("SELECT COUNT(*) FROM reports")
+        group_count = conn.select_value("SELECT COUNT(*) FROM groups")
+
+        assert_equal 2, report_count, "Reports were CASCADE deleted when groups table was altered!"
+        assert_equal 1, group_count, "Groups were lost during table alteration!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_with_multiple_cascade_fks_preserves_all_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.create_table :articles do |t|
+          t.string  :headline, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :articles, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (1, 'HHGTTG', 1);")
+        conn.execute("INSERT INTO articles (id, headline, author_id) VALUES (1, 'Towel Day', 1);")
+
+        conn.add_column :authors, :bio, :text
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        article_count = conn.select_value("SELECT COUNT(*) FROM articles")
+
+        assert_equal 1, book_count, "Books were CASCADE deleted when authors table was altered!"
+        assert_equal 1, article_count, "Articles were CASCADE deleted when authors table was altered!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_rename_table_with_cascade_fk_preserves_referencing_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (1, 'HHGTTG', 1);")
+
+        conn.rename_table :authors, :writers
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        assert_equal 1, book_count, "Books were CASCADE deleted when authors table was renamed!"
+      ensure
+        conn.disconnect! if conn
+      end
+
       private
+        def with_rails_root(&block)
+          mod = Module.new do
+            def self.root
+              Pathname.new("/app")
+            end
+          end
+          stub_const(Object, :Rails, mod, &block)
+        end
+
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
