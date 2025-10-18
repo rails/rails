@@ -214,7 +214,7 @@ also log the event.
 
 
 Rails Framework Hooks
-----------------------
+---------------------
 
 Within the Ruby on Rails framework, there are a number of hooks provided for
 common events.
