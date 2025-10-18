@@ -409,7 +409,7 @@ module ActiveRecord
 
       def append_to_connected_to_stack(entry)
         if shard_swapping_prohibited? && entry[:shard].present?
-          raise ArgumentError, "cannot swap `shard` while shard swapping is prohibited."
+          raise ShardSwapProhibitedError, "cannot swap `shard` while shard swapping is prohibited."
         end
 
         connected_to_stack << entry
