@@ -1,3 +1,10 @@
+*   Prevent connection pool errors when calling `ActiveRecord::Migration.check_all_pending!`
+
+    Use `ActiveRecord::PendingMigrationConnection` so that `ActiveRecord::Base` connection pools are
+    not affected.
+
+    *Heinrich Lee Yu*
+
 *   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
 
     When altering a table in SQLite3 that is referenced by child tables with
