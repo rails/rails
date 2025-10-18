@@ -170,9 +170,11 @@ module ActiveRecord
       prevent_writes = true if role == ActiveRecord.reading_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
-      yield
-    ensure
-      connected_to_stack.pop
+      begin
+        yield
+      ensure
+        connected_to_stack.pop
+      end
     end
 
     # Use a specified connection.
@@ -373,11 +375,13 @@ module ActiveRecord
         prevent_writes = true if role == ActiveRecord.reading_role
 
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
-        return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
-        return_value
-      ensure
-        self.connected_to_stack.pop
+        begin
+          return_value = yield
+          return_value.load if return_value.is_a? ActiveRecord::Relation
+          return_value
+        ensure
+          self.connected_to_stack.pop
+        end
       end
 
       def append_to_connected_to_stack(entry)
