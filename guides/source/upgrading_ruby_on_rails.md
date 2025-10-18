@@ -12,20 +12,16 @@ release guides.
 General Advice
 --------------
 
-Before attempting to upgrade an existing application, you should be sure you
-have a good reason to upgrade. You need to balance several factors: the need for
-new features, gem compatibility, the increasing difficulty of finding support
-for old code and your available time and skills, to name a few.
+Upgrading an application can be a difficult process, so make sure you
+have a clear reason for doing so. Weigh up factors such as the need for
+new features, gem compatibility, the decreasing availability of support
+for older code and the time and skills you have available.
+
+Newer Rails versions introduce new features and improvements, so keeping your application up to date with maintained versions will ensure it receives these benefits.
 
 ### Test Coverage
 
-The best way to be sure that your application still works after upgrading
-something is to have good test coverage before you start the process. If you
-don't have automated tests that exercise the bulk of your application, you'll
-need to spend time manually exercising all the parts that have changed. In the
-case of a Rails upgrade, that will mean every single piece of functionality in
-the application. Do yourself a favor and make sure your test coverage is good
-_before_ you start an upgrade.
+The best way to be sure that your application still works after an upgrade is to have strong test coverage in place before you begin. Without automated tests that cover most of your application, you’ll need to manually verify every part that might be affected. For a Rails upgrade, that could mean testing nearly all functionality. Having solid test coverage in advance will make the upgrade process much smoother.
 
 ### Ruby Versions
 
@@ -40,17 +36,16 @@ at the time. For example:
 * Rails 5 requires Ruby 2.2.2 or newer.
 
 It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest
-Ruby you can first, and then upgrade Rails.
+Ruby you can first, and then upgrade Rails. Refer to your Ruby package manager for instructions on how to update your Ruby version based on your operating system.
 
 ### The Upgrade Process
 
 When changing Rails versions, it's best to move slowly, one minor version at a
 time, in order to make good use of the deprecation warnings. Rails version
-numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed
-to make changes to the public API, so this may cause errors in your application.
+numbers are in the form Major.Minor.Patch. Major and Minor versions can include changes to the public API, so this may cause errors in your application.
 Patch versions only include bug fixes, and don't change the public API.
 
-The process should go as follows:
+The recommended upgrade process is as follows:
 
 1. Write tests and make sure they pass.
 2. Move to the latest patch version after your current version.
@@ -555,7 +550,7 @@ consider:
     ```
 
     If all of your data was encrypted non-deterministicly (the default unless
-    `encrypts` is passed `deterministic: true`, you can instead configure
+    `encrypts` is passed `deterministic: true`), you can instead configure
     SHA-256 for Active Record Encryption as in scenario 2 below and also allow
     columns previously encrypted with SHA-1 to be decrypted by setting:
 
