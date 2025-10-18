@@ -8,7 +8,8 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
   end
 
   def test_exec_insert
-    result = @connection.exec_insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", nil, [])
+    intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(raw_sql: "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)", name: nil, binds: [])
+    result = @connection.exec_insert(intent)
     assert_not_nil @connection.send(:last_inserted_id, result)
   end
 
