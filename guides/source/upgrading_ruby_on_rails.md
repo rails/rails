@@ -60,8 +60,8 @@ To move between versions:
 
 1. Change the Rails version number in the `Gemfile` and run `bundle update
    rails`.
-2. Change the versions for Rails JavaScript packages in `package.json` and run
-   `bin/rails javascript:install` if running jsbundling-rails.
+2. If you are using import maps via [importmap-rails](https://github.com/rails/importmap-rails), update any pinned Javascript packages if required by running `bin/importmap pin <package-name>`.
+3. If you are using traditional Javascript bundling instead (using jsbundling-rails) change the versions for Rails JavaScript packages in `package.json` and run `bin/rails javascript:install`.
 3. Run the [Update task](#the-update-task).
 4. Run your tests.
 
@@ -84,7 +84,7 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 ...
 ```
 
-Don't forget to review the difference to see if there were any unexpected
+You should review the difference to see if there were any unexpected
 changes. Note that the tools used during this process can be defined using the
 `THOR_DIFF` and `THOR_MERGE` environment variables. For example:
 
@@ -101,18 +101,18 @@ $ bin/rails app:update
 ```
 
 NOTE: The `bin/rails app:update` command is only relevant when changing between
-releases (e.g. 8.0 to 8.1) and not between patch level versions (e.g. 7.1.2 to
+minor level versions (e.g. 8.0 to 8.1) and not between patch level versions (e.g. 7.1.2 to
 7.1.3).
 
 ### Configure Framework Defaults
 
 The new Rails version might have different configuration defaults than the
-previous version. However, if after following the steps described above your
+previous version. However, if after following the steps described above, your
 application still runs with configuration defaults from the *previous* Rails
 version, it's because the value for `config.load_defaults` in
 `config/application.rb` has not been changed yet.
 
-To allow you to upgrade to new defaults one by one, the update task has created
+To allow you to upgrade to new defaults one by one, the [update task](#the-update-task) has created
 a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired
 Rails version in the filename). You should enable the new configuration defaults
 by uncommenting them in the file; this can be done gradually over several
