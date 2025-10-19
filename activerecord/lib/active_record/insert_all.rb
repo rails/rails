@@ -59,7 +59,7 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(@model.schema_cache.primary_keys(model.table_name))
+      Array(@connection.schema_cache.primary_keys(model.table_name))
     end
 
     def skip_duplicates?
@@ -167,7 +167,7 @@ module ActiveRecord
       end
 
       def unique_indexes
-        @model.schema_cache.indexes(model.table_name).select(&:unique)
+        @connection.schema_cache.indexes(model.table_name).select(&:unique)
       end
 
       def ensure_valid_options_for_connection!
