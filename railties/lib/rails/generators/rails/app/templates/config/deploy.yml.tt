@@ -21,12 +21,12 @@ proxy:
   ssl: true
   host: app.example.com
 
-# Registry is where your images are kept.
+# Where you keep your container images.
 registry:
+  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
   server: localhost:5555
 
-  # Specify the registry server, if you're not using local host
-  # server: registry.digitalocean.com / ghcr.io / ...
+  # Needed for authenticated registries.
   # username: your-user
 
   # Always use an access token rather than real password when possible.
