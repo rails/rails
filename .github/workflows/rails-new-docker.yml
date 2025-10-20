@@ -28,6 +28,7 @@ jobs:
     - name: Run container
       run: |
         podman run --name $APP_NAME \
+        --user root \
         -v $(pwd):$(pwd) \
         -e SECRET_KEY_BASE_DUMMY=1 \
         -p 3000:3000 $APP_NAME &
