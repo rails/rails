@@ -39,6 +39,7 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :Configurable
   autoload :ConfigurationFile
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
@@ -65,7 +66,6 @@ module ActiveSupport
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
-    autoload :Configurable
     autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
@@ -94,10 +94,6 @@ module ActiveSupport
   autoload :Rescuable
   autoload :SafeBuffer, "active_support/core_ext/string/output_safety"
   autoload :TestCase
-
-  include Deprecation::DeprecatedConstantAccessor
-
-  deprecate_constant :Configurable, "class_attribute :config, default: {}", deprecator: ActiveSupport.deprecator
 
   def self.eager_load!
     super

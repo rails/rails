@@ -181,6 +181,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Deprecate `config.active_support.to_time_preserves_timezone`.
 
+*   Deprecate `ActiveSupport::Configurable`.
+
 ### Notable changes
 
 Active Job
