@@ -10,7 +10,6 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    attr_reader :client, :bucket
     class MetadataServerError < ActiveStorage::Error; end
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
@@ -147,6 +146,14 @@ module ActiveStorage
         file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
         file.metadata = custom_metadata
       end
+    end
+
+    def bucket
+      @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
+    end
+
+    def client
+      @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
     end
 
     private
