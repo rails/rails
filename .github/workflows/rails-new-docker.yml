@@ -34,6 +34,7 @@ jobs:
     - name: Run container
       run: |
         podman run --name $APP_NAME \
+        --user root \
         -v $(pwd):$(pwd) \
         -e SECRET_KEY_BASE_DUMMY=1 \
         -e DATABASE_URL=sqlite3:storage/production.sqlite3 \
