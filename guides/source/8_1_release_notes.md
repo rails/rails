@@ -133,6 +133,20 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate using an [order dependent finder
+    method](https://github.com/rails/rails/pull/54608) (e.g. `#first`) without
+    an `order`.
+
+*   Deprecate `ActiveRecord::Base.signed_id_verifier_secret` in favor of
+    `Rails.application.message_verifiers` (or `Model.signed_id_verifier` if the
+    secret is specific to a model).
+
+*   Deprecate using `insert_all`/`upsert_all` with unpersisted records in
+    associations.
+
+*   Deprecate usage of `WITH`, `WITH RECURSIVE` and `DISTINCT` with
+    `update_all`.
+
 ### Notable changes
 
 *   The table columns inside `schema.rb` are [now sorted alphabetically.](https://github.com/rails/rails/pull/53281)
@@ -181,6 +195,8 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   Deprecate `config.active_support.to_time_preserves_timezone`.
 
+*   Deprecate `String#mb_chars` and `ActiveSupport::Multibyte::Chars`.
+
 *   Deprecate `ActiveSupport::Configurable`.
 
 ### Notable changes
@@ -201,6 +217,8 @@ Please refer to the [Changelog][active-job] for detailed changes.
 ### Deprecations
 
 *   Custom Active Job serializers must have a public `#klass` method.
+
+*   Deprecate built-in `sidekiq` adapter (now provided by `sidekiq` gem).
 
 ### Notable changes
 
