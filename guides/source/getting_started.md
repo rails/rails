@@ -2959,15 +2959,7 @@ What's Next?
 
 Congratulations on building and deploying your first Rails application!
 
-We recommend continuing to add features and deploy updates to continue learning.
-Here are some ideas:
-
-* Improve the design with CSS
-* Add product reviews
-* Finish translating the app into another language
-* Add a checkout flow for payments
-* Add wishlists for users to save products
-* Add a carousel for product images
+Next, follow the [Sign Up and Settings tutorial](sign_up_and_settings.html) to continue learning.
 
 We also recommend learning more by reading other Ruby on Rails Guides:
 

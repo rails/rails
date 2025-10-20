@@ -1651,6 +1651,9 @@ Here are a few ideas to build on to this:
 
 - Add product reviews
 - Write more tests
+- Finish translating the app into another language
+- Add a carousel for product images
+- Improve the design with CSS
 - Add payments to buy products
 
 [Return to all tutorials](https://rubyonrails.org/docs/tutorials)
