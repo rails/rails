@@ -83,7 +83,7 @@ default: &default
 
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 3 } %>
 
 development:
   <<: *default
@@ -186,8 +186,8 @@ $ bin/rails server
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.0 (ruby 3.1.3-p185) ("The Eagle of Durango")
-*  Min threads: 5
-*  Max threads: 5
+*  Min threads: 3
+*  Max threads: 3
 *  Environment: development
 *          PID: 5295
 * Listening on http://127.0.0.1:3000
