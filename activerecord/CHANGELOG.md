@@ -1,3 +1,10 @@
+*   Prevent connection pool errors when calling `ActiveRecord::Migration.check_all_pending!`
+
+    Use `ActiveRecord::PendingMigrationConnection` so that `ActiveRecord::Base` connection pools are
+    not affected.
+
+    *Heinrich Lee Yu*
+
 *   Raise specific exception when a prohibited shard change is attempted.
 
     The new `ShardSwapProhibitedError` exception allows applications and
