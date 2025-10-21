@@ -55,7 +55,7 @@
 // The Colors
 //
 // These are the inverse of what they used to be, as we use a dark block on the
-// light background and a light block on the dark background pages. 
+// light background and a light block on the dark background pages.
 
 .highlight {
   color: #fff;
@@ -63,7 +63,15 @@
   &.console,
   &.erb,
   &.html { color: #fff; }
-  .hll { background-color: #3a3939; border-left: 3px solid #00F0FF; margin-left: -5px; padding-left: 5px; padding-right: 5px;} /* $gray-700, $tip */
+  .hll {
+    background-color: #3a3939;
+    border-left: 3px solid #00F0FF;
+    padding-right: 5px;
+
+    :first-child {
+      margin-left: -3px;
+    }
+  } /* $gray-700, $tip */
   .c   { color: #b4b4b3; } /* Comment */
   .err { color: #ff0088; background-color: #1e0010 } /* Error */
   .k   { color: #9decfc; } /* Keyword */
@@ -127,5 +135,5 @@
   .gi  { color: #d0ff71; background-color: unset; } /* Generic.Inserted & Diff Inserted */
   .gr  { color: #ff699b; }
   .go  { color: #b4b4b3; }
-  .gp  { color: #fff; } 
+  .gp  { color: #fff; }
 }
