@@ -64,11 +64,12 @@ class ProcessImportJob < ApplicationJob
 
     # method format
     step :finalize
+  end
 
-    private
-      def finalize
-        @import.finalize
-      end
+  private
+    def finalize
+      @import.finalize
+    end
   end
 end
 ```
