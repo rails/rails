@@ -1335,7 +1335,66 @@ class ProductsController < ApplicationController
 end
 ```
 
-Next we can add an Edit link to `app/views/products/show.html.erb`:
+#### Extracting Partials
+
+We've already written a form for creating new products. Wouldn't it be nice if
+we could reuse that for edit and update? We can, using a feature called
+"partials" that allows you to reuse a view in multiple places.
+
+We can move the form into a file called `app/views/products/_form.html.erb`. The
+filename starts with an underscore to denote this is a partial.
+
+We also want to replace any instance variables with a local variable, which we
+can define when we render the partial. We'll do this by replacing `@product`
+with `product`.
+
+Let's also display any errors from the form submission inside the form.
+
+```erb#1-4
+<%= form_with model: product do |form| %>
+  <% if form.object.errors.any? %>
+    <p class="error"><%= form.object.errors.full_messages.first %></p>
+  <% end %>
+
+  <div>
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
+```
+
+TIP: Using local variables allows partials to be reused multiple times on the
+same page with a different value each time. This comes in handy rendering lists
+of items like an index page.
+
+To use this partial in our `app/views/products/new.html.erb` view, we can
+replace the form with a render call:
+
+```erb#3
+<h1>New product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", products_path %>
+```
+
+The edit view becomes almost the exact same thing thanks to the form partial.
+Let's create `app/views/products/edit.html.erb` with the following:
+
+```erb#3
+<h1>Edit product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", @product %>
+```
+
+To learn more about view partials, check out the
+[Action View Guide](action_view_overview.html).
+
+Now we can add an Edit link to `app/views/products/show.html.erb`:
 
 ```erb#4
 <h1><%= @product.name %></h1>
@@ -1402,59 +1461,6 @@ class ProductsController < ApplicationController
     end
 end
 ```
-
-#### Extracting Partials
-
-We've already written a form for creating new products. Wouldn't it be nice if
-we could reuse that for edit and update? We can, using a feature called
-"partials" that allows you to reuse a view in multiple places.
-
-We can move the form into a file called `app/views/products/_form.html.erb`. The
-filename starts with an underscore to denote this is a partial.
-
-We also want to replace any instance variables with a local variable, which we
-can define when we render the partial. We'll do this by replacing `@product`
-with `product`.
-
-```erb#1
-<%= form_with model: product do |form| %>
-  <div>
-    <%= form.label :name %>
-    <%= form.text_field :name %>
-  </div>
-
-  <div>
-    <%= form.submit %>
-  </div>
-<% end %>
-```
-
-TIP: Using local variables allows partials to be reused multiple times on the
-same page with a different value each time. This comes in handy rendering lists
-of items like an index page.
-
-To use this partial in our `app/views/products/new.html.erb` view, we can
-replace the form with a render call:
-
-```erb#3
-<h1>New product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", products_path %>
-```
-
-The edit view becomes almost the exact same thing thanks to the form partial.
-Let's create `app/views/products/edit.html.erb` with the following:
-
-```erb#3
-<h1>Edit product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", @product %>
-```
-
-To learn more about view partials, check out the
-[Action View Guide](action_view_overview.html).
 
 ### Deleting Products
 
@@ -2113,21 +2119,31 @@ class SubscribersController < ApplicationController
 end
 ```
 
-Our redirect sets a notice in the Rails flash. The flash is used for storing
-messages to display on the next page.
+The `redirect_to` uses the `notice:` argument to set a "flash" message to tell
+the user they are subscribed.
 
-To display the flash message, let's add the notice to
+The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
+provides a way to pass temporary data between controller actions. Anything you
+place in the flash will be available to the very next action and then cleared.
+The flash is typically used for setting messages (e.g. notices and alerts) in a
+controller action before redirecting to an action that displays the message to
+the user.
+
+To display the flash message, let's add the flash to
 `app/views/layouts/application.html.erb` inside the body:
 
-```erb#4
+```erb#4-5
 <html>
   <!-- ... -->
   <body>
-    <div class="notice"><%= notice %></div>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
     <!-- ... -->
   </body>
 </html>
 ```
+
+Learn more about the Flash in the [Action Controller Overview](action_controller_overview.html#the-flash)
 
 To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
@@ -2506,6 +2522,11 @@ nav a {
 main {
   max-width: 1024px;
   margin: 0 auto;
+}
+
+.alert,
+.error {
+  color: red;
 }
 
 .notice {

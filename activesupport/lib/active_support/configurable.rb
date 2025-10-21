@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+ActiveSupport.deprecator.warn <<~MSG
+  ActiveSupport::Configurable is deprecated without replacement, and will be removed in Rails 8.2.
+
+  You can emulate the previous behavior with `class_attribute`.
+MSG
+
 require "active_support/concern"
 require "active_support/ordered_options"
 

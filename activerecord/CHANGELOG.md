@@ -5,6 +5,15 @@
 
     *Heinrich Lee Yu*
 
+*   Raise specific exception when a prohibited shard change is attempted.
+
+    The new `ShardSwapProhibitedError` exception allows applications and
+    connection-related libraries to more easily recover from this specific
+    scenario. Previously an `ArgumentError` was raised, so the new exception
+    subclasses `ArgumentError` for backwards compatibility.
+
+    *Mike Dalessio*
+
 *   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
 
     When altering a table in SQLite3 that is referenced by child tables with
