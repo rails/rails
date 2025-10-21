@@ -11,7 +11,7 @@
 
     *Eugene Bezludny*
 
-*   Make `ActiveModel::Serialization#read_attribute_for_serialization` public
+*   Make `ActiveModel::Serializers::JSON#from_json` compatible with `#assign_attributes`
 
     *Sean Doyle*
 
