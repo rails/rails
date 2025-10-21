@@ -14,9 +14,6 @@ module ActiveStorage
     class MetadataServerNotFoundError < ActiveStorage::Error; end
 
     def initialize(public: false, **config)
-      @client = Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
-      @bucket = @client.bucket(config.fetch(:bucket), skip_lookup: true)
-
       @public = public
 
       @config = config
