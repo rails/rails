@@ -15,7 +15,6 @@ module ActiveStorage
 
     def initialize(public: false, **config)
       @public = public
-
       @config = config
     end
 
@@ -146,11 +145,11 @@ module ActiveStorage
     end
 
     def bucket
-      @bucket ||= client.bucket(config.fetch(:bucket), skip_lookup: true)
+      @bucket ||= client.bucket(@config.fetch(:bucket), skip_lookup: true)
     end
 
     def client
-      @client ||= Google::Cloud::Storage.new(**config.except(:bucket, :cache_control, :iam, :gsa_email))
+      @client ||= Google::Cloud::Storage.new(**@config.except(:bucket, :cache_control, :iam, :gsa_email))
     end
 
     private
@@ -174,9 +173,6 @@ module ActiveStorage
       def public_url(key, **)
         file_for(key).public_url
       end
-
-
-      attr_reader :config
 
       def file_for(key, skip_lookup: true)
         bucket.file(key, skip_lookup: skip_lookup)
