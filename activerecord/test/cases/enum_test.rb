@@ -88,6 +88,8 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.not_published.exclude?(@book)
     assert Book.not_proposed.include?(@book)
 
+    assert Book.not_forgotten.exclude?(books(:ddd))
+
     # Should include records with nils in the column.
     rfr = books(:rfr)
     rfr.update!(status: nil)
