@@ -1,3 +1,24 @@
+*   PostgreSQL enable drop database FORCE option.
+
+    One of the benefits of developing with MySQL is that it allows dropping the
+    current database without first disconnecting clients. As a result developers
+    can use `bin/rails db:reset` and similar, without first shutting down
+    instances of the app, Rails consoles, background workers, etc. By default
+    PostgreSQL fails to drop a database when clients are connected and displays
+    the following error:
+
+      > PG::ObjectInUse: ERROR:  database "xyz" is being accessed by other users (PG::ObjectInUse)
+
+    This is frustrating when working in development where the database may be
+    dropped frequently.
+
+    PostgreSQL 13 added the `FORCE` option to the `DROP DATABASE` statement
+    ([PostgreSQL docs](https://www.postgresql.org/docs/current/sql-dropdatabase.html))
+    which automatically disconnects clients before dropping the database.
+    This option is automatically enabled for supported PostgreSQL versions.
+
+    *Steven Webb*
+
 *   Raise specific exception when a prohibited shard change is attempted.
 
     The new `ShardSwapProhibitedError` exception allows applications and
