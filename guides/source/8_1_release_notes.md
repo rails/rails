@@ -5,6 +5,18 @@ Ruby on Rails 8.1 Release Notes
 
 Highlights in Rails 8.1:
 
+* Active Job Continuations.
+* Structured Event Reporting.
+* Local CI.
+* Markdown Rendering.
+* Command-line Credentials Fetching.
+* Deprecated Associations.
+
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the [list of
+commits](https://github.com/rails/rails/commits/8-1-stable) in the main Rails
+repository on GitHub.
+
 --------------------------------------------------------------------------------
 
 Upgrading to Rails 8.1
@@ -20,6 +32,185 @@ guide.
 
 Major Features
 --------------
+
+### Active Job Continuations
+
+Long-running jobs can now be broken into discrete steps that allow execution to
+continue from the last completed step rather than the beginning after a restart.
+This is especially helpful when doing deploys with Kamal, which will only give
+job-running containers thirty seconds to shut down by default.
+
+Example:
+
+```ruby
+class ProcessImportJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform(import_id)
+    @import = Import.find(import_id)
+
+    # block format
+    step :initialize do
+      @import.initialize
+    end
+
+    # step with cursor, the cursor is saved when the job is interrupted
+    step :process do |step|
+      @import.records.find_each(start: step.cursor) do |record|
+        record.process
+        step.advance! from: record.id
+      end
+    end
+
+    # method format
+    step :finalize
+
+    private
+      def finalize
+        @import.finalize
+      end
+  end
+end
+```
+
+## Structured Event Reporting
+
+The default logger in Rails is great for human consumption, but less ideal for
+post-processing. The new Event Reporter provides a unified interface for
+producing structured events in Rails applications:
+
+```ruby
+Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+```
+
+It supports adding tags to events:
+
+```ruby
+Rails.event.tagged("graphql") do
+  # Event includes tags: { graphql: true }
+  Rails.event.notify("user.signup", user_id: 123, email: "user@example.com")
+end
+```
+
+As well as context:
+```ruby
+# All events will contain context: {request_id: "abc123", shop_id: 456}
+Rails.event.set_context(request_id: "abc123", shop_id: 456)
+```
+
+Events are emitted to subscribers. Applications register subscribers to
+control how events are serialized and emitted. Subscribers must implement
+an `#emit` method, which receives the event hash:
+
+```ruby
+class LogSubscriber
+  def emit(event)
+    payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
+    source_location = event[:source_location]
+    log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
+    Rails.logger.info(log)
+  end
+end
+```
+
+## Local CI
+
+Developer machines have gotten incredibly quick with loads of cores, which make
+them great local runners of even relatively large test suites.
+
+This makes getting rid of a cloud-setup for all of CI not just feasible but
+desirable for many small-to-mid-sized applications, and Rails has therefore
+added a default CI declaration DSL, which is defined in `config/ci.rb` and run
+by `bin/ci`. It looks like this:
+
+```ruby
+CI.run do
+  step "Setup", "bin/setup --skip-server"
+  step "Style: Ruby", "bin/rubocop"
+
+  step "Security: Gem audit", "bin/bundler-audit"
+  step "Security: Importmap vulnerability audit", "bin/importmap audit"
+  step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
+  step "Tests: Rails", "bin/rails test"
+  step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
+
+  # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
+  if success?
+    step "Signoff: All systems go. Ready for merge and deploy.", "gh signoff"
+  else
+    failure "Signoff: CI failed. Do not merge or deploy.", "Fix the issues and try again."
+  end
+end
+```
+
+The optional integration with gh ensures that PRs must be signed off by a
+passing CI run in order to be eligible to be merged.
+
+## Markdown Rendering
+
+Markdown has become the lingua franca of AI, and Rails has embraced this
+adoption by making it easier to respond to markdown requests and render them
+directly:
+
+```ruby
+class Page
+  def to_markdown
+    body
+  end
+end
+
+class PagesController < ActionController::Base
+  def show
+    @page = Page.find(params[:id])
+
+    respond_to do |format|
+      format.html
+      format.md { render markdown: @page }
+    end
+  end
+end
+```
+
+## Command-line Credentials Fetching
+
+Kamal can now easily grab its secrets from the encrypted Rails credentials store
+for deploys. This makes it a low-fi alternative to external secret stores that
+only needs the master key available to work:
+
+```bash
+# .kamal/secrets
+KAMAL_REGISTRY_PASSWORD=$(rails credentials:fetch kamal.registry_password)
+```
+
+## Deprecated Associations
+
+Active Record associations can now be marked as being deprecated:
+
+```ruby
+class Author < ApplicationRecord
+  has_many :posts, deprecated: true
+end
+```
+
+With that, usage of the `posts` association will be reported. This includes
+explicit API calls like
+
+```ruby
+author.posts
+author.posts = ...
+```
+
+and others, as well as indirect usage like
+
+```ruby
+author.preload(:posts)
+```
+
+usage via nested attributes, and more.
+
+Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
+backtraces can be enabled or disabled, though you always get the location of the
+reported usage regardless. Defaults are `:warn` mode and disabled backtraces.
 
 Railties
 --------
