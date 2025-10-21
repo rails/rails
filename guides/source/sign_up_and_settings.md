@@ -1988,11 +1988,7 @@ What's Next
 You did it! Your e-commerce store now supports user sign up, account management,
 and an admin area for managing products and users.
 
-Here are a few ideas to build on to this:
-
-- Add shareable wishlists
-- Write more tests to ensure the application works correctly
-- Add payments to buy products
+Next, follow the [Wishlists tutorial](wishlists.html) to continue learning.
 
 Happy building!
 
