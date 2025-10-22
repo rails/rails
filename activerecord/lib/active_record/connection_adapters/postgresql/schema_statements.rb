@@ -56,7 +56,7 @@ module ActiveRecord
         # Example:
         #   drop_database 'matt_development'
         #
-        # Note, for PostgreSQL versions >= 13 the SQL statement will include `WITH (FORCE)` to
+        # Note, for PostgreSQL versions >= 13 the SQL statement will include <tt>WITH (FORCE)</tt> to
         # disconnect clients before dropping the database. This allows you to drop/reset the
         # database without stopping the Rails server etc. See:
         # https://www.postgresql.org/docs/current/sql-dropdatabase.html
