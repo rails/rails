@@ -70,7 +70,6 @@ class ProcessImportJob < ApplicationJob
     def finalize
       @import.finalize
     end
-  end
 end
 ```
 
