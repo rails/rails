@@ -94,6 +94,7 @@ end
 ```
 
 As well as context:
+
 ```ruby
 # All events will contain context: {request_id: "abc123", shop_id: 456}
 Rails.event.set_context(request_id: "abc123", shop_id: 456)
