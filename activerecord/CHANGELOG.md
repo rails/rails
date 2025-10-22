@@ -1,3 +1,11 @@
+*   Mask secure tokens by default while displaying prefix
+
+    Following up on behavior added in [e434aa4](https://github.com/rails/rails/commit/e434aa439a8ab8171cc63dbae821ca4f4da64623),
+    this change masks tokens by default when inspecting Active Record models,
+    while preserving any visible prefix, e.g. `token=token_[FILTERED]`.
+
+    *Benjamin Garcia*
+
 *   PostgreSQL enable drop database FORCE option.
 
     One of the benefits of developing with MySQL is that it allows dropping the
