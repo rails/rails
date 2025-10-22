@@ -1014,31 +1014,7 @@ NOTE: Defined in `active_support/core_ext/module/attribute_accessors.rb`.
 [Module#cattr_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_reader
 [Module#cattr_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-cattr_writer
 
-### Subclasses and Descendants
-
-#### `subclasses`
-
-The [`subclasses`][Class#subclasses] method returns the subclasses of the receiver:
-
-```ruby
-class C; end
-C.subclasses # => []
-
-class B < C; end
-C.subclasses # => [B]
-
-class A < B; end
-C.subclasses # => [B]
-
-class D < C; end
-C.subclasses # => [B, D]
-```
-
-The order in which these classes are returned is unspecified.
-
-NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
-
-[Class#subclasses]: https://api.rubyonrails.org/classes/Class.html#method-i-subclasses
+### Descendants
 
 #### `descendants`
 
