@@ -2,11 +2,11 @@
 
 module ActionText
   class Editor::TrixEditor < Editor # :nodoc:
-    def to_action_text_html(editor_html)
-      Fragment.wrap(super).replace(TrixAttachment::SELECTOR) do |node|
+    def to_action_text_html(content)
+      Fragment.wrap(content.fragment).replace(TrixAttachment::SELECTOR) do |node|
         trix_attachment = TrixAttachment.new(node)
         Attachment.from_attributes(trix_attachment.attributes)
-      end
+      end.to_html
     end
 
     def to_editor_html(content)

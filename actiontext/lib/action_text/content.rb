@@ -39,11 +39,10 @@ module ActionText
 
     def initialize(content = nil, options = {})
       options.with_defaults! canonicalize: true
+      @fragment = ActionText::Fragment.wrap(content)
 
       if options[:canonicalize]
-        @fragment = self.class.fragment_by_canonicalizing_content(content)
-      else
-        @fragment = ActionText::Fragment.wrap(content)
+        @fragment = self.class.fragment_by_canonicalizing_content(self)
       end
     end
 
@@ -142,7 +141,7 @@ module ActionText
     end
 
     def to_html
-      fragment.to_html
+      RichText.editor.to_action_text_html(self)
     end
 
     def to_rendered_html_with_layout

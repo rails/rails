@@ -13,8 +13,8 @@ module ActionText
       @options = options
     end
 
-    def to_action_text_html(editor_html)
-      editor_html
+    def to_action_text_html(content)
+      content.to_html
     end
 
     def to_editor_html(content)
