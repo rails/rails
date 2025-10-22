@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "rails"
 require "global_id/railtie"
 require "active_job"
 
