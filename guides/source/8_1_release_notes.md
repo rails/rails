@@ -11,6 +11,7 @@ Highlights in Rails 8.1:
 * Markdown Rendering.
 * Command-line Credentials Fetching.
 * Deprecated Associations.
+* Registry-Free Kamal Deployments
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the changelogs or check out the [list of
@@ -211,6 +212,10 @@ usage via nested attributes, and more.
 Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
 backtraces can be enabled or disabled, though you always get the location of the
 reported usage regardless. Defaults are `:warn` mode and disabled backtraces.
+
+## Registry-Free Kamal Deployments
+
+Kamal no longer needs a remote registry, like Docker Hub or GHCR, to do basic deploys. By default, Kamal 2.8 will now use a local registry for simple deploys. For large-scale deploys, you'll still want to use a remote registry, but this makes it easier to get started and see your first Hello World deployment in the wild.
 
 Railties
 --------
