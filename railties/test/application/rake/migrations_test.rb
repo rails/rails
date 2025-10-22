@@ -7,7 +7,7 @@ module ApplicationTests
     class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
-        FileUtils.rm_rf("#{app_path}/config/environments")
+        reset_environment_configs
         add_to_config("config.active_record.timestamped_migrations = false")
       end
 

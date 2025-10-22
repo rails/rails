@@ -34,6 +34,7 @@ module ActionController
         controller: payload[:controller],
         action: payload[:action],
         status: status,
+        **additions_for(payload),
         duration_ms: event.duration.round(2),
         gc_time_ms: event.gc_time.round(1),
       }.compact)
@@ -68,16 +69,9 @@ module ActionController
       unpermitted_keys = event.payload[:keys]
       context = event.payload[:context]
 
-      params = {}
-      context[:params].each_pair do |k, v|
-        params[k] = v unless INTERNAL_PARAMS.include?(k)
-      end
-
       emit_debug_event("action_controller.unpermitted_parameters",
-        controller: context[:controller],
-        action: context[:action],
         unpermitted_keys:,
-        params:
+        context: context.except(:request)
       )
     end
     debug_only :unpermitted_parameters
@@ -100,8 +94,6 @@ module ActionController
 
     private
       def fragment_cache(method_name, event)
-        return unless ActionController::Base.enable_fragment_cache_logging
-
         key = ActiveSupport::Cache.expand_cache_key(event.payload[:key] || event.payload[:path])
 
         emit_event("action_controller.fragment_cache",
@@ -109,6 +101,10 @@ module ActionController
           key: key,
           duration_ms: event.duration.round(1)
         )
+      end
+
+      def additions_for(payload)
+        payload.slice(:view_runtime, :db_runtime, :queries_count, :cached_queries_count)
       end
   end
 end

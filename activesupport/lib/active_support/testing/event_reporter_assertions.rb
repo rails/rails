@@ -149,7 +149,7 @@ module ActiveSupport
           event.event_data
         else
           message = "Expected an event to be reported matching:\n  " \
-            "name: #{name}\n  " \
+            "name: #{name.inspect}\n  " \
             "payload: #{payload.inspect}\n  " \
             "tags: #{tags.inspect}\n" \
             "but none of the #{events.size} reported events matched:\n  " \

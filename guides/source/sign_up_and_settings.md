@@ -498,10 +498,9 @@ You can now visit http://localhost:3000/settings/profile to update your name.
 Let's update the navigation to include a link to Settings next to the Log out
 button.
 
-Open `app/views/layouts/application.html.erb` and update the navbar. We'll also
-add a div for any alert messages from our controllers while we're here.
+Open `app/views/layouts/application.html.erb` and update the navbar.
 
-```erb#9,13-19
+```erb#13-19
 <!DOCTYPE html>
 <html>
   <head>
@@ -509,8 +508,8 @@ add a div for any alert messages from our controllers while we're here.
   </head>
 
   <body>
-    <div class="notice"><%= notice %></div>
-    <div class="alert"><%= alert %></div>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
 
     <nav class="navbar">
       <%= link_to "Home", root_path %>
@@ -570,8 +569,8 @@ layout using `yield(:content)`.
   </head>
 
   <body>
-    <div class="notice"><%= notice %></div>
-    <div class="alert"><%= alert %></div>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
 
     <nav class="navbar">
       <%= link_to "Home", root_path %>
@@ -1432,21 +1431,11 @@ important changes:
 
 The admin views need some tweaks to work inside the `store` namespace.
 
-First, let's fix the form by updating the `model:` argument to use the `store`
-namespace. We should also display validation errors in the form while we're
-here.
+First, let's fix the form in `app/views/store/products/_form.html.erb` by
+updating the `model:` argument to use the `store` namespace.
 
-```erb#1-4
+```erb#1
 <%= form_with model: [ :store, product ] do |form| %>
-  <% if form.object.errors.any? %>
-    <div>Error: <%= form.object.errors.full_messages.first %></div>
-  <% end %>
-
-  <div>
-    <%= form.label :name %>
-    <%= form.text_field :name %>
-  </div>
-
   <%# ... %>
 ```
 
@@ -1999,11 +1988,7 @@ What's Next
 You did it! Your e-commerce store now supports user sign up, account management,
 and an admin area for managing products and users.
 
-Here are a few ideas to build on to this:
-
-- Add shareable wishlists
-- Write more tests to ensure the application works correctly
-- Add payments to buy products
+Next, follow the [Wishlists tutorial](wishlists.html) to continue learning.
 
 Happy building!
 

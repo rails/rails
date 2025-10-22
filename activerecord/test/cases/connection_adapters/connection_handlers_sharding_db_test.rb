@@ -358,7 +358,7 @@ module ActiveRecord
             shard_one: { writing: :primary_shard_one }
           })
 
-          assert_raises(ArgumentError) do
+          assert_raises(ShardSwapProhibitedError) do
             ActiveRecord::Base.prohibit_shard_swapping do
               ActiveRecord::Base.connected_to(role: :reading, shard: :default) do
               end

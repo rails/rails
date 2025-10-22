@@ -73,7 +73,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 For this project, you will need:
 
 * Ruby 3.2 or newer
-* Rails 8.1.0 or newer
+* Rails 8.2.0 or newer
 * A code editor
 
 Follow the [Install Ruby on Rails Guide](install_ruby_on_rails.html) if you need
@@ -85,10 +85,10 @@ printed out:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.2.0
 ```
 
-The version shown should be Rails 8.1.0 or higher.
+The version shown should be Rails 8.2.0 or higher.
 
 ### Creating Your First Rails App
 
@@ -190,7 +190,7 @@ your Rails application:
 
 ```bash
 => Booting Puma
-=> Rails 8.1.0 application starting in development
+=> Rails 8.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.3 (ruby 3.3.5-p100) ("The Eagle of Durango")
@@ -288,7 +288,7 @@ the migration does. This is located in
 `db/migrate/<timestamp>_create_products.rb`:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -354,7 +354,7 @@ $ bin/rails console
 You will be presented with a prompt like the following:
 
 ```irb
-Loading development environment (Rails 8.1.0)
+Loading development environment (Rails 8.2.0)
 store(dev)>
 ```
 
@@ -363,7 +363,7 @@ printing out the Rails version:
 
 ```irb
 store(dev)> Rails.version
-=> "8.1.0"
+=> "8.2.0"
 ```
 
 It works!
@@ -1335,7 +1335,66 @@ class ProductsController < ApplicationController
 end
 ```
 
-Next we can add an Edit link to `app/views/products/show.html.erb`:
+#### Extracting Partials
+
+We've already written a form for creating new products. Wouldn't it be nice if
+we could reuse that for edit and update? We can, using a feature called
+"partials" that allows you to reuse a view in multiple places.
+
+We can move the form into a file called `app/views/products/_form.html.erb`. The
+filename starts with an underscore to denote this is a partial.
+
+We also want to replace any instance variables with a local variable, which we
+can define when we render the partial. We'll do this by replacing `@product`
+with `product`.
+
+Let's also display any errors from the form submission inside the form.
+
+```erb#1-4
+<%= form_with model: product do |form| %>
+  <% if form.object.errors.any? %>
+    <p class="error"><%= form.object.errors.full_messages.first %></p>
+  <% end %>
+
+  <div>
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
+```
+
+TIP: Using local variables allows partials to be reused multiple times on the
+same page with a different value each time. This comes in handy rendering lists
+of items like an index page.
+
+To use this partial in our `app/views/products/new.html.erb` view, we can
+replace the form with a render call:
+
+```erb#3
+<h1>New product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", products_path %>
+```
+
+The edit view becomes almost the exact same thing thanks to the form partial.
+Let's create `app/views/products/edit.html.erb` with the following:
+
+```erb#3
+<h1>Edit product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", @product %>
+```
+
+To learn more about view partials, check out the
+[Action View Guide](action_view_overview.html).
+
+Now we can add an Edit link to `app/views/products/show.html.erb`:
 
 ```erb#4
 <h1><%= @product.name %></h1>
@@ -1402,59 +1461,6 @@ class ProductsController < ApplicationController
     end
 end
 ```
-
-#### Extracting Partials
-
-We've already written a form for creating new products. Wouldn't it be nice if
-we could reuse that for edit and update? We can, using a feature called
-"partials" that allows you to reuse a view in multiple places.
-
-We can move the form into a file called `app/views/products/_form.html.erb`. The
-filename starts with an underscore to denote this is a partial.
-
-We also want to replace any instance variables with a local variable, which we
-can define when we render the partial. We'll do this by replacing `@product`
-with `product`.
-
-```erb#1
-<%= form_with model: product do |form| %>
-  <div>
-    <%= form.label :name %>
-    <%= form.text_field :name %>
-  </div>
-
-  <div>
-    <%= form.submit %>
-  </div>
-<% end %>
-```
-
-TIP: Using local variables allows partials to be reused multiple times on the
-same page with a different value each time. This comes in handy rendering lists
-of items like an index page.
-
-To use this partial in our `app/views/products/new.html.erb` view, we can
-replace the form with a render call:
-
-```erb#3
-<h1>New product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", products_path %>
-```
-
-The edit view becomes almost the exact same thing thanks to the form partial.
-Let's create `app/views/products/edit.html.erb` with the following:
-
-```erb#3
-<h1>Edit product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", @product %>
-```
-
-To learn more about view partials, check out the
-[Action View Guide](action_view_overview.html).
 
 ### Deleting Products
 
@@ -1959,7 +1965,7 @@ viewing the Spanish locale.
 
 Learn more about the [Rails Internationalization (I18n) API](i18n.html).
 
-Adding In Stock Notifications
+Action Mailer and Email Notifications
 -----------------------------
 
 A common feature of e-commerce stores is an email subscription to get notified
@@ -1973,6 +1979,17 @@ stock. We can generate this migration using the following command:
 
 ```bash
 $ bin/rails generate migration AddInventoryCountToProducts inventory_count:integer
+```
+
+This will generate a migration file. Open it and add a default value of `0` to
+ensure `inventory_count` is never `nil`:
+
+```ruby
+class AddInventoryCountToProducts < ActiveRecord::Migration[8.2]
+  def change
+    add_column :products, :inventory_count, :integer, default: 0
+  end
+end
 ```
 
 Then let's run the migration.
@@ -2031,19 +2048,36 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
+NOTE: Here we are not specifying a type for `email` as rails automatically defaults to a `string` when a type is not given for migrations.
+
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email
 ```
+
+By including `product:belongs_to` above, we told Rails that subscribers and products have a one-to-many relationship, meaning a Subscriber "belongs to" a single Product instance.
+
+Next, open the generated migration (`db/migrate/<timestamp>_create_subscribers.rb`) like we did for Product.
+
+```ruby#4-5
+class CreateSubscribers < ActiveRecord::Migration[8.1]
+  def change
+    create_table :subscribers do |t|
+      t.belongs_to :product, null: false, foreign_key: true
+      t.string :email
+
+      t.timestamps
+    end
+  end
+end
+```
+
+This looks quite similar to the migration for `Product`, the main new thing is `belongs_to` which adds a `product_id` foreign key column.
 
 Then run the new migration:
 
 ```bash
 $ bin/rails db:migrate
 ```
-
-By including `product:belongs_to` above, we told Rails that subscribers and
-products have a one-to-many relationship, meaning a Subscriber "belongs to" a
-single Product instance.
 
 A Product, however, can have many subscribers, so we then add
 `has_many :subscribers, dependent: :destroy` to our Product model to add the
@@ -2085,21 +2119,31 @@ class SubscribersController < ApplicationController
 end
 ```
 
-Our redirect sets a notice in the Rails flash. The flash is used for storing
-messages to display on the next page.
+The `redirect_to` uses the `notice:` argument to set a "flash" message to tell
+the user they are subscribed.
 
-To display the flash message, let's add the notice to
+The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
+provides a way to pass temporary data between controller actions. Anything you
+place in the flash will be available to the very next action and then cleared.
+The flash is typically used for setting messages (e.g. notices and alerts) in a
+controller action before redirecting to an action that displays the message to
+the user.
+
+To display the flash message, let's add the flash to
 `app/views/layouts/application.html.erb` inside the body:
 
-```erb#4
+```erb#4-5
 <html>
   <!-- ... -->
   <body>
-    <div class="notice"><%= notice %></div>
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
     <!-- ... -->
   </body>
 </html>
 ```
+
+Learn more about the Flash in the [Action Controller Overview](action_controller_overview.html#the-flash)
 
 To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
@@ -2119,7 +2163,7 @@ Create a new partial at `app/views/products/_inventory.html.erb` and add the
 following:
 
 ```erb
-<% if product.inventory_count? %>
+<% if product.inventory_count.positive? %>
   <p><%= product.inventory_count %> in stock</p>
 <% else %>
   <p>Out of stock</p>
@@ -2272,7 +2316,7 @@ class Product < ApplicationRecord
   after_update_commit :notify_subscribers, if: :back_in_stock?
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
@@ -2316,7 +2360,7 @@ module Product::Notifications
   end
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
@@ -2478,6 +2522,11 @@ nav a {
 main {
   max-width: 1024px;
   margin: 0 auto;
+}
+
+.alert,
+.error {
+  color: red;
 }
 
 .notice {
@@ -2931,15 +2980,7 @@ What's Next?
 
 Congratulations on building and deploying your first Rails application!
 
-We recommend continuing to add features and deploy updates to continue learning.
-Here are some ideas:
-
-* Improve the design with CSS
-* Add product reviews
-* Finish translating the app into another language
-* Add a checkout flow for payments
-* Add wishlists for users to save products
-* Add a carousel for product images
+Next, follow the [Sign Up and Settings tutorial](sign_up_and_settings.html) to continue learning.
 
 We also recommend learning more by reading other Ruby on Rails Guides:
 
