@@ -1,4 +1,4 @@
-## Rails 8.1.0.rc1 (October 15, 2025) ##
+## Rails 8.1.0 (October 22, 2025) ##
 
 *   Suggest `bin/rails action_text:install` from Action Dispatch error page
 
@@ -54,9 +54,6 @@
     ```
 
     *Jean Boussier*
-
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add command `rails credentials:fetch PATH` to get the value of a credential from the credentials file.
 

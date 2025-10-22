@@ -1,3 +1,5 @@
+## Rails 8.1.0 (October 22, 2025) ##
+
 *   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
 
     When altering a table in SQLite3 that is referenced by child tables with
@@ -19,9 +21,6 @@
     CASCADE deletes while maintaining data integrity through atomic transactions.
 
     *Ruy Rocha*
-
-
-## Rails 8.1.0.rc1 (October 15, 2025) ##
 
 *   Add replicas to test database parallelization setup.
 
@@ -125,8 +124,6 @@
 *   Don't add `id_value` attribute alias when attribute/column with that name already exists.
 
     *Rob Lewis*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated `:unsigned_float` and `:unsigned_decimal` column methods for MySQL.
 

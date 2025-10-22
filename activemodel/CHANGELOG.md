@@ -1,4 +1,4 @@
-## Rails 8.1.0.rc1 (October 15, 2025) ##
+## Rails 8.1.0 (October 22, 2025) ##
 
 *   Add `reset_token: { expires_in: ... }` option to `has_secure_password`.
 
@@ -9,8 +9,6 @@
     ```
 
     *Jevin Sew*, *Abeid Ahmed*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Add `except_on:` option for validation callbacks.
 

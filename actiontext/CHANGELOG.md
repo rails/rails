@@ -1,4 +1,4 @@
-## Rails 8.1.0.rc1 (October 15, 2025) ##
+## Rails 8.1.0 (October 22, 2025) ##
 
 *   De-couple `@rails/actiontext/attachment_upload.js` from `Trix.Attachment`
 
@@ -37,8 +37,6 @@
     `[contenteditable]` HTML attributes rather than a `<trix-editor>` element.
 
     *Sean Doyle*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Forward `fill_in_rich_text_area` options to Capybara
 

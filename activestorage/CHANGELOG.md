@@ -1,4 +1,4 @@
-## Rails 8.1.0.rc1 (October 15, 2025) ##
+## Rails 8.1.0 (October 22, 2025) ##
 
 *   Add structured events for Active Storage:
     - `active_storage.service_upload`
@@ -34,8 +34,6 @@
     ```
 
     *zzak*, *Alexandre Ruban*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated `:azure` storage service.
 

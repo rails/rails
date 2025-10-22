@@ -1,9 +1,8 @@
+## Rails 8.1.0 (October 22, 2025) ##
+
 *   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
 
     *Sean Doyle*
-
-
-## Rails 8.1.0.rc1 (October 15, 2025) ##
 
 *   Add link-local IP ranges to `ActionDispatch::RemoteIp` default proxies.
 
@@ -104,8 +103,6 @@
 *   Allow `action_controller.logger` to be disabled by setting it to `nil` or `false` instead of always defaulting to `Rails.logger`.
 
     *Roberto Miranda*
-
-## Rails 8.1.0.beta1 (September 04, 2025) ##
 
 *   Remove deprecated support to a route to multiple paths.
 

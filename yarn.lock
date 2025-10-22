@@ -180,17 +180,17 @@
     fastq "^1.6.0"
 
 "@rails/actioncable@file:/workspaces/rails/actioncable":
-  version "8.1.0-rc1"
+  version "8.1.0"
   resolved "file:actioncable"
 
 "@rails/actiontext@file:/workspaces/rails/actiontext":
-  version "8.1.0-rc1"
+  version "8.1.0"
   resolved "file:actiontext"
   dependencies:
     "@rails/activestorage" ">= 8.1.0-alpha"
 
 "@rails/activestorage@>= 8.1.0-alpha", "@rails/activestorage@file:/workspaces/rails/activestorage":
-  version "8.1.0-rc1"
+  version "8.1.0"
   resolved "file:activestorage"
   dependencies:
     spark-md5 "^3.0.1"
