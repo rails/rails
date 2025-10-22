@@ -1,3 +1,14 @@
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
+    ```
+
+    *Steve Polito*
+
 *   Skip `CreateUsers` migration when the User model already exists in the authentication generator.
 
     *John Topley*
