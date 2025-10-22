@@ -1,3 +1,7 @@
+*   Add `prefix:` and `skip_inspection_filter:` options to `has_secure_token` and filter token values by default.
+
+    *Benjamin Garcia*
+
 *   PostgreSQL enable drop database FORCE option.
 
     One of the benefits of developing with MySQL is that it allows dropping the
