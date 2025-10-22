@@ -291,7 +291,7 @@ NOTE: As convention we'll state the filepath as a comment on top of each file
 
 ```ruby
 # db/migrate/<timestamp>_create_products.rb
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -2144,7 +2144,7 @@ Next, open the generated migration (`db/migrate/<timestamp>_create_subscribers.r
 
 ```ruby#5-6
 # db/migrate/<timestamp>_create_subscribers.rb
-class CreateSubscribers < ActiveRecord::Migration[8.1]
+class CreateSubscribers < ActiveRecord::Migration[8.2]
   def change
     create_table :subscribers do |t|
       t.belongs_to :product, null: false, foreign_key: true
