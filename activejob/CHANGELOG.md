@@ -13,18 +13,4 @@
 
     *heka1024*
 
-*   Add structured events for Active Job:
-    - `active_job.enqueued`
-    - `active_job.bulk_enqueued`
-    - `active_job.started`
-    - `active_job.completed`
-    - `active_job.retry_scheduled`
-    - `active_job.retry_stopped`
-    - `active_job.discarded`
-    - `active_job.interrupt`
-    - `active_job.resume`
-    - `active_job.step_skipped`
-    - `active_job.step_started`
-    - `active_job.step`
-
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activejob/CHANGELOG.md) for previous changes.
