@@ -809,6 +809,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_with_repeated_timstamp_columns
+    records = [Book.first.attributes]
+
+    assert_no_changes(proc { Book.count }) do
+      Book.upsert_all(
+        records,
+        update_only: [:updated_at],
+        record_timestamps: true,
+      )
+    end
+  end
+
   def test_upsert_all_resets_relation
     skip unless supports_insert_on_duplicate_update?
 

@@ -466,6 +466,10 @@ module ActiveRecord
         true
       end
 
+      def supports_force_drop_database?
+        database_version >= 13_00_00 # >= 13.0
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")

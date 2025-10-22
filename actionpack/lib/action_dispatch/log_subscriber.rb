@@ -9,10 +9,8 @@ module ActionDispatch
 
       info { "Redirected to #{payload[:location]}" }
 
-      info do
-        if ActionDispatch.verbose_redirect_logs && (source = redirect_source_location)
-          "↳ #{source}"
-        end
+      if ActionDispatch.verbose_redirect_logs
+        info { "↳ #{payload[:source_location]}" }
       end
 
       info do
@@ -25,11 +23,6 @@ module ActionDispatch
       end
     end
     subscribe_log_level :redirect, :info
-
-    private
-      def redirect_source_location
-        backtrace_cleaner.first_clean_frame
-      end
   end
 end
 

@@ -38,7 +38,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     assert_equal data, blob.download
     assert_equal data.length, blob.byte_size
-    assert_equal ActiveStorage.checksum_implementation.base64digest(data), blob.checksum
+    assert_equal OpenSSL::Digest::MD5.base64digest(data), blob.checksum
   end
 
   test "create_and_upload extracts content type from data" do
@@ -174,7 +174,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
-  test "open with integrity" do
+  test "open yielding with integrity" do
     create_file_blob(filename: "racecar.jpg").tap do |blob|
       blob.open do |file|
         assert_predicate file, :binmode?
@@ -186,9 +186,24 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "open returning with integrity" do
+    file = nil
+    create_file_blob(filename: "racecar.jpg").tap do |blob|
+      file = blob.open
+
+      assert_predicate file, :binmode?
+      assert_equal 0, file.pos
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert file.path.end_with?(".jpg")
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    ensure
+      file&.close!
+    end
+  end
+
   test "open without integrity" do
     create_blob(data: "Hello, world!").tap do |blob|
-      blob.update! checksum: ActiveStorage.checksum_implementation.base64digest("Goodbye, world!")
+      blob.update! checksum: OpenSSL::Digest::MD5.base64digest("Goodbye, world!")
 
       assert_raises ActiveStorage::IntegrityError do
         blob.open { |file| flunk "Expected integrity check to fail" }

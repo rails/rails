@@ -419,7 +419,7 @@ module Rails
     end
 
     def routes_reloader # :nodoc:
-      @routes_reloader ||= RoutesReloader.new
+      @routes_reloader ||= RoutesReloader.new(file_watcher: config.file_watcher)
     end
 
     # Returns an array of file paths appended with a hash of
@@ -636,6 +636,18 @@ module Rails
     end
 
     private
+      def missing_environment_file
+        raise "Rails environment has been set to #{Rails.env} but config/environments/#{Rails.env}.rb does not exist."
+      end
+
+      def any_environment_files?
+        paths["config/environments"]
+          .paths
+          .flat_map { |path| [path, *path.glob("*.rb")] }
+          .select(&:file?)
+          .any?
+      end
+
       def build_request(env)
         req = super
         env["ORIGINAL_FULLPATH"] = req.fullpath

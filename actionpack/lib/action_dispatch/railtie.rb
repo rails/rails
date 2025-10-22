@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "rails"
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "action_dispatch/structured_event_subscriber"
@@ -90,10 +91,6 @@ module ActionDispatch
 
       ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app
-    end
-
-    initializer "action_dispatch.backtrace_cleaner" do
-      ActionDispatch::LogSubscriber.backtrace_cleaner = Rails.backtrace_cleaner
     end
   end
 end

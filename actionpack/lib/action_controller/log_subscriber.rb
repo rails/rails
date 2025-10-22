@@ -64,10 +64,8 @@ module ActionController
     def redirect_to(event)
       info { "Redirected to #{event.payload[:location]}" }
 
-      info do
-        if ActionDispatch.verbose_redirect_logs && (source = redirect_source_location)
-          "↳ #{source}"
-        end
+      if ActionDispatch.verbose_redirect_logs && (source = redirect_source_location)
+        info { "↳ #{source}" }
       end
     end
     subscribe_log_level :redirect_to, :info

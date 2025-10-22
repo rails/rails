@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "rails"
 require "active_support"
 require "active_support/i18n_railtie"
 
@@ -82,6 +83,7 @@ module ActiveSupport
     initializer "active_support.set_filter_parameters" do |app|
       config.after_initialize do
         ActiveSupport.filter_parameters += Rails.application.config.filter_parameters
+        ActiveSupport.event_reporter.reload_payload_filter
       end
     end
 
