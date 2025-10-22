@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "rails"
 require "active_support"
 require "active_support/core_ext/array/wrap"
+require "rails/railtie"
 
 # :enddoc:
 
