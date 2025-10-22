@@ -6,6 +6,10 @@
 
     *Benjamin Garcia*
 
+*   Fix upsert_all when using repeated timestamp attributes.
+
+    *Gannon McGibbon*
+
 *   PostgreSQL enable drop database FORCE option.
 
     One of the benefits of developing with MySQL is that it allows dropping the

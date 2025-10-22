@@ -225,7 +225,7 @@ module ActiveSupport
   #   #    name: "user_created",
   #   #    payload: { id: 123 },
   #   #    tags: {},
-  #   #    context: { request_id: "abcd123", user_agent: TestAgent" },
+  #   #    context: { request_id: "abcd123", user_agent: "TestAgent" },
   #   #    timestamp: 1738964843208679035,
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }

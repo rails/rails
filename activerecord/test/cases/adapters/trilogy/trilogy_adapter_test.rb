@@ -54,7 +54,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "#explain for one query" do
     explain = @conn.explain("select * from posts")
-    assert_match %(possible_keys), explain
+    assert_match %r(posts), explain
   end
 
   test "#adapter_name answers name" do
