@@ -532,7 +532,6 @@ for that reason. You can think of `destroy` as the opposite of `generate`. It'll
 figure out what generate did, and undo it.
 
 INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
-d`.
 
 For example, if you meant to generate an `article` model but instead typed
 `artcle`:
