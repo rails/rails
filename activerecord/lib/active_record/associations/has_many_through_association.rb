@@ -9,6 +9,7 @@ module ActiveRecord
       def initialize(owner, reflection)
         super
         @through_records = {}.compare_by_identity
+        @pending_through_records = []
       end
 
       def concat(*records)
@@ -21,6 +22,14 @@ module ActiveRecord
         super
       end
 
+      def ids_writer(ids)
+        @deferred_through_records = owner.assigning_attributes?
+
+        super
+      ensure
+        @deferred_through_records = false
+      end
+
       def insert_record(record, validate = true, raise = false)
         ensure_not_nested
 
@@ -28,7 +37,20 @@ module ActiveRecord
           return unless super
         end
 
-        save_through_record(record)
+        # Only defer saving through records when called from replace (i.e., _ids= assignment)
+        # This maintains the expectation that assign_attributes does not persist changes
+        # while still persisting immediately during explicit operations like <<, concat, etc.
+        through_record = build_through_record(record)
+        if through_record.changed?
+          if @deferred_through_records
+            # We're in replace context (from _ids=), defer persistence
+            @pending_through_records << through_record
+          else
+            # We're in explicit operation context, persist immediately
+            through_record.save!
+            @through_records.delete(record)
+          end
+        end
 
         record
       end
@@ -232,6 +254,15 @@ module ActiveRecord
         # NOTE - not sure that we can actually cope with inverses here
         def invertible_for?(record)
           false
+        end
+
+      protected
+
+        def save_pending_through_records
+          @pending_through_records.each do |through_record|
+            through_record.save! if through_record.changed?
+          end
+          @pending_through_records.clear
         end
     end
   end

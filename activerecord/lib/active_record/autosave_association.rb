@@ -459,6 +459,11 @@ module ActiveRecord
               raise(RecordInvalid.new(association.owner)) unless saved
             end
           end
+
+          # save pending through records for has_many :through associations
+          if association.respond_to?(:save_pending_through_records)
+            association.save_pending_through_records
+          end
         end
       end
 
