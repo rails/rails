@@ -16,9 +16,15 @@ desc "Run all unit tests"
 task test: ["test:template", "test:integration:action_pack", "test:integration:active_record"]
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     Dir.glob("test/{actionpack,activerecord,template}/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", "-Ilib:test", file)
+    end || raise("Failures")
+  end
+
+  task :railties do
+    ["action_view/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
     end || raise("Failures")
   end
 
