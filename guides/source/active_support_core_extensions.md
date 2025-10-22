@@ -1064,6 +1064,12 @@ C.descendants # => [B, A, D]
 
 The order in which these classes are returned is unspecified.
 
+WARNING: This method is unreliable in certain situations and should be used with caution:
+
+* **Autoloading**: It only returns classes that have already been loaded. When using autoloading (the default in Rails), classes that haven't been referenced yet won't appear in the results, even if their files exist in the codebase. This can lead to incomplete results in production code.
+
+* **Garbage Collection**: The results are non-deterministic with regards to Garbage Collection. If you use this method in tests where classes are dynamically defined, GC is unpredictable about when those classes are cleaned up and removed from the descendants list.
+
 NOTE: Defined in `active_support/core_ext/class/subclasses.rb`.
 
 [Class#descendants]: https://api.rubyonrails.org/classes/Class.html#method-i-descendants
