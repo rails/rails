@@ -50,7 +50,10 @@ module ActiveRecord
       #   An optional string prepended to the generated token. Intended primarily for keys that
       #   will be publicly visible (e.g. API keys, URLs, etc.) so that their purpose can be identified at a glance.
       #   The prefix does not count toward +:length+.
-      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: ActiveRecord.generate_secure_token_on, prefix: nil)
+      #
+      # [+:skip_inspection_filter]
+      #   Skip adding the column to the models <tt>filter_attributes</tt>. Defaults to false.
+      def has_secure_token(attribute = :token, length: MINIMUM_TOKEN_LENGTH, on: ActiveRecord.generate_secure_token_on, prefix: nil, skip_inspection_filter: false)
         if length < MINIMUM_TOKEN_LENGTH
           raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
         end
@@ -63,8 +66,19 @@ module ActiveRecord
 
             "#{prefix}#{token}"
           end
+
+          filter_attribute = ->(key, value) do
+            if key == attribute.to_s
+              value.replace("#{prefix}#{ActiveSupport::ParameterFilter::FILTERED}")
+            end
+          end
         else
           generate_token = -> { self.generate_unique_secure_token(length: length) }
+          filter_attribute = attribute
+        end
+
+        unless skip_inspection_filter
+          self.filter_attributes += [filter_attribute]
         end
 
         # Load securerandom only when has_secure_token is used.

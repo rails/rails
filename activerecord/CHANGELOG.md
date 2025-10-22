@@ -1,3 +1,7 @@
+*   Add `prefix:` and `skip_inspection_filter:` options to `has_secure_token` and filter token values by default.
+
+    *Benjamin Garcia*
+
 *   Database-specific shard swap prohibition
 
     In #43485 (v7.0.0), shard swapping prohibition was introduced as a global
