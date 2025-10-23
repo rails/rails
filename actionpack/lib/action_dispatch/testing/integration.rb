@@ -621,7 +621,7 @@ module ActionDispatch
   #         end
   #
   #         assert_response :success
-  #         assert_equal({ id: Article.last.id, title: "Ahoy!" }, response.parsed_body)
+  #         assert_equal({ "id" => Article.last.id, "title" => "Ahoy!" }, response.parsed_body)
   #       end
   #     end
   #

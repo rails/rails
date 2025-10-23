@@ -42,6 +42,7 @@ module ActiveRecord
                 types.sort.each do |name, values|
                   stream.puts "  create_enum #{relation_name(name).inspect}, #{values.inspect}"
                 end
+                stream.puts
               end
             end
           end

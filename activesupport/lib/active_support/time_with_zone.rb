@@ -311,16 +311,8 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        begin
-          result = utc + other
-        rescue TypeError
-          result = utc.to_datetime.since(other)
-          ActiveSupport.deprecator.warn(
-            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
-            "a `TypeError` in Rails 8.1."
-          )
-          result.in_time_zone(time_zone)
-        end
+        result = utc + other
+
         result.in_time_zone(time_zone)
       end
     end
@@ -503,13 +495,7 @@ module ActiveSupport
     # with the same UTC offset as +self+ or in the local system timezone
     # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      if preserve_timezone == :zone
-        @to_time_with_timezone ||= getlocal(time_zone)
-      elsif preserve_timezone
-        @to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @to_time_with_system_offset ||= getlocal
-      end
+      @to_time_with_timezone ||= getlocal(time_zone)
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.

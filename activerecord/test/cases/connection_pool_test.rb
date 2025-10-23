@@ -456,6 +456,67 @@ module ActiveRecord
         end
       end
 
+      def test_prepopulated_connections_have_allow_preconnect_true
+        pool = new_pool_with_options(min_connections: 2, max_connections: 5, async: false)
+        pool.activate
+        pool.prepopulate
+
+        assert_equal 2, pool.connections.length
+        pool.connections.each do |conn|
+          assert_equal true, conn.allow_preconnect
+        end
+      end
+
+      def test_normal_checkout_connections_have_allow_preconnect_false
+        pool = new_pool_with_options(min_connections: 0, max_connections: 5, async: false)
+        pool.activate
+
+        conn = pool.checkout
+        assert_equal false, conn.allow_preconnect
+      ensure
+        pool.checkin(conn) if conn
+      end
+
+      def test_preconnect_only_connects_allow_preconnect_connections
+        pool = new_pool_with_options(min_connections: 2, max_connections: 5, async: false)
+        pool.activate
+        pool.prepopulate
+
+        # Prepopulated connections should have allow_preconnect = true
+        assert_equal 2, pool.connections.length
+
+        # Checkout all prepopulated connections to force creation of a new one
+        conn1 = pool.checkout
+        conn2 = pool.checkout
+
+        # Now checkout will create a new connection (allow_preconnect = false)
+        conn3 = pool.checkout
+        assert_equal false, conn3.allow_preconnect
+
+        # Return them all
+        pool.checkin(conn1)
+        pool.checkin(conn2)
+        pool.checkin(conn3)
+
+        # Verify we have 3 total connections now
+        assert_equal 3, pool.connections.length
+
+        # None should be connected yet
+        pool.connections.each do |c|
+          assert_not_predicate c, :connected?
+        end
+
+        # Run preconnect
+        pool.preconnect
+
+        # Only the 2 prepopulated connections (with allow_preconnect = true) should be connected
+        connected_count = pool.connections.count(&:connected?)
+        assert_equal 2, connected_count
+
+        # The normal checkout connection should still not be connected
+        assert_not_predicate conn3, :connected?
+      end
+
       def test_max_age
         pool = new_pool_with_options(max_age: 10, pool_jitter: 0, async: false)
 

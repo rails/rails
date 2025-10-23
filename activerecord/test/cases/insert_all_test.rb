@@ -809,6 +809,18 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_upsert_with_repeated_timstamp_columns
+    records = [Book.first.attributes]
+
+    assert_no_changes(proc { Book.count }) do
+      Book.upsert_all(
+        records,
+        update_only: [:updated_at],
+        record_timestamps: true,
+      )
+    end
+  end
+
   def test_upsert_all_resets_relation
     skip unless supports_insert_on_duplicate_update?
 
@@ -879,6 +891,20 @@ class InsertAllTest < ActiveRecord::TestCase
       on_duplicate: Arel.sql("status = 2")
     )
     assert_equal "published", book.reload.status
+  end
+
+  def test_upsert_all_does_nothing_with_on_duplicate_skip
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    book = books(:rfr)
+    assert_equal "proposed", book.status
+
+    Book.upsert_all(
+      [{ name: book.name, author_id: book.author_id, status: "published" }],
+      unique_by: [:name, :author_id],
+      on_duplicate: :skip
+    )
+    assert_equal "proposed", book.reload.status
   end
 
   def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target

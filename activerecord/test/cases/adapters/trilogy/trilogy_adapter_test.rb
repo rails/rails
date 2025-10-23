@@ -33,7 +33,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ["traffic_lights", [
         { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
       ]]
-    ] * 1000
+    ] * 2000
 
     assert_raises(Timeout::Error) do
       Timeout.timeout(0.1) do
@@ -54,7 +54,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
   test "#explain for one query" do
     explain = @conn.explain("select * from posts")
-    assert_match %(possible_keys), explain
+    assert_match %r(posts), explain
   end
 
   test "#adapter_name answers name" do

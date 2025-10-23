@@ -144,6 +144,12 @@ module TestHelpers
       add_to_env_config :production, "config.log_level = :error"
     end
 
+    def reset_environment_configs
+      Dir["#{app_path}/config/environments/*.rb"].each do |path|
+        File.write(path, "")
+      end
+    end
+
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
@@ -263,7 +269,6 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!

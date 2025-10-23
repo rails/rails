@@ -1580,12 +1580,6 @@ module ApplicationTests
       assert_equal "https://foo.example.com:9001/bar/posts", posts_url
     end
 
-    test "ActionController::Base.raise_on_open_redirects is true by default for new apps" do
-      app "development"
-
-      assert_equal true, ActionController::Base.raise_on_open_redirects
-    end
-
     test "ActionController::Base.raise_on_open_redirects is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
@@ -1604,6 +1598,19 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionController::Base.raise_on_open_redirects
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :raise by default for new apps" do
+      app "development"
+
+      assert_equal :raise, ActionController::Base.action_on_open_redirect
+    end
+
+    test "ActionController::Base.action_on_open_redirect is :log when raise_on_open_redirects is false" do
+      add_to_config "config.action_controller.raise_on_open_redirects = false"
+      app "development"
+
+      assert_equal :log, ActionController::Base.action_on_open_redirect
     end
 
     test "config.action_dispatch.show_exceptions is sent in env" do
@@ -4889,6 +4896,8 @@ module ApplicationTests
     test "Action Text uses the best supported safe list sanitizer in new apps" do
       app "development"
 
+      require "action_view/base"
+
       assert_kind_of(
         Rails::HTML::Sanitizer.best_supported_vendor.safe_list_sanitizer,
         ActionText::ContentHelper.sanitizer,
@@ -4908,7 +4917,10 @@ module ApplicationTests
 
     test "Action Text uses the specified vendor's safe list sanitizer" do
       add_to_config "config.action_text.sanitizer_vendor = ::MySanitizerVendor"
+
       app "development"
+
+      require "action_view/base"
 
       assert_kind_of(
         ::MySafeListSanitizer,
