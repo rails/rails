@@ -103,7 +103,6 @@ PATH
     releaser (1.0.0)
       minitest
       rake (~> 13.0)
-      sigstore-cli
 
 GEM
   remote: https://rubygems.org/
@@ -382,8 +381,6 @@ GEM
       ruby2_keywords (~> 0.0.1)
     mutex_m (0.3.0)
     mysql2 (0.5.6)
-    net-http (0.6.0)
-      uri
     net-imap (0.5.5)
       date
       net-protocol
@@ -440,16 +437,6 @@ GEM
       actionpack (>= 7.0.0)
       activesupport (>= 7.0.0)
       rack
-    protobug (0.1.0)
-    protobug_googleapis_field_behavior_protos (0.1.0)
-      protobug (= 0.1.0)
-      protobug_well_known_protos (= 0.1.0)
-    protobug_sigstore_protos (0.1.0)
-      protobug (= 0.1.0)
-      protobug_googleapis_field_behavior_protos (= 0.1.0)
-      protobug_well_known_protos (= 0.1.0)
-    protobug_well_known_protos (0.1.0)
-      protobug (= 0.1.0)
     psych (5.2.6)
       date
       stringio
@@ -608,13 +595,6 @@ GEM
       faraday (>= 0.17.5, < 3.a)
       jwt (>= 1.5, < 3.0)
       multi_json (~> 1.10)
-    sigstore (0.2.1)
-      net-http
-      protobug_sigstore_protos (~> 0.1.0)
-      uri
-    sigstore-cli (0.2.1)
-      sigstore (= 0.2.1)
-      thor
     sinatra (4.1.1)
       logger (>= 1.6.0)
       mustermann (~> 3.0)
