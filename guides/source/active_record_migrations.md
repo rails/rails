@@ -192,6 +192,12 @@ class AddPartNumberToProducts < ActiveRecord::Migration[8.1]
 end
 ```
 
+NOTE: Rails infers the target table from the migration name when it matches the
+`add_<columns>_to_<table>` or `remove_<columns>_from_<table>` patterns. Using a
+name such as `AddPartNumberToProducts` lets the generator configure
+`add_column :products, ...` automatically. For more on these conventions, run
+`bin/rails generate migration --help` to see the generator usage and examples.
+
 If you'd like to add an index on the new column, you can do that as well.
 
 ```bash
