@@ -673,6 +673,20 @@ class FormHelperTest < ActionView::TestCase
     )
   end
 
+  def test_hidden_field_with_remove_hidden_disabled_includes_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      expected = '<input autocomplete="off" value="test" type="hidden" name="post[title]" id="post_title">'
+      assert_dom_equal expected, hidden_field("post", "title", value: "test")
+    end
+  end
+
+  def test_hidden_field_with_remove_hidden_enabled_omits_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input value="test" type="hidden" name="post[title]" id="post_title">'
+      assert_dom_equal expected, hidden_field("post", "title", value: "test")
+    end
+  end
+
   def test_text_field_with_custom_type
     assert_dom_equal(
       '<input id="user_email" name="user[email]" type="email" />',
