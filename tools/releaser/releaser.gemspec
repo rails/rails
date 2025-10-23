@@ -21,5 +21,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rake", "~> 13.0"
   s.add_dependency "minitest"
-  s.add_dependency "sigstore-cli"
 end
