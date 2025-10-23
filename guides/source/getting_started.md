@@ -730,6 +730,7 @@ following route to `config/routes.rb`
 ```ruby
 # config/routes.rb
 Rails.application.routes.draw do
+  # ...
   get "/products", to: "products#index"
 end
 ```
@@ -755,10 +756,13 @@ request, so they are typically used in the controller for filtering the data.
 
 Let's look at another example. Add this line after the previous route:
 
-```ruby
+```ruby#5
 # config/routes.rb
-# ...
-post "/products", to: "products#create"
+Rails.application.routes.draw do
+  # ...
+  get "/products", to: "products#index"
+  post "/products", to: "products#create"
+end
 ```
 
 Here, we've told Rails to take POST requests to "/products" and process them
@@ -766,10 +770,12 @@ with the `ProductsController` using the `create` action.
 
 Routes may also need to match URLs with certain patterns. So how does that work?
 
-```ruby
+```ruby#4
 # config/routes.rb
-# ...
-get "/products/:id", to: "products#show"
+Rails.application.routes.draw do
+  # ...
+  get "/products/:id", to: "products#show"
+end
 ```
 
 This route has `:id` in it. This is called a `parameter` and it captures a
@@ -786,7 +792,10 @@ with the following route:
 
 ```ruby
 # config/routes.rb
-get "/blog/:title", to: "blog#show"
+Rails.application.routes.draw do
+  # ...
+  get "/blog/:title", to: "blog#show"
+end
 ```
 
 Rails will capture `hello-world` out of `/blog/hello-world` and this can be used
@@ -811,19 +820,21 @@ We can add routes for these CRUD actions with the following:
 
 ```ruby
 # config/routes.rb
-# ...
-get "/products", to: "products#index"
+Rails.application.routes.draw do
+  # ...
+  get "/products", to: "products#index"
 
-get "/products/new", to: "products#new"
-post "/products", to: "products#create"
+  get "/products/new", to: "products#new"
+  post "/products", to: "products#create"
 
-get "/products/:id", to: "products#show"
+  get "/products/:id", to: "products#show"
 
-get "/products/:id/edit", to: "products#edit"
-patch "/products/:id", to: "products#update"
-put "/products/:id", to: "products#update"
+  get "/products/:id/edit", to: "products#edit"
+  patch "/products/:id", to: "products#update"
+  put "/products/:id", to: "products#update"
 
-delete "/products/:id", to: "products#destroy"
+  delete "/products/:id", to: "products#destroy"
+end
 ```
 
 #### Resource Routes
@@ -834,8 +845,10 @@ routes with this single line:
 
 ```ruby
 # config/routes.rb
-# ...
-resources :products
+Rails.application.routes.draw do
+  # ...
+  resources :products
+end
 ```
 
 TIP: If you don’t want all these CRUD actions, you specify exactly what you
@@ -946,9 +959,13 @@ browser. Pretty cool!
 If we open `config/routes.rb`, we can tell Rails the root route should render
 the Products index action by adding this line:
 
-```ruby
+```ruby#4
 # config/routes.rb
-root "products#index"
+Rails.application.routes.draw do
+  # ...
+  root "products#index"
+  resources :products
+end
 ```
 
 Now when you visit http://localhost:3000, Rails will render Products#index.
@@ -2237,11 +2254,14 @@ To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
 `resources :products` to the following:
 
-```ruby
+```ruby4-6
 # config/routes.rb
+Rails.application.routes.draw do
+  # ...
   resources :products do
     resources :subscribers, only: [ :create ]
   end
+end
 ```
 
 On the product show page, we can check if there is inventory and display the
