@@ -27,6 +27,10 @@ module ActionView
           end
         end
 
+        def +(other)
+          self.to_s + other.to_s
+        end
+
         # This is what child classes implement.
         def render
           raise NotImplementedError, "Subclasses must implement a render method"

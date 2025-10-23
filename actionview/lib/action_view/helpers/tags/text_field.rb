@@ -8,13 +8,18 @@ module ActionView
       class TextField < Base # :nodoc:
         include Placeholderable
 
-        def render
+        def to_s
+          options = attributes
+          tag("input", options)
+        end
+
+        def attributes
           options = @options.stringify_keys
           options["size"] = options["maxlength"] unless options.key?("size")
           options["type"] ||= field_type
           options["value"] = options.fetch("value") { value_before_type_cast } unless field_type == "file"
           add_default_name_and_field(options)
-          tag("input", options)
+          options
         end
 
         class << self

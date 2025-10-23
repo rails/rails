@@ -4,7 +4,7 @@ module ActionView
   module Helpers
     module Tags # :nodoc:
       class NumberField < TextField # :nodoc:
-        def render
+        def attributes
           options = @options.stringify_keys
 
           if range = options.delete("in") || options.delete("within")
