@@ -5,7 +5,6 @@ require "models/admin"
 require "models/admin/user"
 require "models/admin/account"
 require "models/user"
-require "pp"
 
 class FilterAttributesTest < ActiveRecord::TestCase
   fixtures :"admin/users", :"admin/accounts"
@@ -18,6 +17,7 @@ class FilterAttributesTest < ActiveRecord::TestCase
 
   teardown do
     ActiveRecord::Base.filter_attributes = @previous_filter_attributes
+    ActiveSupport.filter_parameters.clear
   end
 
   test "filter_attributes" do

@@ -4,6 +4,13 @@ require "cases/encryption/helper"
 require "models/book"
 
 class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
+  def run(*)
+    ActiveRecord::Encryption.config.add_to_filter_parameters = false
+    super
+  ensure
+    ActiveRecord::Encryption.config.add_to_filter_parameters = true
+  end
+
   test "validates config options when using encrypted attributes" do
     assert_invalid_declaration deterministic: false, ignore_case: true
     assert_invalid_declaration key: "1234", key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("my secret")

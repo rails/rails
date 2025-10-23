@@ -8,6 +8,13 @@ require "active_record/encryption/message_pack_message_serializer"
 class ActiveRecord::Encryption::EncryptableRecordMessagePackSerializedTest < ActiveRecord::EncryptionTestCase
   fixtures :encrypted_books
 
+  def run(*)
+    ActiveRecord::Encryption.config.add_to_filter_parameters = false
+    super
+  ensure
+    ActiveRecord::Encryption.config.add_to_filter_parameters = true
+  end
+
   test "binary data can be serialized with message pack" do
     all_bytes = (0..255).map(&:chr).join
     book = EncryptedBookWithBinaryMessagePackSerialized.create!(logo: all_bytes)

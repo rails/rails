@@ -355,17 +355,23 @@ module ActiveRecord
 
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(filter_attributes)
-        @inspection_filter = nil
+        @attribute_filter = nil
         @filter_attributes = filter_attributes
-
-        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
+        filter_attributes.each do |attribute|
+          param = if attribute.is_a?(String)
+            self.name ? "#{model_name.element}.#{attribute}" : attribute
+          else
+            attribute
+          end
+          ActiveSupport.filter_parameters << param unless param.in?(ActiveSupport.filter_parameters)
+        end
       end
 
-      def inspection_filter # :nodoc:
+      def attribute_filter # :nodoc:
         if @filter_attributes.nil?
-          superclass.inspection_filter
+          superclass.attribute_filter
         else
-          @inspection_filter ||= begin
+          @attribute_filter ||= begin
             mask = InspectionMask.new(ActiveSupport::ParameterFilter::FILTERED)
             ActiveSupport::ParameterFilter.new(@filter_attributes, mask: mask)
           end
@@ -423,7 +429,7 @@ module ActiveRecord
           subclass.class_eval do
             @arel_table = nil
             @predicate_builder = nil
-            @inspection_filter = nil
+            @attribute_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil
           end
@@ -865,8 +871,8 @@ module ActiveRecord
       end
       private_constant :InspectionMask
 
-      def inspection_filter
-        self.class.inspection_filter
+      def attribute_filter
+        self.class.attribute_filter
       end
 
       def inspect_with_attributes(attributes_to_list)

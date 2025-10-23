@@ -4,6 +4,13 @@ require "cases/encryption/helper"
 require "models/author_encrypted"
 
 class ActiveRecord::Encryption::EncryptionSchemesTest < ActiveRecord::EncryptionTestCase
+  def run(*)
+    ActiveRecord::Encryption.config.add_to_filter_parameters = false
+    super
+  ensure
+    ActiveRecord::Encryption.config.add_to_filter_parameters = true
+  end
+
   test "can decrypt encrypted_value encrypted with a different encryption scheme" do
     ActiveRecord::Encryption.config.support_unencrypted_data = false
 

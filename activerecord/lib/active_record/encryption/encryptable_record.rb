@@ -84,6 +84,9 @@ module ActiveRecord
           def encrypt_attribute(name, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
             encrypted_attributes << name.to_sym
 
+            param = self.name ? "#{model_name.element}.#{name}" : name
+            ActiveSupport.filter_parameters << param if ActiveRecord::Encryption.config.add_to_filter_parameters && !name.in?(ActiveRecord::Encryption.config.excluded_from_filter_parameters) && !name.in?(ActiveSupport.filter_parameters)
+
             decorate_attributes([name]) do |name, cast_type|
               scheme = scheme_for key_provider: key_provider, key: key, deterministic: deterministic, support_unencrypted_data: support_unencrypted_data, \
                 downcase: downcase, ignore_case: ignore_case, previous: previous, compress: compress, compressor: compressor, **context_properties

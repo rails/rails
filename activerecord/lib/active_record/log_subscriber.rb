@@ -42,7 +42,7 @@ module ActiveRecord
             nil
           end
 
-          filtered_params = filter(attribute_name, casted_params[i])
+          filtered_params = filter(payload, attribute_name, casted_params[i])
 
           binds << render_bind(attr, filtered_params)
         end
@@ -130,8 +130,8 @@ module ActiveRecord
         backtrace_cleaner.first_clean_frame
       end
 
-      def filter(name, value)
-        ActiveRecord::Base.inspection_filter.filter_param(name, value)
+      def filter(payload, name, value)
+        (payload[:filter] || ActiveRecord::Base.attribute_filter).filter_param(name, value)
       end
   end
 end

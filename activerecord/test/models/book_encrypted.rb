@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ActiveRecord::Encryption.config.add_to_filter_parameters = false
+
 class UnencryptedBook < ActiveRecord::Base
   self.table_name = "encrypted_books"
 end
@@ -104,3 +106,5 @@ class EncryptedBookWithCustomCompressor < ActiveRecord::Base
 
   encrypts :name, compressor: CustomCompressor
 end
+
+ActiveRecord::Encryption.config.add_to_filter_parameters = true

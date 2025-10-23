@@ -69,14 +69,15 @@ module ActiveRecord
       end
 
       # Returns an ActiveRecord::Result instance.
-      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
+      def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false, filter: nil)
         arel = arel_from_relation(arel)
         sql, binds, preparable, allow_retry = to_sql_and_binds(arel, binds, preparable, allow_retry)
 
         select(sql, name, binds,
           prepare: prepared_statements && preparable,
           async: async && FutureResult::SelectAll,
-          allow_retry: allow_retry
+          allow_retry: allow_retry,
+          filter: filter
         )
       rescue ::RangeError
         ActiveRecord::Result.empty(async: async)
@@ -564,9 +565,9 @@ module ActiveRecord
         private_constant :DEFAULT_INSERT_VALUE
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
-        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false)
+        def raw_execute(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, batch: false, filter: nil)
           type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
+          log(sql, name, binds, type_casted_binds, async:, allow_retry:, filter:) do |notification_payload|
             with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
               result = perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
               handle_warnings(result, sql)
@@ -608,9 +609,9 @@ module ActiveRecord
         end
 
         # Same as #internal_exec_query, but yields a native adapter result
-        def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
+        def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, filter: nil, &block)
           sql = preprocess_query(sql)
-          raw_execute(sql, name, binds, prepare: prepare, async: async, allow_retry: allow_retry, materialize_transactions: materialize_transactions, &block)
+          raw_execute(sql, name, binds, prepare:, async:, allow_retry:, materialize_transactions:, filter:, &block)
         end
 
         def execute_batch(statements, name = nil, **kwargs)
@@ -683,7 +684,7 @@ module ActiveRecord
         end
 
         # Returns an ActiveRecord::Result instance.
-        def select(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false)
+        def select(sql, name = nil, binds = [], prepare: false, async: false, allow_retry: false, filter: nil)
           if async && async_enabled?
             if current_transaction.joinable?
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
@@ -705,7 +706,7 @@ module ActiveRecord
             end
             future_result
           else
-            result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry)
+            result = internal_exec_query(sql, name, binds, prepare: prepare, allow_retry: allow_retry, filter: filter)
             if async
               FutureResult.wrap(result)
             else

@@ -5,6 +5,13 @@ require "models/book_encrypted"
 require "models/author_encrypted"
 
 class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::EncryptionTestCase
+  def run(*)
+    ActiveRecord::Encryption.config.add_to_filter_parameters = false
+    super
+  ensure
+    ActiveRecord::Encryption.config.add_to_filter_parameters = true
+  end
+
   test "uniqueness validations work" do
     EncryptedBookWithDowncaseName.create!(name: "dune")
     assert_raises ActiveRecord::RecordInvalid do

@@ -536,7 +536,7 @@ module ActiveRecord
             value.inspect
           end
 
-          inspection_filter.filter_param(name, inspected_value)
+          attribute_filter.filter_param(name, inspected_value)
         end
       end
 

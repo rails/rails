@@ -53,7 +53,6 @@ module ActiveRecord
   autoload :Enum
   autoload :Explain
   autoload :FixtureSet, "active_record/fixtures"
-  autoload :FilterAttributeHandler
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
