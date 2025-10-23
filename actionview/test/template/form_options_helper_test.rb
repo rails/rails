@@ -864,7 +864,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = ""
     assert_dom_equal(
-      "<select class=\"disabled\" disabled=\"disabled\" name=\"post[category]\" id=\"post_category\"><option value=\"\">Please select</option>\n<option value=\"\" label=\" \"></option>\n</select>",
+      "<select class=\"disabled\" disabled=\"disabled\" name=\"post[category]\" id=\"post_category\"><option value=\"\">Please select</option>\n<option value=\"\" label=\"&nbsp;\"></option>\n</select>",
       select("post", "category", [], { prompt: true, include_blank: true }, { class: "disabled", disabled: true })
     )
   end
@@ -955,7 +955,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = ""
     assert_dom_equal(
-      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\" label=\" \"></option>\n<option value=\"1\">1</option></select>",
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\" label=\"&nbsp;\"></option>\n<option value=\"1\">1</option></select>",
       select("post", "category", [1], prompt: true, include_blank: true)
     )
   end
@@ -964,7 +964,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @post = Post.new
     @post.category = ""
     assert_dom_equal(
-      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\" label=\" \"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\" label=\"&nbsp;\"></option>\n<option value=\"number\">Number</option>\n<option value=\"text\">Text</option>\n<option value=\"boolean\">Yes/No</option></select>",
       select("post", "category", [["Number", "number"], ["Text", "text"], ["Yes/No", "boolean"]], prompt: true, include_blank: true)
     )
   end
