@@ -74,7 +74,7 @@ class ProcessImportJob < ApplicationJob
 end
 ```
 
-## Structured Event Reporting
+### Structured Event Reporting
 
 The default logger in Rails is great for human consumption, but less ideal for
 post-processing. The new Event Reporter provides a unified interface for
@@ -115,7 +115,7 @@ class LogSubscriber
 end
 ```
 
-## Local CI
+### Local CI
 
 Developer machines have gotten incredibly quick with loads of cores, which make
 them great local runners of even relatively large test suites.
@@ -148,7 +148,7 @@ end
 The optional integration with gh ensures that PRs must be signed off by a
 passing CI run in order to be eligible to be merged.
 
-## Markdown Rendering
+### Markdown Rendering
 
 Markdown has become the lingua franca of AI, and Rails has embraced this
 adoption by making it easier to respond to markdown requests and render them
@@ -173,7 +173,7 @@ class PagesController < ActionController::Base
 end
 ```
 
-## Command-line Credentials Fetching
+### Command-line Credentials Fetching
 
 Kamal can now easily grab its secrets from the encrypted Rails credentials store
 for deploys. This makes it a low-fi alternative to external secret stores that
@@ -184,7 +184,7 @@ only needs the master key available to work:
 KAMAL_REGISTRY_PASSWORD=$(rails credentials:fetch kamal.registry_password)
 ```
 
-## Deprecated Associations
+### Deprecated Associations
 
 Active Record associations can now be marked as being deprecated:
 
@@ -214,7 +214,7 @@ Three reporting modes are supported (`:warn`, `:raise`, and `:notify`), and
 backtraces can be enabled or disabled, though you always get the location of the
 reported usage regardless. Defaults are `:warn` mode and disabled backtraces.
 
-## Registry-Free Kamal Deployments
+### Registry-Free Kamal Deployments
 
 Kamal no longer needs a remote registry, like Docker Hub or GHCR, to do basic deploys. By default, Kamal 2.8 will now use a local registry for simple deploys. For large-scale deploys, you'll still want to use a remote registry, but this makes it easier to get started and see your first Hello World deployment in the wild.
 
