@@ -2061,6 +2061,12 @@ stock. We can generate this migration using the following command:
 $ bin/rails generate migration AddInventoryCountToProducts inventory_count:integer
 ```
 
+NOTE: Rails infers that `AddInventoryCountToProducts` targets the `products`
+table because the name matches the `add_<columns>_to_<table>` convention. That
+pattern lets the generator pre-fill `add_column :products, ...`, so you only
+need to supply the column details. Run `bin/rails generate migration --help` to
+see more naming conventions.
+
 This will generate a migration file. Open it and add a default value of `0` to
 ensure `inventory_count` is never `nil`:
 
