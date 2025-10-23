@@ -4,7 +4,6 @@ PATH
     releaser (1.0.0)
       minitest
       rake (~> 13.0)
-      sigstore-cli
 
 GEM
   remote: https://rubygems.org/
@@ -106,10 +105,10 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (1.3.2)
+    thor (1.4.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
-    uri (1.0.2)
+    uri (1.0.4)
     useragent (0.16.10)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
@@ -122,6 +121,7 @@ PLATFORMS
 DEPENDENCIES
   blade
   releaser!
+  sigstore-cli
   sprockets-export
 
 BUNDLED WITH

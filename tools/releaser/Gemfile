@@ -5,3 +5,5 @@ gemspec
 
 gem "blade"
 gem "sprockets-export"
+
+gem "sigstore-cli"
