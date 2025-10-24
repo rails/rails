@@ -1556,14 +1556,18 @@ module SessionTestHelper
 
     ActionDispatch::TestRequest.create.cookie_jar.tap do |cookie_jar|
       cookie_jar.signed[:session_id] = Current.session.id
-      cookies[:session_id] = cookie_jar[:session_id]
+      cookies["session_id"] = cookie_jar[:session_id]
     end
   end
 
   def sign_out
     Current.session&.destroy!
-    cookies.delete(:session_id)
+    cookies.delete("session_id")
   end
+end
+
+ActiveSupport.on_load(:action_dispatch_integration_test) do
+  include SessionTestHelper
 end
 ```
 
@@ -1733,6 +1737,25 @@ test "sends email confirmation on successful update" do
 end
 ```
 
+Then add first and last names to the fixtures in `test/fixtures/users.yml` to
+pass validations:
+
+```yaml#6-7,12-13
+<% password_digest = BCrypt::Password.create("password") %>
+
+one:
+  email_address: one@example.com
+  password_digest: <%= password_digest %>
+  first_name: User
+  last_name: One
+
+two:
+  email_address: two@example.com
+  password_digest: <%= password_digest %>
+  first_name: User
+  last_name: Two
+```
+
 This tests submits successful params, confirms the email is saved to the
 database, the user was redirected and the confirmation email was queued for
 delivery.
@@ -1821,10 +1844,9 @@ confirm their new email address.
 Another area that we should test is the Settings navigation. We want to ensure
 the appropriate links are visible to admins and not visible to regular users.
 
-Let's first create an admin user fixture in `test/fixtures/users.yml` and add
-names to the fixtures so they pass validations.
+Let's first create an admin user fixture in `test/fixtures/users.yml`:
 
-```yaml#6-7,12-13,15-20
+```yaml#15-20
 <% password_digest = BCrypt::Password.create("password") %>
 
 one:
