@@ -642,10 +642,12 @@ module ActiveRecord
       def check_eager_loadable!
         return unless scope
 
-        unless scope.arity == 0
+        required_scope_args = scope.arity < 0 ? ~scope.arity : scope.arity
+
+        unless required_scope_args == 0
           raise ArgumentError, <<-MSG.squish
             The association scope '#{name}' is instance dependent (the scope
-            block takes an argument). Eager loading instance dependent scopes
+            block requires  an argument). Eager loading instance dependent scopes
             is not supported.
           MSG
         end

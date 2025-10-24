@@ -1517,12 +1517,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  test "eager loading of optional instance dependent associations is not supported" do
-    message = "association scope 'posts_mentioning_author' is"
-    error = assert_raises(ArgumentError) do
-      Author.eager_load(:posts_mentioning_author).to_a
+  test "eager loading of optional instance dependent associations is supported" do
+    authors = Author.eager_load(:posts_mentioning_author).to_a
+    assert_not authors.empty?
+    authors.each do |author|
+      assert_predicate author.posts_mentioning_author, :loaded?
     end
-    assert_match message, error.message
   end
 
   test "preload with invalid argument" do

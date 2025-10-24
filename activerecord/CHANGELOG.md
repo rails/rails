@@ -1,3 +1,7 @@
+*   Support eager loading of instance dependent scopes with an optional parameter.
+
+    *Martin-Alexander*
+
 *   Allow either explain format syntax for EXPLAIN queries.
 
     MySQL uses FORMAT=JSON whereas Postgres uses FORMAT JSON. We should be
