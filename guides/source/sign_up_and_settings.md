@@ -196,7 +196,7 @@ The `create` action assigns parameters and attempts to save the user to the
 database. If successful, it logs the user in and redirects to `root_path`,
 otherwise it re-renders the form with errors.
 
-Visit https://localhost:3000/sign_up to try it out.
+Visit http://localhost:3000/sign_up to try it out.
 
 ### Requiring Unauthenticated Access
 
@@ -979,7 +979,7 @@ Finally, let's add a link to Email in the settings layout sidebar:
 <%= render template: "layouts/application" %>
 ```
 
-Test out this process by navigating to https://localhost:3000/settings/email and
+Test out this process by navigating to http://localhost:3000/settings/email and
 updating your email address. Watch the Rails server logs for the email contents
 and open the confirm link in your browser to update the email in the database.
 
