@@ -79,6 +79,16 @@ module Rails
         directories.push(*dirs)
       end
 
+      def self.excluded_directories
+        @@excluded_directories ||= []
+      end
+
+      # Registers directories to be excluded from scanning
+      #   Rails::SourceAnnotationExtractor::Annotation.register_excluded_directories("app/assets/builds")
+      def self.register_excluded_directories(*dirs)
+        excluded_directories.push(*dirs)
+      end
+
       def self.tags
         @@tags ||= %w(OPTIMIZE FIXME TODO)
       end
@@ -167,6 +177,8 @@ module Rails
     # taken into account. Only files with annotations are included.
     def find_in(dir)
       results = {}
+
+      return results if Annotation.excluded_directories.include?(dir)
 
       Dir.glob("#{dir}/*") do |item|
         next if File.basename(item).start_with?(".")
