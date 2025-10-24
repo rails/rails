@@ -149,25 +149,6 @@ module ActiveSupport
       if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new do |value, is_key|
-            json_value = value.as_json
-            # Keep compatibility by calling to_s on non-String keys
-            next json_value.to_s if is_key
-            # Handle objects returning self from as_json
-            if json_value.equal?(value)
-              next ::JSON::Fragment.new(::JSON.generate(json_value))
-            end
-            # Handle objects not returning JSON-native types from as_json
-            count = 5
-            until JSON_NATIVE_TYPES.include?(json_value.class)
-              raise SystemStackError if count == 0
-              json_value = json_value.as_json
-              count -= 1
-            end
-            json_value
-          end
-
-
           def initialize(options = nil)
             if options
               options = options.dup
@@ -183,7 +164,7 @@ module ActiveSupport
           def encode(value)
             value = value.as_json(@options) unless @options.empty?
 
-            json = CODER.dump(value)
+            json = coder.dump(value)
 
             return json unless @escape
 
@@ -199,6 +180,27 @@ module ActiveSupport
             end
             json.force_encoding(::Encoding::UTF_8)
           end
+
+          private
+            def coder
+              ::JSON::Coder.new do |value, is_key|
+                json_value = value.as_json
+                # Keep compatibility by calling to_s on non-String keys
+                next json_value.to_s if is_key
+                # Handle objects returning self from as_json
+                if json_value.equal?(value)
+                  next ::JSON::Fragment.new(::JSON.generate(json_value))
+                end
+                # Handle objects not returning JSON-native types from as_json
+                count = 5
+                until JSON_NATIVE_TYPES.include?(json_value.class)
+                  raise SystemStackError if count == 0
+                  json_value = json_value.as_json
+                  count -= 1
+                end
+                json_value
+              end
+            end
         end
       end
 
