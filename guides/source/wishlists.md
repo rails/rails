@@ -138,7 +138,7 @@ deleted, their wishlists are deleted too.
 
 Then in `app/models/product.rb`, add:
 
-```ruby#5-6
+```ruby#4-5
 class Product < ApplicationRecord
   include Notifications
 
