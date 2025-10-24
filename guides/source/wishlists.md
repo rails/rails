@@ -142,7 +142,6 @@ Then in `app/models/product.rb`, add:
 class Product < ApplicationRecord
   include Notifications
 
-  has_many :subscribers, dependent: :destroy
   has_many :wishlist_products, dependent: :destroy
   has_many :wishlists, through: :wishlist_products
   has_one_attached :featured_image
@@ -159,7 +158,7 @@ SQL queries.
 We also set `wishlist_products` as `dependent: :destroy`. When a `Product` is
 destroyed, it will be automatically removed from any Wishlists.
 
-A counter cache stores the number of associated records to avoid running a separate query each time the count is needed. So in `app/models/wishlist.rb`, let's update both associations to enable counter
+A counter cache stores the number of associated records to avoid running a separate query each time the count is needed. So in `app/models/wishlist_product.rb`, let's update both associations to enable counter
 caching:
 
 ```ruby#2-5
@@ -934,7 +933,7 @@ Lastly, add the link to the sidebar layout:
         <h4>Store Settings</h4>
         <%= link_to "Products", store_products_path %>
         <%= link_to "Users", store_users_path %>
-        <%= link_to "Wishlists", store_products_path %>
+        <%= link_to "Wishlists", store_wishlists_path %>
       <% end %>
     </nav>
 
@@ -1118,7 +1117,7 @@ Let's create the index view next at
 `app/views/store/subscribers/index.html.erb`:
 
 ```erb
-<h1><%= pluralize "Subscriber", @subscribers.count %></h1>
+<h1><%= pluralize @subscribers.count, "Subscriber" %></h1>
 
 <%= form_with url: store_subscribers_path, method: :get do |form| %>
   <%= form.collection_select :product_id, Product.all, :id, :name, selected: params[:product_id], include_blank: "All Products" %>
@@ -1164,7 +1163,7 @@ Finally, add the link to the sidebar layout:
         <%= link_to "Products", store_products_path %>
         <%= link_to "Users", store_users_path %>
         <%= link_to "Subscribers", store_subscribers_path %>
-        <%= link_to "Wishlists", store_products_path %>
+        <%= link_to "Wishlists", store_wishlists_path %>
       <% end %>
     </nav>
 
@@ -1586,7 +1585,7 @@ should have no changes.
     second_wishlist = user.wishlists.create!(name: "Second")
     second_wishlist.wishlist_products.create(product_id: wishlist_product.product_id)
     patch wishlist_wishlist_product_path(wishlist, wishlist_product), params: { new_wishlist_id: second_wishlist.id }
-    assert_equal "T-Shirt is already on Second Wishlist.", flash[:alert]
+    assert_equal "T-Shirt is already on Second.", flash[:alert]
     assert_equal wishlist, wishlist_product.reload.wishlist
   end
 ```
