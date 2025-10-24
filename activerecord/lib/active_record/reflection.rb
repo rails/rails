@@ -427,8 +427,10 @@ module ActiveRecord
         if active_record.name.demodulize == class_name
           begin
             return compute_class("::#{class_name}")
-          rescue
-            # Ignored
+          rescue NameError, AssociationModelTypeError
+            # If NameError or AssociationModelTypeError raised during above method call,
+            # we safely ignore it to allow compute_class method to be called again without
+            # "::" in order to find the model in a nested module, if possible.
           end
         end
 
@@ -509,7 +511,7 @@ module ActiveRecord
         end
 
         unless klass < ActiveRecord::Base
-          raise ArgumentError, "The #{name} model class for the #{active_record}##{self.name} association is not an ActiveRecord::Base subclass."
+          raise AssociationModelTypeError, "The #{name} model class for the #{active_record}##{self.name} association is not an ActiveRecord::Base subclass."
         end
 
         klass

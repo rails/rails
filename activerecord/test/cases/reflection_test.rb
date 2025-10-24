@@ -176,7 +176,7 @@ class ReflectionTest < ActiveRecord::TestCase
       :infos_class_name,         # has_many through, with :class_name
       :infos_through_class_name, # has_many through other :class_name, with :class_name
     ].each do |rel|
-      error = assert_raise(ArgumentError) do
+      error = assert_raise(ActiveRecord::AssociationModelTypeError) do
         UserWithInvalidRelation.reflect_on_association(rel).klass
       end
 
