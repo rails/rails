@@ -339,6 +339,42 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate invalid_book, :valid?
   end
 
+  test "validation with config.validate_enums_by_default = true" do
+    ActiveRecord.validate_enums_by_default = true
+    klass = Class.new(ActiveRecord::Base) do
+    def self.name; "Book"; end
+    enum :status, [:proposed]
+  end
+
+    valid_book = klass.new(status: "proposed")
+    assert_predicate valid_book, :valid?
+
+    invalid_book = klass.new(status: "unknown")
+    assert_not_predicate invalid_book, :valid?
+
+    invalid_book = klass.new(status: nil)
+    assert_not_predicate invalid_book, :valid?
+  end
+
+  test "validation with config.validate_enums_by_default = {allow_nil: true}" do
+    ActiveRecord.validate_enums_by_default = { allow_nil: true }
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      enum :status, [:proposed]
+    end
+
+    valid_book = klass.new(status: nil)
+    assert_predicate valid_book, :valid?
+  end
+
+  test "validation with config.validate_enums_by_default = false" do
+    ActiveRecord.validate_enums_by_default = false
+    e = assert_raises(ArgumentError) do
+      @book.status = :unknown
+    end
+    assert_equal "'unknown' is not a valid status", e.message
+  end
+
   test "validation with 'validate: hash' option" do
     klass = Class.new(ActiveRecord::Base) do
       def self.name; "Book"; end
