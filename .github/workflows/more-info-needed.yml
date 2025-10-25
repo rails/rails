@@ -14,8 +14,8 @@ jobs:
     - uses: actions/stale@v9
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        days-before-stale: 14
-        days-before-close: 0 # Close immediately
+        days-before-stale: -1
+        days-before-close: 14
         operations-per-run: 100
         stale-issue-label: "more-information-needed"
         close-issue-message: >
