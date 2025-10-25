@@ -1,3 +1,14 @@
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
+    ```
+
+    *Steve Polito*
+
 *   Add environment config file existence check
 
     `Rails::Application` will raise an error if unable to load any environment file.
