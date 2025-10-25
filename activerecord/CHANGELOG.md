@@ -1,3 +1,7 @@
+*   Support eager loading of instance dependent scopes with an optional parameter.
+
+    *Martin-Alexander*
+
 *   Fix upsert_all when using repeated timestamp attributes.
 
     *Gannon McGibbon*
