@@ -243,7 +243,10 @@ module ActiveRecord
           if type_name.start_with?("::")
             # If the type is prefixed with a scope operator then we assume that
             # the type_name is an absolute reference.
-            type_name.constantize
+            type_candidate = type_name.safe_constantize
+            raise AssociationModelTypeError if type_candidate.nil?
+
+            type_candidate
           else
             type_candidate = @_type_candidates_cache[type_name]
             if type_candidate && type_constant = type_candidate.safe_constantize
