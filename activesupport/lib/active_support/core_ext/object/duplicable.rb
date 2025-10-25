@@ -23,6 +23,8 @@ class Object
   #
   # False for method objects;
   # true otherwise.
+  #
+  #: () -> bool
   def duplicable?
     true
   end
@@ -41,6 +43,8 @@ unless methods_are_duplicable
     #
     #   method(:puts).duplicable? # => false
     #   method(:puts).dup         # => TypeError: allocator undefined for Method
+    #
+    #: () -> false
     def duplicable?
       false
     end
@@ -51,6 +55,8 @@ unless methods_are_duplicable
     #
     #   method(:puts).unbind.duplicable? # => false
     #   method(:puts).unbind.dup         # => TypeError: allocator undefined for UnboundMethod
+    #
+    #: () -> false
     def duplicable?
       false
     end
@@ -63,6 +69,8 @@ module Singleton
   # Singleton instances are not duplicable:
   #
   #   Class.new.include(Singleton).instance.dup # TypeError (can't dup instance of singleton
+  #
+  #: () -> false
   def duplicable?
     false
   end

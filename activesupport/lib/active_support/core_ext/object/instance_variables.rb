@@ -11,6 +11,8 @@ class Object
   #   end
   #
   #   C.new(0, 1).instance_values # => {"x" => 0, "y" => 1}
+  #
+  #: () -> Hash[String, Object]
   def instance_values
     instance_variables.to_h do |ivar|
       [ivar[1..-1].freeze, instance_variable_get(ivar)]
@@ -26,6 +28,8 @@ class Object
   #   end
   #
   #   C.new(0, 1).instance_variable_names # => ["@y", "@x"]
+  #
+  #: () -> Array[String]
   def instance_variable_names
     instance_variables.map(&:name)
   end

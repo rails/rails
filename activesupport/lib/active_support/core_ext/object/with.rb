@@ -23,6 +23,8 @@ class Object
   #
   # It can be used on any object as long as both the reader and writer methods
   # are public.
+  #
+  #: (Hash[Symbol | String, Object]) { (self) -> void } -> void
   def with(**attributes)
     old_values = {}
     begin

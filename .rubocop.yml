@@ -120,6 +120,7 @@ Layout/IndentationWidth:
 
 Layout/LeadingCommentSpace:
   Enabled: true
+  AllowRBSInlineAnnotation: true
 
 Layout/SpaceAfterColon:
   Enabled: true

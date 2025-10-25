@@ -14,14 +14,14 @@ class Object
   #
   #   address.blank?
   #
-  # @return [true, false]
+  #: () -> bool
   def blank?
     respond_to?(:empty?) ? !!empty? : false
   end
 
   # An object is present if it's not blank.
   #
-  # @return [true, false]
+  #: () -> bool
   def present?
     !blank?
   end
@@ -41,7 +41,7 @@ class Object
   #
   #   region = params[:state].presence || params[:country].presence || 'US'
   #
-  # @return [Object]
+  #: () -> self?
   def presence
     self if present?
   end
@@ -52,11 +52,12 @@ class NilClass
   #
   #   nil.blank? # => true
   #
-  # @return [true]
+  #: () -> true
   def blank?
     true
   end
 
+  #: () -> false
   def present? # :nodoc:
     false
   end
@@ -67,11 +68,12 @@ class FalseClass
   #
   #   false.blank? # => true
   #
-  # @return [true]
+  #: () -> true
   def blank?
     true
   end
 
+  #: () -> false
   def present? # :nodoc:
     false
   end
@@ -82,11 +84,12 @@ class TrueClass
   #
   #   true.blank? # => false
   #
-  # @return [false]
+  #: () -> false
   def blank?
     false
   end
 
+  #: () -> true
   def present? # :nodoc:
     true
   end
@@ -98,9 +101,10 @@ class Array
   #   [].blank?      # => true
   #   [1,2,3].blank? # => false
   #
-  # @return [true, false]
+  #: () -> bool
   alias_method :blank?, :empty?
 
+  #: () -> bool
   def present? # :nodoc:
     !empty?
   end
@@ -112,9 +116,10 @@ class Hash
   #   {}.blank?                # => true
   #   { key: 'value' }.blank?  # => false
   #
-  # @return [true, false]
+  #: () -> bool
   alias_method :blank?, :empty?
 
+  #: () -> bool
   def present? # :nodoc:
     !empty?
   end
@@ -125,8 +130,11 @@ class Symbol
   #
   #   :''.blank?     # => true
   #   :symbol.blank? # => false
+  #
+  #: () -> bool
   alias_method :blank?, :empty?
 
+  #: () -> bool
   def present? # :nodoc:
     !empty?
   end
@@ -149,7 +157,7 @@ class String
   #
   #   "\u00a0".blank? # => true
   #
-  # @return [true, false]
+  #: () -> bool
   def blank?
     # The regexp that matches blank strings is expensive. For the case of empty
     # strings we can speed up this method (~3.5x) with an empty? call. The
@@ -162,6 +170,7 @@ class String
       end
   end
 
+  #: () -> bool
   def present? # :nodoc:
     !blank?
   end
@@ -173,11 +182,12 @@ class Numeric # :nodoc:
   #   1.blank? # => false
   #   0.blank? # => false
   #
-  # @return [false]
+  #: () -> false
   def blank?
     false
   end
 
+  #: () -> true
   def present?
     true
   end
@@ -188,11 +198,12 @@ class Time # :nodoc:
   #
   #   Time.now.blank? # => false
   #
-  # @return [false]
+  #: () -> false
   def blank?
     false
   end
 
+  #: () -> true
   def present?
     true
   end

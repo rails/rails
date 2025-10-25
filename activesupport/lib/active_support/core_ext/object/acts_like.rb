@@ -30,6 +30,7 @@ class Object
   #
   #   Stringish.new.acts_like?(:string) # => true
   #
+  #: (Symbol) -> bool
   def acts_like?(duck)
     case duck
     when :time

@@ -5,12 +5,16 @@ require "cgi/util" if RUBY_VERSION < "3.5"
 
 class Object
   # Alias of <tt>to_s</tt>.
+  #
+  #: () -> String
   def to_param
     to_s
   end
 
   # Converts an object into a string suitable for use as a URL query string,
   # using the given <tt>key</tt> as the param name.
+  #
+  #: (to_param() -> String) -> String
   def to_query(key)
     "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
   end
@@ -18,11 +22,15 @@ end
 
 class NilClass
   # Returns a CGI-escaped +key+.
+  #
+  #: (to_param() -> String) -> String
   def to_query(key)
     CGI.escape(key.to_param)
   end
 
   # Returns +self+.
+  #
+  #: () -> nil
   def to_param
     self
   end
@@ -30,6 +38,8 @@ end
 
 class TrueClass
   # Returns +self+.
+  #
+  #: () -> true
   def to_param
     self
   end
@@ -37,6 +47,8 @@ end
 
 class FalseClass
   # Returns +self+.
+  #
+  #: () -> false
   def to_param
     self
   end

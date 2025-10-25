@@ -12,6 +12,8 @@ class Object
   #
   # For non +Range+ arguments, this will throw an +ArgumentError+ if the argument
   # doesn't respond to +#include?+.
+  #
+  #: (Range | include?(self) -> boolish) -> boolish
   def in?(another_object)
     case another_object
     when Range
@@ -30,7 +32,7 @@ class Object
   #
   # This will throw an +ArgumentError+ if the argument doesn't respond to +#include?+.
   #
-  # @return [Object]
+  #: (Object) -> self?
   def presence_in(another_object)
     in?(another_object) ? self : nil
   end

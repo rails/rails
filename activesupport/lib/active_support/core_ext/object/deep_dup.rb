@@ -12,6 +12,8 @@ class Object
   #
   #   object.instance_variable_defined?(:@a) # => false
   #   dup.instance_variable_defined?(:@a)    # => true
+  #
+  #: () -> self
   def deep_dup
     duplicable? ? dup : self
   end
@@ -26,6 +28,8 @@ class Array
   #
   #   array[1][2] # => nil
   #   dup[1][2]   # => 4
+  #
+  #: () -> self
   def deep_dup
     map(&:deep_dup)
   end
@@ -40,6 +44,8 @@ class Hash
   #
   #   hash[:a][:c] # => nil
   #   dup[:a][:c]  # => "c"
+  #
+  #: () -> self
   def deep_dup
     hash = dup
     each_pair do |key, value|
@@ -61,6 +67,8 @@ class Module
   #   Object.deep_dup == Object # => true
   #   klass = Class.new
   #   klass.deep_dup == klass # => false
+  #
+  #: () -> self
   def deep_dup
     if name.nil?
       super
