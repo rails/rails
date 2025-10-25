@@ -111,6 +111,19 @@ module ActionText
     #       end
     #     end
     def to_trix_content_attachment_partial_path
+      to_editor_content_attachment_partial_path
+    end
+    deprecate to_trix_content_attachment_partial_path: :to_editor_content_attachment_partial_path, deprecator: ActionText.deprecator
+
+    # Returns the path to the partial that is used for rendering the attachable in
+    # the rich text editor. Defaults to `to_partial_path`.
+    #
+    # Override to render a different partial:
+    #
+    #     class User < ApplicationRecord
+    #       "users/editor_content_attachment"
+    #     end
+    def to_editor_content_attachment_partial_path
       to_partial_path
     end
 

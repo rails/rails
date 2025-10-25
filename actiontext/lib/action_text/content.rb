@@ -39,11 +39,10 @@ module ActionText
 
     def initialize(content = nil, options = {})
       options.with_defaults! canonicalize: true
+      @fragment = ActionText::Fragment.wrap(content)
 
       if options[:canonicalize]
-        @fragment = self.class.fragment_by_canonicalizing_content(content)
-      else
-        @fragment = ActionText::Fragment.wrap(content)
+        @fragment = self.class.fragment_by_canonicalizing_content(self)
       end
     end
 
@@ -133,11 +132,16 @@ module ActionText
     end
 
     def to_trix_html
-      render_attachments(&:to_trix_attachment).to_html
+      to_editor_html
+    end
+    deprecate :to_trix_html, deprecator: ActionText.deprecator
+
+    def to_editor_html # :nodoc:
+      RichText.editor.to_editor_html(self)
     end
 
     def to_html
-      fragment.to_html
+      RichText.editor.to_action_text_html(self)
     end
 
     def to_rendered_html_with_layout
