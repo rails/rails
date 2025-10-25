@@ -7,6 +7,7 @@ require "models/comment"
 require "models/company"
 require "models/company_in_module"
 require "models/ship"
+require "models/developer"
 require "models/pirate"
 require "models/price_estimate"
 require "models/essay"
@@ -641,6 +642,18 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_reflect_on_missing_source_association_raise_exception
     assert_raises(ActiveRecord::HasManyThroughSourceAssociationNotFoundError) do
       Hotel.reflect_on_association(:lost_items).check_validity!
+    end
+  end
+
+  def test_reflect_on_optional_belongs_to_association_when_inverse_has_dependent_nullify_doesnt_raise_exception
+    assert_nothing_raised do
+      Ship.reflect_on_association(:developer).check_validity!
+    end
+  end
+
+  def test_reflect_on_required_belongs_to_association_when_inverse_has_dependent_nullify_raise_exception
+    assert_raises(ActiveRecord::BelongsToCantBeRequiredWithHasOneOrHasManyDependentNullifyError) do
+      ShipWithRequiredDeveloper.reflect_on_association(:developer).check_validity!
     end
   end
 

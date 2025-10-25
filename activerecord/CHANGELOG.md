@@ -1,3 +1,8 @@
+*   Make `belongs_to` association with `optional: true` necessary when using
+    inverse associations with `dependent: :nullify`.
+
+    *francktrouillez*
+
 *   Fix upsert_all when using repeated timestamp attributes.
 
     *Gannon McGibbon*
