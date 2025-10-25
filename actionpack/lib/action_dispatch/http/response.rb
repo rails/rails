@@ -396,6 +396,30 @@ module ActionDispatch # :nodoc:
       end
     end
 
+    # Write a Time to the Retry-After HTTP header.
+    #
+    # Expects a value formatted according to RFC 2616 or a non-negative
+    # integer indicating the seconds to delay after the response is received.
+    #
+    #     response.retry_after = 5.minutes.from_now.httpdate
+    #     response.retry_after = 300
+    #
+    # Date, Time, DateTime, and ActiveSupport::TimeWithZone instances will be
+    # coerced to a formatted string.
+    #
+    #     response.retry_after = 5.minutes.from_now
+    def retry_after=(value)
+      value = value.httpdate if value.respond_to?(:httpdate)
+      value = value.to_i unless value.is_a?(String)
+
+      set_header "Retry-After", value
+    end
+
+    # Read from the Retry-After HTTP header.
+    def retry_after
+      get_header "Retry-After"
+    end
+
     # Avoid having to pass an open file handle as the response body. Rack::Sendfile
     # will usually intercept the response and uses the path directly, so there is no
     # reason to open the file.

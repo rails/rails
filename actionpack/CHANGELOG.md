@@ -1,3 +1,9 @@
+*   Access rate limiting context from `ActionDispatch::Request` and `ActionDispatch::Response`
+
+    Add `ActionDispatch::Request#rate_limit` and `ActionDispatch::Response#retry_after`.
+
+    *Sean Doyle*
+
 *   Define `ActionController::Parameters#deconstruct_keys` to support pattern matching
 
     ```ruby

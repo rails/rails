@@ -498,6 +498,16 @@ module ActionDispatch
       controller_instance.commit_csrf_token(self) if controller_instance.respond_to?(:commit_csrf_token)
     end
 
+    # Write the ActionController::RateLimit values collected during the request
+    def rate_limit=(value)
+      set_header "action_controller.rate_limit", value
+    end
+
+    # Read the ActionController::RateLimit values collected during the request
+    def rate_limit
+      get_header "action_controller.rate_limit"
+    end
+
     private
       def check_method(name)
         if name
