@@ -1189,8 +1189,8 @@ Rails provides a set of commands to run certain sets of migrations.
 
 The very first migration related rails command you will use will probably be
 `bin/rails db:migrate`. In its most basic form it just runs the `change` or `up`
-method for all the migrations that have not yet been run. If there are no such
-migrations, it exits. It will run these migrations in order based on the date of
+method for all the migrations that have not yet been run. If there are no such migrations, it exits and displays an informative message indicating whether the schema is up to date or if there are no migrations at all.
+It will run these migrations in order based on the date of
 the migration.
 
 Note that running the `db:migrate` command also invokes the `db:schema:dump`

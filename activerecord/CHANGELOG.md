@@ -1,3 +1,11 @@
+*   Display informative messages when running `db:migrate` with no pending migrations.
+
+    When `db:migrate` is executed and there are no migrations to run, Rails now outputs
+    a helpful message indicating whether there are no migrations at all or if the
+    schema is already up to date.
+
+    *Juliano*
+
 *   Fix upsert_all when using repeated timestamp attributes.
 
     *Gannon McGibbon*

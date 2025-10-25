@@ -1108,7 +1108,7 @@ module ActiveRecord
         ENV["VERSION"] = "2"
 
         # run no migration because 2 was already run
-        assert_empty capture_migration_output
+        assert_match(/== \d+: schema version already up to date./, capture_migration_output)
       ensure
         ENV["VERBOSE"], ENV["VERSION"] = verbose, version
       end
@@ -1169,8 +1169,7 @@ module ActiveRecord
 
         # run no migration because 1 already ran and 2 is mysql scoped
         output = capture_migration_output
-        assert_empty output
-        assert_not_includes output, "No migrations ran. (using mysql scope)"
+        assert_match(/schema version already up to date\./, output)
       ensure
         ENV["VERBOSE"], ENV["VERSION"], ENV["SCOPE"] = verbose, version, scope
       end
@@ -1784,6 +1783,36 @@ module ActiveRecord
             assert_equal "/tmp/secondary_#{filename}", ActiveRecord::Tasks::DatabaseTasks.schema_dump_path(config_for("development", "secondary"), fmt)
           end
         end
+      end
+    end
+  end
+
+  class DatabaseTasksMigrateRakeTest < DatabaseTasksMigrationTestCase
+    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+      def test_migrate_outputs_message_when_no_migrations_to_run_and_no_migrations_exist
+        # Switch to empty migrations path
+        @conn.release_connection
+        @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
+          database: ":memory:", migrations_paths: MIGRATIONS_ROOT + "/nonexistent"
+
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+          output = capture_migration_output
+
+          assert_match(/== No migrations ran\./, output)
+        end
+      end
+
+      def test_migrate_outputs_message_when_no_migrations_to_run_and_schema_up_to_date
+        # Mark migrations as already run by inserting into schema_migrations
+        conn = ActiveRecord::Base.lease_connection
+        conn.execute("INSERT INTO schema_migrations (version) VALUES ('1')")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES ('2')")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES ('3')")
+
+        # Now when we run migrations, they should already be up to date
+        output = capture_migration_output
+
+        assert_match(/== \d+: schema version already up to date./, output)
       end
     end
   end
