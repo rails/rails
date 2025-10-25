@@ -986,7 +986,11 @@ module ActiveRecord
           end.join(", ")
 
           # ...and send them all in one query
-          raw_execute("SET #{encoding} #{sql_mode_assignment} #{variable_assignments}", "SCHEMA")
+          intent = QueryIntent.new(
+            processed_sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
+            name: "SCHEMA"
+          )
+          raw_execute(intent)
         end
 
         def column_definitions(table_name) # :nodoc:
