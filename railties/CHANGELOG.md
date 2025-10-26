@@ -1,3 +1,9 @@
+*   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
+
+    It is still recommended to assume and force SSL in production as soon as you can.
+
+    *Jerome Dalbert*
+
 *   Add environment config file existence check
 
     `Rails::Application` will raise an error if unable to load any environment file.
