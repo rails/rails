@@ -25,9 +25,11 @@ If you're used to using raw SQL to find database records, then you will generall
 
 Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
-Code examples throughout this guide will refer to one or more of the following models:
 
-TIP: All of the following models use `id` as the primary key, unless specified otherwise.
+A Bookstore Example Model
+-------------------------
+
+Code examples throughout this guide will refer to one or more of the following models:
 
 ```ruby
 class Author < ApplicationRecord
@@ -83,6 +85,8 @@ class Supplier < ApplicationRecord
   has_many :authors, through: :books
 end
 ```
+
+TIP: All of the following models use `id` as the primary key, unless specified otherwise.
 
 ![Diagram of all of the bookstore models](images/active_record_querying/bookstore_models.png)
 
