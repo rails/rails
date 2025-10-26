@@ -99,7 +99,6 @@ The methods are:
 
 * [`annotate`][]
 * [`find`][]
-* [`create_with`][]
 * [`distinct`][]
 * [`eager_load`][]
 * [`extending`][]
