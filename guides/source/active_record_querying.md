@@ -2333,6 +2333,34 @@ irb> nina.save
 
 [`find_or_initialize_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-find_or_initialize_by
 
+### `create_or_find_by`
+
+The [`create_or_find_by`][] method tries to create a record with the given attributes. If a record with those attributes already exists, it will find and return that record instead. This method is useful when you want to create a record but avoid race conditions.
+
+```irb
+irb> Customer.create_or_find_by(first_name: 'Andy')
+=> #<Customer id: 5, first_name: "Andy", last_name: nil, title: nil, visits: 0, orders_count: nil, lock_version: 0, created_at: "2019-01-17 07:06:45", updated_at: "2019-01-17 07:06:45">
+```
+
+The key difference between `create_or_find_by` and `find_or_create_by` is the order of operations:
+- `find_or_create_by`: First tries to find, then creates if not found
+- `create_or_find_by`: First tries to create, then finds if creation fails due to uniqueness constraint
+
+This makes `create_or_find_by` more suitable for cases where you expect the record to be created most of the time, and you want to handle uniqueness constraint violations gracefully.
+
+[`create_or_find_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-create_or_find_by
+
+### `create_or_find_by!`
+
+You can also use [`create_or_find_by!`][] to raise an exception if the record creation fails for reasons other than uniqueness constraint violations. This is similar to `find_or_create_by!` but with the create-first approach.
+
+```irb
+irb> Customer.create_or_find_by!(first_name: 'Andy', orders_count: 5)
+=> #<Customer id: 5, first_name: "Andy", orders_count: 5, ...>
+```
+
+[`create_or_find_by!`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-create_or_find_by-21
+
 Finding by SQL
 --------------
 
