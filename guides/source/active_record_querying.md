@@ -992,29 +992,7 @@ ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 
 Where `<attribute>` is the attribute you asked for. The `id` method will not raise the `ActiveRecord::MissingAttributeError`, so just be careful when working with associations because they need the `id` method to function properly.
 
-If you would like to only grab a single record per unique value in a certain field, you can use [`distinct`][]:
-
-```ruby
-Customer.select(:last_name).distinct
-```
-
-This would generate SQL like:
-
-```sql
-SELECT DISTINCT last_name FROM customers
-```
-
-You can also remove the uniqueness constraint:
-
-```ruby
-# Returns unique last_names
-query = Customer.select(:last_name).distinct
-
-# Returns all last_names, even if there are duplicates
-query.distinct(false)
-```
-
-Limit and Offset
+Limiting Records
 ----------------
 
 To apply `LIMIT` to the SQL fired by the `Model.find`, you can specify the `LIMIT` using [`limit`][] and [`offset`][] methods on the relation.
@@ -1041,6 +1019,28 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 
 ```sql
 SELECT * FROM customers LIMIT 5 OFFSET 30
+```
+
+If you would like to only grab a single record per unique value in a certain field, you can use [`distinct`][]:
+
+```ruby
+Customer.select(:last_name).distinct
+```
+
+This would generate SQL like:
+
+```sql
+SELECT DISTINCT last_name FROM customers
+```
+
+You can also remove the uniqueness constraint:
+
+```ruby
+# Returns unique last_names
+query = Customer.select(:last_name).distinct
+
+# Returns all last_names, even if there are duplicates
+query.distinct(false)
 ```
 
 Grouping Records
