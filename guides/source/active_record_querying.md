@@ -467,6 +467,19 @@ irb> Customer.find_by(id: customer.id_value) # Customer.find_by(id: 10)
 
 [`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
+#### Dynamic Finders
+
+For every field (also known as an attribute) you define in your table,
+Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
+you get the instance method `find_by_first_name` for free from Active Record.
+If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
+
+You can specify an exclamation point (`!`) on the end of the dynamic finders
+to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_first_name!("Ryan")`
+
+If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
+For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
+
 ### Retrieving Multiple Objects
 
 Active Record provides several methods for retrieving multiple objects from the database. The most basic method is [`all`][], which returns all records for the model.
@@ -2101,20 +2114,6 @@ SELECT books.* FROM books WHERE books.out_of_print = true
 ```
 
 [`unscoped`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Default/ClassMethods.html#method-i-unscoped
-
-Dynamic Finders
----------------
-
-For every field (also known as an attribute) you define in your table,
-Active Record provides a finder method. If you have a field called `first_name` on your `Customer` model for example,
-you get the instance method `find_by_first_name` for free from Active Record.
-If you also have a `locked` field on the `Customer` model, you also get `find_by_locked` method.
-
-You can specify an exclamation point (`!`) on the end of the dynamic finders
-to get them to raise an `ActiveRecord::RecordNotFound` error if they do not return any records, like `Customer.find_by_first_name!("Ryan")`
-
-If you want to find both by `first_name` and `orders_count`, you can chain these finders together by simply typing "`and`" between the fields.
-For example, `Customer.find_by_first_name_and_orders_count("Ryan", 5)`.
 
 Enums
 -----
