@@ -1116,8 +1116,8 @@ big_orders[0].total_price
 # Returns the total price for the first Order object
 ```
 
-Overriding Conditions
----------------------
+Overriding Clauses
+------------------
 
 ### `unscope`
 
