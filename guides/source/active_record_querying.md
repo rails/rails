@@ -2184,6 +2184,8 @@ There are some examples below. This guide won't cover all the possibilities, jus
 When an Active Record method is called, the query is not immediately generated and sent to the database.
 The query is sent only when the data is actually needed. So each example below generates a single query.
 
+NOTE: In the Rails console, queries may appear to execute unexpectedly because the console calls `inspect` on the result to display it. This triggers the query execution even if you're just exploring the relation object. For example, typing `Customer.where(active: true)` in the console will execute the query immediately to show you the results, even though the relation is lazy-loaded by default.
+
 ### Retrieving Filtered Data from Multiple Tables
 
 ```ruby
