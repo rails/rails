@@ -419,7 +419,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.first_name = 'Lifo') LIMIT 1
 ```
 
-Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions can match multiple records, you should [apply an order](#ordering) to guarantee a deterministic result.
+Note that there is no `ORDER BY` in the above SQL.  If your `find_by` conditions can match multiple records, you should [apply an order](#ordering-records) to guarantee a deterministic result.
 
 The [`find_by!`][] method behaves exactly like `find_by`, except that it will raise `ActiveRecord::RecordNotFound` if no matching record is found. For example:
 
@@ -495,7 +495,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.active = 1)
 ```
 
-You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering](#ordering), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
+You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
 
 For large datasets, consider using the batch processing methods described in the next section to avoid loading all records into memory at once.
 
@@ -909,8 +909,8 @@ SELECT * FROM customers WHERE (customers.id IN (1, 2) AND customers.id IN (2, 3)
 
 [`and`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-and
 
-Ordering
---------
+Ordering Records
+----------------
 
 To retrieve records from the database in a specific order, you can use the [`order`][] method.
 
