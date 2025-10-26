@@ -495,7 +495,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.active = 1)
 ```
 
-You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
+You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limit-and-offset), and [Grouping Records](#grouping-records) sections.
 
 For large datasets, consider using the batch processing methods described in the next section to avoid loading all records into memory at once.
 
@@ -1043,8 +1043,8 @@ will return instead a maximum of 5 customers beginning with the 31st. The SQL lo
 SELECT * FROM customers LIMIT 5 OFFSET 30
 ```
 
-Grouping
---------
+Grouping Records
+----------------
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
