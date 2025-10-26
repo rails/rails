@@ -467,6 +467,44 @@ irb> Customer.find_by(id: customer.id_value) # Customer.find_by(id: 10)
 
 [`id_value`]: https://api.rubyonrails.org/classes/ActiveRecord/ModelSchema.html#method-i-id_value
 
+### Retrieving Multiple Objects
+
+Active Record provides several methods for retrieving multiple objects from the database. The most basic method is [`all`][], which returns all records for the model.
+
+```irb
+irb> customers = Customer.all
+=> [#<Customer id: 1, first_name: "Lifo">, #<Customer id: 2, first_name: "Fifo">, ...]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers
+```
+
+The `all` method returns an `ActiveRecord::Relation` object, which allows you to chain additional query methods. For example, you can combine it with [`where`][] to filter records:
+
+```irb
+irb> customers = Customer.where(active: true)
+=> [#<Customer id: 1, first_name: "Lifo", active: true>, #<Customer id: 3, first_name: "Joe", active: true>]
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM customers WHERE (customers.active = 1)
+```
+
+You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Conditions](#conditions), [Ordering](#ordering), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
+
+For large datasets, consider using the batch processing methods described in the next section to avoid loading all records into memory at once.
+
+[`all`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-all
+[`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
+[`order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-order
+[`limit`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-limit
+[`group`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-group
+
 ### Retrieving Multiple Objects in Batches
 
 We often need to iterate over a large set of records, as when we send a newsletter to a large set of customers, or when we export data.
