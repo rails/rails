@@ -495,7 +495,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.active = 1)
 ```
 
-You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Conditions](#conditions), [Ordering](#ordering), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
+You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering](#ordering), [Limit and Offset](#limit-and-offset), and [Grouping](#grouping) sections.
 
 For large datasets, consider using the batch processing methods described in the next section to avoid loading all records into memory at once.
 
@@ -675,8 +675,8 @@ end
 
 The `error_on_ignore` option overrides the application config to specify if an error should be raised when a specific order is present in the relation.
 
-Conditions
-----------
+Filtering Records
+-----------------
 
 The [`where`][] method allows you to specify conditions to limit the records returned, representing the `WHERE`-part of the SQL statement. Conditions can either be specified as a string, array, or hash.
 
