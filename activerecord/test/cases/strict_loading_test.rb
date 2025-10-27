@@ -499,6 +499,16 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_nothing_raised { developer.strict_loading_mentor }
   end
 
+  def test_disabling_strict_loading_belongs_to_relation
+    mentor = Mentor.create!(name: "Mentor")
+
+    Developer.first.update_column(:mentor_id, mentor.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
+
+    assert_nothing_raised { developer.strict_loading_mentor }
+  end
+
   def test_does_not_raise_on_eager_loading_a_belongs_to_relation_if_strict_loading_by_default
     with_strict_loading_by_default(Developer) do
       mentor = Mentor.create!(name: "Mentor")
@@ -537,6 +547,14 @@ class StrictLoadingTest < ActiveRecord::TestCase
   def test_does_not_raise_on_eager_loading_a_strict_loading_has_one_relation
     Ship.first.update_column(:developer_id, Developer.first.id)
     developer = Developer.includes(:strict_loading_ship).first
+
+    assert_nothing_raised { developer.strict_loading_ship }
+  end
+
+  def test_disabling_strict_loading_has_one_relation
+    Ship.first.update_column(:developer_id, Developer.first.id)
+    developer = Developer.first
+    developer.strict_loading!(false)
 
     assert_nothing_raised { developer.strict_loading_ship }
   end

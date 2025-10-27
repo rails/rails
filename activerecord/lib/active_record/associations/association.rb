@@ -286,6 +286,9 @@ module ActiveRecord
 
           return unless owner.validation_context.nil?
 
+          strict_loading = owner.instance_eval { @strict_loading }
+          return strict_loading && !owner.strict_loading_n_plus_one_only? unless strict_loading.nil?
+
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
           owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
