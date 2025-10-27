@@ -1559,6 +1559,22 @@ module ApplicationTests
       assert_equal false, ActionView::Resolver.caching?
     end
 
+    test "config.force_ssl = true and config.assume_ssl = true" do
+      add_to_config <<~RUBY
+        config.assume_ssl = true
+        config.force_ssl = true
+      RUBY
+
+      e = assert_raise RuntimeError do
+        app "development"
+      end
+
+      assert_equal <<~MSG.squish, e.message
+        Both config.force_ssl and config.assume_ssl cannot be enabled simultaneously. The
+        config.force_ssl and config.assume_ssl are mutually exclusive, consider enabling only one of them.
+      MSG
+    end
+
     test "ActionController::Base::renderer uses Rails.application.default_url_options and config.force_ssl" do
       add_to_config <<~RUBY
         config.force_ssl = true

@@ -1,3 +1,10 @@
+*   Raise RuntimeError when both config.force_ssl and config.assume_ssl are enabled.
+
+    **This is a breaking change:** These settings target different deployment setups (`ActionDispatch::SSL` vs. `ActionDispatch::AssumeSSL`) and
+    are mutually exclusive. Attempting to enable both now raises early to prevent ambiguous SSL configuration.
+
+    *Daniel Niknam*
+
 *   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
     It is still recommended to assume and force SSL in production as soon as you can.
