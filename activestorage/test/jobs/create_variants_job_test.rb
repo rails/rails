@@ -30,7 +30,7 @@ class ActiveStorage::CreateVariantsJobTest < ActiveJob::TestCase
     ActiveStorage::CreateVariantsJob.perform_now blob, process: :later, transformations: @transformations
 
     @transformations.each do |transformation|
-      assert_not blob.variant(transformation).send(:processed?)
+      assert_not blob.variant(transformation).processed?
     end
   end
 
@@ -39,7 +39,7 @@ class ActiveStorage::CreateVariantsJobTest < ActiveJob::TestCase
     ActiveStorage::CreateVariantsJob.perform_now blob, process: :immediately, transformations: @transformations
 
     @transformations.each do |transformation|
-      assert blob.variant(transformation).send(:processed?)
+      assert blob.variant(transformation).processed?
     end
   end
 end

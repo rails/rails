@@ -9,7 +9,7 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
   test "creates variant" do
     transformations = { resize_to_limit: [100, 100] }
 
-    assert_changes -> { @blob.variant(transformations).send(:processed?) }, from: false, to: true do
+    assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
       perform_enqueued_jobs do
         ActiveStorage::TransformJob.perform_later @blob, transformations
       end
@@ -20,14 +20,14 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     @blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     transformations = { resize_to_limit: [100, 100] }
 
-    assert_changes -> { @blob.preview(transformations).send(:processed?) }, from: false, to: true do
+    assert_changes -> { @blob.preview(transformations).processed? }, from: false, to: true do
       perform_enqueued_jobs do
         ActiveStorage::TransformJob.perform_later @blob, transformations
       end
       @blob.reload
     end
 
-    assert @blob.preview(transformations).image.variant(transformations).send(:processed?)
+    assert @blob.preview(transformations).image.variant(transformations).processed?
   end
 
   test "creates variant when untracked" do
@@ -35,7 +35,7 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     transformations = { resize_to_limit: [100, 100] }
 
     begin
-      assert_changes -> { @blob.variant(transformations).send(:processed?) }, from: false, to: true do
+      assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
         perform_enqueued_jobs do
           ActiveStorage::TransformJob.perform_later @blob, transformations
         end
@@ -50,7 +50,7 @@ class ActiveStorage::TransformJobTest < ActiveJob::TestCase
     ActiveStorage.variant_transformer = ActiveStorage::Transformers::NullTransformer
 
     transformations = { resize_to_limit: [100, 100] }
-    assert_changes -> { @blob.variant(transformations).send(:processed?) }, from: false, to: true do
+    assert_changes -> { @blob.variant(transformations).processed? }, from: false, to: true do
       perform_enqueued_jobs do
         ActiveStorage::TransformJob.perform_later @blob, transformations
       end

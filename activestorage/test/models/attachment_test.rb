@@ -187,7 +187,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
   test "create immediate variants on attach" do
     blob = create_file_blob
 
-    assert_changes -> { @user.avatar_with_immediate_variants.variant(:immediate_thumb)&.send(:processed?) }, from: nil, to: true do
+    assert_changes -> { @user.avatar_with_immediate_variants.variant(:immediate_thumb)&.processed? }, from: nil, to: true do
       @user.avatar_with_immediate_variants.attach blob
     end
   end

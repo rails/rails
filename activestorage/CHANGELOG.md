@@ -1,3 +1,7 @@
+*   Make `Variant#processed?` and `VariantWithRecord#processed?` public so apps can check variant generation status.
+
+    *Tom Rossi*
+
 *   Add structured events for Active Storage:
     - `active_storage.service_upload`
     - `active_storage.service_download`
