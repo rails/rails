@@ -1,3 +1,19 @@
+*   Allow passing method name or proc to `allow_nil` and `allow_blank`
+
+    ```ruby
+    class EnrollmentForm
+      include ActiveModel::Validations
+
+      attr_accessor :course
+
+      validates :course,
+                inclusion: { in: :open_courses },
+                allow_nil: :saving_progress?
+    end
+    ```
+
+    *Richard Lynch*
+
 *   Add error type support arguments to `ActiveModel::Errors#messages_for` and `ActiveModel::Errors#full_messages_for`
 
     ```ruby
