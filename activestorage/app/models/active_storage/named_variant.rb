@@ -7,6 +7,14 @@ class ActiveStorage::NamedVariant # :nodoc:
     @preprocessed      = options[:preprocessed]
     @process_option    = options[:process]
     @transformations   = options.except(:preprocessed, :process)
+
+    if options.key?(:preprocessed)
+      ActiveStorage.deprecator.warn(<<~MSG.squish)
+        The :preprocessed option is deprecated and will be removed in Rails 9.0.
+        Use the :process option instead. Replace `preprocessed: true` with `process: :later`
+        and `preprocessed: false` with `process: :lazily`.
+      MSG
+    end
   end
 
   def process(record)
