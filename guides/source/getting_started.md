@@ -2260,7 +2260,7 @@ To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
 `resources :products` to the following:
 
-```ruby4-6
+```ruby#4-6
 # config/routes.rb
 Rails.application.routes.draw do
   # ...
