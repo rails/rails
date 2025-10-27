@@ -200,6 +200,16 @@ module ActiveRecord
     end
   end
 
+  class BelongsToCantBeRequiredWithHasOneOrHasManyDependentNullifyError < ActiveRecordError # :nodoc:
+    def initialize(reflection = nil, nullifiable_associations = nil)
+      if reflection && nullifiable_associations
+        super("Association #{reflection.active_record}##{reflection.name} can't be required because #{nullifiable_associations.map(&:active_record).to_sentence} have an inverse association with dependent: :nullify. Please make the #{reflection.active_record}##{reflection.name} belongs_to association optional, or use another dependent strategy for the inverse association.")
+      else
+        super("Association belongs_to can't be required since there exists an inverse association with dependent: :nullify. Please make the belongs_to association optional, or use another dependent strategy for the inverse associations.")
+      end
+    end
+  end
+
   class AmbiguousSourceReflectionForThroughAssociation < ActiveRecordError # :nodoc:
     def initialize(klass, macro, association_name, options, possible_sources)
       example_options = options.dup
