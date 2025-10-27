@@ -24,6 +24,12 @@ module ActiveModel
 
     singleton_class.attr_accessor :raise_on_missing_translations
 
+    def self.extended(base) # :nodoc:
+      unless base.respond_to?(:raise_on_missing_translations)
+        base.class_attribute :raise_on_missing_translations, instance_accessor: false, instance_predicate: false
+      end
+    end
+
     # Returns the +i18n_scope+ for the class. Override if you want custom lookup.
     def i18n_scope
       :activemodel
@@ -71,7 +77,8 @@ module ActiveModel
         end
       end
 
-      raise_on_missing = options.fetch(:raise, Translation.raise_on_missing_translations)
+      raise_on_missing = options.fetch(:raise, raise_on_missing_translations)
+      raise_on_missing = Translation.raise_on_missing_translations if raise_on_missing.nil?
 
       defaults << :"attributes.#{attribute}"
       defaults << options[:default] if options[:default]
