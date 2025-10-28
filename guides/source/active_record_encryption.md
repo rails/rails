@@ -113,7 +113,7 @@ The value inserted is a JSON object that contains the encrypted value for the `t
 When looking at the `Article` in the Rails console, the encrypted attribute `title` will also be filtered:
 
 ```irb
-irb> Article.first
+my-app(dev)> Article.first
   Article Load (0.1ms)  SELECT "articles".* FROM "articles" ORDER BY "articles"."id" ASC LIMIT ?  [["LIMIT", 1]]
 => #<Article:0x00007f83fd9533b8
     id: 1,
@@ -183,12 +183,12 @@ equality comparison. For example, notice that the `p` and `iv` key in the JSON
 document have the same value when we create and when we query an Author's email:
 
 ```irb
-irb> author = Author.create(name: "J.R.R. Tolkien", email: "tolkien@email.com")
+my-app(dev)> author = Author.create(name: "J.R.R. Tolkien", email: "tolkien@email.com")
   TRANSACTION (0.1ms)  begin transaction
   Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "J.R.R. Tolkien"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:08:40.104634"], ["updated_at", "2025-09-19 18:08:40.104634"]]
   TRANSACTION (0.1ms)  commit transaction
 
-irb> Author.find_by_email("tolkien@email.com")
+my-app(dev)> Author.find_by_email("tolkien@email.com")
   Author Load (0.1ms)  SELECT "authors".* FROM "authors" WHERE "authors"."email" = ? LIMIT ?  [["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["LIMIT", 1]]
 => #<Author:0x00007f8a396289d0
     id: 3,
@@ -201,7 +201,7 @@ irb> Author.find_by_email("tolkien@email.com")
 In the above example, the initialization vector, `iv`, has the value `"NgqthINGlvoN+fhP"` for the same string. Even if you use the same email string in a different model instance (or different attribute with deterministic encryption), it will map to the same `p` and `iv` values:
 
 ```irb
-irb> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
+my-app(dev)> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
   TRANSACTION (0.1ms)  begin transaction
   Author Create (0.4ms)  INSERT INTO "authors" ("name", "email", "created_at", "updated_at") VALUES (?, ?, ?, ?) RETURNING "id"  [["name", "Different Author"], ["email", "{\"p\":\"8BAc8dGXqxksThLNmKmbWG8=\",\"h\":{\"iv\":\"NgqthINGlvoN+fhP\",\"at\":\"1uVTEDmQmPfpi1ULT9Nznw==\"}}"], ["created_at", "2025-09-19 18:20:11.291969"], ["updated_at", "2025-09-19 18:20:11.291969"]]
   TRANSACTION (0.1ms)  commit transaction
@@ -340,7 +340,7 @@ In case you need to disable filtering of encrypted parameters, you can use the
 following configuration:
 
 ```ruby
-# config/applicaiton.rb
+# config/application.rb
 config.active_record.encryption.add_to_filter_parameters = false
 ```
 
@@ -371,10 +371,14 @@ options configured.
 
 ### Fixtures
 
-To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `test.rb` file:
+To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `config/environments/test.rb` file:
 
 ```ruby
-config.active_record.encryption.encrypt_fixtures = true
+Rails.application.configure do
+  ...
+  config.active_record.encryption.encrypt_fixtures = true
+  ...
+end
 ```
 
 Without this setting, Rails would load fixture values as is. This wouldn't work
@@ -537,7 +541,7 @@ Next, let's see how to configure previous encryption schemes.
 #### Global Previous Encryption Schemes
 
 You can add previous encryption schemes by adding them as a list of properties
-using the `previous` config property in your `application.rb`:
+using the `previous` config property in your `config/application.rb`:
 
 ```ruby
 config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
@@ -605,7 +609,7 @@ instead).
 ### Built-In Encryption Context
 
 The global encryption context is the one used by default and is configured with
-other configuration properties in your `application.rb` or environment config
+other configuration properties in your `config/application.rb` or environment config
 files.
 
 ```ruby
@@ -703,7 +707,7 @@ data-key is also encrypted with a primary key defined in the credential
 `active_record.encryption.primary_key`.
 
 You can configure Active Record to use this key provider by adding this to your
-`application.rb`:
+`config/application.rb`:
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
