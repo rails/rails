@@ -58,7 +58,7 @@ TIP: Compared to libvips, ImageMagick is better known and more widely available.
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
-### Local Disk
+### Storage Service
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -140,6 +140,10 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 ```
+
+TODO: Move lower in the guide
+Configure Cloud Service
+-----------------------
 
 ### S3 Service (Amazon S3 and S3-compatible APIs)
 
@@ -339,6 +343,13 @@ public_gcs:
 Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
 
 When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
+
+### Implementing Other Cloud Services
+
+If you need to support a cloud service other than these, you will need to
+implement the Service. Each service extends
+[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
+by implementing the methods necessary to upload and download files to the cloud.
 
 Attaching Files to Records
 --------------------------
@@ -629,7 +640,8 @@ are stored before the form is submitted, they can be used to retain uploads when
 <%= form.file_field :avatar, direct_upload: true %>
 ```
 
-## Querying
+Querying Attached Files
+-----------------------
 
 Active Storage attachments are Active Record associations behind the scenes, so you can use the usual [query methods](active_record_querying.html) to look up records for attachments that meet specific criteria.
 
@@ -654,24 +666,7 @@ Message.joins(:images_blobs).where(active_storage_blobs: { content_type: "video/
 The query will filter on the [**`ActiveStorage::Blob`**](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html), not the [attachment record](https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html) because these are plain SQL joins. You can combine the blob predicates above with any other scope conditions, just as you would with any other Active Record query.
 
 
-Removing Files
---------------
 
-To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
-attachment. If your application is set up to use Active Job, removal can be done
-in the background instead by calling [`purge_later`][Attached::One#purge_later].
-Purging deletes the blob and the file from the storage service.
-
-```ruby
-# Synchronously destroy the avatar and actual resource files.
-user.avatar.purge
-
-# Destroy the associated models and actual resource files async, via Active Job.
-user.avatar.purge_later
-```
-
-[Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
-[Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
 
 Serving Files
 -------------
@@ -856,8 +851,8 @@ It's important to know that the file is not yet available in the `after_create` 
 [Blob#download]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-download
 [Blob#open]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-open
 
-Analyzing Files
----------------
+Analyzing Files For Metadata
+----------------------------
 
 Active Storage analyzes files once they've been uploaded by queuing a job in Active Job. Analyzed files will store additional information in the metadata hash, including `analyzed: true`. You can check whether a blob has been analyzed by calling [`analyzed?`][] on it.
 
@@ -866,7 +861,7 @@ Image analysis provides `width` and `height` attributes. Video analysis provides
 [`analyzed?`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
 
 Displaying Images, Videos, and PDFs
----------------
+-----------------------------------
 
 Active Storage supports representing a variety of files. You can call
 [`representation`][] on an attachment to display an image variant, or a
@@ -1561,16 +1556,26 @@ s3:
   root: <%= Rails.root.join("tmp/storage") %>
 ```
 
-Implementing Support for Other Cloud Services
----------------------------------------------
+Removing Files
+--------------
 
-If you need to support a cloud service other than these, you will need to
-implement the Service. Each service extends
-[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
-by implementing the methods necessary to upload and download files to the cloud.
+To remove an attachment from a model, call [`purge`][Attached::One#purge] on the
+attachment. If your application is set up to use Active Job, removal can be done
+in the background instead by calling [`purge_later`][Attached::One#purge_later].
+Purging deletes the blob and the file from the storage service.
 
-Purging Unattached Uploads
---------------------------
+```ruby
+# Synchronously destroy the avatar and actual resource files.
+user.avatar.purge
+
+# Destroy the associated models and actual resource files async, via Active Job.
+user.avatar.purge_later
+```
+
+[Attached::One#purge]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge
+[Attached::One#purge_later]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-purge_later
+
+### Purging Unattached Uploads
 
 There are cases where a file is uploaded but never attached to a record. This can happen when using [Direct Uploads](#direct-uploads). You can query for unattached records using the [unattached scope](https://github.com/rails/rails/blob/8ef5bd9ced351162b673904a0b77c7034ca2bc20/activestorage/app/models/active_storage/blob.rb#L49). Below is an example using a [custom rake task](command_line.html#custom-rake-tasks).
 
