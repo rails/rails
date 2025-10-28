@@ -1,3 +1,5 @@
+## Rails 7.2.3 (October 28, 2025) ##
+
 *   Use `secret_key_base` from ENV or credentials when present locally.
 
     When ENV["SECRET_KEY_BASE"] or

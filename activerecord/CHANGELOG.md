@@ -1,3 +1,5 @@
+## Rails 7.2.3 (October 28, 2025) ##
+
 *   Fix SQLite3 data loss during table alterations with CASCADE foreign keys.
 
     When altering a table in SQLite3 that is referenced by child tables with

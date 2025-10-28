@@ -1,3 +1,5 @@
+## Rails 7.2.3 (October 28, 2025) ##
+
 *   Fix `config.active_storage.touch_attachment_records` to work with eager loading.
 
     *fatkodima*

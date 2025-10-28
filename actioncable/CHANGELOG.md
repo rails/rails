@@ -1,3 +1,5 @@
+## Rails 7.2.3 (October 28, 2025) ##
+
 *   Fixed compatibility with `redis` gem `5.4.1`
 
     *Jean Boussier*
