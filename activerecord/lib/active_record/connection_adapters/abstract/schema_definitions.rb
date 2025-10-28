@@ -516,6 +516,7 @@ module ActiveRecord
       # for available options.
       #
       #
+      #
       # Example:
       #
       #   create_table :runs do |t|
