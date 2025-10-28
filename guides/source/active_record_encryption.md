@@ -57,7 +57,8 @@ active_record_encryption:
 ```
 
 These values can be stored by copying and pasting the generated values into your
-existing [Rails credentials](/security.html#custom-credentials) file using `bin/rails credentials:edit`.
+existing [Rails credentials](/security.html#custom-credentials) file using
+`bin/rails credentials:edit`.
 
 Alternatively, the encryption keys can also be configured from other sources,
 such as environment variables:
@@ -108,9 +109,15 @@ INSERT INTO "articles" ("title", "created_at", "updated_at")
 VALUES ('{"p":"oq+RFYW8CucALxnJ6ccx","h":{"iv":"3nrJAIYcN1+YcGMQ","at":"JBsw7uB90yAyWbQ8E3krjg=="}}', ...) RETURNING "id"
 ```
 
-The value inserted is a JSON object that contains the encrypted value for the `title` attribute. More specifically, the JSON object stores two keys: `p` for payload and `h` for headers. The ciphertext, which is compressed and encoded in Base64, is stored as the payload. The `h` key stores metadata needed to decrypt the value. The `iv` value is the initialization vector and `at` is authentication tag (used to ensure the ciphertext has not been tampered with).
+The value inserted is a JSON object that contains the encrypted value for the
+`title` attribute. More specifically, the JSON object stores two keys: `p` for
+payload and `h` for headers. The ciphertext, which is compressed and encoded in
+Base64, is stored as the payload. The `h` key stores metadata needed to decrypt
+the value. The `iv` value is the initialization vector and `at` is
+authentication tag (used to ensure the ciphertext has not been tampered with).
 
-When looking at the `Article` in the Rails console, the encrypted attribute `title` will also be filtered:
+When looking at the `Article` in the Rails console, the encrypted attribute
+`title` will also be filtered:
 
 ```irb
 my-app(dev)> Article.first
@@ -129,18 +136,35 @@ to 30% storage savings over the unencrypted version for larger payloads.
 
 ### Important: Storage Considerations
 
-Encrypted data takes more storage because Active Record Encryption stores additional metadata alongside the encrypted payload, and the payload itself is Base64-encoded so it can fit safely in text-based columns.
+Encrypted data takes more storage because Active Record Encryption stores
+additional metadata alongside the encrypted payload, and the payload itself is
+Base64-encoded so it can fit safely in text-based columns.
 
-When using the built-in envelope encryption key provider, you can estimate the worst-case overhead to be around 255 bytes. This overhead is negligible for larger sizes. Encryption also uses compression by default, which can offer up to 30% storage savings over the unencrypted version for larger payloads.
+When using the built-in envelope encryption key provider, you can estimate the
+worst-case overhead to be around 255 bytes. This overhead is negligible for
+larger sizes. Encryption also uses compression by default, which can offer up to
+30% storage savings over the unencrypted version for larger payloads.
 
-When using `string` columns, it’s important to know that modern databases define the column size in terms of *number of characters*, not bytes. With encodings like UTF-8, a single character can take up to four bytes. This means that a column defined to hold N characters may actually consume up to 4 × N bytes in storage.
+When using `string` columns, it’s important to know that modern databases define
+the column size in terms of *number of characters*, not bytes. With encodings
+like UTF-8, a single character can take up to four bytes. This means that a
+column defined to hold N characters may actually consume up to 4 × N bytes in
+storage.
 
-Since an encrypted payload is binary data serialized with Base64, it can be stored in regular a `string` column. Because it's a sequence of ASCII bytes, an encrypted column can take up to four times its clear version size. So, even if the bytes stored in the database are the same, the column must be four times bigger.
+Since an encrypted payload is binary data serialized with Base64, it can be
+stored in regular a `string` column. Because it's a sequence of ASCII bytes, an
+encrypted column can take up to four times its clear version size. So, even if
+the bytes stored in the database are the same, the column must be four times
+bigger.
 
 In practice, this means:
 
-* When encrypting short texts written in Western alphabets (mostly ASCII characters), you should account for that 255 additional overhead when defining the column size.
-* When encrypting short texts written in non-Western alphabets, such as Cyrillic, you should multiply the column size by 4. Notice that the storage overhead is 255 bytes at most.
+* When encrypting short texts written in Western alphabets (mostly ASCII
+  characters), you should account for that 255 additional overhead when defining
+  the column size.
+* When encrypting short texts written in non-Western alphabets, such as
+  Cyrillic, you should multiply the column size by 4. Notice that the storage
+  overhead is 255 bytes at most.
 * When encrypting long texts, you can ignore column size concerns.
 
 For example:
@@ -165,7 +189,8 @@ not possible, since the same plaintext value can result in a different encrypted
 value that does not match the encrypted value previously stored in the JSON
 document.
 
-You can use deterministic encryption if you need to query using encrypted values. For example, the `email` field on the `Author` model below:
+You can use deterministic encryption if you need to query using encrypted
+values. For example, the `email` field on the `Author` model below:
 
 ```ruby
 class Author < ApplicationRecord
@@ -198,7 +223,10 @@ my-app(dev)> Author.find_by_email("tolkien@email.com")
     updated_at: Fri, 19 Sep 2025 18:08:40.104634000 UTC +00:00>
 ```
 
-In the above example, the initialization vector, `iv`, has the value `"NgqthINGlvoN+fhP"` for the same string. Even if you use the same email string in a different model instance (or different attribute with deterministic encryption), it will map to the same `p` and `iv` values:
+In the above example, the initialization vector, `iv`, has the value
+`"NgqthINGlvoN+fhP"` for the same string. Even if you use the same email string
+in a different model instance (or different attribute with deterministic
+encryption), it will map to the same `p` and `iv` values:
 
 ```irb
 my-app(dev)> author2 = Author.create(name: "Different Author", email: "tolkien@email.com")
@@ -306,11 +334,16 @@ class Person
 end
 ```
 
-If you want to ignore the case for uniqueness, make sure to use the
-`:downcase` or `:ignore_case` option in the `encrypts` declaration. Using the
+If you want to ignore the case for uniqueness, make sure to use the `:downcase`
+or `:ignore_case` option in the `encrypts` declaration. Using the
 `:case_sensitive` option in the validation won't work.
 
-NOTE: If you have a mix of unencrypted and encrypted data or if you have data that is encrypted using two different sets of keys/schemes, you'll need to enable [extended queries](configuring.html#config-active-record-encryption-extend-queries) with `config.active_record.encryption.extend_queries = true` in order to support unique validations.
+NOTE: If you have a mix of unencrypted and encrypted data or if you have data
+that is encrypted using two different sets of keys/schemes, you'll need to
+enable [extended
+queries](configuring.html#config-active-record-encryption-extend-queries) with
+`config.active_record.encryption.extend_queries = true` in order to support
+unique validations.
 
 #### Unique Indexes
 
@@ -371,7 +404,9 @@ options configured.
 
 ### Fixtures
 
-To allow your tests can use plain text values in the YAML fixture files for encrypted attributes, you can configure fixtures to be automatically encrypted by adding this configuration to your `config/environments/test.rb` file:
+To allow your tests can use plain text values in the YAML fixture files for
+encrypted attributes, you can configure fixtures to be automatically encrypted
+by adding this configuration to your `config/environments/test.rb` file:
 
 ```ruby
 Rails.application.configure do
@@ -419,9 +454,12 @@ config.active_record.encryption.forced_encoding_for_deterministic_encryption = n
 Active Record Encryption enables compression of encrypted payloads by default.
 This can save up to 30% of the storage space for larger payloads.
 
-NOTE: Compression is enabled by default but *not* applied to all payloads. It is based on a size threshold (such as 140 bytes), which is used as a heuristic to determine if compression is "worth it".
+NOTE: Compression is enabled by default but *not* applied to all payloads. It is
+based on a size threshold (such as 140 bytes), which is used as a heuristic to
+determine if compression is "worth it".
 
-You can disable compression by setting the `compress` option to `false` when encrypting attributes:
+You can disable compression by setting the `compress` option to `false` when
+encrypting attributes:
 
 ```ruby
 class Article < ApplicationRecord
@@ -460,7 +498,8 @@ config.active_record.encryption.compressor = ZstdCompressor
 
 ### Using the API
 
-Active Record Encryption is meant to be used declaratively, but there is also an API for debugging or advanced use cases.
+Active Record Encryption is meant to be used declaratively, but there is also an
+API for debugging or advanced use cases.
 
 You can encrypt and decrypt all relevant attributes of an `article` model like
 this:
@@ -608,8 +647,8 @@ instead).
 ### Built-In Encryption Context
 
 The global encryption context is the one used by default and is configured with
-other configuration properties in your `config/application.rb` or environment config
-files.
+other configuration properties in your `config/application.rb` or environment
+config files.
 
 ```ruby
 config.active_record.encryption.key_provider = ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
