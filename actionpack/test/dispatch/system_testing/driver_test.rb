@@ -115,6 +115,14 @@ class DriverTest < ActiveSupport::TestCase
         },
         "browserName" => "firefox"
       }
+    elsif RUBY_VERSION < "3.1.0"
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["--host=127.0.0.1"],
+          "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
     else
       expected = {
         "moz:firefoxOptions" => {
@@ -139,6 +147,14 @@ class DriverTest < ActiveSupport::TestCase
         "moz:firefoxOptions" => {
           "args" => ["-headless", "--host=127.0.0.1"],
           "prefs" => {  "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        },
+        "browserName" => "firefox"
+      }
+    elsif RUBY_VERSION < "3.1.0"
+      expected = {
+        "moz:firefoxOptions" => {
+          "args" => ["-headless", "--host=127.0.0.1"],
+          "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
         },
         "browserName" => "firefox"
       }
