@@ -515,6 +515,7 @@ module ActiveRecord
       # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
       # for available options.
       #
+      #
       # Example:
       #
       #   create_table :runs do |t|
