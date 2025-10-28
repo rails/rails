@@ -2303,7 +2303,11 @@ Then update `app/views/products/show.html.erb` to render this partial after the
 ### In Stock Email Notifications
 
 Action Mailer is a feature of Rails that allows you to send emails. We'll use it
-to notify subscribers when a product is back in stock.
+to notify subscribers when a product is back in stock. Mailers are a lot like Controllers, but for email instead of web pages. While there's no request/response cycle, mailers work in a familiar way:
+
+* loading models from the database
+* applying business logic
+* passing data into templated views that generate the email content
 
 We can generate a mailer with the following command:
 
