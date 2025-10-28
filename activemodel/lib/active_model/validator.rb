@@ -175,17 +175,17 @@ module ActiveModel
 
       def allow_nil?(record)
         if options[:allow_nil].respond_to?(:to_proc)
-          !!options[:allow_nil].to_proc.call(record)
+          options[:allow_nil].to_proc.call(record)
         else
-          !!options[:allow_nil]
+          options[:allow_nil]
         end
       end
 
       def allow_blank?(record)
         if options[:allow_blank].respond_to?(:to_proc)
-          !!options[:allow_blank].to_proc.call(record)
+          options[:allow_blank].to_proc.call(record)
         else
-          !!options[:allow_blank]
+          options[:allow_blank]
         end
       end
   end
