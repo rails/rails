@@ -62,7 +62,6 @@ module ActiveRecord
         #   create_table :events, id: false do |t|
         #     t.bigserial :id, primary_key: true
         #   end
-        #
 
         ##
         # :method: bit
@@ -461,7 +460,6 @@ module ActiveRecord
         #   event = Event.create(duration: 3.days + 2.hours)
         #   event.duration
         #   # => 3 days 2 hours
-        #
 
         ##
         # :method: int4range
