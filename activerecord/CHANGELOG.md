@@ -72,6 +72,14 @@
 
     *Felix Tscheulin*
 
+*   Fix MySQL expression index dumping with escaped quotes.
+
+    *fatkodima*
+
+*   Fix uniqueness validation on association not using overridden primary key.
+
+    *fatkodima*
+
 
 ## Rails 7.0.8.7 (December 10, 2024) ##
 

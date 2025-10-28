@@ -21,6 +21,10 @@
 
     *Koichi ITO*
 
+*   Ensure `{down,up}case_first` returns non-frozen string.
+
+    *Jonathan Hefner*
+
 *   Add `drb`, `mutex_m` and `base64` that are bundled gem candidates for Ruby 3.4
 
     *Yasuo Honda*
@@ -39,6 +43,14 @@
     This is to be more consistent with how MemCachedStore and RedisCacheStore behaves.
 
     *Jean Boussier*
+
+*   NumberHelper: handle objects responding to_d.
+
+    *fatkodima*
+
+*   NumberHelper: handle very large numbers.
+
+    *Alex Ghiculescu*, *fatkodima*
 
 *   Fix Range#overlaps? not taking empty ranges into account on Ruby < 3.3
 
