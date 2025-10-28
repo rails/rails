@@ -384,7 +384,7 @@ module ActiveRecord
         # Example:
         #
         #   # db/migrate/20131009135255_create_profiles.rb
-        #   class CreateProfiles < ActiveRecord::Migration[8.1]
+        #   class CreateProfiles < ActiveRecord::Migration[8.2]
         #     def change
         #       enable_extension "hstore" unless extension_enabled?("hstore")
         #
