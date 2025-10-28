@@ -27,19 +27,6 @@ Using Active Storage, an application can transform image uploads or generate
 image representations of non-image uploads like PDFs and videos, and extract
 metadata.
 
-### Requirements
-
-Various features of Active Storage depend on third-party software which Rails
-will not install, and must be installed separately:
-
-* [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
-* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
-* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
-
-TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
-
-WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
-
 ## Setup
 
 ```bash
@@ -57,6 +44,21 @@ This sets up configuration, and creates the three tables Active Storage uses:
 | `active_storage_variant_records` | If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated. |
 
 WARNING: If you are using UUIDs instead of integers as the primary key on your models, you should set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
+
+### Third Party Software
+
+Various features of Active Storage depend on third-party software which Rails
+will not install, and must be installed separately:
+
+* [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
+* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
+
+TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
+
+WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
+
+### Local Disk
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
