@@ -1,3 +1,5 @@
+## Rails 8.0.4 (October 28, 2025) ##
+
 *   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`
 
     *Sean Doyle*

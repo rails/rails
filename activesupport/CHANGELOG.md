@@ -1,3 +1,5 @@
+## Rails 8.0.4 (October 28, 2025) ##
+
 *   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
 
     *Olivier Bellone*
