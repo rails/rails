@@ -8,29 +8,24 @@ This guide covers how to attach files to your Active Record models.
 After reading this guide, you will know:
 
 * How to attach one or many files to a record.
-* How to delete an attached file.
-* How to link to an attached file.
+* How to display attached files and how to delete them.
 * How to use variants to transform images.
-* How to generate an image representation of a non-image file, such as a PDF or a video.
-* How to send file uploads directly from browsers to a storage service,
-  bypassing your application servers.
+* How to generate an image representation of a non-image file (e.g. PDF).
+* How to send file uploads directly from browsers to a storage service.
+* How to setup cloud storage services to work with Active Storage.
 * How to clean up files stored during testing.
-* How to implement support for additional storage services.
 
 --------------------------------------------------------------------------------
 
 What is Active Storage?
 -----------------------
 
-Active Storage facilitates uploading files to a cloud storage service like
-Amazon S3, or Google Cloud Storage and attaching those
-files to Active Record objects. It comes with a local disk-based service for
-development and testing and supports mirroring files to subordinate services for
-backups and migrations.
+Active Storage facilitates attaching files to Active Record objects and uploading those files to cloud storage services. It comes with a local disk-based service for development and testing
+and supports mirroring files to subordinate services for backups and migrations.
 
-Using Active Storage, an application can transform image uploads or generate image
-representations of non-image uploads like PDFs and videos, and extract metadata from
-arbitrary files.
+Using Active Storage, an application can transform image uploads or generate
+image representations of non-image uploads like PDFs and videos, and extract
+metadata.
 
 ### Requirements
 
