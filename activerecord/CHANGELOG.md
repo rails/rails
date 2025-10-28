@@ -20,6 +20,10 @@
 
     *Ruy Rocha*
 
+*   Add support for bound SQL literals in CTEs.
+
+    *Nicolas Bachschmidt*
+
 *   Fix `belongs_to` associations not to clear the entire composite primary key.
 
     When clearing a `belongs_to` association that references a model with composite primary key,
