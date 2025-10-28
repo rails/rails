@@ -328,7 +328,6 @@ module ActiveRecord
         column(name, type, **options, primary_key: true)
       end
 
-
       ##
       # :method: bigint
       # :call-seq: bigint(*names, **options)
