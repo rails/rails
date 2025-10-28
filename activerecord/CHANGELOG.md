@@ -17,12 +17,17 @@
 
     *Jean Boussier*
 
+*   Fix prepared statements on mysql2 adapter.
+
+    *Jean Boussier*
+
 *   Fix a race condition in `ActiveRecord::Base#method_missing` when lazily defining attributes.
 
     If multiple thread were concurrently triggering attribute definition on the same model,
     it could result in a `NoMethodError` being raised.
 
     *Jean Boussier*
+
 
 ## Rails 7.1.5.2 (August 13, 2025) ##
 
