@@ -1,3 +1,8 @@
+## Rails 7.0.10 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.0.9 (October 28, 2025) ##
 
 *   Fix the `number_to_human_size` view helper to correctly work with negative numbers.

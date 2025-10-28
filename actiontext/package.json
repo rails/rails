@@ -1,6 +1,6 @@
 {
   "name": "@rails/actiontext",
-  "version": "7.0.900",
+  "version": "7.0.1000",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/assets/javascripts/actiontext.js",
   "type": "module",

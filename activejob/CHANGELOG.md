@@ -1,3 +1,8 @@
+## Rails 7.0.10 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.0.9 (October 28, 2025) ##
 
 *   Preserve the serialized timezone when deserializing `ActiveSupport::TimeWithZone` arguments.

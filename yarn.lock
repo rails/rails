@@ -101,23 +101,23 @@
     fastq "^1.6.0"
 
 "@rails/actioncable@file:/workspaces/rails/actioncable":
-  version "7.0.900"
+  version "7.0.1000"
   resolved "file:actioncable"
 
 "@rails/actiontext@file:/workspaces/rails/actiontext":
-  version "7.0.900"
+  version "7.0.1000"
   resolved "file:actiontext"
   dependencies:
     "@rails/activestorage" ">= 7.0.0-alpha1"
 
 "@rails/activestorage@>= 7.0.0-alpha1", "@rails/activestorage@file:/workspaces/rails/activestorage":
-  version "7.0.900"
+  version "7.0.1000"
   resolved "file:activestorage"
   dependencies:
     spark-md5 "^3.0.1"
 
 "@rails/ujs@file:/workspaces/rails/actionview":
-  version "7.0.900"
+  version "7.0.1000"
   resolved "file:actionview"
 
 "@rollup/plugin-commonjs@^19.0.1":
