@@ -18,6 +18,12 @@ end
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
+  def run(*)
+    with_debug_event_reporting do
+      super
+    end
+  end
+
   def setup
     Arel::Table.engine = nil # should not rely on the global Arel::Table.engine
     @original_db_warnings_action = :ignore
@@ -893,6 +899,20 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "published", book.reload.status
   end
 
+  def test_upsert_all_does_nothing_with_on_duplicate_skip
+    skip unless supports_insert_on_duplicate_update? && supports_insert_conflict_target?
+
+    book = books(:rfr)
+    assert_equal "proposed", book.status
+
+    Book.upsert_all(
+      [{ name: book.name, author_id: book.author_id, status: "published" }],
+      unique_by: [:name, :author_id],
+      on_duplicate: :skip
+    )
+    assert_equal "proposed", book.reload.status
+  end
+
   def test_upsert_all_with_unique_by_fails_cleanly_for_adapters_not_supporting_insert_conflict_target
     skip if supports_insert_conflict_target?
 
@@ -1034,12 +1054,12 @@ class InsertAllTest < ActiveRecord::TestCase
   private
     def capture_log_output
       output = StringIO.new
-      old_logger, ActiveRecord::Base.logger = ActiveRecord::Base.logger, ActiveSupport::Logger.new(output)
+      old_logger, ActiveRecord::LogSubscriber.logger = ActiveRecord::LogSubscriber.logger, ActiveSupport::Logger.new(output)
 
       begin
         yield output
       ensure
-        ActiveRecord::Base.logger = old_logger
+        ActiveRecord::LogSubscriber.logger = old_logger
       end
     end
 

@@ -84,6 +84,16 @@ class SerializersTest < ActiveSupport::TestCase
     assert_equal DummyValueObject.new(123), ActiveJob::Serializers.deserialize(hash)
   end
 
+  test "resets serializers when directly setting" do
+    class DummySerializerAlt < DummySerializer
+      def klass; DummySerializer end
+    end
+    ActiveJob::Serializers.add_serializers DummySerializer
+    ActiveJob::Serializers.serializers = [DummySerializerAlt]
+    assert ActiveJob::Serializers.serializers.include?(DummySerializerAlt.instance)
+    assert_not ActiveJob::Serializers.serializers.include?(DummySerializer.instance)
+  end
+
   test "adds new serializer" do
     ActiveJob::Serializers.add_serializers DummySerializer
     assert ActiveJob::Serializers.serializers.include?(DummySerializer.instance)

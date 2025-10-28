@@ -129,7 +129,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -202,7 +202,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>

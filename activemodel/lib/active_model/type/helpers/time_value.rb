@@ -61,14 +61,6 @@ module ActiveModel
             end
           end
 
-          ISO_DATETIME = /
-            \A
-            (\d{4})-(\d\d)-(\d\d)(?:T|\s)            # 2020-06-20T
-            (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6})\d*)?  # 10:20:30.123456
-            (?:(Z(?=\z)|[+-]\d\d)(?::?(\d\d))?)?     # +09:00
-            \z
-          /x
-
           if Time.new(2000, 1, 1, 0, 0, 0, "-00:00").yday != 1 # Early 3.2.x had a bug
             # BUG: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0
             # used to return an invalid Time object

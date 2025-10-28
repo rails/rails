@@ -2,11 +2,11 @@
 
 # :markup: markdown
 
-require "rails"
 require "action_dispatch"
 require "action_dispatch/log_subscriber"
 require "action_dispatch/structured_event_subscriber"
 require "active_support/messages/rotation_configuration"
+require "rails/railtie"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:

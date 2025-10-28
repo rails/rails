@@ -269,6 +269,10 @@ module ActiveSupport
   #
   # If an {event object}[rdoc-ref:EventReporter@Event+Objects] is given instead, subscribers will need to filter sensitive data themselves, e.g. with ActiveSupport::ParameterFilter.
   class EventReporter
+    extend ActiveSupport::Autoload
+
+    autoload :LogSubscriber
+
     # Sets whether to raise an error if a subscriber raises an error during
     # event emission, or when unexpected arguments are passed to +notify+.
     attr_writer :raise_on_error

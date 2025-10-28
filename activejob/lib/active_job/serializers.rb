@@ -51,30 +51,34 @@ module ActiveJob
       attr_reader :serializers
 
       def serializers=(serializers)
-        @serializers = serializers
-        index_serializers
+        @serializers_index.clear
+        @serializers = Set.new
+        add_new_serializers(serializers)
       end
 
       # Adds new serializers to a list of known serializers.
       def add_serializers(*new_serializers)
         new_serializers = new_serializers.flatten
-        new_serializers.map! do |s|
-          if s.is_a?(Class) && s < ObjectSerializer
-            s.instance
-          else
-            s
-          end
-        end
-
-        @serializers += new_serializers
-        index_serializers
-        @serializers
+        add_new_serializers(new_serializers)
       end
 
       private
-        def index_serializers
-          @serializers_index.clear
-          serializers.each do |s|
+        def add_new_serializers(new_serializers)
+          new_serializers.map! do |s|
+            if s.is_a?(Class) && s < ObjectSerializer
+              s.instance
+            else
+              s
+            end
+          end
+
+          @serializers += new_serializers
+          index_serializers(new_serializers)
+          @serializers
+        end
+
+        def index_serializers(new_serializers)
+          new_serializers.each do |s|
             if s.respond_to?(:klass)
               @serializers_index[s.klass] = s
             elsif s.respond_to?(:klass, true)

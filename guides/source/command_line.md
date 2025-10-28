@@ -532,7 +532,6 @@ for that reason. You can think of `destroy` as the opposite of `generate`. It'll
 figure out what generate did, and undo it.
 
 INFO: You can also use the alias "d" to invoke the destroy command: `bin/rails d`.
-d`.
 
 For example, if you meant to generate an `article` model but instead typed
 `artcle`:
@@ -770,11 +769,10 @@ $ bin/rails runner lib/path_to_ruby_script.rb
 ```
 
 By default, `bin/rails runner` scripts are automatically wrapped with the Rails
-Executor (which is an instance of
-[ActiveSupport::Executor](https://api.rubyonrails.org/classes/ActiveSupport/Executor.html)
-associated with your Rails application. The Executor creates a “safe zone” to
-run arbitrary Ruby inside a Rails app so that the autoloader, middleware stack,
-and Active Support hooks all behave consistently.
+Executor (which is an instance of [`ActiveSupport::Executor`][]) associated with
+your Rails application. The Executor creates a “safe zone” to run arbitrary
+Ruby inside a Rails app so that the autoloader, middleware stack, and Active
+Support hooks all behave consistently.
 
 Therefore, executing `bin/rails runner lib/path_to_ruby_script.rb` is
 functionally equivalent to the following:
@@ -791,6 +789,9 @@ option.
 ```bash
 $ bin/rails runner --skip-executor lib/long_running_script.rb
 ```
+
+[`ActiveSupport::Executor`]:
+  https://api.rubyonrails.org/classes/ActiveSupport/Executor.html
 
 ### `bin/rails boot`
 
