@@ -126,6 +126,10 @@
 
     *Hartley McGuire*
 
+*   Fix inline has_and_belongs_to_many fixtures for tables with composite primary keys.
+
+    *fatkodima*
+
 *   `create_or_find_by` will now correctly rollback a transaction.
 
     When using `create_or_find_by`, raising a ActiveRecord::Rollback error
@@ -176,6 +180,10 @@
 
     *zzak*
 
+*   Prevent persisting invalid record.
+
+    *Edouard Chin*
+
 *   Fix support for PostgreSQL enum types with commas in their name.
 
     *Arthur Hess*
@@ -210,6 +218,14 @@
 
     *Sjoerd Lagarde*
 
+*   Fix count with group by qualified name on loaded relation.
+
+    *Ryuta Kamizono*
+
+*   Fix sum with qualified name on loaded relation.
+
+    *Chris Gunther*
+
 *   Fix autosave associations to no longer validated unmodified associated records.
 
     Active Record was incorrectly performing validation on associated record that
@@ -231,6 +247,10 @@
 
     *Matthew Draper*
 
+*   Fix prepared statements on mysql2 adapter.
+
+    *Jean Boussier*
+
 *   Fix a race condition in `ActiveRecord::Base#method_missing` when lazily defining attributes.
 
     If multiple thread were concurrently triggering attribute definition on the same model,
@@ -241,6 +261,23 @@
 *   Fix MySQL default functions getting dropped when changing a column's nullability.
 
     *Bastian Bartmann*
+
+*   Fix `add_unique_constraint`/`add_check_constraint`/`/`add_foreign_key` to be revertible when
+    given invalid options.
+
+    *fatkodima*
+
+*   Fix asynchronous destroying of polymorphic `belongs_to` associations.
+
+    *fatkodima*
+
+*   NOT VALID constraints should not dump in `create_table`.
+
+    *Ryuta Kamizono*
+
+*   Fix finding by nil composite primary key association.
+
+    *fatkodima*
 
 *   Fix parsing of SQLite foreign key names when they contain non-ASCII characters
 
@@ -253,6 +290,22 @@
 *   Ensure normalized attribute queries use `IS NULL` consistently for `nil` and normalized `nil` values.
 
     *Joshua Young*
+
+*   Restore back the ability to pass only database name for `DATABASE_URL`.
+
+    *fatkodima*
+
+*   Fix `order` with using association name as an alias.
+
+    *Ryuta Kamizono*
+
+*   Improve invalid argument error for with.
+
+    *Ryuta Kamizono*
+
+*   Deduplicate `with` CTE expressions.
+
+    *fatkodima*
 
 
 ## Rails 7.2.2.2 (August 13, 2025) ##

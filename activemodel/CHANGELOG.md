@@ -4,6 +4,14 @@
 
     *Fabio Sangiovanni*
 
+*   Handle missing attributes for `ActiveModel::Translation#human_attribute_name`.
+
+    *zzak*
+
+*   Fix `ActiveModel::AttributeAssignment#assign_attributes` to accept objects without `each`.
+
+    *Kouhei Yanagita*
+
 
 ## Rails 7.2.2.2 (August 13, 2025) ##
 

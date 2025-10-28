@@ -30,6 +30,14 @@
 
     *Jean Boussier*
 
+*   Fix NoMethodError when a non-string CSRF token is passed through headers.
+
+    *Ryan Heneise*
+
+*   Fix invalid response when rescuing `ActionController::Redirecting::UnsafeRedirectError` in a controller.
+
+    *Alex Ghiculescu*
+
 
 ## Rails 7.2.2.2 (August 13, 2025) ##
 
