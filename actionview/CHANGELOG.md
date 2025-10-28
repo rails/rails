@@ -1,3 +1,5 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
 *   Respect `remove_hidden_field_autocomplete` config in form builder `hidden_field`.
 
     *Rafael Mendonça França*

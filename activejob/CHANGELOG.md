@@ -1,3 +1,5 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
 *   Only index new serializers.
 
     *Jesse Sharps*

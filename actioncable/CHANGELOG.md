@@ -1,3 +1,8 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   Allow passing composite channels to `ActionCable::Channel#stream_for` – e.g. `stream_for [ group, group.owner ]`

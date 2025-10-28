@@ -1,3 +1,5 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
 *   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
     It is still recommended to assume and force SSL in production as soon as you can.

@@ -1,3 +1,8 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   Add `reset_token: { expires_in: ... }` option to `has_secure_password`.

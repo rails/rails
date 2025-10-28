@@ -1,3 +1,5 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
 *   Allow methods starting with underscore to be action methods.
 
     Disallowing methods starting with an underscore from being action methods

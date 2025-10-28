@@ -1,3 +1,8 @@
+## Rails 8.1.1 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   De-couple `@rails/actiontext/attachment_upload.js` from `Trix.Attachment`
