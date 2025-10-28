@@ -1474,6 +1474,71 @@ module ActiveRecord
     end
   end
 
+  class DatabaseTasksResetTablesTest < ActiveRecord::TestCase
+    unless in_memory_db?
+      self.use_transactional_tests = false
+
+      fixtures :courses, :colleges
+
+      def setup
+        pool = ARUnit2Model.connection_pool
+        @schema_migration = pool.schema_migration
+        @schema_migration.create_table
+        @schema_migration.create_version(@schema_migration.table_name)
+
+        @internal_metadata = pool.internal_metadata
+        @internal_metadata.create_table
+        @internal_metadata[@internal_metadata.table_name] = nil
+
+        @old_configurations = ActiveRecord::Base.configurations
+        @db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit2", name: "primary")
+      end
+
+      def teardown
+        @schema_migration.delete_all_versions
+        @internal_metadata.delete_all_entries
+        clean_up_connection_handler
+        ActiveRecord::Base.configurations = @old_configurations
+      end
+
+      def test_reset_tables_with_truncate
+        assert_operator Course.count, :>, 0
+        assert_operator College.count, :>, 0
+
+        ActiveRecord::Tasks::DatabaseTasks.send(:reset_tables, @db_config, :truncate)
+
+        assert_equal 0, Course.count
+        assert_equal 0, College.count
+        assert_operator @schema_migration.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
+      end
+
+      def test_reset_tables_with_delete
+        assert_operator Course.count, :>, 0
+        assert_operator College.count, :>, 0
+
+        ActiveRecord::Tasks::DatabaseTasks.send(:reset_tables, @db_config, :delete)
+
+        assert_equal 0, Course.count
+        assert_equal 0, College.count
+        assert_operator @schema_migration.count, :>, 0
+        assert_operator @internal_metadata.count, :>, 0
+      end
+
+      def test_reset_tables_with_skip
+        original_course_count = Course.count
+        original_college_count = College.count
+        assert_operator original_course_count, :>, 0
+        assert_operator original_college_count, :>, 0
+
+        ActiveRecord::Tasks::DatabaseTasks.send(:reset_tables, @db_config, :skip)
+
+        assert_equal original_course_count, Course.count
+        assert_equal original_college_count, College.count
+      end
+    end
+  end
+
   class DatabaseTasksCharsetTest < ActiveRecord::TestCase
     include DatabaseTasksSetupper
 

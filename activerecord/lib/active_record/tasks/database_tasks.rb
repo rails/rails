@@ -225,12 +225,37 @@ module ActiveRecord
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
 
+      def reset_tables(db_config, reset_method)
+        case reset_method
+        when :truncate
+          truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
+        when :delete
+          delete_from_tables(db_config)
+        when :skip
+          # do nothing
+        end
+      end
+      private :reset_tables
+
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
           conn.truncate_tables(*conn.tables)
         end
       end
       private :truncate_tables
+
+      def delete_from_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          tables = conn.tables - [conn.pool.schema_migration.table_name, conn.pool.internal_metadata.table_name]
+          return if tables.empty?
+
+          conn.disable_referential_integrity do
+            statements = tables.map { |table| "DELETE FROM #{conn.quote_table_name(table)}" }
+            conn.send(:execute_batch, statements, "Delete Tables")
+          end
+        end
+      end
+      private :delete_from_tables
 
       def truncate_all(environment = env)
         configs_for(env_name: environment).each do |db_config|
@@ -409,14 +434,14 @@ module ActiveRecord
         end
       end
 
-      def reconstruct_from_schema(db_config, file = nil) # :nodoc:
+      def reconstruct_from_schema(db_config, file = nil, reset_method: :truncate) # :nodoc:
         file ||= schema_dump_path(db_config, db_config.schema_format)
 
         check_schema_file(file) if file
 
         with_temporary_pool(db_config, clobber: true) do
           if schema_up_to_date?(db_config, nil, file)
-            truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
+            reset_tables(db_config, reset_method)
           else
             purge(db_config)
             load_schema(db_config, db_config.schema_format, file)

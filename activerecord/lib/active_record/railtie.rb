@@ -30,6 +30,7 @@ module ActiveRecord
     config.active_record.use_schema_cache_dump = true
     config.active_record.check_schema_cache_dump_version = true
     config.active_record.maintain_test_schema = true
+    config.active_record.parallel_test_table_reset_method = :truncate
     config.active_record.has_many_inversing = false
     config.active_record.query_log_tags_enabled = false
     config.active_record.query_log_tags = [ :application ]

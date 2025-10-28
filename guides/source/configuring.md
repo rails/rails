@@ -1240,6 +1240,11 @@ The default value depends on the `config.load_defaults` target version:
 
 Is a boolean value and controls whether or not partial writes are used when updating existing records (i.e. whether updates only set attributes that are dirty). Note that when using partial updates, you should also use optimistic locking `config.active_record.lock_optimistically` since concurrent updates may write attributes based on a possibly stale read state. The default value is `true`.
 
+#### `config.active_record.parallel_test_table_reset_method`
+
+Controls how tables are reset at the start of a test run when using parallel
+tests. Default is `:truncate`. The other options are `:delete` and `:skip`.
+
 #### `config.active_record.maintain_test_schema`
 
 Is a boolean value which controls whether Active Record should try to keep your test database schema up-to-date with `db/schema.rb` (or `db/structure.sql`) when you run your tests. The default is `true`.

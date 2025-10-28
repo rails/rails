@@ -1,3 +1,21 @@
+*   Add `ActiveRecord.parallel_test_table_reset_method` configuration to control
+    how test database tables are reset during parallel test database initialization.
+
+    Can be set to `:truncate` (default), `:delete`, or `:skip`.
+
+    When running parallel tests, each worker gets a separate database copy. If the
+    schema is up to date, by default the tables are truncated to reset them.
+
+    On MySQL deletion can be significantly faster, so this allow us to use that as
+    an alternative method to clear out the tables.
+
+    Example:
+
+        # config/environments/test.rb
+        config.active_record.parallel_test_table_reset_method = :delete
+
+    *Donal McBreen*
+
 *   Fix upsert_all when using repeated timestamp attributes.
 
     *Gannon McGibbon*

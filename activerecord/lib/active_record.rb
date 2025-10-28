@@ -345,6 +345,31 @@ module ActiveRecord
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
 
+  ##
+  # :singleton-method:
+  # Specifies how to reset test database tables when preparing parallel test databases.
+  #
+  # Valid values are:
+  # * +:truncate+ (default) - Fast, resets auto-increment counters (MySQL/PostgreSQL)
+  # * +:delete+ - Slower, preserves auto-increment counters
+  # * +:skip+ - Don't reset tables
+  #
+  # On MySQL and PostgreSQL, +:truncate+ resets the auto-increment counters, while
+  # +:delete+ preserves them. The SQLite adapter uses deletion to truncate tables, so
+  # both +:truncate+ and +:delete+ behave the same way there.
+  def self.parallel_test_table_reset_method=(value)
+    unless [:truncate, :delete, :skip].include?(value)
+      raise ArgumentError, "Invalid parallel_test_table_reset_method: #{value.inspect}. Valid values are: :truncate, :delete, :skip"
+    end
+    @parallel_test_table_reset_method = value
+  end
+
+  def self.parallel_test_table_reset_method
+    @parallel_test_table_reset_method
+  end
+
+  self.parallel_test_table_reset_method = :truncate
+
   singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
   self.raise_on_assign_to_attr_readonly = false
 

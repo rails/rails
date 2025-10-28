@@ -23,7 +23,7 @@ module ActiveRecord
         db_config._database = "#{db_config.database}_#{i}"
 
         if db_config.database_tasks?
-          ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
+          ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil, reset_method: ActiveRecord.parallel_test_table_reset_method)
         end
       end
     ensure

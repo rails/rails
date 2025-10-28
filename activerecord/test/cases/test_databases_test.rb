@@ -16,7 +16,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       expected_database = "#{base_db_config.database}_2"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, reset_method: :truncate) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
@@ -39,7 +39,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       base_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
       expected_database = "#{base_db_config.database}_#{idx}"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, reset_method: :truncate) {
         assert_equal expected_database, db_config.database
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
@@ -91,7 +91,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       idx = 42
       base_configs_order = ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, reset_method: :truncate) {
         assert_equal base_configs_order, ActiveRecord::Base.configurations.configs_for(env_name: "arunit").map(&:name)
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
@@ -117,7 +117,7 @@ class TestDatabasesTest < ActiveRecord::TestCase
       replica_db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "replica", include_hidden: true)
       expected_replica_database = "#{replica_db_config.database}_#{idx}"
 
-      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _) {
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, _, reset_method: :truncate) {
         assert_equal expected_primary_database, db_config.database
       }) do
         ActiveSupport::Testing::Parallelization.after_fork_hooks.each { |cb| cb.call(idx) }
@@ -130,6 +130,71 @@ class TestDatabasesTest < ActiveRecord::TestCase
       ActiveRecord::Base.configurations = prev_configs
       ActiveRecord::Base.establish_connection(:arunit)
       ENV["RAILS_ENV"] = previous_env
+    end
+
+    def test_create_and_load_schema_passes_truncate_by_default
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, file, reset_method: :truncate) {
+        assert_equal :truncate, reset_method
+      }) do
+        ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
+      end
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+    end
+
+    def test_create_and_load_schema_respects_parallel_test_table_reset_method_config
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      old_reset_method = ActiveRecord.parallel_test_table_reset_method
+      ActiveRecord.parallel_test_table_reset_method = :delete
+
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, file, reset_method: :truncate) {
+        assert_equal :delete, reset_method
+      }) do
+        ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
+      end
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+      ActiveRecord.parallel_test_table_reset_method = old_reset_method
+    end
+
+    def test_create_and_load_schema_with_skip_reset_method
+      previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "arunit"
+      old_reset_method = ActiveRecord.parallel_test_table_reset_method
+      ActiveRecord.parallel_test_table_reset_method = :skip
+
+      prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, {
+        "arunit" => {
+          "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" }
+        }
+      }
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:reconstruct_from_schema, ->(db_config, file, reset_method: :truncate) {
+        assert_equal :skip, reset_method
+      }) do
+        ActiveRecord::TestDatabases.create_and_load_schema(2, env_name: "arunit")
+      end
+    ensure
+      ActiveRecord::Base.configurations = prev_configs
+      ActiveRecord::Base.establish_connection(:arunit)
+      ENV["RAILS_ENV"] = previous_env
+      ActiveRecord.parallel_test_table_reset_method = old_reset_method
     end
   end
 end
