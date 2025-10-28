@@ -1751,40 +1751,63 @@ whether a foreign key's name should be dumped to db/schema.rb or not. By
 default, foreign key names starting with `fk_rails_` are not exported to the
 database schema dump. Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
+#### `config.active_record.encryption.support_unencrypted_data`
+
+When `true`, unencrypted data can be read normally. When `false`, it will raise errors. Default: `false`.
+
+#### `config.active_record.encryption.extend_queries`
+
+When `true`, queries referencing deterministically encrypted attributes will be modified to include additional values if needed. Those additional values will be the clean version of the value (when `config.active_record.encryption.support_unencrypted_data` is `true`) and values encrypted with previous encryption schemes, if any (as provided with the `previous:` option). Default: `false`.
+
+#### `config.active_record.encryption.encrypt_fixtures`
+
+When `true`, encryptable attributes in fixtures will be automatically encrypted when loaded. Default: `false`.
+
+#### `config.active_record.encryption.store_key_references`
+
+When `true`, a reference to the encryption key is stored in the headers of the encrypted message. This makes for faster decryption when multiple keys are in use. Default: `false`.
+
 #### `config.active_record.encryption.add_to_filter_parameters`
 
-Enables automatic filtering of encrypted attributes on `inspect`.
+When `true`, encrypted attribute names are added automatically to [`config.filter_parameters`](#config-filter-parameters) and won't be shown in logs. Default: `true`.
 
-The default value is `true`.
+#### `config.active_record.encryption.excluded_from_filter_parameters`
+
+You can configure a list of params that won't be filtered out when `config.active_record.encryption.add_to_filter_parameters` is true. Default: `[]`.
+
+#### `config.active_record.encryption.validate_column_size`
+
+Adds a validation based on the column size. This is recommended to prevent storing huge values using highly compressible payloads. Default: `true`.
+
+#### `config.active_record.encryption.primary_key`
+
+The key or lists of keys used to derive root data encryption keys. The way they are used depends on the key provider configured. It's preferred to configure it via the `active_record_encryption.primary_key` credential.
+
+#### `config.active_record.encryption.deterministic_key`
+
+The key or list of keys used for deterministic encryption. It's preferred to configure it via the `active_record_encryption.deterministic_key` credential.
+
+#### `config.active_record.encryption.key_derivation_salt`
+
+The salt used when deriving keys. It's preferred to configure it via the `active_record_encryption.key_derivation_salt` credential.
+
+#### `config.active_record.encryption.forced_encoding_for_deterministic_encryption`
+
+The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
 #### `config.active_record.encryption.hash_digest_class`
 
-Sets the digest algorithm used by Active Record Encryption.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is      |
-| --------------------- | ------------------------- |
-| (original)            | `OpenSSL::Digest::SHA1`   |
-| 7.1                   | `OpenSSL::Digest::SHA256` |
+The digest algorithm used to derive keys. Default is `OpenSSL::Digest::SHA256`.
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
-Enables support for decrypting existing data encrypted using a SHA-1 digest class. When `false`,
-it will only support the digest configured in `config.active_record.encryption.hash_digest_class`.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `true`               |
-| 7.1                   | `false`              |
+Supports decrypting data encrypted non-deterministically with a digest class
+SHA1. The default is false, which means it will only support the digest
+algorithm configured in `config.active_record.encryption.hash_digest_class`.
 
 #### `config.active_record.encryption.compressor`
 
-Sets the compressor used by Active Record Encryption. The default value is `Zlib`.
-
-You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
+The compressor used to compress encrypted payloads. The default is `Zlib`. You can use your own compressor by setting this to a class that responds to `deflate` and `inflate`.
 
 #### `config.active_record.protocol_adapters`
 
