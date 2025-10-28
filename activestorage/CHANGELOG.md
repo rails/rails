@@ -1,3 +1,8 @@
+## Rails 7.1.6 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.1.5.2 (August 13, 2025) ##
 
 *   Remove dangerous transformations

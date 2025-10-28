@@ -1,3 +1,5 @@
+## Rails 7.1.6 (October 28, 2025) ##
+
 *   Gracefully handle `Timeout.timeout` firing during connection configuration.
 
     Use of `Timeout.timeout` could result in improperly initialized database connection.
