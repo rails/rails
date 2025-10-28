@@ -50,7 +50,7 @@ authentication`. Here are all of the files the generator modifies and new files
 it adds:
 
 ```bash
-$ rails generate authentication
+$ bin/rails generate authentication
       invoke  erb
       create    app/views/passwords/new.html.erb
       create    app/views/passwords/edit.html.erb
@@ -145,6 +145,9 @@ the `/passwords/new` path and routes to the passwords controller. The `new`
 method of the `PasswordsController` class runs through the flow for sending a
 password reset email.
 
+The link is valid for 15 minutes by default, but this can be configured with
+`has_secure_password`.
+
 The mailers for *reset password* are also set up by the generator at
 `app/mailers/password_mailer.rb` and render the following email to send to the
 user:
@@ -178,6 +181,12 @@ class User < ApplicationRecord
   normalizes :email_address, with: -> e { e.strip.downcase }
 end
 ```
+
+NOTE: `has_secure_password` adds the following validations automatically:<br/><br/>
+- Password must be present on creation<br/>
+- Password length should be less than or equal to 72 bytes<br/>
+- Confirmation of password (using a XXX_confirmation attribute)<br/><br/>
+However it doesn't validate the minimum length or the complexity of the password, you need to define validation for those yourself.
 
 #### `authenticate_by`
 
@@ -1621,7 +1630,7 @@ Refer to the Injection section for countermeasures against XSS.
 
 Cross-Site Request Forgery (CSRF), also known as Cross-Site Reference Forgery (XSRF), is a gigantic attack method, it allows the attacker to do everything the administrator or Intranet user may do. As you have already seen above how CSRF works, here are a few examples of what attackers can do in the Intranet or admin interface.
 
-A real-world example is a [router reconfiguration by CSRF](http://www.h-online.com/security/news/item/Symantec-reports-first-active-attack-on-a-DSL-router-735883.html). The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
+A real-world example is a router reconfiguration by CSRF. The attackers sent a malicious e-mail, with CSRF in it, to Mexican users. The e-mail claimed there was an e-card waiting for the user, but it also contained an image tag that resulted in an HTTP-GET request to reconfigure the user's router (which is a popular model in Mexico). The request changed the DNS-settings so that requests to a Mexico-based banking site would be mapped to the attacker's site. Everyone who accessed the banking site through that router saw the attacker's fake website and had their credentials stolen.
 
 Another example changed Google Adsense's e-mail address and password. If the victim was logged into Google Adsense, the administration interface for Google advertisement campaigns, an attacker could change the credentials of the victim.
 

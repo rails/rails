@@ -44,7 +44,7 @@ Without associations, creating and deleting books for that author would require
 a tedious and manual process. Here's what that would look like:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[8.1]
+class CreateAuthors < ActiveRecord::Migration[8.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -193,7 +193,7 @@ Rails will look for a class named `Authors` instead of `Author`.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[8.1]
+class CreateBooks < ActiveRecord::Migration[8.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -435,7 +435,7 @@ is declared.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[8.1]
+class CreateSuppliers < ActiveRecord::Migration[8.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -653,7 +653,7 @@ model is pluralized when declaring a `has_many` association.
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAuthors < ActiveRecord::Migration[8.1]
+class CreateAuthors < ActiveRecord::Migration[8.2]
   def change
     create_table :authors do |t|
       t.string :name
@@ -988,7 +988,7 @@ Diagram](images/association_basics/has_many_through.png)
 The corresponding migration might look like this:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.1]
+class CreateAppointments < ActiveRecord::Migration[8.2]
   def change
     create_table :physicians do |t|
       t.string :name
@@ -1024,7 +1024,7 @@ key](active_record_composite_primary_keys.html) for the join table in the
 `has_many :through` relationship like below:
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.1]
+class CreateAppointments < ActiveRecord::Migration[8.2]
   def change
     #  ...
     create_table :appointments, primary_key: [:physician_id, :patient_id] do |t|
@@ -1138,7 +1138,7 @@ Diagram](images/association_basics/has_one_through.png)
 The corresponding migration to set up these associations might look like this:
 
 ```ruby
-class CreateAccountHistories < ActiveRecord::Migration[8.1]
+class CreateAccountHistories < ActiveRecord::Migration[8.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -1198,7 +1198,7 @@ manage the relationship between the associated records. The corresponding
 migration might look like this:
 
 ```ruby
-class CreateAssembliesAndParts < ActiveRecord::Migration[8.1]
+class CreateAssembliesAndParts < ActiveRecord::Migration[8.2]
   def change
     create_table :assemblies do |t|
       t.string :name
@@ -1483,7 +1483,7 @@ To implement these associations, you'll need to create the corresponding
 database tables and set up the foreign key. Here's an example migration:
 
 ```ruby
-class CreateSuppliers < ActiveRecord::Migration[8.1]
+class CreateSuppliers < ActiveRecord::Migration[8.2]
   def change
     create_table :suppliers do |t|
       t.string :name
@@ -1619,7 +1619,7 @@ foreign key column (`imageable_id`) and a type column (`imageable_type`) in the
 model:
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[8.1]
+class CreatePictures < ActiveRecord::Migration[8.2]
   def change
     create_table :pictures do |t|
       t.string  :name
@@ -1643,7 +1643,7 @@ recommended to use `t.references` or its alias `t.belongs_to` and specify
 it automatically adds both the foreign key and type columns to the table.
 
 ```ruby
-class CreatePictures < ActiveRecord::Migration[8.1]
+class CreatePictures < ActiveRecord::Migration[8.2]
   def change
     create_table :pictures do |t|
       t.string :name
@@ -1716,7 +1716,7 @@ To support this relationship, we need to add a `manager_id` column to the
 manager).
 
 ```ruby
-class CreateEmployees < ActiveRecord::Migration[8.1]
+class CreateEmployees < ActiveRecord::Migration[8.2]
   def change
     create_table :employees do |t|
       # Add a belongs_to reference to the manager, which is an employee.
@@ -1978,6 +1978,8 @@ $ bin/rails generate model message subject:string body:string
 $ bin/rails generate model comment content:string
 ```
 
+NOTE: If you don't specify a type for a field (e.g., `subject` instead of `subject:string`), Rails will default to type `string`.
+
 After running the generators, our models should look like this:
 
 ```ruby
@@ -2187,7 +2189,7 @@ the books table. For a brand new table, the migration might look something like
 this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[8.1]
+class CreateBooks < ActiveRecord::Migration[8.2]
   def change
     create_table :books do |t|
       t.datetime   :published_at
@@ -2201,7 +2203,7 @@ end
 Whereas for an existing table, it might look like this:
 
 ```ruby
-class AddAuthorToBooks < ActiveRecord::Migration[8.1]
+class AddAuthorToBooks < ActiveRecord::Migration[8.2]
   def change
     add_reference :books, :author
   end
@@ -2241,7 +2243,7 @@ You can then fill out the migration and ensure that the table is created without
 a primary key.
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.2]
   def change
     create_table :assemblies_parts, id: false do |t|
       t.bigint :assembly_id
@@ -2262,7 +2264,7 @@ are you forgot to set `id: false` when creating your migration.
 For simplicity, you can also use the method `create_join_table`:
 
 ```ruby
-class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.1]
+class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[8.2]
   def change
     create_join_table :assemblies, :parts do |t|
       t.index :assembly_id
@@ -2282,7 +2284,7 @@ The main difference in schema implementation between creating a join table for
 `has_many :through` requires an `id`.
 
 ```ruby
-class CreateAppointments < ActiveRecord::Migration[8.1]
+class CreateAppointments < ActiveRecord::Migration[8.2]
   def change
     create_table :appointments do |t|
       t.belongs_to :physician
@@ -3215,7 +3217,7 @@ Although the `:counter_cache` option is specified on the model with the
 `books_count` column to the `Author` model:
 
 ```ruby
-class AddBooksCountToAuthors < ActiveRecord::Migration[8.1]
+class AddBooksCountToAuthors < ActiveRecord::Migration[8.2]
   def change
     add_column :authors, :books_count, :integer, default: 0, null: false
   end

@@ -73,7 +73,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 For this project, you will need:
 
 * Ruby 3.2 or newer
-* Rails 8.1.0 or newer
+* Rails 8.2.0 or newer
 * A code editor
 
 Follow the [Install Ruby on Rails Guide](install_ruby_on_rails.html) if you need
@@ -85,10 +85,10 @@ printed out:
 
 ```bash
 $ rails --version
-Rails 8.1.0
+Rails 8.2.0
 ```
 
-The version shown should be Rails 8.1.0 or higher.
+The version shown should be Rails 8.2.0 or higher.
 
 ### Creating Your First Rails App
 
@@ -190,7 +190,7 @@ your Rails application:
 
 ```bash
 => Booting Puma
-=> Rails 8.1.0 application starting in development
+=> Rails 8.2.0 application starting in development
 => Run `bin/rails server --help` for more startup options
 Puma starting in single mode...
 * Puma version: 6.4.3 (ruby 3.3.5-p100) ("The Eagle of Durango")
@@ -284,11 +284,14 @@ helps keep track of changes we make in development (only on our computer) so
 they can be deployed to production (live, online!) safely.
 
 In your code editor, open the migration Rails created for us so we can see what
-the migration does. This is located in
-`db/migrate/<timestamp>_create_products.rb`:
+the migration does.
+
+NOTE: As convention we'll state the filepath as a comment on top of each file
+
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+# db/migrate/<timestamp>_create_products.rb
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products do |t|
       t.string :name
@@ -354,7 +357,7 @@ $ bin/rails console
 You will be presented with a prompt like the following:
 
 ```irb
-Loading development environment (Rails 8.1.0)
+Loading development environment (Rails 8.2.0)
 store(dev)>
 ```
 
@@ -363,7 +366,7 @@ printing out the Rails version:
 
 ```irb
 store(dev)> Rails.version
-=> "8.1.0"
+=> "8.2.0"
 ```
 
 It works!
@@ -376,6 +379,7 @@ a file at `app/models/product.rb`. This file creates a class that uses Active
 Record for interacting with our `products` database table.
 
 ```ruby
+# app/models/product.rb
 class Product < ApplicationRecord
 end
 ```
@@ -613,6 +617,7 @@ Let's add a `presence` validation to the Product model to ensure that all
 products must have a `name`.
 
 ```ruby
+# app/models/product.rb
 class Product < ApplicationRecord
   validates :name, presence: true
 end
@@ -723,7 +728,9 @@ To define a route in Rails, let's go back to your code editor and add the
 following route to `config/routes.rb`
 
 ```ruby
+# config/routes.rb
 Rails.application.routes.draw do
+  # ...
   get "/products", to: "products#index"
 end
 ```
@@ -749,8 +756,13 @@ request, so they are typically used in the controller for filtering the data.
 
 Let's look at another example. Add this line after the previous route:
 
-```ruby
-post "/products", to: "products#create"
+```ruby#5
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  get "/products", to: "products#index"
+  post "/products", to: "products#create"
+end
 ```
 
 Here, we've told Rails to take POST requests to "/products" and process them
@@ -758,8 +770,12 @@ with the `ProductsController` using the `create` action.
 
 Routes may also need to match URLs with certain patterns. So how does that work?
 
-```ruby
-get "/products/:id", to: "products#show"
+```ruby#4
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  get "/products/:id", to: "products#show"
+end
 ```
 
 This route has `:id` in it. This is called a `parameter` and it captures a
@@ -775,7 +791,11 @@ For example, you could have a blog with articles and match `/blog/hello-world`
 with the following route:
 
 ```ruby
-get "/blog/:title", to: "blog#show"
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  get "/blog/:title", to: "blog#show"
+end
 ```
 
 Rails will capture `hello-world` out of `/blog/hello-world` and this can be used
@@ -799,18 +819,22 @@ Update, Delete (CRUD). This translates to 8 typical routes:
 We can add routes for these CRUD actions with the following:
 
 ```ruby
-get "/products", to: "products#index"
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  get "/products", to: "products#index"
 
-get "/products/new", to: "products#new"
-post "/products", to: "products#create"
+  get "/products/new", to: "products#new"
+  post "/products", to: "products#create"
 
-get "/products/:id", to: "products#show"
+  get "/products/:id", to: "products#show"
 
-get "/products/:id/edit", to: "products#edit"
-patch "/products/:id", to: "products#update"
-put "/products/:id", to: "products#update"
+  get "/products/:id/edit", to: "products#edit"
+  patch "/products/:id", to: "products#update"
+  put "/products/:id", to: "products#update"
 
-delete "/products/:id", to: "products#destroy"
+  delete "/products/:id", to: "products#destroy"
+end
 ```
 
 #### Resource Routes
@@ -820,7 +844,11 @@ for defining them. To create all of the same CRUD routes, replace the above
 routes with this single line:
 
 ```ruby
-resources :products
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  resources :products
+end
 ```
 
 TIP: If you don’t want all these CRUD actions, you specify exactly what you
@@ -841,15 +869,15 @@ You'll see this in the output which are the routes generated by
 `resources :products`
 
 ```
-                                  Prefix Verb   URI Pattern                                                                                       Controller#Action
-                                products GET    /products(.:format)                                                                               products#index
-                                         POST   /products(.:format)                                                                               products#create
-                             new_product GET    /products/new(.:format)                                                                           products#new
-                            edit_product GET    /products/:id/edit(.:format)                                                                      products#edit
-                                 product GET    /products/:id(.:format)                                                                           products#show
-                                         PATCH  /products/:id(.:format)                                                                           products#update
-                                         PUT    /products/:id(.:format)                                                                           products#update
-                                         DELETE /products/:id(.:format)                                                                           products#destroy
+      Prefix Verb   URI Pattern                  Controller#Action
+    products GET    /products(.:format)          products#index
+             POST   /products(.:format)          products#create
+ new_product GET    /products/new(.:format)      products#new
+edit_product GET    /products/:id/edit(.:format) products#edit
+     product GET    /products/:id(.:format)      products#show
+             PATCH  /products/:id(.:format)      products#update
+             PUT    /products/:id(.:format)      products#update
+             DELETE /products/:id(.:format)      products#destroy
 ```
 
 You'll also see routes from other built-in Rails features like health checks.
@@ -889,6 +917,7 @@ Let's take a look at the ProductsController defined in
 `app/controllers/products_controller.rb`. It looks like this:
 
 ```ruby
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
   end
@@ -907,6 +936,7 @@ The `index` action will render `app/views/products/index.html.erb`. If we open
 up that file in our code editor, we'll see the HTML it renders.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <h1>Products#index</h1>
 <p>Find me in app/views/products/index.html.erb</p>
 ```
@@ -929,8 +959,13 @@ browser. Pretty cool!
 If we open `config/routes.rb`, we can tell Rails the root route should render
 the Products index action by adding this line:
 
-```ruby
-root "products#index"
+```ruby#4
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
+  root "products#index"
+  resources :products
+end
 ```
 
 Now when you visit http://localhost:3000, Rails will render Products#index.
@@ -944,6 +979,7 @@ variable. Rails uses instance variables (variables that start with an @) to
 share data with the views.
 
 ```ruby
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -954,6 +990,7 @@ end
 In `app/views/products/index.html.erb`, we can replace the HTML with this ERB:
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <%= debug @products %>
 ```
 
@@ -979,6 +1016,7 @@ Let's update `app/views/products/index.html.erb` to render all of our product
 names.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <h1>Products</h1>
 
 <div id="products">
@@ -1015,6 +1053,7 @@ happens when it is called.
 Open the Products controller and add the `show` action like this:
 
 ```ruby
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -1044,6 +1083,7 @@ The `show` action expects a file in `app/views/products/show.html.erb`. Let's
 create that file in our editor and add the following contents:
 
 ```erb
+<%# app/views/products/show.html.erb %>
 <h1><%= @product.name %></h1>
 
 <%= link_to "Back", products_path %>
@@ -1054,7 +1094,8 @@ so we can click on them to navigate. We can update the
 `app/views/products/index.html.erb` view to link to this new page to use an
 anchor tag to the path for the `show` action.
 
-```erb#6,8
+```erb#7,9
+<%# app/views/products/index.html.erb %>
 <h1>Products</h1>
 
 <div id="products">
@@ -1076,9 +1117,9 @@ Rails provides helper methods for generating paths and URLs. When you run
 helpers you can use for generating URLs with Ruby code.
 
 ```
-                                  Prefix Verb   URI Pattern                                                                                       Controller#Action
-                                products GET    /products(.:format)                                                                               products#index
-                                 product GET    /products/:id(.:format)                                                                           products#show
+  Prefix Verb   URI Pattern             Controller#Action
+products GET    /products(.:format)     products#index
+ product GET    /products/:id(.:format) products#show
 ```
 
 These route prefixes give us helpers like the following:
@@ -1103,7 +1144,8 @@ link (`product.name`) and the path or URL to link to for the `href` attribute
 
 Let's refactor this to use these helpers:
 
-```erb#6
+```erb#7
+<%# app/views/products/index.html.erb %>
 <h1>Products</h1>
 
 <div id="products">
@@ -1128,6 +1170,7 @@ We need to create two actions for create:
 Let's start with our controller actions.
 
 ```ruby
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -1148,7 +1191,8 @@ the form fields.
 
 We can update `app/views/products/index.html.erb` to link to the new action.
 
-```erb#3
+```erb#4
+<%# app/views/products/index.html.erb %>
 <h1>Products</h1>
 
 <%= link_to "New product", new_product_path %>
@@ -1166,6 +1210,7 @@ Let's create `app/views/products/new.html.erb` to render the form for this new
 `Product`.
 
 ```erb
+<%# app/views/products/new.html.erb %>
 <h1>New product</h1>
 
 <%= form_with model: @product do |form| %>
@@ -1178,6 +1223,8 @@ Let's create `app/views/products/new.html.erb` to render the form for this new
     <%= form.submit %>
   </div>
 <% end %>
+
+<%= link_to "Cancel", products_path %>
 ```
 
 In this view, we are using the Rails `form_with` helper to generate an HTML form
@@ -1214,7 +1261,8 @@ the default route for creating a new record.
 To handle this, we first need to implement the `create` action in our
 controller.
 
-```ruby#14-26
+```ruby#15-27
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -1290,7 +1338,8 @@ The process of editing records is very similar to creating records. Instead of
 
 Let's implement them in the controller with the following:
 
-```ruby#23-34
+```ruby#24-35
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
     @products = Product.all
@@ -1333,9 +1382,94 @@ class ProductsController < ApplicationController
 end
 ```
 
-Next we can add an Edit link to `app/views/products/show.html.erb`:
+#### Extracting Partials
+
+We've already written a form for creating new products. Wouldn't it be nice if
+we could reuse that for edit and update? We can, using a feature called
+"partials" that allows you to reuse a view in multiple places.
+
+We can move the form into a file called `app/views/products/_form.html.erb`. The
+filename starts with an underscore to denote this is a partial.
+
+We also want to replace any instance variables with a local variable, which we
+can define when we render the partial. We'll do this by replacing `@product`
+with `product`.
+
+Let's also display any errors from the form submission inside the form.
+
+```erb#2-5
+<%# app/views/products/_form.html.erb %>
+<%= form_with model: product do |form| %>
+  <% if form.object.errors.any? %>
+    <p class="error"><%= form.object.errors.full_messages.first %></p>
+  <% end %>
+
+  <div>
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.submit %>
+  </div>
+<% end %>
+```
+
+TIP: Using local variables allows partials to be reused multiple times on the
+same page with a different value each time. This comes in handy rendering lists
+of items like an index page.
+
+To use this partial in our `app/views/products/new.html.erb` view, we can
+replace the form with a render call:
+
+```erb#3
+<h1>New product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", products_path %>
+```
+
+The edit view becomes almost the exact same thing thanks to the form partial.
+Let's create `app/views/products/edit.html.erb` with the following:
+
+```erb#3
+<h1>Edit product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", @product %>
+```
+
+To learn more about view partials, check out the
+[Action View Guide](action_view_overview.html).
+
+Now we can add an Edit link to `app/views/products/show.html.erb`:
 
 ```erb#4
+<%# app/views/products/new.html.erb %>
+<h1>New product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", products_path %>
+```
+
+The edit view becomes almost the exact same thing thanks to the form partial.
+Let's create `app/views/products/edit.html.erb` with the following:
+
+```erb#4
+<%# app/views/products/edit.html.erb %>
+<h1>Edit product</h1>
+
+<%= render "form", product: @product %>
+<%= link_to "Cancel", @product %>
+```
+
+To learn more about view partials, check out the
+[Action View Guide](action_view_overview.html).
+
+Now we can add an Edit link to `app/views/products/show.html.erb`:
+
+```erb#5
+<%# app/views/products/show.html.erb %>
 <h1><%= @product.name %></h1>
 
 <%= link_to "Back", products_path %>
@@ -1355,7 +1489,8 @@ for each action.
 
 This is a good example of the DRY (Don't Repeat Yourself) philosophy in action.
 
-```ruby#2,8-9,24-25,27-33,36-38
+```ruby#3,9-10,25-26,28-34,37-39
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   before_action :set_product, only: %i[ show edit update ]
 
@@ -1401,59 +1536,6 @@ class ProductsController < ApplicationController
 end
 ```
 
-#### Extracting Partials
-
-We've already written a form for creating new products. Wouldn't it be nice if
-we could reuse that for edit and update? We can, using a feature called
-"partials" that allows you to reuse a view in multiple places.
-
-We can move the form into a file called `app/views/products/_form.html.erb`. The
-filename starts with an underscore to denote this is a partial.
-
-We also want to replace any instance variables with a local variable, which we
-can define when we render the partial. We'll do this by replacing `@product`
-with `product`.
-
-```erb#1
-<%= form_with model: product do |form| %>
-  <div>
-    <%= form.label :name %>
-    <%= form.text_field :name %>
-  </div>
-
-  <div>
-    <%= form.submit %>
-  </div>
-<% end %>
-```
-
-TIP: Using local variables allows partials to be reused multiple times on the
-same page with a different value each time. This comes in handy rendering lists
-of items like an index page.
-
-To use this partial in our `app/views/products/new.html.erb` view, we can
-replace the form with a render call:
-
-```erb#3
-<h1>New product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", products_path %>
-```
-
-The edit view becomes almost the exact same thing thanks to the form partial.
-Let's create `app/views/products/edit.html.erb` with the following:
-
-```erb#3
-<h1>Edit product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", @product %>
-```
-
-To learn more about view partials, check out the
-[Action View Guide](action_view_overview.html).
-
 ### Deleting Products
 
 The last feature we need to implement is deleting products. We will add a
@@ -1463,7 +1545,8 @@ requests.
 Adding `destroy` to `before_action :set_product` lets us set the `@product`
 instance variable in the same way we do for the other actions.
 
-```ruby#2,35-38
+```ruby#3,36-39
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   before_action :set_product, only: %i[ show edit update destroy ]
 
@@ -1517,7 +1600,8 @@ end
 To make this work, we need to add a Delete button to
 `app/views/products/show.html.erb`:
 
-```erb#5
+```erb#6
+<%# app/views/products/show.html.erb %>
 <h1><%= @product.name %></h1>
 
 <%= link_to "Back", products_path %>
@@ -1593,10 +1677,11 @@ you want to include in every page like a header or footer.
 Add a small `<nav>` section inside the `<body>` with a link to Home and a Log
 out button and wrap `yield` with a `<main>` tag.
 
-```erb#5-8,10,12
+```erb#6-9,11,13
+<%# app/views/layouts/application.html.erb %>
 <!DOCTYPE html>
 <html>
-  <!-- ... -->
+  <%# ... %>
   <body>
     <nav>
       <%= link_to "Home", root_path %>
@@ -1623,7 +1708,8 @@ to authenticated users only.
 To allow guests to view products, we can allow unauthenticated access in our
 controller.
 
-```ruby#2
+```ruby#3
+# app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   allow_unauthenticated_access only: %i[ index show ]
   # ...
@@ -1640,6 +1726,7 @@ Since only logged in users can create products, we can modify the
 the user is authenticated.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <%= link_to "New product", new_product_path if authenticated? %>
 ```
 
@@ -1650,13 +1737,15 @@ Optionally, you can include a link to this route in the navbar to add a Login
 link if not authenticated.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <%= link_to "Login", new_session_path unless authenticated? %>
 ```
 
 You can also update the Edit and Delete links on the
 `app/views/products/show.html.erb` view to only display if authenticated.
 
-```erb#4,7
+```erb#5,8
+<%# app/views/products/show.html.erb %>
 <h1><%= @product.name %></h1>
 
 <%= link_to "Back", products_path %>
@@ -1676,7 +1765,8 @@ comes included by default.
 Using the `cache` method, we can store HTML in the cache. Let's cache the header
 in `app/views/products/show.html.erb`.
 
-```erb#1,3
+```erb#2,4
+<%# app/views/products/show.html.erb %>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
 <% end %>
@@ -1740,7 +1830,8 @@ Now, let's add a rich text description field to our product.
 
 First, add the following to the `Product` model:
 
-```ruby#2
+```ruby#3
+# app/models/product.rb
 class Product < ApplicationRecord
   has_rich_text :description
   validates :name, presence: true
@@ -1750,7 +1841,8 @@ end
 The form can now be updated to include a rich text field for editing the
 description in `app/views/products/_form.html.erb` before the submit button.
 
-```erb#4-7
+```erb#5-8
+<%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
 
@@ -1769,7 +1861,8 @@ Our controller also needs to permit this new parameter when the form is
 submitted, so we'll update the permitted params to include description in
 `app/controllers/products_controller.rb`
 
-```ruby#3
+```ruby#4
+# app/controllers/products_controller.rb
     # Only allow a list of trusted parameters through.
     def product_params
       params.expect(product: [ :name, :description ])
@@ -1780,6 +1873,7 @@ We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
 ```erb#3
+<%# app/views/products/show.html.erb%>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
   <%= @product.description %>
@@ -1808,7 +1902,8 @@ inside the rich text editor. Cool, right?!
 We can also use Active Storage directly. Let's add a featured image to the
 `Product` model.
 
-```ruby#2
+```ruby#3
+# app/models/product.rb
 class Product < ApplicationRecord
   has_one_attached :featured_image
   has_rich_text :description
@@ -1820,6 +1915,7 @@ Then we can add a file upload field to our product form before the submit
 button:
 
 ```erb#4-7
+<%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
 
@@ -1837,7 +1933,8 @@ button:
 Add `:featured_image` as a permitted parameter in
 `app/controllers/products_controller.rb`
 
-```ruby#3
+```ruby#4
+# app/controllers/products_controller.rb
     # Only allow a list of trusted parameters through.
     def product_params
       params.expect(product: [ :name, :description, :featured_image ])
@@ -1848,6 +1945,7 @@ Lastly, we want to display the featured image for our product in
 `app/views/products/show.html.erb`. Add the following to the top.
 
 ```erb
+<%# app/views/products/show.html.erb %>
 <%= image_tag @product.featured_image if @product.featured_image.attached? %>
 ```
 
@@ -1869,6 +1967,7 @@ In `app/views/products/index.html.erb`, let's update the header tag to use a
 translation.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <h1><%= t "hello" %></h1>
 ```
 
@@ -1879,6 +1978,7 @@ Since the default language is in English, Rails looks in `config/locales/en.yml`
 (which was created during `rails new`) for a matching key under the locale.
 
 ```yaml
+# config/locales/en.yml
 en:
   hello: "Hello world"
 ```
@@ -1887,6 +1987,7 @@ Let's create a new locale file in our editor for Spanish and add a translation
 in `config/locales/es.yml`.
 
 ```yaml
+# config/locales/es.yml
 es:
   hello: "Hola mundo"
 ```
@@ -1895,7 +1996,8 @@ We need to tell Rails which locale to use. The simplest option is to look for a
 locale param in the URL. We can do this in
 `app/controllers/application_controller.rb` with the following:
 
-```ruby#4,6-9
+```ruby#5,7-10
+# app/controllers/application_controller.rb
 class ApplicationController < ActionController::Base
   # ...
 
@@ -1923,6 +2025,7 @@ Let's update the index header to use a real translation instead of
 `"Hello world"`.
 
 ```erb
+<%# app/views/products/index.html.erb %>
 <h1><%= t ".title" %></h1>
 ```
 
@@ -1935,6 +2038,7 @@ In `config/locales/en.yml` we want to add the `title` key under `products` and
 `index` to match our controller, view, and translation name.
 
 ```yaml
+# config/locales/en.yml
 en:
   hello: "Hello world"
   products:
@@ -1945,6 +2049,7 @@ en:
 In the Spanish locales file, we can do the same thing:
 
 ```yaml
+# config/locales/es.yml
 es:
   hello: "Hola mundo"
   products:
@@ -1957,7 +2062,7 @@ viewing the Spanish locale.
 
 Learn more about the [Rails Internationalization (I18n) API](i18n.html).
 
-Adding In Stock Notifications
+Action Mailer and Email Notifications
 -----------------------------
 
 A common feature of e-commerce stores is an email subscription to get notified
@@ -1973,6 +2078,24 @@ stock. We can generate this migration using the following command:
 $ bin/rails generate migration AddInventoryCountToProducts inventory_count:integer
 ```
 
+NOTE: Rails infers that `AddInventoryCountToProducts` targets the `products`
+table because the name matches the `add_<columns>_to_<table>` convention. That
+pattern lets the generator pre-fill `add_column :products, ...`, so you only
+need to supply the column details. Run `bin/rails generate migration --help` to
+see more naming conventions.
+
+This will generate a migration file. Open it and add a default value of `0` to
+ensure `inventory_count` is never `nil`:
+
+```ruby
+# db/migrate/<timestamp>_add_inventory_count_to_products.rb
+class AddInventoryCountToProducts < ActiveRecord::Migration[8.2]
+  def change
+    add_column :products, :inventory_count, :integer, default: 0
+  end
+end
+```
+
 Then let's run the migration.
 
 ```bash
@@ -1983,6 +2106,7 @@ We'll need to add the inventory count to the product form in
 `app/views/products/_form.html.erb`.
 
 ```erb#4-7
+<%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
 
@@ -1999,7 +2123,8 @@ We'll need to add the inventory count to the product form in
 
 The controller also needs `:inventory_count` added to the permitted parameters.
 
-```ruby#2
+```ruby#3
+# app/controllers/products_controller.rb
     def product_params
       params.expect(product: [ :name, :description, :featured_image, :inventory_count ])
     end
@@ -2008,7 +2133,8 @@ The controller also needs `:inventory_count` added to the permitted parameters.
 It would also be helpful to validate that our inventory count is never a
 negative number, so let's also add a validation for that in our model.
 
-```ruby#6
+```ruby#7
+# app/models/product.rb
 class Product < ApplicationRecord
   has_one_attached :featured_image
   has_rich_text :description
@@ -2029,9 +2155,31 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
+NOTE: Here we are not specifying a type for `email` as rails automatically defaults to a `string` when a type is not given for migrations.
+
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email
 ```
+
+By including `product:belongs_to` above, we told Rails that subscribers and products have a one-to-many relationship, meaning a Subscriber "belongs to" a single Product instance.
+
+Next, open the generated migration (`db/migrate/<timestamp>_create_subscribers.rb`) like we did for Product.
+
+```ruby#5-6
+# db/migrate/<timestamp>_create_subscribers.rb
+class CreateSubscribers < ActiveRecord::Migration[8.2]
+  def change
+    create_table :subscribers do |t|
+      t.belongs_to :product, null: false, foreign_key: true
+      t.string :email
+
+      t.timestamps
+    end
+  end
+end
+```
+
+This looks quite similar to the migration for `Product`, the main new thing is `belongs_to` which adds a `product_id` foreign key column.
 
 Then run the new migration:
 
@@ -2039,16 +2187,13 @@ Then run the new migration:
 $ bin/rails db:migrate
 ```
 
-By including `product:belongs_to` above, we told Rails that subscribers and
-products have a one-to-many relationship, meaning a Subscriber "belongs to" a
-single Product instance.
-
 A Product, however, can have many subscribers, so we then add
 `has_many :subscribers, dependent: :destroy` to our Product model to add the
 second part of this association between the two models. This tells Rails how to
 join queries between the two database tables.
 
 ```ruby#2
+# app/models/product.rb
 class Product < ApplicationRecord
   has_many :subscribers, dependent: :destroy
   has_one_attached :featured_image
@@ -2063,6 +2208,7 @@ Now we need a controller to create these subscribers. Let's create that in
 `app/controllers/subscribers_controller.rb` with the following code:
 
 ```ruby
+# app/controllers/subscribers_controller.rb
 class SubscribersController < ApplicationController
   allow_unauthenticated_access
   before_action :set_product
@@ -2073,41 +2219,55 @@ class SubscribersController < ApplicationController
   end
 
   private
+    def set_product
+      @product = Product.find(params[:product_id])
+    end
 
-  def set_product
-    @product = Product.find(params[:product_id])
-  end
-
-  def subscriber_params
-    params.expect(subscriber: [ :email ])
-  end
+    def subscriber_params
+      params.expect(subscriber: [ :email ])
+    end
 end
 ```
 
-Our redirect sets a notice in the Rails flash. The flash is used for storing
-messages to display on the next page.
+The `redirect_to` uses the `notice:` argument to set a "flash" message to tell
+the user they are subscribed.
 
-To display the flash message, let's add the notice to
+The [flash](https://api.rubyonrails.org/classes/ActionDispatch/Flash.html)
+provides a way to pass temporary data between controller actions. Anything you
+place in the flash will be available to the very next action and then cleared.
+The flash is typically used for setting messages (e.g. notices and alerts) in a
+controller action before redirecting to an action that displays the message to
+the user.
+
+To display the flash message, let's add the flash to
 `app/views/layouts/application.html.erb` inside the body:
 
-```erb#4
+```erb#5-6
+<%# app/views/layouts/application.html.erb %>
 <html>
-  <!-- ... -->
+  <%# ... %>
   <body>
-    <div class="notice"><%= notice %></div>
-    <!-- ... -->
+    <div class="notice"><%= flash[:notice] %></div>
+    <div class="alert"><%= flash[:alert] %></div>
+    <%# ... %>
   </body>
 </html>
 ```
+
+Learn more about the Flash in the [Action Controller Overview](action_controller_overview.html#the-flash)
 
 To subscribe users to a specific product, we'll use a nested route so we know
 which product the subscriber belongs to. In `config/routes.rb` change
 `resources :products` to the following:
 
-```ruby
+```ruby4-6
+# config/routes.rb
+Rails.application.routes.draw do
+  # ...
   resources :products do
     resources :subscribers, only: [ :create ]
   end
+end
 ```
 
 On the product show page, we can check if there is inventory and display the
@@ -2118,7 +2278,8 @@ Create a new partial at `app/views/products/_inventory.html.erb` and add the
 following:
 
 ```erb
-<% if product.inventory_count? %>
+<%# app/views/products/_inventory.html.erb %>
+<% if product.inventory_count.positive? %>
   <p><%= product.inventory_count %> in stock</p>
 <% else %>
   <p>Out of stock</p>
@@ -2135,6 +2296,7 @@ Then update `app/views/products/show.html.erb` to render this partial after the
 `cache` block.
 
 ```erb
+<%# app/views/products/show.html.erb %>
 <%= render "inventory", product: @product %>
 ```
 
@@ -2155,6 +2317,7 @@ method.
 Update this method to mail to a subscriber's email address.
 
 ```ruby#7-10
+# app/mailers/product_mailer.rb
 class ProductMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
   # with the following lookup:
@@ -2175,6 +2338,7 @@ the product.
 Change `app/views/product_mailer/in_stock.html.erb` to:
 
 ```erb
+<%# app/views/product_mailer/in_stock.html.erb %>
 <h1>Good news!</h1>
 
 <p><%= link_to @product.name, product_url(@product) %> is back in stock.</p>
@@ -2183,6 +2347,7 @@ Change `app/views/product_mailer/in_stock.html.erb` to:
 And `app/views/product_mailer/in_stock.text.erb` to:
 
 ```erb
+<%# app/views/product_mailer/in_stock.text.erb %>
 Good news!
 
 <%= @product.name %> is back in stock.
@@ -2259,7 +2424,8 @@ Performed ActionMailer::MailDeliveryJob (Job ID: 5e2bd5f2-f54f-4088-ace3-3f6eb15
 To trigger these emails, we can use a callback in the Product model to send
 emails anytime the inventory count changes from 0 to a positive number.
 
-```ruby#9-19
+```ruby#10-20
+# app/models/product.rb
 class Product < ApplicationRecord
   has_many :subscribers, dependent: :destroy
   has_one_attached :featured_image
@@ -2271,7 +2437,7 @@ class Product < ApplicationRecord
   after_update_commit :notify_subscribers, if: :back_in_stock?
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
@@ -2306,6 +2472,7 @@ First let’s create the Notifications module.
 Create a file at `app/models/product/notifications.rb` with the following:
 
 ```ruby
+# app/models/product/notifications.rb
 module Product::Notifications
   extend ActiveSupport::Concern
 
@@ -2315,7 +2482,7 @@ module Product::Notifications
   end
 
   def back_in_stock?
-    inventory_count_previously_was.zero? && inventory_count > 0
+    inventory_count_previously_was.zero? && inventory_count.positive?
   end
 
   def notify_subscribers
@@ -2334,7 +2501,8 @@ Now that the code triggering the notification has been extracted into the
 Notifications module, the Product model can be simplified to include the
 Notifications module.
 
-```ruby#2
+```ruby#3
+# app/models/product.rb
 class Product < ApplicationRecord
   include Notifications
 
@@ -2364,6 +2532,7 @@ First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
 ```ruby#6
+# config/routes.rb
 Rails.application.routes.draw do
   # ...
   resources :products do
@@ -2378,7 +2547,8 @@ Active Record has a feature called `generates_token_for` that can generate
 unique tokens to find database records for different purposes. We can use this
 for generating a unique unsubscribe token to use in the email's unsubscribe URL.
 
-```ruby#3
+```ruby#4
+# app/models/subscriber.rb
 class Subscriber < ApplicationRecord
   belongs_to :product
   generates_token_for :unsubscribe
@@ -2391,6 +2561,7 @@ the homepage. Create `app/controllers/unsubscribes_controller.rb` and add the
 following code:
 
 ```ruby
+# app/controllers/unsubscribes_controller.rb
 class UnsubscribesController < ApplicationController
   allow_unauthenticated_access
   before_action :set_subscriber
@@ -2401,10 +2572,9 @@ class UnsubscribesController < ApplicationController
   end
 
   private
-
-  def set_subscriber
-    @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
-  end
+    def set_subscriber
+      @subscriber = Subscriber.find_by_token_for(:unsubscribe, params[:token])
+    end
 end
 ```
 
@@ -2412,7 +2582,8 @@ Last but not least, let's add the unsubscribe link to our email templates.
 
 In `app/views/product_mailer/in_stock.html.erb`, add a `link_to`:
 
-```erb#5
+```erb#6
+<%# app/views/product_mailer/in_stock.html.erb %>
 <h1>Good news!</h1>
 
 <p><%= link_to @product.name, product_url(@product) %> is back in stock.</p>
@@ -2422,7 +2593,8 @@ In `app/views/product_mailer/in_stock.html.erb`, add a `link_to`:
 
 In `app/views/product_mailer/in_stock.text.erb`, add the URL in plain text:
 
-```erb#6
+```erb#7
+<%# app/views/product_mailer/in_stock.text.erb %>
 Good news!
 
 <%= @product.name %> is back in stock.
@@ -2456,6 +2628,7 @@ Let's modify `app/assets/stylesheets/application.css` and change our font to
 sans-serif.
 
 ```css
+/* app/assets/stylesheets/application.css */
 body {
   font-family: Arial, Helvetica, sans-serif;
   padding: 1rem;
@@ -2480,6 +2653,11 @@ main {
   margin: 0 auto;
 }
 
+.alert,
+.error {
+  color: red;
+}
+
 .notice {
   color: green;
 }
@@ -2499,7 +2677,8 @@ section.product img {
 
 Then we'll update `app/views/products/show.html.erb` to use these new styles.
 
-```erb#1,3,6,18-19
+```erb#2,4,7,19-20
+<%# app/views/products/show.html.erb %>
 <p><%= link_to "Back", products_path %></p>
 
 <section class="product">
@@ -2533,6 +2712,7 @@ JavaScript package names with the source file which is used to generate the
 importmap tag in the browser.
 
 ```ruby
+# config/importmap.rb
 # Pin npm packages by running ./bin/importmap
 
 pin "application"
@@ -2599,6 +2779,7 @@ Let’s update the product fixtures file at `test/fixtures/products.yml` with th
 following:
 
 ```yaml
+# test/fixtures/products.yml
 tshirt:
   name: T-Shirt
   inventory_count: 15
@@ -2608,6 +2789,7 @@ And for subscribers, let's add these two fixtures to
 `test/fixtures/subscribers.yml`:
 
 ```yaml
+# test/fixtures/subscribers.yml
 david:
   product: tshirt
   email: david@example.org
@@ -2629,6 +2811,7 @@ test suite.
 In `test/models/product_test.rb`, let's add a test:
 
 ```ruby
+# test/models/product_test.rb
 require "test_helper"
 
 class ProductTest < ActiveSupport::TestCase
@@ -2687,6 +2870,7 @@ Rails also generated an example test for `ProductMailer` at
 `test/mailers/product_mailer_test.rb`. Let's update it to make it also pass.
 
 ```ruby
+# test/mailers/product_mailer_test.rb
 require "test_helper"
 
 class ProductMailerTest < ActionMailer::TestCase
@@ -2820,6 +3004,7 @@ Open `config/deploy.yml` and replace `192.168.0.1` with your server's IP address
 and `your-user` with your Docker Hub username.
 
 ```yaml
+# config/deploy.yml
 # Name of your application. Used to uniquely configure containers.
 service: store
 
@@ -2843,6 +3028,7 @@ application too. Make sure your DNS record points to the server and Kamal will
 use LetsEncrypt to issue an SSL certificate for the domain.
 
 ```yaml
+# config/deploy.yml
 proxy:
   ssl: true
   host: app.example.com
@@ -2931,15 +3117,7 @@ What's Next?
 
 Congratulations on building and deploying your first Rails application!
 
-We recommend continuing to add features and deploy updates to continue learning.
-Here are some ideas:
-
-* Improve the design with CSS
-* Add product reviews
-* Finish translating the app into another language
-* Add a checkout flow for payments
-* Add wishlists for users to save products
-* Add a carousel for product images
+Next, follow the [Sign Up and Settings tutorial](sign_up_and_settings.html) to continue learning.
 
 We also recommend learning more by reading other Ruby on Rails Guides:
 

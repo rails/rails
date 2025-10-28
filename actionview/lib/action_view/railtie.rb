@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "action_view"
 require "rails"
+require "action_view"
 
 module ActionView
   # = Action View Railtie

@@ -8,6 +8,7 @@ module ActiveSupport
     delegate :use_standard_json_time_format, :use_standard_json_time_format=,
       :time_precision, :time_precision=,
       :escape_html_entities_in_json, :escape_html_entities_in_json=,
+      :escape_js_separators_in_json, :escape_js_separators_in_json=,
       :json_encoder, :json_encoder=,
       to: :'ActiveSupport::JSON::Encoding'
   end
@@ -46,6 +47,8 @@ module ActiveSupport
       def encode(value, options = nil)
         if options.nil? || options.empty?
           Encoding.encode_without_options(value)
+        elsif options == { escape: false }.freeze
+          Encoding.encode_without_escape(value)
         else
           Encoding.json_encoder.new(options).encode(value)
         end
@@ -65,8 +68,9 @@ module ActiveSupport
         "&".b => '\u0026'.b,
       }
 
-      ESCAPE_REGEX_WITH_HTML_ENTITIES = Regexp.union(*ESCAPED_CHARS.keys)
-      ESCAPE_REGEX_WITHOUT_HTML_ENTITIES = Regexp.union(U2028, U2029)
+      HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029]))
+      FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys)
+      JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029)
 
       class JSONGemEncoder # :nodoc:
         attr_reader :options
@@ -84,14 +88,15 @@ module ActiveSupport
 
           return json unless @options.fetch(:escape, true)
 
-          # Rails does more escaping than the JSON gem natively does (we
-          # escape \u2028 and \u2029 and optionally >, <, & to work around
-          # certain browser problems).
           json.force_encoding(::Encoding::BINARY)
           if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-            json.gsub!(ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS)
-          else
-            json.gsub!(ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS)
+            if Encoding.escape_js_separators_in_json
+              json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+            else
+              json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+            end
+          elsif Encoding.escape_js_separators_in_json
+            json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
           end
           json.force_encoding(::Encoding::UTF_8)
         end
@@ -140,11 +145,14 @@ module ActiveSupport
           end
       end
 
-      if defined?(::JSON::Coder)
+      # ruby/json 2.14.x yields non-String keys but doesn't let us know it's a key
+      if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15.2")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new do |value|
+          CODER = ::JSON::Coder.new do |value, is_key|
             json_value = value.as_json
+            # Keep compatibility by calling to_s on non-String keys
+            next json_value.to_s if is_key
             # Handle objects returning self from as_json
             if json_value.equal?(value)
               next ::JSON::Fragment.new(::JSON.generate(json_value))
@@ -161,7 +169,14 @@ module ActiveSupport
 
 
           def initialize(options = nil)
-            @options = options ? options.dup.freeze : {}.freeze
+            if options
+              options = options.dup
+              @escape = options.delete(:escape) { true }
+              @options = options.freeze
+            else
+              @escape = true
+              @options = {}.freeze
+            end
           end
 
           # Encode the given object into a JSON string
@@ -170,16 +185,17 @@ module ActiveSupport
 
             json = CODER.dump(value)
 
-            return json unless @options.fetch(:escape, true)
+            return json unless @escape
 
-            # Rails does more escaping than the JSON gem natively does (we
-            # escape \u2028 and \u2029 and optionally >, <, & to work around
-            # certain browser problems).
             json.force_encoding(::Encoding::BINARY)
             if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-              json.gsub!(ESCAPE_REGEX_WITH_HTML_ENTITIES, ESCAPED_CHARS)
-            else
-              json.gsub!(ESCAPE_REGEX_WITHOUT_HTML_ENTITIES, ESCAPED_CHARS)
+              if Encoding.escape_js_separators_in_json
+                json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+              else
+                json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+              end
+            elsif Encoding.escape_js_separators_in_json
+              json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
             end
             json.force_encoding(::Encoding::UTF_8)
           end
@@ -195,6 +211,13 @@ module ActiveSupport
         # as a safety measure.
         attr_accessor :escape_html_entities_in_json
 
+        # If true, encode LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029)
+        # as escaped unicode sequences ('\u2028' and '\u2029').
+        # Historically these characters were not valid inside JavaScript strings
+        # but that changed in ECMAScript 2019. As such it's no longer a concern in
+        # modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+        attr_accessor :escape_js_separators_in_json
+
         # Sets the precision of encoded time values.
         # Defaults to 3 (equivalent to millisecond precision)
         attr_accessor :time_precision
@@ -206,17 +229,23 @@ module ActiveSupport
         def json_encoder=(encoder)
           @json_encoder = encoder
           @encoder_without_options = encoder.new
+          @encoder_without_escape = encoder.new(escape: false)
         end
 
         def encode_without_options(value) # :nodoc:
           @encoder_without_options.encode(value)
         end
+
+        def encode_without_escape(value) # :nodoc:
+          @encoder_without_escape.encode(value)
+        end
       end
 
       self.use_standard_json_time_format = true
       self.escape_html_entities_in_json  = true
+      self.escape_js_separators_in_json = true
       self.json_encoder =
-        if defined?(::JSON::Coder)
+        if defined?(JSONGemCoderEncoder)
           JSONGemCoderEncoder
         else
           JSONGemEncoder

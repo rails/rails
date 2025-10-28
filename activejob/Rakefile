@@ -2,7 +2,7 @@
 
 require "rake/testtask"
 
-ACTIVEJOB_ADAPTERS = %w(async inline queue_classic resque sidekiq sneakers sucker_punch backburner test)
+ACTIVEJOB_ADAPTERS = %w(async inline queue_classic resque sidekiq sneakers backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
 task default: :test
@@ -17,8 +17,14 @@ namespace :test do
   end
 
   desc "Run all adapter tests in isolation"
-  task :isolated do
+  task isolated: :railties do
     run_without_aborting ACTIVEJOB_ADAPTERS.map { |a| "test:isolated:#{a}" }
+  end
+
+  task :railties do
+    ["active_job/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
   end
 
   desc "Run integration tests for all adapters"

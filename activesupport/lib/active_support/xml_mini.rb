@@ -73,6 +73,8 @@ module ActiveSupport
         "decimal"      => Proc.new do |number|
           if String === number
             number.to_d
+          elsif Float === number
+            BigDecimal(number, 0)
           else
             BigDecimal(number)
           end

@@ -100,7 +100,8 @@ module ActiveRecord
           db_config = resolve_config_for_connection(database_key)
 
           self.connection_class = true
-          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard.to_sym)
+          shard = shard.to_sym unless shard.is_a? Integer
+          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard)
         end
       end
 
@@ -172,9 +173,11 @@ module ActiveRecord
       prevent_writes = true if role == ActiveRecord.reading_role
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
-      yield
-    ensure
-      connected_to_stack.pop
+      begin
+        yield
+      ensure
+        connected_to_stack.pop
+      end
     end
 
     # Passes the block to +connected_to+ for every +shard+ the
@@ -395,16 +398,18 @@ module ActiveRecord
         prevent_writes = true if role == ActiveRecord.reading_role
 
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
-        return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
-        return_value
-      ensure
-        self.connected_to_stack.pop
+        begin
+          return_value = yield
+          return_value.load if return_value.is_a? ActiveRecord::Relation
+          return_value
+        ensure
+          self.connected_to_stack.pop
+        end
       end
 
       def append_to_connected_to_stack(entry)
         if shard_swapping_prohibited? && entry[:shard].present?
-          raise ArgumentError, "cannot swap `shard` while shard swapping is prohibited."
+          raise ShardSwapProhibitedError, "cannot swap `shard` while shard swapping is prohibited."
         end
 
         connected_to_stack << entry

@@ -44,6 +44,8 @@ module ActionDispatch
       "10.0.0.0/8",     # private IPv4 range 10.x.x.x
       "172.16.0.0/12",  # private IPv4 range 172.16.0.0 .. 172.31.255.255
       "192.168.0.0/16", # private IPv4 range 192.168.x.x
+      "169.254.0.0/16", # link-local IPv4 range 169.254.x.x
+      "fe80::/10",      # link-local IPv6 range fe80::/10
     ].map { |proxy| IPAddr.new(proxy) }
 
     attr_reader :check_ip, :proxies
@@ -126,11 +128,11 @@ module ActionDispatch
       # left, which was presumably set by one of those proxies.
       def calculate_ip
         # Set by the Rack web server, this is a single value.
-        remote_addr = ips_from(@req.remote_addr).last
+        remote_addr = sanitize_ips(ips_from(@req.remote_addr)).last
 
         # Could be a CSV list and/or repeated headers that were concatenated.
-        client_ips    = ips_from(@req.client_ip).reverse!
-        forwarded_ips = ips_from(@req.x_forwarded_for).reverse!
+        client_ips    = sanitize_ips(ips_from(@req.client_ip)).reverse!
+        forwarded_ips = sanitize_ips(@req.forwarded_for || []).reverse!
 
         # `Client-Ip` and `X-Forwarded-For` should not, generally, both be set. If they
         # are both set, it means that either:
@@ -176,7 +178,10 @@ module ActionDispatch
       def ips_from(header) # :doc:
         return [] unless header
         # Split the comma-separated list into an array of strings.
-        ips = header.strip.split(/[,\s]+/)
+        header.strip.split(/[,\s]+/)
+      end
+
+      def sanitize_ips(ips) # :doc:
         ips.select! do |ip|
           # Only return IPs that are valid according to the IPAddr#new method.
           range = IPAddr.new(ip).to_range

@@ -38,6 +38,9 @@ module ActionMailer
       include Rails::Dom::Testing::Assertions::DomAssertions
 
       included do
+        class_attribute :_decoders, default: Hash.new(->(body) { body }).merge!(
+          Mime[:html] => ->(body) { Rails::Dom::Testing.html_document.parse(body) }
+        ).freeze # :nodoc:
         class_attribute :_mailer_class
         setup :initialize_test_deliveries
         setup :set_expected_mail
@@ -83,6 +86,53 @@ module ActionMailer
         IO.readlines(File.join(Rails.root, "test", "fixtures", self.class.mailer_class.name.underscore, action))
       end
 
+      # Assert that a Mail instance has a part matching the content type.
+      # If the Mail is multipart, extract and decode the appropriate part. Yield the decoded part to the block.
+      #
+      # By default, assert against the last delivered Mail.
+      #
+      #   UsersMailer.create(user).deliver_now
+      #   assert_part :text do |text|
+      #     assert_includes text, "Welcome, #{user.email}"
+      #   end
+      #   assert_part :html do |html|
+      #     assert_dom html.root, "h1", text: "Welcome, #{user.email}"
+      #   end
+      #
+      # Assert against a Mail instance when provided
+      #
+      #   mail = UsersMailer.create(user)
+      #   assert_part :text, mail do |text|
+      #     assert_includes text, "Welcome, #{user.email}"
+      #   end
+      #   assert_part :html, mail do |html|
+      #     assert_dom html.root, "h1", text: "Welcome, #{user.email}"
+      #   end
+      def assert_part(content_type, mail = last_delivered_mail!)
+        mime_type = Mime[content_type]
+        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+        decoder = _decoders[mime_type]
+
+        assert_not_nil part, "expected part matching #{mime_type} in #{mail.inspect}"
+
+        yield decoder.call(part.decoded) if block_given?
+      end
+
+      # Assert that a Mail instance does not have a part with a matching MIME type
+      #
+      # By default, assert against the last delivered Mail.
+      #
+      #   UsersMailer.create(user).deliver_now
+      #
+      #   assert_no_part :html
+      #   assert_no_part :text
+      def assert_no_part(content_type, mail = last_delivered_mail!)
+        mime_type = Mime[content_type]
+        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+
+        assert_nil part, "expected no part matching #{mime_type} in #{mail.inspect}"
+      end
+
       private
         def initialize_test_deliveries
           set_delivery_method :test
@@ -118,6 +168,16 @@ module ActionMailer
 
         def encode(subject)
           Mail::Encodings.q_value_encode(subject, charset)
+        end
+
+        def last_delivered_mail
+          self.class.mailer_class.deliveries.last
+        end
+
+        def last_delivered_mail!
+          last_delivered_mail.tap do |mail|
+            flunk "No e-mail in delivery list" if mail.nil?
+          end
         end
     end
 

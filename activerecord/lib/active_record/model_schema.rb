@@ -48,7 +48,7 @@ module ActiveRecord
     # way of creating a namespace for tables in a shared database. By default, the prefix is the
     # empty string.
     #
-    # If you are organising your models within modules you can add a prefix to the models within
+    # If you are organizing your models within modules you can add a prefix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_prefix which
     # returns your chosen prefix.
 
@@ -65,7 +65,7 @@ module ActiveRecord
     # Works like +table_name_prefix=+, but appends instead of prepends (set to "_basecamp" gives "projects_basecamp",
     # "people_basecamp"). By default, the suffix is the empty string.
     #
-    # If you are organising your models within modules, you can add a suffix to the models within
+    # If you are organizing your models within modules, you can add a suffix to the models within
     # a namespace by defining a singleton method in the parent module called table_name_suffix which
     # returns your chosen suffix.
 
@@ -181,6 +181,7 @@ module ActiveRecord
       self.protected_environments = ["production"]
 
       self.ignored_columns = [].freeze
+      self.only_columns = [].freeze
 
       delegate :type_for_attribute, :column_for_attribute, to: :class
 
@@ -334,6 +335,12 @@ module ActiveRecord
         @ignored_columns || superclass.ignored_columns
       end
 
+      # The list of columns names the model should allow. Only columns are used to define
+      # attribute accessors, and are referenced in SQL queries.
+      def only_columns
+        @only_columns || superclass.only_columns
+      end
+
       # Sets the columns names the model should ignore. Ignored columns won't have attribute
       # accessors defined, and won't be referenced in SQL queries.
       #
@@ -366,8 +373,15 @@ module ActiveRecord
       #   user = Project.create!(name: "First Project")
       #   user.category # => raises NoMethodError
       def ignored_columns=(columns)
+        check_model_columns(@only_columns.present?)
         reload_schema_from_cache
         @ignored_columns = columns.map(&:to_s).freeze
+      end
+
+      def only_columns=(columns)
+        check_model_columns(@ignored_columns.present?)
+        reload_schema_from_cache
+        @only_columns = columns.map(&:to_s).freeze
       end
 
       def sequence_name
@@ -503,7 +517,7 @@ module ActiveRecord
       # when just after creating a table you want to populate it with some default
       # values, e.g.:
       #
-      #  class CreateJobLevels < ActiveRecord::Migration[8.1]
+      #  class CreateJobLevels < ActiveRecord::Migration[8.2]
       #    def up
       #      create_table :job_levels do |t|
       #        t.integer :id
@@ -579,6 +593,7 @@ module ActiveRecord
           child_class.reload_schema_from_cache(false)
           child_class.class_eval do
             @ignored_columns = nil
+            @only_columns = nil
           end
         end
 
@@ -592,7 +607,11 @@ module ActiveRecord
           end
 
           columns_hash = schema_cache.columns_hash(table_name)
-          columns_hash = columns_hash.except(*ignored_columns) unless ignored_columns.empty?
+          if only_columns.present?
+            columns_hash = columns_hash.slice(*only_columns)
+          elsif ignored_columns.present?
+            columns_hash = columns_hash.except(*ignored_columns)
+          end
           @columns_hash = columns_hash.freeze
 
           _default_attributes # Precompute to cache DB-dependent attribute types
@@ -630,6 +649,10 @@ module ActiveRecord
           end
 
           type
+        end
+
+        def check_model_columns(columns_present)
+          raise ArgumentError, "You can not use both only_columns and ignored_columns in the same model." if columns_present
         end
     end
   end

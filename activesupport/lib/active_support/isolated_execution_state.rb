@@ -28,10 +28,6 @@ module ActiveSupport
         @isolation_level = level
       end
 
-      def unique_id
-        self[:__id__] ||= Object.new
-      end
-
       def [](key)
         if state = @scope.current.active_support_execution_state
           state[key]
@@ -59,11 +55,14 @@ module ActiveSupport
         scope.current
       end
 
-      def share_with(other)
+      def share_with(other, &block)
         # Action Controller streaming spawns a new thread and copy thread locals.
         # We do the same here for backward compatibility, but this is very much a hack
         # and streaming should be rethought.
-        context.active_support_execution_state = other.active_support_execution_state.dup
+        old_state, context.active_support_execution_state = context.active_support_execution_state, other.active_support_execution_state.dup
+        block.call
+      ensure
+        context.active_support_execution_state = old_state
       end
     end
 

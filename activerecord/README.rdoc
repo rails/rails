@@ -139,7 +139,7 @@ A short rundown of some of the major features:
 
 * Database agnostic schema management with Migrations.
 
-    class AddSystemSettings < ActiveRecord::Migration[8.1]
+    class AddSystemSettings < ActiveRecord::Migration[8.2]
       def up
         create_table :system_settings do |t|
           t.string  :name
@@ -214,6 +214,6 @@ Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed on the rails-core mailing list here:
+Feature requests should be discussed on the rubyonrails-core forum here:
 
 * https://discuss.rubyonrails.org/c/rubyonrails-core

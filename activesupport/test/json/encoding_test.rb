@@ -3,6 +3,7 @@
 require "securerandom"
 require_relative "../abstract_unit"
 require "active_support/core_ext/string/inflections"
+require "active_support/core_ext/object/with"
 require "active_support/json"
 require "active_support/time"
 require_relative "../time_zone_test_helpers"
@@ -55,6 +56,9 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_unicode_escape
     assert_equal %{{"\\u2028":"\\u2029"}}, ActiveSupport::JSON.encode("\u2028" => "\u2029")
     assert_equal %{{"\u2028":"\u2029"}}, ActiveSupport::JSON.encode({ "\u2028" => "\u2029" }, escape: false)
+    ActiveSupport::JSON::Encoding.with(escape_js_separators_in_json: false) do
+      assert_equal %{{"\u2028":"\u2029"}}, ActiveSupport::JSON.encode({ "\u2028" => "\u2029" })
+    end
   end
 
   def test_hash_keys_encoding
@@ -514,6 +518,23 @@ EXPECTED
     assert_raise SystemStackError do
       AsJSONLoop.new(20).to_json
     end
+  end
+
+  def test_no_nesting_error_on_consecutive_encoding_calls
+    hash = { a: 1 }
+    assert_equal '{"a":1}', ActiveSupport::JSON.encode(hash)
+
+    # We simulate a circular reference
+    circular_array = []
+    circular_array << circular_array
+
+    assert_raise(SystemStackError, JSON::NestingError) do
+      ActiveSupport::JSON.encode(circular_array)
+    end
+
+    # We should be able to continue to generate JSONs as usual after
+    # encountering a JSON::NestingError
+    assert_equal '{"a":1}', ActiveSupport::JSON.encode(hash)
   end
 
   private

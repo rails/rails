@@ -59,7 +59,7 @@ module ActiveRecord
     end
 
     def primary_keys
-      Array(@model.schema_cache.primary_keys(model.table_name))
+      Array(@connection.schema_cache.primary_keys(model.table_name))
     end
 
     def skip_duplicates?
@@ -167,7 +167,7 @@ module ActiveRecord
       end
 
       def unique_indexes
-        @model.schema_cache.indexes(model.table_name).select(&:unique)
+        @connection.schema_cache.indexes(model.table_name).select(&:unique)
       end
 
       def ensure_valid_options_for_connection!
@@ -236,13 +236,13 @@ module ActiveRecord
         end
 
         def values_list
-          types = extract_types_from_columns_on(model.table_name, keys: keys_including_timestamps)
+          types = extract_types_for(keys_including_timestamps)
 
           values_list = insert_all.map_key_with_value do |key, value|
             if Arel::Nodes::SqlLiteral === value
               value
             elsif primary_keys.include?(key) && value.nil?
-              connection.default_insert_value(column_from_key(key))
+              connection.default_insert_value(model.columns_hash[key])
             else
               ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
             end
@@ -285,8 +285,8 @@ module ActiveRecord
           return "" unless update_duplicates? && record_timestamps?
 
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
-            if touch_timestamp_attribute?(column_name)
-              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END),"
+            if touch_timestamp_attribute?(column_name) && !column_name.to_sym.in?(insert_all.updatable_columns)
+              "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END), "
             end
           end.join
         end
@@ -308,8 +308,8 @@ module ActiveRecord
             format_columns(insert_all.keys_including_timestamps)
           end
 
-          def extract_types_from_columns_on(table_name, keys:)
-            columns = @model.schema_cache.columns_hash(table_name)
+          def extract_types_for(keys)
+            columns = @model.columns_hash
 
             unknown_column = (keys - columns.keys).first
             raise UnknownAttributeError.new(model.new, unknown_column) if unknown_column
@@ -327,10 +327,6 @@ module ActiveRecord
 
           def quote_column(column)
             connection.quote_column_name(column)
-          end
-
-          def column_from_key(key)
-            model.schema_cache.columns_hash(model.table_name)[key]
           end
       end
   end

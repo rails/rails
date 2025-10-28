@@ -203,6 +203,57 @@ module ActiveRecord
           ENV["RAILS_ENV"] = previous_env
         end
 
+        def test_shard_swapping_prohibition_exception_recovery
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary" => { "adapter" => "sqlite3", "database" => "test/db/primary.sqlite3" },
+              "primary_shard_one" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_one.sqlite3" },
+              "primary_shard_two" => { "adapter" => "sqlite3", "database" => "test/db/primary_shard_two.sqlite3" },
+            }
+          }
+
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          PrimaryBase.connects_to(shards: {
+            default: { writing: :primary },
+            shard_one: { writing: :primary_shard_one }
+          })
+
+          global_role = :writing
+
+          # Switch everything to default
+          ActiveRecord::Base.connected_to(role: global_role, shard: :default) do
+            assert_equal "primary", PrimaryBase.connection_pool.db_config.name
+
+            # Switch only primary to shard_one
+            PrimaryBase.connected_to(shard: :shard_one) do
+              assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+
+              PrimaryBase.prohibit_shard_swapping do
+                assert_raises(ShardSwapProhibitedError) do
+                  PrimaryBase.connected_to(shard: :shard_two) { }
+                end
+              end
+
+              assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+
+              PrimaryBase.prohibit_shard_swapping do
+                assert_raises(ShardSwapProhibitedError) do
+                  ActiveRecord::Base.connected_to_many([PrimaryBase], shard: :shard_two, role: :writing) { }
+                end
+              end
+
+              assert_equal "primary_shard_one", PrimaryBase.connection_pool.db_config.name
+            end
+          end
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ActiveRecord::Base.establish_connection(:arunit)
+          ENV["RAILS_ENV"] = previous_env
+        end
+
         def test_roles_and_shards_can_be_swapped_granularly
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
 

@@ -70,6 +70,33 @@ module ActiveRecord
         def native_database_types # :nodoc:
           NATIVE_DATABASE_TYPES
         end
+
+        # Returns a filesystem path to the database.
+        #
+        # The configuration's :database value may be a (slightly nonstandard) SQLite URI, so this
+        # method will resolve those URIs to a string path.
+        #
+        # If Rails.root is available, this is guaranteed to be an absolute path.
+        #
+        # See https://www.sqlite.org/uri.html
+        def resolve_path(database, root: nil)
+          database = database.to_s
+          root ||= defined?(Rails.root) ? Rails.root : nil
+
+          path = if database.start_with?("file:/")
+            URI.parse(database).path
+          elsif database.start_with?("file:")
+            URI.parse(database.split("?").first).opaque
+          else
+            database
+          end
+
+          if root.present?
+            File.expand_path(path, root)
+          else
+            path
+          end
+        end
       end
 
       include SQLite3::Quoting
@@ -135,11 +162,10 @@ module ActiveRecord
           raise ArgumentError, "No database file specified. Missing argument: database"
         when ":memory:"
           @memory_database = true
-        when /\Afile:/
         else
-          # Otherwise we have a path relative to Rails.root
-          @config[:database] = File.expand_path(@config[:database], Rails.root) if defined?(Rails.root)
-          dirname = File.dirname(@config[:database])
+          database_path = SQLite3Adapter.resolve_path(@config[:database])
+          @config[:database] = database_path unless @config[:database].to_s.start_with?("file:")
+          dirname = File.dirname(database_path)
           unless File.directory?(dirname)
             begin
               FileUtils.mkdir_p(dirname)
@@ -613,8 +639,8 @@ module ActiveRecord
             yield definition if block_given?
           end
 
-          transaction do
-            disable_referential_integrity do
+          disable_referential_integrity do
+            transaction do
               move_table(table_name, altered_table_name, options.merge(temporary: true))
               move_table(altered_table_name, table_name, &caller)
             end
@@ -730,6 +756,8 @@ module ActiveRecord
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/FOREIGN KEY constraint failed/i)
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          elsif exception.message.match?(/CHECK constraint failed: .*/i)
+            CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/called on a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
           elsif exception.is_a?(::SQLite3::BusyException)
@@ -848,18 +876,10 @@ module ActiveRecord
         end
 
         def configure_connection
-          if @config[:timeout] && @config[:retries]
-            raise ArgumentError, "Cannot specify both timeout and retries arguments"
-          elsif @config[:timeout]
+          if @config[:timeout]
             timeout = self.class.type_cast_config_to_integer(@config[:timeout])
             raise TypeError, "timeout must be integer, not #{timeout}" unless timeout.is_a?(Integer)
             @raw_connection.busy_handler_timeout = timeout
-          elsif @config[:retries]
-            ActiveRecord.deprecator.warn(<<~MSG)
-              The retries option is deprecated and will be removed in Rails 8.1. Use timeout instead.
-            MSG
-            retries = self.class.type_cast_config_to_integer(@config[:retries])
-            raw_connection.busy_handler { |count| count <= retries }
           end
 
           super

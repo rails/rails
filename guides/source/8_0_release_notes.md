@@ -5,6 +5,18 @@ Ruby on Rails 8.0 Release Notes
 
 Highlights in Rails 8.0:
 
+* Kamal 2.
+* Thruster.
+* Solid Cable.
+* Solid Cache.
+* Propshaft is used by default.
+* Authentication system generator.
+
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the [list of
+commits](https://github.com/rails/rails/commits/8-0-stable) in the main Rails
+repository on GitHub.
+
 --------------------------------------------------------------------------------
 
 Upgrading to Rails 8.0
@@ -23,51 +35,51 @@ Major Features
 
 ### Kamal 2
 
-Rails now comes preconfigured with [Kamal 2](https://kamal-deploy.org/) for 
-deploying your application. Kamal takes a fresh Linux box and turns it into an 
+Rails now comes preconfigured with [Kamal 2](https://kamal-deploy.org/) for
+deploying your application. Kamal takes a fresh Linux box and turns it into an
 application or accessory server with just a single “kamal setup” command.
 
-Kamal 2 also includes a proxy called [Kamal Proxy](https://github.com/basecamp/kamal-proxy) 
+Kamal 2 also includes a proxy called [Kamal Proxy](https://github.com/basecamp/kamal-proxy)
 to replace the generic Traefik option it used at launch.
 
 ### Thruster
 
-The Dockerfile has been upgraded to include a new proxy called 
-[Thruster](https://github.com/basecamp/thruster), which sits in front of the 
-Puma web server to provide X-Sendfile acceleration, asset caching, and asset 
+The Dockerfile has been upgraded to include a new proxy called
+[Thruster](https://github.com/basecamp/thruster), which sits in front of the
+Puma web server to provide X-Sendfile acceleration, asset caching, and asset
 compression.
 
 ### Solid Cable
 
-[Solid Cable](https://github.com/rails/solid_cable) replaces Redis to act as 
-the pubsub server to relay WebSocket messages from the application to clients 
-connected to different processes. Solid Cable retains the messages sent in 
+[Solid Cable](https://github.com/rails/solid_cable) replaces Redis to act as
+the pubsub server to relay WebSocket messages from the application to clients
+connected to different processes. Solid Cable retains the messages sent in
 the database for a day by default.
 
 ### Solid Cache
 
-[Solid Cache](https://github.com/rails/solid_cache) replaces either 
+[Solid Cache](https://github.com/rails/solid_cache) replaces either
 Redis or Memcached for storing HTML fragment caches in particular.
 
 ### Solid Queue
 
-[Solid Queue](https://github.com/rails/solid_queue) replaces the need for 
-Redis, also a separate job-running framework, like Resque, Delayed Job, or 
-Sidekiq. 
+[Solid Queue](https://github.com/rails/solid_queue) replaces the need for
+Redis, also a separate job-running framework, like Resque, Delayed Job, or
+Sidekiq.
 
-For high-performance installations, it’s built on the new `FOR UPDATE SKIP LOCKED` 
+For high-performance installations, it’s built on the new `FOR UPDATE SKIP LOCKED`
 mechanism first introduced in PostgreSQL 9.5, but now also available in MySQL 8.0
 and beyond. It also works with SQLite.
 
 ### Propshaft
 
-[Propshaft](https://github.com/rails/propshaft) is now the default asset 
+[Propshaft](https://github.com/rails/propshaft) is now the default asset
 pipeline, replacing the old Sprockets system.
 
 ### Authentication
 
-[Authentication system generator](https://github.com/rails/rails/pull/52328), 
-creates a starting point for a session-based, password-resettable, 
+[Authentication system generator](https://github.com/rails/rails/pull/52328),
+creates a starting point for a session-based, password-resettable,
 metadata-tracking authentication system.
 
 Railties
@@ -90,7 +102,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Deprecate requiring `"rails/console/methods"`.
 
 *   Deprecate modifying `STATS_DIRECTORIES` in favor of
-    `Rails::CodeStatistics.registery_directory`.
+    `Rails::CodeStatistics.register_directory`.
 
 *   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
@@ -186,7 +198,10 @@ Please refer to the [Changelog][active-record] for detailed changes.
 ### Notable changes
 
 *   Running `db:migrate` on a fresh database now loads the schema before running
-    migrations. (The previous behavior is available as `db:migrate:reset`)
+    migrations. Subsequent calls will run pending migrations.
+    (If you need the previous behavior of running migrations from scratch instead of loading the
+    schema file, this can be done by running `db:migrate:reset` which
+    _will drop and recreate the database before running migrations_)
 
 Active Storage
 --------------

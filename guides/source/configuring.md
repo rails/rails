@@ -58,19 +58,22 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 8.2
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
 - [`config.action_controller.escape_json_responses`](#config-action-controller-escape-json-responses): `false`
+- [`config.action_view.remove_hidden_field_autocomplete`](#config-action-view-remove-hidden-field-autocomplete): `true`
 - [`config.action_view.render_tracker`](#config-action-view-render-tracker): `:ruby`
 - [`config.active_record.raise_on_missing_required_finder_order_columns`](#config-active-record-raise-on-missing-required-finder-order-columns): `true`
+- [`config.active_support.escape_js_separators_in_json`](#config-active-support-escape-js-separators-in-json): `false`
 - [`config.yjit`](#config-yjit): `!Rails.env.local?`
 
 #### Default Values for Target Version 8.0
 
 - [`Regexp.timeout`](#regexp-timeout): `1`
 - [`config.action_dispatch.strict_freshness`](#config-action-dispatch-strict-freshness): `true`
-- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:zone`
 
 #### Default Values for Target Version 7.2
 
@@ -108,7 +111,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 7.0
 
-- [`config.action_controller.raise_on_open_redirects`](#config-action-controller-raise-on-open-redirects): `true`
+- [`config.action_controller.action_on_open_redirect`](#config-action-controller-action-on-open-redirect): `:raise`
 - [`config.action_controller.wrap_parameters_by_default`](#config-action-controller-wrap-parameters-by-default): `true`
 - [`config.action_dispatch.cookies_serializer`](#config-action-dispatch-cookies-serializer): `:json`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-XSS-Protection" => "0", "X-Content-Type-Options" => "nosniff", "X-Download-Options" => "noopen", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
@@ -170,7 +173,6 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
-- [`config.active_support.to_time_preserves_timezone`](#config-active-support-to-time-preserves-timezone): `:offset`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -1962,14 +1964,35 @@ with an external host is passed to [redirect_to][]. If an open redirect should
 be allowed, then `allow_other_host: true` can be added to the call to
 `redirect_to`.
 
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+
+[redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
+
+#### `config.action_controller.action_on_open_redirect`
+
+Controls how Rails handles open redirect attempts (redirects to external hosts).
+
+**Note:** This configuration replaces the deprecated [`config.action_controller.raise_on_open_redirects`](#config-action-controller-raise-on-open-redirects)
+option, which will be removed in a future Rails version. The new configuration provides more
+flexible control over open redirect protection.
+
+When set to `:log`, Rails will log a warning when an open redirect is detected.
+When set to `:notify`, Rails will publish an `open_redirect.action_controller`
+notification event. When set to `:raise`, Rails will raise an
+`ActionController::Redirecting::UnsafeRedirectError`.
+
+If `raise_on_open_redirects` is set to `true`, it will take precedence
+over this configuration for backward compatibility, effectively forcing `:raise`
+behavior.
+
 The default value depends on the `config.load_defaults` target version:
 
 | Starting with version | The default value is |
 | --------------------- | -------------------- |
-| (original)            | `false`              |
-| 7.0                   | `true`               |
-
-[redirect_to]: https://api.rubyonrails.org/classes/ActionController/Redirecting.html#method-i-redirect_to
+| (original)            | `:log`               |
+| 7.0                   | `:raise`             |
 
 #### `config.action_controller.action_on_path_relative_redirect`
 
@@ -2303,6 +2326,10 @@ If set to `true`, cookies will be written even if this criteria is not met.
 
 This defaults to `true` in `development`, and `false` in all other environments.
 
+#### `config.action_dispatch.verbose_redirect_logs`
+
+Specifies if source locations of redirects should be logged below relevant log lines. By default, the flag is `true` in development and `false` in all other environments.
+
 #### `ActionDispatch::Callbacks.before`
 
 Takes a block of code to run before the request.
@@ -2483,6 +2510,17 @@ Configures the set of HTML sanitizers used by Action View by setting `ActionView
 | 7.1                   | `Rails::HTML5::Sanitizer` (see NOTE) | HTML5                  |
 
 NOTE: `Rails::HTML5::Sanitizer` is not supported on JRuby, so on JRuby platforms Rails will fall back to `Rails::HTML4::Sanitizer`.
+
+#### `config.action_view.remove_hidden_field_autocomplete`
+
+When enabled, hidden inputs generated by `form_tag`, `token_tag`, `method_tag`, and the hidden parameter fields included in `button_to` forms will omit the `autocomplete="off"` attribute.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.1                   | `true`               |
 
 #### `config.action_view.render_tracker`
 
@@ -2899,18 +2937,6 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 7.0                   | `true`               |
 
-#### `config.active_support.to_time_preserves_timezone`
-
-Specifies whether `to_time` methods preserve the UTC offset of their receivers or preserves the timezone. If set to `:zone`, `to_time` methods will use the timezone of their receivers. If set to `:offset`, `to_time` methods will use the UTC offset. If `false`, `to_time` methods will convert to the local system UTC offset instead.
-
-The default value depends on the `config.load_defaults` target version:
-
-| Starting with version | The default value is |
-| --------------------- | -------------------- |
-| (original)            | `false`              |
-| 5.0                   | `:offset`            |
-| 8.0                   | `:zone`              |
-
 #### `ActiveSupport::Logger.silencer`
 
 Is set to `false` to disable the ability to silence logging in a block. The default is `true`.
@@ -2951,6 +2977,51 @@ The default value depends on the `config.load_defaults` target version:
 
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
+
+#### `config.active_support.event_reporter_context_store`
+
+Configures a custom context store for the Event Reporter. The context store is used to manage metadata that should be attached to every event emitted by the reporter.
+
+By default, the Event Reporter uses `ActiveSupport::EventContext` which stores context in fiber-local storage.
+
+To use a custom context store, set this config to a class that implements the context store interface:
+
+```ruby
+# config/application.rb
+config.active_support.event_reporter_context_store = CustomContextStore
+
+class CustomContextStore
+  class << self
+    def context
+      # Return the context hash
+    end
+
+    def set_context(context_hash)
+      # Append context_hash to the existing context store
+    end
+
+    def clear
+      # Clear the stored context
+    end
+  end
+end
+```
+
+Defaults to `nil`, which means the default `ActiveSupport::EventContext` store is used.
+
+#### `config.active_support.escape_js_separators_in_json`
+
+Specifies whether LINE SEPARATOR (U+2028) and PARAGRAPH SEPARATOR (U+2029) are escaped when generating JSON.
+
+Historically these characters were not valid inside JavaScript literal strings but that changed in ECMAScript 2019.
+As such it's no longer a concern in modern browsers: https://caniuse.com/mdn-javascript_builtins_json_json_superset.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 8.1                   | `false`              |
 
 ### Configuring Active Job
 
@@ -3084,18 +3155,9 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 `config.active_storage` provides the following configuration options:
 
-#### `config.active_storage.checksum_implementation`
-
-Specify which digest implementation to use for internal checksums.
-The value must respond to Ruby's `Digest` interface.
-
-| Starting with version | The default value is                    |
-| --------------------- | --------------------------------------- |
-| (original)            | `OpenSSL::Digest::MD5` or `Digest::MD5` |
-
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -3110,10 +3172,21 @@ Accepts an array of classes indicating the analyzers available for Active Storag
 By default, this is defined as:
 
 ```ruby
-config.active_storage.analyzers = [ActiveStorage::Analyzer::ImageAnalyzer::Vips, ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick, ActiveStorage::Analyzer::VideoAnalyzer, ActiveStorage::Analyzer::AudioAnalyzer]
+config.active_storage.analyzers = [
+  ActiveStorage::Analyzer::ImageAnalyzer::Vips,
+  ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick,
+  ActiveStorage::Analyzer::VideoAnalyzer,
+  ActiveStorage::Analyzer::AudioAnalyzer
+]
 ```
 
 The image analyzers can extract width and height of an image blob; the video analyzer can extract width, height, duration, angle, aspect ratio, and presence/absence of video/audio channels of a video blob; the audio analyzer can extract duration and bit rate of an audio blob.
+
+If you want to disable analyzers, you can set this to an empty array:
+
+```ruby
+config.active_storage.analyzers = []
+```
 
 #### `config.active_storage.previewers`
 
@@ -3632,7 +3705,7 @@ development:
   use_metadata_table: false
 ```
 
-#### Configuring Retry Behaviour
+#### Configuring Retry Behavior
 
 By default, Rails will automatically reconnect to the database server and retry certain queries
 if something goes wrong. Only safely retryable (idempotent) queries will be retried. The number

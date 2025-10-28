@@ -307,7 +307,7 @@ module ActiveRecord
       end
     end
 
-    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
+    # Like #find_or_create_by, but calls {new}[rdoc-ref:Core.new]
     # instead of {create}[rdoc-ref:Persistence::ClassMethods#create].
     def find_or_initialize_by(attributes, &block)
       find_by(attributes) || new(attributes, &block)
@@ -625,7 +625,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -869,7 +869,9 @@ module ActiveRecord
     # Active Record's schema_cache.
     #
     # [:on_duplicate]
-    #   Configure the SQL update sentence that will be used in case of conflict.
+    #   Configure the behavior that will be used in case of conflict. Use `:skip`
+    #   to ignore any conflicts or provide a safe SQL fragment wrapped with
+    #   `Arel.sql`.
     #
     #   NOTE: If you use this option you must provide all the columns you want to update
     #   by yourself.
@@ -1040,7 +1042,7 @@ module ActiveRecord
       end
 
       model.with_connection do |c|
-        arel = eager_loading? ? apply_join_dependency.arel : arel(c)
+        arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
         key = if model.composite_primary_key?
@@ -1233,7 +1235,7 @@ module ActiveRecord
         end
       else
         model.with_connection do |conn|
-          conn.unprepared_statement { conn.to_sql(arel(conn)) }
+          conn.unprepared_statement { conn.to_sql(arel) }
         end
       end
     end

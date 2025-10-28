@@ -55,8 +55,15 @@ module ActiveRecord
         #
         # Example:
         #   drop_database 'matt_development'
-        def drop_database(name) # :nodoc:
-          execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+        #
+        # Note, for PostgreSQL versions >= 13 the SQL statement will include <tt>WITH (FORCE)</tt> to
+        # disconnect clients before dropping the database. This allows you to drop/reset the
+        # database without stopping the Rails server etc. See:
+        # https://www.postgresql.org/docs/current/sql-dropdatabase.html
+        def drop_database(name)
+          statement = "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
+          statement += " WITH (FORCE)" if supports_force_drop_database?
+          execute statement
         end
 
         def drop_table(*table_names, **options) # :nodoc:
@@ -435,16 +442,13 @@ module ActiveRecord
         def primary_keys(table_name) # :nodoc:
           query_values(<<~SQL, "SCHEMA")
             SELECT a.attname
-              FROM (
-                     SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
-                       FROM pg_index
-                      WHERE indrelid = #{quote(quote_table_name(table_name))}::regclass
-                        AND indisprimary
-                   ) i
-              JOIN pg_attribute a
-                ON a.attrelid = i.indrelid
-               AND a.attnum = i.indkey[i.idx]
-             ORDER BY i.idx
+            FROM pg_index i
+            JOIN pg_attribute a
+              ON a.attrelid = i.indrelid
+              AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
+              AND i.indisprimary
+            ORDER BY array_position(i.indkey, a.attnum)
           SQL
         end
 

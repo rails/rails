@@ -16,10 +16,9 @@ module ActiveJob
         Time.iso8601(hash["value"]).in_time_zone(hash["time_zone"] || Time.zone)
       end
 
-      private
-        def klass
-          ActiveSupport::TimeWithZone
-        end
+      def klass
+        ActiveSupport::TimeWithZone
+      end
     end
   end
 end

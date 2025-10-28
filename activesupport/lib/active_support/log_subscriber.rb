@@ -62,25 +62,8 @@ module ActiveSupport
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.
   class LogSubscriber < Subscriber
-    # ANSI sequence modes
-    MODES = {
-      clear:     0,
-      bold:      1,
-      italic:    3,
-      underline: 4,
-    }
+    include ColorizeLogging
 
-    # ANSI sequence colors
-    BLACK   = "\e[30m"
-    RED     = "\e[31m"
-    GREEN   = "\e[32m"
-    YELLOW  = "\e[33m"
-    BLUE    = "\e[34m"
-    MAGENTA = "\e[35m"
-    CYAN    = "\e[36m"
-    WHITE   = "\e[37m"
-
-    mattr_accessor :colorize_logging, default: true
     class_attribute :log_levels, instance_accessor: false, default: {} # :nodoc:
 
     LEVEL_CHECKS = {
@@ -96,13 +79,13 @@ module ActiveSupport
         end
       end
 
+      attr_writer :logger
+
       def attach_to(...) # :nodoc:
         result = super
         set_event_levels
         result
       end
-
-      attr_writer :logger
 
       def log_subscribers
         subscribers
@@ -130,13 +113,13 @@ module ActiveSupport
         end
     end
 
+    def logger
+      LogSubscriber.logger
+    end
+
     def initialize
       super
       @event_levels = {}
-    end
-
-    def logger
-      LogSubscriber.logger
     end
 
     def silenced?(event)
@@ -149,40 +132,9 @@ module ActiveSupport
       log_exception(event.name, e)
     end
 
-    def publish_event(event)
-      super if logger
-    rescue => e
-      log_exception(event.name, e)
-    end
-
     attr_writer :event_levels # :nodoc:
 
   private
-    %w(info debug warn error fatal unknown).each do |level|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        def #{level}(progname = nil, &block)
-          logger.#{level}(progname, &block) if logger
-        end
-      METHOD
-    end
-
-    # Set color by using a symbol or one of the defined constants. Set modes
-    # by specifying bold, italic, or underline options. Inspired by Highline,
-    # this method will automatically clear formatting at the end of the returned String.
-    def color(text, color, mode_options = {}) # :doc:
-      return text unless colorize_logging
-      color = self.class.const_get(color.upcase) if color.is_a?(Symbol)
-      mode = mode_from(mode_options)
-      clear = "\e[#{MODES[:clear]}m"
-      "#{mode}#{color}#{text}#{clear}"
-    end
-
-    def mode_from(options)
-      modes = MODES.values_at(*options.compact_blank.keys)
-
-      "\e[#{modes.join(";")}m" if modes.any?
-    end
-
     def log_exception(name, e)
       ActiveSupport.error_reporter.report(e, source: name)
 

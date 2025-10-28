@@ -266,7 +266,6 @@
   documents:
     -
       name: The Basics of Creating Rails Plugins
-      work_in_progress: true
       url: plugins.html
       description: This guide covers how to build a plugin to extend the functionality of Rails.
     -
@@ -327,10 +326,14 @@
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
     -
-      name: Version 8.1 - ?
+      name: Version 8.2 - ?
+      url: 8_2_release_notes.html
+      description: Release notes for Rails 8.2.
+      work_in_progress: true
+    -
+      name: Version 8.1 - October 2025
       url: 8_1_release_notes.html
       description: Release notes for Rails 8.1.
-      work_in_progress: true
     -
       name: Version 8.0 - November 2024
       url: 8_0_release_notes.html

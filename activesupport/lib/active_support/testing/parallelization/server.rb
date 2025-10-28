@@ -14,6 +14,7 @@ module ActiveSupport
         def initialize
           @queue = Queue.new
           @active_workers = Concurrent::Map.new
+          @worker_pids = Concurrent::Map.new
           @in_flight = Concurrent::Map.new
         end
 
@@ -40,12 +41,24 @@ module ActiveSupport
           end
         end
 
-        def start_worker(worker_id)
+        def start_worker(worker_id, worker_pid)
           @active_workers[worker_id] = true
+          @worker_pids[worker_id] = worker_pid
         end
 
-        def stop_worker(worker_id)
+        def stop_worker(worker_id, worker_pid)
           @active_workers.delete(worker_id)
+          @worker_pids.delete(worker_id)
+        end
+
+        def remove_dead_workers(dead_pids)
+          dead_pids.each do |dead_pid|
+            worker_id = @worker_pids.key(dead_pid)
+            if worker_id
+              @active_workers.delete(worker_id)
+              @worker_pids.delete(worker_id)
+            end
+          end
         end
 
         def active_workers?
@@ -64,10 +77,7 @@ module ActiveSupport
 
           @queue.close
 
-          # Wait until all workers have finished
-          while active_workers?
-            sleep 0.1
-          end
+          wait_for_active_workers
 
           @in_flight.values.each do |(klass, name, reporter)|
             result = Minitest::Result.from(klass.new(name))
@@ -78,7 +88,20 @@ module ActiveSupport
               reporter.record(result)
             end
           end
+        rescue Interrupt
+          warn "Interrupted. Exiting..."
+
+          @queue.close
+
+          wait_for_active_workers
         end
+
+        private
+          def wait_for_active_workers
+            while active_workers?
+              sleep 0.1
+            end
+          end
       end
     end
   end
