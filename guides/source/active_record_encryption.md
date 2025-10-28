@@ -375,9 +375,8 @@ To allow your tests can use plain text values in the YAML fixture files for encr
 
 ```ruby
 Rails.application.configure do
-  ...
   config.active_record.encryption.encrypt_fixtures = true
-  ...
+  # ...
 end
 ```
 
@@ -766,7 +765,7 @@ You can configure a specific key for a given attribute using the `key` option:
 
 ```ruby
 class Article < ApplicationRecord
-  encrypts :summary, key: "some secret key for article summaries"
+  encrypts :summary, key: ENV["SOME_SECRET_KEY_FOR_ARTICLE_SUMMARIES"]
 end
 ```
 
