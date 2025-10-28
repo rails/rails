@@ -1,3 +1,8 @@
+*   Respect `remove_hidden_field_autocomplete` config in form builder `hidden_field`.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   The BEGIN template annotation/comment was previously printed on the same line as the following element. We now insert a newline inside the comment so it spans two lines without adding visible whitespace to the HTML output to enhance readability.

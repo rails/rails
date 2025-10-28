@@ -1,3 +1,14 @@
+*   Allow methods starting with underscore to be action methods.
+
+    Disallowing methods starting with an underscore from being action methods
+    was an unintended side effect of the performance optimization in
+    207a254.
+
+    Fixes #55985.
+
+    *Rafael Mendonça França*
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   Submit test requests using `as: :html` with `Content-Type: x-www-form-urlencoded`

@@ -1,3 +1,8 @@
+*   Only index new serializers.
+
+    *Jesse Sharps*
+
+
 ## Rails 8.1.0 (October 22, 2025) ##
 
 *   Add structured events for Active Job:
