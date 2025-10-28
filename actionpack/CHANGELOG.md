@@ -1,3 +1,5 @@
+## Rails 7.0.9 (October 28, 2025) ##
+
 *   Fix `ActionDispatch::Executor` middleware to report errors handled by `ActionDispatch::ShowExceptions`.
 
     In the default production environment, `ShowExceptions` rescue uncaught errors

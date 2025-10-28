@@ -1,3 +1,5 @@
+## Rails 7.0.9 (October 28, 2025) ##
+
 *   Fix an issue that could cause database connection leaks
 
     If Active Record successfully connected to the database, but then failed

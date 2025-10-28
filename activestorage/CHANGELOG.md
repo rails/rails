@@ -1,3 +1,5 @@
+## Rails 7.0.9 (October 28, 2025) ##
+
 *   Fix `ActiveStorage::Representations::ProxyController` not returning the proper
     preview image variant for previewable files.
 

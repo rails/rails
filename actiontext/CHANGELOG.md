@@ -1,3 +1,8 @@
+## Rails 7.0.9 (October 28, 2025) ##
+
+*   No changes.
+
+
 ## Rails 7.0.8.7 (December 10, 2024) ##
 
 *   Update vendored trix version to 1.3.4

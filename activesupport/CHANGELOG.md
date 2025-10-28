@@ -1,3 +1,5 @@
+## Rails 7.0.9 (October 28, 2025) ##
+
 *   Fix `ActiveSupport::Notifications.publish_event` to preserve units.
 
     This solves the incorrect reporting of time spent running Active Record
