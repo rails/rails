@@ -671,6 +671,56 @@ number as more important.
 [`queue_with_priority`]:
     https://api.rubyonrails.org/classes/ActiveJob/QueuePriority/ClassMethods.html#method-i-queue_with_priority
 
+Job Continuations
+-----------------
+
+Jobs can be split into resumable steps using continuations. This is useful when
+a job may be interrupted - for example, during queue shutdown. When using
+continuations, the job can resume from the last completed step, avoiding the
+need to restart from the beginning.
+
+To use continuations, include the `ActiveJob::Continuable` module. You can then
+define each step using the `step` method inside the `perform` method. Each step can
+be declared with a block or by referencing a method name.
+
+```ruby
+class ProcessImportJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform(import_id)
+    # Always runs on job start, even when resuming from an interrupted step.
+    @import = Import.find(import_id)
+
+    # Step defined using a block
+    step :initialize do
+      @import.initialize
+    end
+
+    # Step with a cursor — progress is saved and resumed if the job is interrupted
+    step :process do |step|
+      @import.records.find_each(start: step.cursor) do |record|
+        record.process
+        step.advance! from: record.id
+      end
+    end
+
+    # Step defined by referencing a method
+    step :finalize
+  end
+
+  private
+    def finalize
+      @import.finalize
+    end
+end
+```
+
+Each step runs sequentially. If the job is interrupted between steps, or within a
+step that uses a cursor, the job resumes from the last recorded position. This
+makes it easier to build long-running or multi-phase jobs that can safely pause
+and resume without losing progress.
+For more details, see [ActiveJob::Continuation](https://api.rubyonrails.org/classes/ActiveJob/Continuation.html).
+
 Callbacks
 ---------
 
@@ -715,6 +765,7 @@ end
 * [`before_perform`][]
 * [`around_perform`][]
 * [`after_perform`][]
+* [`after_discard`][]
 
 [`before_enqueue`]:
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-before_enqueue
@@ -728,6 +779,8 @@ end
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-around_perform
 [`after_perform`]:
     https://api.rubyonrails.org/classes/ActiveJob/Callbacks/ClassMethods.html#method-i-after_perform
+[`after_discard`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-after_discard
 
 Please note that when enqueuing jobs in bulk using `perform_all_later`,
 callbacks such as `around_enqueue` will not be triggered on the individual jobs.

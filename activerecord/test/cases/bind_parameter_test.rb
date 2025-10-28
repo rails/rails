@@ -5,6 +5,7 @@ require "models/topic"
 require "models/reply"
 require "models/author"
 require "models/post"
+require "active_support/log_subscriber/test_helper"
 
 if ActiveRecord::Base.lease_connection.prepared_statements
   module ActiveRecord
@@ -20,6 +21,12 @@ if ActiveRecord::Base.lease_connection.prepared_statements
 
         def call(*args)
           calls << args
+        end
+      end
+
+      def run(*)
+        with_debug_event_reporting do
+          super
         end
       end
 
@@ -289,21 +296,12 @@ if ActiveRecord::Base.lease_connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r(\[\["id", 10\]\]\z), logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r(\[\["id", 10\]\]\z), logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
 
         def assert_logs_unnamed_binds(binds)
@@ -321,21 +319,12 @@ if ActiveRecord::Base.lease_connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
 
         def assert_filtered_log_binds(binds)
@@ -353,21 +342,12 @@ if ActiveRecord::Base.lease_connection.prepared_statements
             123,
             payload)
 
-          logger = Class.new(ActiveRecord::LogSubscriber) {
-            attr_reader :debugs
-
-            def initialize
-              super
-              @debugs = []
-            end
-
-            def debug(str)
-              @debugs << str
-            end
-          }.new
-
-          logger.sql(event)
-          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.debugs.first
+          old_logger = ActiveRecord::LogSubscriber.logger
+          ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+          StructuredEventSubscriber.new.sql(event)
+          assert_match %r/#{Regexp.escape '[["auth_token", "[FILTERED]"]]'}/, logger.logged(:debug).last
+        ensure
+          ActiveRecord::LogSubscriber.logger = old_logger
         end
     end
   end

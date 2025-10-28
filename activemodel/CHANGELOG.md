@@ -1,26 +1,34 @@
-## Rails 8.1.0.beta1 (September 04, 2025) ##
-
-*   Add `except_on:` option for validation callbacks.
-
-    *Ben Sheldon*
-
-*   Backport `ActiveRecord::Normalization` to `ActiveModel::Attributes::Normalization`
+*   Allow passing method name or proc to `allow_nil` and `allow_blank`
 
     ```ruby
-    class User
-      include ActiveModel::Attributes
-      include ActiveModel::Attributes::Normalization
+    class EnrollmentForm
+      include ActiveModel::Validations
 
-      attribute :email, :string
+      attr_accessor :course
 
-      normalizes :email, with: -> email { email.strip.downcase }
+      validates :course,
+                inclusion: { in: :open_courses },
+                allow_nil: :saving_progress?
     end
-
-    user = User.new
-    user.email =    " CRUISE-CONTROL@EXAMPLE.COM\n"
-    user.email # => "cruise-control@example.com"
     ```
+
+    *Richard Lynch*
+
+*   Add error type support arguments to `ActiveModel::Errors#messages_for` and `ActiveModel::Errors#full_messages_for`
+
+    ```ruby
+    person = Person.create()
+    person.errors.full_messages_for(:name, :invalid)
+    # => ["Name is invalid"]
+
+    person.errors.messages_for(:name, :invalid)
+    # => ["is invalid"]
+    ```
+
+    *Eugene Bezludny*
+
+*   Make `ActiveModel::Serializers::JSON#from_json` compatible with `#assign_attributes`
 
     *Sean Doyle*
 
-Please check [8-0-stable](https://github.com/rails/rails/blob/8-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activemodel/CHANGELOG.md) for previous changes.

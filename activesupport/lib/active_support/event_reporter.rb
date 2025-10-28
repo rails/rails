@@ -225,7 +225,7 @@ module ActiveSupport
   #   #    name: "user_created",
   #   #    payload: { id: 123 },
   #   #    tags: {},
-  #   #    context: { request_id: "abcd123", user_agent: TestAgent" },
+  #   #    context: { request_id: "abcd123", user_agent: "TestAgent" },
   #   #    timestamp: 1738964843208679035,
   #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
   #   #  }
@@ -269,6 +269,10 @@ module ActiveSupport
   #
   # If an {event object}[rdoc-ref:EventReporter@Event+Objects] is given instead, subscribers will need to filter sensitive data themselves, e.g. with ActiveSupport::ParameterFilter.
   class EventReporter
+    extend ActiveSupport::Autoload
+
+    autoload :LogSubscriber
+
     # Sets whether to raise an error if a subscriber raises an error during
     # event emission, or when unexpected arguments are passed to +notify+.
     attr_writer :raise_on_error
@@ -278,6 +282,9 @@ module ActiveSupport
     attr_reader :subscribers # :nodoc
 
     class << self
+      # Filter parameters used to filter event payloads. If nil,
+      # Active Support's filter parameters will be used instead.
+      attr_accessor :filter_parameters
       attr_accessor :context_store # :nodoc:
     end
 
@@ -531,7 +538,16 @@ module ActiveSupport
       context_store.context
     end
 
+    def reload_payload_filter # :nodoc:
+      @payload_filter = nil
+      payload_filter
+    end
+
     private
+      def filter_parameters
+        self.class.filter_parameters || ActiveSupport.filter_parameters
+      end
+
       def raise_on_error?
         @raise_on_error
       end
@@ -543,7 +559,7 @@ module ActiveSupport
       def payload_filter
         @payload_filter ||= begin
           mask = ActiveSupport::ParameterFilter::FILTERED
-          ActiveSupport::ParameterFilter.new(ActiveSupport.filter_parameters, mask: mask)
+          ActiveSupport::ParameterFilter.new(filter_parameters, mask: mask)
         end
       end
 

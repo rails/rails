@@ -41,8 +41,8 @@ module ActionView
               @view.render(template: "test/hello_world")
             end
 
-            assert(event[:payload][:gc] >= 0)
-            assert(event[:payload][:duration] >= 0)
+            assert(event[:payload][:gc_ms] >= 0)
+            assert(event[:payload][:duration_ms] >= 0)
           end
         end
       end
@@ -57,8 +57,8 @@ module ActionView
               @view.render(template: "test/hello_world", layout: "layouts/yield")
             end
 
-            assert(event[:payload][:gc] >= 0)
-            assert(event[:payload][:duration] >= 0)
+            assert(event[:payload][:gc_ms] >= 0)
+            assert(event[:payload][:duration_ms] >= 0)
           end
         end
       end
@@ -72,8 +72,8 @@ module ActionView
               @view.render(file: "#{FIXTURE_LOAD_PATH}/test/hello_world.erb")
             end
 
-            assert(event[:payload][:gc] >= 0)
-            assert(event[:payload][:duration] >= 0)
+            assert(event[:payload][:gc_ms] >= 0)
+            assert(event[:payload][:duration_ms] >= 0)
           end
         end
       end
@@ -87,8 +87,8 @@ module ActionView
               @view.render(plain: "TEXT")
             end
 
-            assert(event[:payload][:gc] >= 0)
-            assert(event[:payload][:duration] >= 0)
+            assert(event[:payload][:gc_ms] >= 0)
+            assert(event[:payload][:duration_ms] >= 0)
           end
         end
       end
@@ -102,8 +102,8 @@ module ActionView
               @view.render(inline: "<%= 'TEXT' %>")
             end
 
-            assert(event[:payload][:gc] >= 0)
-            assert(event[:payload][:duration] >= 0)
+            assert(event[:payload][:gc_ms] >= 0)
+            assert(event[:payload][:duration_ms] >= 0)
           end
         end
       end
@@ -117,8 +117,8 @@ module ActionView
             @view.render(Customer.new("david"), greeting: "hi")
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -134,8 +134,8 @@ module ActionView
             @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -154,8 +154,8 @@ module ActionView
             @view.render(partial: "test/cached_customer", locals: { cached_customer: Customer.new("david") })
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -170,8 +170,8 @@ module ActionView
             @view.render(layout: "layouts/yield_only") { "hello" }
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -187,8 +187,8 @@ module ActionView
             @view.render(partial: "partial", layout: "layouts/yield_only")
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -203,8 +203,8 @@ module ActionView
             @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
 
           payload = { identifier: "test/_cached_customer.erb", layout: nil, cache_hit: :hit }
           event = assert_event_reported("action_view.render_partial", payload:) do
@@ -212,8 +212,8 @@ module ActionView
             @view.render(partial: "test/nested_cached_customer", locals: { cached_customer: Customer.new("Stan") })
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -269,8 +269,8 @@ module ActionView
             @view.render(partial: "test/customer", collection: [ Customer.new("david"), Customer.new("mary") ])
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -284,8 +284,8 @@ module ActionView
             @view.render(partial: "test/customer", layout: "layouts/yield_only", collection: [ Customer.new("david"), Customer.new("mary") ])
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -299,8 +299,8 @@ module ActionView
             @view.render([ Customer.new("david"), Customer.new("mary") ], greeting: "hi")
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -314,8 +314,8 @@ module ActionView
             @view.render([ GoodCustomer.new("david"), Customer.new("mary") ], greeting: "hi")
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end
@@ -331,8 +331,8 @@ module ActionView
               locals: { greeting: "hi" })
           end
 
-          assert(event[:payload][:gc] >= 0)
-          assert(event[:payload][:duration] >= 0)
+          assert(event[:payload][:gc_ms] >= 0)
+          assert(event[:payload][:duration_ms] >= 0)
         end
       end
     end

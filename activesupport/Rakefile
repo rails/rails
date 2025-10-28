@@ -15,9 +15,15 @@ Rake::TestTask.new do |t|
 end
 
 namespace :test do
-  task :isolated do
+  task isolated: :railties do
     Dir.glob("test/**/*_test.rb").all? do |file|
       sh(Gem.ruby, "-w", file)
+    end || raise("Failures")
+  end
+
+  task :railties do
+    ["active_support/i18n_railtie", "active_support/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
     end || raise("Failures")
   end
 end

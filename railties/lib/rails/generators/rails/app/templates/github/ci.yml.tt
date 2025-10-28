@@ -18,16 +18,16 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+      <%- unless skip_brakeman? -%>
 
-      <%- unless skip_brakeman? %>
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
-      <% end %>
-
+      <% end -%>
       <%- unless skip_bundler_audit? -%>
+
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
-      <% end %>
+      <% end -%>
 
 <% end -%>
 <%- if using_importmap? -%>
@@ -129,7 +129,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
@@ -202,7 +202,7 @@ jobs:
           bundler-cache: true
       <%- if using_bun? -%>
 
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>

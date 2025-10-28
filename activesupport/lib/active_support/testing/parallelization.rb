@@ -60,8 +60,19 @@ module ActiveSupport
       end
 
       def shutdown
+        dead_worker_pids = @worker_pool.filter_map do |pid|
+          Process.waitpid(pid, Process::WNOHANG)
+        rescue Errno::ECHILD
+          pid
+        end
+        @queue_server.remove_dead_workers(dead_worker_pids)
+
         @queue_server.shutdown
-        @worker_pool.each { |pid| Process.waitpid pid }
+        @worker_pool.each do |pid|
+          Process.waitpid(pid)
+        rescue Errno::ECHILD
+          nil
+        end
       end
     end
   end

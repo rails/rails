@@ -12,7 +12,6 @@ require "action_view/railtie"
 module ActionController
   class Railtie < Rails::Railtie # :nodoc:
     config.action_controller = ActiveSupport::OrderedOptions.new
-    config.action_controller.raise_on_open_redirects = false
     config.action_controller.action_on_open_redirect = :log
     config.action_controller.action_on_path_relative_redirect = :log
     config.action_controller.log_query_tags_around_actions = true
@@ -107,11 +106,16 @@ module ActionController
 
     initializer "action_controller.open_redirects" do |app|
       ActiveSupport.on_load(:action_controller, run_once: true) do
-        if app.config.action_controller.raise_on_open_redirects != nil
+        if app.config.action_controller.has_key?(:raise_on_open_redirects)
           ActiveSupport.deprecator.warn(<<~MSG.squish)
             `raise_on_open_redirects` is deprecated and will be removed in a future Rails version.
             Use `config.action_controller.action_on_open_redirect = :raise` instead.
           MSG
+
+          # Fallback to the default behavior in case of `load_default` set `action_on_open_redirect`, but apps set `raise_on_open_redirects`.
+          if app.config.action_controller.raise_on_open_redirects == false && app.config.action_controller.action_on_open_redirect == :raise
+            self.action_on_open_redirect = :log
+          end
         end
       end
     end
@@ -129,15 +133,7 @@ module ActionController
           ActiveRecord::QueryLogs.taggings = ActiveRecord::QueryLogs.taggings.merge(
             controller:            ->(context) { context[:controller]&.controller_name },
             action:                ->(context) { context[:controller]&.action_name },
-            namespaced_controller: ->(context) {
-              if context[:controller]
-                controller_class = context[:controller].class
-                # based on ActionController::Metal#controller_name, but does not demodulize
-                unless controller_class.anonymous?
-                  controller_class.name.delete_suffix("Controller").underscore
-                end
-              end
-            }
+            namespaced_controller: ->(context) { context[:controller]&.controller_path }
           )
         end
       end
@@ -146,6 +142,12 @@ module ActionController
     initializer "action_controller.test_case" do |app|
       ActiveSupport.on_load(:action_controller_test_case) do
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
+      end
+    end
+
+    initializer "action_controller.backtrace_cleaner" do
+      ActiveSupport.on_load(:action_controller) do
+        ActionController::LogSubscriber.backtrace_cleaner = Rails.backtrace_cleaner
       end
     end
   end

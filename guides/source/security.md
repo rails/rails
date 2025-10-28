@@ -145,6 +145,9 @@ the `/passwords/new` path and routes to the passwords controller. The `new`
 method of the `PasswordsController` class runs through the flow for sending a
 password reset email.
 
+The link is valid for 15 minutes by default, but this can be configured with
+`has_secure_password`.
+
 The mailers for *reset password* are also set up by the generator at
 `app/mailers/password_mailer.rb` and render the following email to send to the
 user:
@@ -178,6 +181,12 @@ class User < ApplicationRecord
   normalizes :email_address, with: -> e { e.strip.downcase }
 end
 ```
+
+NOTE: `has_secure_password` adds the following validations automatically:<br/><br/>
+- Password must be present on creation<br/>
+- Password length should be less than or equal to 72 bytes<br/>
+- Confirmation of password (using a XXX_confirmation attribute)<br/><br/>
+However it doesn't validate the minimum length or the complexity of the password, you need to define validation for those yourself.
 
 #### `authenticate_by`
 
