@@ -26,7 +26,7 @@ If you're used to using raw SQL to find database records, then you will generall
 Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
 
-A Bookstore Example Model
+A Bookstore Model Example
 -------------------------
 
 Code examples throughout this guide will refer to one or more of the following models:
