@@ -1422,28 +1422,6 @@ of items like an index page.
 To use this partial in our `app/views/products/new.html.erb` view, we can
 replace the form with a render call:
 
-```erb#3
-<h1>New product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", products_path %>
-```
-
-The edit view becomes almost the exact same thing thanks to the form partial.
-Let's create `app/views/products/edit.html.erb` with the following:
-
-```erb#3
-<h1>Edit product</h1>
-
-<%= render "form", product: @product %>
-<%= link_to "Cancel", @product %>
-```
-
-To learn more about view partials, check out the
-[Action View Guide](action_view_overview.html).
-
-Now we can add an Edit link to `app/views/products/show.html.erb`:
-
 ```erb#4
 <%# app/views/products/new.html.erb %>
 <h1>New product</h1>
