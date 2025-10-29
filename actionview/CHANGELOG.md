@@ -1,3 +1,8 @@
+*   Add ability to pass a block when rendering collection. The block will be executed for each rendered element in the collection.
+
+    *Vincent Robert*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   Respect `remove_hidden_field_autocomplete` config in form builder `hidden_field`.
