@@ -988,11 +988,10 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
     Money.new(hash["amount"], hash["currency"])
   end
 
-  private
-    # Checks if an argument should be serialized by this serializer.
-    def klass
-      Money
-    end
+  # Checks if an argument should be serialized by this serializer.
+  def klass
+    Money
+  end
 end
 ```
 
