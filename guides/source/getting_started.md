@@ -2961,16 +2961,119 @@ No warnings found
 
 Learn more about [Securing Rails Applications](security.html)
 
-Continuous Integration with GitHub Actions
+Continuous Integration with `bin/ci`
 ------------------------------------------
 
-Rails apps generate a `.github` folder that includes a prewritten GitHub Actions
-configuration that runs rubocop, brakeman, and our test suite.
+Rails applications include a `bin/ci` script that runs all essential checks for
+your app: setup, code style (RuboCop), security audits, and tests. The steps
+are defined in `config/ci.rb` and can be customized for your project.
 
-When we push our code to a GitHub repository with GitHub Actions enabled, it
-will automatically run these steps and report back success or failure for each.
-This allows us to monitor our code changes for defects and issues and ensure
-consistent quality for our work.
+This script prints each step as it runs, showing ✅ for success and ❌ for
+failures. If any step fails, `bin/ci` exits with a nonzero status.
+
+To use a CI Provider, point your pipeline to `bin/ci`. This ensures consistent
+checks locally and in CI.
+
+To run it locally, call the script from your command line:
+
+```bash
+$ bin/ci
+Continuous Integration
+Running tests, style checks, and security audits
+
+
+Setup
+bin/setup --skip-server
+
+== Installing dependencies ==
+The Gemfile's dependencies are satisfied
+
+== Preparing database ==
+
+== Removing old logs and tempfiles ==
+
+✅ Setup passed in 2.11s
+
+
+Style: Ruby
+bin/rubocop
+
+Inspecting 25 files
+.........................
+
+25 files inspected, no offenses detected
+
+✅ Style: Ruby passed in 1.17s
+# ...
+✅ Continuous Integration passed in 8.91s
+```
+
+### CI Steps DSL
+
+The file is written in a DSL that makes it straightforward to manage steps, here
+we add another step to check to make sure we don't leave any TODOs behind in
+the code in `config/ci.rb`:
+
+```ruby#6-7
+# config/ci.rb
+CI.run do
+  step "Setup", "bin/setup --skip-server"
+
+  step "Style: Ruby", "bin/rubocop"
+  step "Check: No TODOs",
+        "if grep -r TODO app/; then exit 1; fi"
+  # ...
+end
+```
+
+To test this out, I added a todo comment at the start of a random file, here
+the `ApplicationController`:
+
+```ruby
+# app/controllers/application_controller.rb
+# TODO: Remove this todo
+class ApplicationController < ActionController::Base
+# ...
+```
+
+Now when I run it on the CI:
+
+```bash
+$ bin/ci
+# ...
+Check: No TODOs
+if grep -r TODO app/; then exit 1; fi
+
+app/controllers/application_controller.rb:# TODO: Remove this todo
+
+❌ Check: No TODOs failed in 0.01s
+# ...
+❌ Continuous Integration failed in 9.09s
+```
+
+To verify, remove the comment:
+
+```ruby
+# app/controllers/application_controller.rb
+class ApplicationController < ActionController::Base
+# ...
+```
+
+and `bin/ci` should now pass:
+
+```bash
+$ bin/ci
+# ...
+Check: No TODOs
+if grep -r TODO app/; then exit 1; fi
+
+
+✅ Check: No TODOs passed in 0.01s
+# ...
+✅ Continuous Integration passed in 8.91s
+```
+
+To learn more about the DSL, read the documentation for [ActiveSupport::ContinuousIntegration](https://www.rubydoc.info/github/rails/rails/main/ActiveSupport/ContinuousIntegration).
 
 Deploying to Production
 -----------------------
