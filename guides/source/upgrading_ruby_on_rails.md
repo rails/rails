@@ -114,13 +114,16 @@ version, it's because the value for `config.load_defaults` in
 
 To allow you to upgrade to new defaults one by one, the [update task](#the-update-task) has created
 a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired
-Rails version in the filename). You should enable the new configuration defaults
+Rails version in the filename, e.g. `new_framework_defaults_6_0.rb`). You should enable the new configuration defaults
 by uncommenting them in the file; this can be done gradually over several
 deployments. Once your application is ready to run with new defaults, you can
-remove this file and flip the `config.load_defaults` value.
+remove this file and bump the `config.load_defaults` value.
 
 Upgrading from Rails 8.1 to Rails 8.2
 -------------------------------------
+
+TIP: Consider using the [update task](#the-update-task) to help you manage the
+changes in an interactive session.
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
@@ -254,17 +257,16 @@ changes in an interactive session.
 For more information on changes made to Rails 7.1 please see the [release
 notes](7_1_release_notes.html).
 
-### Development and test environments secret_key_base file changed
+### `secret_key_base` file updates
 
-In development and test environments, the file from which Rails reads the
-`secret_key_base` has been renamed from `tmp/development_secret.txt` to
-`tmp/local_secret.txt`.
+In development and test environments, Rails now reads the `secret_key_base` from a file named
+`tmp/local_secret.txt`, instead of `tmp/development_secret.txt`.
 
-You can simply rename the previous file to `local_secret.txt` to continue using
+You can rename the previous file to `local_secret.txt` to continue using
 the same secret, or copy the key from the previous file to the new one.
 
-Failure to do so will cause Rails to generate a new secret key in the new file
-`tmp/local_secret.txt` when the app loads.
+If Rails does not find a file called `tmp/local_secret.txt`, then it will generate a
+new secret key and store it in the new file.
 
 This will invalidate all existing sessions/cookies in development and test
 environments, and also cause other signatures derived from `secret_key_base` to
@@ -374,21 +376,21 @@ the `ActiveStorage::Streaming` module.
 ### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
 
 The `connection_pool` gem has been added as a dependency of the `activesupport`
-gem, and the `MemCacheStore` and `RedisCacheStore` now use connection pooling by
+gem, and as a result the `MemCacheStore` and `RedisCacheStore` now use connection pooling by
 default.
 
-If you don't want to use connection pooling, set `:pool` option to `false` when
+If you don't want to use connection pooling, set the `:pool` option to `false` when
 configuring your cache store:
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
 ```
 
-See the [caching with
+See the [Caching with
 Rails](https://guides.rubyonrails.org/v7.1/caching_with_rails.html#connection-pool-options)
 guide for more information.
 
-### `SQLite3Adapter` now configured to be used in a strict strings mode
+### `SQLite3Adapter` is configured to be used in a strict strings mode
 
 The use of a strict strings mode disables double-quoted string literals.
 
@@ -400,7 +402,7 @@ column. See [SQLite
 documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted)
 for more details.
 
-If you don't want to use `SQLite3Adapter` in a strict mode, you can disable this
+If you don't want to use the `SQLite3Adapter` in a strict mode, you can disable this
 behavior:
 
 ```ruby
@@ -410,7 +412,7 @@ config.active_record.sqlite3_adapter_strict_strings_by_default = false
 
 ### Support multiple preview paths for `ActionMailer::Preview`
 
-Option `config.action_mailer.preview_path` is deprecated in favor of
+The `config.action_mailer.preview_path` option is deprecated in favor of
 `config.action_mailer.preview_paths`. Appending paths to this configuration
 option will cause those paths to be used in the search for mailer previews.
 
@@ -418,10 +420,9 @@ option will cause those paths to be used in the search for mailer previews.
 config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 ```
 
-### `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
+### `config.i18n.raise_on_missing_translations = true` raises on any missing translation.
 
-Previously it would only raise when called in a view or controller. Now it will
-raise anytime `I18n.t` is provided an unrecognized key.
+Previously `config.i18n.raise_on_missing_translations = true` would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognized key.
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = true
@@ -455,7 +456,7 @@ See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-differe
 removed. This was a private API, if you were relying on it you should migrate to
 `config.i18n.raise_on_missing_translations` or to a custom exception handler.
 
-### `bin/rails test` now runs `test:prepare` task
+### `bin/rails test` runs `test:prepare` task
 
 When running tests via `bin/rails test`, the `rake test:prepare` task will run
 before tests run. If you've enhanced the `test:prepare` task, your enhancements
@@ -467,11 +468,11 @@ Applications](https://guides.rubyonrails.org/testing.html#running-tests-in-conti
 guide for more information.
 
 If you run a single file's tests (`bin/rails test test/models/user_test.rb`),
-`test:prepare` will not run before it.
+`test:prepare` will not run.
 
 ### Import syntax from `@rails/ujs` is modified
 
-Starting from Rails 7.1, the syntax for importing modules from `@rails/ujs` is
+As of Rails 7.1, the syntax for importing modules from `@rails/ujs` is
 modified. Rails no longer supports the direct import of a module from
 `@rails/ujs`.
 
@@ -497,8 +498,8 @@ Rails.fileInputSelector(...)
 
 ### `Rails.logger` now returns an `ActiveSupport::BroadcastLogger` instance
 
-The `ActiveSupport::BroadcastLogger` class is a new logger that allows to
-broadcast logs to different sinks (STDOUT, a log file...) in an easy way.
+The `ActiveSupport::BroadcastLogger` class is a new logger that makes it easy to
+broadcast logs to multiple destinations, such as STDOUT or a log file.
 
 The API to broadcast logs (using the `ActiveSupport::Logger.broadcast` method)
 was removed and was previously private. If your application or library was
@@ -573,7 +574,7 @@ guide for more information on
 
 In addition, a new configuration
 [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](configuring.html#config-active-record-encryption-support-sha1-for-non-deterministic-encryption)
-was introduced to resolve [a bug](https://github.com/rails/rails/issues/42922)
+has been introduced to resolve [a bug](https://github.com/rails/rails/issues/42922)
 that caused some attributes to be encrypted using SHA-1 even when SHA-256 was
 configured via the aforementioned `hash_digest_class` configuration.
 
@@ -673,7 +674,7 @@ for details.
 
 ### The setter `config.autoloader=` has been deleted
 
-In Rails 7 there is no configuration point to set the autoloading mode,
+In Rails 7, there is no configuration point to set the autoloading mode,
 `config.autoloader=` has been deleted. If you had it set to `:zeitwerk` for
 whatever reason, just remove it.
 
@@ -766,10 +767,10 @@ processed and are getting `FrozenError`, please just move the code.
 ### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
 Previously, `ActionDispatch::Request#content_type` returned value does NOT
-contain charset part. This behavior changed to returned Content-Type header
-containing charset part as it is.
+contain the charset part. This behavior changed to returned Content-Type header
+containing the charset part as it is.
 
-If you want just MIME type, please use `ActionDispatch::Request#media_type`
+If you want to use just MIME type, please use `ActionDispatch::Request#media_type`
 instead.
 
 Before:
@@ -793,7 +794,7 @@ The default digest class for the key generator is changing from SHA1 to SHA256.
 This has consequences in any encrypted message generated by Rails, including
 encrypted cookies.
 
-In order to be able to read messages using the old digest class it is necessary
+In order to be able to read messages using the old digest class, it is necessary
 to register a rotator. Failing to do so may result in users having their
 sessions invalidated during the upgrade.
 
