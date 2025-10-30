@@ -1896,15 +1896,6 @@ irb> author.books.out_of_print
 => #<ActiveRecord::Relation> # all out of print books by `author`
 ```
 
-Scopes are also chainable within scopes:
-
-```ruby
-class Book < ApplicationRecord
-  scope :out_of_print, -> { where(out_of_print: true) }
-  scope :out_of_print_and_expensive, -> { out_of_print.where("price > 500") }
-end
-```
-
 [`scope`]: https://api.rubyonrails.org/classes/ActiveRecord/Scoping/Named/ClassMethods.html#method-i-scope
 
 ### Passing in Arguments
@@ -1937,6 +1928,18 @@ These methods will still be accessible on the association objects:
 
 ```irb
 irb> author.books.costs_more_than(100.10)
+```
+
+### Chaining Scopes
+
+You can chain small, reusable scopes to build more specific queries:
+
+```ruby
+class Book < ApplicationRecord
+  scope :out_of_print, -> { where(out_of_print: true) }
+  scope :costs_more_than, ->(amount) { where("price > ?", amount) }
+  scope :out_of_print_and_expensive, -> { out_of_print.costs_more_than(500) }
+end
 ```
 
 ### Using Conditionals
