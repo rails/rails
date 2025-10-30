@@ -220,7 +220,7 @@ module ActiveRecord
     end
 
     private
-      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: false, **options)
+      def _enum(name, values, prefix: nil, suffix: nil, scopes: true, instance_methods: true, validate: ActiveRecord.validate_enums_by_default, **options)
         values = assert_valid_enum_definition_values(values)
         assert_valid_enum_options(options)
 
