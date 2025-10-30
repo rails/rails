@@ -74,12 +74,12 @@ module ActiveSupport
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
       heading title, command.join(" "), type: :title
-      report(title) { results << system(*command) }
+      report(title) { results << [ system(*command), title ] }
     end
 
     # Returns true if all steps were successful.
     def success?
-      results.all?
+      results.map(&:first).all?
     end
 
     # Display an error heading with the title and optional subtitle to reflect that the run failed.
@@ -123,11 +123,29 @@ module ActiveSupport
         echo "\n✅ #{title} passed in #{elapsed}", type: :success
       else
         echo "\n❌ #{title} failed in #{elapsed}", type: :error
+
+        if ci.multiple_results?
+          ci.failures.each do |success, title|
+            unless success
+              echo "   ↳ #{title} failed", type: :error
+            end
+          end
+        end
       end
 
       results.concat ci.results
     ensure
       Signal.trap("INT", "-")
+    end
+
+    # :nodoc:
+    def failures
+      results.reject(&:first)
+    end
+
+    # :nodoc:
+    def multiple_results?
+      results.size > 1
     end
 
     private
