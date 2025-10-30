@@ -23,6 +23,29 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
     assert_match "system_test: true", output
     assert_match "node: false", output
     assert_match "kamal: false", output
+
+    assert_compose_file do |content|
+      assert_equal "app_template", content["name"]
+
+      expected_rails_app_config = {
+        "build" => {
+          "context" => "..",
+          "dockerfile" => ".devcontainer/Dockerfile"
+        },
+        "volumes" => ["../../app:/workspaces/app:cached"],
+        "command" => "sleep infinity",
+        "depends_on" => ["selenium"]
+      }
+
+      assert_equal expected_rails_app_config, content["services"]["rails-app"]
+
+      expected_selenium_config = {
+        "image" => "selenium/standalone-chromium",
+        "restart" => "unless-stopped",
+      }
+
+      assert_equal expected_selenium_config, content["services"]["selenium"]
+    end
   end
 
   test "generates dev container for without solid gems" do
@@ -50,5 +73,10 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
   private
     def read_file(relative)
       File.read(app_path(relative))
+    end
+
+    def assert_compose_file
+      content = read_file(".devcontainer/compose.yaml")
+      yield YAML.load(content)
     end
 end
