@@ -1,3 +1,7 @@
+*   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
+
+    *Mike Dalessio*
+
 *   Introduce `ActiveSupport::EventReporter::LogSubscriber` structured event logging.
 
     ```ruby

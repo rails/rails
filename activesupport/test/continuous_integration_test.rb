@@ -42,6 +42,32 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_not @CI.success?
   end
 
+  test "report with successful and failed steps combined presents a failure summary" do
+    output = capture_io do
+      @CI.report("CI") do
+        step "Success!", "true"
+        step "Failed!", "false"
+        step "Also success!", "true"
+        step "Also failed!", "false"
+      end
+    end.to_s
+
+    assert_no_match(/↳ Success/, output)
+    assert_no_match(/↳ Also success/, output)
+    assert_match(/↳ Failed! failed/, output)
+    assert_match(/↳ Also failed! failed/, output)
+  end
+
+  test "report with only one failing step does not print a failure summary" do
+    output = capture_io do
+      @CI.report("CI") do
+        step "Failed!", "false"
+      end
+    end.to_s
+
+    assert_no_match(/↳ Failed/, output)
+  end
+
   test "echo uses terminal coloring" do
     output = capture_io { @CI.echo "Hello", type: :success }.first.to_s
     assert_equal "\e[1;32mHello\e[0m\n", output
