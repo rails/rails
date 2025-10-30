@@ -178,6 +178,14 @@ This will invalidate all existing sessions/cookies in development and test envir
 
 Production and other environments are not affected.
 
+### New ActiveSupport::Cache serialization format
+
+A new 7.1 cache format is available which includes an optimization for bare string values such as view fragments.
+
+The 7.1 cache format is used by default for new apps, and existing apps can enable the format by setting `config.load_defaults 7.1` or by setting `config.active_support.cache_format_version = 7.1` in `config/application.rb` or a `config/environments/*.rb` file.
+
+Cache entries written using the 6.1 or 7.0 cache formats can be read when using the 7.1 format. To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have not yet been upgraded must be able to read caches from upgraded servers, leave the cache format unchanged on the first deploy, then enable the 7.1 cache format on a subsequent deploy.
+
 ### Autoloaded paths are no longer in $LOAD_PATH
 
 Starting from Rails 7.1, the directories managed by the autoloaders are no
