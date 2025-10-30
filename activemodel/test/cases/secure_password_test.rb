@@ -28,7 +28,7 @@ class CustomAlgorithm
   end
 end
 
-class UserWithCustomAlgorithim < User
+class UserWithCustomAlgorithm < User
   has_secure_password algorithm: CustomAlgorithm.new
 end
 
