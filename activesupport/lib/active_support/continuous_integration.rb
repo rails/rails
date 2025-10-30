@@ -57,6 +57,7 @@ module ActiveSupport
         ENV["CI"] = "true"
         ci.heading title, subtitle, padding: false
         ci.report(title, &block)
+        ci.summary
         abort unless ci.success?
       end
     end
@@ -74,12 +75,12 @@ module ActiveSupport
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
       heading title, command.join(" "), type: :title
-      report(title) { results << system(*command) }
+      report(title) { results << [ system(*command), title ] }
     end
 
     # Returns true if all steps were successful.
     def success?
-      results.all?
+      results.map(&:first).all?
     end
 
     # Display an error heading with the title and optional subtitle to reflect that the run failed.
@@ -110,6 +111,20 @@ module ActiveSupport
     # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
     def echo(text, type:)
       puts colorize(text, type)
+    end
+
+    def summary
+      return if results.empty?
+
+      heading "Summary", type: (success? ? :success : :error), padding: true
+
+      results.each do |success, title|
+        if success
+          echo "  ✅ PASS  #{title}", type: :success
+        else
+          echo "  ❌ FAIL  #{title}", type: :error
+        end
+      end
     end
 
     # :nodoc:
