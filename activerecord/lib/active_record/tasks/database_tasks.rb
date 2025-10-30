@@ -272,7 +272,19 @@ module ActiveRecord
             migration.version == version
           end
         end.tap do |migrations_ran|
-          Migration.write("No migrations ran. (using #{scope} scope)") if scope.present? && migrations_ran.empty?
+          if migrations_ran.empty?
+            version = migration_connection_pool.migration_context.current_version
+            text = if scope.present?
+              "No migrations ran. (using #{scope} scope)"
+            elsif version.nil? || version.zero?
+              "No migrations ran."
+            else
+              "#{version}: schema version already up to date."
+            end
+
+            message_length = [0, 75 - text.length].max
+            Migration.write("== %s %s" % [text, "=" * message_length])
+          end
         end
 
         migration_connection_pool.schema_cache.clear!
