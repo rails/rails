@@ -1793,17 +1793,32 @@ The salt used when deriving keys. It's preferred to configure it via the `active
 
 #### `config.active_record.encryption.forced_encoding_for_deterministic_encryption`
 
-The default encoding for attributes encrypted deterministically. You can disable forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
+The default encoding for attributes encrypted deterministically. You can disable
+forced encoding by setting this option to `nil`. It's `Encoding::UTF_8` by default.
 
 #### `config.active_record.encryption.hash_digest_class`
 
-The digest algorithm used to derive keys. Default is `OpenSSL::Digest::SHA256`.
+Sets the digest algorithm used by Active Record Encryption.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is      |
+| --------------------- | ------------------------- |
+| (original)            | `OpenSSL::Digest::SHA1`   |
+| 7.1                   | `OpenSSL::Digest::SHA256` |
 
 #### `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
 
-Supports decrypting data encrypted non-deterministically with a digest class
-SHA1. The default is false, which means it will only support the digest
-algorithm configured in `config.active_record.encryption.hash_digest_class`.
+Enables support for decrypting existing data encrypted using a SHA-1 digest
+class. When `false`, it will only support the digest configured in
+`config.active_record.encryption.hash_digest_class`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `true`               |
+| 7.1                   | `false`              |
 
 #### `config.active_record.encryption.compressor`
 
