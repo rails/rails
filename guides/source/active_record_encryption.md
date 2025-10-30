@@ -129,11 +129,6 @@ my-app(dev)> Article.first
     updated_at: Fri, 12 Sep 2025 16:57:45.753372000 UTC +00:00>
 ```
 
-NOTE: Encryption requires extra storage space because the encrypted value will
-be larger than the original value. This overhead is negligible at larger sizes.
-Active Record Encryption has compression enabled by default, which can offer up
-to 30% storage savings over the unencrypted version for larger payloads.
-
 ### Important: Storage Considerations
 
 Encrypted data takes more storage because Active Record Encryption stores
