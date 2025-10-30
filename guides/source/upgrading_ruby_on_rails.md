@@ -550,10 +550,8 @@ consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
     ```
 
-    If all of your data was encrypted non-deterministicly (the default unless
-    `encrypts` is passed `deterministic: true`), you can instead configure
-    SHA-256 for Active Record Encryption as in scenario 2 below and also allow
-    columns previously encrypted with SHA-1 to be decrypted by setting:
+    If all of your data was encrypted non-deterministicly (this was the default unless
+    `encrypts` is passed `deterministic: true`), you can configure Active Record Encryption to use SHA-256 as shown in scenario 2 below, while still allowing columns previously encrypted with SHA-1 to be decrypted by setting:
 
     ```ruby
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
@@ -766,8 +764,7 @@ processed and are getting `FrozenError`, please just move the code.
 
 ### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
-Previously, `ActionDispatch::Request#content_type` returned value does NOT
-contain the charset part. This behavior changed to returned Content-Type header
+Previously, the `ActionDispatch::Request#content_type` returned value has not contained the charset part. This behavior changed to return the Content-Type header
 containing the charset part as it is.
 
 If you want to use just MIME type, please use `ActionDispatch::Request#media_type`
@@ -826,10 +823,8 @@ end
 
 ### Digest class for ActiveSupport::Digest changing to SHA256
 
-The default digest class for ActiveSupport::Digest is changing from SHA1 to
-SHA256. This has consequences for things like Etags that will change and cache
-keys as well. Changing these keys can have impact on cache hit rates, so be
-careful and watch out for this when upgrading to the new hash.
+The default digest class for `ActiveSupport::Digest` is changing from SHA1 to
+SHA256. This affects values such as Etags and cache keys, which will also change. Since altering these keys can impact cache hit rates, monitor your application when upgrading to the new hash.
 
 ### New ActiveSupport::Cache serialization format
 
@@ -852,7 +847,7 @@ Or simply:
 config.load_defaults 7.0
 ```
 
-However Rails 6.1 applications are not able to read this new serialization
+Rails 6.1 applications are not able to read this new serialization
 format, so to ensure a seamless upgrade you must first deploy your Rails 7.0
 upgrade with `config.active_support.cache_format_version = 6.1`, and then only
 once all Rails processes have been updated you can set
@@ -864,7 +859,7 @@ the upgrade.
 ### Active Storage video preview image generation
 
 Video preview image generation now uses FFmpeg's scene change detection to
-generate more meaningful preview images. Previously the first frame of the video
+generate meaningful preview images. Previously, the first frame of the video
 would be used and that caused problems if the video faded in from black. This
 change requires FFmpeg v3.4+.
 
@@ -983,9 +978,7 @@ GIF
 
 #### Deploy to production
 
-Active Storage encodes into the url for the image the list of transformations
-that must be performed. If your app is caching these urls, your images will
-break after you deploy the new code to production. Because of this you must
+Active Storage encodes the list of image transformations directly into the image URL. If your application caches these URLs, the images may no longer load correctly after deploying new code to production. To address this, you'll need to
 manually invalidate your affected cache keys.
 
 For example, if you have something like this in a view:
@@ -1011,9 +1004,9 @@ cache key:
 
 ### Rails version is now included in the Active Record schema dump
 
-Rails 7.0 changed some default values for some column types. To avoid that
-application upgrading from 6.1 to 7.0 load the current schema using the new 7.0
-defaults, Rails now includes the version of the framework in the schema dump.
+Rails 7.0 changed the default values for certain column types. To ensure that
+applications upgrading from 6.1 to 7.0 don't load their current schema using the new
+defaults, Rails now records the framework version in the schema dump.
 
 Before loading the schema for the first time in Rails 7.0, make sure to run
 `bin/rails app:update` to ensure that the version of the schema is included in
@@ -1206,47 +1199,21 @@ found [in this PR](https://github.com/rails/rails/pull/32313).
 Upgrading Versions before 6.0
 -----------------------------
 
-### Upgrading Rails 5.2 to 6.0
-
-Please see this guide for help [upgrading Rails 5.2 to
+- [Upgrading Rails 5.2 to
 6.0](upgrading_from_rails_5.2_to_6.0.html).
-
-### Upgrading Rails 5.1 to 5.2
-
-Please see this guide for help [upgrading Rails 5.1 to
+- [Upgrading Rails 5.1 to
 5.2](upgrading_from_rails_5.1_to_5.2.html).
-
-### Upgrading Rails 5.0 to 5.1
-
-Please see this guide for help [upgrading Rails 5.0 to
+- [Upgrading Rails 5.0 to
 5.1](upgrading_from_rails_5.0_to_5.1.html).
-
-### Upgrading Rails 4.2 to 5.0
-
-Please see this guide for help [upgrading Rails 4.2 to
+- [Upgrading Rails 4.2 to
 5.0](upgrading_from_rails_4.2_to_5.0.html).
-
-### Upgrading Rails 4.1 to 4.2
-
-Please see this guide for help [upgrading Rails 4.1 to
+- [Upgrading Rails 4.1 to
 4.2](upgrading_from_rails_4.1_to_4.2.html).
-
-### Upgrading Rails 4.0 to 4.1
-
-Please see this guide for help [upgrading Rails 4.0 to
+- [Upgrading Rails 4.0 to
 4.1](upgrading_from_rails_4.0_to_4.1.html).
-
-### Upgrading Rails 3.2 to 4.0
-
-Please see this guide for help [upgrading Rails 3.2 to
+- [Upgrading Rails 3.2 to
 4.0](upgrading_from_rails_3.2_to_4.0.html).
-
-### Upgrading Rails 3.1 to 3.2
-
-Please see this guide for help [upgrading Rails 3.1 to
+- [Upgrading Rails 3.1 to
 3.2](upgrading_from_rails_3.1_to_3.2.html).
-
-### Upgrading Rails 3.0 to 3.1
-
-Please see this guide for help [upgrading Rails 3.0 to
+- [Upgrading Rails 3.0 to
 3.1](upgrading_from_rails_3.1_to_3.2.html).
