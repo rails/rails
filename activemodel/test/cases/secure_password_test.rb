@@ -379,7 +379,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   end
 
   test "custom password algorithm is supported" do
-    user_with_diff_algo = UserWithCustomAlgorithim.new
+    user_with_diff_algo = UserWithCustomAlgorithm.new
 
     user_with_diff_algo.password = "secret"
     assert_equal "hashed-secret", user_with_diff_algo.password_digest
