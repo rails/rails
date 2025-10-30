@@ -12,16 +12,23 @@ release guides.
 General Advice
 --------------
 
-Upgrading an application can be a difficult process, so make sure you
-have a clear reason for doing so. Weigh up factors such as the need for
-new features, gem compatibility, the decreasing availability of support
-for older code and the time and skills you have available.
+Upgrading an application can be a difficult process, so make sure you have a
+clear reason for doing so. Weigh up factors such as the need for new features,
+gem compatibility, the decreasing availability of support for older code and the
+time and skills you have available.
 
-Newer Rails versions introduce new features and improvements, so keeping your application up to date with maintained versions will ensure it receives these benefits.
+Newer Rails versions introduce new features and improvements, so keeping your
+application up to date with maintained versions will ensure it receives these
+benefits.
 
 ### Test Coverage
 
-The best way to be sure that your application still works after an upgrade is to have strong test coverage in place before you begin. Without automated tests that cover most of your application, you’ll need to manually verify every part that might be affected. For a Rails upgrade, that could mean testing nearly all functionality. Having solid test coverage in advance will make the upgrade process much smoother.
+The best way to be sure that your application still works after an upgrade is to
+have strong test coverage in place before you begin. Without automated tests
+that cover most of your application, you’ll need to manually verify every part
+that might be affected. For a Rails upgrade, that could mean testing nearly all
+functionality. Having solid test coverage in advance will make the upgrade
+process much smoother.
 
 ### Ruby Versions
 
@@ -36,14 +43,17 @@ at the time. For example:
 * Rails 5 requires Ruby 2.2.2 or newer.
 
 It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest
-Ruby you can first, and then upgrade Rails. Refer to your Ruby package manager for instructions on how to update your Ruby version based on your operating system.
+Ruby you can first, and then upgrade Rails. Refer to your Ruby package manager
+for instructions on how to update your Ruby version based on your operating
+system.
 
 ### The Upgrade Process
 
 When changing Rails versions, it's best to move slowly, one minor version at a
 time, in order to make good use of the deprecation warnings. Rails version
-numbers are in the form Major.Minor.Patch. Major and Minor versions can include changes to the public API, so this may cause errors in your application.
-Patch versions only include bug fixes, and don't change the public API.
+numbers are in the form Major.Minor.Patch. Major and Minor versions can include
+changes to the public API, so this may cause errors in your application. Patch
+versions only include bug fixes, and don't change the public API.
 
 The recommended upgrade process is as follows:
 
@@ -60,8 +70,13 @@ To move between versions:
 
 1. Change the Rails version number in the `Gemfile` and run `bundle update
    rails`.
-2. If you are using import maps via [importmap-rails](https://github.com/rails/importmap-rails), update any pinned Javascript packages if required by running `bin/importmap pin <package-name>`.
-3. If you are using traditional Javascript bundling instead (using jsbundling-rails) change the versions for Rails JavaScript packages in `package.json` and run `bin/rails javascript:install`.
+2. If you are using import maps via
+   [importmap-rails](https://github.com/rails/importmap-rails), update any
+   pinned Javascript packages if required by running `bin/importmap pin
+   <package-name>`.
+3. If you are using traditional Javascript bundling instead (using
+   jsbundling-rails) change the versions for Rails JavaScript packages in
+   `package.json` and run `bin/rails javascript:install`.
 3. Run the [Update task](#the-update-task).
 4. Run your tests.
 
@@ -84,8 +99,8 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 ...
 ```
 
-You should review the difference to see if there were any unexpected
-changes. Note that the tools used during this process can be defined using the
+You should review the difference to see if there were any unexpected changes.
+Note that the tools used during this process can be defined using the
 `THOR_DIFF` and `THOR_MERGE` environment variables. For example:
 
 ```bash
@@ -101,8 +116,8 @@ $ bin/rails app:update
 ```
 
 NOTE: The `bin/rails app:update` command is only relevant when changing between
-minor level versions (e.g. 8.0 to 8.1) and not between patch level versions (e.g. 7.1.2 to
-7.1.3).
+minor level versions (e.g. 8.0 to 8.1) and not between patch level versions
+(e.g. 7.1.2 to 7.1.3).
 
 ### Configure Framework Defaults
 
@@ -112,12 +127,14 @@ application still runs with configuration defaults from the *previous* Rails
 version, it's because the value for `config.load_defaults` in
 `config/application.rb` has not been changed yet.
 
-To allow you to upgrade to new defaults one by one, the [update task](#the-update-task) has created
-a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired
-Rails version in the filename, e.g. `new_framework_defaults_6_0.rb`). You should enable the new configuration defaults
-by uncommenting them in the file; this can be done gradually over several
-deployments. Once your application is ready to run with new defaults, you can
-remove this file and bump the `config.load_defaults` value.
+To allow you to upgrade to new defaults one by one, the [update
+task](#the-update-task) has created a file
+`config/initializers/new_framework_defaults_X_Y.rb` (with the desired Rails
+version in the filename, e.g. `new_framework_defaults_6_0.rb`). You should
+enable the new configuration defaults by uncommenting them in the file; this can
+be done gradually over several deployments. Once your application is ready to
+run with new defaults, you can remove this file and bump the
+`config.load_defaults` value.
 
 Upgrading from Rails 8.1 to Rails 8.2
 -------------------------------------
@@ -125,7 +142,8 @@ Upgrading from Rails 8.1 to Rails 8.2
 TIP: Consider using the [update task](#the-update-task) to help you manage the
 changes in an interactive session.
 
-For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
+For more information on changes made to Rails 8.2 please see the [release
+notes](8_2_release_notes.html).
 
 ### The negative scopes for enums now include records with `nil` values.
 
@@ -160,7 +178,11 @@ notes](8_1_release_notes.html).
 
 ### The table columns inside `schema.rb` are now sorted alphabetically.
 
-Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
+Active Record now alphabetically sorts table columns in `schema.rb` by default,
+so dumps are consistent across machines and don’t flip-flop with migration order
+-- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve
+exact column order. [See #53281 for more details on alphabetizing schema
+changes.](https://github.com/rails/rails/pull/53281)
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
@@ -196,7 +218,9 @@ If no config is provided, the `TestAdapter` will continue to be used.
 
 ### `alias_attribute` now bypasses custom methods on the original attribute
 
-In Rails 7.2, `alias_attribute` now bypasses custom methods defined on the original attribute and directly accesses the underlying database value. This change was announced via deprecation warnings in Rails 7.1.
+In Rails 7.2, `alias_attribute` now bypasses custom methods defined on the
+original attribute and directly accesses the underlying database value. This
+change was announced via deprecation warnings in Rails 7.1.
 
 **Before (Rails 7.1):**
 
@@ -222,7 +246,9 @@ user.username
 # => "test@example.com"  # Raw database value
 ```
 
-If you received the deprecation warning "Since Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore", you should manually define the alias method:
+If you received the deprecation warning "Since Rails 7.2 `#{method_name}` will
+not be calling `#{target_name}` anymore", you should manually define the alias
+method:
 
 ```ruby
 class User < ActiveRecord::Base
@@ -259,14 +285,14 @@ notes](7_1_release_notes.html).
 
 ### `secret_key_base` file updates
 
-In development and test environments, Rails now reads the `secret_key_base` from a file named
-`tmp/local_secret.txt`, instead of `tmp/development_secret.txt`.
+In development and test environments, Rails now reads the `secret_key_base` from
+a file named `tmp/local_secret.txt`, instead of `tmp/development_secret.txt`.
 
-You can rename the previous file to `local_secret.txt` to continue using
-the same secret, or copy the key from the previous file to the new one.
+You can rename the previous file to `local_secret.txt` to continue using the
+same secret, or copy the key from the previous file to the new one.
 
-If Rails does not find a file called `tmp/local_secret.txt`, then it will generate a
-new secret key and store it in the new file.
+If Rails does not find a file called `tmp/local_secret.txt`, then it will
+generate a new secret key and store it in the new file.
 
 This will invalidate all existing sessions/cookies in development and test
 environments, and also cause other signatures derived from `secret_key_base` to
@@ -376,11 +402,11 @@ the `ActiveStorage::Streaming` module.
 ### `MemCacheStore` and `RedisCacheStore` now use connection pooling by default
 
 The `connection_pool` gem has been added as a dependency of the `activesupport`
-gem, and as a result the `MemCacheStore` and `RedisCacheStore` now use connection pooling by
-default.
+gem, and as a result the `MemCacheStore` and `RedisCacheStore` now use
+connection pooling by default.
 
-If you don't want to use connection pooling, set the `:pool` option to `false` when
-configuring your cache store:
+If you don't want to use connection pooling, set the `:pool` option to `false`
+when configuring your cache store:
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache.example.com", { pool: false }
@@ -402,8 +428,8 @@ column. See [SQLite
 documentation](https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted)
 for more details.
 
-If you don't want to use the `SQLite3Adapter` in a strict mode, you can disable this
-behavior:
+If you don't want to use the `SQLite3Adapter` in a strict mode, you can disable
+this behavior:
 
 ```ruby
 # config/application.rb
@@ -422,7 +448,9 @@ config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 
 ### `config.i18n.raise_on_missing_translations = true` raises on any missing translation.
 
-Previously `config.i18n.raise_on_missing_translations = true` would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognized key.
+Previously `config.i18n.raise_on_missing_translations = true` would only raise
+when called in a view or controller. Now it will raise anytime `I18n.t` is
+provided an unrecognized key.
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = true
@@ -449,8 +477,9 @@ I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 ```
 
-Alternatively, you can customize the `I18n.exception_handler`.
-See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
+Alternatively, you can customize the `I18n.exception_handler`. See the [i18n
+guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers)
+for more information.
 
 `AbstractController::Translation.raise_on_missing_translations` has been
 removed. This was a private API, if you were relying on it you should migrate to
@@ -472,9 +501,8 @@ If you run a single file's tests (`bin/rails test test/models/user_test.rb`),
 
 ### Import syntax from `@rails/ujs` is modified
 
-As of Rails 7.1, the syntax for importing modules from `@rails/ujs` is
-modified. Rails no longer supports the direct import of a module from
-`@rails/ujs`.
+As of Rails 7.1, the syntax for importing modules from `@rails/ujs` is modified.
+Rails no longer supports the direct import of a module from `@rails/ujs`.
 
 For example, attempting to import a function from the library will fail:
 
@@ -550,8 +578,10 @@ consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
     ```
 
-    If all of your data was encrypted non-deterministicly (this was the default unless
-    `encrypts` is passed `deterministic: true`), you can configure Active Record Encryption to use SHA-256 as shown in scenario 2 below, while still allowing columns previously encrypted with SHA-1 to be decrypted by setting:
+    If all of your data was encrypted non-deterministicly (this was the default
+    unless `encrypts` is passed `deterministic: true`), you can configure Active
+    Record Encryption to use SHA-256 as shown in scenario 2 below, while still
+    allowing columns previously encrypted with SHA-1 to be decrypted by setting:
 
     ```ruby
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
@@ -572,9 +602,10 @@ guide for more information on
 
 In addition, a new configuration
 [`config.active_record.encryption.support_sha1_for_non_deterministic_encryption`](configuring.html#config-active-record-encryption-support-sha1-for-non-deterministic-encryption)
-has been introduced to resolve [a bug](https://github.com/rails/rails/issues/42922)
-that caused some attributes to be encrypted using SHA-1 even when SHA-256 was
-configured via the aforementioned `hash_digest_class` configuration.
+has been introduced to resolve [a
+bug](https://github.com/rails/rails/issues/42922) that caused some attributes to
+be encrypted using SHA-1 even when SHA-256 was configured via the aforementioned
+`hash_digest_class` configuration.
 
 By default,
 `config.active_record.encryption.support_sha1_for_non_deterministic_encryption`
@@ -610,7 +641,12 @@ Rails 7.1 changes the acceptable values from `true` and `false` to `:all`,
   [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses)
 * `:none` (equivalent to `false`) - do not rescue from any exceptions
 
-Applications generated by Rails 7.1 or later set `config.action_dispatch.show_exceptions = :rescuable` in their `config/environments/test.rb`. When upgrading, existing applications can change `config.action_dispatch.show_exceptions = :rescuable` to utilize the new behavior, or replace the old values with the corresponding new ones (`:all` replaces `true`, `:none` replaces `false`).
+Applications generated by Rails 7.1 or later set
+`config.action_dispatch.show_exceptions = :rescuable` in their
+`config/environments/test.rb`. When upgrading, existing applications can change
+`config.action_dispatch.show_exceptions = :rescuable` to utilize the new
+behavior, or replace the old values with the corresponding new ones (`:all`
+replaces `true`, `:none` replaces `false`).
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
@@ -764,11 +800,12 @@ processed and are getting `FrozenError`, please just move the code.
 
 ### `ActionDispatch::Request#content_type` now returns Content-Type header as it is.
 
-Previously, the `ActionDispatch::Request#content_type` returned value has not contained the charset part. This behavior changed to return the Content-Type header
-containing the charset part as it is.
+Previously, the `ActionDispatch::Request#content_type` returned value has not
+contained the charset part. This behavior changed to return the Content-Type
+header containing the charset part as it is.
 
-If you want to use just MIME type, please use `ActionDispatch::Request#media_type`
-instead.
+If you want to use just MIME type, please use
+`ActionDispatch::Request#media_type` instead.
 
 Before:
 
@@ -824,7 +861,9 @@ end
 ### Digest class for ActiveSupport::Digest changing to SHA256
 
 The default digest class for `ActiveSupport::Digest` is changing from SHA1 to
-SHA256. This affects values such as Etags and cache keys, which will also change. Since altering these keys can impact cache hit rates, monitor your application when upgrading to the new hash.
+SHA256. This affects values such as Etags and cache keys, which will also
+change. Since altering these keys can impact cache hit rates, monitor your
+application when upgrading to the new hash.
 
 ### New ActiveSupport::Cache serialization format
 
@@ -847,10 +886,10 @@ Or simply:
 config.load_defaults 7.0
 ```
 
-Rails 6.1 applications are not able to read this new serialization
-format, so to ensure a seamless upgrade you must first deploy your Rails 7.0
-upgrade with `config.active_support.cache_format_version = 6.1`, and then only
-once all Rails processes have been updated you can set
+Rails 6.1 applications are not able to read this new serialization format, so to
+ensure a seamless upgrade you must first deploy your Rails 7.0 upgrade with
+`config.active_support.cache_format_version = 6.1`, and then only once all Rails
+processes have been updated you can set
 `config.active_support.cache_format_version = 7.0`.
 
 Rails 7.0 is able to read both formats so the cache won't be invalidated during
@@ -978,8 +1017,10 @@ GIF
 
 #### Deploy to production
 
-Active Storage encodes the list of image transformations directly into the image URL. If your application caches these URLs, the images may no longer load correctly after deploying new code to production. To address this, you'll need to
-manually invalidate your affected cache keys.
+Active Storage encodes the list of image transformations directly into the image
+URL. If your application caches these URLs, the images may no longer load
+correctly after deploying new code to production. To address this, you'll need
+to manually invalidate your affected cache keys.
 
 For example, if you have something like this in a view:
 
@@ -1005,8 +1046,8 @@ cache key:
 ### Rails version is now included in the Active Record schema dump
 
 Rails 7.0 changed the default values for certain column types. To ensure that
-applications upgrading from 6.1 to 7.0 don't load their current schema using the new
-defaults, Rails now records the framework version in the schema dump.
+applications upgrading from 6.1 to 7.0 don't load their current schema using the
+new defaults, Rails now records the framework version in the schema dump.
 
 Before loading the schema for the first time in Rails 7.0, make sure to run
 `bin/rails app:update` to ensure that the version of the schema is included in
@@ -1199,21 +1240,12 @@ found [in this PR](https://github.com/rails/rails/pull/32313).
 Upgrading Versions before 6.0
 -----------------------------
 
-- [Upgrading Rails 5.2 to
-6.0](upgrading_from_rails_5.2_to_6.0.html).
-- [Upgrading Rails 5.1 to
-5.2](upgrading_from_rails_5.1_to_5.2.html).
-- [Upgrading Rails 5.0 to
-5.1](upgrading_from_rails_5.0_to_5.1.html).
-- [Upgrading Rails 4.2 to
-5.0](upgrading_from_rails_4.2_to_5.0.html).
-- [Upgrading Rails 4.1 to
-4.2](upgrading_from_rails_4.1_to_4.2.html).
-- [Upgrading Rails 4.0 to
-4.1](upgrading_from_rails_4.0_to_4.1.html).
-- [Upgrading Rails 3.2 to
-4.0](upgrading_from_rails_3.2_to_4.0.html).
-- [Upgrading Rails 3.1 to
-3.2](upgrading_from_rails_3.1_to_3.2.html).
-- [Upgrading Rails 3.0 to
-3.1](upgrading_from_rails_3.1_to_3.2.html).
+- [Upgrading Rails 5.2 to 6.0](upgrading_from_rails_5.2_to_6.0.html).
+- [Upgrading Rails 5.1 to 5.2](upgrading_from_rails_5.1_to_5.2.html).
+- [Upgrading Rails 5.0 to 5.1](upgrading_from_rails_5.0_to_5.1.html).
+- [Upgrading Rails 4.2 to 5.0](upgrading_from_rails_4.2_to_5.0.html).
+- [Upgrading Rails 4.1 to 4.2](upgrading_from_rails_4.1_to_4.2.html).
+- [Upgrading Rails 4.0 to 4.1](upgrading_from_rails_4.0_to_4.1.html).
+- [Upgrading Rails 3.2 to 4.0](upgrading_from_rails_3.2_to_4.0.html).
+- [Upgrading Rails 3.1 to 3.2](upgrading_from_rails_3.1_to_3.2.html).
+- [Upgrading Rails 3.0 to 3.1](upgrading_from_rails_3.1_to_3.2.html).
