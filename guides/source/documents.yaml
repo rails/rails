@@ -263,6 +263,42 @@
       description: >
         This guide provides steps to be followed when you upgrade your
         applications to a newer version of Ruby on Rails.
+    - name: Upgrading Rails 5.2 to 6.0
+      url: upgrading_from_rails_5.2_to_6.0.html
+      description: >
+        Information to help you upgrade your Rails 5.2 application to Rails 6.0.
+    - name: Upgrading Rails 5.1 to 5.2
+      url: upgrading_from_rails_5_1_to_5_2.html
+      description: >
+        Information to help you upgrade your Rails 5.1 application to Rails 5.2
+    - name: Upgrading Rails 5.0 to 5.1
+      url: upgrading_from_rails_5_0_to_5_1.html
+      description: >
+        Information to help you upgrade your Rails 5.0 application to Rails 5.1
+    - name: Upgrading Rails 4.2 to 5.0
+      url: upgrading_from_rails_4_2_to_5_0.html
+      description: >
+        Information to help you upgrade your Rails 4.2 application to Rails 5.0
+    - name: Upgrading Rails 4.1 to 4.2
+      url: upgrading_from_rails_4_1_to_4_2.html
+      description: >
+        Information to help you upgrade your Rails 4.1 application to Rails 4.2
+    - name: Upgrading Rails 4.0 to 4.1
+      url: upgrading_from_rails_4_0_to_4_1.html
+      description: >
+        Information to help you upgrade your Rails 4.0 application to Rails 4.1
+    - name: Upgrading Rails 3.2 to 4.0
+      url: upgrading_from_rails_3_2_to_4_0.html
+      description: >
+        Information to help you upgrade your Rails 3.2 application to Rails 4.0
+    - name: Upgrading Rails 3.1 to 3.2
+      url: upgrading_from_rails_3_1_to_3_2.html
+      description: >
+        Information to help you upgrade your Rails 3.1 application to Rails 3.2
+    - name: Upgrading Rails 3.0 to 3.1
+      url: upgrading_from_rails_3_0_to_3_1.html
+      description: >
+        Information to help you upgrade your Rails 3.0 application to Rails 3.1
     - name: Version 8.2 - ?
       url: 8_2_release_notes.html
       description: Release notes for Rails 8.2.
