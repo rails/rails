@@ -124,36 +124,40 @@ module ActiveModel
       #   User.find_by_password_reset_token!(token)
       #
       # ===== Customizing the hashing algorithm
-
-      # class Argon2Password
-      #   def algorithm_name
-      #     :argon2
+      #
+      #   class Argon2Password
+      #     def initialize
+      #       require "argon2"
+      #     end
+      #
+      #     def algorithm_name
+      #       :argon2
+      #     end
+      #
+      #     def hash_password(unencrypted_password)
+      #       Argon2::Password.create(unencrypted_password)
+      #     end
+      #
+      #     def verify_password(password, digest)
+      #       Argon2::Password.verify_password(password, digest)
+      #     end
+      #
+      #     def password_salt(digest)
+      #       Argon2::HashFormat.new(digest).salt
+      #     end
+      #
+      #     def validate(_record, _attribute)
+      #       # Argon2 has no maximum input size, no validation needed
+      #     end
       #   end
-
-      #   def hash_password(unencrypted_password)
-      #     Argon2::Password.create(unencrypted_password)
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password algorithm: Argon2Password.new
       #   end
-
-      #   def verify_password(password, digest)
-      #     Argon2::Password.verify_password(password, digest)
-      #   end
-
-      #   def password_salt(digest)
-      #     Argon2::HashFormat.new(digest).salt
-      #   end
-
-      #   def validate(_record, _attribute)
-      #     # Argon2 has no maximum input size, no validation needed
-      #   end
-      # end
-
-      # class User < ActiveRecord::Base
-      #   has_secure_password algorithm: Argon2Password.new
-      # end
-
-      # user = User.new(name: "david", password: "", password_confirmation: "nomatch")
-      # user.password_algorithm                                        # => :argon2
-      # user.password_digest                                           # => "$argon2id$v=19$m=65536,t=3,p=4$/hM+NKjC0FTYDpN3LNTzBQ$5V1T31fHB57+Y8G9TUkqSUMgEkSygv8AW/AHNfOm2ts"
+      #
+      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
+      #   user.password_algorithm                                        # => :argon2
+      #   user.password_digest                                           # => "$argon2id$v=19$m=65536,t=3,p=4$/hM+NKjC0FTYDpN3LNTzBQ$5V1T31fHB57+Y8G9TUkqSUMgEkSygv8AW/AHNfOm2ts"
       def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
