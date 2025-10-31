@@ -1,3 +1,37 @@
+*   `has_secure_password` can support different password hashing algorithms (if defined) using the `:algorithm` option:
+
+    ```ruby
+    class CustomPassword
+      def hash_password(unencrypted_password)
+        CustomHashingLibrary.create(unencrypted_password)
+      end
+
+      def verify_password(password, digest)
+        CustomHashingLibrary.verify(password, digest)
+      end
+
+      def password_salt(digest)
+        CustomHashingLibrary.salt(digest)
+      end
+
+      def validate(record, attribute)
+        # ...
+      end
+
+      def algorithm_name
+        :custom
+      end
+    end
+    ```
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: CustomPassword.new
+    end
+    ```
+
+    *Justin Bull, Lucas Mazza*
+
 *   Allow passing method name or proc to `allow_nil` and `allow_blank`
 
     ```ruby

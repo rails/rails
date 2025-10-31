@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
+require "active_model/secure_password/bcrypt_password"
+
 module ActiveModel
   module SecurePassword
     extend ActiveSupport::Concern
-
-    # BCrypt hash function can handle maximum 72 bytes, and if we pass
-    # password of length more than 72 bytes it ignores extra characters.
-    # Hence need to put a restriction on password length.
-    MAX_PASSWORD_LENGTH_ALLOWED = 72
 
     DEFAULT_RESET_TOKEN_EXPIRES_IN = 15.minutes
 
@@ -54,6 +51,10 @@ module ActiveModel
       #
       #   gem "bcrypt", "~> 3.1.7"
       #
+      # If you want to use a different password hashing algorithm, you can implement your own
+      # class that responds to +algorithm_name+, +hash_password+, +verify_password+, +password_salt+ and +validate+.
+      # For an example implementation, see +BCryptPassword+ in +bcrypt_password.rb+.
+      #
       # ==== Examples
       #
       # ===== Using Active Record (which automatically includes ActiveModel::SecurePassword)
@@ -66,6 +67,7 @@ module ActiveModel
       #
       #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
       #
+      #   user.password_algorithm                                        # => :bcrypt
       #   user.save                                                      # => false, password required
       #   user.password = "vr00m"
       #   user.save                                                      # => false, confirmation doesn't match
@@ -120,18 +122,51 @@ module ActiveModel
       #
       #   # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
       #   User.find_by_password_reset_token!(token)
-      def has_secure_password(attribute = :password, validations: true, reset_token: true)
+      #
+      # ===== Customizing the hashing algorithm
+      # To add a custom algorithm, create a class that implements +hash_password+, +verify_password+, +password_salt+,
+      # +validate+ and +algorithm_name+ methods.
+      #
+      #   class Argon2Password
+      #     def initialize
+      #       require "argon2"
+      #     end
+      #
+      #     def hash_password(unencrypted_password)
+      #       Argon2::Password.create(unencrypted_password)
+      #     end
+      #
+      #     def verify_password(password, digest)
+      #       Argon2::Password.verify_password(password, digest)
+      #     end
+      #
+      #     def password_salt(digest)
+      #       Argon2::HashFormat.new(digest).salt
+      #     end
+      #
+      #     def validate(_record, _attribute)
+      #       # Argon2 has no maximum input size, no validation needed
+      #     end
+      #
+      #     def algorithm_name
+      #       :argon2
+      #     end
+      #   end
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password algorithm: Argon2Password.new
+      #   end
+      #
+      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
+      #   user.password_algorithm                                        # => :argon2
+      #   user.password_digest                                           # => "$argon2id$v=19$m=65536,t=3,p=4$/hM+NKjC0FTYDpN3LNTzBQ$5V1T31fHB57+Y8G9TUkqSUMgEkSygv8AW/AHNfOm2ts"
+      def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
         # Load bcrypt gem only when has_secure_password is used.
         # This is to avoid ActiveModel (and by extension the entire framework)
         # being dependent on a binary library.
-        begin
-          require "bcrypt"
-        rescue LoadError
-          warn "You don't have bcrypt installed in your application. Please add it to your Gemfile and run bundle install."
-          raise
-        end
+        algorithm ||= BCryptPassword.new
 
-        include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token)
+        include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token, algorithm: algorithm)
 
         if validations
           include ActiveModel::Validations
@@ -148,18 +183,15 @@ module ActiveModel
             if challenge = record.public_send(:"#{attribute}_challenge")
               digest_was = record.public_send(:"#{attribute}_digest_was") if record.respond_to?(:"#{attribute}_digest_was")
 
-              unless digest_was.present? && BCrypt::Password.new(digest_was).is_password?(challenge)
+              unless digest_was.present? && algorithm.verify_password(challenge, digest_was)
                 record.errors.add(:"#{attribute}_challenge")
               end
             end
           end
 
-          # Validates that the password does not exceed the maximum allowed bytes for BCrypt (72 bytes).
+          # Performs password hashing algorithm-specific validations (such as a max input size)
           validate do |record|
-            password_value = record.public_send(attribute)
-            if password_value.present? && password_value.bytesize > ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
-              record.errors.add(attribute, :password_too_long)
-            end
+            algorithm.validate(record, attribute)
           end
 
           validates_confirmation_of attribute, allow_nil: true
@@ -192,7 +224,7 @@ module ActiveModel
     end
 
     class InstanceMethodsOnActivation < Module
-      def initialize(attribute, reset_token:)
+      def initialize(attribute, reset_token:, algorithm:)
         attr_reader attribute
 
         define_method("#{attribute}=") do |unencrypted_password|
@@ -201,8 +233,8 @@ module ActiveModel
             self.public_send("#{attribute}_digest=", nil)
           elsif !unencrypted_password.empty?
             instance_variable_set("@#{attribute}", unencrypted_password)
-            cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
-            self.public_send("#{attribute}_digest=", BCrypt::Password.create(unencrypted_password, cost: cost))
+            password_digest = algorithm.hash_password(unencrypted_password)
+            self.public_send("#{attribute}_digest=", password_digest)
           end
         end
 
@@ -220,13 +252,13 @@ module ActiveModel
         #   user.authenticate_password('mUc3m00RsqyRe') # => user
         define_method("authenticate_#{attribute}") do |unencrypted_password|
           attribute_digest = public_send("#{attribute}_digest")
-          attribute_digest.present? && BCrypt::Password.new(attribute_digest).is_password?(unencrypted_password) && self
+          attribute_digest.present? && algorithm.verify_password(unencrypted_password, attribute_digest) && self
         end
 
         # Returns the salt, a small chunk of random data added to the password before it's hashed.
         define_method("#{attribute}_salt") do
           attribute_digest = public_send("#{attribute}_digest")
-          attribute_digest.present? ? BCrypt::Password.new(attribute_digest).salt : nil
+          attribute_digest.present? ? algorithm.password_salt(attribute_digest) : nil
         end
 
         alias_method :authenticate, :authenticate_password if attribute == :password
@@ -236,6 +268,10 @@ module ActiveModel
           define_method("#{attribute}_reset_token") do
             generate_token_for(:"#{attribute}_reset")
           end
+        end
+
+        define_method("#{attribute}_algorithm") do
+          algorithm.algorithm_name
         end
       end
     end

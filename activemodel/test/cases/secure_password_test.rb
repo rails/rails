@@ -6,6 +6,32 @@ require "models/pilot"
 require "models/slow_pilot"
 require "models/visitor"
 
+class CustomAlgorithm
+  def algorithm_name
+    :custom_algorithm
+  end
+
+  def validate(record, attribute)
+    # No-op for testing
+  end
+
+  def hash_password(unencrypted_password)
+    "hashed-#{unencrypted_password}"
+  end
+
+  def verify_password(password, digest)
+    digest == "hashed-#{password}"
+  end
+
+  def password_salt(digest)
+    "custom-salt"
+  end
+end
+
+class UserWithCustomAlgorithm < User
+  has_secure_password algorithm: CustomAlgorithm.new
+end
+
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
     # Used only to speed up tests
@@ -346,5 +372,26 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "password reset token duration" do
     assert_equal "password_reset-token-3600", @slow_pilot.password_reset_token
     assert_equal 1.hour, @slow_pilot.password_reset_token_expires_in
+  end
+
+  test "password algorithm defaults to bcrypt" do
+    assert_equal :bcrypt, @user.password_algorithm
+  end
+
+  test "custom password algorithm is supported" do
+    user_with_diff_algo = UserWithCustomAlgorithm.new
+
+    user_with_diff_algo.password = "secret"
+    assert_equal "hashed-secret", user_with_diff_algo.password_digest
+
+    assert_equal false, user_with_diff_algo.authenticate("wrong")
+    assert_equal user_with_diff_algo, user_with_diff_algo.authenticate("secret")
+
+    assert_equal false, user_with_diff_algo.authenticate_password("wrong")
+    assert_equal user_with_diff_algo, user_with_diff_algo.authenticate_password("secret")
+
+    assert_equal "custom-salt", user_with_diff_algo.password_salt
+
+    assert_equal :custom_algorithm, user_with_diff_algo.password_algorithm
   end
 end
