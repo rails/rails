@@ -527,7 +527,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test")
 
     assert_file ".github/workflows/ci.yml" do |file|
-      assert_no_match(/test:.\s*runs-on/m, file)
+      assert_match(/rails_ci:/, file)
+      assert_match(/run: bin\/ci/, file)
     end
   end
 
@@ -559,9 +560,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test/system")
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_match(/db:test:prepare test/, content)
-      assert_no_match(/test:system/, content)
-      assert_no_match(/screenshots/, content)
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
+      assert_match(/screenshots/, content) # Screenshots artifact is still included
     end
   end
 
@@ -594,7 +595,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file ".github/workflows/ci.yml" do |file|
-      assert_no_match("scan_js", file)
+      assert_match(/rails_ci:/, file)
+      assert_match(/run: bin\/ci/, file)
     end
   end
 
@@ -719,22 +721,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_ci_workflow_includes_db_test_prepare_by_default
+  def test_ci_workflow_includes_rails_ci_job_by_default
     run_generator
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_match(/db:test:prepare test/, content)
-      assert_match(/db:test:prepare test:system/, content)
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
     end
   end
 
-  def test_ci_workflow_does_not_include_db_test_prepare_when_skip_active_record_is_given
+  def test_ci_workflow_still_runs_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
     run_app_update
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_no_match(/db:test:prepare/, content)
-      assert_match(/bin\/rails test/, content)
-      assert_match(/bin\/rails test:system/, content)
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
     end
   end
 

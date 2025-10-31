@@ -6,39 +6,10 @@ on:
     branches: [ <%= user_default_branch %> ]
 
 jobs:
-<%- unless skip_rubocop? -%>
-  lint:
+  rails_ci:
     runs-on: ubuntu-latest
     env:
       RUBY_VERSION: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
-      RUBOCOP_CACHE_ROOT: tmp/rubocop
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ env.RUBY_VERSION }}
-          bundler-cache: true
-
-      - name: Prepare RuboCop cache
-        uses: actions/cache@v4
-        env:
-          DEPENDENCIES_HASH: ${{ hashFiles('**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
-        with:
-          path: ${{ env.RUBOCOP_CACHE_ROOT }}
-          key: rubocop-${{ runner.os }}-${{ env.RUBY_VERSION }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
-          restore-keys: |
-            rubocop-${{ runner.os }}-${{ env.RUBY_VERSION }}-${{ env.DEPENDENCIES_HASH }}-
-
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
-
-<% end -%>
-<% unless options[:skip_test] -%>
-  test:
-    runs-on: ubuntu-latest
 
     <%- if options[:database] == "sqlite3" -%>
     # services:
@@ -82,7 +53,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: <%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || "#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}" %>
+          ruby-version: ${{ env.RUBY_VERSION }}
           bundler-cache: true
       <%- if using_bun? -%>
 
@@ -91,7 +62,7 @@ jobs:
           bun-version: <%= dockerfile_bun_version %>
       <%- end -%>
 
-      - name: Run tests
+      - name: Run CI script
         env:
           RAILS_ENV: test
           <%- if options[:database] == "mysql" -%>
@@ -103,7 +74,7 @@ jobs:
           <%- end -%>
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: <%= test_command %>
+        run: bin/ci
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
@@ -112,4 +83,3 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
-<% end -%>

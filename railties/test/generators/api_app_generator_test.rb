@@ -62,10 +62,9 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_no_match(/test:system/, content)
-      assert_no_match(/screenshots/, content)
-      assert_no_match(/scan_js/, content)
-      assert_no_match(/google-chrome-stable/, content)
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
+      assert_no_match(/google-chrome-stable/, content) # API apps shouldn't need Chrome
     end
   end
 

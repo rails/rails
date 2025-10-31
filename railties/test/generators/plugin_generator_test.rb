@@ -19,6 +19,7 @@ DEFAULT_PLUGIN_FILES = %w(
   bin/rubocop
   bin/test
   bukkits.gemspec
+  config/ci.rb
   lib/bukkits.rb
   lib/bukkits/railtie.rb
   lib/bukkits/version.rb
@@ -917,19 +918,37 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     Object.send(:remove_const, "ENGINE_ROOT")
   end
 
-  def test_railtie_test_command
+  def test_railtie_ci_workflow
     run_generator [destination_root]
-    assert_file ".github/workflows/ci.yml", /run: bin\/test/
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
+    end
+    assert_file "config/ci.rb" do |content|
+      assert_match(/bin\/test/, content)
+    end
   end
 
-  def test_engine_test_command
+  def test_engine_ci_workflow
     run_generator [destination_root, "--full"]
-    assert_file ".github/workflows/ci.yml", /run: bin\/rails db:test:prepare test/
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
+    end
+    assert_file "config/ci.rb" do |content|
+      assert_match(/bin\/rails db:test:prepare test/, content)
+    end
   end
 
-  def test_engine_without_active_record_test_command
+  def test_engine_without_active_record_ci_workflow
     run_generator [destination_root, "--full", "--skip-active-record"]
-    assert_file ".github/workflows/ci.yml", /run: bin\/rails test/
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/rails_ci:/, content)
+      assert_match(/run: bin\/ci/, content)
+    end
+    assert_file "config/ci.rb" do |content|
+      assert_match(/bin\/rails test/, content)
+    end
   end
 
   private

@@ -70,6 +70,8 @@ module Rails
       empty_directory ".github/workflows"
       template "github/ci.yml", ".github/workflows/ci.yml"
       template "github/dependabot.yml", ".github/dependabot.yml"
+      empty_directory "config"
+      template "config/ci.rb"
     end
 
     def rubocop
