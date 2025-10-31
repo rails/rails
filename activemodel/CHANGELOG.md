@@ -1,3 +1,19 @@
+*   Add built-in Argon2 support for `has_secure_password`.
+
+    `has_secure_password` now supports Argon2 as a built-in algorithm:
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: :argon2
+    end
+    ```
+
+    To use Argon2, add `gem "argon2", "~> 2.3"` to your Gemfile.
+
+    Argon2 has no password length limit, unlike BCrypt's 72-byte restriction.
+
+    *Justin Bull*, *Guillermo Iguaran*
+
 *   Add ActiveModel::SecurePassword.register_algorithm to register new algorithms for `has_secure_password` by symbol:
 
     `ActiveModel::SecurePassword.register_algorithm` can be used to register new algorithms:
