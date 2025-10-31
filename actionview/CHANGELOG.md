@@ -1,3 +1,10 @@
+*   Fix `content_security_policy_nonce` error in mailers when using `content_security_policy_nonce_auto` setting.
+
+    The `content_security_policy_nonce helper` is provided by `ActionController::ContentSecurityPolicy`, and it relies on `request.content_security_policy_nonc`e. Mailers lack both the module and the request object.
+
+    *Jarrett Lusso*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   Respect `remove_hidden_field_autocomplete` config in form builder `hidden_field`.
