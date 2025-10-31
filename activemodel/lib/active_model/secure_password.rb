@@ -2,6 +2,7 @@
 
 require "active_model/secure_password/bcrypt_password"
 require "active_model/secure_password/argon2_password"
+require "active_support/core_ext/numeric/time"
 
 module ActiveModel
   module SecurePassword
