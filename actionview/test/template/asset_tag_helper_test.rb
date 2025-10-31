@@ -1220,6 +1220,12 @@ class AssetUrlHelperControllerTest < ActionView::TestCase
     assert_equal "/foo", @controller.asset_path("foo")
   end
 
+  def test_asset_path_encoding
+    assert_equal "/foo%2Bbar", @controller.asset_path("foo+bar")
+    assert_equal "/foo%2Bbar.js", @controller.asset_path("foo+bar.js")
+    assert_equal "/test/foo%2Bbar.js", @controller.asset_path("/test/foo+bar.js")
+  end
+
   def test_asset_url
     assert_equal "http://www.example.com/foo", @controller.asset_url("foo")
   end
