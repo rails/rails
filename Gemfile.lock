@@ -112,6 +112,9 @@ GEM
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     amq-protocol (2.3.2)
+    argon2 (2.3.2)
+      ffi (~> 1.15)
+      ffi-compiler (~> 1.0)
     ast (2.4.2)
     aws-eventstream (1.4.0)
     aws-partitions (1.1150.0)
@@ -230,6 +233,9 @@ GEM
     ffi (1.17.1-x86_64-darwin)
     ffi (1.17.1-x86_64-linux-gnu)
     ffi (1.17.1-x86_64-linux-musl)
+    ffi-compiler (1.3.2)
+      ffi (>= 1.15.5)
+      rake
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
@@ -730,6 +736,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  argon2 (~> 2.3.2)
   aws-sdk-s3
   aws-sdk-sns
   backburner

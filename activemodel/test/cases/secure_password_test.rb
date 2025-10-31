@@ -5,6 +5,7 @@ require "models/user"
 require "models/pilot"
 require "models/slow_pilot"
 require "models/visitor"
+require "models/argonaut"
 
 class CustomAlgorithm
   def algorithm_name
@@ -427,6 +428,52 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "algorithm registry can be inspected" do
     assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :bcrypt
+    assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :argon2
     assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :custom_algorithm
+  end
+end
+
+# Argon2 tests
+class SecurePasswordArgon2Test < ActiveModel::TestCase
+  setup do
+    @original_min_cost = ActiveModel::SecurePassword.min_cost
+    ActiveModel::SecurePassword.min_cost = true
+    @argonaut = Argonaut.new
+  end
+
+  teardown do
+    ActiveModel::SecurePassword.min_cost = @original_min_cost
+  end
+
+  test "argon2 algorithm is registered" do
+    assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :argon2
+  end
+
+  test "argon2 digest is generated and authenticate works" do
+    @argonaut.password = "secret"
+    assert_match(/\A\$argon2/, @argonaut.password_digest)
+    assert_equal @argonaut, @argonaut.authenticate("secret")
+    assert_equal false, @argonaut.authenticate("wrong")
+    assert_equal :argon2, @argonaut.password_algorithm
+  end
+
+  test "argon2 password salt extraction" do
+    @argonaut.password = "secret"
+    salt_from_algo = @argonaut.password_salt
+    salt_from_parser = Argon2::HashFormat.new(@argonaut.password_digest).salt
+    assert_equal salt_from_parser, salt_from_algo
+    assert_not_nil salt_from_algo
+  end
+
+  test "argon2 allows long passwords" do
+    long = "a" * 200
+    @argonaut.password = long
+    @argonaut.password_confirmation = long
+
+    # Argon2 has no length restriction, unlike BCrypt's 72-byte limit
+    assert @argonaut.valid?(:create), "should be valid with long password"
+    assert_not @argonaut.errors[:password].include?("is too long (maximum is 72 characters)"), "Argon2 should not have BCrypt's 72-byte limit"
+
+    assert_equal @argonaut, @argonaut.authenticate(long)
   end
 end

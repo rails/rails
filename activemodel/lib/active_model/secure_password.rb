@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_model/secure_password/bcrypt_password"
+require "active_model/secure_password/argon2_password"
 
 module ActiveModel
   module SecurePassword
@@ -143,42 +144,52 @@ module ActiveModel
       #   User.find_by_password_reset_token!(token)
       #
       # ===== Customizing the hashing algorithm
-      # To add a custom algorithm, create a class that implements +hash_password+, +verify_password+, +password_salt+,
-      # +validate+ and +algorithm_name+ methods.
       #
-      #   class Argon2Password
+      # +has_secure_password+ supports +:bcrypt+ (default) and +:argon2+ out of the box.
+      # To use +:argon2+, add +gem "argon2", "~> 2.3"+ to your Gemfile and set the +algorithm+ option:
+      #
+      #   class User < ActiveRecord::Base
+      #     has_secure_password algorithm: :argon2
+      #   end
+      #
+      # To add a custom algorithm, create a class that implements +hash_password+, +verify_password+, +password_salt+,
+      # +validate+ and +algorithm_name+ methods, then register it:
+      #
+      #   class ScryptPassword
       #     def initialize
-      #       require "argon2"
+      #       require "scrypt"
+      #     rescue LoadError
+      #       warn "You don't have scrypt installed in your application. Please add it to your Gemfile and run bundle install."
+      #       raise
       #     end
       #
       #     def hash_password(unencrypted_password)
-      #       Argon2::Password.create(unencrypted_password)
+      #       SCrypt::Password.create(unencrypted_password)
       #     end
       #
       #     def verify_password(password, digest)
-      #       Argon2::Password.verify_password(password, digest)
+      #       SCrypt::Password.new(digest) == password
       #     end
       #
       #     def password_salt(digest)
-      #       Argon2::HashFormat.new(digest).salt
+      #       SCrypt::Password.new(digest).salt
       #     end
       #
       #     def validate(_record, _attribute)
-      #       # Argon2 has no maximum input size, no validation needed
+      #       # Scrypt has no maximum input size, no validation needed
       #     end
       #
       #     def algorithm_name
-      #       :argon2
+      #       :scrypt
       #     end
       #   end
       #
+      #   ActiveModel::SecurePassword.register_algorithm :scrypt, ScryptPassword
+      #
       #   class User < ActiveRecord::Base
-      #     has_secure_password algorithm: Argon2Password.new
+      #     has_secure_password algorithm: :scrypt
       #   end
       #
-      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
-      #   user.password_algorithm                                        # => :argon2
-      #   user.password_digest                                           # => "$argon2id$v=19$m=65536,t=3,p=4$/hM+NKjC0FTYDpN3LNTzBQ$5V1T31fHB57+Y8G9TUkqSUMgEkSygv8AW/AHNfOm2ts"
       def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
         # Resolve algorithm: can be a Symbol (for registry lookup), an instance, or default to BCrypt
         algorithm = case algorithm
@@ -303,8 +314,9 @@ module ActiveModel
     end
   end
 
-  # Register the default BCrypt algorithm
+  # Register built-in password algorithms
   ActiveModel::SecurePassword.register_algorithm :bcrypt, SecurePassword::BCryptPassword
+  ActiveModel::SecurePassword.register_algorithm :argon2, SecurePassword::Argon2Password
 
   ActiveSupport.run_load_hooks(:active_model_secure_password, SecurePassword)
 end
