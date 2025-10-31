@@ -10,6 +10,25 @@ module ActiveModel
 
     class << self
       attr_accessor :min_cost # :nodoc:
+
+      # Returns the registry of password algorithms
+      def algorithm_registry
+        @algorithm_registry ||= {}
+      end
+
+      # Registers a password algorithm for use with has_secure_password
+      #
+      #   ActiveModel::SecurePassword.register_algorithm :argon2, Argon2Password
+      #
+      # The algorithm class will be instantiated when used.
+      def register_algorithm(name, algorithm_class)
+        algorithm_registry[name.to_sym] = algorithm_class
+      end
+
+      # Looks up a registered algorithm by name
+      def lookup_algorithm(name)
+        algorithm_registry[name.to_sym]
+      end
     end
     self.min_cost = false
 
@@ -161,10 +180,17 @@ module ActiveModel
       #   user.password_algorithm                                        # => :argon2
       #   user.password_digest                                           # => "$argon2id$v=19$m=65536,t=3,p=4$/hM+NKjC0FTYDpN3LNTzBQ$5V1T31fHB57+Y8G9TUkqSUMgEkSygv8AW/AHNfOm2ts"
       def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
-        # Load bcrypt gem only when has_secure_password is used.
-        # This is to avoid ActiveModel (and by extension the entire framework)
-        # being dependent on a binary library.
-        algorithm ||= BCryptPassword.new
+        # Resolve algorithm: can be a Symbol (for registry lookup), an instance, or default to BCrypt
+        algorithm = case algorithm
+        when Symbol
+          algorithm_class = ActiveModel::SecurePassword.lookup_algorithm(algorithm)
+          raise ArgumentError, "Unknown password algorithm: #{algorithm.inspect}" unless algorithm_class
+          algorithm_class.new
+        when nil
+          BCryptPassword.new
+        else
+          algorithm
+        end
 
         include InstanceMethodsOnActivation.new(attribute, reset_token: reset_token, algorithm: algorithm)
 
@@ -276,6 +302,9 @@ module ActiveModel
       end
     end
   end
+
+  # Register the default BCrypt algorithm
+  ActiveModel::SecurePassword.register_algorithm :bcrypt, SecurePassword::BCryptPassword
 
   ActiveSupport.run_load_hooks(:active_model_secure_password, SecurePassword)
 end

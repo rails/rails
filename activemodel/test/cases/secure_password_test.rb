@@ -32,6 +32,13 @@ class UserWithCustomAlgorithm < User
   has_secure_password algorithm: CustomAlgorithm.new
 end
 
+# Register custom algorithm before using it in class definition
+ActiveModel::SecurePassword.register_algorithm :custom_algorithm, CustomAlgorithm
+
+class UserWithRegisteredAlgorithm < User
+  has_secure_password algorithm: :custom_algorithm
+end
+
 class SecurePasswordTest < ActiveModel::TestCase
   setup do
     # Used only to speed up tests
@@ -393,5 +400,33 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal "custom-salt", user_with_diff_algo.password_salt
 
     assert_equal :custom_algorithm, user_with_diff_algo.password_algorithm
+  end
+
+  test "algorithm can be registered and used via symbol" do
+    user = UserWithRegisteredAlgorithm.new
+
+    user.password = "secret"
+    assert_equal "hashed-secret", user.password_digest
+
+    assert_equal false, user.authenticate("wrong")
+    assert_equal user, user.authenticate("secret")
+
+    assert_equal "custom-salt", user.password_salt
+
+    assert_equal :custom_algorithm, user.password_algorithm
+  end
+
+  test "raises error for unknown algorithm symbol" do
+    error = assert_raises(ArgumentError) do
+      Class.new(User) do
+        has_secure_password algorithm: :unknown_algorithm
+      end
+    end
+    assert_match(/Unknown password algorithm: :unknown_algorithm/, error.message)
+  end
+
+  test "algorithm registry can be inspected" do
+    assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :bcrypt
+    assert_includes ActiveModel::SecurePassword.algorithm_registry.keys, :custom_algorithm
   end
 end

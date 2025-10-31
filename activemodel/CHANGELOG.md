@@ -1,3 +1,21 @@
+*   Add ActiveModel::SecurePassword.register_algorithm to register new algorithms for `has_secure_password` by symbol:
+
+    `ActiveModel::SecurePassword.register_algorithm` can be used to register new algorithms:
+
+    ```ruby
+    ActiveModel::SecurePassword.register_algorithm :custom_password, CustomPassword
+    ```
+
+    ```ruby
+    class User < ActiveRecord::Base
+      has_secure_password algorithm: :custom_password
+    end
+    ```
+
+    BCrypt is pre-registered as `:bcrypt` in the algorithms registry.
+
+    *Justin Bull*, *Guillermo Iguaran*
+
 *   `has_secure_password` can support different password hashing algorithms (if defined) using the `:algorithm` option:
 
     ```ruby
@@ -30,7 +48,7 @@
     end
     ```
 
-    *Justin Bull, Lucas Mazza*
+    *Justin Bull*, *Lucas Mazza*
 
 *   Allow passing method name or proc to `allow_nil` and `allow_blank`
 
