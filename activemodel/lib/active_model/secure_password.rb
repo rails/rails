@@ -124,14 +124,12 @@ module ActiveModel
       #   User.find_by_password_reset_token!(token)
       #
       # ===== Customizing the hashing algorithm
+      # To add a custom algorithm, create a class that implements +hash_password+, +verify_password+, +password_salt+,
+      # +validate+ and +algorithm_name+ methods.
       #
       #   class Argon2Password
       #     def initialize
       #       require "argon2"
-      #     end
-      #
-      #     def algorithm_name
-      #       :argon2
       #     end
       #
       #     def hash_password(unencrypted_password)
@@ -148,6 +146,10 @@ module ActiveModel
       #
       #     def validate(_record, _attribute)
       #       # Argon2 has no maximum input size, no validation needed
+      #     end
+      #
+      #     def algorithm_name
+      #       :argon2
       #     end
       #   end
       #

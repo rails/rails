@@ -2,10 +2,6 @@
 
     ```ruby
     class CustomPassword
-      def algorithm_name
-        :custom
-      end
-
       def hash_password(unencrypted_password)
         CustomHashingLibrary.create(unencrypted_password)
       end
@@ -19,6 +15,11 @@
       end
 
       def validate(record, attribute)
+        # ...
+      end
+
+      def algorithm_name
+        :custom
       end
     end
     ```

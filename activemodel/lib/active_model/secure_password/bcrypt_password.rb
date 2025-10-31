@@ -18,17 +18,6 @@ module ActiveModel
         raise
       end
 
-      def algorithm_name
-        :bcrypt
-      end
-
-      def validate(record, attribute)
-        password = record.public_send(attribute)
-        if password.present?
-          record.errors.add(attribute, :password_too_long) if password.bytesize > MAX_PASSWORD_LENGTH_ALLOWED
-        end
-      end
-
       def hash_password(unencrypted_password)
         ::BCrypt::Password.create(unencrypted_password, cost: cost)
       end
@@ -39,6 +28,17 @@ module ActiveModel
 
       def password_salt(digest)
         ::BCrypt::Password.new(digest).salt
+      end
+
+      def validate(record, attribute)
+        password = record.public_send(attribute)
+        if password.present?
+          record.errors.add(attribute, :password_too_long) if password.bytesize > MAX_PASSWORD_LENGTH_ALLOWED
+        end
+      end
+
+      def algorithm_name
+        :bcrypt
       end
 
       private
