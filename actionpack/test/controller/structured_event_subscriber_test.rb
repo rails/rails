@@ -4,6 +4,8 @@ require "abstract_unit"
 require "active_support/testing/event_reporter_assertions"
 require "action_controller/structured_event_subscriber"
 
+require "active_support/core_ext/object/with"
+
 module ActionController
   class StructuredEventSubscriberTest < ActionController::TestCase
     module Another
@@ -43,6 +45,10 @@ module ActionController
 
         def raise_error
           raise StandardError, "Something went wrong"
+        end
+
+        def open_redirector
+          redirect_to "example.com"
         end
       end
     end
@@ -177,6 +183,20 @@ module ActionController
     ensure
       ActionController::Base.enable_fragment_cache_logging = original_enable_fragment_cache_logging
       FileUtils.rm_rf(cache_path)
+    end
+
+    def test_open_redirect
+      ActionController::Base.with(action_on_open_redirect: :notify) do
+        event = assert_event_reported("action_controller.open_redirect", payload: {
+          location: "http://test.hostexample.com",
+          request_method: "GET",
+          request_path: "/action_controller/structured_event_subscriber_test/another/structured_event_subscribers/open_redirector"
+        }) do
+          get :open_redirector
+        end
+
+        assert(event[:payload][:stacktrace].find { |line| line.include?("structured_event_subscriber_test.rb:51") })
+      end
     end
   end
 end
