@@ -52,7 +52,11 @@ module ActionController
     # Manually subscribed below
     def rescue_from_callback(event)
       exception = event.payload[:exception]
-      info { "rescue_from handled #{exception.class} (#{exception.message}) - #{exception.backtrace.first.delete_prefix("#{Rails.root}/")}" }
+
+      exception_backtrace = exception.backtrace&.first
+      exception_backtrace = exception_backtrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+
+      info { "rescue_from handled #{exception.class} (#{exception.message}) - #{exception_backtrace}" }
     end
     subscribe_log_level :rescue_from_callback, :info
 
