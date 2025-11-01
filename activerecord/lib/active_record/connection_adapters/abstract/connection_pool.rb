@@ -148,7 +148,7 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @map = @map.select { |c, _| c&.alive? }
             @map[key] = value
           end
         end
