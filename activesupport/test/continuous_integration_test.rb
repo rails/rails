@@ -18,6 +18,36 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_not @CI.success?
   end
 
+  test "step retries on failures" do
+    output = capture_io {
+      @CI.step "Failed!", "false", attempts: 2
+    }.to_s
+
+    assert_not @CI.success?
+    assert_match(/Attempt 1 failed. Retrying.../, output)
+    assert_match(/Attempt 2 failed. Retrying.../, output)
+    assert_no_match(/Attempt 3 failed. Retrying.../, output)
+  end
+
+  test "successful step does not retry" do
+    output = capture_io {
+      @CI.step "Success!", "true", attempts: 2
+    }.to_s
+
+    assert @CI.success?
+    assert_no_match(/Attempt \d+ failed. Retrying.../, output)
+  end
+
+  test "step raises error for invalid attempts" do
+    assert_raises ArgumentError, match: "attempts must be a positive integer" do
+      @CI.step "Invalid attempts", "true", attempts: 0
+    end
+
+    assert_raises ArgumentError, match: "attempts must be a positive integer" do
+      @CI.step "Invalid attempts", "true", attempts: -1
+    end
+  end
+
   test "report with only successful steps combined gives success" do
     output = capture_io do
       @CI.report("CI") do

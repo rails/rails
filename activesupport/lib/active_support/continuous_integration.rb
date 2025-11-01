@@ -72,9 +72,17 @@ module ActiveSupport
     #
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
-    def step(title, *command)
+    #   step "Flaky test", "bin/rails test test/models/flaky_test.rb", attempts: 3
+    def step(title, *command, attempts: 1)
+      raise ArgumentError, "attempts must be a positive integer" unless attempts.positive?
+
       heading title, command.join(" "), type: :title
-      report(title) { results << [ system(*command), title ] }
+
+      successful = retry_until_success(attempts) do
+        system(*command)
+      end
+
+      report(title) { results << [ successful, title ] }
     end
 
     # Returns true if all steps were successful.
@@ -158,6 +166,14 @@ module ActiveSupport
 
       def colorize(text, type)
         "#{COLORS.fetch(type)}#{text}\033[0m"
+      end
+
+      def retry_until_success(attempts)
+        attempts.times do |attempt_number|
+          return true if yield
+          echo "Attempt #{attempt_number + 1} failed. Retrying...", type: :error
+        end
+        false
       end
   end
 end
