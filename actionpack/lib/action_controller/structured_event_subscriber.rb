@@ -46,10 +46,14 @@ module ActionController
 
     def rescue_from_callback(event)
       exception = event.payload[:exception]
+
+      exception_backtrace = exception.backtrace&.first
+      exception_backtrace = exception_backtrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+
       emit_event("action_controller.rescue_from_handled",
         exception_class: exception.class.name,
         exception_message: exception.message,
-        exception_backtrace: exception.backtrace&.first&.delete_prefix("#{Rails.root}/")
+        exception_backtrace:
       )
     end
 
