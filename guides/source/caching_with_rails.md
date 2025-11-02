@@ -566,7 +566,7 @@ and ensure the `cache` database is created and migrated:
 
 ```bash
 development:
-  <<: * default
+  <<: *default
   database: cache
 ```
 
