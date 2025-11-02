@@ -165,6 +165,7 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`reverse_order`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-reverse_order
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
+[`with_lock`]: https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html#method-i-with_lock
 [`sqlcourse`]: https://www.khanacademy.org/computing/computer-programming/sql
 [`rdbmsinfo`]: https://www.devart.com/what-is-rdbms/
 
@@ -1453,7 +1454,7 @@ end
 
 ### Pessimistic Locking
 
-Pessimistic locking uses a locking mechanism provided by the underlying database. Using `lock` when building a relation obtains an exclusive lock on the selected rows. Relations using `lock` are usually wrapped inside a transaction for preventing deadlock conditions.
+Pessimistic locking uses a locking mechanism provided by the underlying database. Using [`lock`][] when building a relation obtains an exclusive lock on the selected rows. Relations using `lock` are usually wrapped inside a transaction for preventing deadlock conditions.
 
 For example:
 
@@ -1474,7 +1475,7 @@ Book Update (0.4ms)   UPDATE books SET updated_at = '2009-02-07 18:05:56', title
 SQL (0.8ms)   COMMIT
 ```
 
-You can also pass raw SQL to the `lock` method for allowing different types of locks. For example, MySQL has an expression called `LOCK IN SHARE MODE` where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:
+You can also pass raw SQL to the [`lock`][] method for allowing different types of locks. For example, MySQL has an expression called `LOCK IN SHARE MODE` where you can lock a record but still allow other queries to read it. To specify this expression just pass it in as the lock option:
 
 ```ruby
 Book.transaction do
@@ -1485,7 +1486,7 @@ end
 
 NOTE:  Note that your database must support the raw SQL, that you pass in to the `lock` method.
 
-If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the following code:
+If you already have an instance of your model, you can start a transaction and acquire the lock in one go using the [`with_lock`][] method:
 
 ```ruby
 book = Book.first
