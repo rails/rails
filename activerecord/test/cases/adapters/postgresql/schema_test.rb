@@ -1023,9 +1023,12 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
     @connection.create_enum("test_schema.test_enum_in_test_schema", ["foo", "bar"])
     @connection.create_enum("test_enum_in_public", ["foo", "bar"])
     @connection.create_table("test_schema.test_table")
+    @connection.create_table("test_schema2.another_test_table")
     @connection.create_table("test_schema.test_table2") do |t|
       t.integer "test_table_id"
       t.foreign_key "test_schema.test_table"
+      t.integer "another_test_table_id"
+      t.foreign_key "test_schema2.another_test_table"
     end
     # Create a table in test_schema2 and a table in test_schema with a cross-schema foreign key
     @connection.create_table("test_schema2.referenced_table")
@@ -1052,6 +1055,7 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_includes output, 'create_table "test_schema.test_table"'
       assert_includes output, 'create_table "public.authors"'
       assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+      assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema2.another_test_table"'
       assert_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
     end
   end
@@ -1084,6 +1088,7 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
         assert_includes output, 'create_table "test_schema.test_table"'
         assert_not_includes output, 'create_table "public.authors"'
         assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
+        assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema2.another_test_table"'
         assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
       end
     end
@@ -1095,6 +1100,15 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
 
       assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
       assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
+    end
+  end
+
+  def test_foreign_keys_for_all_schemas_are_dumped_at_the_bottom_to_circumvent_dependency_issues
+    with_dump_schemas(:all) do
+      output = dump_all_table_schema
+
+      # a create_table should never occur after an add_foreign_key
+      assert_no_match(/add_foreign_key[\s\S]*create_table/m, output)
     end
   end
 end

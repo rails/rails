@@ -63,6 +63,7 @@ module ActiveRecord
       extensions(stream)
       types(stream)
       tables(stream)
+      foreign_keys(stream)
       virtual_tables(stream)
       trailer(stream)
       stream
@@ -131,27 +132,14 @@ module ActiveRecord
       def virtual_tables(stream)
       end
 
+      def not_ignored_tables
+        @connection.tables.sort.reject { |table_name| ignored?(table_name) }
+      end
+
       def tables(stream)
-        sorted_tables = @connection.tables.sort
-
-        not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
-
         not_ignored_tables.each_with_index do |table_name, index|
           table(table_name, stream)
           stream.puts if index < not_ignored_tables.count - 1
-        end
-
-        # dump foreign keys at the end to make sure all dependent tables exist.
-        if @connection.supports_foreign_keys?
-          foreign_keys_stream = StringIO.new
-          not_ignored_tables.each do |tbl|
-            foreign_keys(tbl, foreign_keys_stream)
-          end
-
-          foreign_keys_string = foreign_keys_stream.string
-          stream.puts if foreign_keys_string.length > 0
-
-          stream.print foreign_keys_string
         end
       end
 
@@ -314,9 +302,24 @@ module ActiveRecord
         check_parts
       end
 
-      def foreign_keys(table, stream)
-        if (foreign_keys = @connection.foreign_keys(table)).any?
-          add_foreign_key_statements = foreign_keys.map do |foreign_key|
+      def foreign_keys(stream)
+        # dump foreign keys at the end to make sure all dependent tables exist.
+        if @connection.supports_foreign_keys?
+          foreign_keys_stream = StringIO.new
+          not_ignored_tables.each do |tbl|
+            foreign_keys_for(tbl, foreign_keys_stream)
+          end
+
+          foreign_keys_string = foreign_keys_stream.string
+          stream.puts if foreign_keys_string.length > 0
+
+          stream.print foreign_keys_string
+        end
+      end
+
+      def foreign_keys_for(table, stream)
+        if (table_foreign_keys = @connection.foreign_keys(table)).any?
+          add_foreign_key_statements = table_foreign_keys.map do |foreign_key|
             parts = [
               relation_name(remove_prefix_and_suffix(foreign_key.from_table)).inspect,
               relation_name(remove_prefix_and_suffix(foreign_key.to_table)).inspect,
