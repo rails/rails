@@ -466,7 +466,7 @@ module ActiveRecord
         true
       end
 
-      def supports_force_drop_database?
+      def supports_force_drop_database? # :nodoc:
         database_version >= 13_00_00 # >= 13.0
       end
 
