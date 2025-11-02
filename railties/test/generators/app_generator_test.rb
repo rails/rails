@@ -719,11 +719,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_ci_sets_ci_env_var_for_test_commands
+    run_generator [destination_root]
+
+    assert_file "config/ci.rb" do |content|
+      assert_match(/env CI=true bin\/rails test/, content)
+      assert_match(/env CI=true bin\/rails test:system/, content)
+    end
+  end
+
   def test_ci_workflow_includes_db_test_prepare_by_default
     run_generator
     assert_file ".github/workflows/ci.yml" do |content|
       assert_match(/db:test:prepare test/, content)
       assert_match(/db:test:prepare test:system/, content)
+    end
+  end
+
+  def test_ci_workflow_sets_ci_env_var_for_test_jobs
+    run_generator
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      # Check that CI: true is set in the test job env block
+      assert_match(/CI: true/, content)
+      # Verify it appears in the context of the test job
+      assert_match(/- name: Run tests\s+env:\s+CI: true/m, content)
     end
   end
 

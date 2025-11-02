@@ -1,3 +1,12 @@
+*   Enable eager loading in CI by setting `ENV["CI"]` in default CI configuration.
+
+    The `CI` environment variable is now set to `"true"` when running tests via `bin/ci`
+    and GitHub Actions, which activates `config.eager_load = ENV["CI"].present?` in
+    `config/environments/test.rb`. This ensures autoloading issues are caught during
+    test runs in continuous integration environments.
+
+    *Trevor Turk*
+
 *   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
     It is still recommended to assume and force SSL in production as soon as you can.

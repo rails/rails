@@ -136,6 +136,7 @@ jobs:
 
       - name: Run tests
         env:
+          CI: true
           RAILS_ENV: test
           <%- if options[:database] == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306
@@ -209,6 +210,7 @@ jobs:
 
       - name: Run System Tests
         env:
+          CI: true
           RAILS_ENV: test
           <%- if options[:database] == "mysql" -%>
           DATABASE_URL: mysql2://127.0.0.1:3306

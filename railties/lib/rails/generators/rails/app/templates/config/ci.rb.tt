@@ -20,10 +20,10 @@ CI.run do
 <% end -%>
 <% unless options[:skip_test] -%>
 <% if options[:api] || options[:skip_system_test] -%>
-  step "Tests: Rails", "bin/rails test"
+  step "Tests: Rails", "env CI=true bin/rails test"
 <% else %>
-  step "Tests: Rails", "bin/rails test"
-  step "Tests: System", "bin/rails test:system"
+  step "Tests: Rails", "env CI=true bin/rails test"
+  step "Tests: System", "env CI=true bin/rails test:system"
 <% end -%>
 <% unless options.skip_active_record? -%>
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
