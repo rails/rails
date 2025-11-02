@@ -2046,9 +2046,9 @@ class Book < ApplicationRecord
 end
 ```
 
-NOTE: The `default_scope` is also applied while creating/building a record
+The `default_scope` is also applied while creating/building a record
 when the scope arguments are given as a `Hash`. It is not applied while
-updating a record. E.g.:
+updating a record. For example, if you have a `default_scope` that sets `out_of_print` to `false`, and you create a new book with the `out_of_print` attribute set to `true`, the `default_scope` will be applied:
 
 ```ruby
 class Book < ApplicationRecord
