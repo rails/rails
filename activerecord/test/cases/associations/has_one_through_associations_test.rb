@@ -479,6 +479,79 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 end
 
+# Additional test for has_one :through validation behavior
+# Reproduces https://github.com/rails/rails/issues/56046
+class HasOneThroughValidationTest < ActiveRecord::TestCase
+  setup do
+    @connection = ActiveRecord::Base.connection
+
+    @connection.create_table :as, force: true do |t|
+      t.string :name
+    end
+
+    @connection.create_table :bs, force: true do |t|
+      t.string :name
+    end
+
+    @connection.create_table :xes, force: true do |t|
+      t.references :a, null: false
+      t.references :b, null: false
+    end
+
+    Object.send(:remove_const, :A) if defined?(A)
+    Object.send(:remove_const, :B) if defined?(B)
+    Object.send(:remove_const, :X) if defined?(X)
+
+    Object.const_set(:A, Class.new(ActiveRecord::Base) do
+      self.table_name = "as"
+      has_one :x
+      has_one :b, through: :x, source: :b
+    end)
+
+    Object.const_set(:B, Class.new(ActiveRecord::Base) do
+      self.table_name = "bs"
+      has_many :xes
+      has_many :as, through: :xes
+      validates :name, presence: true
+    end)
+
+    Object.const_set(:X, Class.new(ActiveRecord::Base) do
+      self.table_name = "xes"
+      belongs_to :a
+      belongs_to :b
+    end)
+  end
+
+  teardown do
+    @connection.drop_table :xes, if_exists: true
+    @connection.drop_table :as, if_exists: true
+    @connection.drop_table :bs, if_exists: true
+
+    Object.send(:remove_const, :A)
+    Object.send(:remove_const, :B)
+    Object.send(:remove_const, :X)
+  end
+
+  test "parent should be invalid when through-associated record is invalid" do
+    a = A.new
+    a.b = B.new(name: nil)
+
+    assert_not a.b.valid?, "expected associated b to be invalid"
+    assert_not a.valid?, "expected a to be invalid when associated b is invalid"
+  end
+
+  test "saving invalid through-associated record should raise RecordInvalid instead of NotNullViolation" do
+    a = A.new
+    a.b = B.new(name: nil)
+
+    error = assert_raises(ActiveRecord::RecordInvalid, "expected RecordInvalid instead of NotNullViolation") do
+      a.save!
+    end
+
+    assert_match(/Validation failed: B/, error.message)
+  end
+end
+
 class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase
   include DeprecatedAssociationsTestHelpers
 
