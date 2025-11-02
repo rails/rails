@@ -1063,20 +1063,20 @@ Grouping Records
 
 To apply a `GROUP BY` clause to the SQL fired by the finder, you can use the [`group`][] method.
 
-For example, if you want to find a collection of the dates on which orders were created:
+For example, if you want to find a collection of orders grouped by status:
 
 ```ruby
-Order.select("created_at").group("created_at")
+Order.select("status").group("status")
 ```
 
-And this will give you a single `Order` object for each date where there are orders in the database.
+And this will give you a single `Order` object for each unique status value in the database.
 
 The SQL that would be executed would be something like this:
 
 ```sql
-SELECT created_at
+SELECT status
 FROM orders
-GROUP BY created_at
+GROUP BY status
 ```
 
 ### Total of Grouped Items
@@ -1105,26 +1105,26 @@ SQL uses the `HAVING` clause to specify conditions on the `GROUP BY` fields. You
 For example:
 
 ```ruby
-Order.select("created_at as ordered_date, sum(total) as total_price").
-  group("created_at").having("sum(total) > ?", 200)
+Order.select("customer_id, sum(total) as total_price").
+  group("customer_id").having("sum(total) > ?", 200)
 ```
 
 The SQL that would be executed would be something like this:
 
 ```sql
-SELECT created_at as ordered_date, sum(total) as total_price
+SELECT customer_id, sum(total) as total_price
 FROM orders
-GROUP BY created_at
+GROUP BY customer_id
 HAVING sum(total) > 200
 ```
 
-This returns the date and total price for each order object, grouped by the day they were ordered and where the total is more than $200.
+This returns the customer ID and total price for each customer, grouped by customer and where the sum of totals is more than $200.
 
 You would access the `total_price` for each order object returned like this:
 
 ```ruby
-big_orders = Order.select("created_at, sum(total) as total_price")
-                  .group("created_at")
+big_orders = Order.select("customer_id, sum(total) as total_price")
+                  .group("customer_id")
                   .having("sum(total) > ?", 200)
 
 big_orders[0].total_price
