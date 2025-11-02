@@ -509,7 +509,7 @@ irb> customers = Customer.where(active: true)
 The SQL equivalent of the above is:
 
 ```sql
-SELECT * FROM customers WHERE (customers.active = 1)
+SELECT * FROM customers WHERE (customers.active = true)
 ```
 
 You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limit-and-offset), and [Grouping Records](#grouping-records) sections.
@@ -780,7 +780,7 @@ Book.where(out_of_print: true)
 This will generate SQL like this:
 
 ```sql
-SELECT * FROM books WHERE (books.out_of_print = 1)
+SELECT * FROM books WHERE (books.out_of_print = true)
 ```
 
 The field name can also be a string:
@@ -1155,7 +1155,7 @@ You can also unscope specific `where` clauses. For example, this will remove `id
 
 ```ruby
 Book.where(id: 10, out_of_print: false).unscope(where: :id)
-# SELECT books.* FROM books WHERE out_of_print = 0
+# SELECT books.* FROM books WHERE out_of_print = false
 ```
 
 A relation which has used `unscope` will affect any relation into which it is merged:
@@ -1287,7 +1287,7 @@ Book.where(out_of_print: true).rewhere(out_of_print: false)
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM books WHERE out_of_print = 0
+SELECT * FROM books WHERE out_of_print = false
 ```
 
 If the `rewhere` clause is not used, the where clauses are ANDed together:
@@ -1299,7 +1299,7 @@ Book.where(out_of_print: true).where(out_of_print: false)
 The SQL executed would be:
 
 ```sql
-SELECT * FROM books WHERE out_of_print = 1 AND out_of_print = 0
+SELECT * FROM books WHERE out_of_print = true AND out_of_print = false
 ```
 
 [`rewhere`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-rewhere
@@ -1741,7 +1741,7 @@ This would generate a query which contains a `LEFT OUTER JOIN` whereas the
 `joins` method would generate one using the `INNER JOIN` function instead.
 
 ```sql
-  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN books ON books.author_id = authors.id WHERE (books.out_of_print = 1)
+  SELECT authors.id AS t0_r0, ... books.updated_at AS t1_r5 FROM authors LEFT OUTER JOIN books ON books.author_id = authors.id WHERE (books.out_of_print = true)
 ```
 
 If there was no `where` condition, this would generate the normal set of two queries.
