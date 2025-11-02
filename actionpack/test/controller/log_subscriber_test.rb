@@ -158,7 +158,7 @@ class ACLogSubscriberTest < ActionController::TestCase
     get :with_rescued_exception
     wait
     assert_equal 3, logs.size
-    assert_match "rescue_from handled Another::LogSubscribersController::SpecialException", logs.second
+    assert_match(/rescue_from handled Another::LogSubscribersController::SpecialException \(Oops\) - .*log_subscriber_test/, logs.second)
   end
 
   def test_process_action
