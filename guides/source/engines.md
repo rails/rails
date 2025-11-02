@@ -104,6 +104,8 @@ that provides the following:
     standard Rails application's `config/application.rb` file:
 
     ```ruby
+    require "rails"
+
     module Blorgh
       class Engine < ::Rails::Engine
       end
@@ -175,6 +177,8 @@ perfect for that. Place the methods inside the module and you'll be good to go.
 Within `lib/blorgh/engine.rb` is the base class for the engine:
 
 ```ruby
+require "rails"
+
 module Blorgh
   class Engine < ::Rails::Engine
     isolate_namespace Blorgh

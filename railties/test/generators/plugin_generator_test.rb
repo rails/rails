@@ -589,6 +589,16 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_plugin_can_be_required_in_isolation
+    run_generator
+    prepare_plugin(destination_root)
+
+    in_plugin_context(destination_root) do
+      output = `bundle exec ruby -e 'require "bukkits"'`
+      assert_predicate $?, :success?, "Command failed: #{output}"
+    end
+  end
+
   def test_dummy_application_sets_include_all_helpers_to_false_for_mountable
     run_generator [destination_root, "--mountable"]
 
