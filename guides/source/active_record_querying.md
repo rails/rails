@@ -701,7 +701,7 @@ The [`where`][] method allows you to specify conditions to limit the records ret
 
 If you'd like to add conditions to your find, you could just specify them in there, just like `Book.where("title = 'Introduction to Algorithms'")`. This will find all books where the `title` field value is 'Introduction to Algorithms'.
 
-WARNING: Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, `Book.where("title LIKE '%#{params[:title]}%'")` is not safe. See the next section for the preferred way to handle conditions using an array.
+WARNING: Building your own conditions as pure strings can leave you vulnerable to SQL injection exploits. For example, `Book.where("title LIKE '%#{params[:title]}%'")` is not safe. See the next section for the preferred way to handle conditions using an array. For more background, see the [Ruby on Rails Security Guide on SQL injection](security.html#sql-injection).
 
 ### Array Conditions
 
@@ -734,8 +734,6 @@ Book.where("title = #{params[:title]}")
 ```
 
 because of argument safety. Putting the variable directly into the conditions string will pass the variable to the database **as-is**. This means that it will be an unescaped variable directly from a user who may have malicious intent. If you do this, you put your entire database at risk because once a user finds out they can exploit your database they can do just about anything to it. Never ever put your arguments directly inside the conditions string.
-
-TIP: For more information on the dangers of SQL injection, see the [Ruby on Rails Security Guide](security.html#sql-injection).
 
 #### Placeholder Conditions
 
