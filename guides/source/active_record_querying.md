@@ -1186,6 +1186,32 @@ SELECT * FROM books WHERE id > 10 ORDER BY id DESC LIMIT 20
 
 [`only`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-only
 
+### `except`
+
+You can remove specific conditions using the [`except`][] method. For example:
+
+```ruby
+Book.where("id > 100").limit(20).order("id desc").except(:order)
+```
+
+The SQL that would be executed:
+
+```sql
+SELECT * FROM books WHERE id > 100 LIMIT 20
+
+-- Original query without `except`
+SELECT * FROM books WHERE id > 100 ORDER BY id desc LIMIT 20
+```
+
+You can also remove multiple conditions:
+
+```ruby
+Book.where("id > 100").limit(20).order("id desc").except(:order, :limit)
+# SELECT books.* FROM books WHERE id > 100
+```
+
+[`except`]: https://api.rubyonrails.org/classes/ActiveRecord/SpawnMethods.html#method-i-except
+
 ### `reselect`
 
 The [`reselect`][] method overrides an existing select statement. For example:
