@@ -1240,7 +1240,7 @@ SELECT books.title, books.isbn, books.created_at FROM books
 
 ### `reorder`
 
-The [`reorder`][] method overrides the default scope order. For example, if the class definition includes this:
+The [`reorder`][] method overrides any previously defined order clause. For example, if the class definition includes this:
 
 ```ruby
 class Author < ApplicationRecord
@@ -1261,7 +1261,7 @@ SELECT * FROM authors WHERE id = 10 LIMIT 1
 SELECT * FROM books WHERE author_id = 10 ORDER BY year_published DESC
 ```
 
-You can using the `reorder` clause to specify a different way to order the books:
+You can use the `reorder` clause to specify a different way to order the books:
 
 ```ruby
 Author.find(10).books.reorder("year_published ASC")
@@ -1273,6 +1273,14 @@ The SQL that would be executed:
 SELECT * FROM authors WHERE id = 10 LIMIT 1
 SELECT * FROM books WHERE author_id = 10 ORDER BY year_published ASC
 ```
+
+The `reorder` method also works with any previously defined order, not just association order:
+
+```ruby
+Book.where("id > 100").order("id desc").reorder("title ASC")
+```
+
+This will override the previous `order("id desc")` clause and only order by title.
 
 ### `reverse_order`
 
