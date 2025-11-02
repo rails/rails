@@ -2228,7 +2228,7 @@ Full documentation about enums can be found [here](https://api.rubyonrails.org/c
 Understanding Method Chaining
 -----------------------------
 
-The Active Record pattern implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
+Active Record implements [Method Chaining](https://en.wikipedia.org/wiki/Method_chaining),
 which allows us to use multiple Active Record methods together in a simple and straightforward way.
 
 You can chain methods in a statement when the previous method called returns an
