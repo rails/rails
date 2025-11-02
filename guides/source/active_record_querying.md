@@ -2001,6 +2001,22 @@ end
 
 However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
 
+To make a class method behave like a scope (always return an `ActiveRecord::Relation`), you can return `self` when the conditional evaluates to `false`:
+
+```ruby
+class Order < ApplicationRecord
+  def self.created_before(time)
+    if time.present?
+      where(created_at: ...time)
+    else
+      self
+    end
+  end
+end
+```
+
+This way, the class method will always return an `ActiveRecord::Relation` object, making it safe to chain just like a scope.
+
 ### Applying a Default Scope
 
 If we wish for a scope to be applied across all queries to the model we can use the
