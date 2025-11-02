@@ -1,3 +1,12 @@
+*   Add `zeitwerk:check` to default CI workflow and `bin/ci`.
+
+    The `zeitwerk:check` rake task verifies that the application can eager load
+    all constants without errors. This check is now included in both the GitHub
+    Actions workflow template and the `bin/ci` script to catch autoloading issues
+    before deployment.
+
+    *Trevor Turk*
+
 *   Do not assume and force SSL in production by default when using Kamal, to allow for out of the box Kamal deployments.
 
     It is still recommended to assume and force SSL in production as soon as you can.

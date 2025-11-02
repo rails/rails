@@ -5,6 +5,7 @@ CI.run do
 <% unless options.skip_rubocop? %>
   step "Style: Ruby", "bin/rubocop"
 <% end -%>
+  step "Zeitwerk: Eager loading check", "bin/rails zeitwerk:check"
 
 <% unless options.skip_bundler_audit? -%>
   step "Security: Gem audit", "bin/bundler-audit"
