@@ -538,6 +538,18 @@ Enables or disables reloading of classes only when tracked files change. By defa
 
 Causes the app to not boot if a master key hasn't been made available through `ENV["RAILS_MASTER_KEY"]` or the `config/master.key` file.
 
+#### `config.revision`
+
+Sets the application revision for deployment tracking and error reporting. Can be a string or a proc. When not set, reads from `REVISION` file in the application root (default: `nil`).
+
+```ruby
+config.revision = ENV["GIT_SHA"]
+# or
+config.revision = -> { File.read("BUILD_ID").strip }
+```
+
+Revision can be accessed via `Rails.app.revision`.
+
 #### `config.sandbox_by_default`
 
 When `true`, rails console starts in sandbox mode. To start rails console in non-sandbox mode, `--no-sandbox` must be specified. This is helpful to avoid accidental writing to the production database. Defaults to `false`.

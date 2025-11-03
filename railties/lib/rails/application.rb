@@ -13,6 +13,7 @@ require "active_support/configuration_file"
 require "active_support/parameter_filter"
 require "rails/engine"
 require "rails/autoloaders"
+require "rails/app_version"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -101,6 +102,14 @@ module Rails
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor, :autoloaders
+
+    # Returns the application's revision (deployment identifier).
+    # Useful for error reporting and deployment verification.
+    #
+    # Set via config.revision (string or proc) or REVISION file.
+    def revision
+      @revision ||= Rails::AppVersion.revision(config.revision)
+    end
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
