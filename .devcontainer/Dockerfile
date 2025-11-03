@@ -9,7 +9,7 @@ RUN sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \
         mariadb-client libmariadb-dev \
         postgresql-client postgresql-contrib libpq-dev \
         ffmpeg mupdf mupdf-tools libvips-dev poppler-utils \
-        libxml2-dev sqlite3 imagemagick
+        libxml2-dev sqlite3 imagemagick tzdata-legacy
 
 # Add the Rails main Gemfile and install the gems. This means the gem install can be done
 # during build instead of on start. When a fork or branch has different gems, we still have an
