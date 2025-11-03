@@ -397,7 +397,7 @@ rails new app_name --skip-solid
 ```
 
 NOTE: Using the `--skip-solid` flag skips all parts of the Solid
-Trifecta (Solid Cache, Solid Queue, and Solid Cable).If you still
+Trifecta (Solid Cache, Solid Queue, and Solid Cable). If you still
 want to use some of them, you can install them separately. For
 example, if you want to use Solid Queue and Solid Cable but not
 Solid Cache, you can follow the installation guides for [Solid
@@ -484,7 +484,7 @@ records expire faster than they are written when the cache needs to shrink.
 
 The background task only runs when there are writes, so the process stays idle
 when the cache is not being updated. If you prefer to run the expiry process in
-a background job instead of a thread, set `expiry_method` from the[Cache
+a background job instead of a thread, set `expiry_method` from the [Cache
 configuration](https://github.com/rails/solid_cache#cache-configuration) to
 `:job`.
 
@@ -528,7 +528,7 @@ production:
   encrypt: true
 ```
 
-You will need to set up your application to use[Active Record
+You will need to set up your application to use [Active Record
 Encryption](active_record_encryption.html).
 
 ### Caching in Development
@@ -558,7 +558,7 @@ and ensure the `cache` database is created and migrated:
 
 ```bash
 development:
-  <<: * default
+  <<: *default
   database: cache
 ```
 
