@@ -47,7 +47,7 @@ module ActiveJob
           raise ArgumentError, "Attribute #{name} is already defined"
         end
 
-        attributes.add(name.to_s)
+        attributes.include?(name.to_s)
         attr_accessor name
       end
 
