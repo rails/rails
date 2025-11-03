@@ -75,7 +75,7 @@ module ActiveJob
       end
     end
 
-    def deserialize_argument(argument)
+    def deserialize_argument(argument) # :nodoc:
       case argument
       when nil, true, false, String, Integer, Float
         argument
