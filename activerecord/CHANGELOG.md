@@ -1,3 +1,16 @@
+*   Fix `has_one :through` associations to validate their source record.
+
+    Previously, assigning an invalid record through a `has_one :through`
+    association could cause the parent model to appear valid while `save!`
+    failed at the database level with `ActiveRecord::NotNullViolation`.
+
+    Now, `has_one :through` associations validate their source record
+    (for non-collection, non-polymorphic cases), so the parent model reflects
+    associated errors and `save!` raises `ActiveRecord::RecordInvalid`
+    as expected.
+
+    *Dmytro Rymar*
+
 *   Database-specific shard swap prohibition
 
     In #43485 (v7.0.0), shard swapping prohibition was introduced as a global
