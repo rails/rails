@@ -536,6 +536,10 @@ module Rails
         using_js_runtime? && %w[bun].include?(options[:javascript])
       end
 
+      def using_css_bundling?
+        options[:skip_asset_pipeline] || options[:css]
+      end
+
       def capture_command(command, pattern = nil)
         output = `#{command}`
         if pattern
