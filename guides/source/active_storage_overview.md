@@ -20,22 +20,29 @@ After reading this guide, you will know:
 What is Active Storage?
 -----------------------
 
-Active Storage facilitates attaching files to Active Record objects and uploading those files to cloud storage services. It comes with a local disk-based service for development and testing
-and supports mirroring files to subordinate services for backups and migrations.
+Active Storage facilitates attaching files to Active Record objects and
+uploading those files to cloud storage services. For local development and
+testing, Active Storage has a `Disk` service which uses local filesystem by
+default. 
 
-Using Active Storage, an application can transform image uploads or generate
+Active Storage supports image variants (e.g. resizing) and can transform and
+store variants of uploaded images. Using Active Storage, you can also generate
 image representations of non-image uploads like PDFs and videos, and extract
 metadata.
 
+For cloud storage services, Active Storage supports mirroring files to secondary
+services to serve as a backup or to allow migration between services.
+
 ## Setup
+
+Let's see Active Storage in action with an example of allowing users to upload a profile photo. First step is to install Active Storage:
 
 ```bash
 $ bin/rails active_storage:install
 $ bin/rails db:migrate
 ```
 
-This sets up configuration, and creates the three tables Active Storage uses:
-`active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
+The install command creates migrations to add the following Active Storage specific tables to your application: `active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
 
 | Table      | Purpose |
 | ------------------- | ----- |
