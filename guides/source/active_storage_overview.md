@@ -42,332 +42,68 @@ $ bin/rails active_storage:install
 $ bin/rails db:migrate
 ```
 
-The install command creates migrations to add the following Active Storage specific tables to your application: `active_storage_blobs`, `active_storage_attachments`, and `active_storage_variant_records`.
+The install command creates migrations to add the following Active Storage specific tables to your application:
 
-| Table      | Purpose |
-| ------------------- | ----- |
-| `active_storage_blobs` | Stores data about uploaded files, such as filename and content type. |
-| `active_storage_attachments` | A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). If your model's class name changes, you will need to run a migration on this table to update the underlying `record_type` to your model's new class name. |
-| `active_storage_variant_records` | If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated. |
+* `active_storage_blobs` - Stores data about uploaded files, such as filename and content type.
+* `active_storage_attachments` - A polymorphic join table that [connects your models to blobs](#attaching-files-to-records). This is a [polymorphic association](association_basics.html#polymorphic-associations) so if your model's class name changes, you will need to run a migration to update the underlying `record_type` column in this table to the new name.
+* `active_storage_variant_records` - If [variant tracking](#attaching-files-to-records) is enabled, stores records for each variant that has been generated.
 
-WARNING: If you are using UUIDs instead of integers as the primary key on your models, you should set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
+WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
+
+In terms of storing uploaded file during local development and testing, the default `Disk` service can be specified in the `config/storage.yml` file:
+
+```yml
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+```
+
+The services configured in the `config/storage.yml` file are then used in environment specific configuration files. For example, in order to use the `local` service above during development, we modify the `config/environments/development.rb` file:
+
+```ruby
+# config/environments/development.rb
+config.active_storage.service = :local
+```
+
+In a production environment you wouldn't use the local disk-based service. So, the `config/storage.yml` file is also where cloud services can be configured. For example, assuming there is a serviced called `amazon` in the `config/storage.yml` file, in order to use that service in production:
+
+```yml
+# config/environments/production.rb
+config.active_storage.service = :amazon
+```
+
+You can find detailed information about [configuring cloud services](#configure-cloud-services) section can be found in a later section.
 
 ### Third Party Software
 
 Various features of Active Storage depend on third-party software which Rails
-will not install, and must be installed separately:
+does not install by default and will need to be installed separately:
 
-* [libvips](https://github.com/libvips/libvips) v8.6+ or [ImageMagick](https://imagemagick.org/index.php) for image analysis and transformations
-* [ffmpeg](http://ffmpeg.org/) v3.4+ for video previews and ffprobe for video/audio analysis
-* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) for PDF previews
+* [libvips](https://github.com/libvips/libvips) or [ImageMagick](https://imagemagick.org/index.php) - for image analysis and transformations.
+* [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio analysis.
+* [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) - for PDF previews.
 
 TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
-### Storage Service
-
-Declare Active Storage services in `config/storage.yml`. For each service your
-application uses, provide a name and the requisite configuration. The example
-below declares three services named `local`, `test`, and `amazon`:
-
-```yaml
-local:
-  service: Disk
-  root: <%= Rails.root.join("storage") %>
-
-test:
-  service: Disk
-  root: <%= Rails.root.join("tmp/storage") %>
-
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-amazon:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  bucket: your_own_bucket-<%= Rails.env %>
-  region: "" # e.g. 'us-east-1'
-```
-
-Tell Active Storage which service to use by setting
-`Rails.application.config.active_storage.service`. Because each environment will
-likely use a different service, it is recommended to do this on a
-per-environment basis. To use the disk service from the previous example in the
-development environment, you would add the following to
-`config/environments/development.rb`:
-
-```ruby
-# Store files locally.
-config.active_storage.service = :local
-```
-
-To use the S3 service in production, you would add the following to
-`config/environments/production.rb`:
-
-```ruby
-# Store files on Amazon S3.
-config.active_storage.service = :amazon
-```
-
-To use the test service when testing, you would add the following to
-`config/environments/test.rb`:
-
-```ruby
-# Store uploaded files on the local file system in a temporary directory.
-config.active_storage.service = :test
-```
-
-NOTE: Configuration files that are environment-specific will take precedence:
-in production, for example, the `config/storage/production.yml` file (if existent)
-will take precedence over the `config/storage.yml` file.
-
-It is recommended to use `Rails.env` in the bucket names to further reduce the risk of accidentally destroying production data.
-
-```yaml
-amazon:
-  service: S3
-  # ...
-  bucket: your_own_bucket-<%= Rails.env %>
-
-google:
-  service: GCS
-  # ...
-  bucket: your_own_bucket-<%= Rails.env %>
-```
-
-Continue reading for more information on the built-in service adapters (e.g.
-`Disk` and `S3`) and the configuration they require.
-
-### Disk Service
-
-Declare a Disk service in `config/storage.yml`:
-
-```yaml
-local:
-  service: Disk
-  root: <%= Rails.root.join("storage") %>
-```
-
-TODO: Move lower in the guide
-Configure Cloud Service
------------------------
-
-### S3 Service (Amazon S3 and S3-compatible APIs)
-
-To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
-
-```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-amazon:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: "" # e.g. 'us-east-1'
-  bucket: your_own_bucket-<%= Rails.env %>
-```
-
-Optionally provide client and upload options:
-
-```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-amazon:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: "" # e.g. 'us-east-1'
-  bucket: your_own_bucket-<%= Rails.env %>
-  http_open_timeout: 0
-  http_read_timeout: 0
-  retry_limit: 0
-  upload:
-    server_side_encryption: "" # 'aws:kms' or 'AES256'
-    cache_control: "private, max-age=<%= 1.day.to_i %>"
-```
-
-TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
-
-Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
-
-```ruby
-gem "aws-sdk-s3", require: false
-```
-
-NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
-
-NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
-IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
-and `region` keys in the example above. The S3 Service supports all of the
-authentication options described in the [AWS SDK documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
-
-To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
-
-```yaml
-digitalocean:
-  service: S3
-  endpoint: https://nyc3.digitaloceanspaces.com
-  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret_access_key) %>
-  # ...and other options
-```
-
-There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
-
-### Google Cloud Storage Service
-
-Declare a Google Cloud Storage service in `config/storage.yml`:
-
-```yaml
-google:
-  service: GCS
-  credentials: <%= Rails.root.join("path/to/keyfile.json") %>
-  project: ""
-  bucket: your_own_bucket-<%= Rails.env %>
-```
-
-Optionally provide a Hash of credentials instead of a keyfile path:
-
-```yaml
-# Use bin/rails credentials:edit to set the GCS secrets (as gcs:private_key_id|private_key)
-google:
-  service: GCS
-  credentials:
-    type: "service_account"
-    project_id: ""
-    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
-    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
-    client_email: ""
-    client_id: ""
-    auth_uri: "https://accounts.google.com/o/oauth2/auth"
-    token_uri: "https://accounts.google.com/o/oauth2/token"
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
-    client_x509_cert_url: ""
-  project: ""
-  bucket: your_own_bucket-<%= Rails.env %>
-```
-
-Optionally provide a Cache-Control metadata to set on uploaded assets:
-
-```yaml
-google:
-  service: GCS
-  ...
-  cache_control: "public, max-age=3600"
-```
-
-Optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
-
-```yaml
-google:
-  service: GCS
-  ...
-  iam: true
-```
-
-Optionally use a specific GSA when signing URLs. When using IAM, the [metadata server](https://cloud.google.com/compute/docs/storing-retrieving-metadata) will be contacted to get the GSA email, but this metadata server is not always present (e.g. local tests) and you may wish to use a non-default GSA.
-
-```yaml
-google:
-  service: GCS
-  ...
-  iam: true
-  gsa_email: "foobar@baz.iam.gserviceaccount.com"
-```
-
-Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
-
-```ruby
-gem "google-cloud-storage", "~> 1.11", require: false
-```
-
-### Mirror Service
-
-You can keep multiple services in sync by defining a mirror service. A mirror
-service replicates uploads and deletes across two or more subordinate services.
-
-A mirror service is intended to be used temporarily during a migration between
-services in production. You can start mirroring to a new service, copy
-pre-existing files from the old service to the new, then go all-in on the new
-service.
-
-NOTE: Mirroring is not atomic. It is possible for an upload to succeed on the
-primary service and fail on any of the subordinate services. Before going
-all-in on a new service, verify that all files have been copied.
-
-Define each of the services you'd like to mirror as described above. Reference
-them by name when defining a mirror service:
-
-```yaml
-# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
-s3_west_coast:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: "" # e.g. 'us-west-1'
-  bucket: your_own_bucket-<%= Rails.env %>
-
-s3_east_coast:
-  service: S3
-  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
-  region: "" # e.g. 'us-east-1'
-  bucket: your_own_bucket-<%= Rails.env %>
-
-production:
-  service: Mirror
-  primary: s3_east_coast
-  mirrors:
-    - s3_west_coast
-```
-
-Although all secondary services receive uploads, downloads are always handled
-by the primary service.
-
-Mirror services are compatible with direct uploads. New files are directly
-uploaded to the primary service. When a directly-uploaded file is attached to a
-record, a background job is enqueued to copy it to the secondary services.
-
-### Public access
-
-By default, Active Storage assumes private access to services. This means generating signed, single-use URLs for blobs. If you'd rather make blobs publicly accessible, specify `public: true` in your app's `config/storage.yml`:
-
-```yaml
-gcs: &gcs
-  service: GCS
-  project: ""
-
-private_gcs:
-  <<: *gcs
-  credentials: <%= Rails.root.join("path/to/private_key.json") %>
-  bucket: your_own_bucket-<%= Rails.env %>
-
-public_gcs:
-  <<: *gcs
-  credentials: <%= Rails.root.join("path/to/public_key.json") %>
-  bucket: your_own_bucket-<%= Rails.env %>
-  public: true
-```
-
-Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
-
-When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
-
-### Implementing Other Cloud Services
-
-If you need to support a cloud service other than these, you will need to
-implement the Service. Each service extends
-[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
-by implementing the methods necessary to upload and download files to the cloud.
-
 Attaching Files to Records
 --------------------------
 
+TODO: update with all "features" demoed in this section
+Once Active Storage is installed and configured, we can upload files attached to a Active Record model, display those files in a view, replace or remove those files, as well as get variants and query tables related to Active Storage.
+
 ### `has_one_attached`
 
-The [`has_one_attached`][] macro sets up a one-to-one mapping between records and
-files. Each record can have one file attached to it.
+The [`has_one_attached`][] macro sets up a one-to-one mapping between records
+and files. Each record can have one file attached to it.
 
-For example, suppose your application has a `User` model. If you want each user to
-have an avatar, define the `User` model as follows:
+For example, suppose your application has a `User` model. If you want each user
+to have an avatar, define the `User` model as follows:
 
 ```ruby
 class User < ApplicationRecord
@@ -996,6 +732,299 @@ To add support for another format, add your own previewer. See the
 
 [`preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob/Representable.html#method-i-preview
 [`ActiveStorage::Preview`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html
+
+
+Configure Cloud Service
+-----------------------
+
+### Storage Service
+
+Declare Active Storage services in `config/storage.yml`. For each service your
+application uses, provide a name and the requisite configuration. The example
+below declares three services named `local`, `test`, and `amazon`:
+
+```yaml
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+amazon:
+  service: S3
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  bucket: your_own_bucket-<%= Rails.env %>
+  region: "" # e.g. 'us-east-1'
+```
+
+Tell Active Storage which service to use by setting
+`Rails.application.config.active_storage.service`. Because each environment will
+likely use a different service, it is recommended to do this on a
+per-environment basis. To use the disk service from the previous example in the
+development environment, you would add the following to
+`config/environments/development.rb`:
+
+```ruby
+# Store files locally.
+config.active_storage.service = :local
+```
+
+To use the S3 service in production, you would add the following to
+`config/environments/production.rb`:
+
+```ruby
+# Store files on Amazon S3.
+config.active_storage.service = :amazon
+```
+
+To use the test service when testing, you would add the following to
+`config/environments/test.rb`:
+
+```ruby
+# Store uploaded files on the local file system in a temporary directory.
+config.active_storage.service = :test
+```
+
+NOTE: Configuration files that are environment-specific will take precedence:
+in production, for example, the `config/storage/production.yml` file (if existent)
+will take precedence over the `config/storage.yml` file.
+
+It is recommended to use `Rails.env` in the bucket names to further reduce the risk of accidentally destroying production data.
+
+```yaml
+amazon:
+  service: S3
+  # ...
+  bucket: your_own_bucket-<%= Rails.env %>
+
+google:
+  service: GCS
+  # ...
+  bucket: your_own_bucket-<%= Rails.env %>
+```
+
+Continue reading for more information on the built-in service adapters (e.g.
+`Disk` and `S3`) and the configuration they require.
+
+### Disk Service
+
+Declare a Disk service in `config/storage.yml`:
+
+```yaml
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+```
+
+### S3 Service (Amazon S3 and S3-compatible APIs)
+
+To connect to Amazon S3, declare an S3 service in `config/storage.yml`:
+
+```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+amazon:
+  service: S3
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
+```
+
+Optionally provide client and upload options:
+
+```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+amazon:
+  service: S3
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
+  http_open_timeout: 0
+  http_read_timeout: 0
+  retry_limit: 0
+  upload:
+    server_side_encryption: "" # 'aws:kms' or 'AES256'
+    cache_control: "private, max-age=<%= 1.day.to_i %>"
+```
+
+TIP: Set sensible client HTTP timeouts and retry limits for your application. In certain failure scenarios, the default AWS client configuration may cause connections to be held for up to several minutes and lead to request queuing.
+
+Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
+
+```ruby
+gem "aws-sdk-s3", require: false
+```
+
+NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. [Public access](#public-access) additionally requires `s3:PutObjectAcl`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
+
+NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
+IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
+and `region` keys in the example above. The S3 Service supports all of the
+authentication options described in the [AWS SDK documentation](https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+
+To connect to an S3-compatible object storage API such as DigitalOcean Spaces, provide the `endpoint`:
+
+```yaml
+digitalocean:
+  service: S3
+  endpoint: https://nyc3.digitaloceanspaces.com
+  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret_access_key) %>
+  # ...and other options
+```
+
+There are many other options available. You can check them in [AWS S3 Client](https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/S3/Client.html#initialize-instance_method) documentation.
+
+### Google Cloud Storage Service
+
+Declare a Google Cloud Storage service in `config/storage.yml`:
+
+```yaml
+google:
+  service: GCS
+  credentials: <%= Rails.root.join("path/to/keyfile.json") %>
+  project: ""
+  bucket: your_own_bucket-<%= Rails.env %>
+```
+
+Optionally provide a Hash of credentials instead of a keyfile path:
+
+```yaml
+# Use bin/rails credentials:edit to set the GCS secrets (as gcs:private_key_id|private_key)
+google:
+  service: GCS
+  credentials:
+    type: "service_account"
+    project_id: ""
+    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
+    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key).dump %>
+    client_email: ""
+    client_id: ""
+    auth_uri: "https://accounts.google.com/o/oauth2/auth"
+    token_uri: "https://accounts.google.com/o/oauth2/token"
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url: ""
+  project: ""
+  bucket: your_own_bucket-<%= Rails.env %>
+```
+
+Optionally provide a Cache-Control metadata to set on uploaded assets:
+
+```yaml
+google:
+  service: GCS
+  ...
+  cache_control: "public, max-age=3600"
+```
+
+Optionally use [IAM](https://cloud.google.com/storage/docs/access-control/signed-urls#signing-iam) instead of the `credentials` when signing URLs. This is useful if you are authenticating your GKE applications with Workload Identity, see [this Google Cloud blog post](https://cloud.google.com/blog/products/containers-kubernetes/introducing-workload-identity-better-authentication-for-your-gke-applications) for more information.
+
+```yaml
+google:
+  service: GCS
+  ...
+  iam: true
+```
+
+Optionally use a specific GSA when signing URLs. When using IAM, the [metadata server](https://cloud.google.com/compute/docs/storing-retrieving-metadata) will be contacted to get the GSA email, but this metadata server is not always present (e.g. local tests) and you may wish to use a non-default GSA.
+
+```yaml
+google:
+  service: GCS
+  ...
+  iam: true
+  gsa_email: "foobar@baz.iam.gserviceaccount.com"
+```
+
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/main/google-cloud-storage) gem to your `Gemfile`:
+
+```ruby
+gem "google-cloud-storage", "~> 1.11", require: false
+```
+
+### Mirror Service
+
+You can keep multiple services in sync by defining a mirror service. A mirror
+service replicates uploads and deletes across two or more subordinate services.
+
+A mirror service is intended to be used temporarily during a migration between
+services in production. You can start mirroring to a new service, copy
+pre-existing files from the old service to the new, then go all-in on the new
+service.
+
+NOTE: Mirroring is not atomic. It is possible for an upload to succeed on the
+primary service and fail on any of the subordinate services. Before going
+all-in on a new service, verify that all files have been copied.
+
+Define each of the services you'd like to mirror as described above. Reference
+them by name when defining a mirror service:
+
+```yaml
+# Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
+s3_west_coast:
+  service: S3
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-west-1'
+  bucket: your_own_bucket-<%= Rails.env %>
+
+s3_east_coast:
+  service: S3
+  access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
+  secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
+  region: "" # e.g. 'us-east-1'
+  bucket: your_own_bucket-<%= Rails.env %>
+
+production:
+  service: Mirror
+  primary: s3_east_coast
+  mirrors:
+    - s3_west_coast
+```
+
+Although all secondary services receive uploads, downloads are always handled
+by the primary service.
+
+Mirror services are compatible with direct uploads. New files are directly
+uploaded to the primary service. When a directly-uploaded file is attached to a
+record, a background job is enqueued to copy it to the secondary services.
+
+### Public access
+
+By default, Active Storage assumes private access to services. This means generating signed, single-use URLs for blobs. If you'd rather make blobs publicly accessible, specify `public: true` in your app's `config/storage.yml`:
+
+```yaml
+gcs: &gcs
+  service: GCS
+  project: ""
+
+private_gcs:
+  <<: *gcs
+  credentials: <%= Rails.root.join("path/to/private_key.json") %>
+  bucket: your_own_bucket-<%= Rails.env %>
+
+public_gcs:
+  <<: *gcs
+  credentials: <%= Rails.root.join("path/to/public_key.json") %>
+  bucket: your_own_bucket-<%= Rails.env %>
+  public: true
+```
+
+Make sure your buckets are properly configured for public access. See docs on how to enable public read permissions for [Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access-bucket.html) and [Google Cloud Storage](https://cloud.google.com/storage/docs/access-control/making-data-public#buckets) storage services. Amazon S3 additionally requires that you have the `s3:PutObjectAcl` permission.
+
+When converting an existing application to use `public: true`, make sure to update every individual file in the bucket to be publicly-readable before switching over.
+
+### Implementing Other Cloud Services
+
+If you need to support a cloud service other than these, you will need to
+implement the Service. Each service extends
+[`ActiveStorage::Service`](https://api.rubyonrails.org/classes/ActiveStorage/Service.html)
+by implementing the methods necessary to upload and download files to the cloud.
 
 Direct Uploads
 --------------
