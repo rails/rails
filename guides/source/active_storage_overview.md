@@ -91,7 +91,7 @@ TIP: Compared to libvips, ImageMagick is better known and more widely available.
 
 WARNING: Before you install and use third-party software, make sure you understand the licensing implications of doing so. MuPDF, in particular, is licensed under AGPL and requires a commercial license for some use.
 
-Attaching Files to Records
+Attaching Files to Records OR Usage?
 --------------------------
 
 TODO: update with all "features" demoed in this section
@@ -99,32 +99,42 @@ Once Active Storage is installed and configured, we can upload files attached to
 
 ### `has_one_attached`
 
-The [`has_one_attached`][] macro sets up a one-to-one mapping between records
+The [`has_one_attached`][] method sets up a one-to-one mapping between records
 and files. Each record can have one file attached to it.
 
 For example, suppose your application has a `User` model. If you want each user
-to have an avatar, define the `User` model as follows:
+to have a profile photo, define the `User` model as follows:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar
+  has_one_attached :profile_photo
 end
 ```
 
-or if you are using Rails 6.0+, you can run a model generator command like this:
-
-```bash
-$ bin/rails generate model User avatar:attachment
-```
-
-You can create a user with an avatar:
-
-```erb
-<%= form.file_field :avatar %>
-```
+You can override a default configured service for a specific attachment with the `service` option:
 
 ```ruby
-class SignupController < ApplicationController
+class User < ApplicationRecord
+  has_one_attached :profile_photo, service: :amazon
+end
+```
+
+You can also specify an attachment when using a model generator command like this:
+
+```bash
+$ bin/rails generate model User profile_photo:attachment
+```
+
+In order to allow a user to upload a profile photo, you can add this to the form partial:
+
+```erb
+<%= form.file_field :profile_photo %>
+```
+
+Then in the User controller, add `:profile_photo` to the allowed params:
+
+```ruby
+class UserController < ApplicationController
   def create
     user = User.create!(user_params)
     session[:user_id] = user.id
@@ -133,31 +143,28 @@ class SignupController < ApplicationController
 
   private
     def user_params
-      params.expect(user: [:email_address, :password, :avatar])
+      params.expect(user: [:email_address, :password, :profile_photo])
     end
 end
 ```
 
-Call [`avatar.attach`][Attached::One#attach] to attach an avatar to an existing user:
+Now a user will be able to upload a profile photo.
+
+Some more useful methods are [`attach`][Attached::One#attach] and [`attached?`][Attached::One#attached?].
+
+ The `attach` method attaches a profile photo to an existing user:
 
 ```ruby
-user.avatar.attach(params[:avatar])
+user.profile_photo.attach(params[:profile_photo])
 ```
 
-Call [`avatar.attached?`][Attached::One#attached?] to determine whether a particular user has an avatar:
+The `attached?` method determines whether a particular user has an profile photo:
 
 ```ruby
-user.avatar.attached?
+user.profile_photo.attached?
 ```
 
-In some cases you might want to override a default service for a specific attachment.
-You can configure specific services per attachment using the `service` option with the name of your service:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :avatar, service: :google
-end
-```
+### Variants
 
 You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
 
