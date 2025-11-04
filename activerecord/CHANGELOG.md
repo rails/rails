@@ -1,3 +1,39 @@
+*   Fix inconsistency in PostgreSQL handling of unbounded time range types
+
+    Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
+    ranges when saving records with a Ruby range that begins with `nil`.
+
+    ```ruby
+    create_table :products do |t|
+      t.tsrange :period
+    end
+    class Product < ActiveRecord::Base; end
+
+    t = Time.utc(2000)
+
+    Product.create(period: t...nil)
+    Product.create(period: nil...t)
+    ```
+
+    Previously this would create two records using different values to represent
+    lower-unbounded and upper-unbounded ranges.
+
+    ```
+    ["2000-01-01 00:00:00",infinity)
+    (NULL,"2000-01-01 00:00:00")
+    ```
+
+    Now both will use `-infinity`/`infinity` which are handled differently than
+    `NULL` by some PostgreSQL range operators (e.g., `lower_inf`) and support
+    both exclusive and inclusive bounds.
+
+    ```
+    ["2000-01-01 00:00:00",infinity)
+    [-infinity,"2000-01-01 00:00:00")
+    ```
+
+    *Martin-Alexander*
+
 *   Database-specific shard swap prohibition
 
     In #43485 (v7.0.0), shard swapping prohibition was introduced as a global
