@@ -194,7 +194,7 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
   test "enqueues create variants job to delay transformations after attach" do
     blob = create_file_blob
-    assert_create_variants_job blob:, transformation: { resize_to_limit: [2, 2] } do
+    assert_create_variants_job blob:, transformations_array: [{ resize_to_limit: [2, 2] }] do
       @user.avatar_with_later_variants.attach blob
     end
   end
@@ -250,10 +250,10 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
       assert_equal 0, (max_transaction_depth - baseline_transaction_depth)
     end
 
-    def assert_create_variants_job(blob:, transformation:, &block)
+    def assert_create_variants_job(blob:, transformations_array:, &block)
       assert_enqueued_with(
         job: ActiveStorage::CreateVariantsJob,
-        args: [ blob, transformations: [transformation], process: :later ], &block
+        args: [ blob, transformations_array:, process: :later ], &block
       )
     end
 end

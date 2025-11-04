@@ -6,14 +6,14 @@ class ActiveStorage::CreateVariantsJob < ActiveStorage::BaseJob
   discard_on ActiveRecord::RecordNotFound
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
-  def perform(blob, transformations:, process:)
+  def perform(blob, transformations_array:, process:)
     @blob = blob
     @process = process
 
     @blob.preview({}).processed if preview_image_needed?
 
-    transformations.each do |transformation|
-      ActiveStorage::TransformJob.public_send(perform_method, @blob, transformation)
+    transformations_array.each do |transformations|
+      ActiveStorage::TransformJob.public_send(perform_method, @blob, transformations)
     end
   end
 

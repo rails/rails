@@ -6,7 +6,7 @@ class ActiveStorage::TransformJob < ActiveStorage::BaseJob
   discard_on ActiveRecord::RecordNotFound
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
-  def perform(blob, transformation)
-    blob.representation(transformation).processed
+  def perform(blob, transformations)
+    blob.representation(transformations).processed
   end
 end

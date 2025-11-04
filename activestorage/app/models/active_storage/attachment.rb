@@ -146,8 +146,8 @@ class ActiveStorage::Attachment < ActiveStorage::Record
         end
       end
 
-      ActiveStorage::CreateVariantsJob.perform_now(blob, transformations: immediate_transformations, process: :immediately) if immediate_transformations.any?
-      ActiveStorage::CreateVariantsJob.perform_later(blob, transformations: later_transformations, process: :later) if later_transformations.any?
+      ActiveStorage::CreateVariantsJob.perform_now(blob, transformations_array: immediate_transformations, process: :immediately) if immediate_transformations.any?
+      ActiveStorage::CreateVariantsJob.perform_later(blob, transformations_array: later_transformations, process: :later) if later_transformations.any?
     end
 
     def purge_dependent_blob_later
