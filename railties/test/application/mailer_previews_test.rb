@@ -570,11 +570,17 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="part=text%2Fhtml">View as HTML email</option>', last_response.body
+      assert_select "option[selected][value]", "View as HTML email" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+      end
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<option selected value="part=text%2Fplain">View as plain-text email</option>', last_response.body
+      assert_select "option[selected][value]", "View as plain-text email" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/plain", query["part"]
+      end
     end
 
     test "locale menu selects correct option" do
@@ -702,9 +708,21 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.txt"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?part=text%2Fplain">', last_response.body
-      assert_match '<option selected value="part=text%2Fplain">', last_response.body
-      assert_match '<option  value="part=text%2Fhtml">', last_response.body
+      assert_select "iframe[name='messageBody'][src]" do |iframe,|
+        query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
+        assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
+      end
+      assert_select "option[selected][value*='plain']" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
+      end
+      assert_select "option[value*='html']:not([selected])" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
+      end
 
       get "/rails/mailers/notifier/foo?part=text%2Fplain"
       assert_equal 200, last_response.status
@@ -712,9 +730,25 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo.html?name=Ruby"
       assert_equal 200, last_response.status
-      assert_match '<iframe name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option selected value="name=Ruby&amp;part=text%2Fhtml">', last_response.body
-      assert_match '<option  value="name=Ruby&amp;part=text%2Fplain">', last_response.body
+      assert_select "iframe[name='messageBody'][src]" do |iframe,|
+        query = Rack::Utils.parse_nested_query(URI.parse(iframe["src"]).query)
+        assert_equal "Ruby", query["name"]
+        assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
+      end
+
+      assert_select "option[selected][value*='html']" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "text/html", query["part"]
+        assert query.key?("email_id")
+      end
+
+      assert_select "option[value*='plain']:not([selected])" do |option,|
+        query = Rack::Utils.parse_nested_query(option["value"])
+        assert_equal "Ruby", query["name"]
+        assert_equal "text/plain", query["part"]
+        assert query.key?("email_id")
+      end
 
       get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml"
       assert_equal 200, last_response.status
@@ -1115,6 +1149,261 @@ module ApplicationTests
 
       get "/rails/mailers/notifier/foo?part=text%2Fplain"
       assert_includes last_response.body, "bar"
+    end
+
+    test "email persistence caches email objects across requests" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            @random_value = rand(1000)
+            mail to: "to@example.org", subject: "Random: \#{@random_value}"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Random value: <%= @random_value %>
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Random value: <%= @random_value %></p>
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      # First request generates email and caches it
+      get "/rails/mailers/notifier/foo"
+      assert_equal 200, last_response.status
+
+      # Extract email_id from response
+      email_id = nil
+      assert_select "iframe[src*='email_id']" do |iframe|
+        email_id = Rack::Utils.parse_nested_query(URI.parse(iframe.first["src"]).query)["email_id"]
+      end
+      assert_not_nil email_id
+
+      # Get the HTML content
+      get "/rails/mailers/notifier/foo?part=text%2Fhtml&email_id=#{email_id}"
+      html_content = last_response.body
+      random_match = html_content.match(/Random value: (\d+)/)
+      assert_not_nil random_match
+      first_random = random_match[1]
+
+      # Get the plain text content with same email_id
+      get "/rails/mailers/notifier/foo?part=text%2Fplain&email_id=#{email_id}"
+      text_content = last_response.body
+      text_random_match = text_content.match(/Random value: (\d+)/)
+      assert_not_nil text_random_match
+      second_random = text_random_match[1]
+
+      # Both should have the same random value due to caching
+      assert_equal first_random, second_random
+    end
+
+    test "email persistence generates new emails without email_id and reuses with valid email_id" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            @unique_id = SecureRandom.hex(8)
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Unique ID: <%= @unique_id %>
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      # First request without email_id should generate new email
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      first_content = last_response.body
+      first_unique_id = first_content.match(/Unique ID: ([a-f0-9]+)/)[1]
+
+      # Second request without email_id should generate different email
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      second_content = last_response.body
+      second_unique_id = second_content.match(/Unique ID: ([a-f0-9]+)/)[1]
+
+      # Should be different since no caching without email_id
+      assert_not_equal first_unique_id, second_unique_id
+
+      # Get email_id for caching test
+      get "/rails/mailers/notifier/foo"
+      email_id = nil
+      assert_select "iframe[src*='email_id']" do |iframe|
+        email_id = Rack::Utils.parse_nested_query(URI.parse(iframe.first["src"]).query)["email_id"]
+      end
+
+      # Requests with same email_id should reuse cached email
+      get "/rails/mailers/notifier/foo?part=text%2Fplain&email_id=#{email_id}"
+      cached_content = last_response.body
+      cached_unique_id = cached_content.match(/Unique ID: ([a-f0-9]+)/)[1]
+
+      get "/rails/mailers/notifier/foo?part=text%2Fplain&email_id=#{email_id}"
+      reused_content = last_response.body
+      reused_unique_id = reused_content.match(/Unique ID: ([a-f0-9]+)/)[1]
+
+      # Should be identical due to caching
+      assert_equal cached_unique_id, reused_unique_id
+    end
+
+    test "email persistence maintains consistency across iframe requests" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo
+            @counter = rand(10000)
+            mail to: "to@example.org", subject: "Counter: \#{@counter}"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Counter: <%= @counter %>
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Counter: <%= @counter %></p>
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo
+          end
+        end
+      RUBY
+
+      app("development")
+
+      # Get main preview page with HTML format to ensure multipart
+      get "/rails/mailers/notifier/foo.html"
+      assert_equal 200, last_response.status
+
+      # Store main page content for subject verification
+      main_page_content = last_response.body
+
+      # Verify iframe src contains email_id
+      iframe_src = nil
+      assert_select "iframe[name='messageBody']" do |iframe|
+        iframe_src = iframe.first["src"]
+      end
+      assert_not_nil iframe_src
+      assert_match(/email_id=/, iframe_src)
+
+      # Extract email_id from iframe src
+      query_params = Rack::Utils.parse_nested_query(URI.parse(iframe_src).query)
+      email_id = query_params["email_id"]
+      assert_not_nil email_id
+
+      # Request HTML content with email_id
+      get "/rails/mailers/notifier/foo?part=text%2Fhtml&email_id=#{email_id}"
+      html_content = last_response.body
+      html_counter_match = html_content.match(/Counter: (\d+)/)
+      assert_not_nil html_counter_match
+      html_counter = html_counter_match[1]
+
+      # Request plain text content with same email_id
+      get "/rails/mailers/notifier/foo?part=text%2Fplain&email_id=#{email_id}"
+      text_content = last_response.body
+      text_counter_match = text_content.match(/Counter: (\d+)/)
+      assert_not_nil text_counter_match
+      text_counter = text_counter_match[1]
+
+      # Both should have same counter value due to persistence
+      assert_equal html_counter, text_counter
+
+      # Test subject consistency - subject is shown in main preview page header
+      subject_match = main_page_content.match(/<strong id="subject">Counter: (\d+)<\/strong>/)
+      assert_not_nil subject_match
+      subject_counter = subject_match[1]
+
+      # Subject should match body counter
+      assert_equal html_counter, subject_counter
+    end
+
+
+
+    test "email persistence works with parameterized previews" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo(name)
+            @name = name
+            @random = rand(1000)
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, <%= @name %>! Random: <%= @random %>
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Hello, <%= @name %>! Random: <%= @random %></p>
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo(params[:name] || "World")
+          end
+        end
+      RUBY
+
+      app("development")
+
+      # Request with parameters
+      get "/rails/mailers/notifier/foo?name=Ruby"
+      assert_equal 200, last_response.status
+
+      # Extract email_id
+      email_id = nil
+      assert_select "iframe[src*='email_id']" do |iframe|
+        email_id = Rack::Utils.parse_nested_query(URI.parse(iframe.first["src"]).query)["email_id"]
+      end
+
+      # Get HTML version
+      get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml&email_id=#{email_id}"
+      html_content = last_response.body
+      html_random = html_content.match(/Random: (\d+)/)[1]
+
+      # Get plain text version with same email_id
+      get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fplain&email_id=#{email_id}"
+      text_content = last_response.body
+      text_random = text_content.match(/Random: (\d+)/)[1]
+
+      # Random values should match due to persistence
+      assert_equal html_random, text_random
+
+      # Both should contain the correct name
+      assert_match "Hello, Ruby!", html_content
+      assert_match "Hello, Ruby!", text_content
     end
 
     private
