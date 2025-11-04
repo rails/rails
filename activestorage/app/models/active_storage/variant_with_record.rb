@@ -41,7 +41,6 @@ class ActiveStorage::VariantWithRecord
   end
 
   private
-
     def process
       transform_blob { |image| create_or_find_record(image: image) }
     end

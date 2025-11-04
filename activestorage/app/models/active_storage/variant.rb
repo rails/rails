@@ -109,7 +109,6 @@ class ActiveStorage::Variant
   end
 
   private
-
     def process
       blob.open do |input|
         variation.transform(input) do |output|
