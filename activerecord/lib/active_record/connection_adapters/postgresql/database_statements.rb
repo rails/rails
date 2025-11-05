@@ -42,13 +42,13 @@ module ActiveRecord
           @notice_receiver_sql_warnings = []
         end
 
-        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
           else
-            result = internal_exec_query(sql, name, binds)
+            result = raw_exec_query(intent)
             unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(sql)
+              table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
                 pk = primary_key(table_ref) if pk.nil?
                 pk = suppress_composite_primary_key(pk)
@@ -139,13 +139,13 @@ module ActiveRecord
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+          def perform_query(raw_connection, intent)
             update_typemap_for_default_timezone
-            result = if prepare
+            result = if intent.prepare
               begin
-                stmt_key = prepare_statement(sql, binds, raw_connection)
-                notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+                stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
+                intent.notification_payload[:statement_name] = stmt_key
+                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -155,7 +155,7 @@ module ActiveRecord
                   else
                     @lock.synchronize do
                       # outside of transactions we can simply flush this query and retry
-                      @statements.delete sql_key(sql)
+                      @statements.delete sql_key(intent.processed_sql)
                     end
                     retry
                   end
@@ -163,16 +163,16 @@ module ActiveRecord
 
                 raise
               end
-            elsif binds.nil? || binds.empty?
-              raw_connection.async_exec(sql)
+            elsif intent.binds.nil? || intent.binds.empty?
+              raw_connection.async_exec(intent.processed_sql)
             else
-              raw_connection.exec_params(sql, type_casted_binds)
+              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             end
 
             verified!
 
-            notification_payload[:affected_rows] = result.cmd_tuples
-            notification_payload[:row_count] = result.ntuples
+            intent.notification_payload[:affected_rows] = result.cmd_tuples
+            intent.notification_payload[:row_count] = result.ntuples
             result
           end
 
@@ -202,7 +202,17 @@ module ActiveRecord
           end
 
           def execute_batch(statements, name = nil, **kwargs)
-            raw_execute(combine_multi_statements(statements), name, batch: true, **kwargs)
+            intent = QueryIntent.new(
+              processed_sql: combine_multi_statements(statements),
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            raw_execute(intent)
           end
 
           def build_truncate_statements(table_names)

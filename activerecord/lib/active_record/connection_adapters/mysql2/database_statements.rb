@@ -16,7 +16,17 @@ module ActiveRecord
         private
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true, **kwargs)
+              intent = QueryIntent.new(
+                processed_sql: statement,
+                name: name,
+                batch: true,
+                binds: kwargs[:binds] || [],
+                prepare: kwargs[:prepare] || false,
+                async: kwargs[:async] || false,
+                allow_retry: kwargs[:allow_retry] || false,
+                materialize_transactions: kwargs[:materialize_transactions] != false
+              )
+              raw_execute(intent)
             end
           end
 
@@ -38,8 +48,8 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            reset_multi_statement = if batch && !multi_statements_enabled?
+          def perform_query(raw_connection, intent)
+            reset_multi_statement = if intent.batch && !multi_statements_enabled?
               raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
               true
             end
@@ -49,22 +59,22 @@ module ActiveRecord
             raw_connection.query_options[:database_timezone] = default_timezone
 
             result = nil
-            if binds.nil? || binds.empty?
-              result = raw_connection.query(sql)
+            if intent.binds.nil? || intent.binds.empty?
+              result = raw_connection.query(intent.processed_sql)
               # Ref: https://github.com/brianmario/mysql2/pull/1383
               # As of mysql2 0.5.6 `#affected_rows` might raise Mysql2::Error if a prepared statement
               # from that same connection was GCed while `#query` released the GVL.
               # By avoiding to call `#affected_rows` when we have a result, we reduce the likeliness
               # of hitting the bug.
               @affected_rows_before_warnings = result&.size || raw_connection.affected_rows
-            elsif prepare
+            elsif intent.prepare
               retry_count = 1
               begin
-                stmt = @statements[sql] ||= raw_connection.prepare(sql)
-                result = stmt.execute(*type_casted_binds)
+                stmt = @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                result = stmt.execute(*intent.type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
               rescue ::Mysql2::Error => error
-                @statements.delete(sql)
+                @statements.delete(intent.processed_sql)
                 # Sometimes for an unknown reason, we get that error.
                 # It suggest somehow that the prepared statement was deallocated
                 # but the client doesn't know it.
@@ -79,10 +89,10 @@ module ActiveRecord
                 raise
               end
             else
-              stmt = raw_connection.prepare(sql)
+              stmt = raw_connection.prepare(intent.processed_sql)
 
               begin
-                result = stmt.execute(*type_casted_binds)
+                result = stmt.execute(*intent.type_casted_binds)
                 @affected_rows_before_warnings = stmt.affected_rows
 
                 # Ref: https://github.com/brianmario/mysql2/pull/1383
@@ -100,8 +110,8 @@ module ActiveRecord
               end
             end
 
-            notification_payload[:affected_rows] = @affected_rows_before_warnings
-            notification_payload[:row_count] = result&.size || 0
+            intent.notification_payload[:affected_rows] = @affected_rows_before_warnings
+            intent.notification_payload[:row_count] = result&.size || 0
 
             raw_connection.abandon_results!
 

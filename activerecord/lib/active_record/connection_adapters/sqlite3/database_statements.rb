@@ -83,23 +83,23 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
+          def perform_query(raw_connection, intent)
             total_changes_before_query = raw_connection.total_changes
             affected_rows = nil
 
-            if batch
-              raw_connection.execute_batch2(sql)
+            if intent.batch
+              raw_connection.execute_batch2(intent.processed_sql)
             else
-              stmt = if prepare
-                @statements[sql] ||= raw_connection.prepare(sql)
-                @statements[sql].reset!
+              stmt = if intent.prepare
+                @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                @statements[intent.processed_sql].reset!
               else
                 # Don't cache statements if they are not prepared.
-                raw_connection.prepare(sql)
+                raw_connection.prepare(intent.processed_sql)
               end
               begin
-                unless binds.nil? || binds.empty?
-                  stmt.bind_params(type_casted_binds)
+                unless intent.binds.nil? || intent.binds.empty?
+                  stmt.bind_params(intent.type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
@@ -123,13 +123,13 @@ module ActiveRecord
                   ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
-                stmt.close unless prepare
+                stmt.close unless intent.prepare
               end
             end
             verified!
 
-            notification_payload[:affected_rows] = affected_rows
-            notification_payload[:row_count] = result&.length || 0
+            intent.notification_payload[:affected_rows] = affected_rows
+            intent.notification_payload[:row_count] = result&.length || 0
             result
           end
 
@@ -145,7 +145,17 @@ module ActiveRecord
 
           def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
-            raw_execute(sql, name, batch: true, **kwargs)
+            intent = QueryIntent.new(
+              processed_sql: sql,
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            raw_execute(intent)
           end
 
           def build_truncate_statement(table_name)

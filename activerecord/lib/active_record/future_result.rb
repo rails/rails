@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_record/connection_adapters/query_intent"
+
 module ActiveRecord
   class FutureResult # :nodoc:
     class Complete
@@ -63,13 +65,12 @@ module ActiveRecord
 
     attr_reader :lock_wait
 
-    def initialize(pool, *args, **kwargs)
+    def initialize(pool, intent)
       @mutex = Mutex.new
 
       @session = nil
       @pool = pool
-      @args = args
-      @kwargs = kwargs
+      @intent = intent
 
       @pending = true
       @error = nil
@@ -159,15 +160,18 @@ module ActiveRecord
       end
 
       def execute_query(connection, async: false)
-        @result = exec_query(connection, *@args, **@kwargs, async: async)
+        @result = exec_query(connection, @intent, async: async)
       rescue => error
         @error = error
       ensure
         @pending = false
       end
 
-      def exec_query(connection, *args, **kwargs)
-        connection.raw_exec_query(*args, **kwargs)
+      def exec_query(connection, intent, async: false)
+        # Update intent with actual async execution mode for accurate logging
+        intent.async = async
+
+        connection.raw_exec_query(intent)
       end
 
       class SelectAll < FutureResult # :nodoc:
