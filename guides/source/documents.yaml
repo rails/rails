@@ -281,15 +281,13 @@
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
     -
-      name: Getting Started with Engines
+      name: Rails Engines Overview
       url: engines.html
       description: >
-        Engines can be considered miniature applications that provide
+        Engines are packaged like miniature applications that provide
         additional functionality to their host applications. In this guide you
         will learn how to create your own engine and integrate it with a host
         application.
-      work_in_progress: true
-
     -
       name: Threading and Code Execution in Rails
       url: threading_and_code_execution.html
