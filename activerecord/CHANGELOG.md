@@ -1,3 +1,10 @@
+*   Fix `eager_load` when loading `has_many` assocations with composite primary keys.
+
+    This would result in some records being loaded multiple times.
+
+    *Martin-Alexander*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   No changes.
