@@ -113,6 +113,10 @@ For more information on changes made to Rails 8.1 please see the [release notes]
 
 Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
 
+### More configuration for open redirects
+
+Rails 8.1 replaced `raise_on_open_redirects` with `action_on_open_redirects`, adding `:log` and `:notify` actions. This also changed default behavior for apps using `load_defaults` -- you app will now raise if it detects open redirects. Using the new configuration will update the behavior. [See #55496 for more details.](https://github.com/rails/rails/pull/55496)
+
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
 
