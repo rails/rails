@@ -565,21 +565,12 @@ module ActiveRecord
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(intent)
-          sql = intent.sql
-          name = intent.name
-          binds = intent.binds
-          prepare = intent.prepare
-          async = intent.async
-          allow_retry = intent.allow_retry
-          materialize_transactions = intent.materialize_transactions
-          batch = intent.batch
-
-          intent.type_casted_binds = type_casted_binds = type_casted_binds(binds)
-          log(sql, name, binds, type_casted_binds, async: async, allow_retry: allow_retry) do |notification_payload|
+          intent.type_casted_binds = type_casted_binds(intent.binds)
+          log(intent) do |notification_payload|
             intent.notification_payload = notification_payload
-            with_raw_connection(allow_retry: allow_retry, materialize_transactions: materialize_transactions) do |conn|
-              result = perform_query(conn, sql, binds, type_casted_binds, prepare: prepare, notification_payload: notification_payload, batch: batch)
-              handle_warnings(result, sql)
+            with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
+              result = perform_query(conn, intent.sql, intent.binds, intent.type_casted_binds, prepare: intent.prepare, notification_payload: intent.notification_payload, batch: intent.batch)
+              handle_warnings(result, intent.sql)
               result
             end
           end

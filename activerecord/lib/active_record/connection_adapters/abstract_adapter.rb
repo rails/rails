@@ -1197,23 +1197,53 @@ module ActiveRecord
           active_record_error
         end
 
-        def log(sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block) # :doc:
-          instrumenter.instrument(
-            "sql.active_record",
-            sql:               sql,
-            name:              name,
-            binds:             binds,
-            type_casted_binds: type_casted_binds,
-            async:             async,
-            allow_retry:       allow_retry,
-            connection:        self,
-            transaction:       current_transaction.user_transaction.presence,
-            affected_rows:     0,
-            row_count:         0,
-            &block
-          )
+        def log(intent_or_sql, name = "SQL", binds = [], type_casted_binds = [], async: false, allow_retry: false, &block)
+          if intent_or_sql.is_a?(QueryIntent)
+            intent = intent_or_sql
+
+            instrumenter.instrument(
+              "sql.active_record",
+              sql:               intent.sql,
+              name:              intent.name,
+              binds:             intent.binds,
+              type_casted_binds: intent.type_casted_binds,
+              async:             intent.async,
+              allow_retry:       intent.allow_retry,
+              connection:        self,
+              transaction:       current_transaction.user_transaction.presence,
+              affected_rows:     0,
+              row_count:         0,
+              &block
+            )
+          else
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
+              Passing SQL strings to `log` is deprecated and will stop working in Rails 8.2.
+              Please pass a `QueryIntent` object instead.
+            MSG
+
+            sql = intent_or_sql
+
+            instrumenter.instrument(
+              "sql.active_record",
+              sql:               sql,
+              name:              name,
+              binds:             binds,
+              type_casted_binds: type_casted_binds,
+              async:             async,
+              allow_retry:       allow_retry,
+              connection:        self,
+              transaction:       current_transaction.user_transaction.presence,
+              affected_rows:     0,
+              row_count:         0,
+              &block
+            )
+          end
         rescue ActiveRecord::StatementInvalid => ex
-          raise ex.set_query(sql, binds)
+          if intent
+            raise ex.set_query(intent.sql, intent.binds)
+          else
+            raise ex.set_query(sql, binds)
+          end
         end
 
         def instrumenter # :nodoc:
