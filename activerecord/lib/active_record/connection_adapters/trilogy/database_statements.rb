@@ -10,8 +10,8 @@ module ActiveRecord
         end
 
         private
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            reset_multi_statement = if batch && !@config[:multi_statement]
+          def perform_query(raw_connection, intent)
+            reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
               true
             end
@@ -24,14 +24,14 @@ module ActiveRecord
               raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
             end
 
-            result = raw_connection.query(sql)
+            result = raw_connection.query(intent.sql)
             while raw_connection.more_results_exist?
               raw_connection.next_result
             end
             verified!
 
-            notification_payload[:affected_rows] = result.affected_rows
-            notification_payload[:row_count] = result.count
+            intent.notification_payload[:affected_rows] = result.affected_rows
+            intent.notification_payload[:row_count] = result.count
             result
           ensure
             if reset_multi_statement && active?
