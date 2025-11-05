@@ -41,6 +41,17 @@ active_record_encryption:
   key_derivation_salt: xEY0dt6TZcAMg52K7O84wYzkjvbA62Hz
 ```
 
+To use environment variables as configuration source, you can also define the initialization in the initializer file using `ActiveRecord::Encryption.configure`:
+```ruby
+# config/initializers/active_record_encryption.rb
+
+ActiveRecord::Encryption.configure(
+  primary_key: ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"],
+  deterministic_key: ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"],
+  key_derivation_salt: ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"],
+)
+```
+
 NOTE: These generated values are 32 bytes in length. If you generate these yourself, the minimum lengths you should use are 12 bytes for the primary key (this will be used to derive the AES 32 bytes key) and 20 bytes for the salt.
 
 ### Declaration of Encrypted Attributes
