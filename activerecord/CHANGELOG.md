@@ -1,3 +1,34 @@
+*   Add new generator option primary_key_default
+
+    You can change create_table option :default in config/application.rb as follows:
+
+    ```ruby
+    config.generators do |g|
+      g.orm :active_record, primary_key_type: :uuid
+      g.orm :active_record, primary_key_default: "uuidv7()"
+    end
+    ```
+
+    This config generates migration like follows:
+
+    ```shell
+    bin/rails g migration createUser name:string
+    ```
+
+    ```ruby
+    class CreateUser < ActiveRecord::Migration[8.2]
+      def change
+        create_table :users, id: :uuid, default: "uuidv7()" do |t|
+          t.string :name
+
+          t.timestamps
+        end
+      end
+    end
+    ```
+
+    *kinoppyd*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
