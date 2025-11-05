@@ -26,6 +26,35 @@ module ActiveRecord
         assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
       end
 
+      def test_rds_proxy_compatible_connection_avoids_pinning
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        configuration = db_config.configuration_hash.merge(
+          options: [
+            "-c client_min_messages=warning",
+            "-c standard_conforming_strings=on",
+            "-c intervalstyle=iso_8601",
+            "-c timezone=UTC",
+            "-c debug_print_plan=on"
+          ].join(" "),
+          encoding: "unicode",
+          variables: {
+            debug_print_plan: true
+          }
+        )
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(configuration)
+
+        set_commands = []
+        subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+          set_commands << payload[:sql] if payload[:sql].match?(/\bSET\b/i)
+        end
+
+        connection.connect!
+
+        assert_empty set_commands
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      end
+
       def test_reconnection_error
         fake_connection = Class.new do
           def async_exec(*)
