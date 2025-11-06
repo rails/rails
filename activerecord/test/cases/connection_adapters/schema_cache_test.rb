@@ -121,6 +121,17 @@ module ActiveRecord
         tempfile.unlink
       end
 
+      def test_yaml_loads_8_1_dump
+        cache = load_bound_reflection("#{ASSETS_ROOT}/schema_dump_8_1.yml")
+
+        assert_no_queries do
+          assert_equal 2, cache.columns("posts").size
+          assert_equal 2, cache.columns_hash("posts").size
+          assert cache.data_source_exists?("posts")
+          assert_equal "id", cache.primary_keys("posts")
+        end
+      end
+
       def test_yaml_loads_5_1_dump
         cache = load_bound_reflection(schema_dump_path)
 
