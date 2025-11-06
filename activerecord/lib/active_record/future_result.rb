@@ -85,7 +85,7 @@ module ActiveRecord
 
     def schedule!(session)
       @session = session
-      @intent.adapter = nil  # Orphan intent while in queue
+      @intent.schedule!  # Preprocess query, then detach adapter
       @pool.schedule_query(self)
     end
 

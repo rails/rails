@@ -33,7 +33,7 @@ module ActiveRecord
 
     test "statement and binds are set on select" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
-      binds = [Minitest::Mock.new, Minitest::Mock.new]
+      binds = [123, 456]
       connection = Book.lease_connection
       intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, processed_sql: sql, name: Book.name, binds: binds)
       error = assert_raises(ActiveRecord::StatementInvalid) do
