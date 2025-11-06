@@ -1,3 +1,13 @@
+*   Add parameterized tests via `ActiveSupport::TestCase#test`
+
+    ```ruby
+    test "greater than 0", each: [1, 2, 3] do |value|
+      assert_operator value, :>, 0
+    end
+    ```
+
+    *Joseph Hale*
+
 *   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
     the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
 
