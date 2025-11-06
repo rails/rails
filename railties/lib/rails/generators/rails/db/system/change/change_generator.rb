@@ -11,7 +11,7 @@ module Rails
         class ChangeGenerator < Base # :nodoc:
           include AppName
 
-          BASE_PACKAGES = %w( curl libvips )
+          BASE_PACKAGES = %w( curl libjemalloc2 libvips )
           BUILD_PACKAGES = %w( build-essential git )
 
           class_option :to, required: true,
