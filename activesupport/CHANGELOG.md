@@ -1,3 +1,13 @@
+*   Add parameterized tests via `ActiveSupport::TestCase#test`
+
+    ```ruby
+    test "greater than 0", each: [1, 2, 3] do |value|
+      assert_operator value, :>, 0
+    end
+    ```
+
+    *Joseph Hale*
+
 *   Make flaky parallel tests easier to diagnose by deterministically assigning
     tests to workers.
 
