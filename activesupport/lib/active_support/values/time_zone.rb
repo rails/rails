@@ -160,6 +160,7 @@ module ActiveSupport
       "Sapporo"                      => "Asia/Tokyo",
       "Tokyo"                        => "Asia/Tokyo",
       "Yakutsk"                      => "Asia/Yakutsk",
+      "Phnom Penh"                   => "Asia/Phnom_Penh",
       "Darwin"                       => "Australia/Darwin",
       "Adelaide"                     => "Australia/Adelaide",
       "Canberra"                     => "Australia/Canberra",
