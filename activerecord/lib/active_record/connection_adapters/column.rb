@@ -104,7 +104,7 @@ module ActiveRecord
         def deduplicated
           @name = -name
           @sql_type_metadata = sql_type_metadata.deduplicate if sql_type_metadata
-          @default = -default if default
+          @default = -default if String === default
           @default_function = -default_function if default_function
           @collation = -collation if collation
           @comment = -comment if comment

@@ -1,0 +1,40 @@
+--- !ruby/object:ActiveRecord::ConnectionAdapters::SchemaCache
+columns:
+  posts:
+  - &1 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: id
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: INTEGER
+      type: :integer
+      limit:
+      precision:
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  - &2 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    name: published
+    table_name: posts
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: boolean
+      type: :boolean
+      limit:
+      precision:
+      scale:
+    'null': true
+    default: true
+    default_function:
+    collation:
+    comment:
+columns_hash:
+  posts:
+    id: *1
+    published: *2
+primary_keys:
+  posts: id
+data_sources:
+  posts: true
+version: 0
