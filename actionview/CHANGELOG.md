@@ -1,3 +1,7 @@
+*   Add ability to pass a block when rendering collection. The block will be executed for each rendered element in the collection.
+
+    *Vincent Robert*
+
 *   Add `key:` and `expires_in:` options under `cached:` to `render` when used with `collection:`
 
     *Jarrett Lusso*

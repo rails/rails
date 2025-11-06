@@ -430,6 +430,11 @@ module RenderTestCases
       @view.render(partial: "test/local_inspector", collection: [ Customer.new("mary") ])
   end
 
+  def test_render_partial_collection_with_block
+    assert_equal "Before\narg2,arg1\nAfterBefore\narg2,arg1\nAfter",
+      @view.render(layout: "test/layout_for_block_with_args", collection: [ Customer.new, Customer.new ], as: :customer) { |a, b| "#{b},#{a}" }
+  end
+
   def test_render_partial_collection_with_different_partials_still_provides_partial_iteration
     a = {}
     b = {}
