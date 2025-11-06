@@ -987,6 +987,7 @@ module ActiveRecord
 
           # ...and send them all in one query
           intent = QueryIntent.new(
+            adapter: self,
             processed_sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
             name: "SCHEMA"
           )

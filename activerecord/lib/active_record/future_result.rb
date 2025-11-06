@@ -85,6 +85,7 @@ module ActiveRecord
 
     def schedule!(session)
       @session = session
+      @intent.adapter = nil  # Orphan intent while in queue
       @pool.schedule_query(self)
     end
 
@@ -160,17 +161,18 @@ module ActiveRecord
       end
 
       def execute_query(connection, async: false)
-        @result = exec_query(connection, @intent, async: async)
+        # Update intent with actual executing adapter and async mode for accurate logging
+        @intent.adapter = connection
+        @intent.async = async
+
+        @result = exec_query(connection, @intent)
       rescue => error
         @error = error
       ensure
         @pending = false
       end
 
-      def exec_query(connection, intent, async: false)
-        # Update intent with actual async execution mode for accurate logging
-        intent.async = async
-
+      def exec_query(connection, intent)
         connection.raw_exec_query(intent)
       end
 
