@@ -146,6 +146,7 @@ module ActiveRecord
           def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
             intent = QueryIntent.new(
+              adapter: self,
               processed_sql: sql,
               name: name,
               batch: true,

@@ -81,6 +81,7 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil, async: false, allow_retry: false)
         arel = arel_from_relation(arel)
         intent = QueryIntent.new(
+          adapter: self,
           arel: arel,
           name: name,
           binds: binds,
@@ -169,7 +170,7 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
-        intent = QueryIntent.new(raw_sql: sql, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, raw_sql: sql, name: name, binds: binds)
 
         _exec_insert(intent, pk, sequence_name, returning: returning)
       end
@@ -218,7 +219,7 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # an array of is returned from the method representing values of the specified columns from the inserted row.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
         # Compile Arel before calling exec_insert
         compile_arel_in_intent(intent)
@@ -233,7 +234,7 @@ module ActiveRecord
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel, name = nil, binds = [])
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
         # Compile Arel to get SQL
         compile_arel_in_intent(intent)
@@ -243,7 +244,7 @@ module ActiveRecord
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
-        intent = QueryIntent.new(arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
         # Compile Arel to get SQL
         compile_arel_in_intent(intent)
@@ -646,6 +647,7 @@ module ActiveRecord
         # Same as #internal_exec_query, but yields a native adapter result
         def internal_execute(sql, name = "SQL", binds = [], prepare: false, async: false, allow_retry: false, materialize_transactions: true, &block)
           intent = QueryIntent.new(
+            adapter: self,
             raw_sql: sql,
             name: name,
             binds: binds,
@@ -660,6 +662,7 @@ module ActiveRecord
         def execute_batch(statements, name = nil, **kwargs)
           statements.each do |statement|
             intent = QueryIntent.new(
+              adapter: self,
               processed_sql: statement,
               name: name,
               binds: kwargs[:binds] || [],

@@ -5,14 +5,15 @@ module ActiveRecord
     class QueryIntent # :nodoc:
       attr_reader :arel, :name, :prepare, :allow_retry,
                   :materialize_transactions, :batch
-      attr_accessor :raw_sql, :binds, :async, :processed_sql, :type_casted_binds, :notification_payload
+      attr_accessor :adapter, :raw_sql, :binds, :async, :processed_sql, :type_casted_binds, :notification_payload
 
-      def initialize(arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
+      def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
         if arel.nil? && raw_sql.nil? && processed_sql.nil?
           raise ArgumentError, "One of arel, raw_sql, or processed_sql must be provided"
         end
 
+        @adapter = adapter
         @arel = arel
         @raw_sql = raw_sql
         @name = name
