@@ -163,10 +163,10 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.binds.nil? || intent.binds.empty?
-              raw_connection.async_exec(intent.processed_sql)
-            else
+            elsif intent.has_binds?
               raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
+            else
+              raw_connection.async_exec(intent.processed_sql)
             end
 
             verified!

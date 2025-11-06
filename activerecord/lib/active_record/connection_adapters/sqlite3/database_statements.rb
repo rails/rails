@@ -98,7 +98,7 @@ module ActiveRecord
                 raw_connection.prepare(intent.processed_sql)
               end
               begin
-                unless intent.binds.nil? || intent.binds.empty?
+                if intent.has_binds?
                   stmt.bind_params(intent.type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return

@@ -49,16 +49,6 @@ module ActiveRecord
           [arel_or_sql_string, binds, preparable, allow_retry]
         end
       end
-      private :to_sql_and_binds
-
-      # Compiles Arel in the given QueryIntent if needed
-      def compile_arel_in_intent(intent) # :nodoc:
-        return unless intent.needs_arel_compilation?
-
-        sql, binds, preparable, allow_retry = to_sql_and_binds(intent.arel, intent.binds, intent.prepare, intent.allow_retry)
-        intent.set_compiled_result(raw_sql: sql, binds: binds, prepare: preparable, allow_retry: allow_retry)
-      end
-      private :compile_arel_in_intent
 
       # This is used in the StatementCache object. It returns an object that
       # can be used to query the database repeatedly.
@@ -221,9 +211,6 @@ module ActiveRecord
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-        # Compile Arel before calling exec_insert
-        compile_arel_in_intent(intent)
-
         value = _exec_insert(intent, pk, sequence_name, returning: returning)
 
         return returning_column_values(value) unless returning.nil?
@@ -236,18 +223,12 @@ module ActiveRecord
       def update(arel, name = nil, binds = [])
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-        # Compile Arel to get SQL
-        compile_arel_in_intent(intent)
-
         affected_rows(raw_execute(intent))
       end
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel, name = nil, binds = [])
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
-
-        # Compile Arel to get SQL
-        compile_arel_in_intent(intent)
 
         affected_rows(raw_execute(intent))
       end
@@ -591,18 +572,27 @@ module ActiveRecord
         DEFAULT_INSERT_VALUE
       end
 
+      def preprocess_query(sql) # :nodoc:
+        if write_query?(sql)
+          ensure_writes_are_allowed(sql)
+        end
+
+        # We call tranformers after the write checks so we don't add extra parsing work.
+        # This means we assume no transformer whille change a read for a write
+        # but it would be insane to do such a thing.
+        ActiveRecord.query_transformers.each do |transformer|
+          sql = transformer.call(sql, self)
+        end
+
+        sql
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
 
         # Lowest level way to execute a query. Doesn't check for illegal writes, doesn't annotate queries, yields a native result object.
         def raw_execute(intent)
-          # Handle Arel compilation if needed
-          compile_arel_in_intent(intent)
-
-          # Handle SQL preprocessing if needed
-          intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
-          intent.type_casted_binds = type_casted_binds(intent.binds)
           log(intent) do |notification_payload|
             intent.notification_payload = notification_payload
             with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
@@ -627,21 +617,6 @@ module ActiveRecord
 
         def affected_rows(raw_result)
           raise NotImplementedError
-        end
-
-        def preprocess_query(sql)
-          if write_query?(sql)
-            ensure_writes_are_allowed(sql)
-          end
-
-          # We call tranformers after the write checks so we don't add extra parsing work.
-          # This means we assume no transformer whille change a read for a write
-          # but it would be insane to do such a thing.
-          ActiveRecord.query_transformers.each do |transformer|
-            sql = transformer.call(sql, self)
-          end
-
-          sql
         end
 
         # Same as #internal_exec_query, but yields a native adapter result
@@ -752,16 +727,8 @@ module ActiveRecord
               raise AsynchronousQueryInsideTransactionError, "Asynchronous queries are not allowed inside transactions"
             end
 
-            # Compile Arel and preprocess SQL on original thread for async execution
-            compile_arel_in_intent(intent)
-            intent.processed_sql ||= preprocess_query(intent.raw_sql) if intent.raw_sql
-
             future_result = async.new(pool, intent)
-            if supports_concurrent_connections? && !current_transaction.joinable?
-              future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
-            else
-              future_result.execute!(self)
-            end
+            future_result.schedule!(ActiveRecord::Base.asynchronous_queries_session)
             future_result
           else
             result = raw_exec_query(intent)
