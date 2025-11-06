@@ -1,3 +1,8 @@
+*   Fixed the default Dockerfile to properly include the `vendor/` directory during `bundle install`.
+
+    *Zhong Sheng*
+
+
 ## Rails 7.2.3 (October 28, 2025) ##
 
 *   Use `secret_key_base` from ENV or credentials when present locally.
