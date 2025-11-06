@@ -1,4 +1,19 @@
-*   Fix inconsistency in PostgreSQL handling of unbounded time range types
+* Introduce `ActiveRecord::Result#to_csv`
+
+    You can now comfortably put raw query results to the console.
+  
+    ```
+    result = ApplicationRecord.connection.exec_query("SELECT id, title, body FROM posts")
+    puts result.to_csv
+    # id,title,body
+    # 1,title_1,body_1
+    # 2,title_2,body_2
+    # ...
+    ```
+  
+    *Josua Schmid*
+
+* Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
     ranges when saving records with a Ruby range that begins with `nil`.

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "csv"
+
 module ActiveRecord
   ###
   # = Active Record \Result
@@ -28,6 +30,14 @@ module ActiveRecord
   #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
   #         ...
   #        ]
+  #
+  #   # Get a CSV string
+  #   puts result.to_csv
+  #   # id,title,body
+  #   # 1,title_1,body_1
+  #   # 2,title_2,body_2
+  #   # ...
+  #   # => nil
   #
   #   # Get the number of rows affected by the query:
   #   result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
@@ -151,6 +161,14 @@ module ActiveRecord
     end
 
     alias :to_a :to_ary
+
+    # Returns a CSV string representation of the tabular result.
+    # Takes the same arguments like CSV.new but no block.
+    def to_csv(str = nil, **options)
+      CSV.generate(str,  headers: @columns, write_headers: true, **options) do |csv|
+        @rows.each { csv << _1 }
+      end
+    end
 
     def [](idx)
       hash_rows[idx]

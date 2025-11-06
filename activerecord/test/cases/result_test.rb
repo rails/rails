@@ -29,6 +29,23 @@ module ActiveRecord
       ], result.to_a
     end
 
+    test "to_csv returns a CSV string" do
+      assert_equal <<~CSV, result.to_csv
+        col_1,col_2
+        row 1 col 1,row 1 col 2
+        row 2 col 1,row 2 col 2
+        row 3 col 1,row 3 col 2
+      CSV
+    end
+
+    test "to_csv returns a customized CSV string" do
+      assert_equal <<~CSV, result.to_csv(write_headers: false, col_sep: ";")
+        row 1 col 1;row 1 col 2
+        row 2 col 1;row 2 col 2
+        row 3 col 1;row 3 col 2
+      CSV
+    end
+
     test "first returns first row as a hash" do
       assert_equal(
         { "col_1" => "row 1 col 1", "col_2" => "row 1 col 2" }, result.first)
