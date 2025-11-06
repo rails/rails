@@ -1,3 +1,8 @@
+*   Fixed the default Dockerfile to properly include the `vendor/` directory during `bundle install`.
+
+    *Zhong Sheng*
+
+
 ## Rails 8.0.4 (October 28, 2025) ##
 
 *   No changes.
