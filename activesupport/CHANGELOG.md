@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::Inflector.humanize` with international characters.
+
+    ```ruby
+    ActiveSupport::Inflector.humanize("áÉÍÓÚ")  # => "Áéíóú"
+    ActiveSupport::Inflector.humanize("аБВГДЕ") # => "Абвгде"
+    ```
+
+    *Jose Luis Duran*
+
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   No changes.
