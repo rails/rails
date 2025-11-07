@@ -426,6 +426,11 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo", capitalize: false))
   end
 
+  def test_humanize_with_international_characters
+    assert_equal("Áéíóú", ActiveSupport::Inflector.humanize("áÉÍÓÚ"))
+    assert_equal("Абвгде", ActiveSupport::Inflector.humanize("аБВГДЕ"))
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       ActiveSupport::Inflector.constantize(string)
