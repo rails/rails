@@ -522,7 +522,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers WHERE (customers.active = true)
 ```
 
-You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limit-and-offset), and [Grouping Records](#grouping-records) sections.
+You can also use other methods like [`order`][], [`limit`][], and [`group`][] to further refine your queries. These methods are covered in detail in the [Filtering Records](#filtering-records), [Ordering Records](#ordering-records), [Limit and Offset](#limiting-records), and [Grouping Records](#grouping-records) sections.
 
 For large datasets, consider using the batch processing methods described in the next section to avoid loading all records into memory at once.
 
@@ -2345,7 +2345,7 @@ end
 The block will only be executed if the customer is being created. The
 second time we run this code, the block will be ignored.
 
-NOTE: `find_or_create_by` is not atomic and can have race conditions. In concurrent scenarios, two processes might both check for a record's existence at the same time, find it doesn't exist, and both try to create it, potentially resulting in duplicate records. To avoid race conditions, ensure you have a unique constraint on the database column(s) you're querying, or consider using [`create_or_find_by`](#create_or_find_by) instead, which handles uniqueness constraint violations atomically.
+NOTE: `find_or_create_by` is not atomic and can have race conditions. In concurrent scenarios, two processes might both check for a record's existence at the same time, find it doesn't exist, and both try to create it, potentially resulting in duplicate records. To avoid race conditions, ensure you have a unique constraint on the database column(s) you're querying, or consider using [`create_or_find_by`](#create-or-find-by) instead, which handles uniqueness constraint violations atomically.
 
 [`find_or_create_by`]: https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-find_or_create_by
 
