@@ -43,6 +43,38 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_inflections_fallback_to_en_locale
+    require "i18n/backend/fallbacks"
+    original_fallbacks = I18n.fallbacks
+    I18n.fallbacks = I18n::Locale::Fallbacks.new
+    I18n.fallbacks.map("en-GB": :en)
+
+    # Access :en first (populates @__en_instance__)
+    en_inflections = ActiveSupport::Inflector.inflections(:en)
+    en_plurals_count = en_inflections.plurals.size
+
+    # Verify :en works
+    assert_equal "problems", "problem".pluralize(:en)
+    assert en_plurals_count > 0, "English should have pluralization rules"
+
+    # Access :en-GB (should fallback to :en)
+    en_gb_inflections = ActiveSupport::Inflector.inflections(:"en-GB")
+
+    # Should have the same pluralization rules as en
+    assert_equal en_plurals_count, en_gb_inflections.plurals.size,
+      "en-GB should have the same pluralization rules as en"
+
+    # Should use en rules for pluralization
+    assert_equal "problems", "problem".pluralize(:"en-GB"),
+      "en-GB pluralization should fallback to en rules"
+
+    # Should return the same instance when falling back to :en
+    assert_equal en_inflections.object_id, en_gb_inflections.object_id,
+      "en-GB should return the same instance as en when falling back"
+  ensure
+    I18n.fallbacks = original_fallbacks if defined?(original_fallbacks)
+  end
+
   test "uncountability of ascii word" do
     word = "HTTP"
     ActiveSupport::Inflector.inflections do |inflect|
