@@ -4,7 +4,9 @@
 <%= name %>:
 <% attributes.each do |attribute| -%>
   <%- if attribute.password_digest? -%>
-  password_digest: <%= BCrypt::Password.create("secret") %>  # Generated with BCrypt::Password.create("secret")
+  <%- algorithm = Rails.application.config.active_model.secure_password_algorithm || :argon2 -%>
+  <%- password_algorithm = ActiveModel::SecurePassword.lookup_algorithm(algorithm).new -%>
+  password_digest: <%= password_algorithm.hash_password("secret") %>  # Generated with <%= password_algorithm.class.name %>.new.hash_password("secret")
   <%- elsif attribute.reference? -%>
   <%= yaml_key_value(attribute.column_name.delete_suffix("_id"), attribute.default || name) %>
   <%- elsif !attribute.virtual? -%>

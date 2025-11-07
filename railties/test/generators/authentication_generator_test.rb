@@ -48,7 +48,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
+      assert_match(/\ngem "argon2"/, content)
     end
 
     assert_file "config/routes.rb" do |content|
@@ -71,14 +71,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_authentication_generator_without_bcrypt_in_gemfile
-    File.write("#{destination_root}/Gemfile", File.read("#{destination_root}/Gemfile").sub(/# gem "bcrypt".*\n/, ""))
+  def test_authentication_generator_without_argon2_in_gemfile
+    File.write("#{destination_root}/Gemfile", File.read("#{destination_root}/Gemfile").sub(/# gem "argon2".*\n/, ""))
 
     generator([destination_root])
 
     run_generator_instance
 
-    assert_includes @bundle_commands, ["add bcrypt", {}, { quiet: true }]
+    assert_includes @bundle_commands, ["add argon2", {}, { quiet: true }]
   end
 
   def test_authentication_generator_with_api_flag
@@ -101,7 +101,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "Gemfile" do |content|
-      assert_match(/\ngem "bcrypt"/, content)
+      assert_match(/\ngem "argon2"/, content)
     end
 
     assert_file "config/routes.rb" do |content|
