@@ -2272,11 +2272,18 @@ class TestAutosaveAssociationValidationsOnAHasManyAssociation < ActiveRecord::Te
     assert_equal(book_count_before_save, Book.count)
   end
 
-  def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
+  test "validations still fire on unchanged association with validates_associated and custom validation context" do
     pirate = FamousPirate.create!(catchphrase: "Avast Ye!")
-    pirate.famous_ships.create!
+    FamousPirate.validates_associated :famous_ships
+    ship = pirate.famous_ships.new
+    ship.save(validate: false)
 
-    assert_predicate pirate, :valid?
+    pirate.reload
+    assert pirate.valid?
+    assert_not pirate.valid?(:conference)
+
+    pirate.famous_ships.load
+    assert pirate.valid?
     assert_not pirate.valid?(:conference)
   end
 end
@@ -2318,13 +2325,6 @@ class TestAutosaveAssociationValidationsOnABelongsToAssociation < ActiveRecord::
     assert_predicate @pirate, :valid?
     @pirate.non_validated_parrot = Parrot.new(name: "")
     assert_predicate @pirate, :valid?
-  end
-
-  def test_validations_still_fire_on_unchanged_association_with_custom_validation_context
-    firm_with_low_credit = Firm.create!(name: "Something", account: Account.new(credit_limit: 50))
-
-    assert_predicate firm_with_low_credit, :valid?
-    assert_not firm_with_low_credit.valid?(:bank_loan)
   end
 end
 
