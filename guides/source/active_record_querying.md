@@ -27,6 +27,15 @@ Active Record will perform queries on the database for you and is compatible wit
 
 NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. Please refer to [this SQL tutorial][sqlcourse] (or [this RDBMS tutorial][rdbmsinfo]) or study them by other means if you would like to learn more.
 
+**Related Guides**
+
+* [Active Record Basics](active_record_basics.html) - Learn about Active Record models, associations, and validations
+* [Active Record Migrations](active_record_migrations.html) - Learn how to modify your database schema
+* [Active Record Validations](active_record_validations.html) - Learn how to validate data before it goes into the database
+* [Active Record Callbacks](active_record_callbacks.html) - Learn how to attach code to certain events in the object lifecycle
+* [Active Record Associations](association_basics.html) - Learn about the connection between Active Record models
+* [Composite Primary Keys](active_record_composite_primary_keys.html) - Learn how to work with composite primary keys
+* [Active Record Transactions](active_record_basics.html#transactions) - Learn about database transactions
 
 A Bookstore Model Example
 -------------------------
@@ -207,7 +216,7 @@ SELECT * FROM customers WHERE (customers.id IN (1,10))
 
 WARNING: The `find` method will raise an `ActiveRecord::RecordNotFound` exception unless a matching record is found for **all** of the supplied primary keys.
 
-If your table uses a composite primary key, you'll need to pass in an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
+If your table uses a [composite primary key](active_record_composite_primary_keys.html), you'll need to pass in an array to find a single item. For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
 # Find the customer with store_id 3 and id 17
@@ -289,7 +298,7 @@ SELECT * FROM customers ORDER BY customers.id ASC LIMIT 1
 
 The `first` method returns `nil` if no matching record is found and no exception will be raised.
 
-If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `first` will return the first record according to this ordering.
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an [`order`](active_record_querying.html#ordering-records) method, `first` will return the first record according to this ordering.
 
 You can pass in a numerical argument to the `first` method to return up to that number of results. For example:
 
@@ -304,7 +313,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.id ASC LIMIT 3
 ```
 
-Models with composite primary keys will use the full composite primary key for ordering.
+Models with [composite primary keys](active_record_composite_primary_keys.html) will use the full composite primary key for ordering.
 For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
@@ -353,7 +362,7 @@ SELECT * FROM customers ORDER BY customers.id DESC LIMIT 1
 
 The `last` method returns `nil` if no matching record is found and no exception will be raised.
 
-Models with composite primary keys will use the full composite primary key for ordering.
+Models with [composite primary keys](active_record_composite_primary_keys.html) will use the full composite primary key for ordering.
 For instance, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
@@ -367,7 +376,7 @@ The SQL equivalent of the above is:
 SELECT * FROM customers ORDER BY customers.store_id DESC, customers.id DESC LIMIT 1
 ```
 
-If your [default scope](active_record_querying.html#applying-a-default-scope) contains an order method, `last` will return the last record according to this ordering.
+If your [default scope](active_record_querying.html#applying-a-default-scope) contains an [`order`](active_record_querying.html#ordering-records) method, `last` will return the last record according to this ordering.
 
 You can pass in a numerical argument to the `last` method to return up to that number of results. For example:
 
@@ -447,7 +456,7 @@ Customer.where(first_name: "does not exist").take!
 When specifying conditions on methods like [`find_by`][] and [`where`][], the use of `id` will match against
 an `:id` attribute on the model. This is different from [`find`][], where the ID passed in should be a primary key value.
 
-Take caution when using `find_by(id:)` on models where `:id` is not the primary key, such as composite primary key models.
+Take caution when using `find_by(id:)` on models where `:id` is not the primary key, such as [composite primary key](active_record_composite_primary_keys.html) models.
 For example, if customers were defined with `[:store_id, :id]` as a primary key:
 
 ```irb
@@ -805,7 +814,7 @@ an array of tuples:
 Book.where([:author_id, :id] => [[15, 1], [15, 2]])
 ```
 
-This syntax can be useful for querying relations where the table uses a composite primary key:
+This syntax can be useful for querying relations where the table uses a [composite primary key](active_record_composite_primary_keys.html):
 
 ```ruby
 class Book < ApplicationRecord
