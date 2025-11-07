@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::Inflector.humanize` with international characters.
+
+    ```ruby
+    ActiveSupport::Inflector.humanize("áÉÍÓÚ")  # => "Áéíóú"
+    ActiveSupport::Inflector.humanize("аБВГДЕ") # => "Абвгде"
+    ```
+
+    *Jose Luis Duran*
+
+
 ## Rails 8.0.4 (October 28, 2025) ##
 
 *   Fix `Enumerable#sole` to return the full tuple instead of just the first element of the tuple.
