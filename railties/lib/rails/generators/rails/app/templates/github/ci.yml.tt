@@ -74,6 +74,9 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+      - name: Check Zeitwerk eager loading
+        run: bin/rails zeitwerk:check
+
 <% end -%>
 <% unless options[:skip_test] -%>
   test:
