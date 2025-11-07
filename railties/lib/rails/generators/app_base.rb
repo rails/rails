@@ -537,7 +537,7 @@ module Rails
       end
 
       def using_css_bundling?
-        options[:skip_asset_pipeline] || options[:css]
+        css_gemfile_entry&.name == "cssbundling-rails"
       end
 
       def capture_command(command, pattern = nil)

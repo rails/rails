@@ -1149,8 +1149,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "importmap-rails"
   end
 
-  def test_css_option_uses_application_stylesheet_link_tag
-    run_generator [destination_root, "--css=tailwind"]
+  def test_css_option_with_cssbundling_uses_application_stylesheet_link_tag
+    run_generator [destination_root, "--css=bootstrap"]
 
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/stylesheet_link_tag\s+"application"/, content)
