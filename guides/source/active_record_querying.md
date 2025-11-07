@@ -25,7 +25,7 @@ If you're used to using raw SQL to find database records, then you will generall
 
 Active Record will perform queries on the database for you and is compatible with most database systems, including MySQL, MariaDB, PostgreSQL, and SQLite. Regardless of which database system you're using, the Active Record method format will always be the same.
 
-NOTE: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. Please refer to [this SQL tutorial][sqlcourse] (or [this RDBMS tutorial][rdbmsinfo]) or study them by other means if you would like to learn more.
+INFO: Basic knowledge of relational database management systems (RDBMS) and structured query language (SQL) is helpful for getting the most out of this guide. You can refer to [this SQL tutorial][sqlcourse] or [RDBMS tutorial][rdbmsinfo] to learn more.
 
 **Related Guides**
 
@@ -175,8 +175,8 @@ The primary operation of `Model.find(options)` can be summarized as:
 [`select`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-select
 [`where`]: https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
 [`with_lock`]: https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html#method-i-with_lock
-[`sqlcourse`]: https://www.khanacademy.org/computing/computer-programming/sql
-[`rdbmsinfo`]: https://www.devart.com/what-is-rdbms/
+[sqlcourse]: https://www.khanacademy.org/computing/computer-programming/sql
+[rdbmsinfo]: https://www.devart.com/what-is-rdbms/
 
 ### Retrieving a Single Object
 
