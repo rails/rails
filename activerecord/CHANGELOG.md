@@ -1,3 +1,13 @@
+*   Add `deprecated_negative_enum_scopes_exclude_nil` configuration option.
+
+    This allows applications to choose whether negative scopes for enums should
+    include records with `nil` values or exclude them.
+
+    When set to `false` (8.2 default), negative scopes will include records with `nil`
+    values. When set to `true`, negative scopes will exclude records with `nil` values.
+
+    *QWYNG*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time

@@ -370,6 +370,10 @@ module Rails
           end
         when "8.2"
           load_defaults "8.1"
+
+          if respond_to?(:active_record)
+            active_record.deprecated_negative_enum_scopes_exclude_nil = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
