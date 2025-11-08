@@ -36,6 +36,10 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_transform_keys!
     assert_respond_to h, :deep_transform_values
     assert_respond_to h, :deep_transform_values!
+    assert_respond_to h, :deep_compact
+    assert_respond_to h, :deep_compact!
+    assert_respond_to h, :deep_compact_blank
+    assert_respond_to h, :deep_compact_blank!
     assert_respond_to h, :symbolize_keys
     assert_respond_to h, :symbolize_keys!
     assert_respond_to h, :deep_symbolize_keys
@@ -103,6 +107,74 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash.deep_transform_values! { |value| value.to_s }
     assert_equal({ "a" => { b: { "c" => "3" } } }, transformed_hash)
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
+  end
+
+  def test_deep_compact
+    hash_with_nil_values = { a: 1, b: nil, c: { d: 2, e: nil, f: { g: nil, h: 3 } } }
+    expected = { a: 1, c: { d: 2, f: { h: 3 } } }
+    assert_equal expected, hash_with_nil_values.deep_compact
+
+    hash_with_array = { a: [{ b: 1, c: nil }, { d: nil, e: 2 }] }
+    expected_with_array = { a: [{ b: 1 }, { e: 2 }] }
+    assert_equal expected_with_array, hash_with_array.deep_compact
+  end
+
+  def test_deep_compact_not_mutates
+    hash_with_nil_values = { a: 1, b: nil, c: { d: 2, e: nil } }
+    original = hash_with_nil_values.deep_dup
+    hash_with_nil_values.deep_compact
+    assert_equal original, hash_with_nil_values
+  end
+
+  def test_deep_compact!
+    hash_with_nil_values = { a: 1, b: nil, c: { d: 2, e: nil, f: { g: nil, h: 3 } } }
+    expected = { a: 1, c: { d: 2, f: { h: 3 } } }
+    assert_equal expected, hash_with_nil_values.deep_compact!
+
+    hash_with_array = { a: [{ b: 1, c: nil }, { d: nil, e: 2 }] }
+    expected_with_array = { a: [{ b: 1 }, { e: 2 }] }
+    assert_equal expected_with_array, hash_with_array.deep_compact!
+  end
+
+  def test_deep_compact_with_bang_mutates
+    hash_with_nil_values = { a: 1, b: nil, c: { d: 2, e: nil } }
+    hash_with_nil_values.deep_compact!
+    expected = { a: 1, c: { d: 2 } }
+    assert_equal expected, hash_with_nil_values
+  end
+
+  def test_deep_compact_blank
+    hash_with_blank_values = { a: 1, b: "", c: nil, d: [], e: {}, f: false, g: { h: "", i: 2 } }
+    expected = { a: 1, g: { i: 2 } }
+    assert_equal expected, hash_with_blank_values.deep_compact_blank
+
+    hash_with_array = { a: [{ b: 1, c: "" }, { d: nil, e: 2 }] }
+    expected_with_array = { a: [{ b: 1 }, { e: 2 }] }
+    assert_equal expected_with_array, hash_with_array.deep_compact_blank
+  end
+
+  def test_deep_compact_blank_not_mutates
+    hash_with_blank_values = { a: 1, b: "", c: nil, d: [] }
+    original = hash_with_blank_values.deep_dup
+    hash_with_blank_values.deep_compact_blank
+    assert_equal original, hash_with_blank_values
+  end
+
+  def test_deep_compact_blank!
+    hash_with_blank_values = { a: 1, b: "", c: nil, d: [], e: {}, f: false, g: { h: "", i: 2 } }
+    expected = { a: 1, g: { i: 2 } }
+    assert_equal expected, hash_with_blank_values.deep_compact_blank!
+
+    hash_with_array = { a: [{ b: 1, c: "" }, { d: nil, e: 2 }] }
+    expected_with_array = { a: [{ b: 1 }, { e: 2 }] }
+    assert_equal expected_with_array, hash_with_array.deep_compact_blank!
+  end
+
+  def test_deep_compact_blank_with_bang_mutates
+    hash_with_blank_values = { a: 1, b: "", c: nil, d: [] }
+    hash_with_blank_values.deep_compact_blank!
+    expected = { a: 1 }
+    assert_equal expected, hash_with_blank_values
   end
 
   def test_symbolize_keys

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "hash/conversions"
+require_relative "hash/deep_compact"
 require_relative "hash/deep_merge"
 require_relative "hash/deep_transform_values"
 require_relative "hash/except"
