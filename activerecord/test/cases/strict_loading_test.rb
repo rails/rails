@@ -54,6 +54,8 @@ class StrictLoadingTest < ActiveRecord::TestCase
   end
 
   def test_globally_strict_loading_n_plus_one_only_errors_raised
+    old_strict_loading_by_default = ActiveRecord::Base.strict_loading_by_default
+    old_strict_loading_mode = ActiveRecord::Base.strict_loading_mode
     ActiveRecord::Base.strict_loading_by_default = true
     ActiveRecord::Base.strict_loading_mode = :n_plus_one_only
 
@@ -72,6 +74,9 @@ class StrictLoadingTest < ActiveRecord::TestCase
         developer.audit_logs.map(&:message)
       end
     end
+  ensure
+    ActiveRecord::Base.strict_loading_by_default = old_strict_loading_by_default
+    ActiveRecord::Base.strict_loading_mode = old_strict_loading_mode
   end
 
   def test_strict_loading_n_plus_one_only_mode_with_has_many
