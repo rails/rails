@@ -1,3 +1,8 @@
+*   Allow PostgreSQL index storage parameters to be managed via the `with:` option
+    on `add_index`, and include them in schema dumps and `index_exists?` lookups.
+
+    *Danila Poyarkov*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time

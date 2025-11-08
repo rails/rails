@@ -863,6 +863,42 @@ class SchemaIndexIncludeColumnsTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexWithOptionsTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table "trains", force: true do |t|
+      t.string :name
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_with_option_is_dumped
+    @connection.execute "CREATE INDEX trains_name ON trains USING btree(name) WITH (fillfactor = 70)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/with: \{ fillfactor: "70" \}/, output)
+  end
+
+  def test_with_option_boolean_is_dumped_as_string
+    @connection.execute <<~SQL
+      CREATE INDEX trains_name_fastupdate
+      ON trains
+      USING gin (to_tsvector('english', name))
+      WITH (fastupdate)
+    SQL
+
+    output = dump_table_schema "trains"
+
+    assert_match(/with: \{ fastupdate: "true" \}/, output)
+  end
+end
+
 class SchemaIndexNullsNotDistinctTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 

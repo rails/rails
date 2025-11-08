@@ -146,6 +146,18 @@ module ActiveRecord
             String === o ? o : quoted_include_columns_for_index(o)
           end
 
+          def index_with_clause(index)
+            return unless index.with.present?
+
+            unless index.with.is_a?(Hash)
+              raise ArgumentError, "Index storage options must be a hash, got #{index.with.class.name}"
+            end
+
+            clauses = index.with.map { |key, value| "#{key} = #{value}" }
+
+            "WITH (#{clauses.join(', ')})" if clauses.any?
+          end
+
           # Returns any SQL string to go between CREATE and TABLE. May be nil.
           def table_modifier_in_create(o)
             # A table cannot be both TEMPORARY and UNLOGGED, since all TEMPORARY

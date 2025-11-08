@@ -206,6 +206,7 @@ _SQL
   end
 
   add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
+  add_index(:companies, :firm_id, name: "company_with_fillfactor_index", with: { fillfactor: 70 })
 
   if supports_insert_returning?
     create_table :pk_autopopulated_by_a_trigger_records, force: true, id: false do |t|

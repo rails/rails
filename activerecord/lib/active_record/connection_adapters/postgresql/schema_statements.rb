@@ -100,7 +100,7 @@ module ActiveRecord
 
           result = query(<<~SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid, i.reloptions,
                             ARRAY(
                               SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
                               FROM generate_subscripts(d.indkey, 1) AS k
@@ -124,9 +124,11 @@ module ActiveRecord
             inddef = row[3]
             comment = row[4]
             valid = row[5]
-            columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
+            reloptions = row[6]
+            columns = decode_string_array(row[7]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
 
-            using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+            using, expressions, include, nulls_not_distinct, where =
+              inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WITH \(.+?\))?(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
             opclasses = {}
@@ -162,7 +164,8 @@ module ActiveRecord
               include: include_columns.presence,
               nulls_not_distinct: nulls_not_distinct.present?,
               comment: comment.presence,
-              valid: valid
+              valid: valid,
+              with: parse_index_reloptions(reloptions)
             )
           end
         end
@@ -1070,6 +1073,15 @@ module ActiveRecord
             when "c"; :cascade
             when "n"; :nullify
             when "r"; :restrict
+            end
+          end
+
+          def parse_index_reloptions(reloptions)
+            return unless reloptions
+
+            decode_string_array(reloptions).to_h do |entry|
+              key, value = entry.split("=", 2)
+              [key.to_sym, value.to_s]
             end
           end
 

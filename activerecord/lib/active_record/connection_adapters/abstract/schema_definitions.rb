@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :include, :nulls_not_distinct, :comment, :valid, :with
 
       def initialize(
         table, name,
@@ -21,7 +21,8 @@ module ActiveRecord
         include: nil,
         nulls_not_distinct: nil,
         comment: nil,
-        valid: true
+        valid: true,
+        with: nil
       )
         @table = table
         @name = name
@@ -37,6 +38,7 @@ module ActiveRecord
         @nulls_not_distinct = nulls_not_distinct
         @comment = comment
         @valid = valid
+        @with = with
       end
 
       def valid?
@@ -51,14 +53,15 @@ module ActiveRecord
         }
       end
 
-      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, **options)
+      def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, with: nil, **options)
         columns = options[:column] if columns.blank?
         (columns.nil? || Array(self.columns) == Array(columns).map(&:to_s)) &&
           (name.nil? || self.name == name.to_s) &&
           (unique.nil? || self.unique == unique) &&
           (valid.nil? || self.valid == valid) &&
           (include.nil? || Array(self.include) == Array(include).map(&:to_s)) &&
-          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
+          (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct) &&
+          (with.nil? || self.with == with)
       end
 
       private
