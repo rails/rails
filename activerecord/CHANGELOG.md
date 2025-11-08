@@ -1,3 +1,7 @@
+*   Fix issue (#56094) by raising strict loading violation when configuring Active Record's strict loading to be :n_plus_one_only with strict loading by default.
+
+    *Tahsin Hasan*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
