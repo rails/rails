@@ -158,6 +158,8 @@ module ActiveStorage
         # fetched once at instantiation time, then only refreshed by the client when expired.
         # Applications can set this to a different value to use other authorization methods.
         client.authorization ||= Google::Auth.get_application_default(["https://www.googleapis.com/auth/iam"])
+      rescue
+        nil
       end
     end
 
