@@ -104,6 +104,12 @@ Book.not_published # => [book2]
 Book.not_published # => [book2, book3]
 ```
 
+If you want to maintain the previous behavior (excluding `nil` values), you can set the following configuration:
+
+```ruby
+config.active_record.deprecated_negative_enum_scopes_exclude_nil = true
+```
+
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 

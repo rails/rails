@@ -318,7 +318,12 @@ module ActiveRecord
 
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
-              klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
+
+              if klass.deprecated_negative_enum_scopes_exclude_nil
+                klass.scope "not_#{value_method_name}", -> { where.not(name => value) }
+              else
+                klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
+              end
             end
           end
       end

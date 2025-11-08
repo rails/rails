@@ -102,6 +102,8 @@ module ActiveRecord
 
       class_attribute :shard_selector, instance_accessor: false, default: nil
 
+      class_attribute :deprecated_negative_enum_scopes_exclude_nil, instance_accessor: false, default: true
+
       ##
       # :singleton-method:
       #

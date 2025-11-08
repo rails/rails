@@ -20,3 +20,14 @@
 #++
 # Rails.application.config.active_record.postgresql_adapter_decode_bytea = true
 # Rails.application.config.active_record.postgresql_adapter_decode_money = true
+
+###
+# Change negative scopes for enums to include records with `nil` values.
+#
+# Previously, negative scopes for enums (e.g., `not_active` for an enum with `active` status)
+# would exclude records where the enum column is `nil`. Starting in Rails 8.2, negative scopes
+# will include records with `nil` values by default.
+#
+# To restore the previous behavior, set this to `true`:
+#++
+# Rails.application.config.active_record.deprecated_negative_enum_scopes_exclude_nil = false
