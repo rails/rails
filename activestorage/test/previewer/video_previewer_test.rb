@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "database/setup"
 
 require "active_storage/previewer/video_previewer"
+require "mini_magick"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
   test "previewing an MP4 video" do
