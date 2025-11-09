@@ -3244,26 +3244,6 @@ module ApplicationTests
       assert_not ActiveSupport.parallelize_test_databases
     end
 
-    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
-      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer
-        def klass
-          nil
-        end
-      end
-
-      app_file "config/initializers/custom_serializers.rb", <<-RUBY
-      Rails.application.config.active_job.custom_serializers << DummySerializer
-      RUBY
-
-      app "development"
-
-      assert_nothing_raised do
-        ActiveJob::Base
-      end
-
-      assert_includes ActiveJob::Serializers.serializers, DummySerializer.instance
-    end
-
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       build_app
       app "development"

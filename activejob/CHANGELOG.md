@@ -1,3 +1,8 @@
+*   Fix using custom serializers with `ActiveJob::Arguments.serialize` when
+    `ActiveJob::Base` hasn't been loaded.
+
+    *Hartley McGuire*
+
 ## Rails 8.1.1 (October 28, 2025) ##
 
 *   Only index new serializers.

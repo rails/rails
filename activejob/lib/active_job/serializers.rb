@@ -38,7 +38,7 @@ module ActiveJob
       # Will look up through all known serializers.
       # If no serializer found will raise <tt>ArgumentError</tt>.
       def deserialize(argument)
-        serializer_name = argument[Arguments::OBJECT_SERIALIZER_KEY]
+        serializer_name = argument[OBJECT_SERIALIZER_KEY]
         raise ArgumentError, "Serializer name is not present in the argument: #{argument.inspect}" unless serializer_name
 
         serializer = serializer_name.safe_constantize
@@ -99,6 +99,9 @@ module ActiveJob
           end
         end
     end
+
+    # :nodoc:
+    OBJECT_SERIALIZER_KEY = "_aj_serialized"
 
     add_serializers SymbolSerializer.instance,
       DurationSerializer.instance,
