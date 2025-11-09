@@ -42,7 +42,7 @@ module ActiveRecord
             [id]
           end
         else
-          Array(id)
+          where(primary_key => id).pluck(primary_key)
         end
 
         updates = Hash.new { |h, k| h[k] = {} }
