@@ -172,8 +172,8 @@ class CounterCacheTest < ActiveRecord::TestCase
     Topic.reset_counters(@topic.id, :replies_count)
 
     # SELECT "topics"."id" FROM "topics" WHERE "topics"."id" = ?
-    # SELECT "topics".* FROM "topics" WHERE "topics"."id" = ? LIMIT ?
-    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
+    # SELECT COUNT(*) AS "count_all", "topics"."id" AS "topics_id" FROM "topics" INNER JOIN "topics" AS "replies_topics" ON "replies_topics"."parent_id" = "topics"."id" AND "replies_topics"."type" IN (?, ?, ?, ?, ?, ?) WHERE "topics"."id" = ? GROUP BY "topics"."id"
+    # UPDATE "topics" SET "replies_count" = ? WHERE "topics"."id" = ?
     assert_queries_count(3) do
       Topic.reset_counters(@topic.id, :replies_count)
     end
@@ -183,8 +183,8 @@ class CounterCacheTest < ActiveRecord::TestCase
     Topic.reset_counters(@topic.id, :replies_count)
 
     # SELECT "topics"."id" FROM "topics" WHERE "topics"."id" = ?
-    # SELECT COUNT(*) FROM "topics" WHERE "topics"."type" IN (?, ?, ?, ?, ?) AND "topics"."parent_id" = ?
-    # UPDATE "topics" SET "updated_at" = ? WHERE "topics"."id" = ?
+    # SELECT COUNT(*) AS "count_all", "topics"."id" AS "topics_id" FROM "topics" INNER JOIN "topics" AS "replies_topics" ON "replies_topics"."parent_id" = "topics"."id" AND "replies_topics"."type" IN (?, ?, ?, ?, ?, ?) WHERE "topics"."id" = ? GROUP BY "topics"."id"
+    # UPDATE "topics" SET "replies_count" = ?, "updated_at" = ? WHERE "topics"."id" = ?
     assert_queries_count(3) do
       Topic.reset_counters(@topic.id, :replies_count, touch: true)
     end
