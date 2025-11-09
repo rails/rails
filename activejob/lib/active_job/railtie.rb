@@ -20,7 +20,7 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      ActiveSupport.on_load(:active_job) do
+      ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers
       end

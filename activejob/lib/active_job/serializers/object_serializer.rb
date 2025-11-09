@@ -30,7 +30,7 @@ module ActiveJob
 
       def initialize
         super
-        @template = { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.freeze
+        @template = { Serializers::OBJECT_SERIALIZER_KEY => self.class.name }.freeze
       end
 
       # Determines if an argument should be serialized by a serializer.
