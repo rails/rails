@@ -1,12 +1,6 @@
-*   Change parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
+*   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
-    When running parallel tests, each worker gets a separate database copy. If the
-    schema is up to date, tables are now reset using `DELETE FROM` instead of `TRUNCATE`.
-
-    - On MySQL, `DELETE FROM` is significantly faster than `TRUNCATE`.
-    - For Postgresql, `DELETE FROM` is also slightly faster for tables with 100s of records,
-      though `TRUNCATE` is pretty quick as well.
-    - On SQLite there is no difference as the adapter already converted `TRUNCATE` to `DELETE FROM`.
+    Truncating on MySQL is very slow even on empty or nearly empty tables.
 
     As a result of this change auto increment counters are now no longer reset between test
     runs on MySQL and the `SKIP_TEST_DATABASE_TRUNCATE` environment variable no longer has

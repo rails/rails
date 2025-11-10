@@ -225,25 +225,19 @@ module ActiveRecord
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
 
+      def empty_all_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          conn.empty_all_tables
+        end
+      end
+      private :empty_all_tables
+
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
           conn.truncate_tables(*conn.tables)
         end
       end
       private :truncate_tables
-
-      def delete_from_tables(db_config)
-        with_temporary_connection(db_config) do |conn|
-          tables = conn.tables - [conn.pool.schema_migration.table_name, conn.pool.internal_metadata.table_name]
-          return if tables.empty?
-
-          conn.disable_referential_integrity do
-            statements = tables.map { |table| "DELETE FROM #{conn.quote_table_name(table)}" }
-            conn.send(:execute_batch, statements, "Delete Tables")
-          end
-        end
-      end
-      private :delete_from_tables
 
       def truncate_all(environment = env)
         configs_for(env_name: environment).each do |db_config|
@@ -429,7 +423,7 @@ module ActiveRecord
 
         with_temporary_pool(db_config, clobber: true) do
           if schema_up_to_date?(db_config, nil, file)
-            delete_from_tables(db_config)
+            empty_all_tables(db_config)
           else
             purge(db_config)
             load_schema(db_config, db_config.schema_format, file)

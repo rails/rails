@@ -541,7 +541,7 @@ module ActiveRecord
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
         fixture_inserts = build_fixture_statements(fixture_set)
-        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name(table)}" }
+        table_deletes = build_delete_from_statements(tables_to_delete)
         statements = table_deletes + fixture_inserts
 
         transaction(requires_new: true) do
@@ -549,6 +549,10 @@ module ActiveRecord
             execute_batch(statements, "Fixtures Load")
           end
         end
+      end
+
+      def empty_all_tables # :nodoc:
+        truncate_tables(*tables)
       end
 
       def empty_insert_statement_value(primary_key = nil)
@@ -733,6 +737,12 @@ module ActiveRecord
         def build_truncate_statements(table_names)
           table_names.map do |table_name|
             build_truncate_statement(table_name)
+          end
+        end
+
+        def build_delete_from_statements(table_names)
+          table_names.map do |table_name|
+            "DELETE FROM #{quote_table_name(table_name)}"
           end
         end
 
