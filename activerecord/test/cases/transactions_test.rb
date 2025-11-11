@@ -1489,6 +1489,11 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   def test_nested_transactions_skip_excess_savepoints
+    Topic.transaction(requires_new: true) do
+      Topic.delete_all
+      raise ActiveRecord::Rollback
+    end
+
     actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
       Topic.transaction(requires_new: true) do
@@ -1522,6 +1527,11 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_nested_transactions_after_disable_lazy_transactions
     Topic.lease_connection.disable_lazy_transactions!
+
+    Topic.transaction(requires_new: true) do
+      Topic.delete_all
+      raise ActiveRecord::Rollback
+    end
 
     actual_queries = capture_sql(include_schema: true) do
       # RealTransaction (begin..commit)
