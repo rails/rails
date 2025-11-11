@@ -1003,7 +1003,8 @@ module ActiveRecord
             processed_sql: "SET #{encoding} #{sql_mode_assignment} #{variable_assignments}",
             name: "SCHEMA"
           )
-          raw_execute(intent)
+          intent.execute!
+          intent.finish
         end
 
         def column_definitions(table_name) # :nodoc:

@@ -12,7 +12,9 @@ module ActiveRecord
 
         # Queries the database and returns the results in an Array-like object
         def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
-          result = internal_execute(sql, name, allow_retry:, materialize_transactions:)
+          intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
+          intent.execute!
+          result = intent.raw_result
           result.map_types!(@type_map_for_results).values
         end
 
@@ -46,7 +48,8 @@ module ActiveRecord
           if use_insert_returning? || pk == false
             super
           else
-            result = raw_exec_query(intent)
+            intent.execute!
+            result = intent.cast_result
             unless sequence_name
               table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
               if table_ref
@@ -213,7 +216,8 @@ module ActiveRecord
               allow_retry: kwargs[:allow_retry] || false,
               materialize_transactions: kwargs[:materialize_transactions] != false
             )
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           end
 
           def build_truncate_statements(table_names)

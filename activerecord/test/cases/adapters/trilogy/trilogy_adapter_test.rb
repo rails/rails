@@ -319,7 +319,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#begin_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.begin_db_transaction
       end
     end
@@ -331,7 +331,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#commit_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.commit_db_transaction
       end
     end
@@ -340,7 +340,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   test "#rollback_db_transaction raises error" do
     error = Class.new(Exception)
     assert_raises error do
-      @conn.stub(:raw_execute, -> (*) { raise error }) do
+      @conn.stub(:perform_query, -> (*) { raise error }) do
         @conn.rollback_db_transaction
       end
     end

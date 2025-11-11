@@ -173,7 +173,8 @@ module ActiveRecord
       end
 
       def exec_query(connection, intent)
-        connection.raw_exec_query(intent)
+        intent.execute!
+        intent.cast_result
       end
 
       class SelectAll < FutureResult # :nodoc:
