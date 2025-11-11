@@ -127,15 +127,25 @@ module ActiveRecord
       end
 
       def query_value(...) # :nodoc:
-        single_value_from_rows(query(...))
+        single_value_from_rows(query_rows(...))
       end
 
       def query_values(...) # :nodoc:
-        query(...).map(&:first)
+        query_rows(...).map(&:first)
       end
 
-      def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
-        internal_exec_query(sql, name, allow_retry:, materialize_transactions:).rows
+      def query_one(...) # :nodoc:
+        query_all(...).first
+      end
+
+      def query_rows(...) # :nodoc:
+        query_all(...).rows
+      end
+
+      def query_all(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
+        intent.execute!
+        intent.cast_result
       end
 
       def query_command(sql, name = nil, allow_retry: false, materialize_transactions: true) # :nodoc:

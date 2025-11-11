@@ -353,8 +353,7 @@ module ActiveRecord
           SELECT name, sql FROM sqlite_master WHERE sql LIKE 'CREATE VIRTUAL %';
         SQL
 
-        exec_query(query, "SCHEMA").cast_values.each_with_object({}) do |row, memo|
-          table_name, sql = row[0], row[1]
+        query_rows(query, "SCHEMA").each_with_object({}) do |(table_name, sql), memo|
           _, module_name, arguments = sql.match(VIRTUAL_TABLE_REGEX).to_a
           memo[table_name] = [module_name, arguments]
         end.to_a

@@ -17,7 +17,7 @@ module ActiveRecord
 
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = query(sql, "EXPLAIN")
+          result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
