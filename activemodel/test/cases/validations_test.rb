@@ -101,6 +101,22 @@ class ValidationsTest < ActiveModel::TestCase
     assert_equal 2, r.errors.count
   end
 
+  def test_errors_on_custom_attribute
+    r = Reply.new
+
+    r.errors.add(:foo_bar, "is invalid")
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
+  def test_errors_on_custom_attribute_with_symbol_message
+    r = Reply.new
+
+    r.errors.add(:foo_bar, :invalid)
+
+    assert_equal ["Foo bar is invalid"], r.errors.full_messages
+  end
+
   def test_errors_empty_after_errors_on_check
     t = Topic.new
     assert_empty t.errors[:id]

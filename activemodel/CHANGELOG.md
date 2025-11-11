@@ -1,3 +1,21 @@
+*   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
+    respond to the attribute instead of raising an error.
+
+    This change allows adding errors to custom attributes with symbol messages.
+
+    ```ruby
+    user = User.new # User model has no `address` attribute
+
+    user.errors.add(:address, :invalid)
+
+    user.errors.messages
+    ```
+
+    Previously, calling `messages` would raise an error because `address` attribute can't be read.
+    Now it returns the localized error message.
+
+    *Lovro Bikić*
+
 *   Add built-in Argon2 support for `has_secure_password`.
 
     `has_secure_password` now supports Argon2 as a built-in algorithm:
