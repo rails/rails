@@ -1,3 +1,15 @@
+*   Use `Asia/Dubai` for "Abu Dhabi" timezone instead of `Asia/Muscat`
+
+    The "Abu Dhabi" timezone now maps to the canonical `Asia/Dubai` IANA
+    identifier instead of `Asia/Muscat`. This improves consistency with
+    browser timezone detection and correctly represents Abu Dhabi's
+    geographic location in the UAE.
+    
+    Both timezones are functionally identical (UTC+04:00, no DST), so this
+    is not a breaking change.
+
+    *Ellin Pino*
+
 *   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
 
     *Mike Dalessio*
