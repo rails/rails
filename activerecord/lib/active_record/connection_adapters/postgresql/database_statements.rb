@@ -11,7 +11,7 @@ module ActiveRecord
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+        def query_rows(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
           intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
           intent.execute!
           result = intent.raw_result
