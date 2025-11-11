@@ -66,7 +66,7 @@ module ActiveRecord
             if column.collation
               @table_collation_cache ||= {}
               @table_collation_cache[table_name] ||=
-                @connection.internal_exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA").first["Collation"]
+                @connection.query_one("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA")["Collation"]
               column.collation.inspect if column.collation != @table_collation_cache[table_name]
             end
           end

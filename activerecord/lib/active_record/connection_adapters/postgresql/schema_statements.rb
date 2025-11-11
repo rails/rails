@@ -610,7 +610,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+          fk_info = query_all(<<~SQL, "SCHEMA", materialize_transactions: false)
             SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
               (
                 SELECT array_agg(a.attname ORDER BY idx)
@@ -673,7 +673,7 @@ module ActiveRecord
         def check_constraints(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
-          check_info = internal_exec_query(<<-SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+          check_info = query_all(<<-SQL, "SCHEMA", materialize_transactions: false)
             SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -699,7 +699,7 @@ module ActiveRecord
         def exclusion_constraints(table_name)
           scope = quoted_scope(table_name)
 
-          exclusion_info = internal_exec_query(<<-SQL, "SCHEMA")
+          exclusion_info = query_all(<<-SQL, "SCHEMA")
             SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
             FROM pg_constraint c
             JOIN pg_class t ON c.conrelid = t.oid
@@ -733,7 +733,7 @@ module ActiveRecord
         def unique_constraints(table_name)
           scope = quoted_scope(table_name)
 
-          unique_info = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true, materialize_transactions: false)
+          unique_info = query_all(<<~SQL, "SCHEMA", materialize_transactions: false)
             SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
             (
               SELECT array_agg(a.attname ORDER BY idx)

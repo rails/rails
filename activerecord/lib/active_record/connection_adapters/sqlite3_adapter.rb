@@ -469,7 +469,7 @@ module ActiveRecord
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
-        fk_info = internal_exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         # Deferred or immediate foreign keys can only be seen in the CREATE TABLE sql
         fk_defs = table_structure_sql(table_name)
                     .select do |column_string|
@@ -846,9 +846,9 @@ module ActiveRecord
 
         def table_info(table_name)
           if supports_virtual_columns?
-            internal_exec_query("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
+            query_all("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
           else
-            internal_exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA", allow_retry: true)
+            query_all("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           end
         end
 

@@ -521,7 +521,7 @@ module ActiveRecord
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
         SQL
 
-        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.map do |row|
+        query_all(query, "SCHEMA", materialize_transactions: false).cast_values.map do |row|
           name, schema = row[0], row[1]
           schema = nil if schema == current_schema
           [schema, name].compact.join(".")
@@ -543,7 +543,7 @@ module ActiveRecord
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
-        internal_exec_query(query, "SCHEMA", allow_retry: true, materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
+        query_all(query, "SCHEMA", materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
           name, schema = row[0], row[2]
           schema = nil if schema == current_schema
           full_name = [schema, name].compact.join(".")

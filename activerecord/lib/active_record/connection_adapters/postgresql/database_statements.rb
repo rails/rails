@@ -6,7 +6,7 @@ module ActiveRecord
       module DatabaseStatements
         def explain(arel, binds = [], options = [])
           sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", binds)
+          result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
@@ -59,7 +59,8 @@ module ActiveRecord
               end
               return result unless sequence_name
             end
-            last_insert_id_result(sequence_name)
+
+            query_all("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
         end
 
@@ -222,11 +223,6 @@ module ActiveRecord
 
           def build_truncate_statements(table_names)
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
-          end
-
-          # Returns the current ID of a table's sequence.
-          def last_insert_id_result(sequence_name)
-            internal_exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
 
           def returning_column_values(result)
