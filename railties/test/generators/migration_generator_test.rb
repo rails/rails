@@ -398,7 +398,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
   def test_create_table_migration_with_uniq_token_option
     run_generator ["create_users", "token:token:uniq"]
     assert_migration "db/migrate/create_users.rb" do |content|
-
       assert_method :change, content do |change|
         occurrences = content.scan("unique: true").count
         assert_equal 1, occurrences, "Should only have unique: true present once"
