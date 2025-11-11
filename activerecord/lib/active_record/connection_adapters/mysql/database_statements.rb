@@ -27,7 +27,7 @@ module ActiveRecord
         def explain(arel, binds = [], options = [])
           sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          result  = internal_exec_query(sql, "EXPLAIN", binds)
+          result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)

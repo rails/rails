@@ -187,7 +187,9 @@ module ActiveRecord
       # will be cleared. If the query is read-only, consider using #select_all
       # instead.
       def exec_query(sql, name = "SQL", binds = [], prepare: false)
-        internal_exec_query(sql, name, binds, prepare: prepare)
+        intent = internal_build_intent(sql, name, binds, prepare: prepare)
+        intent.execute!
+        intent.cast_result
       end
 
       # Executes insert +sql+ statement in the context of this connection using
@@ -232,7 +234,9 @@ module ActiveRecord
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
       def exec_insert_all(sql, name) # :nodoc:
-        internal_exec_query(sql, name)
+        intent = internal_build_intent(sql, name)
+        intent.execute!
+        intent.cast_result
       end
 
       def explain(arel, binds = [], options = []) # :nodoc:
@@ -602,13 +606,6 @@ module ActiveRecord
         HIGH_PRECISION_CURRENT_TIMESTAMP
       end
 
-      # Execute a query and returns an ActiveRecord::Result
-      def internal_exec_query(...) # :nodoc:
-        intent = internal_build_intent(...)
-        intent.execute!
-        intent.cast_result
-      end
-
       def default_insert_value(column) # :nodoc:
         DEFAULT_INSERT_VALUE
       end
@@ -621,7 +618,7 @@ module ActiveRecord
         # We call tranformers after the write checks so we don't add extra parsing work.
         # This means we assume no transformer whille change a read for a write
         # but it would be insane to do such a thing.
-        ActiveRecord.query_transformers.each do |transformer|
+        ActiveRecord.query_transformers&.each do |transformer|
           sql = transformer.call(sql, self)
         end
 
@@ -662,7 +659,6 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        # Same as #internal_exec_query, but returns a QueryIntent without executing
         def internal_build_intent(sql, name = "SQL", binds = [], prepare: false, allow_retry: false, materialize_transactions: true, &block)
           QueryIntent.new(
             adapter: self,

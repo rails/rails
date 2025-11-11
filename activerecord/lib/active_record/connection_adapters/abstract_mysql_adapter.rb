@@ -494,7 +494,7 @@ module ActiveRecord
         scope = quoted_scope(table_name)
 
         # MySQL returns 1 row for each column of composite foreign keys.
-        fk_info = internal_exec_query(<<~SQL, "SCHEMA")
+        fk_info = query_all(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -549,7 +549,7 @@ module ActiveRecord
           SQL
           sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
 
-          chk_info = internal_exec_query(sql, "SCHEMA")
+          chk_info = query_all(sql, "SCHEMA")
 
           chk_info.map do |row|
             options = {
@@ -913,7 +913,7 @@ module ActiveRecord
             comment: column.comment
           }
 
-          current_type = internal_exec_query("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA").first["Type"]
+          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA")["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -1008,11 +1008,11 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
         end
 
         def create_table_info(table_name) # :nodoc:
-          internal_exec_query("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA").first["Create Table"]
+          query_one("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA")["Create Table"]
         end
 
         def arel_visitor

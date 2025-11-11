@@ -140,7 +140,7 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            result.affected_rows
+            result&.affected_rows
           end
 
           def execute_batch(statements, name = nil, **kwargs)
