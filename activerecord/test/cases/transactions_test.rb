@@ -1517,10 +1517,7 @@ class TransactionTest < ActiveRecord::TestCase
       /COMMIT/i,
     ]
 
-    assert_equal expected_queries.size, actual_queries.size
-    expected_queries.zip(actual_queries) do |expected, actual|
-      assert_match expected, actual
-    end
+    assert_array_match expected_queries, actual_queries
   end
 
   def test_nested_transactions_after_disable_lazy_transactions
@@ -1553,10 +1550,7 @@ class TransactionTest < ActiveRecord::TestCase
       /COMMIT/i,
     ]
 
-    assert_equal expected_queries.size, actual_queries.size
-    expected_queries.zip(actual_queries) do |expected, actual|
-      assert_match expected, actual
-    end
+    assert_array_match expected_queries, actual_queries
   end
 
   if ActiveRecord::Base.lease_connection.prepared_statements
@@ -1618,6 +1612,25 @@ class TransactionTest < ActiveRecord::TestCase
   end
 
   private
+    def assert_array_match(expected, actual, message = nil)
+      deviations = actual.dup
+
+      front = -expected.size
+      expected.size.times do |i|
+        break unless expected[i] === actual[i]
+        deviations[i] = expected[i]
+        front += 1
+      end
+
+      -1.downto(front) do |j|
+        break unless expected[j] === actual[j]
+        deviations[j] = expected[j]
+      end
+
+      # Fake an equality to get a nice diff on failure
+      assert_equal expected, deviations, message
+    end
+
     %w(validation save destroy).each do |filter|
       define_method("add_cancelling_before_#{filter}_with_db_side_effect_to_topic") do |topic|
         meta = class << topic; self; end
