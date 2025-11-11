@@ -9,9 +9,10 @@ module ActiveRecord
           intent.raw_sql = sql
           intent.binds = binds
 
-          # AbstractAdapter calls raw_exec_query (returning an AR::Result), but
+          # AbstractAdapter calls cast_result (returning an AR::Result), but
           # our last_inserted_id needs the raw Trilogy result object
-          raw_execute(intent)
+          intent.execute!
+          intent.raw_result
         end
 
         private
@@ -77,7 +78,8 @@ module ActiveRecord
                 allow_retry: kwargs[:allow_retry] || false,
                 materialize_transactions: kwargs[:materialize_transactions] != false
               )
-              raw_execute(intent)
+              intent.execute!
+              intent.finish
             end
           end
       end

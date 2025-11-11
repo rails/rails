@@ -6,7 +6,7 @@ module ActiveRecord
       attr_reader :arel, :name, :prepare, :allow_retry,
                   :materialize_transactions, :batch
       attr_writer :raw_sql
-      attr_accessor :adapter, :binds, :async, :notification_payload
+      attr_accessor :adapter, :binds, :async, :notification_payload, :raw_result
 
       def initialize(adapter:, arel: nil, raw_sql: nil, processed_sql: nil, name: "SQL", binds: [], prepare: false, async: false,
                      allow_retry: false, materialize_transactions: true, batch: false)
@@ -27,6 +27,8 @@ module ActiveRecord
         @processed_sql = processed_sql
         @type_casted_binds = nil
         @notification_payload = nil
+        @raw_result = nil
+        @executed = false
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -87,6 +89,29 @@ module ActiveRecord
       def has_binds?
         compile_arel!
         binds && !binds.empty?
+      end
+
+      def execute!
+        adapter.execute_intent(self) # sets our raw_result
+        @executed = true
+        nil
+      end
+
+      def finish
+        affected_rows # just to consume/close the result
+        nil
+      end
+
+      def cast_result
+        raise "Cannot call cast_result before query has executed" unless @executed
+        raise "Cannot call cast_result after affected_rows has been called" if defined?(@affected_rows)
+        @cast_result ||= adapter.send(:cast_result, raw_result)
+      end
+
+      def affected_rows
+        raise "Cannot call affected_rows before query has executed" unless @executed
+        raise "Cannot call affected_rows after cast_result has been called" if defined?(@cast_result)
+        @affected_rows ||= adapter.send(:affected_rows, raw_result)
       end
 
       private

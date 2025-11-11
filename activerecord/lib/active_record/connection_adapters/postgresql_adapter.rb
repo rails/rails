@@ -889,7 +889,9 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
           load_types_queries(initializer, oids) do |query|
-            records = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+            intent.execute!
+            records = intent.raw_result
             initializer.run(records)
           end
         end
@@ -1030,10 +1032,12 @@ module ActiveRecord
           # to return TIMESTAMP WITH ZONE types in UTC.
           if default_timezone == :utc
             intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO 'UTC'", name: "SCHEMA")
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           else
             intent = QueryIntent.new(adapter: self, processed_sql: "SET SESSION timezone TO DEFAULT", name: "SCHEMA")
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           end
         end
 
@@ -1156,7 +1160,9 @@ module ActiveRecord
             FROM pg_type as t
             WHERE t.typname IN (%s)
           SQL
-          result = internal_execute(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          intent = internal_build_intent(query, "SCHEMA", [], allow_retry: true, materialize_transactions: false)
+          intent.execute!
+          result = intent.raw_result
           coders = result.filter_map { |row| construct_coder(row, coders_by_name[row["typname"]]) }
 
           map = PG::TypeMapByOid.new

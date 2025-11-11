@@ -27,7 +27,8 @@ module ActiveRecord
                 allow_retry: kwargs[:allow_retry] || false,
                 materialize_transactions: kwargs[:materialize_transactions] != false
               )
-              raw_execute(intent)
+              intent.execute!
+              intent.finish
             end
           end
 
