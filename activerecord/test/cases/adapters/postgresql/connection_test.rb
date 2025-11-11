@@ -53,7 +53,7 @@ module ActiveRecord
       NonExistentTable.establish_connection(params)
 
       # Verify the connection param has been applied.
-      actual = NonExistentTable.lease_connection.query_value("show geqo")
+      actual = NonExistentTable.lease_connection.select_value("show geqo")
       assert_equal "off", actual
     ensure
       NonExistentTable.remove_connection
@@ -64,13 +64,13 @@ module ActiveRecord
       @connection.query_command("SET geqo TO off")
 
       # Verify the setting has been applied.
-      actual = @connection.query_value("show geqo")
+      actual = @connection.select_value("show geqo")
       assert_equal "off", actual
 
       @connection.reset!
 
       # Verify the setting has been cleared.
-      actual = @connection.query_value("show geqo")
+      actual = @connection.select_value("show geqo")
       assert_equal "on", actual
     end
 
@@ -79,14 +79,14 @@ module ActiveRecord
       @connection.query_command("SET geqo TO off")
 
       # Verify the setting has been applied.
-      actual = @connection.query_value("show geqo")
+      actual = @connection.select_value("show geqo")
       assert_equal "off", actual
 
       @connection.query_command("BEGIN")
       @connection.reset!
 
       # Verify the setting has been cleared.
-      actual = @connection.query_value("show geqo")
+      actual = @connection.select_value("show geqo")
       assert_equal "on", actual
     end
 
@@ -196,7 +196,7 @@ module ActiveRecord
     def test_set_session_timezone
       run_without_connection do |orig_connection|
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
-        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.query_value("SHOW TIME ZONE")
+        assert_equal "America/New_York", ActiveRecord::Base.lease_connection.select_value("SHOW TIME ZONE")
       end
     end
 
@@ -211,14 +211,14 @@ module ActiveRecord
       got_lock = @connection.get_advisory_lock(lock_id)
       assert got_lock, "get_advisory_lock should have returned true but it didn't"
 
-      advisory_locks = @connection.query_values(list_advisory_locks)
+      advisory_locks = @connection.select_values(list_advisory_locks)
       assert_includes advisory_locks, lock_id,
         "expected to find an advisory lock with lock_id #{lock_id} but there wasn't one"
 
       released_lock = @connection.release_advisory_lock(lock_id)
       assert released_lock, "expected release_advisory_lock to return true but it didn't"
 
-      advisory_locks = @connection.query_values(list_advisory_locks)
+      advisory_locks = @connection.select_values(list_advisory_locks)
       assert_not_includes advisory_locks, lock_id,
         "expected to have released advisory lock with lock_id #{lock_id} but it was still held"
     end

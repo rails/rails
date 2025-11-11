@@ -307,8 +307,8 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old_foreign_keys = query_value("PRAGMA foreign_keys")
-        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys", nil)
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys", nil)
 
         begin
           execute("PRAGMA defer_foreign_keys = ON")
@@ -353,7 +353,7 @@ module ActiveRecord
           SELECT name, sql FROM sqlite_master WHERE sql LIKE 'CREATE VIRTUAL %';
         SQL
 
-        query_rows(query, "SCHEMA").each_with_object({}) do |(table_name, sql), memo|
+        query_rows(query).each_with_object({}) do |(table_name, sql), memo|
           _, module_name, arguments = sql.match(VIRTUAL_TABLE_REGEX).to_a
           memo[table_name] = [module_name, arguments]
         end.to_a
@@ -469,7 +469,7 @@ module ActiveRecord
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
-        fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})")
         # Deferred or immediate foreign keys can only be seen in the CREATE TABLE sql
         fk_defs = table_structure_sql(table_name)
                     .select do |column_string|
@@ -527,7 +527,7 @@ module ActiveRecord
       end
 
       def get_database_version # :nodoc:
-        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)", "SCHEMA"))
+        SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
       end
 
       def check_version # :nodoc:
@@ -829,7 +829,7 @@ module ActiveRecord
           #                       "password_digest" varchar COLLATE "NOCASE",
           #                       "o_id" integer,
           #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
-          result = query_value(sql, "SCHEMA")
+          result = query_value(sql)
 
           return [] unless result
 
@@ -846,9 +846,9 @@ module ActiveRecord
 
         def table_info(table_name)
           if supports_virtual_columns?
-            query_all("PRAGMA table_xinfo(#{quote_table_name(table_name)})", "SCHEMA")
+            query_all("PRAGMA table_xinfo(#{quote_table_name(table_name)})")
           else
-            query_all("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
+            query_all("PRAGMA table_info(#{quote_table_name(table_name)})")
           end
         end
 

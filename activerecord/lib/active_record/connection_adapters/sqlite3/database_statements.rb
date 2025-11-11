@@ -78,7 +78,7 @@ module ActiveRecord
 
             query_command("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             if isolation
-              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
+              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted", "TRANSACTION")
               query_command("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
