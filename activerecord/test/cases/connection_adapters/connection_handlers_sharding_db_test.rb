@@ -145,16 +145,16 @@ module ActiveRecord
           assert_equal "primary_shard_one_replica", pool.db_config.name
 
           IntegerKeysBase.connected_to(shard: 1) do
-            assert_includes IntegerKeysBase.lease_connection.query_value("SELECT file FROM pragma_database_list;"), "primary_shard_one.sqlite3"
+            assert_includes IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;"), "primary_shard_one.sqlite3"
           end
 
           IntegerKeysBase.connected_to(role: :reading, shard: 1) do
-            assert_includes IntegerKeysBase.lease_connection.query_value("SELECT file FROM pragma_database_list;"), "primary_shard_one_replica.sqlite3"
+            assert_includes IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;"), "primary_shard_one_replica.sqlite3"
           end
 
           assert_raises(ActiveRecord::ConnectionNotDefined) do
             IntegerKeysBase.connected_to(shard: 2) do
-              IntegerKeysBase.lease_connection.query_value("SELECT file FROM pragma_database_list;")
+              IntegerKeysBase.lease_connection.select_value("SELECT file FROM pragma_database_list;")
             end
           end
         ensure

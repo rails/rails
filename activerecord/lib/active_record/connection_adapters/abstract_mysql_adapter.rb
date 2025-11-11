@@ -193,11 +193,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})", nil, materialize_transactions: true) == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})", nil, materialize_transactions: true) == 1
       end
 
       def index_algorithms
@@ -302,7 +302,7 @@ module ActiveRecord
       end
 
       def current_database
-        query_value("SELECT database()", "SCHEMA")
+        query_value("SELECT database()")
       end
 
       # Returns the database character set.
@@ -318,7 +318,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<~SQL, "SCHEMA").presence
+        query_value(<<~SQL).presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -494,7 +494,7 @@ module ActiveRecord
         scope = quoted_scope(table_name)
 
         # MySQL returns 1 row for each column of composite foreign keys.
-        fk_info = query_all(<<~SQL, "SCHEMA")
+        fk_info = query_all(<<~SQL)
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -549,7 +549,7 @@ module ActiveRecord
           SQL
           sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
 
-          chk_info = query_all(sql, "SCHEMA")
+          chk_info = query_all(sql)
 
           chk_info.map do |row|
             options = {
@@ -603,7 +603,7 @@ module ActiveRecord
 
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
-        query_value("SELECT @@#{name}", "SCHEMA", materialize_transactions: false, allow_retry: true)
+        query_value("SELECT @@#{name}")
       rescue ActiveRecord::StatementInvalid
         nil
       end
@@ -613,7 +613,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<~SQL, "SCHEMA")
+        query_values(<<~SQL)
           SELECT column_name
           FROM information_schema.statistics
           WHERE index_name = 'PRIMARY'
@@ -913,7 +913,7 @@ module ActiveRecord
             comment: column.comment
           }
 
-          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}", "SCHEMA")["Type"]
+          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}")["Type"]
           td = create_table_definition(table_name)
           cd = td.new_column_definition(new_column_name, current_type, **options)
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
@@ -1008,11 +1008,11 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA")
+          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
         end
 
         def create_table_info(table_name) # :nodoc:
-          query_one("SHOW CREATE TABLE #{quote_table_name(table_name)}", "SCHEMA")["Create Table"]
+          query_one("SHOW CREATE TABLE #{quote_table_name(table_name)}")["Create Table"]
         end
 
         def arel_visitor

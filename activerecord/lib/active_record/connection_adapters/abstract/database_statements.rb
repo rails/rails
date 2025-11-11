@@ -142,7 +142,7 @@ module ActiveRecord
         query_all(...).rows
       end
 
-      def query_all(sql, name = nil, allow_retry: true, materialize_transactions: true) # :nodoc:
+      def query_all(sql, name = "SCHEMA", allow_retry: true, materialize_transactions: false) # :nodoc:
         intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
         intent.execute!
         intent.cast_result

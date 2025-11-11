@@ -62,7 +62,7 @@ class TableOptionsTest < ActiveRecord::AbstractMysqlTestCase
   test "schema dump works with NO_TABLE_OPTIONS sql mode" do
     skip "As of MySQL 5.7.22, NO_TABLE_OPTIONS is deprecated. It will be removed in a future version of MySQL." if @connection.database_version >= "5.7.22"
 
-    old_sql_mode = @connection.query_value("SELECT @@SESSION.sql_mode")
+    old_sql_mode = @connection.select_value("SELECT @@SESSION.sql_mode")
     new_sql_mode = old_sql_mode + ",NO_TABLE_OPTIONS"
 
     begin

@@ -474,14 +474,14 @@ module ActiveRecord
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_try_advisory_lock(#{lock_id})")
+        query_value("SELECT pg_try_advisory_lock(#{lock_id})", nil, materialize_transactions: true)
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_advisory_unlock(#{lock_id})")
+        query_value("SELECT pg_advisory_unlock(#{lock_id})", nil, materialize_transactions: true)
       end
 
       def enable_extension(name, **)
@@ -505,11 +505,11 @@ module ActiveRecord
       end
 
       def extension_available?(name)
-        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT true FROM pg_available_extensions WHERE name = #{quote(name)}")
       end
 
       def extension_enabled?(name)
-        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}", "SCHEMA")
+        query_value("SELECT installed_version IS NOT NULL FROM pg_available_extensions WHERE name = #{quote(name)}")
       end
 
       def extensions
@@ -521,7 +521,7 @@ module ActiveRecord
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
         SQL
 
-        query_all(query, "SCHEMA", materialize_transactions: false).cast_values.map do |row|
+        query_all(query).cast_values.map do |row|
           name, schema = row[0], row[1]
           schema = nil if schema == current_schema
           [schema, name].compact.join(".")
@@ -543,7 +543,7 @@ module ActiveRecord
           GROUP BY type.OID, n.nspname, type.typname;
         SQL
 
-        query_all(query, "SCHEMA", materialize_transactions: false).cast_values.each_with_object({}) do |row, memo|
+        query_all(query).cast_values.each_with_object({}) do |row, memo|
           name, schema = row[0], row[2]
           schema = nil if schema == current_schema
           full_name = [schema, name].compact.join(".")
@@ -634,7 +634,7 @@ module ActiveRecord
 
       # Returns the configured maximum supported identifier length supported by PostgreSQL
       def max_identifier_length
-        @max_identifier_length ||= query_value("SHOW max_identifier_length", "SCHEMA").to_i
+        @max_identifier_length ||= query_value("SHOW max_identifier_length").to_i
       end
 
       # Set the authorized user for this session
@@ -1060,7 +1060,7 @@ module ActiveRecord
         #  - format_type includes the column size constraint, e.g. varchar(50)
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
-          query_rows(<<~SQL, "SCHEMA")
+          query_rows(<<~SQL)
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
@@ -1104,7 +1104,7 @@ module ActiveRecord
                     AND castsource = #{quote column.sql_type}::regtype
                 )
               SQL
-              query_value(sql, "SCHEMA", allow_retry: true, materialize_transactions: false)
+              query_value(sql)
             end
           end
         end
