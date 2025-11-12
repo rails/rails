@@ -2,6 +2,7 @@
 
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/mysql/type/uuid"
 require "active_record/connection_adapters/mysql/column"
 require "active_record/connection_adapters/mysql/database_statements"
 require "active_record/connection_adapters/mysql/explain_pretty_printer"
@@ -44,6 +45,7 @@ module ActiveRecord
         blob:        { name: "blob" },
         boolean:     { name: "boolean" },
         json:        { name: "json" },
+        uuid:        { name: "uuid" },
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
@@ -190,6 +192,10 @@ module ActiveRecord
         else
           database_version >= "8.0.0"
         end
+      end
+
+      def supports_uuid?
+        mariadb? && database_version >= "10.7.0"
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:

@@ -543,6 +543,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support UUID data type?
+      def supports_uuid?
+        false
+      end
+
       # Does this adapter support metadata comments on database objects (tables, columns, indexes)?
       def supports_comments?
         false

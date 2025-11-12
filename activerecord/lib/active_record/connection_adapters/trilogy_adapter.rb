@@ -69,6 +69,7 @@ module ActiveRecord
 
             m.register_type %r(^enum)i, Type.lookup(:string, adapter: :trilogy)
             m.register_type %r(^set)i,  Type.lookup(:string, adapter: :trilogy)
+            m.register_type "uuid",     MySQL::Type::Uuid.new
           end
       end
 
@@ -205,6 +206,7 @@ module ActiveRecord
         end
 
         ActiveRecord::Type.register(:unsigned_integer, Type::UnsignedInteger, adapter: :trilogy)
+        ActiveRecord::Type.register(:uuid, MySQL::Type::Uuid, adapter: :trilogy)
     end
 
     ActiveSupport.run_load_hooks(:active_record_trilogyadapter, TrilogyAdapter)
