@@ -101,6 +101,8 @@ module ActiveRecord
       #   index_exists?(:suppliers, :company_id, valid: true)
       #
       def index_exists?(table_name, column_name = nil, **options)
+        options = options.dup
+        options[:with] = normalize_reloptions(options[:with]) if options.key?(:with)
         indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 
@@ -944,6 +946,16 @@ module ActiveRecord
       #
       # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
       #
+      # ====== Creating an index with storage parameters
+      #
+      #   add_index(:developers, :name, with: { fillfactor: 70 })
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_developers_on_name ON developers (name) WITH (fillfactor = 70) -- PostgreSQL
+      #
+      # Note: only supported by PostgreSQL.
+      #
       def add_index(table_name, column_name, **options)
         create_index = build_create_index_definition(table_name, column_name, **options)
         execute schema_creation.accept(create_index)
@@ -1528,7 +1540,8 @@ module ActiveRecord
           using: options[:using],
           include: options[:include],
           nulls_not_distinct: options[:nulls_not_distinct],
-          comment: options[:comment]
+          comment: options[:comment],
+          with: normalize_reloptions(options[:with])
         )
 
         [index, index_algorithm(options[:algorithm]), if_not_exists]
@@ -1674,7 +1687,7 @@ module ActiveRecord
         end
 
         def valid_index_options
-          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
+          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with]
         end
 
         def options_for_index_columns(options)
@@ -1759,6 +1772,18 @@ module ActiveRecord
 
         def create_alter_table(name)
           AlterTable.new create_table_definition(name)
+        end
+
+        def normalize_reloptions(with)
+          return unless with
+
+          unless with.is_a?(Hash)
+            raise ArgumentError, "Index storage options must be a hash, got #{with.class.name}"
+          end
+
+          with.to_h do |key, value|
+            [key.to_sym, value&.to_s]
+          end
         end
 
         def validate_create_table_options!(options)

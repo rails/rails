@@ -321,6 +321,26 @@ module ActiveRecord
         assert_not connection.index_exists?("testings", "last_name", nulls_not_distinct: true)
       end
 
+      def test_add_index_with_with_option_assert_exists_with_same_values
+        skip("current adapter doesn't support index storage parameters") unless current_adapter?(:PostgreSQLAdapter)
+
+        connection.add_index("testings", "last_name", with: { fillfactor: 80 })
+        assert connection.index_exists?("testings", "last_name", with: { fillfactor: 80 })
+
+        connection.remove_index("testings", column: "last_name", with: { fillfactor: 80 })
+        assert_not connection.index_exists?("testings", "last_name", with: { fillfactor: 80 })
+      end
+
+      def test_add_index_with_with_option_assert_exists_with_different_values
+        skip("current adapter doesn't support index storage parameters") unless current_adapter?(:PostgreSQLAdapter)
+
+        connection.add_index("testings", "last_name", with: { fillfactor: 80 })
+        assert_not connection.index_exists?("testings", "last_name", with: { fillfactor: 70 })
+
+        connection.remove_index("testings", column: "last_name")
+        assert_not connection.index_exists?("testings", "last_name", with: { fillfactor: 80 })
+      end
+
       if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
         def test_index_visibility_through_add_index
           connection.add_index(:testings, :foo, enabled: false)

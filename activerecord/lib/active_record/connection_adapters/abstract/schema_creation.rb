@@ -117,6 +117,9 @@ module ActiveRecord
           sql << "(#{quoted_columns(index)})"
           sql << "INCLUDE (#{quoted_include_columns(index.include)})" if supports_index_include? && index.include
           sql << "NULLS NOT DISTINCT" if supports_nulls_not_distinct? && index.nulls_not_distinct
+          if clause = index_with_clause(index)
+            sql << clause
+          end
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")
@@ -137,6 +140,8 @@ module ActiveRecord
         def supports_index_using?
           true
         end
+
+        def index_with_clause(index); end
 
         def add_table_options!(create_sql, o)
           create_sql << " #{o.options}" if o.options

@@ -275,6 +275,7 @@ module ActiveRecord
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "include: #{index.include.inspect}" if index.include
         index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
+        index_parts << "with: #{format_index_parts(index.with)}" if index.with
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
