@@ -1,3 +1,7 @@
+*   Bump the minimum PostgreSQL version to 10.0.
+
+    *Yasuo Honda*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
