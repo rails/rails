@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.active_record.deprecated_negative_enum_scopes_exclude_nil`](#config-active-record-deprecated-negative-enum-scopes-exclude-nil): `false`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -1220,6 +1222,17 @@ Controls whether Active Record will use optimistic locking and is `true` by defa
 #### `config.active_record.cache_timestamp_format`
 
 Controls the format of the timestamp value in the cache key. Default is `:usec`.
+
+#### `config.active_record.deprecated_negative_enum_scopes_exclude_nil`
+
+Is a boolean value that controls whether negative scopes for enums include records with `nil` values. When set to `true`, negative scopes will exclude records where the enum column is `nil`. When set to `false`, negative scopes will include records with `nil` values.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- |----------------------|
+| (original)            | `true`               |
+| 8.2                   | `false`              |
 
 #### `config.active_record.record_timestamps`
 
