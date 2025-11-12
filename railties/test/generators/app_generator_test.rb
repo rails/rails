@@ -1604,6 +1604,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_devcontainer_mysql
     run_generator [ destination_root, "--devcontainer", "-d", "mysql" ]
+    database = Rails::Generators::Database.build("mysql")
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
@@ -1628,7 +1629,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes content["forwardPorts"], 3306
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
+      if database.socket
+        assert_match(/socket: #{database.socket}/, content)
+      else
+        assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
+      end
     end
   end
 
@@ -1662,6 +1667,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_devcontainer_mariadb_mysql
     run_generator [ destination_root, "--devcontainer", "-d", "mariadb-mysql" ]
+    database = Rails::Generators::Database.build("mariadb-mysql")
 
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mariadb"
@@ -1684,7 +1690,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes(content["forwardPorts"], 3306)
     end
     assert_file("config/database.yml") do |content|
-      assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
+      if database.socket
+        assert_match(/socket: #{database.socket}/, content)
+      else
+        assert_match(/host: <%= ENV.fetch\("DB_HOST"\) \{ "127.0.0.1" } %>/, content)
+      end
     end
   end
 
