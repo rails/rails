@@ -69,7 +69,7 @@ class StrictLoadingTest < ActiveRecord::TestCase
       { message: "four comment", developer_id: two.id }
     ])
 
-    assert_raises match: /`Developer` is marked for strict_loading/ do
+    assert_raises ActiveRecord::StrictLoadingViolationError do
       Developer.all.flat_map do |developer|
         developer.audit_logs.map(&:message)
       end
