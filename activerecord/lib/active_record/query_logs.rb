@@ -63,6 +63,9 @@ module ActiveRecord
   #       },
   #     ]
   #
+  # WARNING: Avoid adding high cardinality tags (like request ID), since this will cause each prepared statement to be unique.
+  # Consider disabling prepared_statements in config/database.yml.
+  #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
   # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]

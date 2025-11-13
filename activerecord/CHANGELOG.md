@@ -1,3 +1,7 @@
+*   Do not disable prepared statements by default when query log tags are enabled.
+
+    *Ali Ismayilov*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
