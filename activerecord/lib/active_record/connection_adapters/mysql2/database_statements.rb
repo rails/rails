@@ -13,18 +13,6 @@ module ActiveRecord
           end
         end
 
-        def empty_all_tables # :nodoc:
-          table_names = tables - [pool.schema_migration.table_name, pool.internal_metadata.table_name]
-          return if table_names.empty?
-
-          statements = build_delete_from_statements(table_names)
-
-          # Deleting is generally much faster than truncating in MySQL
-          disable_referential_integrity do
-            execute_batch(statements, "Delete Tables")
-          end
-        end
-
         private
           def execute_batch(statements, name = nil, **kwargs)
             combine_multi_statements(statements).each do |statement|
