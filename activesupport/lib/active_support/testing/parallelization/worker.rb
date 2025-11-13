@@ -36,7 +36,7 @@ module ActiveSupport
         end
 
         def work_from_queue
-          while job = @queue.pop
+          while job = @queue.pop(@number)
             perform_job(job)
           end
         end
