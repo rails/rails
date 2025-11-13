@@ -140,6 +140,15 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> BigDecimal
       class_attribute :decode_money, default: false
 
+      ##
+      # :singleton-method:
+      # Toggles automatic decoding of bytea columns.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").class #=> String
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea = true
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+      class_attribute :decode_bytea, default: false
+
       NATIVE_DATABASE_TYPES = {
         primary_key: "bigserial primary key",
         string:      { name: "character varying" },
@@ -1167,6 +1176,7 @@ module ActiveRecord
           }
           coders_by_name["date"] = PG::TextDecoder::Date if decode_dates
           coders_by_name["money"] = MoneyDecoder if decode_money
+          coders_by_name["bytea"] = PG::TextDecoder::Bytea if decode_bytea
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")

@@ -798,6 +798,26 @@ module ActiveRecord
         assert_equal String, money.class
       end
 
+      def test_bytea_decoding_enabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        PostgreSQLAdapter.with(decode_bytea: true) do
+          bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+          assert_equal "Hello", bytea
+          assert_equal Encoding::BINARY, bytea.encoding
+        end
+      end
+
+      def test_bytea_decoding_disabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        bytea = connection.select_value("select '\\x48656c6c6f'::bytea")
+        assert_equal "\\x48656c6c6f", bytea
+        assert_equal Encoding::UTF_8, bytea.encoding
+      end
+
       def test_disable_extension_with_schema
         @connection.execute("CREATE SCHEMA custom_schema")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
@@ -832,13 +852,6 @@ module ActiveRecord
           yield
         ensure
           PostgreSQLAdapter.decode_dates = false
-        end
-
-        def with_postgresql_adapter_decode_bytea
-          PostgreSQLAdapter.decode_bytea = true
-          yield
-        ensure
-          PostgreSQLAdapter.decode_bytea = false
         end
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)

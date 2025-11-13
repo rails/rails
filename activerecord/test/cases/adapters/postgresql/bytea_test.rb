@@ -132,4 +132,12 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     assert_match %r{t\.binary\s+"payload"$}, output
     assert_match %r{t\.binary\s+"serialized"$}, output
   end
+
+  def test_write_and_read_binary_data
+    data = "\\x414243"
+    record = ByteaDataType.create(payload: data)
+    assert_not_predicate record, :new_record?
+    assert_equal(data, record.payload)
+    assert_equal(data, ByteaDataType.where(id: record.id).first.payload)
+  end
 end
