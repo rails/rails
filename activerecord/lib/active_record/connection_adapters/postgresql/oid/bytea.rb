@@ -8,6 +8,7 @@ module ActiveRecord
           def deserialize(value)
             return if value.nil?
             return value.to_s if value.is_a?(Type::Binary::Data)
+            return super if value.is_a?(String) && value.encoding == Encoding::BINARY
             PG::Connection.unescape_bytea(super)
           end
         end

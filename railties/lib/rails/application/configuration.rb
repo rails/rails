@@ -372,6 +372,7 @@ module Rails
           load_defaults "8.1"
 
           if respond_to?(:active_record)
+            active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
           end
         else
