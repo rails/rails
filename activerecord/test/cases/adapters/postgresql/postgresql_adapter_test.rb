@@ -4,6 +4,7 @@ require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
 
+require "active_support/core_ext/object/with"
 require "active_support/error_reporter/test_helper"
 
 module ActiveRecord
@@ -777,6 +778,26 @@ module ActiveRecord
         assert_equal String, date.class
       end
 
+      def test_money_decoding_enabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        PostgreSQLAdapter.with(decode_money: true) do
+          money = connection.select_value("select '12.34'::money")
+          assert_equal BigDecimal("12.34"), money
+          assert_equal BigDecimal, money.class
+        end
+      end
+
+      def test_money_decoding_disabled
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(db_config.configuration_hash)
+
+        money = connection.select_value("select '12.34'::money")
+        assert_equal "$12.34", money
+        assert_equal String, money.class
+      end
+
       def test_disable_extension_with_schema
         @connection.execute("CREATE SCHEMA custom_schema")
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
@@ -811,6 +832,13 @@ module ActiveRecord
           yield
         ensure
           PostgreSQLAdapter.decode_dates = false
+        end
+
+        def with_postgresql_adapter_decode_bytea
+          PostgreSQLAdapter.decode_bytea = true
+          yield
+        ensure
+          PostgreSQLAdapter.decode_bytea = false
         end
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)

@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -1584,6 +1586,23 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.2                   | `true`               |
+
+#### `config.active_record.postgresql_adapter_decode_money`
+
+Specifies whether the PostgresqlAdapter should decode money columns.
+
+```ruby
+ActiveRecord::Base.connection
+     .select_value("select '12.34'::money").class #=> BigDecimal
+```
+
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 
 #### `config.active_record.async_query_executor`
