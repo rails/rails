@@ -8,3 +8,15 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+###
+# Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
+#
+# Example:
+#   ActiveRecord::Base.connection.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+#   ActiveRecord::Base.connection.select_value("select '12.34'::money").class #=> BigDecimal
+#
+# When false, these queries return UTF-8 `String` values.
+#++
+# Rails.application.config.active_record.postgresql_adapter_decode_bytea = true
+# Rails.application.config.active_record.postgresql_adapter_decode_money = true
