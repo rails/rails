@@ -1,3 +1,7 @@
+*   Support eager loading of instance dependent scopes with an optional parameter.
+
+    *Martin-Alexander*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time
