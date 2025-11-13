@@ -1,3 +1,13 @@
+*   Decode PostgreSQL money columns to BigDecimal instead of String when they
+    appear in direct query results.
+
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '12.34'::money").class #=> BigDecimal
+    ```
+
+    *Matthew Draper*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.

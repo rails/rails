@@ -207,6 +207,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.postgresql_adapter_decode_money" do
+      config.after_initialize do
+        if config.active_record.postgresql_adapter_decode_money
+          ActiveSupport.on_load(:active_record_postgresqladapter) do
+            self.decode_money = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.set_configs" do |app|
       configs = app.config.active_record
 
@@ -237,6 +247,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
           :check_schema_cache_dump_version,
           :use_schema_cache_dump,
           :postgresql_adapter_decode_dates,
+          :postgresql_adapter_decode_money,
           :use_legacy_signed_id_verifier,
         )
 
