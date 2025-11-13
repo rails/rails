@@ -199,6 +199,43 @@ module Rails
         super
       end
 
+      def load_hook_guard_message_for(component) # :nodoc:
+        <<~MSG
+          #{component.inspect} was loaded before appliction initialization.
+          Prematurely executing load hooks will slow down your boot time
+          and could cause conflicts with the load order of your application.
+          Please wrap your code with an on_load hook:
+
+            ActiveSupport.on_load(#{component.inspect}) do
+              # your code here
+            end
+        MSG
+      end
+
+      # Adds a load hook that makes sure the application is initialized before
+      # the a lazy loaded component is loaded. The load hook will avise how to use
+      # load hooks to defer code until the application is fully loaded.
+      def guard_load_hooks(*components)
+        railtie = self
+        components.each do |component|
+          ActiveSupport.on_load(component) do
+            if Rails.try(:application) && !Rails.configuration.eager_load && !Rails.application.initialized?
+              case Rails.configuration.action_on_eary_load_hook
+              when :log
+                Rails.logger.warn <<~MSG
+                  #{Railtie.load_hook_guard_message_for(component)}
+
+                  Called from:
+                  #{caller.join("\n")}
+                MSG
+              when :raise
+                raise LoadError, Railtie.load_hook_guard_message_for(component)
+              end
+            end
+          end
+        end
+      end
+
       protected
         attr_reader :load_index
 
