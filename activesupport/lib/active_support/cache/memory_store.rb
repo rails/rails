@@ -26,6 +26,8 @@ module ActiveSupport
     #
     # +MemoryStore+ is thread-safe.
     class MemoryStore < Store
+      prepend Strategy::LocalCache
+
       module DupCoder # :nodoc:
         extend self
 
