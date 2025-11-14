@@ -103,11 +103,12 @@ class ActiveStorage::Variant
     service.delete(key)
   end
 
-  private
-    def processed?
-      service.exist?(key)
-    end
+  # Returns true if the variant has already been processed and uploaded to the service.
+  def processed?
+    service.exist?(key)
+  end
 
+  private
     def process
       blob.open do |input|
         variation.transform(input) do |output|

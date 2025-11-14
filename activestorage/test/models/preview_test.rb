@@ -79,7 +79,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     transformations = { resize_to_limit: [640, 280] }
     preview = blob.preview(transformations)
 
-    assert_changes -> { !!preview.image.variant(transformations)&.send(:processed?) }, to: true do
+    assert_changes -> { !!preview.image.variant(transformations)&.processed? }, to: true do
       preview.processed
     end
   end

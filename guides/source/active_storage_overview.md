@@ -438,18 +438,28 @@ end
 <%= image_tag user.video.preview(:thumb) %>
 ```
 
-If you know in advance that your variants will be accessed, you can specify that
-Rails should generate them ahead of time:
+#### Variant Generation: Lazily, Later, Immediately
+
+When you know in advance which variants you'll generate, use the `process` option to control when they're generated:
+
+* `:lazily` (default) - Variants are created on the fly when first requested
+* `:later` - Variants are created in a background job after the attachment is saved
+* `:immediately` - Variants are created synchronously when the attachment is created
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
+  has_one_attached :avatar do |attachable|
+    # Create immediately when the avatar is attached
+    attachable.variant :thumb, resize_to_limit: [100, 100], process: :immediately
+
+    # Create in a background job after attachment
+    attachable.variant :medium, resize_to_limit: [300, 300], process: :later
+
+    # Create on demand when first requested (default)
+    attachable.variant :large, resize_to_limit: [800, 800], process: :lazily
   end
 end
 ```
-
-Rails will enqueue a job to generate the variant after the attachment is attached to the record.
 
 NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
