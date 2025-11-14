@@ -19,3 +19,4 @@ pkg/
 /tmp/
 /yarn-error.log
 /test-reports/
+/.devcontainer/compose.override.*
