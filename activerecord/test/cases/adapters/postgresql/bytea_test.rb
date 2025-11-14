@@ -47,8 +47,32 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = (+"\u001F\x8B").force_encoding("BINARY")
-    assert_equal(data, @type.deserialize(data))
+    encoded = "\\x414243".b
+    assert_deprecated(ActiveRecord.deprecator) do
+      result = @type.deserialize(encoded)
+      assert_equal "ABC", result
+      assert_equal Encoding::BINARY, result.encoding
+    end
+  end
+
+  def test_type_cast_marked_true_value
+    decoded = "\\x414243".b
+    decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+
+    result = @type.deserialize(decoded)
+    assert_equal "\\x414243", result  # Should stay as-is, not become "ABC"
+    assert_equal Encoding::BINARY, result.encoding
+    assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
+  end
+
+  def test_type_cast_marked_false_value
+    encoded = "\\x414243".b
+    encoded.instance_variable_set(:@ar_pg_bytea_decoded, false)
+
+    result = @type.deserialize(encoded)
+    assert_equal "ABC", result
+    assert_equal Encoding::BINARY, result.encoding
+    assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
   end
 
   def test_type_case_nil
