@@ -1,3 +1,26 @@
+*   Allow create_join_table to accept a primary key
+
+    Historically, `create_join_table` did not allow setting primary keys
+    because it hard-coded id: false when calling the underlying `create_table`
+    method. This meant that even if you passed `:primary_key` option it would be
+    ignored since `id: false` took precedence and prevented any primary key
+    from being added.
+
+    The `id: false` option is no longer hard-coded but is still false by
+    default, maintaining backwards compatibility. When the `:primary_key`
+    option is provided, `:id` is automatically set to `:primary_key`, allowing
+    primary keys to be configured. This is useful for databases like PostgreSQL
+    where logical replication requires primary keys on all tables.
+
+    ```ruby
+    create_join_table :assemblies, :parts, primary_key: [:assembly_id, :part_id]
+    ```
+
+    This generates a join table with a composite primary key on both foreign key
+    columns.
+
+    *Genadi Samokovarov*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
