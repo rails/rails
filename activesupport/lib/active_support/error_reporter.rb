@@ -125,8 +125,8 @@ module ActiveSupport
     # When called in production, after the error is reported, this method will return
     # nil and execution will continue.
     #
-    # When called in development, the original error is wrapped in a different error class to ensure
-    # it's not being rescued higher in the stack and will be surfaced to the developer.
+    # When called in development, after the error is reported, the original error is wrapped in a different
+    # error class to ensure it's not being rescued higher in the stack and will be surfaced to the developer.
     #
     # This method is intended for reporting violated assertions about preconditions, or similar
     # cases that can and should be gracefully handled in production, but that aren't supposed to happen.
@@ -145,12 +145,11 @@ module ActiveSupport
     #
     def unexpected(error, severity: :warning, context: {}, source: DEFAULT_SOURCE)
       error = RuntimeError.new(error) if error.is_a?(String)
+      report(error, handled: true, severity: severity, context: context, source: source)
 
       if @debug_mode
         ensure_backtrace(error)
         raise UnexpectedError, "#{error.class.name}: #{error.message}", error.backtrace, cause: error
-      else
-        report(error, handled: true, severity: severity, context: context, source: source)
       end
     end
 

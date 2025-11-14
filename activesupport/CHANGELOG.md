@@ -1,3 +1,7 @@
+*   Make `ActiveSupport::ErrorReporter#unexpected` always report the error.
+
+    *Matteo Glock*
+
 *   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
 
     *Mike Dalessio*
