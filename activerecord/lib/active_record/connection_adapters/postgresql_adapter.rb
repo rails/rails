@@ -1176,7 +1176,7 @@ module ActiveRecord
           }
           coders_by_name["date"] = PG::TextDecoder::Date if decode_dates
           coders_by_name["money"] = MoneyDecoder if decode_money
-          coders_by_name["bytea"] = PG::TextDecoder::Bytea if decode_bytea
+          coders_by_name["bytea"] = decode_bytea ? ByteaDecoder : ByteaMarker
 
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")
@@ -1216,6 +1216,23 @@ module ActiveRecord
           end
         end
 
+        class ByteaMarker < PG::SimpleDecoder # :nodoc:
+          def decode(value, tuple = nil, field = nil)
+            return if value.nil?
+            value.instance_variable_set(:@ar_pg_bytea_decoded, false) if value.encoding == Encoding::BINARY
+            value
+          end
+        end
+
+        class ByteaDecoder < PG::SimpleDecoder # :nodoc:
+          def decode(value, tuple = nil, field = nil)
+            return if value.nil?
+            decoded = PG::Connection.unescape_bytea(value)
+            decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+            decoded
+          end
+        end
+
         ActiveRecord::Type.add_modifier({ array: true }, OID::Array, adapter: :postgresql)
         ActiveRecord::Type.add_modifier({ range: true }, OID::Range, adapter: :postgresql)
         ActiveRecord::Type.register(:bit, OID::Bit, adapter: :postgresql)
@@ -1236,7 +1253,30 @@ module ActiveRecord
         ActiveRecord::Type.register(:uuid, OID::Uuid, adapter: :postgresql)
         ActiveRecord::Type.register(:vector, OID::Vector, adapter: :postgresql)
         ActiveRecord::Type.register(:xml, OID::Xml, adapter: :postgresql)
+
+        module ByteaDecodeDetection # :nodoc:
+          def unescape_bytea(string)
+            if string.instance_variable_get(:@ar_pg_bytea_decoded) == true
+              ActiveRecord.deprecator.warn(<<~MSG.squish)
+                unescape_bytea called on a query result value that has already been
+                automatically unescaped due to `config.active_record.postgresql_adapter_decode_bytea`.
+                In a future Rails release, this will double-unescape the value as
+                instructed, which could cause data corruption.
+              MSG
+
+              result = string.dup
+              result.remove_instance_variable(:@ar_pg_bytea_decoded)
+              return result
+            end
+
+            super
+          end
+        end
+
+        ::PG::Connection.singleton_class.prepend(ByteaDecodeDetection)
+        ::PG::Connection.prepend(ByteaDecodeDetection)
     end
+
     ActiveSupport.run_load_hooks(:active_record_postgresqladapter, PostgreSQLAdapter)
   end
 end
