@@ -418,6 +418,110 @@ class HashExtTest < ActiveSupport::TestCase
     original.freeze
     assert_raise(FrozenError) { original.except!(:a) }
   end
+
+  def test_filter_by_value_with_method_name
+    h = { a: "", b: "x", c: [] }
+    assert_equal({ b: "x" }, h.reject_if_value(:empty?))
+    assert_equal({ a: "", c: [] }, h.select_if_value(:empty?))
+  end
+
+  def test_filter_by_key_with_method_name_and_args
+    h = { "a1" => 1, "b1" => 2, "a2" => 3 }
+    assert_equal({ "b1" => 2 }, h.reject_if_key(:start_with?, "a"))
+    assert_equal({ "a1" => 1, "a2" => 3 }, h.select_if_key(:start_with?, "a"))
+  end
+
+  def test_filter_by_value_with_callable
+    h = { a: 1, b: 2, c: 3 }
+    assert_equal({ a: 1 }, h.reject_if_value(->(v) { v > 1 }))
+    assert_equal({ b: 2, c: 3 }, h.select_if_value(->(v) { v > 1 }))
+  end
+
+  def test_filter_by_key_with_block
+    h = { a: 1, bb: 2, ccc: 3 }
+    assert_equal({ bb: 2 }, h.select_if_key { |k| k.to_s.length == 2 })
+    assert_equal({ a: 1, ccc: 3 }, h.reject_if_key { |k| k.to_s.length == 2 })
+  end
+
+  def test_filter_by_bang_variants_mutate_and_return_self
+    h = { a: "", b: "x", c: [] }
+    same = h.reject_if_value!(:empty?)
+    assert_same h, same
+    assert_equal({ b: "x" }, h)
+
+    h2 = { "a1" => 1, "b1" => 2, "a2" => 3 }
+    same2 = h2.select_if_key!(:start_with?, "a")
+    assert_same h2, same2
+    assert_equal({ "a1" => 1, "a2" => 3 }, h2)
+  end
+
+  def test_filter_by_bang_variants_preserve_default
+    hash = Hash.new(0)
+    hash.update(a: 1, b: 2, c: 0)
+    hash.reject_if_value!(:zero?)
+    assert_equal 0, hash[:missing]
+
+    hash2 = Hash.new { |h, k| h[k] = [] }
+    hash2.update(a: [], b: [1])
+    hash2.select_if_value!(:empty?)
+    assert_equal [], hash2[:c]
+  end
+
+  def test_filter_by_method_name_ignores_unresponded_predicate
+    original = { a: 1, b: "x" }
+    result = original.reject_if_value(:nonexistent?)
+    assert_equal original, result
+    assert_equal({ a: 1, b: "x" }, original)
+  end
+
+  def test_filter_by_value_with_string_method_name
+    h = { a: "", b: "x", c: [] }
+    assert_equal({ b: "x" }, h.reject_if_value("empty?"))
+    assert_equal({ a: "", c: [] }, h.select_if_value("empty?"))
+  end
+
+  def test_filter_by_value_with_is_a_and_operator_methods
+    h = { a: "x", b: 2, c: 3 }
+    numerics = h.select_if_value(:is_a?, Numeric)
+    assert_equal({ b: 2, c: 3 }, numerics)
+    assert_equal({ c: 3 }, numerics.select_if_value(:>, 2))
+  end
+
+  def test_filter_by_key_with_numeric_predicate
+    h = { 1 => "a", 2 => "b", 3 => "c" }
+    assert_equal({ 2 => "b" }, h.select_if_key(:even?))
+    assert_equal({ 1 => "a", 3 => "c" }, h.reject_if_key(:even?))
+  end
+
+  def test_filter_by_key_with_regex_via_match_method
+    h = { "user_1" => 1, "admin_1" => 2, "user_2" => 3 }
+    assert_equal({ "user_1" => 1, "user_2" => 3 }, h.select_if_key(:match?, /\Auser_/))
+    assert_equal({ "admin_1" => 2 }, h.reject_if_key(:match?, /\Auser_/))
+  end
+
+  def test_filter_by_raises_without_predicate_nor_block
+    assert_raise(ArgumentError) { {}.select_if_value }
+    assert_raise(ArgumentError) { {}.reject_if_key! }
+  end
+
+  def test_filter_by_bang_returns_self_when_no_changes
+    h = { a: 1 }
+    same = h.reject_if_value!(:zero?)
+    assert_same h, same
+    assert_equal({ a: 1 }, h)
+  end
+
+  def test_filter_by_key_nonresponding_method_behavior
+    h = { 1 => "a", 2 => "b" }
+    assert_equal({}, h.select_if_key(:start_with?))
+    assert_equal({ 1 => "a", 2 => "b" }, h.reject_if_key(:start_with?))
+  end
+
+  def test_filter_by_chaining
+    h = { "a1" => 1, "b1" => 2, "a2" => "x", "c1" => 3 }
+    result = h.select_if_value(:is_a?, Numeric).reject_if_key(:start_with?, "a")
+    assert_equal({ "b1" => 2, "c1" => 3 }, result)
+  end
 end
 
 class IWriteMyOwnXML
