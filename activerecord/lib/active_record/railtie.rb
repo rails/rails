@@ -415,6 +415,10 @@ To keep using the current cache store, you can turn off cache versioning entirel
           if app.config.active_record.query_log_tags_prepend_comment
             ActiveRecord::QueryLogs.prepend_comment = true
           end
+
+          if app.config.active_record.disable_prepared_statements
+            ActiveRecord.disable_prepared_statements = true
+          end
         end
       end
     end

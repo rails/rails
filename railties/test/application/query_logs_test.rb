@@ -78,6 +78,37 @@ module ApplicationTests
       assert_includes ActiveRecord.query_transformers, ActiveRecord::QueryLogs
     end
 
+    test "disables prepared statements when enabled pre 8.2" do
+      add_to_config <<-RUBY
+        config.load_defaults "8.1"
+        config.active_record.query_log_tags_enabled = true
+      RUBY
+
+      boot_app
+
+      assert_predicate ActiveRecord, :disable_prepared_statements
+    end
+
+    test "does not disable prepared statements when enabled" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+
+      boot_app
+
+      assert_not_predicate ActiveRecord, :disable_prepared_statements
+    end
+
+    test "controller and job tags are defined by default" do
+      add_to_config "config.active_record.query_log_tags_enabled = true"
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        raise "Expected prepared_statements to be enabled" unless ActiveRecord::Base.lease_connection.prepared_statements
+        ActiveRecord::Base.lease_connection.execute("SELECT 1")
+      RUBY
+
+      boot_app
+
+      assert_equal [ :application, :controller, :action, :job ], ActiveRecord::QueryLogs.tags
+    end
+
     test "controller actions have tagging filters enabled by default" do
       add_to_config "config.active_record.query_log_tags_enabled = true"
       add_to_config "config.active_record.query_log_tags_format = :legacy"

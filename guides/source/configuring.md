@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`ActiveRecord.disable_prepared_statements`](#activerecord.disable-prepared-statements): `false`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -1484,7 +1486,14 @@ The default value depends on the `config.load_defaults` target version:
 Specifies whether or not to enable adapter-level query comments. Defaults to
 `false`, but is set to `true` in the default generated `config/environments/development.rb` file.
 
-NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+#### `ActiveRecord.disable_prepared_statements`
+
+Disables prepared statements. `false` has no effect.
+
+| Starting with version | The default value is                          |
+| --------------------- | --------------------------------------------- |
+| (original)            | `!config.active_record.query_log_tags_enabled`|
+| 8.2                   | `false`                                       |
 
 #### `config.active_record.query_log_tags`
 

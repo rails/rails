@@ -319,6 +319,10 @@ module Rails
             require "action_view/helpers"
             action_text.sanitizer_vendor = Rails::HTML::Sanitizer.best_supported_vendor
           end
+
+          if respond_to?(:active_record)
+            active_record.disable_prepared_statements = true
+          end
         when "7.2"
           load_defaults "7.1"
 
@@ -370,6 +374,10 @@ module Rails
           end
         when "8.2"
           load_defaults "8.1"
+
+          if respond_to?(:active_record)
+            active_record.disable_prepared_statements = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
