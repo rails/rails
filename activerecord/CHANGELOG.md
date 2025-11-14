@@ -1,3 +1,16 @@
+*   Allow `create_join_table` to accept a primary key.
+
+    This is useful for databases like PostgreSQL where logical replication requires primary
+    keys on all tables.
+
+    ```ruby
+    create_join_table :assemblies, :parts, primary_key: [:assembly_id, :part_id]
+    ```
+
+    This generates a join table with a composite primary key on both foreign key columns.
+
+    *Genadi Samokovarov*
+
 *   Fix Active Record Pool Reaper thread leak after `Parallelization#shutdown`.
 
     After parallelized test runs, the parent process leaked the Active Record Pool
