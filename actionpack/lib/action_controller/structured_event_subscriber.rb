@@ -69,6 +69,18 @@ module ActionController
       emit_event("action_controller.data_sent", filename: event.payload[:filename], duration_ms: event.duration.round(1))
     end
 
+    def open_redirect(event)
+      payload = event.payload
+      stacktrace = payload[:stack_trace]&.first
+      stacktrace = stacktrace&.delete_prefix("#{Rails.root}/") if defined?(Rails.root) && Rails.root
+      emit_event("action_controller.open_redirect_detected",
+        location: payload[:location],
+        request_method: payload[:request]&.method,
+        request_path: payload[:request]&.path,
+        stacktrace:
+      )
+    end
+
     def unpermitted_parameters(event)
       unpermitted_keys = event.payload[:keys]
       context = event.payload[:context]
