@@ -1,10 +1,7 @@
 // For format details, see https://containers.dev/implementors/json_reference/.
 {
 	"name": "Rails project development",
-	"dockerComposeFile": [
-		"compose.yaml",
-		"compose.override.yaml"
-	],
+	"dockerComposeFile": "compose.yaml",
 	"service": "rails",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
