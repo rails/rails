@@ -10,8 +10,12 @@ module ActionController # :nodoc:
       # Applies a rate limit to all actions or those specified by the normal
       # `before_action` filters with `only:` and `except:`.
       #
-      # The maximum number of requests allowed is specified `to:` and constrained to
+      # The maximum number of requests allowed is specified by `to:` and constrained to
       # the window of time given by `within:`.
+      #
+      # Both `to:` and `within:` can be static values, callables,
+      # or method names (as symbols) that will be evaluated in the context of the
+      # controller processing the request.
       #
       # Rate limits are by default unique to the ip address making the request, but
       # you can provide your own identity function by passing a callable in the `by:`
@@ -57,6 +61,16 @@ module ActionController # :nodoc:
       #       RATE_LIMIT_STORE = ActiveSupport::Cache::RedisCacheStore.new(url: ENV["REDIS_URL"])
       #       rate_limit to: 10, within: 3.minutes, store: RATE_LIMIT_STORE
       #       rate_limit to: 100, within: 5.minutes, scope: :api_global
+      #       rate_limit to: :max_requests, within: :time_window, by: -> { current_user.id }
+      #
+      #       private
+      #         def max_requests
+      #           current_user.premium? ? 1000 : 100
+      #         end
+      #
+      #         def time_window
+      #           current_user.premium? ? 1.hour : 1.minute
+      #         end
       #     end
       #
       #     class SessionsController < ApplicationController
@@ -71,6 +85,8 @@ module ActionController # :nodoc:
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
         by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
+        to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
+        within = within.is_a?(Symbol) ? send(within) : (within.respond_to?(:call) ? instance_exec(&within) : within)
 
         cache_key = ["rate-limit", scope, name, by].compact.join(":")
         count = store.increment(cache_key, 1, expires_in: within)

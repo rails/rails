@@ -225,6 +225,13 @@ module ActiveRecord
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
 
+      def empty_all_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          conn.empty_all_tables
+        end
+      end
+      private :empty_all_tables
+
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
           conn.truncate_tables(*conn.tables)
@@ -416,7 +423,7 @@ module ActiveRecord
 
         with_temporary_pool(db_config, clobber: true) do
           if schema_up_to_date?(db_config, nil, file)
-            truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
+            empty_all_tables(db_config)
           else
             purge(db_config)
             load_schema(db_config, db_config.schema_format, file)
