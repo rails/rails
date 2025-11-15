@@ -33,6 +33,7 @@ module ActiveRecord
       record(
         payload[:name],
         (finish - start) * 1_000.0,
+        cached: payload[:cached],
         async: payload[:async],
         lock_wait: payload[:lock_wait],
       )

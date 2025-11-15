@@ -532,14 +532,6 @@ module ActiveSupport
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
     end
 
-    # respond_to_missing? is not called in some cases, such as when type conversion is
-    # performed with Kernel#String
-    def respond_to?(sym, include_priv = false)
-      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
-      return false if sym.to_sym == :to_str
-      super
-    end
-
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)

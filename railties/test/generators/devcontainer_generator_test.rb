@@ -178,10 +178,10 @@ module Rails
 
         assert_compose_file do |compose|
           expected_postgres_config = {
-            "image" => "postgres:16.1",
+            "image" => "postgres:18",
             "restart" => "unless-stopped",
             "networks" => ["default"],
-            "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+            "volumes" => ["postgres-data:/var/lib/postgresql"],
             "environment" => {
               "POSTGRES_USER" => "postgres",
               "POSTGRES_PASSWORD" => "postgres"

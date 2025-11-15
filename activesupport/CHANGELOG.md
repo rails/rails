@@ -8,6 +8,11 @@
 
     *Ellin Pino*
 
+*   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
+    needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
+
+    *Mikey Gough*
+
 *   Add a detailed failure summary to `ActiveSupport::ContinuousIntegration`.
 
     *Mike Dalessio*
