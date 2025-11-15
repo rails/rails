@@ -1,3 +1,15 @@
+*   Add top-level flag for `has_secure_password` algorithm and default to `:argon2`
+
+    If your application uses `bcrypt` you need to explicitly set the config:
+
+    ```ruby
+    Rails.application.config.active_model.has_secure_password_algorithm = :bcrypt
+    ```
+
+    This is only necessary after updating `config.load_defaults(8.2)`.
+
+    *zzak*
+
 *   Update the `.node-version` file conditionally generated for new applications to 22.21.1
 
     *Taketo Takashima*

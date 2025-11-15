@@ -8,3 +8,9 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+
+###
+# Set the default algorithm for has_secure_password to Argon2.
+#++
+# Rails.application.config.active_model.secure_password_algorithm = :argon2

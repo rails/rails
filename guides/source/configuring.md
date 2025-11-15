@@ -60,6 +60,8 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`config.active_model.secure_password_algorithm`](#config-active-model-secure-password-algorithm): `:argon2`
+
 #### Default Values for Target Version 8.1
 
 - [`config.action_controller.action_on_path_relative_redirect`](#config-action-controller-action-on-path-relative-redirect): `:raise`
@@ -959,6 +961,19 @@ Sets fallback behavior for missing translations. Here are 3 usage examples for t
     ```
 
 ### Configuring Active Model
+
+#### `config.active_model.secure_password_algorithm`
+
+Set the default algorithm used by [`has_secure_password`][]. Supported algorithms are `:bcrypt` (default) and `:argon2`.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `nil`                |
+| 8.2                   | `argon2`             |
+
+[`has_secure_password`]: https://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html#method-i-has_secure_password
 
 #### `config.active_model.i18n_customize_full_message`
 

@@ -13,6 +13,9 @@ module ActiveModel
     class << self
       attr_accessor :min_cost # :nodoc:
 
+      # The default algorithm to use for has_secure_password.
+      attr_accessor :algorithm
+
       # Returns the registry of password algorithms
       def algorithm_registry
         @algorithm_registry ||= {}
@@ -193,6 +196,8 @@ module ActiveModel
       #
       def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
         # Resolve algorithm: can be a Symbol (for registry lookup), an instance, or default to BCrypt
+        algorithm ||= ActiveModel::SecurePassword.algorithm
+
         algorithm = case algorithm
         when Symbol
           algorithm_class = ActiveModel::SecurePassword.lookup_algorithm(algorithm)

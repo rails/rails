@@ -13,9 +13,10 @@ module ActiveModel
       app.deprecators[:active_model] = ActiveModel.deprecator
     end
 
-    initializer "active_model.secure_password" do
+    initializer "active_model.secure_password" do |app|
       ActiveSupport.on_load(:active_model_secure_password) do
         ActiveModel::SecurePassword.min_cost = Rails.env.test?
+        ActiveModel::SecurePassword.algorithm = app.config.active_model.secure_password_algorithm
       end
     end
 

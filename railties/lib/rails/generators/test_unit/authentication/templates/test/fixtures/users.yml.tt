@@ -1,4 +1,6 @@
-<%% password_digest = BCrypt::Password.create("password") %>
+<%% algorithm = Rails.application.config.active_model.secure_password_algorithm || :argon2 %>
+<%% password_algorithm = ActiveModel::SecurePassword.lookup_algorithm(algorithm).new %>
+<%% password_digest = password_algorithm.hash_password("password") %>
 
 one:
   email_address: one@example.com

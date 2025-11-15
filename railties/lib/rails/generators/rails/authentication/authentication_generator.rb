@@ -42,12 +42,12 @@ module Rails
         route "resource :session"
       end
 
-      def enable_bcrypt
-        if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "bcrypt"')
-          uncomment_lines "Gemfile", /gem "bcrypt"/
+      def enable_argon2
+        if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "argon2"')
+          uncomment_lines "Gemfile", /gem "argon2"/
           bundle_command("install --quiet")
         else
-          bundle_command("add bcrypt", {}, quiet: true)
+          bundle_command("add argon2", {}, quiet: true)
         end
       end
 
