@@ -221,7 +221,6 @@ class MemoryStorePruningTest < StoreTest
       assert_equal "value", @cache.read("name")
       @cache.delete("name")
       assert_nil @cache.read("name")
-      puts @cache.method(:write)
       @cache.write("name", "value")
     end
     assert_equal "value", @cache.read("name")
