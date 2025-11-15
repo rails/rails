@@ -1843,7 +1843,7 @@ If no mapping is found, the protocol is used as the adapter name.
 If present, this has to be a hash with keys `:mode` and/or `:backtrace`:
 
 ```ruby
-config.active_record.deprecated_associations_options = { mode: :notify, backtrace: true }
+config.active_record.deprecated_associations_options = { mode: :event, backtrace: true }
 ```
 
 * In `:warn` mode, accessing the deprecated association is reported by the
@@ -1852,9 +1852,10 @@ config.active_record.deprecated_associations_options = { mode: :notify, backtrac
 * In `:raise` mode, usage raises an `ActiveRecord::DeprecatedAssociationError`
   with a similar message and a clean backtrace in the exception object.
 
-* In `:notify` mode, a `deprecated_association.active_record` Active Support
-  notification is published. Please, see details about its payload in the
-  [Active Support Instrumentation guide](active_support_instrumentation.html).
+* In `:event` mode, an `active_record.deprecated_association` Active Support
+  event is reported. Please, see details about the [Event
+  Reporter](https://edgeapi.rubyonrails.org/classes/ActiveSupport/EventReporter.html)
+  on how to use it.
 
 Backtraces are disabled by default. If `:backtrace` is true, warnings include a
 clean backtrace in the message, and notifications have a `:backtrace` key in the

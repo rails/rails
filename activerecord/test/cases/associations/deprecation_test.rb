@@ -3,6 +3,8 @@
 require "cases/helper"
 require "models/dats"
 
+require "active_support/event_reporter/test_helper"
+
 # The logic of the `guard` method is extensively tested indirectly, via the test
 # suites of each type of association.
 #
@@ -54,10 +56,10 @@ module AssociationDeprecationTest
 
     test "valid options, both" do
       ActiveRecord.deprecated_associations_options = {
-        mode: :notify,
+        mode: :event,
         backtrace: true
       }
-      assert_equal :notify, ActiveRecord::Associations::Deprecation.mode
+      assert_equal :event, ActiveRecord::Associations::Deprecation.mode
       assert_equal true, ActiveRecord::Associations::Deprecation.backtrace
     end
 
@@ -79,15 +81,26 @@ module AssociationDeprecationTest
       error = assert_raises(ArgumentError) do
         ActiveRecord.deprecated_associations_options = { mode: :invalid }
       end
-      assert_equal "invalid deprecated associations mode :invalid (valid modes are :warn, :raise, and :notify)", error.message
+      assert_equal "invalid deprecated associations mode :invalid (valid modes are :warn, :raise, and :event)", error.message
     end
   end
 
   class ModeWriterTest < TestCase
     test "valid values" do
-      [:warn, :raise, :notify].each do |mode|
+      [:warn, :raise, :event].each do |mode|
         ActiveRecord::Associations::Deprecation.mode = mode
         assert_equal mode, ActiveRecord::Associations::Deprecation.mode
+      end
+    end
+
+    test ":notify is deprecated" do
+      msg = <<~MSG.squish
+        The :notify mode for deprecated associations is deprecated and will be removed in Rails 9.0.
+        Please use `config.active_record.deprecated_associations_options[:mode] = :event` and instead.
+      MSG
+      assert_deprecated(ActiveRecord.deprecator, msg: msg) do
+        ActiveRecord::Associations::Deprecation.mode = :notify
+        assert_equal :notify, ActiveRecord::Associations::Deprecation.mode
       end
     end
 
@@ -95,7 +108,7 @@ module AssociationDeprecationTest
       error = assert_raises(ArgumentError) do
         ActiveRecord::Associations::Deprecation.mode = :invalid
       end
-      assert_equal "invalid deprecated associations mode :invalid (valid modes are :warn, :raise, and :notify)", error.message
+      assert_equal "invalid deprecated associations mode :invalid (valid modes are :warn, :raise, and :event)", error.message
     end
 
     test "the backtrace flag becomes a true/false singleton" do
@@ -203,7 +216,9 @@ module AssociationDeprecationTest
   class NotifyModeTest < TestCase
     def setup
       super
-      ActiveRecord::Associations::Deprecation.mode = :notify
+      assert_deprecated(ActiveRecord.deprecator) do
+        ActiveRecord::Associations::Deprecation.mode = :notify
+      end
       ActiveRecord::Associations::Deprecation.backtrace = true
     end
 
@@ -269,6 +284,55 @@ module AssociationDeprecationTest
 
     test "HABTM receives the user-facing reflection in the payload" do
       assert_user_facing_reflection(DATS::Category, :deprecated_posts)
+    end
+  end
+
+  class EventModeTest < TestCase
+    include ActiveSupport::EventReporter::TestHelper
+
+    def setup
+      super
+      @subscriber = ActiveSupport::EventReporter::TestHelper::EventSubscriber.new
+      ActiveSupport.event_reporter.subscribe(@subscriber)
+      ActiveRecord::Associations::Deprecation.mode = :event
+      ActiveRecord::Associations::Deprecation.backtrace = true
+    end
+
+    def teardown
+      super
+      ActiveSupport.event_reporter.unsubscribe(@subscriber)
+    end
+
+    def test_deprecated_associations
+      bc = ActiveSupport::BacktraceCleaner.new
+      bc.add_silencer { !_1.include?(__FILE__.sub(%r(.*?/activerecord/(?=test/)), "")) }
+      ActiveRecord::LogSubscriber.backtrace_cleaner = bc
+
+      line = __LINE__ + 1
+      DATS::Car.new.deprecated_tires
+
+      assert_equal 1, @subscriber.events.size
+
+      event = @subscriber.events.first
+
+      if RUBY_VERSION < "3.4"
+        assert_match "report", event[:source_location][:label]
+      else
+        assert_equal "ActiveRecord::Associations::Deprecation.report", event[:source_location][:label]
+      end
+
+      payload = event[:payload]
+
+      assert_equal DATS::Car.reflect_on_association(:deprecated_tires), payload[:reflection]
+
+      re = /The association DATS::Car#deprecated_tires is deprecated, the method deprecated_tires was invoked \(#{__FILE__}:#{line}:in/
+      assert_match re, payload[:message]
+
+      assert_equal __FILE__, payload[:location].path
+      assert_equal line, payload[:location].lineno
+
+      assert_equal __FILE__, payload[:backtrace][0].path
+      assert_equal line, payload[:backtrace][0].lineno
     end
   end
 end

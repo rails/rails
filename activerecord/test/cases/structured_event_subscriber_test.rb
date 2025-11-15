@@ -3,6 +3,7 @@
 require "cases/helper"
 require "active_support/testing/event_reporter_assertions"
 require "active_record/structured_event_subscriber"
+require "models/dats"
 require "models/developer"
 require "models/binary"
 
