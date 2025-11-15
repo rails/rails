@@ -3,6 +3,7 @@
 require "cases/helper"
 require "active_support/testing/event_reporter_assertions"
 require "active_record/structured_event_subscriber"
+require "models/dats"
 require "models/developer"
 require "models/binary"
 
@@ -124,6 +125,49 @@ module ActiveRecord
         assert_equal("data", key)
         assert_match(/<(6|7) bytes of binary data>/, value)
       end
+    end
+
+    def test_deprecated_associations
+      @original_mode = ActiveRecord::Associations::Deprecation.mode
+      ActiveRecord::Associations::Deprecation.mode = :notify
+
+      @original_backtrace = ActiveRecord::Associations::Deprecation.backtrace
+      ActiveRecord::Associations::Deprecation.backtrace = true
+
+      @original_backtrace_cleaner = ActiveRecord::LogSubscriber.backtrace_cleaner
+      bc = ActiveSupport::BacktraceCleaner.new
+      bc.add_silencer { !_1.include?(__FILE__.sub(%r(.*?/activerecord/(?=test/)), "")) }
+      ActiveRecord::LogSubscriber.backtrace_cleaner = bc
+
+      payloads = []
+      _subscriber = Class.new(ActiveSupport::Subscriber) do
+        attach_to :active_record
+
+        define_method(:deprecated_association) do |event|
+          payloads << event.payload
+        end
+      end
+
+      line = __LINE__ + 1
+      DATS::Car.new.deprecated_tires
+
+      assert_equal 1, payloads.size
+      payload = payloads.first
+
+      assert_equal DATS::Car.reflect_on_association(:deprecated_tires), payload[:reflection]
+
+      re = /The association DATS::Car#deprecated_tires is deprecated, the method deprecated_tires was invoked \(#{__FILE__}:#{line}:in/
+      assert_match re, payload[:message]
+
+      assert_equal __FILE__, payload[:location].path
+      assert_equal line, payload[:location].lineno
+
+      assert_equal __FILE__, payload[:backtrace][0].path
+      assert_equal line, payload[:backtrace][0].lineno
+    ensure
+      ActiveRecord::Associations::Deprecation.mode = @original_mode
+      ActiveRecord::Associations::Deprecation.backtrace = @original_backtrace
+      ActiveRecord::LogSubscriber.backtrace_cleaner = @original_backtrace_cleaner
     end
   end
 end
