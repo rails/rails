@@ -1,3 +1,11 @@
+*   Add structured event `active_record.deprecated_association` when mode is set to `:notify`.
+
+    ```
+    config.active_record.deprecated_associations_options = { mode: :notify }
+    ```
+
+    *zzak*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.

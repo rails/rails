@@ -56,6 +56,18 @@ module ActiveRecord
     end
     debug_only :sql
 
+    def deprecated_association(event)
+      payload = {
+        reflection: event.payload[:reflection],
+        message: event.payload[:message],
+        location: event.payload[:location],
+      }
+
+      payload[:backtrace] = event.payload[:backtrace] if event.payload.key?(:backtrace)
+
+      emit_event("active_record.deprecated_association", payload)
+    end
+
     private
       def type_casted_binds(casted_binds)
         casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
