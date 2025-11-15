@@ -71,10 +71,14 @@ module ActiveRecord
     end
 
     def map_key_with_value
+      timestamps_to_merge = model.all_timestamp_attributes_in_model if record_timestamps?
+
       inserts.map do |attributes|
-        attributes = attributes.stringify_keys
         attributes.merge!(@scope_attributes)
-        attributes.reverse_merge!(timestamps_for_create) if record_timestamps?
+
+        timestamps_to_merge&.each do |attribute|
+          attributes[attribute] = connection.high_precision_current_timestamp if !attributes.key?(attribute)
+        end
 
         verify_attributes(attributes)
 
@@ -216,10 +220,6 @@ module ActiveRecord
                              "SQL) called: #{value}. " \
                              "Known-safe values can be passed " \
                              "by wrapping them in Arel.sql()."
-      end
-
-      def timestamps_for_create
-        model.all_timestamp_attributes_in_model.index_with(connection.high_precision_current_timestamp)
       end
 
       class Builder # :nodoc:
