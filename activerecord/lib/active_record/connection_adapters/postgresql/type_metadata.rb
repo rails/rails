@@ -4,7 +4,7 @@ module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
     module PostgreSQL
-      class TypeMetadata < DelegateClass(SqlTypeMetadata)
+      class TypeMetadata < ActiveSupport::Delegation::DelegateClass(SqlTypeMetadata)
         undef to_yaml if method_defined?(:to_yaml)
 
         include Deduplicable

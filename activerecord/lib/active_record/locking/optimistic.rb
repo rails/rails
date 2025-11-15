@@ -210,7 +210,7 @@ module ActiveRecord
     # In de/serialize we change `nil` to 0, so that we can allow passing
     # `nil` values to `lock_version`, and not result in `ActiveRecord::StaleObjectError`
     # during update record.
-    class LockingType < DelegateClass(Type::Value) # :nodoc:
+    class LockingType < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
       def self.new(subtype)
         self === subtype ? subtype : super
       end
