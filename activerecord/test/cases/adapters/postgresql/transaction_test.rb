@@ -164,7 +164,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.query_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT pid FROM pg_stat_activity WHERE query LIKE '% FOR UPDATE'")
             conn.execute("SELECT pg_cancel_backend(#{pid})")
           end
         end

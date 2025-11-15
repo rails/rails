@@ -17,7 +17,7 @@ module ActiveRecord
 
         def explain(arel, binds = [], _options = [])
           sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", [])
+          result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
@@ -34,11 +34,11 @@ module ActiveRecord
         end
 
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          internal_execute("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -57,7 +57,7 @@ module ActiveRecord
         end
 
         def reset_isolation_level # :nodoc:
-          internal_execute("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
           @previous_read_uncommitted = nil
         end
 
@@ -76,10 +76,10 @@ module ActiveRecord
               raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
             end
 
-            internal_execute("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+            query_command("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             if isolation
-              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
-              internal_execute("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted", "TRANSACTION")
+              query_command("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
 
@@ -98,7 +98,7 @@ module ActiveRecord
                 raw_connection.prepare(intent.processed_sql)
               end
               begin
-                unless intent.binds.nil? || intent.binds.empty?
+                if intent.has_binds?
                   stmt.bind_params(intent.type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
@@ -140,12 +140,13 @@ module ActiveRecord
           end
 
           def affected_rows(result)
-            result.affected_rows
+            result&.affected_rows
           end
 
           def execute_batch(statements, name = nil, **kwargs)
             sql = combine_multi_statements(statements)
             intent = QueryIntent.new(
+              adapter: self,
               processed_sql: sql,
               name: name,
               batch: true,
@@ -155,7 +156,8 @@ module ActiveRecord
               allow_retry: kwargs[:allow_retry] || false,
               materialize_transactions: kwargs[:materialize_transactions] != false
             )
-            raw_execute(intent)
+            intent.execute!
+            intent.finish
           end
 
           def build_truncate_statement(table_name)
