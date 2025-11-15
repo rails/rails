@@ -422,13 +422,6 @@ module ActiveRecord
                :disable_lazy_transactions!, :enable_lazy_transactions!, :dirty_current_transaction,
                to: :transaction_manager
 
-      def mark_transaction_written # :nodoc:
-        transaction = current_transaction
-        if transaction.open?
-          transaction.written ||= true
-        end
-      end
-
       def transaction_open?
         current_transaction.open?
       end
@@ -638,7 +631,6 @@ module ActiveRecord
         def preprocess_query(sql)
           if write_query?(sql)
             ensure_writes_are_allowed(sql)
-            mark_transaction_written
           end
 
           # We call tranformers after the write checks so we don't add extra parsing work.
