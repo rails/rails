@@ -104,6 +104,20 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_kind_of ActiveRecord::Result, result
   end
 
+  def test_insert_all_validates_consistent_attributes
+    assert_raises ArgumentError do
+      Book.insert_all [{ name: "Rework" }, {}]
+    end
+
+    assert_nothing_raised do
+      Book.insert_all [{ created_at: Time.current }, {}]
+    end
+
+    assert_nothing_raised do
+      Book.create_with(name: "X").insert_all!([{ name: "Rework" }, {} ])
+    end
+  end
+
   def test_insert_all_returns_primary_key_if_returning_is_supported
     skip unless supports_insert_returning?
 
@@ -787,6 +801,10 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").insert_all!([ { name: "A" }, { name: "B" } ])
     end
+
+    assert_difference "Book.where(name: 'C').count", +2 do
+      Book.create_with(name: "C").insert_all!([ { name: "A" }, { name: "B" } ])
+    end
   end
 
   def test_insert_all_has_many_through
@@ -842,6 +860,10 @@ class InsertAllTest < ActiveRecord::TestCase
 
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").upsert_all([ { name: "A" }, { name: "B" } ])
+    end
+
+    assert_difference "Book.where(name: 'C').count", +2 do
+      Book.create_with(name: "C").upsert_all([ { name: "A" }, { name: "B" } ])
     end
   end
 
