@@ -5,23 +5,27 @@ require "active_support/core_ext/object/try"
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+      class TimeZoneConverter # :nodoc:
         def self.new(subtype)
           self === subtype ? subtype : super
         end
 
+        def initialize(subtype)
+          @subtype = subtype
+        end
+
         def deserialize(value)
-          convert_time_to_time_zone(super)
+          convert_time_to_time_zone(@subtype.deserialize(value))
         end
 
         def cast(value)
           return if value.nil?
 
           if value.is_a?(Hash)
-            set_time_zone_without_conversion(super)
+            set_time_zone_without_conversion(@subtype.cast(value))
           elsif value.respond_to?(:in_time_zone)
             begin
-              result = super(user_input_in_time_zone(value)) || super
+              result = @subtype.cast(@subtype.user_input_in_time_zone(value)) || @subtype.cast(value)
               if result && type == :time
                 result = result.change(year: 2000, month: 1, day: 1)
               end
@@ -32,13 +36,19 @@ module ActiveRecord
           elsif value.respond_to?(:infinite?) && value.infinite?
             value
           else
-            map(super) { |v| cast(v) }
+            map(@subtype.cast(value)) { |v| cast(v) }
           end
         end
 
         def ==(other)
-          other.is_a?(self.class) && __getobj__ == other.__getobj__
+          other.is_a?(self.class) && @subtype == other.__getobj__
         end
+
+        def __getobj__
+          @subtype
+        end
+
+        delegate *(Type::Value.public_instance_methods - public_instance_methods), to: :@subtype
 
         private
           def convert_time_to_time_zone(value)
