@@ -978,7 +978,7 @@ In the `index` action, let's add a database query and assign it to an instance
 variable. Rails uses instance variables (variables that start with an @) to
 share data with the views.
 
-```ruby
+```ruby#4
 # app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
@@ -1052,7 +1052,7 @@ happens when it is called.
 
 Open the Products controller and add the `show` action like this:
 
-```ruby
+```ruby#7-9
 # app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
@@ -1169,7 +1169,7 @@ We need to create two actions for create:
 
 Let's start with our controller actions.
 
-```ruby
+```ruby#11-13
 # app/controllers/products_controller.rb
 class ProductsController < ApplicationController
   def index
@@ -1433,7 +1433,7 @@ replace the form with a render call:
 The edit view becomes almost the exact same thing thanks to the form partial.
 Let's create `app/views/products/edit.html.erb` with the following:
 
-```erb#4
+```erb
 <%# app/views/products/edit.html.erb %>
 <h1>Edit product</h1>
 
@@ -1715,7 +1715,7 @@ Optionally, you can include a link to this route in the navbar to add a Login
 link if not authenticated.
 
 ```erb
-<%# app/views/products/index.html.erb %>
+<%# app/views/layouts/application.html.erb %>
 <%= link_to "Login", new_session_path unless authenticated? %>
 ```
 
@@ -1850,7 +1850,7 @@ submitted, so we'll update the permitted params to include description in
 We also need to update the show view to display the description in
 `app/views/products/show.html.erb`:
 
-```erb#3
+```erb#4
 <%# app/views/products/show.html.erb%>
 <% cache @product do %>
   <h1><%= @product.name %></h1>
@@ -1892,7 +1892,7 @@ end
 Then we can add a file upload field to our product form before the submit
 button:
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2015,7 +2015,7 @@ locale, it will look up `en.products.index.title`.
 In `config/locales/en.yml` we want to add the `title` key under `products` and
 `index` to match our controller, view, and translation name.
 
-```yaml
+```yaml#4-6
 # config/locales/en.yml
 en:
   hello: "Hello world"
@@ -2026,7 +2026,7 @@ en:
 
 In the Spanish locales file, we can do the same thing:
 
-```yaml
+```yaml#4-6
 # config/locales/es.yml
 es:
   hello: "Hola mundo"
@@ -2083,7 +2083,7 @@ $ bin/rails db:migrate
 We'll need to add the inventory count to the product form in
 `app/views/products/_form.html.erb`.
 
-```erb#4-7
+```erb#5-8
 <%# app/views/products/_form.html.erb %>
 <%= form_with model: product do |form| %>
   <%# ... %>
@@ -2298,7 +2298,7 @@ method.
 
 Update this method to mail to a subscriber's email address.
 
-```ruby#7-10
+```ruby#8-11
 # app/mailers/product_mailer.rb
 class ProductMailer < ApplicationMailer
   # Subject can be set in your I18n file at config/locales/en.yml
@@ -2513,7 +2513,7 @@ A subscriber may want to unsubscribe at some point, so let's build that next.
 First, we need a route for unsubscribing that will be the URL we include in
 emails.
 
-```ruby#6
+```ruby#7
 # config/routes.rb
 Rails.application.routes.draw do
   # ...
@@ -2909,7 +2909,7 @@ Inspecting 53 files
 
 RuboCop can automatically fix offenses using the `--autocorrect` flag (or its short version `-a`).
 
-```
+```bash
 $ bin/rubocop -a
 ```
 
