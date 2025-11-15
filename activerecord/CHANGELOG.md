@@ -1,3 +1,37 @@
+*   Fix validation regression when using custom context with unchanged associations.
+
+    When calling `valid?(custom_context)` on a record with loaded but unchanged
+    associations, ActiveRecord was incorrectly validating those association
+    records even when they were persisted and unchanged.
+
+    This occurred because PR #37295 added `|| custom_validation_context?` checks
+    that caused all loaded association records to be validated when using any
+    custom validation context, breaking the principle from PR #36671 that
+    associations should only be validated if they've actually changed.
+
+    Now, unchanged persisted association records are no longer validated
+    regardless of the validation context being used. Associations are still
+    validated when they have been modified or when using `validates_associated`
+    option on the association.
+
+    ```ruby
+    post = Post.create!
+    comment = post.comments.new
+    comment.save(validate: false)  # Save invalid comment
+
+    post.reload
+    post.valid?           # => true
+    post.valid?(:custom)  # => true
+
+    post.comments.load
+    post.valid?           # => true
+    post.valid?(:custom)  # => true (previously false)
+    ```
+
+    Fixes #38036.
+
+    *Phil Coggins*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
