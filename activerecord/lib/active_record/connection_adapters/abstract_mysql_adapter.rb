@@ -661,6 +661,18 @@ module ActiveRecord
         index.using == :btree || super
       end
 
+      def empty_all_tables # :nodoc:
+        table_names = tables - [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+        return if table_names.empty?
+
+        statements = build_delete_from_statements(table_names)
+
+        # Deleting is generally much faster than truncating in MySQL
+        disable_referential_integrity do
+          execute_batch(statements, "Delete Tables")
+        end
+      end
+
       def build_insert_sql(insert) # :nodoc:
         # Can use any column as it will be assigned to itself.
         no_op_column = quote_column_name(insert.keys.first) if insert.keys.first

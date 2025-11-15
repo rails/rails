@@ -2,6 +2,16 @@
 
     *Tahsin Hasan*
 
+*   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
+
+    Truncating on MySQL is very slow even on empty or nearly empty tables.
+
+    As a result of this change auto increment counters are now no longer reset between test
+    runs on MySQL and the `SKIP_TEST_DATABASE_TRUNCATE` environment variable no longer has
+    any effect.
+
+    *Donal McBreen*
+
 *   Fix inconsistency in PostgreSQL handling of unbounded time range types
 
     Use `-infinity` rather than `NULL` for the lower value of PostgreSQL time

@@ -241,7 +241,10 @@ class BacktraceCleanerCleanLocationsTest < ActiveSupport::TestCase
 
   # Adds a frame from this file to the call stack.
   def indirect_caller_locations
-    caller_locations
+    line_filtering_path = Object.const_source_location("Rails::LineFiltering")&.first
+    caller_locations.reject do |loc|
+      loc.path == line_filtering_path
+    end
   end
 
   test "returns all clean locations (defaults)" do

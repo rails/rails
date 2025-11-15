@@ -237,11 +237,12 @@ module ActiveRecord
 
         def values_list
           types = extract_types_for(keys_including_timestamps)
+          pks = primary_keys
 
           values_list = insert_all.map_key_with_value do |key, value|
             if Arel::Nodes::SqlLiteral === value
               value
-            elsif primary_keys.include?(key) && value.nil?
+            elsif pks.include?(key) && value.nil?
               connection.default_insert_value(model.columns_hash[key])
             else
               ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))

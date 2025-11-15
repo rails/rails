@@ -1149,8 +1149,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "importmap-rails"
   end
 
-  def test_css_option_uses_application_stylesheet_link_tag
-    run_generator [destination_root, "--css=tailwind"]
+  def test_css_option_with_cssbundling_uses_application_stylesheet_link_tag
+    run_generator [destination_root, "--css=bootstrap"]
 
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_match(/stylesheet_link_tag\s+"application"/, content)
@@ -1568,10 +1568,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
 
       expected_postgres_config = {
-        "image" => "postgres:16.1",
+        "image" => "postgres:18",
         "restart" => "unless-stopped",
         "networks" => ["default"],
-        "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+        "volumes" => ["postgres-data:/var/lib/postgresql"],
         "environment" => {
           "POSTGRES_USER" => "postgres",
           "POSTGRES_PASSWORD" => "postgres"
