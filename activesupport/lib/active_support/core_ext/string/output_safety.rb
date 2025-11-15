@@ -154,7 +154,7 @@ module ActiveSupport # :nodoc:
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
       if unsafe_method.respond_to?(unsafe_method)
-        class_eval <<-EOT, __FILE__, __LINE__ + 1
+        class_eval <<~RUBY, __FILE__, __LINE__ + 1
           def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
             to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)
           end                                       # end
@@ -163,12 +163,12 @@ module ActiveSupport # :nodoc:
             @html_unsafe = true                     #   @html_unsafe = true
             super                                   #   super
           end                                       # end
-        EOT
+        RUBY
       end
     end
 
     UNSAFE_STRING_METHODS_WITH_BACKREF.each do |unsafe_method|
-      class_eval <<-EOT, __FILE__, __LINE__ + 1
+      class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{unsafe_method}(*args, &block)             # def gsub(*args, &block)
           if block                                      #   if block
             to_str.#{unsafe_method}(*args) { |*params|  #     to_str.gsub(*args) { |*params|
@@ -191,7 +191,7 @@ module ActiveSupport # :nodoc:
             super                                       #     super
           end                                           #   end
         end                                             # end
-      EOT
+      RUBY
     end
 
     private
