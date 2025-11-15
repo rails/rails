@@ -1,3 +1,11 @@
+*   Add `Rails::CodeStatistics#register_extension` to register file extensions for `rails stats`
+
+    ```ruby
+    Rails::CodeStatistics.register_extension("txt")
+    ```
+
+    *Taketo Takashima*
+
 *   Update the `.node-version` file conditionally generated for new applications to 22.21.1
 
     *Taketo Takashima*
