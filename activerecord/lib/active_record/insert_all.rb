@@ -34,7 +34,6 @@ module ActiveRecord
 
       @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
       @keys |= @scope_attributes.keys
-      @keys = @keys.to_set
 
       @returning = (connection.supports_insert_returning? ? primary_keys : false) if @returning.nil?
       @returning = false if @returning == []
@@ -95,9 +94,9 @@ module ActiveRecord
     # TODO: Consider renaming this method, as it only conditionally extends keys, not always
     def keys_including_timestamps
       @keys_including_timestamps ||= if record_timestamps?
-        keys + model.all_timestamp_attributes_in_model
+        (keys | model.all_timestamp_attributes_in_model).sort!
       else
-        keys
+        keys.sort!
       end
     end
 
@@ -208,7 +207,7 @@ module ActiveRecord
 
 
       def verify_attributes(attributes)
-        if keys_including_timestamps != attributes.keys.to_set
+        if keys_including_timestamps != attributes.keys.sort!
           raise ArgumentError, "All objects being inserted must have the same keys"
         end
       end
