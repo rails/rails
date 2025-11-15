@@ -5,7 +5,7 @@ require "active_support/core_ext/object/try"
 module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
-      class TimeZoneConverter < DelegateClass(Type::Value) # :nodoc:
+      class TimeZoneConverter < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
         def self.new(subtype)
           self === subtype ? subtype : super
         end

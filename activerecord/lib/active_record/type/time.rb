@@ -5,8 +5,7 @@ module ActiveRecord
     class Time < ActiveModel::Type::Time
       include Internal::Timezone
 
-      class Value < DelegateClass(::Time) # :nodoc:
-      end
+      Value = ActiveSupport::Delegation::DelegateClass(::Time) # :nodoc:
 
       def serialize(value)
         case value = super
