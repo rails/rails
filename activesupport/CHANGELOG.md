@@ -1,3 +1,13 @@
+*   Add parameterized tests via `ActiveSupport::TestCase#test`
+
+    ```ruby
+    test "greater than 0", each: [1, 2, 3] do |value|
+      assert_operator value, :>, 0
+    end
+    ```
+
+    *Joseph Hale*
+
 *   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
     needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
 

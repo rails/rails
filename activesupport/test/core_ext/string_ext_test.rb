@@ -56,16 +56,20 @@ class StringInflectionsTest < ActiveSupport::TestCase
     EOS
   end
 
-  def test_pluralize
-    SingularToPlural.each do |singular, plural|
-      assert_equal(plural, singular.pluralize)
-    end
+  test "pluralize", each: SingularToPlural do |singular, plural|
+    assert_equal plural, singular.pluralize
+  end
 
-    assert_equal("plurals", "plurals".pluralize)
+  test "pluralize already pluralized word" do
+    assert_equal "plurals", "plurals".pluralize
+  end
 
-    assert_equal("blargles", "blargle".pluralize(0))
-    assert_equal("blargle", "blargle".pluralize(1))
-    assert_equal("blargles", "blargle".pluralize(2))
+  test "pluralize with count", each: [
+    ["blargle", 0, "blargles"],
+    ["blargle", 1, "blargle"],
+    ["blargle", 2, "blargles"]
+  ] do |singular, count, plural|
+    assert_equal plural, singular.pluralize(count)
   end
 
   test "pluralize with count = 1 still returns new string" do
@@ -73,203 +77,171 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_same name.pluralize(1), name
   end
 
-  def test_singularize
-    SingularToPlural.each do |singular, plural|
-      assert_equal(singular, plural.singularize)
-    end
+  test "singularize", each: SingularToPlural do |singular, plural|
+    assert_equal singular, plural.singularize
   end
 
-  def test_titleize
-    MixtureToTitleCase.each do |before, titleized|
-      assert_equal(titleized, before.titleize)
-    end
+  test "titleize", each: MixtureToTitleCase do |before, titleized|
+    assert_equal titleized, before.titleize
   end
 
-  def test_titleize_with_keep_id_suffix
-    MixtureToTitleCaseWithKeepIdSuffix.each do |before, titleized|
-      assert_equal(titleized, before.titleize(keep_id_suffix: true))
-    end
+  test "titleize with keep_id_suffix", each: MixtureToTitleCaseWithKeepIdSuffix do |before, titleized|
+    assert_equal titleized, before.titleize(keep_id_suffix: true)
   end
 
-  def test_downcase_first
+  test "downcase_first" do
     assert_equal "try again", "Try again".downcase_first
   end
 
-  def test_downcase_first_with_one_char
+  test "downcase_first with one char" do
     assert_equal "t", "T".downcase_first
   end
 
-  def test_downcase_first_with_empty_string
+  test "downcase_first with empty_string" do
     assert_equal "", "".downcase_first
     assert_not_predicate "".downcase_first, :frozen?
   end
 
-  def test_upcase_first
+  test "upcase_first" do
     assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
 
-  def test_upcase_first_with_one_char
+  test "upcase_first_with_one_char" do
     assert_equal "W", "w".upcase_first
   end
 
-  def test_upcase_first_with_empty_string
+  test "upcase_first_with_empty_string" do
     assert_equal "", "".upcase_first
     assert_not_predicate "".upcase_first, :frozen?
   end
 
-  def test_camelize
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(camel, underscore.camelize)
-    end
+  test "camelize", each: CamelToUnderscore do |camel, underscore|
+    assert_equal camel, underscore.camelize
   end
 
-  def test_camelize_lower
-    assert_equal("capital", "Capital".camelize(:lower))
+  test "camelize lower" do
+    assert_equal "capital", "Capital".camelize(:lower)
   end
 
-  def test_camelize_upper
-    assert_equal("Capital", "Capital".camelize(:upper))
+  test "camelize upper" do
+    assert_equal "Capital", "Capital".camelize(:upper)
   end
 
-  def test_camelize_invalid_option
+  test "camelize invalid option" do
     e = assert_raise ArgumentError do
       "Capital".camelize(nil)
     end
-    assert_equal("Invalid option, use either :upper or :lower.", e.message)
+    assert_equal "Invalid option, use either :upper or :lower.", e.message
   end
 
-  def test_dasherize
-    UnderscoresToDashes.each do |underscored, dasherized|
-      assert_equal(dasherized, underscored.dasherize)
-    end
+  test "dasherize", each: UnderscoresToDashes do |underscored, dasherized|
+    assert_equal dasherized, underscored.dasherize
   end
 
-  def test_underscore
-    CamelToUnderscore.each do |camel, underscore|
-      assert_equal(underscore, camel.underscore)
-    end
-
-    assert_equal "html_tidy", "HTMLTidy".underscore
-    assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
+  test "underscore", each: CamelToUnderscore do |camel, underscore|
+    assert_equal underscore, camel.underscore
   end
 
-  def test_underscore_to_lower_camel
-    UnderscoreToLowerCamel.each do |underscored, lower_camel|
-      assert_equal(lower_camel, underscored.camelize(:lower))
-    end
+  test "underscore acronyms", each: [
+    ["HTMLTidy", "html_tidy"],
+    ["HTMLTidyGenerator", "html_tidy_generator"]
+  ] do |acronym, underscored|
+    assert_equal underscored, acronym.underscore
   end
 
-  def test_demodulize
+  test "underscore to lower camel", each: UnderscoreToLowerCamel do |underscored, lower_camel|
+    assert_equal lower_camel, underscored.camelize(:lower)
+  end
+
+  test "demodulize" do
     assert_equal "Account", "MyApplication::Billing::Account".demodulize
   end
 
-  def test_deconstantize
+  test "deconstantize" do
     assert_equal "MyApplication::Billing", "MyApplication::Billing::Account".deconstantize
   end
 
-  def test_foreign_key
-    ClassNameToForeignKeyWithUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, klass.foreign_key)
-    end
-
-    ClassNameToForeignKeyWithoutUnderscore.each do |klass, foreign_key|
-      assert_equal(foreign_key, klass.foreign_key(false))
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithUnderscore do |klass, foreign_key|
+    assert_equal foreign_key, klass.foreign_key
   end
 
-  def test_tableize
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(table_name, class_name.tableize)
-    end
+  test "foreign_key", each: ClassNameToForeignKeyWithoutUnderscore do |klass, foreign_key|
+    assert_equal foreign_key, klass.foreign_key(false)
   end
 
-  def test_classify
-    ClassNameToTableName.each do |class_name, table_name|
-      assert_equal(class_name, table_name.classify)
-    end
+  test "tableize", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal table_name, class_name.tableize
   end
 
-  def test_string_parameterized_normal
-    StringToParameterized.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize)
-    end
+  test "classify", each: ClassNameToTableName do |class_name, table_name|
+    assert_equal class_name, table_name.classify
   end
 
-  def test_string_parameterized_normal_preserve_case
-    StringToParameterizedPreserveCase.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(preserve_case: true))
-    end
+  test "string parameterized normal", each: StringToParameterized do |normal, slugged|
+    assert_equal slugged, normal.parameterize
   end
 
-  def test_string_parameterized_no_separator
-    StringToParameterizeWithNoSeparator.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: ""))
-    end
+  test "string parameterized normal preserve_case", each: StringToParameterizedPreserveCase do |normal, slugged|
+    assert_equal slugged, normal.parameterize(preserve_case: true)
   end
 
-  def test_string_parameterized_no_separator_preserve_case
-    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "", preserve_case: true))
-    end
+  test "string parameterized no separator", each: StringToParameterizeWithNoSeparator do |normal, slugged|
+    assert_equal slugged, normal.parameterize(separator: "")
   end
 
-  def test_string_parameterized_underscore
-    StringToParameterizeWithUnderscore.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "_"))
-    end
+  test "string parameterized no separator preserve_case", each: StringToParameterizePreserveCaseWithNoSeparator do |normal, slugged|
+    assert_equal slugged, normal.parameterize(separator: "", preserve_case: true)
   end
 
-  def test_string_parameterized_underscore_preserve_case
-    StringToParameterizePreserveCaseWithUnderscore.each do |normal, slugged|
-      assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
-    end
+  test "string parameterized underscore", each: StringToParameterizeWithUnderscore do |normal, slugged|
+    assert_equal slugged, normal.parameterize(separator: "_")
   end
 
-  def test_parameterize_with_locale
+  test "string parameterized underscore preserve_case", each: StringToParameterizePreserveCaseWithUnderscore do |normal, slugged|
+    assert_equal slugged, normal.parameterize(separator: "_", preserve_case: true)
+  end
+
+  test "parameterize with locale" do
     word = "Fünf autos"
     I18n.backend.store_translations(:de, i18n: { transliterate: { rule: { "ü" => "ue" } } })
-    assert_equal("fuenf-autos", word.parameterize(locale: :de))
+    assert_equal "fuenf-autos", word.parameterize(locale: :de)
   end
 
-  def test_humanize
-    UnderscoreToHuman.each do |underscore, human|
-      assert_equal(human, underscore.humanize)
-    end
+  test "humanize", each: UnderscoreToHuman do |underscore, human|
+    assert_equal human, underscore.humanize
   end
 
-  def test_humanize_without_capitalize
-    UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
-      assert_equal(human, underscore.humanize(capitalize: false))
-    end
+  test "humanize without capitalize", each: UnderscoreToHumanWithoutCapitalize do |underscore, human|
+    assert_equal human, underscore.humanize(capitalize: false)
   end
 
-  def test_humanize_with_keep_id_suffix
-    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
-      assert_equal(human, underscore.humanize(keep_id_suffix: true))
-    end
+  test "humanize with keep_id_suffix", each: UnderscoreToHumanWithKeepIdSuffix do |underscore, human|
+    assert_equal human, underscore.humanize(keep_id_suffix: true)
   end
 
-  def test_humanize_with_html_escape
+  test "humanize with html_escape" do
     assert_equal "Hello", ERB::Util.html_escape("hello").humanize
   end
 
-  def test_ord
-    assert_equal 97, "a".ord
-    assert_equal 97, "abc".ord
+  test "ord", each: ["a", "abc"] do |str|
+    assert_equal 97, str.ord
   end
 
-  def test_starts_ends_with_alias
+  test "starts_with alias" do
     s = "hello"
     assert s.starts_with?("h")
     assert s.starts_with?("hel")
     assert_not s.starts_with?("el")
+  end
 
+  test "ends_with alias" do
+    s = "hello"
     assert s.ends_with?("o")
     assert s.ends_with?("lo")
     assert_not s.ends_with?("el")
   end
 
-  def test_string_squish
+  test "string squish" do
     original = +%{\u205f\u3000 A string surrounded by various unicode spaces,
       with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
 
@@ -287,35 +259,35 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal expected, original
   end
 
-  def test_string_inquiry
+  test "string inquiry" do
     assert_predicate "production".inquiry, :production?
     assert_not_predicate "production".inquiry, :development?
   end
 
-  def test_truncate
+  test "truncate" do
     assert_equal "Hello World!", "Hello World!".truncate(12)
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)
   end
 
-  def test_truncate_with_omission_and_separator
+  test "truncate with omission and separator" do
     assert_equal "Hello[...]", "Hello World!".truncate(10, omission: "[...]")
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: " ")
   end
 
-  def test_truncate_with_omission_and_regexp_separator
+  test "truncate with omission and regexp separator" do
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
   end
 
-  def test_truncate_returns_frozen_string
+  test "truncate returns frozen string" do
     assert_not "Hello World!".truncate(12).frozen?
     assert_not "Hello World!!".truncate(12).frozen?
   end
 
-  def test_truncate_bytes
+  test "truncate bytes" do
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
@@ -341,7 +313,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_truncate_bytes_preserves_codepoints
+  test "truncate bytes preserves codepoints" do
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
     assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
@@ -367,7 +339,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_truncates_bytes_preserves_grapheme_clusters
+  test "truncate bytes preserves grapheme clusters" do
     assert_equal "a ", "a ❤️ b".truncate_bytes(2, omission: nil)
     assert_equal "a ", "a ❤️ b".truncate_bytes(3, omission: nil)
     assert_equal "a ", "a ❤️ b".truncate_bytes(7, omission: nil)
@@ -377,7 +349,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "", "👩‍❤️‍👩".truncate_bytes(13, omission: nil)
   end
 
-  def test_truncates_bytes_preserves_encoding
+  test "truncate bytes preserves encoding" do
     original = String.new("a" * 30, encoding: Encoding::UTF_8)
 
     assert_equal Encoding::UTF_8, original.truncate_bytes(15).encoding
@@ -386,28 +358,28 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal Encoding::UTF_8, original.truncate_bytes(15, omission: "🖖").encoding
   end
 
-  def test_truncate_words
+  test "truncate words" do
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3)
     assert_equal "Hello Big...", "Hello Big World!".truncate_words(2)
   end
 
-  def test_truncate_words_with_omission
+  test "truncate words with omission" do
     assert_equal "Hello Big World!", "Hello Big World!".truncate_words(3, omission: "[...]")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, omission: "[...]")
   end
 
-  def test_truncate_words_with_separator
+  test "truncate words with separator" do
     assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, separator: "<br>")
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, separator: "<br>")
     assert_equal "Hello\n<br>Big...", "Hello\n<br>Big<br>Wide<br>World!".truncate_words(2, separator: "<br>")
   end
 
-  def test_truncate_words_with_separator_and_omission
+  test "truncate words with separator and omission" do
     assert_equal "Hello<br>Big<br>World![...]", "Hello<br>Big<br>World!<br>".truncate_words(3, omission: "[...]", separator: "<br>")
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, omission: "[...]", separator: "<br>")
   end
 
-  def test_truncate_words_with_complex_string
+  test "truncate words with complex string" do
     Timeout.timeout(10) do
       complex_string = "aa aa aaa aa aaa aaa aaa aa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaa aaaa aaaaa aaaaa aaaaaa aa aa aa aaa aa  aaa aa aa aa aa a aaa aaa \n a aaa <<s"
       assert_equal complex_string, complex_string.truncate_words(80)
@@ -416,29 +388,29 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert false
   end
 
-  def test_truncate_multibyte
+  test "truncate multibyte" do
     assert_equal (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...").force_encoding(Encoding::UTF_8),
       (+"\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244").force_encoding(Encoding::UTF_8).truncate(10)
   end
 
-  def test_truncate_should_not_be_html_safe
+  test "truncate should not be html safe" do
     assert_not_predicate "Hello World!".truncate(12), :html_safe?
   end
 
-  def test_remove
+  test "remove" do
     original = "This is a good day to die"
     assert_equal "This is a good day", original.remove(" to die")
     assert_equal "This is a good day", original.remove(" to ", /die/)
     assert_equal "This is a good day to die", original
   end
 
-  def test_remove_for_multiple_occurrences
+  test "remove for multiple occurrences" do
     original = "This is a good day to die to die"
     assert_equal "This is a good day", original.remove(" to die")
     assert_equal "This is a good day to die to die", original
   end
 
-  def test_remove!
+  test "remove!" do
     original = +"This is a very good day to die"
     assert_equal "This is a good day to die", original.remove!(" very")
     assert_equal "This is a good day to die", original
@@ -446,11 +418,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "This is a good day", original
   end
 
-  def test_constantize
+  test "constantize" do
     run_constantize_tests_on(&:constantize)
   end
 
-  def test_safe_constantize
+  test "safe_constantize" do
     run_safe_constantize_tests_on(&:safe_constantize)
   end
 end
@@ -585,7 +557,7 @@ end
 class StringConversionsTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
-  def test_string_to_time
+  test "string to time" do
     with_env_tz "Europe/Moscow" do
       assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:utc)
       assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
@@ -601,7 +573,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_timestamp_string_to_time
+  test "timestamp string to time" do
     exception = assert_raises(ArgumentError) do
       "1604326192".to_time
     end
@@ -609,7 +581,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_equal "argument out of range", exception.message
   end
 
-  def test_string_to_time_utc_offset
+  test "string to time utc offset" do
     with_env_tz "US/Eastern" do
       assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
       assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
@@ -618,7 +590,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_partial_string_to_time
+  test "partial string to time" do
     with_env_tz "Europe/Moscow" do # use timezone which does not observe DST.
       now = Time.now
       assert_equal Time.local(now.year, now.month, now.day, 23, 50), "23:50".to_time
@@ -628,7 +600,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_standard_time_string_to_time_when_current_time_is_standard_time
+  test "standard time string to time when current time is standard time" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 1, 1)) do
         assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time
@@ -647,7 +619,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_standard_time_string_to_time_when_current_time_is_daylight_savings
+  test "standard time string to time when current time is daylight savings" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 7, 1)) do
         assert_equal Time.local(2012, 1, 1, 10, 0), "2012-01-01 10:00".to_time
@@ -666,7 +638,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_daylight_savings_string_to_time_when_current_time_is_standard_time
+  test "daylight savings string to time when current time is standard time" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 1, 1)) do
         assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time
@@ -685,7 +657,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_daylight_savings_string_to_time_when_current_time_is_daylight_savings
+  test "daylight savings string to time when current time is daylight savings" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 7, 1)) do
         assert_equal Time.local(2012, 7, 1, 10, 0), "2012-07-01 10:00".to_time
@@ -704,7 +676,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_partial_string_to_time_when_current_time_is_standard_time
+  test "partial string to time when current time is standard time" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 1, 1)) do
         assert_equal Time.local(2012, 1, 1, 10, 0), "10:00".to_time
@@ -727,7 +699,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_partial_string_to_time_when_current_time_is_daylight_savings
+  test "partial string to time when current time is daylight savings" do
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(2012, 7, 1)) do
         assert_equal Time.local(2012, 7, 1, 10, 0), "10:00".to_time
@@ -750,7 +722,7 @@ class StringConversionsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_string_to_datetime
+  test "string to datetime" do
     assert_equal DateTime.civil(2039, 2, 27, 23, 50), "2039-02-27 23:50".to_datetime
     assert_equal 0, "2039-02-27 23:50".to_datetime.offset # use UTC offset
     assert_equal ::Date::ITALY, "2039-02-27 23:50".to_datetime.start # use Ruby's default start value
@@ -758,13 +730,13 @@ class StringConversionsTest < ActiveSupport::TestCase
     assert_nil "".to_datetime
   end
 
-  def test_partial_string_to_datetime
+  test "partial string to datetime" do
     now = DateTime.now
     assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50), "23:50".to_datetime
     assert_equal DateTime.civil(now.year, now.month, now.day, 23, 50, 0, "-04:00"), "23:50 -0400".to_datetime
   end
 
-  def test_string_to_date
+  test "string to date" do
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
     assert_nil "".to_date
     assert_equal Date.new(Date.today.year, 2, 3), "Feb 3rd".to_date
@@ -772,7 +744,7 @@ class StringConversionsTest < ActiveSupport::TestCase
 end
 
 class StringBehaviorTest < ActiveSupport::TestCase
-  def test_acts_like_string
+  test "acts like string" do
     assert_predicate "Bambi", :acts_like_string?
   end
 end
@@ -783,18 +755,18 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   EUC_JP_STRING = "さよなら".encode("EUC-JP")
   INVALID_UTF8_STRING = "\270\236\010\210\245"
 
-  def test_core_ext_adds_mb_chars
+  test "core ext adds mb chars" do
     assert_respond_to UTF8_STRING, :mb_chars
   end
 
-  def test_string_should_recognize_utf8_strings
+  test "string should recognize utf8 strings" do
     assert_predicate UTF8_STRING, :is_utf8?
     assert_predicate ASCII_STRING, :is_utf8?
     assert_not_predicate EUC_JP_STRING, :is_utf8?
     assert_not_predicate INVALID_UTF8_STRING, :is_utf8?
   end
 
-  def test_mb_chars_returns_instance_of_proxy_class
+  test "mb_chars returns instance of proxy class" do
     assert_deprecated ActiveSupport.deprecator do
       assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
     end
@@ -1146,13 +1118,11 @@ class StringExcludeTest < ActiveSupport::TestCase
 end
 
 class StringIndentTest < ActiveSupport::TestCase
-  test "does not indent strings that only contain newlines (edge cases)" do
-    ["", "\n", "\n" * 7].each do |string|
-      str = string.dup
-      assert_nil str.indent!(8)
-      assert_equal str, str.indent(8)
-      assert_equal str, str.indent(1, "\t")
-    end
+  test "does not indent strings that only contain newlines (edge case)", each: ["", "\n", "\n" * 7] do |string|
+    str = string.dup
+    assert_nil str.indent!(8)
+    assert_equal str, str.indent(8)
+    assert_equal str, str.indent(1, "\t")
   end
 
   test "by default, indents with spaces if the existing indentation uses them" do
