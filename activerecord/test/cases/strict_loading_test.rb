@@ -53,6 +53,32 @@ class StrictLoadingTest < ActiveRecord::TestCase
     assert_predicate developer, :strict_loading_n_plus_one_only?
   end
 
+  def test_globally_strict_loading_n_plus_one_only_errors_raised
+    old_strict_loading_by_default = ActiveRecord::Base.strict_loading_by_default
+    old_strict_loading_mode = ActiveRecord::Base.strict_loading_mode
+    ActiveRecord::Base.strict_loading_by_default = true
+    ActiveRecord::Base.strict_loading_mode = :n_plus_one_only
+
+    one = Developer.create!(name: "Dude", salary: 50_000)
+    two = Developer.create!(name: "John")
+
+    AuditLog.create!([
+      { message: "one comment", developer_id: one.id },
+      { message: "two comment", developer_id: two.id },
+      { message: "three comment", developer_id: one.id },
+      { message: "four comment", developer_id: two.id }
+    ])
+
+    assert_raises ActiveRecord::StrictLoadingViolationError do
+      Developer.all.flat_map do |developer|
+        developer.audit_logs.map(&:message)
+      end
+    end
+  ensure
+    ActiveRecord::Base.strict_loading_by_default = old_strict_loading_by_default
+    ActiveRecord::Base.strict_loading_mode = old_strict_loading_mode
+  end
+
   def test_strict_loading_n_plus_one_only_mode_with_has_many
     developer = Developer.first
     firm = Firm.create!(name: "NASA")

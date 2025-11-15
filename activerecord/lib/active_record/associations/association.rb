@@ -288,6 +288,8 @@ module ActiveRecord
 
           return reflection.strict_loading? if reflection.options.key?(:strict_loading)
 
+          return true if ActiveRecord::Base.strict_loading_by_default.present?
+
           owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
