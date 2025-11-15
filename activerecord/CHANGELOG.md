@@ -1,3 +1,19 @@
+*   Decode PostgreSQL bytea and money columns when they appear in direct
+    query results.
+
+    bytea columns are now decoded to binary-encoded Strings, and money columns
+    are decoded to BigDecimal instead of String.
+
+    ```ruby
+    ActiveRecord::Base.connection
+         .select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+
+    ActiveRecord::Base.connection
+         .select_value("select '12.34'::money").class #=> BigDecimal
+    ```
+
+    *Matthew Draper*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
