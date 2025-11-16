@@ -70,18 +70,21 @@ module ActionDispatch
           elsif api_request?(content_type)
             render_for_api_request(content_type, wrapper)
           else
-            render_for_browser_request(request, wrapper)
+            render_for_browser_request(request, wrapper, content_type)
           end
         else
           raise exception
         end
       end
 
-      def render_for_browser_request(request, wrapper)
+      def render_for_browser_request(request, wrapper, content_type)
         template = create_template(request, wrapper)
         file = "rescues/#{wrapper.rescue_template}"
 
-        if request.xhr?
+        if content_type == Mime[:md]
+          body = template.render(template: file, layout: false, formats: [:text])
+          format = "text/markdown"
+        elsif request.xhr?
           body = template.render(template: file, layout: false, formats: [:text])
           format = "text/plain"
         else
