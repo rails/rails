@@ -264,9 +264,13 @@ module ActiveSupport
 
       private
         def define_acronym_regex_patterns
-          @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
+          @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{sorted_acronyms.values.join("|")}/
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/
           @acronyms_underscore_regex = /(?:(?<=([A-Za-z\d]))|\b)(#{@acronym_regex})(?=\b|[^a-z])/
+        end
+
+        def sorted_acronyms
+          @acronyms.sort_by { |_key, acronym| -acronym.length }.to_h
         end
     end
 
