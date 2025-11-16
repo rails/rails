@@ -1,4 +1,4 @@
-*   Active Record now supports PostgreSQL version 14 and up.
+*   Drop support for end-of-life PostgreSQL 13 and older.
 
     *Ali Ismayilov*
 
