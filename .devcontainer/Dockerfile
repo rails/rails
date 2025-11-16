@@ -33,6 +33,10 @@ COPY tools/releaser/releaser.gemspec /tmp/rails/tools/releaser/
 # can bundle as vscode user and then remove the tmp dir
 RUN sudo chown -R vscode:vscode /tmp/rails
 USER vscode
+RUN cat <<-EOF > $HOME/.my.cnf && chmod 600 $HOME/.my.cnf
+[client]
+ssl=OFF
+EOF
 RUN cd /tmp/rails \
     && bash -i -c 'bundle install' \
     && rm -rf /tmp/rails
