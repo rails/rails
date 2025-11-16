@@ -1,3 +1,12 @@
+*   Support `text/markdown` format in `DebugExceptions` middleware.
+
+    When `text/markdown` is requested via the Accept header, error responses
+    are returned with `Content-Type: text/markdown` instead of HTML.
+    The existing text templates are reused for markdown output, allowing
+    CLI tools and other clients to receive byte-efficient error information.
+
+    *Guillermo Iguaran*
+
 *   Support dynamic `to:` and `within:` options in `rate_limit`.
 
     The `to:` and `within:` options now accept callables (lambdas or procs) and

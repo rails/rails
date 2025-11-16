@@ -297,6 +297,47 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_match(/ActionController::ParameterMissing/, body)
   end
 
+  test "rescue with text error and markdown format when text/markdown is preferred" do
+    @app = DevelopmentApp
+
+    get "/", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 500
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/RuntimeError/, body)
+    assert_match(/puke/, body)
+
+    get "/not_found", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 404
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/#{AbstractController::ActionNotFound.name}/, body)
+
+    get "/method_not_allowed", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::MethodNotAllowed/, body)
+
+    get "/unknown_http_method", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 405
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::UnknownHttpMethod/, body)
+
+    get "/bad_request", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::BadRequest/, body)
+
+    get "/parameter_missing", headers: { "Accept" => "text/markdown", "action_dispatch.show_exceptions" => :all }
+    assert_response 400
+    assert_no_match(/<body>/, body)
+    assert_equal "text/markdown", response.media_type
+    assert_match(/ActionController::ParameterMissing/, body)
+  end
+
   test "rescue with JSON error for JSON API request" do
     @app = ApiApp
 
