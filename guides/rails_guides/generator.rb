@@ -57,6 +57,7 @@ module RailsGuides
       end
 
       if !dry_run?
+        generate_sitemap
         generate_epub if @epub
       end
     end
@@ -80,6 +81,95 @@ module RailsGuides
         epub_filename = +"ruby_on_rails_guides_#{@version || @edge[0, 7]}"
         epub_filename << ".#{@language}" if @language
         epub_filename << ".epub"
+      end
+
+      def generate_sitemap
+        base_url = "https://guides.rubyonrails.org"
+        sitemap_path = File.join(@output_dir, "sitemap.xml")
+
+        documents_yaml = File.join(@guides_dir, "source", "documents.yaml")
+        documents = YAML.load_file(documents_yaml)
+
+        urls = []
+
+        urls << {
+          loc: "#{base_url}/",
+          changefreq: "weekly",
+          priority: "1.0"
+        }
+
+        documents.each do |section|
+          next unless section["documents"]
+
+          section["documents"].each do |doc|
+            url = doc["url"]
+            next unless url
+
+            # Determine priority based on section and guide type
+            priority = case section["name"]
+            when "Start Here"
+              "0.9"
+            when "Models", "Views", "Controllers"
+              "0.9"
+            when "Other Components", "Digging Deeper"
+              "0.8"
+            when "Going to Production"
+              "0.8"
+            when "Advanced Active Record"
+              "0.7"
+            when "Extending Rails"
+              "0.6"
+            when "Contributing"
+              "0.7"
+            when "Policies"
+              "0.8"
+            when "Release Notes"
+              if url.include?("8_1") || url.include?("8_0")
+                "0.8"
+              elsif url.include?("7_2") || url.include?("7_1")
+                "0.6"
+              else
+                "0.3"
+              end
+            else
+              "0.5"
+            end
+
+            changefreq = if url.include?("release_notes")
+              "weekly"
+            else
+              "monthly"
+            end
+
+            urls << {
+              loc: "#{base_url}/#{url}",
+              changefreq: changefreq,
+              priority: priority
+            }
+          end
+        end
+
+        sitemap_xml = generate_sitemap_xml(urls)
+
+        File.write(sitemap_path, sitemap_xml)
+        puts "Sitemap generated at: #{sitemap_path}"
+      end
+
+      def generate_sitemap_xml(urls)
+        xml = []
+        xml << '<?xml version="1.0" encoding="UTF-8"?>'
+        xml << '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+
+        urls.each do |url_data|
+          xml << "  <url>"
+          xml << "    <loc>#{url_data[:loc]}</loc>"
+          xml << "    <changefreq>#{url_data[:changefreq]}</changefreq>"
+          xml << "    <priority>#{url_data[:priority]}</priority>"
+          xml << "  </url>"
+        end
+
+        xml << "</urlset>"
+        xml.join("\n")
       end
 
       def initialize_dirs
