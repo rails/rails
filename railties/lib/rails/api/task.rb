@@ -3,6 +3,8 @@
 require "rdoc/task"
 require "rails/api/generator"
 
+require "sdoc"
+
 module Rails
   module API
     class Task < RDoc::Task
@@ -229,6 +231,18 @@ module Rails
 
       def canonical_url
         "https://api.rubyonrails.org/#{badge_version}"
+      end
+    end
+
+    class NameListTask < RepoTask
+      def configure_sdoc
+        options << "-e"  << "UTF-8"
+
+        options << "-f"  << "namelist"
+      end
+
+      def setup_horo_variables
+        nil
       end
     end
   end
