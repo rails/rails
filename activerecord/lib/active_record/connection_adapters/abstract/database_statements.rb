@@ -610,21 +610,6 @@ module ActiveRecord
         DEFAULT_INSERT_VALUE
       end
 
-      def preprocess_query(sql) # :nodoc:
-        if write_query?(sql)
-          ensure_writes_are_allowed(sql)
-        end
-
-        # We call tranformers after the write checks so we don't add extra parsing work.
-        # This means we assume no transformer whille change a read for a write
-        # but it would be insane to do such a thing.
-        ActiveRecord.query_transformers&.each do |transformer|
-          sql = transformer.call(sql, self)
-        end
-
-        sql
-      end
-
       # Lowest-level abstract execution of a query, called only from the intent itself.
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
       # intent's raw_result.

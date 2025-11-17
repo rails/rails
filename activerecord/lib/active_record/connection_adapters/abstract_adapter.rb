@@ -203,12 +203,6 @@ module ActiveRecord
         end
       end
 
-      def ensure_writes_are_allowed(sql) # :nodoc:
-        if preventing_writes?
-          raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
-        end
-      end
-
       MAX_JITTER = 0.0..1.0 # :nodoc:
       def max_jitter
         (@config[:pool_jitter] || 0.2).to_f.clamp(MAX_JITTER)

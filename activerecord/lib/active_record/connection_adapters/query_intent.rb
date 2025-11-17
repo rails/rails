@@ -29,6 +29,7 @@ module ActiveRecord
         @notification_payload = nil
         @raw_result = nil
         @executed = false
+        @write_query = nil
       end
 
       # Returns a hash representation of the QueryIntent for debugging/introspection
@@ -75,7 +76,7 @@ module ActiveRecord
 
       # Returns preprocessed SQL, memoized
       def processed_sql
-        @processed_sql ||= adapter.preprocess_query(raw_sql)
+        @processed_sql ||= preprocess_query
       end
 
       def type_casted_binds
@@ -115,6 +116,39 @@ module ActiveRecord
       end
 
       private
+        # Heuristically guesses whether this is a write query by examining the outermost
+        # SQL operation. Subqueries, function calls, etc are not considered.
+        def write_query?
+          return @write_query unless @write_query.nil?
+
+          @write_query =
+            case arel
+            when Arel::SelectManager
+              false
+            when Arel::InsertManager, Arel::UpdateManager, Arel::DeleteManager
+              true
+            else
+              adapter.write_query?(raw_sql)
+            end
+        end
+
+        def preprocess_query
+          if adapter.preventing_writes? && write_query?
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{raw_sql}"
+          end
+
+          sql = raw_sql
+
+          # We call tranformers after the write checks so we don't need to parse the
+          # transformed result (which probably just adds comments we'd need to ignore).
+          # This means we assume no transformer will change a read into a write.
+          ActiveRecord.query_transformers&.each do |transformer|
+            sql = transformer.call(sql, adapter)
+          end
+
+          sql
+        end
+
         def compile_arel!
           return if @raw_sql || !@arel
           @raw_sql, @binds, @prepare, @allow_retry = adapter.to_sql_and_binds(@arel, @binds, @prepare, @allow_retry)
