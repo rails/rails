@@ -187,6 +187,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.strict_loading_by_default" do
+      config.after_initialize do
+        if config.active_record.strict_loading_by_default.present?
+          ActiveSupport.on_load(:active_record) do
+            ActiveRecord::Base.strict_loading_by_default = true
+          end
+        end
+      end
+    end
+
     initializer "active_record.sqlite3_adapter_strict_strings_by_default" do
       config.after_initialize do
         if config.active_record.sqlite3_adapter_strict_strings_by_default

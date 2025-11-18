@@ -1,3 +1,7 @@
+*   Fix issue (#56094) by raising strict loading violation when configuring Active Record's strict loading to be :n_plus_one_only with strict loading by default.
+
+    *Tahsin Hasan*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
