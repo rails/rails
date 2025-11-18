@@ -38,6 +38,8 @@ module ActiveSupport
     #
     # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
     #
+    # A 'fail fast' option can be passed as a CLI argument (-f or --fail-fast). This exits with a non-zero status directly after a step fails.
+    #
     # Example:
     #
     #   ActiveSupport::ContinuousIntegration.run do
@@ -124,6 +126,8 @@ module ActiveSupport
       else
         echo "\n❌ #{title} failed in #{elapsed}", type: :error
 
+        abort if ci.fail_fast?
+
         if ci.multiple_results?
           ci.failures.each do |success, title|
             unless success
@@ -146,6 +150,11 @@ module ActiveSupport
     # :nodoc:
     def multiple_results?
       results.size > 1
+    end
+
+    # :nodoc:
+    def fail_fast?
+      ARGV.include?("-f") || ARGV.include?("--fail-fast")
     end
 
     private

@@ -1,3 +1,8 @@
+*   Add a fast failure mode to `ActiveSupport::ContinuousIntegration` that stops the rest of
+    the run after a step fails. Invoke by running `bin/ci --fail-fast` or `bin/ci -f`.
+
+    *Dennis Paagman*
+
 *   Implement LocalCache strategy on `ActiveSupport::Cache::MemoryStore`. The memory store
     needs to respond to the same interface as other cache stores (e.g. `ActiveSupport::NullStore`).
 
