@@ -114,7 +114,7 @@ module ActiveSupport
 
     # :nodoc:
     def report(title, &block)
-      Signal.trap("INT") { abort colorize(:error, "\n❌ #{title} interrupted") }
+      Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
 
       ci = self.class.new
       elapsed = timing { ci.instance_eval(&block) }
