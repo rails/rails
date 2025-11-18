@@ -1479,7 +1479,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/activestorage"
       assert_includes content["features"].keys, "ghcr.io/devcontainers/features/github-cli:1"
       assert_includes content["features"].keys, "ghcr.io/rails/devcontainer/features/sqlite3"
-      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+      assert_includes content["features"].keys, "ghcr.io/devcontainers/features/docker-in-docker:2"
       assert_includes(content["forwardPorts"], 3000)
     end
     assert_file(".devcontainer/Dockerfile") do |content|
@@ -1520,7 +1520,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--devcontainer", "--name=my-app", "--skip-kamal"]
 
     assert_devcontainer_json_file do |devcontainer_json|
-      assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-outside-of-docker:1"
+      assert_not_includes devcontainer_json["features"].keys, "ghcr.io/devcontainers/features/docker-in-docker:2"
       assert_not_includes devcontainer_json["containerEnv"].keys, "KAMAL_REGISTRY_PASSWORD"
     end
   end
