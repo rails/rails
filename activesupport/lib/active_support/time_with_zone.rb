@@ -442,11 +442,11 @@ module ActiveSupport
     end
 
     %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<-EOV, __FILE__, __LINE__ + 1
+      class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
           time.#{method_name} #   time.month
         end                   # end
-      EOV
+      RUBY
     end
 
     # Returns Array of parts of Time in sequence of
@@ -530,14 +530,6 @@ module ActiveSupport
 
     def marshal_load(variables)
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
-    end
-
-    # respond_to_missing? is not called in some cases, such as when type conversion is
-    # performed with Kernel#String
-    def respond_to?(sym, include_priv = false)
-      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
-      return false if sym.to_sym == :to_str
-      super
     end
 
     # Ensure proxy class responds to all methods that underlying time instance

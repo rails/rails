@@ -80,11 +80,11 @@ module ActiveSupport
         end
 
         ActiveSupport::Logger::Severity.constants.each do |severity|
-          class_eval <<-EOT, __FILE__, __LINE__ + 1
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
             def #{severity.downcase}?
               #{severity} >= @level
             end
-          EOT
+          RUBY
         end
       end
 

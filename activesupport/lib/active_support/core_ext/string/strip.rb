@@ -1,7 +1,13 @@
 # frozen_string_literal: true
 
+require "strscan"
+
 class String
   # Strips indentation in heredocs.
+  #
+  # Note that since Ruby 2.3, heredocs can directly created with their indentation striped
+  # by using the <tt><<~</tt> syntax instead of <tt><<-</tt>.
+  # Hence the strip_heredoc method is rarely useful nowadays.
   #
   # For example in
   #

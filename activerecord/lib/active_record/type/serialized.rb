@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module Type
-    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+    class Serialized < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
