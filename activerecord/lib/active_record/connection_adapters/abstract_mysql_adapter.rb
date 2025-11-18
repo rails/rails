@@ -1006,7 +1006,22 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          internal_exec_query("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA", allow_retry: true)
+          schema = "(SELECT database())"
+
+          if table_name.include?(".")
+            schema, table_name = table_name.split(".", 2)
+            schema = quote(schema)
+          end
+
+          rows = internal_exec_query(<<~SQL, "SCHEMA", allow_retry: true)
+            SELECT *
+            FROM information_schema.columns
+            WHERE table_name = #{quote(table_name)}
+            AND table_schema = #{schema}
+            ORDER BY ordinal_position
+          SQL
+          raise ActiveRecord::StatementInvalid.new("Could not find table '#{table_name}'", connection_pool: @pool) if rows.empty?
+          rows
         end
 
         def create_table_info(table_name) # :nodoc:
