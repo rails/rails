@@ -92,12 +92,7 @@ class WithTest < ActiveSupport::TestCase
     assert_equal "1", @object.with(public_attr: "1", &:public_attr)
   end
 
-  test "basic immediates don't respond to #with" do
-    assert_not_respond_to nil, :with
-    assert_not_respond_to true, :with
-    assert_not_respond_to false, :with
-    assert_not_respond_to 1, :with
-    assert_not_respond_to 1.0, :with
-    assert_not_respond_to :sym, :with
+  test "basic immediates don't respond to #with", each: [nil, true, false, 1, 1.0, :sym] do |value|
+    assert_not_respond_to value, :with
   end
 end
