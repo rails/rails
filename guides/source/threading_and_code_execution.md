@@ -19,7 +19,9 @@ Rails automatically allows various operations to be performed at the same time
 (concurrently) in order for an application to run more efficiently. In this
 section, we will explore some of the ways this happens behind the scenes.
 
-When using a threaded web server, such as the default Puma, multiple HTTP requests will be served simultaneously, with a separate controller instance for each request.
+When using a threaded web server, such as the default Puma, multiple HTTP
+requests will be served simultaneously, with a separate controller instance for
+each request.
 
 Threaded Active Job adapters, including the built-in Async adapter, will
 likewise execute several jobs at the same time. Action Cable channels are
@@ -28,28 +30,35 @@ managed this way too.
 Asynchronous Active Record queries are also performed in the background,
 allowing other processes to run on the main thread.
 
-These mechanisms all involve multiple threads, each managing work for a unique instance of some object (controller, job, channel), while sharing the global process space (such as classes and their configurations, and global variables). As long as your code doesn't modify any of those shared resources, it can mostly ignore that other threads exist.
+These mechanisms all involve multiple threads, each managing work for a unique
+instance of some object (controller, job, channel), while sharing the global
+process space (such as classes and their configurations, and global variables).
+As long as your code doesn't modify any of those shared resources, it can mostly
+ignore that other threads exist.
 
-The rest of this guide describes the mechanisms Rails uses to make other threads "mostly ignorable", and how extensions and applications with special requirements can use these mechanisms.
+The rest of this guide describes the mechanisms Rails uses to make other threads
+"mostly ignorable", and how extensions and applications with special
+requirements can use these mechanisms.
 
 NOTE: You can read more about how to configure Rails' concurrency in the
 [Framework Behavior](#framework-behavior) section.
 
 
-### Threads vs Fibres
+### Threads vs Fibers
 
 The `active_support.isolation_level` value in your `config/application.rb` file
 provides you the option to define where Rails' internal state should be stored
 while tasks are run. If you use a fiber-based server or job processor (e.g.
-`falcon`), you should set this value to
-`:fiber`, otherwise it is best to set it to `:thread`.
+`falcon`), you should set this value to `:fiber`, otherwise it is best to set it
+to `:thread`.
 
 Wrapping Application Code
 -------------------------
 
 ### The Rails Executor
 
-The Rails Executor separates application code from framework code by wrapping code that you've written, which is necessary when threads are being used.
+The Rails Executor separates application code from framework code by wrapping
+code that you've written, which is necessary when threads are being used.
 
 #### Callbacks
 
@@ -80,7 +89,9 @@ may want to wrap using the [Reloader](#the-reloader) instead.
 
 
 Each thread should be wrapped before it runs application code, so if your
-application manually delegates work to other threads, such as via `Thread.new` or [Concurrent Ruby](https://github.com/ruby-concurrency/concurrent-ruby) features that use thread pools, you should immediately wrap the block:
+application manually delegates work to other threads, such as via `Thread.new`
+or [Concurrent Ruby](https://github.com/ruby-concurrency/concurrent-ruby)
+features that use thread pools, you should immediately wrap the block:
 
 ```ruby
 Thread.new do
@@ -91,9 +102,9 @@ Thread.new do
 end
 ```
 
-NOTE: Concurrent Ruby uses a `ThreadPoolExecutor`, which it sometimes
-configures with an `executor` option. Despite the name, it is _not_ related to
-the Rails Executor.
+NOTE: Concurrent Ruby uses a `ThreadPoolExecutor`, which it sometimes configures
+with an `executor` option. Despite the name, it is _not_ related to the Rails
+Executor.
 
 If it's impractical to wrap the application code in a block (for example, the
 Rack API makes this problematic), you can also use the `run!` / `complete!`
@@ -112,8 +123,8 @@ end
 
 The Executor will put the current thread into `running` mode in the [Load
 Interlock](#load-interlock). This operation will block temporarily if another
-thread is currently either autoloading a constant or unloading/reloading
-the application.
+thread is currently either autoloading a constant or unloading/reloading the
+application.
 
 ### The Reloader
 
@@ -129,8 +140,8 @@ Executor is a better fit for your use case.
 
 If the Executor is not already active on the current thread, the Reloader will
 invoke it for you, so you only need to call one. This also guarantees that
-everything the Reloader does, including its callbacks, occurs
-wrapped inside the Executor.
+everything the Reloader does, including its callbacks, occurs wrapped inside the
+Executor.
 
 ```ruby
 Rails.application.reloader.wrap do
@@ -196,17 +207,18 @@ freshly-loaded copy of the application if any code changes have occurred.
 Active Job also wraps its job executions with the Reloader, loading the latest
 code to execute each job as it comes off the queue.
 
-Action Cable uses the Executor instead: because a Cable connection is linked to a specific instance of a class, it's not possible to reload for every arriving
-WebSocket message. Only the message handler is wrapped, though; a long-running Cable connection does not prevent a reload that's triggered by a
-new incoming request or job. Instead, Action Cable uses the Reloader's
-`before_class_unload` callback to disconnect all its connections. When the
-client automatically reconnects, it will be interacting with the new version of
-the code.
+Action Cable uses the Executor instead: because a Cable connection is linked to
+a specific instance of a class, it's not possible to reload for every arriving
+WebSocket message. Only the message handler is wrapped, though; a long-running
+Cable connection does not prevent a reload that's triggered by a new incoming
+request or job. Instead, Action Cable uses the Reloader's `before_class_unload`
+callback to disconnect all its connections. When the client automatically
+reconnects, it will be interacting with the new version of the code.
 
 The above are the entry points to the framework, so they are responsible for
 ensuring their respective threads are protected, and deciding whether a reload
-is necessary. Other components only need to use the Executor when they
-spawn additional threads.
+is necessary. Other components only need to use the Executor when they spawn
+additional threads.
 
 ### Configuration
 
@@ -324,5 +336,5 @@ interlock, which lock level they are holding or awaiting, and their current
 backtrace.
 
 Generally a deadlock will be caused by the interlock conflicting with some other
-external lock or blocking I/O call. Once you find it, you can wrap it
-with `permit_concurrent_loads`.
+external lock or blocking I/O call. Once you find it, you can wrap it with
+`permit_concurrent_loads`.
