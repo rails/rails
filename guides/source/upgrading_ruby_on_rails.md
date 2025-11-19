@@ -77,8 +77,8 @@ To move between versions:
 3. If you are using traditional Javascript bundling instead (using
    jsbundling-rails) change the versions for Rails JavaScript packages in
    `package.json` and run `bin/rails javascript:install`.
-3. Run the [Update task](#the-update-task).
-4. Run your tests.
+4. Run the [Update task](#the-update-task).
+5. Run your tests.
 
 You can find a list of all released Rails gems
 [here](https://rubygems.org/gems/rails/versions).
@@ -106,7 +106,7 @@ Note that the tools used during this process can be defined using the
 ```bash
 # Use VS Code
 $ export THOR_DIFF="code --diff"
-$ export THOR_MERGE="code --merge" 
+$ export THOR_MERGE="code --merge"
 $ bin/rails app:update
 
 # Use vimdiff
