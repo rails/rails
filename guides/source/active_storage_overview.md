@@ -203,14 +203,13 @@ Rails will enqueue a job to generate the variant after the attachment is attache
 
 ### `has_many_attached`
 
-The [`has_many_attached`][] macro sets up a one-to-many relationship between records
-and files. Each record can have many files attached to it.
+The [`has_many_attached`][] method sets up a one-to-many relationship between a
+record and attached files. Each record can have many files attached to it.
 
-For example, suppose your application has a `Message` model. If you want each
-message to have many images, define the `Message` model as follows:
+For example, suppose your application has a `Product` model. Each product can have multiple images associated with it:
 
 ```ruby
-class Message < ApplicationRecord
+class Product < ApplicationRecord
   has_many_attached :images
 end
 ```
@@ -218,46 +217,46 @@ end
 or if you are using Rails 6.0+, you can run a model generator command like this:
 
 ```bash
-$ bin/rails generate model Message images:attachments
+$ bin/rails generate model Product images:attachments
 ```
 
-You can create a message with images:
+You can create a product with images:
 
 ```ruby
-class MessagesController < ApplicationController
+class ProductsController < ApplicationController
   def create
-    message = Message.create!(message_params)
-    redirect_to message
+    product = Product.create!(product_params)
+    redirect_to product
   end
 
   private
-    def message_params
-      params.expect(message: [ :title, :content, images: [] ])
+    def product_params
+      params.expect(product: [ :title, :content, images: [] ])
     end
 end
 ```
 
-Call [`images.attach`][Attached::Many#attach] to add new images to an existing message:
+You can call [`images.attach`][Attached::Many#attach] to add new images to an existing product:
 
 ```ruby
-@message.images.attach(params[:images])
+@product.images.attach(params[:images])
 ```
 
-Call [`images.attached?`][Attached::Many#attached?] to determine whether a particular message has any images:
+You can call [`images.attached?`][Attached::Many#attached?] to determine whether a particular product has any images:
 
 ```ruby
-@message.images.attached?
+@product.images.attached?
 ```
 
 Overriding the default service is done the same way as `has_one_attached`, by using the `service` option:
 
 ```ruby
-class Message < ApplicationRecord
+class Product < ApplicationRecord
   has_many_attached :images, service: :s3
 end
 ```
 
-Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the yielded attachable object:
+Configuring specific variants is done the same way as `has_one_attached`, by calling the `variant` method on the attachable object:
 
 ```ruby
 class Message < ApplicationRecord
@@ -270,8 +269,6 @@ end
 [`has_many_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
-
-NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_many_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
 ### Attaching File/IO Objects
 
