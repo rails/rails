@@ -1,3 +1,10 @@
+*   Allow either explain format syntax for EXPLAIN queries.
+
+    MySQL uses FORMAT=JSON whereas Postgres uses FORMAT JSON. We should be
+    able to accept both formats as options.
+
+    *Gannon McGibbon*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.
