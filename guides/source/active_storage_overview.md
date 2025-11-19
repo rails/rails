@@ -50,6 +50,8 @@ The install command creates migrations to add the following Active Storage speci
 
 WARNING: If you are using UUIDs instead of integers as the primary key on your models, you will need to set `Rails.application.config.generators { |g| g.orm :active_record, primary_key_type: :uuid }` in a config file.
 
+NOTE: Since Active Storage relies on [polymorphic associations](association_basics.html#polymorphic-associations), which store Ruby class names in the database, you will need to manually update Active Storage tables if you rename Ruby class names. For example, when renaming a class that use `has_one_attached`, make sure to also update the class name in the `active_storage_attachments.record_type` table and column.
+
 In terms of storing uploaded file during local development and testing, the default `Disk` service can be specified in the `config/storage.yml` file:
 
 ```yml
@@ -80,12 +82,14 @@ You can find detailed information about [configuring cloud services](#configure-
 
 ### Third Party Software
 
-Various features of Active Storage depend on third-party software which Rails
-does not install by default and will need to be installed separately:
+Various features of Active Storage depend on third-party software. Rails
+does not install these by default so you will need to do so separately:
 
 * [libvips](https://github.com/libvips/libvips) or [ImageMagick](https://imagemagick.org/index.php) - for image analysis and transformations.
 * [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio analysis.
 * [poppler](https://poppler.freedesktop.org/) or [muPDF](https://mupdf.com/) - for PDF previews.
+
+TODO: Question - should we mention the image_processing wrapper gem?
 
 TIP: Compared to libvips, ImageMagick is better known and more widely available. However, libvips can be [up to 10x faster and consume 1/10 the memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use). For JPEG files, this can be further improved by replacing `libjpeg-dev` with `libjpeg-turbo-dev`, which is [2-7x faster](https://libjpeg-turbo.org/About/Performance).
 
@@ -94,7 +98,6 @@ WARNING: Before you install and use third-party software, make sure you understa
 Attaching Files to Records OR Usage?
 --------------------------
 
-TODO: update with all "features" demoed in this section
 Once Active Storage is installed and configured, we can upload files attached to a Active Record model, display those files in a view, replace or remove those files, as well as get variants and query tables related to Active Storage.
 
 ### `has_one_attached`
@@ -111,7 +114,7 @@ class User < ApplicationRecord
 end
 ```
 
-You can override a default configured service for a specific attachment with the `service` option:
+You can override the default configured service for a specific attachment with the `service` option:
 
 ```ruby
 class User < ApplicationRecord
@@ -152,7 +155,7 @@ Now a user will be able to upload a profile photo.
 
 Some more useful methods are [`attach`][Attached::One#attach] and [`attached?`][Attached::One#attached?].
 
- The `attach` method attaches a profile photo to an existing user:
+The `attach` method attaches a profile photo to an existing user:
 
 ```ruby
 user.profile_photo.attach(params[:profile_photo])
@@ -166,50 +169,33 @@ user.profile_photo.attached?
 
 ### Variants
 
-You can configure specific variants per attachment by calling the `variant` method on yielded attachable object:
+You can configure specific variants for attachments by calling the [`variant`](https://api.rubyonrails.org/classes/ActiveStorage/Variant.html) method on an attachable object:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :avatar do |attachable|
+  has_one_attached :profile_photo do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
 end
 ```
 
-Call `avatar.variant(:thumb)` to get a thumb variant of an avatar:
+You can call `profile_photo.variant(:thumb)` in a view to get a thumb variant of a profile photo:
 
 ```erb
-<%= image_tag user.avatar.variant(:thumb) %>
+<%= image_tag user.profile_photo.variant(:thumb) %>
 ```
 
-You can use specific variants for previews as well:
+If you know in advance that your variants will be accessed, you can use the `preprocessed` option to specify that Rails should generate them ahead of time:
 
 ```ruby
 class User < ApplicationRecord
-  has_one_attached :video do |attachable|
-    attachable.variant :thumb, resize_to_limit: [100, 100]
-  end
-end
-```
-
-```erb
-<%= image_tag user.video.preview(:thumb) %>
-```
-
-If you know in advance that your variants will be accessed, you can specify that
-Rails should generate them ahead of time:
-
-```ruby
-class User < ApplicationRecord
-  has_one_attached :video do |attachable|
+  has_one_attached :profile_photo do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100], preprocessed: true
   end
 end
 ```
 
 Rails will enqueue a job to generate the variant after the attachment is attached to the record.
-
-NOTE: Since Active Storage relies on polymorphic associations, and [polymorphic associations](./association_basics.html#polymorphic-associations) rely on storing class names in the database, that data must remain synchronized with the class name used by the Ruby code. When renaming classes that use `has_one_attached`, make sure to also update the class names in the `active_storage_attachments.record_type` polymorphic type column of the corresponding rows.
 
 [`has_one_attached`]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached
 [Attached::One#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/One.html#method-i-attach
