@@ -626,7 +626,9 @@ module ApplicationTests
           end
         RUBY
         app_file "config/initializers/primary_key_table_name.rb", <<-RUBY
-          ActiveRecord::Base.primary_key_prefix_type = :table_name
+          ActiveSupport.on_load(:active_record) do
+            ActiveRecord::Base.primary_key_prefix_type = :table_name
+          end
         RUBY
         app_file "db/schema.rb", <<-RUBY
           ActiveRecord::Schema.define(version: 20140423102712) do
