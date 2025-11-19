@@ -7,15 +7,21 @@ module ActiveRecord::Associations::Deprecation # :nodoc:
   EVENT = "deprecated_association.active_record"
   private_constant :EVENT
 
-  MODES = [:warn, :raise, :notify].freeze
+  MODES = [:warn, :raise, :notify, :event].freeze
   private_constant :MODES
 
   class << self
     attr_reader :mode, :backtrace
 
     def mode=(value) # private setter
+      if value == :notify
+        ActiveRecord.deprecator.warn <<~MSG.squish
+          The :notify mode for deprecated associations is deprecated and will be removed in Rails 9.0.
+          Please use `config.active_record.deprecated_associations_options[:mode] = :event` and instead.
+        MSG
+      end
       unless MODES.include?(value)
-        raise ArgumentError, "invalid deprecated associations mode #{value.inspect} (valid modes are #{MODES.map(&:inspect).to_sentence})"
+        raise ArgumentError, "invalid deprecated associations mode #{value.inspect} (valid modes are #{MODES.reject { _1 == :notify }.map(&:inspect).to_sentence})"
       end
 
       @mode = value
@@ -54,10 +60,14 @@ module ActiveRecord::Associations::Deprecation # :nodoc:
           error.set_backtrace(clean_frames)
         end
         raise error
-      else
+      when :notify
         payload = { reflection: reflection, message: message, location: backtrace_cleaner.first_clean_location }
         payload[:backtrace] = clean_locations if @backtrace
         ActiveSupport::Notifications.instrument(EVENT, payload)
+      else
+        payload = { reflection: reflection, message: message, location: backtrace_cleaner.first_clean_location }
+        payload[:backtrace] = clean_locations if @backtrace
+        ActiveSupport.event_reporter.notify("active_record.deprecated_association", payload)
       end
     end
 
