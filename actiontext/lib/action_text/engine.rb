@@ -26,6 +26,11 @@ module ActionText
       #{root}/app/models
     )
 
+    guard_load_hooks(
+      :action_text_record, :action_text_rich_text, :action_text_content,
+      :action_text_encrypted_rich_text,
+    )
+
     initializer "action_text.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_text] = ActionText.deprecator
     end
