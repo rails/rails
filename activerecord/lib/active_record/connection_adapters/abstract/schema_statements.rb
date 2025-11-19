@@ -184,7 +184,7 @@ module ActiveRecord
       # The +options+ hash can include the following keys:
       # [<tt>:id</tt>]
       #   Whether to automatically add a primary key column. Defaults to true.
-      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] should set it to false.
+      #   Join tables for {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many] set it to false by default.
       #
       #   A Symbol can be used to specify the type of the generated primary key column.
       #
@@ -362,7 +362,6 @@ module ActiveRecord
       # for details of the options you can use in +column_options+. +column_options+
       # will be applied to both columns.
       #
-      # You can pass an +options+ hash which can include the following keys:
       # [<tt>:table_name</tt>]
       #   Sets the table name, overriding the default.
       # [<tt>:options</tt>]
@@ -372,6 +371,10 @@ module ActiveRecord
       # [<tt>:force</tt>]
       #   Set to true to drop the table before creating it.
       #   Defaults to false.
+      # [<tt>:primary_key</tt>]
+      #   By default no primary key is added for join tables. Use this option to set the
+      #   set a primary key and it's name. If an array is passed, a composite primary key will
+      #   be created.
       #
       # Note that #create_join_table does not create any indices by default; you can use
       # its block form to do so yourself:
@@ -405,16 +408,28 @@ module ActiveRecord
       #     part_id bigint NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
+      # ====== Add a composite primary key
+      #
+      #   create_join_table(:assemblies, :parts, primary_key: [:assembly_id, :part_id])
+      #
+      # generates:
+      #
+      #   CREATE TABLE assemblies_parts (
+      #     assembly_id bigint NOT NULL,
+      #     part_id bigint NOT NULL,
+      #   );
+      #
+      #  ALTER TABLE ONLY "assemblies_parts"
+      #      ADD CONSTRAINT assemblies_parts_pkey PRIMARY KEY (assembly_id, part_id);
+      #
       def create_join_table(table_1, table_2, column_options: {}, **options)
         join_table_name = find_join_table_name(table_1, table_2, options)
-
         column_options.reverse_merge!(null: false, index: false)
+        options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
 
-        t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
-
-        create_table(join_table_name, **options.merge!(id: false)) do |td|
-          td.references t1_ref, **column_options
-          td.references t2_ref, **column_options
+        create_table(join_table_name, **options) do |td|
+          td.references reference_name_for_table(table_1), **column_options
+          td.references reference_name_for_table(table_2), **column_options
           yield td if block_given?
         end
       end
@@ -427,12 +442,11 @@ module ActiveRecord
       def build_create_join_table_definition(table_1, table_2, column_options: {}, **options) # :nodoc:
         join_table_name = find_join_table_name(table_1, table_2, options)
         column_options.reverse_merge!(null: false, index: false)
+        options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
 
-        t1_ref, t2_ref = [table_1, table_2].map { |t| reference_name_for_table(t) }
-
-        build_create_table_definition(join_table_name, **options.merge!(id: false)) do |td|
-          td.references t1_ref, **column_options
-          td.references t2_ref, **column_options
+        build_create_table_definition(join_table_name, id: false, **options) do |td|
+          td.references reference_name_for_table(table_1), **column_options
+          td.references reference_name_for_table(table_2), **column_options
           yield td if block_given?
         end
       end
