@@ -270,6 +270,26 @@ end
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
 
+#### Adding New Attachments
+
+WARNING: By default, attaching files to a `has_many_attached` association will
+replace any existing attachments.
+
+To keep existing attachments, you can use hidden form fields with the
+[`signed_id`][ActiveStorage::Blob#signed_id] of each attached file:
+
+```erb
+<% @product.images.each do |image| %>
+  <%= form.hidden_field :images, multiple: true, value: image.signed_id %>
+<% end %>
+
+<%= form.file_field :images, multiple: true %>
+```
+
+The above code resubmits the already-attached images back to Rails using hidden fields, so Active Storage keeps the existing attached images when adding a new one.
+
+[ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
+
 ### Attaching Files
 
 Active Storage allows you to attach files that are not uploaded via a form. In
@@ -339,27 +359,6 @@ end
   identify: false
 )
 ```
-
-### Replacing vs Adding Attachments
-
-By default in Rails, attaching files to a `has_many_attached` association will replace
-any existing attachments.
-
-To keep existing attachments, you can use hidden form fields with the [`signed_id`][ActiveStorage::Blob#signed_id]
-of each attached file:
-
-```erb
-<% @message.images.each do |image| %>
-  <%= form.hidden_field :images, multiple: true, value: image.signed_id %>
-<% end %>
-
-<%= form.file_field :images, multiple: true %>
-```
-
-This has the advantage of making it possible to remove existing attachments
-selectively, e.g. by using JavaScript to remove individual hidden fields.
-
-[ActiveStorage::Blob#signed_id]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 
 ### Form Validation
 
