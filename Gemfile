@@ -3,7 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
+gem "minitest", github: "zenspider/minitest", branch: "zenspider/mt6"
+gem "minitest-mock", github: "minitest/minitest-mock", branch: "main"
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 13"
