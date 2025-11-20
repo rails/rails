@@ -1,3 +1,10 @@
+*   Return hash for json formatted `EXPLAIN` queries.
+
+    Previously, `format: :json` option in `EXPLAIN` queries returns a string of the json result.
+    The json format now returns a parsed hash.
+
+    *Jenny Shen*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on on individual adapter classes, overriding

@@ -42,6 +42,6 @@ class PostgreSQLExplainTest < ActiveRecord::PostgreSQLTestCase
   def test_explain_format_option
     explain = Author.all.explain(format: :json).inspect
 
-    assert_match(/\{.*\}/m, explain)
+    assert_instance_of Hash, explain.first
   end
 end
