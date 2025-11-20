@@ -105,6 +105,13 @@ module Minitest
       options[:fail_fast] = true
     end
 
+    if Minitest::VERSION > "6" then
+      opts.on "-n", "--name PATTERN", "Include /regexp/ or string for run." do |a|
+        warn "Please switch from -n/--name to -i/--include"
+        options[:include] = a
+      end
+    end
+
     opts.on("-c", "--[no-]color", "Enable color in the output") do |value|
       options[:color] = value
     end
