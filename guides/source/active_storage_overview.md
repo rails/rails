@@ -270,47 +270,45 @@ end
 [Attached::Many#attach]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attach
 [Attached::Many#attached?]: https://api.rubyonrails.org/classes/ActiveStorage/Attached/Many.html#method-i-attached-3F
 
-### Attaching File/IO Objects
+### Attaching Files
 
-Sometimes you need to attach a file that doesn’t arrive via an HTTP request.
-For example, you may want to attach a file you generated on disk or downloaded
-from a user-submitted URL. You may also want to attach a fixture file in a
-model test. To do that, provide a Hash containing at least an open IO object
-and a filename:
+Active Storage allows you to attach files that are not uploaded via a form. In
+order to attach a file that you generated on disk or downloaded from an URL, you
+can use the `io` and `filename` options with the `attach` method. You may also
+use this method to attach fixture files during testing.
 
 ```ruby
-@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf")
+@product.images.attach(io: File.open("/path/to/file"), filename: "product.pdf")
 ```
 
-When possible, provide a content type as well. Active Storage attempts to
-determine a file’s content type from its data. It falls back to the content
-type you provide if it can’t do that.
+Active Storage attempts to determine a file’s content type from its data. It
+falls back to the content type you provide if it can’t do that. So it's a good
+practice to use the `content_type` option to specify the content type when possible:
 
 ```ruby
-@message.images.attach(io: File.open("/path/to/file"), filename: "file.pdf", content_type: "application/pdf")
+@product.images.attach(io: File.open("/path/to/file"), filename: "product.pdf", content_type: "application/pdf")
 ```
 
-You can bypass the content type inference from the data by passing in
-`identify: false` along with the `content_type`.
+You can also instruct Active Storage not to infer content type from the data by using the`identify` option:
 
 ```ruby
-@message.images.attach(
+@product.images.attach(
   io: File.open("/path/to/file"),
-  filename: "file.pdf",
+  filename: "product.pdf",
   content_type: "application/pdf",
   identify: false
 )
 ```
 
 If you don’t provide a content type and Active Storage can’t determine the
-file’s content type automatically, it defaults to application/octet-stream.
+file’s content type automatically, it defaults to `application/octet-stream`.
 
-There is an additional parameter `key` that can be used to specify folders/sub-folders
-in your S3 Bucket. AWS S3 otherwise uses a random key to name your files. This
-approach is helpful if you want to organize your S3 Bucket files better.
+#### Cloud Storage
+
+For organizing files in sub-folders within your cloud storage (e.g. AWS S3 Bucket), there is a `key` option:
 
 ```ruby
-@message.images.attach(
+@product.images.attach(
   io: File.open("/path/to/file"),
   filename: "file.pdf",
   content_type: "application/pdf",
@@ -319,10 +317,12 @@ approach is helpful if you want to organize your S3 Bucket files better.
 )
 ```
 
-This way the file will get saved in the folder `[S3_BUCKET]/development/blog_content/`
-when you test this from your development environment. Note that if you use the key
-parameter, you have to ensure the key to be unique for the upload to go through. It is
-recommended to append the filename with a unique random key, something like:
+Without the `key` specified, AWS S3 uses a random key to name your files. But
+with the above `key`, the file will get saved in the folder
+`[S3_BUCKET]/development/blog_content/` when you test this from your development
+environment. When you use the `key` parameter, you have to ensure that the
+key is unique for the upload to be successful. It is recommended to append the
+filename with a random number, something like:
 
 ```ruby
 def s3_file_key
@@ -331,9 +331,9 @@ end
 ```
 
 ```ruby
-@message.images.attach(
+@product.images.attach(
   io: File.open("/path/to/file"),
-  filename: "file.pdf",
+  filename: "product.pdf",
   content_type: "application/pdf",
   key: s3_file_key,
   identify: false
