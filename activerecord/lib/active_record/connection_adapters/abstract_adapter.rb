@@ -30,6 +30,19 @@ module ActiveRecord
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
       ADAPTER_NAME = "Abstract"
+
+      ##
+      # :singleton-method: migration_strategy
+      #
+      # Allows configuration of migration strategy per adapter type.
+      # When set on a specific adapter class (e.g., PostgreSQLAdapter),
+      # all migrations using that adapter will use the specified strategy
+      # instead of the global ActiveRecord.migration_strategy.
+      #
+      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      class_attribute :migration_strategy, instance_writer: false
+
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 

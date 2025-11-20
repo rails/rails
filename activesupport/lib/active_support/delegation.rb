@@ -226,11 +226,12 @@ module ActiveSupport
         delegated_methods.each do |method_name|
           if method_name.match?(/\A[a-zA-Z]\w+[!?]?\z/)
             parameters = superclass.instance_method(method_name).parameters
-            if parameters.empty?
-              signature = ""
+
+            signature = if parameters.empty?
+              ""
             elsif parameters.all? { |type, _name| type == :req || type == :keyreq || type == :block }
               anonymous = 0
-              signature = parameters.map do |type, name|
+              parameters.map do |type, name|
                 case type
                 when :req
                   name || "__anonymous_arg_#{anonymous += 1}"

@@ -96,6 +96,10 @@ module ActiveRecord
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
 
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join(" ") } : option
+          end
+
           "EXPLAIN (#{options.join(", ").upcase})"
         end
 
