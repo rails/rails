@@ -363,42 +363,54 @@ end
 ### Form Validation
 
 Attachments aren't sent to the storage service until a successful `save` on the
-associated record. This means that if a form submission fails validation, any new
-attachment(s) will be lost and must be uploaded again. Since [direct uploads](#direct-uploads)
-are stored before the form is submitted, they can be used to retain uploads when validation fails:
+associated record. This means that if a form submission fails validation, any
+new attachments will be lost and must be uploaded again. [Direct
+uploads](#direct-uploads) work differently. They are stored before the form is submitted, so they retain uploads even when validation fails:
 
 ```erb
-<%= form.hidden_field :avatar, value: @user.avatar.signed_id if @user.avatar.attached? %>
-<%= form.file_field :avatar, direct_upload: true %>
+<%= form.hidden_field :profile_photo, value: @user.profile_photo.signed_id if @user.profile_photo.attached? %>
+<%= form.file_field :profile_photo, direct_upload: true %>
 ```
 
 Querying Attached Files
 -----------------------
 
-Active Storage attachments are Active Record associations behind the scenes, so you can use the usual [query methods](active_record_querying.html) to look up records for attachments that meet specific criteria.
+Since Active Storage attachments are Active Record associations, you can use the usual [query methods](active_record_querying.html) to look up records associated with attachments in the Active Storage related tables.
 
 ### `has_one_attached`
 
-[`has_one_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_one_attached) creates a `has_one` association named `"<name>_attachment"` and a `has_one :through` association named `"<name>_blob"`.
-To select every user where the avatar is a PNG, run the following:
+When you declare `has_one_attached :profile_photo`, Rails automatically sets up two associations behind the scenes: a `has_one` association called `profile_photo_attachment`, which points to the `active_storage_attachments` table, and a `has_one :through` association called `profile_photo_blob`, which points to the `active_storage_blobs` table through the attachment record.
+
+Because these associations behave like normal Active Record relations, you can query them. For example, the following query joins the users table to the blob record and filters for all users whose avatar has a PNG content type:
 
 ```ruby
-User.joins(:avatar_blob).where(active_storage_blobs: { content_type: "image/png" })
+class User < ApplicationRecord
+  has_one_attached :profile_photo
+end
+
+# Query users whose profile_photo is a PNG
+users = User.joins(:profile_photo_blob).where(
+  active_storage_blobs: { content_type: "image/png" }
+)
 ```
 
 ### `has_many_attached`
 
-[`has_many_attached`](https://api.rubyonrails.org/classes/ActiveStorage/Attached/Model.html#method-i-has_many_attached) creates a `has_many` association called `"<name>_attachments"` and a `has_many :through` association called `"<name>_blobs"` (note the plural).
-To select all messages where images are videos rather than photos you can do the following:
+Similarly, when you use `has_many_attached`, Rails defines two associations: a `has_many` association named `<name>_attachments`, which represents the join records in the `active_storage_attachments` table, and a `has_many :through` association named `<name>_blobs`, which gives access to the corresponding rows in `active_storage_blobs` table. 
+
+Because the `_blobs` association provides a normal relational join, you can query it directly to filter records based on metadata stored in the blob. For example, the following code retrieves all Product records whose attached images are videos with an MP4 format:
 
 ```ruby
-Message.joins(:images_blobs).where(active_storage_blobs: { content_type: "video/mp4" })
+class Product < ApplicationRecord
+  has_many_attached :images
+end
+
+products = Product.joins(:images_blobs).where(
+  active_storage_blobs: { content_type: "video/mp4" }
+)
 ```
 
-The query will filter on the [**`ActiveStorage::Blob`**](https://api.rubyonrails.org/classes/ActiveStorage/Blob.html), not the [attachment record](https://api.rubyonrails.org/classes/ActiveStorage/Attachment.html) because these are plain SQL joins. You can combine the blob predicates above with any other scope conditions, just as you would with any other Active Record query.
-
-
-
+This query executes against the active_storage_blobs table rather than the attachment records themselves, since the join created by joins(:images_blobs) operates on the blob side of the association. You can combine such blob-based filters with additional scope conditions in the same way you would with any standard Active Record query.
 
 Serving Files
 -------------
