@@ -115,6 +115,19 @@ module ActiveRecord
         assert_match "WITH RECURSIVE", relation.to_sql
       end
 
+      def test_merge_with_recursive
+        relation = Company.with_recursive(
+          top_companies_and_children: [
+            Company.where(firm_id: nil),
+            Company.joins("JOIN top_companies_and_children ON companies.firm_id = top_companies_and_children.id"),
+          ]
+        )
+        with_recursive = relation.to_sql
+        merge_with_recursive = Company.merge(relation).to_sql
+
+        assert_equal with_recursive, merge_with_recursive
+      end
+
       def test_with_joins
         relation = Post
           .with(commented_posts: Comment.select(:post_id).distinct)

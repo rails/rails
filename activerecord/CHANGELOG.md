@@ -1,3 +1,9 @@
+*   Generate correct CTE while using merge with with_recursive modifier, fixes #56145.
+
+    Using `Post.merge(Post.with_recursive(...))` preserves `RECURSIVE` modifier.
+
+    *Tahsin Hasan*
+
 *   On MySQL parallel test database table reset to use `DELETE` instead of `TRUNCATE`.
 
     Truncating on MySQL is very slow even on empty or nearly empty tables.

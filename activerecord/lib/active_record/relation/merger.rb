@@ -63,7 +63,11 @@ module ActiveRecord
           # `false.blank?` returns `true`, so there needs to be an extra check so that explicit `false` values
           # don't fall through the cracks.
           unless value.nil? || (value.blank? && false != value)
-            relation.public_send(:"#{name}!", *value)
+            if name == :with && !other.instance_variable_get(:@with_is_recursive).nil? && other.to_sql.start_with?("WITH RECURSIVE")
+              relation.public_send(:with_recursive!, *value)
+            else
+              relation.public_send(:"#{name}!", *value)
+            end
           end
         end
 
