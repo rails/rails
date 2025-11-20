@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/zenspider/minitest.git
+  revision: d80a8e431eb7d024f49ff7986e6012bec24dff2f
+  branch: zenspider/mt6
+  specs:
+    minitest (6.0.0.a1)
+
 PATH
   remote: .
   specs:
@@ -363,7 +370,6 @@ GEM
       logger
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
-    minitest (5.25.5)
     minitest-bisect (1.7.0)
       minitest-server (~> 1.0)
       path_expander (~> 1.1)
@@ -761,7 +767,7 @@ DEPENDENCIES
   libxml-ruby
   listen (~> 3.3)
   mdl (!= 0.13.0)
-  minitest
+  minitest!
   minitest-bisect
   minitest-ci
   minitest-retry
