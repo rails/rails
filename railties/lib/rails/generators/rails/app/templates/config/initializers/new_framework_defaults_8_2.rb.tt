@@ -8,3 +8,8 @@
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 # https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+###
+# Controls whether or not to close the `<form>` element rendered by a call to `form_with` without a block
+#++
+# Rails.application.config.action_view.close_form_with_without_block = true
