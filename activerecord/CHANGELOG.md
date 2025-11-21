@@ -1,3 +1,15 @@
+*   Infer default `:inverse_of` option for `delegated_type` definitions when `config.active_record.automatic_scope_inversing = true`
+
+    ```ruby
+    class Entry < ApplicationRecord
+      # When `config.active_record.automatic_scope_inversing = true`,
+      # automatically infer `inverse_of: :entry` option
+      delegated_type :entryable, types: %w[ Message ]
+    end
+    ```
+
+    *Sean Doyle*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding
