@@ -1,3 +1,8 @@
+*   Emit a structured event when `action_on_open_redirect` is set to `:notify`
+    in addition to the existing Active Support Notification.
+
+    *Adrianna Chang*, *Hartley McGuire*
+
 *   Support `text/markdown` format in `DebugExceptions` middleware.
 
     When `text/markdown` is requested via the Accept header, error responses
