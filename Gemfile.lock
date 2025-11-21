@@ -367,9 +367,9 @@ GEM
       minitest (>= 5.0.6)
     minitest-retry (0.2.3)
       minitest (>= 5.0)
-    minitest-server (1.0.8)
+    minitest-server (1.0.9)
       drb (~> 2.0)
-      minitest (~> 5.16)
+      minitest (> 5.16)
     mixlib-cli (2.1.8)
     mixlib-config (3.0.27)
       tomlrb
