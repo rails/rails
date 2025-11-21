@@ -3,6 +3,8 @@
 require_relative "abstract_unit"
 require "rails/test_unit/line_filtering"
 
+module Rails; end # needed to run this file solo?
+
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
