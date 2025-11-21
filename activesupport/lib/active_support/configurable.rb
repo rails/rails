@@ -3,7 +3,7 @@
 ActiveSupport.deprecator.warn <<~MSG
   ActiveSupport::Configurable is deprecated without replacement, and will be removed in Rails 8.2.
 
-  You can emulate the previous behavior with `class_attribute`.
+  The previous behavior can be emulated with `attr_accessor`s, `class_attribute`s, or combinations of `class_attribute` and `InheritableOptions` depending on requirements.
 MSG
 
 require "active_support/concern"
