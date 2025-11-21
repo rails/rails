@@ -1,3 +1,35 @@
+*   Introduce `ActiveModel::NestedAttributes`
+
+    Handle assignment of `_attributes`-suffixed values in an ActionView- and
+    ActionPack-compliant way:
+
+    ```ruby
+    class Article
+      include ActiveModel::Model
+      include ActiveModel::NestedAttributes
+
+      attr_accessor :author
+      attr_accessor :tags
+
+      accepts_nested_attributes_for :author, class_name: Author
+      accepts_nested_attributes_for :tags, class_name: Tag
+    end
+
+
+    article = Article.new(
+      author_attributes: { name: "Pseudo Nym" },
+      tags_attributes: {
+         0 => { name: "actionview" },
+         1 => { name: "actionpack" },
+      }
+    )
+
+    article.author.name # => "Pseudo Nym"
+    article.tags.pluck(:name) # => ["actionview", "actionpack"]
+    ```
+
+    *Sean Doyle*
+
 *   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
     respond to the attribute instead of raising an error.
 
