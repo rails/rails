@@ -135,7 +135,7 @@ module ActiveRecord
         end
 
         if update_only.present?
-          @updatable_columns = Array(update_only)
+          @updatable_columns = Array(update_only).map(&:to_s)
           @on_duplicate = :update
         elsif custom_update_sql_provided?
           @update_sql = on_duplicate
@@ -285,7 +285,7 @@ module ActiveRecord
           return "" unless update_duplicates? && record_timestamps?
 
           model.timestamp_attributes_for_update_in_model.filter_map do |column_name|
-            if touch_timestamp_attribute?(column_name) && !column_name.to_sym.in?(insert_all.updatable_columns)
+            if touch_timestamp_attribute?(column_name)
               "#{column_name}=(CASE WHEN (#{updatable_columns.map(&block).join(" AND ")}) THEN #{model.quoted_table_name}.#{column_name} ELSE #{connection.high_precision_current_timestamp} END), "
             end
           end.join
