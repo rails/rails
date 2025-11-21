@@ -1,6 +1,6 @@
 *   Add support for configuring migration strategy on a per-adapter basis.
 
-    `migration_strategy` can now be set on on individual adapter classes, overriding
+    `migration_strategy` can now be set on individual adapter classes, overriding
     the global `ActiveRecord.migration_strategy`. This allows individual databases to
     customize migration execution logic:
 
