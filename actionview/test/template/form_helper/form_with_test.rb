@@ -124,7 +124,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_local_true
-    actual = ActionView.deprecator.silence do
+    actual = assert_deprecated ActionView.deprecator do
       form_with(local: true)
     end
 
@@ -175,7 +175,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
   end
 
   def test_form_with_with_block_in_erb_and_local_true
-    @rendered = ActionView.deprecator.silence do
+    @rendered = assert_deprecated ActionView.deprecator do
       render_erb("<%= form_with(url: 'http://www.example.com', local: true) do %>Hello world!<% end %>")
     end
 
@@ -899,7 +899,9 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     assert_dom_equal expected, @rendered
   ensure
-    ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    ActionView.deprecator.silence do
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = old_value
+    end
   end
 
   def test_form_with_skip_enforcing_utf8_true

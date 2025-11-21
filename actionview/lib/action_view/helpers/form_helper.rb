@@ -185,19 +185,6 @@ module ActionView
       #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
-      # ==== Deprecated: Rails UJS options
-      #
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
-      #   JavaScript drivers to control the submit behavior.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form.
-      #   Use only if you need to pass custom authenticity token string, or to
-      #   not add authenticity_token field at all (by passing <tt>false</tt>).
-      #   Remote forms may omit the embedded authenticity token by setting
-      #   <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
-      #   This is helpful when you're fragment-caching the form. Remote forms
-      #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
-      #   unnecessary unless you support browsers without JavaScript.
-      #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
       # possible to use both the stand-alone FormHelper methods and methods
       # from FormTagHelper. For example:
@@ -327,29 +314,6 @@ module ActionView
       # in the options hash. If the verb is not GET or POST, which are natively
       # supported by HTML forms, the form will be set to POST and a hidden input
       # called _method will carry the intended verb for the server to interpret.
-      #
-      # === Deprecated: Unobtrusive JavaScript
-      #
-      # Specifying:
-      #
-      #    remote: true
-      #
-      # in the options hash creates a form that will allow the unobtrusive JavaScript drivers to modify its
-      # behavior. The form submission will work just like a regular submission as viewed by the receiving
-      # side (all elements available in <tt>params</tt>).
-      #
-      # Example:
-      #
-      #   <%= form_for(@article, remote: true) do |f| %>
-      #     ...
-      #   <% end %>
-      #
-      # The HTML generated for this would be:
-      #
-      #   <form action='http://www.example.com' method='post' data-remote='true'>
-      #     <input name='_method' type='hidden' value='patch' />
-      #     ...
-      #   </form>
       #
       # === Setting HTML options
       #
@@ -497,6 +461,18 @@ module ActionView
 
       mattr_accessor :form_with_generates_remote_forms, default: true
 
+      class << self
+        redefine_method :form_with_generates_remote_forms= do |value|
+          if value
+            ActionView.deprecator.warn \
+              "Setting config.action_view.form_with_generates_remote_forms is deprecated and will be removed in a future version of Rails. " \
+              "Call form_with and form_for with a `data: { remote: true }` option instead. "
+          end
+
+          @@form_with_generates_remote_forms = value
+        end
+      end
+
       mattr_accessor :form_with_generates_ids, default: false
 
       mattr_accessor :multiple_file_field_include_hidden, default: false
@@ -642,19 +618,6 @@ module ActionView
       # * <tt>:class</tt> - Optional HTML class attribute.
       # * <tt>:data</tt> - Optional HTML data attributes.
       # * <tt>:html</tt> - Other optional HTML attributes for the form tag.
-      #
-      # ==== Deprecated: Rails UJS options
-      #
-      # * <tt>:local</tt> - Whether to use standard HTTP form submission.
-      #   When set to <tt>true</tt>, the form is submitted via standard HTTP.
-      #   When set to <tt>false</tt>, the form is submitted as a "remote form", which
-      #   is handled by \Rails UJS as an XHR. When unspecified, the behavior is derived
-      #   from <tt>config.action_view.form_with_generates_remote_forms</tt> where the
-      #   config's value is actually the inverse of what <tt>local</tt>'s value would be.
-      #   As of \Rails 6.1, that configuration option defaults to <tt>false</tt>
-      #   (which has the equivalent effect of passing <tt>local: true</tt>).
-      #   In previous versions of \Rails, that configuration option defaults to
-      #   <tt>true</tt> (the equivalent of passing <tt>local: false</tt>).
       #
       # === Examples
       #
