@@ -1,3 +1,9 @@
+*   Set `config.rake_eager_load` in generated test environment to match `config.eager_load` behavior in CI.
+
+    This ensures eager loading works consistently in CI when rake tasks invoke the `:environment` task before tests run.
+
+    *Trevor Turk*
+
 *   Update the `.node-version` file conditionally generated for new applications to 22.21.1
 
     *Taketo Takashima*
