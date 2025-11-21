@@ -93,6 +93,16 @@ module Rails
       Rails.env
     end
 
+    # The application's version
+    property "Application version" do
+      Rails.application.version.to_s
+    end
+
+    # The application's revision (git commit hash)
+    property "Application revision" do
+      Rails.application.version.short_revision if Rails.application.version.revision
+    end
+
     # The name of the database adapter for the current environment.
     property "Database adapter" do
       ActiveRecord::Base.connection_pool.db_config.adapter
