@@ -18,25 +18,13 @@ module ActionView
     config.eager_load_namespaces << ActionView
 
     config.after_initialize do |app|
-      if app.config.action_view.key?(:embed_authenticity_token_in_remote_forms)
-        ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
-          app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
-
-        ActionView.deprecator.warn \
-          "Setting config.action_view.embed_authenticity_token_in_remote_forms is deprecated and will be removed in a future version of Rails. " \
-          "Call form_with and form_for with an :authenticity_token option instead."
-      end
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
+        app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
     end
 
     config.after_initialize do |app|
-      if app.config.action_view.key?(:form_with_generates_remote_forms)
-        form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
-        ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
-
-        ActionView.deprecator.warn \
-          "Setting config.action_view.form_with_generates_remote_forms is deprecated and will be removed in a future version of Rails. " \
-          "Call form_with and form_for with a `data: { remote: true }` option instead. "
-      end
+      form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
+      ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
     end
 
     config.after_initialize do |app|

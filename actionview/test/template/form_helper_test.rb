@@ -2426,7 +2426,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_remote
-    ActionView.deprecator.silence do
+    assert_deprecated ActionView.deprecator do
       form_for(@post, url: "/", remote: true, html: { id: "create-post", method: :patch }) do |f|
         concat f.text_field(:title)
         concat f.textarea(:body)
@@ -2497,7 +2497,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_remote_in_html
-    ActionView.deprecator.silence do
+    assert_deprecated ActionView.deprecator do
       form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
         concat f.text_field(:title)
         concat f.textarea(:body)
@@ -2518,7 +2518,7 @@ class FormHelperTest < ActionView::TestCase
   def test_form_for_with_remote_without_html
     @post.persisted = false
     @post.stub(:to_key, nil) do
-      ActionView.deprecator.silence do
+      assert_deprecated ActionView.deprecator do
         form_for(@post, remote: true) do |f|
           concat f.text_field(:title)
           concat f.textarea(:body)
@@ -4200,7 +4200,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_form_for_with_data_attributes
-    ActionView.deprecator.silence do
+    assert_deprecated ActionView.deprecator do
       form_for(@post, data: { behavior: "stuff" }, remote: true) { }
     end
     assert_match %r|data-behavior="stuff"|, @rendered

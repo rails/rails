@@ -22,8 +22,19 @@ module ActionView
       include TextHelper
       include ContentExfiltrationPreventionHelper
 
-      mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = nil
+      mattr_accessor :embed_authenticity_token_in_remote_forms, default: nil
+
+      class << self
+        redefine_method :embed_authenticity_token_in_remote_forms= do |value|
+          if value
+            ActionView.deprecator.warn \
+              "Setting config.action_view.embed_authenticity_token_in_remote_forms is deprecated and will be removed in a future version of Rails. " \
+              "Call form_with and form_for with an :authenticity_token option instead."
+          end
+
+          @@embed_authenticity_token_in_remote_forms = value
+        end
+      end
 
       mattr_accessor :default_enforce_utf8, default: true
 

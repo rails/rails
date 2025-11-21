@@ -165,7 +165,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_form_tag_with_remote
-    actual = ActionView.deprecator.silence do
+    actual = assert_deprecated ActionView.deprecator do
       form_tag({}, { remote: true })
     end
 
