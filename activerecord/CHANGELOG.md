@@ -1,3 +1,9 @@
+*   Migrate `ActiveRecord::AttributeAssignment` support for multi-parameter attributes to Active Model
+
+    Implement assignment in terms of including `ActiveModel::AttributeAssignment`
+
+    *Sean Doyle*
+
 *   Add support for configuring migration strategy on a per-adapter basis.
 
     `migration_strategy` can now be set on individual adapter classes, overriding
