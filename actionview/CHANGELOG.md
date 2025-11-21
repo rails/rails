@@ -1,3 +1,10 @@
+*   Introduce `config.action_view.html_assertions`
+
+    Adds support for testing with `Capybara::Minitest::Assertions` when set to `:capybara`.
+    Defaults to `Rails::Dom::Testing::Assertions` with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Add ability to pass a block when rendering collection. The block will be executed for each rendered element in the collection.
 
     *Vincent Robert*
