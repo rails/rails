@@ -153,6 +153,23 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       end
     end
 
+    def test_exec_explain_with_json_format
+      sqls    = %w(foo bar)
+      binds   = [[], []]
+      queries = sqls.zip(binds)
+      results = ["query plan foo", "query plan bar"]
+
+      stub_explain_for_query_plans(results) do
+        result = base.exec_explain(queries, [{ format: :json }])
+
+        if current_adapter?(:SQLite3Adapter)
+          assert_instance_of String, result
+        else
+          assert_equal results, result
+        end
+      end
+    end
+
     private
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0

@@ -30,7 +30,14 @@ module ActiveRecord
           result  = internal_exec_query(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
+          return JSON.parse(result.first["EXPLAIN"]) if explain_json_format?(options)
+
           MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
+        end
+
+
+        def explain_json_format?(options)
+          options.any? { |opt| opt.is_a?(Hash) && opt[:format] == :json }
         end
 
         def build_explain_clause(options = [])

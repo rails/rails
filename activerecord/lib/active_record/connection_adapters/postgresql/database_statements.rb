@@ -7,7 +7,14 @@ module ActiveRecord
         def explain(arel, binds = [], options = [])
           sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
           result = internal_exec_query(sql, "EXPLAIN", binds)
+
+          return JSON.parse(result.first["QUERY PLAN"]).first if explain_json_format?(options)
+
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
+        end
+
+        def explain_json_format?(options)
+          options.any? { |opt| opt.is_a?(Hash) && opt[:format] == :json }
         end
 
         # Queries the database and returns the results in an Array-like object
