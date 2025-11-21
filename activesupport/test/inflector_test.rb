@@ -265,6 +265,16 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("htmlAPI", ActiveSupport::Inflector.camelize("HTMLAPI", false))
   end
 
+  def test_underscore_acronym_precedence
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.acronym "JWK"
+      inflect.acronym "JWKS"
+    end
+
+    assert_equal "jwks", "JWKS".underscore
+    assert_equal "jwk", "JWK".underscore
+  end
+
   def test_underscore_acronym_sequence
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.acronym("API")
