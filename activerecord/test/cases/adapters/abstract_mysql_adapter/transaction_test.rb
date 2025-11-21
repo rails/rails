@@ -133,7 +133,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.query_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
             conn.execute("KILL QUERY #{pid}")
           end
         end
