@@ -310,6 +310,19 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "purge doesn't delete the blob when the file deletion fails" do
+    blob = create_blob
+
+    blob.service.stub(:delete, ->(*_) { raise "File deletion failed" }) do
+      assert_raises(RuntimeError, "File deletion failed") do
+        blob.purge
+      end
+    end
+
+    assert_not_predicate blob, :destroyed?
+    assert ActiveStorage::Blob.service.exist?(blob.key)
+  end
+
   test "uses service from blob when provided" do
     with_service("mirror") do
       blob = create_blob(filename: "funky.jpg", service_name: :local)
