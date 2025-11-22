@@ -172,6 +172,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema(nil)
   end
 
+  def test_xmlschema_with_datetime_local_time
+    tz = ActiveSupport::TimeZone["America/New_York"]
+    twz = ActiveSupport::TimeWithZone.new(nil, tz, DateTime.new(2025, 11, 7, 12))
+
+    assert_equal "2025-11-07T12:00:00-05:00", twz.xmlschema
+  end
+
   def test_iso8601_with_fractional_seconds
     @twz += Rational(1, 8)
     assert_equal "1999-12-31T19:00:00.125-05:00", @twz.iso8601(3)
