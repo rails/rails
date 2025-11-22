@@ -1589,6 +1589,17 @@ class TransactionTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.lease_connection.supports_transaction_isolation? && !current_adapter?(:SQLite3Adapter)
+    def test_isolation_setter
+      Topic.transaction(isolation: :read_committed) do
+        Topic.first
+        assert_raises(ActiveRecord::TransactionIsolationError, match: /isolation level can only be set for fixture transactions/) do
+          Topic.lease_connection.current_transaction.isolation = :repeatable_read
+        end
+      end
+    end
+  end
+
   def test_accessing_raw_connection_materializes_transaction
     assert_queries_match(/BEGIN|COMMIT/i, include_schema: true) do
       Topic.transaction { Topic.lease_connection.raw_connection }
@@ -1660,6 +1671,10 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
 
   def setup
     @first, @second = Topic.find(1, 2).sort_by(&:id)
+  end
+
+  def test_fixtures_transaction
+    assert_equal true, Topic.lease_connection.current_transaction.fixture_transaction?
   end
 
   def test_automatic_savepoint_in_outer_transaction
@@ -1792,6 +1807,12 @@ class ConcurrentTransactionTest < ActiveRecord::TestCase
       end
 
       assert_equal original_salary, Developer.find(1).salary
+    end
+
+    def test_fixture_transaction
+      Topic.transaction do
+        assert_equal false, Topic.lease_connection.current_transaction.fixture_transaction?
+      end
     end
   end
 end
