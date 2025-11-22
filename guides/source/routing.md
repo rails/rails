@@ -566,7 +566,7 @@ For other actions, you need to insert the action name as the first element of th
 
 This allows you to treat instances of your models as URLs, and is a key advantage to using the resourceful style.
 
-NOTE: In order to automatically derive paths and URLs from objects such as `[@magazine, @ad]`, Rails uses methods from [`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html) and [`ActiveModel::Conversion`](https://api.rubyonrails.org/classes/ActiveModel/Conversion.html) modules. Specifically, the `@magazine.model_name.route_key` returns `magazines` and `@magazine.to_param` returns a string representation of the model's `id`. So the generated path may be something like `/magazines/1/ads/42` for the objects `[@magazine, @ad]`.
+NOTE: In order to automatically derive paths and URLs from objects such as `[@magazine, @ad]`, Rails uses methods from [`ActiveModel::Naming`](https://api.rubyonrails.org/classes/ActiveModel/Naming.html) and [`ActiveModel::Conversion`](https://api.rubyonrails.org/classes/ActiveModel/Conversion.html) modules. Specifically, the `@magazine.model_name.route_key` returns `:magazines` and `@magazine.to_param` returns a string representation of the model's `id`. So the generated path may be something like `/magazines/1/ads/42` for the objects `[@magazine, @ad]`.
 
 [ActionView::RoutingUrlFor#url_for]: https://api.rubyonrails.org/classes/ActionView/RoutingUrlFor.html#method-i-url_for
 

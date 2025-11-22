@@ -32,7 +32,7 @@ class NamingTest < ActiveModel::TestCase
   end
 
   def test_route_key
-    assert_equal "post_track_backs", @model_name.route_key
+    assert_equal :post_track_backs, @model_name.route_key
   end
 
   def test_param_key
@@ -74,7 +74,7 @@ class NamingWithNamespacedModelInIsolatedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_route_key
-    assert_equal "posts", @model_name.route_key
+    assert_equal :posts, @model_name.route_key
   end
 
   def test_param_key
@@ -112,7 +112,7 @@ class NamingWithNamespacedModelInSharedNamespaceTest < ActiveModel::TestCase
   end
 
   def test_route_key
-    assert_equal "blog_posts", @model_name.route_key
+    assert_equal :blog_posts, @model_name.route_key
   end
 
   def test_param_key
@@ -150,7 +150,7 @@ class NamingWithSuppliedModelNameTest < ActiveModel::TestCase
   end
 
   def test_route_key
-    assert_equal "articles", @model_name.route_key
+    assert_equal :articles, @model_name.route_key
   end
 
   def test_param_key
@@ -206,7 +206,7 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 
   def test_route_key
-    assert_equal "posts", @model_name.route_key
+    assert_equal :posts, @model_name.route_key
   end
 
   def test_param_key
@@ -225,8 +225,8 @@ class NamingHelpersTest < ActiveModel::TestCase
     @singular = "contact"
     @plural = "contacts"
     @uncountable = Sheep
-    @singular_route_key = "contact"
-    @route_key = "contacts"
+    @singular_route_key = :contact
+    @route_key = :contacts
     @param_key = "contact"
   end
 
@@ -274,8 +274,8 @@ class NamingHelpersTest < ActiveModel::TestCase
   end
 
   def test_uncountable_route_key
-    assert_equal "sheep", singular_route_key(@uncountable)
-    assert_equal "sheep_index", route_key(@uncountable)
+    assert_equal :sheep, singular_route_key(@uncountable)
+    assert_equal :sheep_index, route_key(@uncountable)
   end
 
   private

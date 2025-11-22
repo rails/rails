@@ -1,3 +1,7 @@
+*   Change `model_name.route_key` to return a symbol instead of a string.
+
+    *Andrew Kaspick*
+
 *   Changes `ActiveModel::Validations#read_attribute_for_validation` to return `nil` if the record doesn't
     respond to the attribute instead of raising an error.
 
@@ -116,5 +120,3 @@
 *   Make `ActiveModel::Serializers::JSON#from_json` compatible with `#assign_attributes`
 
     *Sean Doyle*
-
-Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/activemodel/CHANGELOG.md) for previous changes.

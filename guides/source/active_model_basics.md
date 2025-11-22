@@ -967,18 +967,18 @@ irb> Person.model_name.i18n_key
 => :person
 ```
 
-**`route_key`** returns a string to use while generating route names.
+**`route_key`** returns a symbol to use while generating route names.
 
 ```irb
 irb> Person.model_name.route_key
-=> "people"
+=> :people
 ```
 
-**`singular_route_key`** returns a string to use while generating route names.
+**`singular_route_key`** returns a symbol to use while generating route names.
 
 ```irb
 irb> Person.model_name.singular_route_key
-=> "person"
+=> :person
 ```
 
 **`uncountable?`** identifies whether the class name of a record or class is
@@ -1047,9 +1047,9 @@ irb> name = ActiveModel::Name.new(Person::Profile, nil, "Profile")
 irb> name.singular
 => "profile"
 irb> name.singular_route_key
-=> "profile"
+=> :profile
 irb> name.route_key
-=> "profiles"
+=> :profiles
 ```
 
 ### SecurePassword
